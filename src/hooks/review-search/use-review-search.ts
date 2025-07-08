@@ -148,8 +148,8 @@ export function useReviewSearch() {
           return getAllReviews(searchParams);
       }
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -161,7 +161,8 @@ export function useReviewSearch() {
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
     enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions,
-    staleTime: 30 * 1000,
+    staleTime: 30 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

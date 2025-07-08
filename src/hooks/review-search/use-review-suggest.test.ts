@@ -24,13 +24,13 @@ const createMockProps = () => ({
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * DOM要素のモック
+ * キーボードイベントのモック作成ヘルパー
  */
-const createMockElement = () => ({
-  contains: vi.fn(),
-  addEventListener: vi.fn(),
-  removeEventListener: vi.fn(),
-});
+const createKeyboardEvent = (key: string) =>
+  ({
+    key,
+    preventDefault: vi.fn(),
+  }) as unknown as React.KeyboardEvent;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -76,138 +76,84 @@ describe("useReviewSuggest", () => {
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  describe("キーボードナビゲーション - ArrowDown", () => {
-    test("should move selection down when ArrowDown is pressed", () => {
+  describe("キーボードナビゲーション - 矢印キー", () => {
+    test.each([
+      {
+        key: "ArrowDown",
+        initialIndex: -1,
+        expectedIndex: 0,
+        description: "should move selection down when ArrowDown is pressed",
+      },
+      {
+        key: "ArrowUp",
+        initialIndex: -1,
+        expectedIndex: 2,
+        description: "should wrap to last item when ArrowUp is pressed at first item",
+      },
+    ])("$description", ({ key, expectedIndex }) => {
       const { result } = renderHook(() => useReviewSuggest(mockProps));
 
-      const mockEvent = {
-        key: "ArrowDown",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent(key);
 
       act(() => {
         result.current.handleKeyDown(mockEvent);
       });
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(result.current.selectedIndex).toBe(expectedIndex);
+    });
+
+    test("should move selection up when ArrowUp is pressed", () => {
+      const { result } = renderHook(() => useReviewSuggest(mockProps));
+
+      // まず下に移動してから上に移動
+      act(() => {
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
+      });
+      act(() => {
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
+      });
+
+      expect(result.current.selectedIndex).toBe(1);
+
+      act(() => {
+        result.current.handleKeyDown(createKeyboardEvent("ArrowUp"));
+      });
+
       expect(result.current.selectedIndex).toBe(0);
     });
 
     test("should wrap to first item when ArrowDown is pressed at last item", () => {
       const { result } = renderHook(() => useReviewSuggest(mockProps));
 
-      // 最後のアイテムまで移動
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
+      // 最後のアイテムまで移動（3回ArrowDown）
+      for (let i = 0; i < 3; i++) {
+        act(() => {
+          result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
+        });
+      }
 
       expect(result.current.selectedIndex).toBe(2);
 
       // さらにArrowDownで最初に戻る
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(0);
     });
 
-    test("should not change selection when ArrowDown is pressed with empty suggestions", () => {
+    test.each([
+      { key: "ArrowDown", description: "ArrowDown" },
+      { key: "ArrowUp", description: "ArrowUp" },
+    ])("should not change selection when $description is pressed with empty suggestions", ({ key }) => {
       const propsWithEmptySuggestions = {
         ...mockProps,
         suggestions: [],
       };
       const { result } = renderHook(() => useReviewSuggest(propsWithEmptySuggestions));
 
-      const mockEvent = {
-        key: "ArrowDown",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
-
-      act(() => {
-        result.current.handleKeyDown(mockEvent);
-      });
-
-      expect(result.current.selectedIndex).toBe(-1);
-    });
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  describe("キーボードナビゲーション - ArrowUp", () => {
-    test("should move selection up when ArrowUp is pressed", () => {
-      const { result } = renderHook(() => useReviewSuggest(mockProps));
-
-      // まず下に移動してから上に移動
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
-
-      expect(result.current.selectedIndex).toBe(1);
-
-      act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowUp",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
-      });
-
-      expect(result.current.selectedIndex).toBe(0);
-    });
-
-    test("should wrap to last item when ArrowUp is pressed at first item", () => {
-      const { result } = renderHook(() => useReviewSuggest(mockProps));
-
-      const mockEvent = {
-        key: "ArrowUp",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
-
-      act(() => {
-        result.current.handleKeyDown(mockEvent);
-      });
-
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-      expect(result.current.selectedIndex).toBe(2);
-    });
-
-    test("should not change selection when ArrowUp is pressed with empty suggestions", () => {
-      const propsWithEmptySuggestions = {
-        ...mockProps,
-        suggestions: [],
-      };
-      const { result } = renderHook(() => useReviewSuggest(propsWithEmptySuggestions));
-
-      const mockEvent = {
-        key: "ArrowUp",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent(key);
 
       act(() => {
         result.current.handleKeyDown(mockEvent);
@@ -225,16 +171,10 @@ describe("useReviewSuggest", () => {
 
       // 最初のアイテムを選択
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
-      const mockEvent = {
-        key: "Enter",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent("Enter");
 
       act(() => {
         result.current.handleKeyDown(mockEvent);
@@ -246,13 +186,25 @@ describe("useReviewSuggest", () => {
       expect(result.current.selectedIndex).toBe(-1);
     });
 
-    test("should execute search when Enter is pressed without selection", () => {
-      const { result } = renderHook(() => useReviewSuggest(mockProps));
+    test.each([
+      {
+        description: "should execute search when Enter is pressed without selection",
+        suggestions: mockSuggestions,
+        shouldCallSuggestionSelect: false,
+      },
+      {
+        description: "should execute search when Enter is pressed with invalid selection index",
+        suggestions: [],
+        shouldCallSuggestionSelect: false,
+      },
+    ])("$description", ({ suggestions, shouldCallSuggestionSelect }) => {
+      const propsForTest = {
+        ...mockProps,
+        suggestions,
+      };
+      const { result } = renderHook(() => useReviewSuggest(propsForTest));
 
-      const mockEvent = {
-        key: "Enter",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent("Enter");
 
       act(() => {
         result.current.handleKeyDown(mockEvent);
@@ -260,28 +212,12 @@ describe("useReviewSuggest", () => {
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
       expect(mockProps.onSearchExecuteAction).toHaveBeenCalled();
-      expect(mockProps.onSuggestionSelectAction).not.toHaveBeenCalled();
+      if (shouldCallSuggestionSelect) {
+        expect(mockProps.onSuggestionSelectAction).toHaveBeenCalled();
+      } else {
+        expect(mockProps.onSuggestionSelectAction).not.toHaveBeenCalled();
+      }
       expect(mockProps.onSuggestionsToggleAction).toHaveBeenCalledWith(false);
-    });
-
-    test("should execute search when Enter is pressed with invalid selection index", () => {
-      // 空のサジェストでEnterを押すケースをテスト
-      const propsWithEmptySuggestions = {
-        ...mockProps,
-        suggestions: [],
-      };
-      const { result } = renderHook(() => useReviewSuggest(propsWithEmptySuggestions));
-
-      const mockEvent = {
-        key: "Enter",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
-
-      act(() => {
-        result.current.handleKeyDown(mockEvent);
-      });
-
-      expect(mockProps.onSearchExecuteAction).toHaveBeenCalled();
     });
   });
 
@@ -293,21 +229,13 @@ describe("useReviewSuggest", () => {
 
       // まず選択状態にする
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(0);
 
-      const mockEvent = {
-        key: "Escape",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
-
       act(() => {
-        result.current.handleKeyDown(mockEvent);
+        result.current.handleKeyDown(createKeyboardEvent("Escape"));
       });
 
       expect(mockProps.onSuggestionsToggleAction).toHaveBeenCalledWith(false);
@@ -321,10 +249,7 @@ describe("useReviewSuggest", () => {
     test("should not handle other keys", () => {
       const { result } = renderHook(() => useReviewSuggest(mockProps));
 
-      const mockEvent = {
-        key: "Tab",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent("Tab");
 
       act(() => {
         result.current.handleKeyDown(mockEvent);
@@ -363,10 +288,7 @@ describe("useReviewSuggest", () => {
 
       // 選択状態にする
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(0);
@@ -397,10 +319,7 @@ describe("useReviewSuggest", () => {
 
       // キーボード操作をテスト
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(-1);
@@ -410,67 +329,56 @@ describe("useReviewSuggest", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("外部クリック処理", () => {
-    test("should close suggestions when clicking outside", () => {
+    test.each([
+      {
+        description: "should close suggestions when clicking outside",
+        inputContains: false,
+        suggestionContains: false,
+        shouldCloseSuggestions: true,
+      },
+      {
+        description: "should not close suggestions when clicking inside input",
+        inputContains: true,
+        suggestionContains: false,
+        shouldCloseSuggestions: false,
+      },
+      {
+        description: "should not close suggestions when clicking inside suggestion area",
+        inputContains: false,
+        suggestionContains: true,
+        shouldCloseSuggestions: false,
+      },
+    ])("$description", ({ inputContains, suggestionContains, shouldCloseSuggestions }) => {
       const { result } = renderHook(() => useReviewSuggest(mockProps));
 
-      // inputRefとsuggestionRefをモック
-      const mockInputElement = createMockElement();
-      const mockSuggestionElement = createMockElement();
+      const mockInputElement = {
+        contains: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
+      const mockSuggestionElement = {
+        contains: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      };
 
-      // refのcurrentプロパティを適切にモック
-      Object.defineProperty(result.current.inputRef, "current", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      Object.defineProperty((result.current as any).inputRef, "current", {
         writable: true,
         value: mockInputElement,
       });
-      Object.defineProperty(result.current.suggestionRef, "current", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      Object.defineProperty((result.current as any).suggestionRef, "current", {
         writable: true,
         value: mockSuggestionElement,
       });
 
-      // 外部要素をクリック
-      const outsideElement = document.createElement("div");
-      mockInputElement.contains.mockReturnValue(false);
-      mockSuggestionElement.contains.mockReturnValue(false);
+      mockInputElement.contains.mockReturnValue(inputContains);
+      mockSuggestionElement.contains.mockReturnValue(suggestionContains);
 
-      // イベントリスナーを取得して実行
-      const addEventListenerCalls = vi.mocked(document.addEventListener).mock.calls;
-      const mousedownHandler = addEventListenerCalls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
-
-      if (mousedownHandler) {
-        const mockMouseEvent = {
-          target: outsideElement,
-        } as unknown as MouseEvent;
-
-        act(() => {
-          mousedownHandler(mockMouseEvent);
-        });
-
-        expect(mockProps.onSuggestionsToggleAction).toHaveBeenCalledWith(false);
-        expect(result.current.selectedIndex).toBe(-1);
-      }
-    });
-
-    test("should not close suggestions when clicking inside input", () => {
-      const { result } = renderHook(() => useReviewSuggest(mockProps));
-
-      const mockInputElement = createMockElement();
-      const mockSuggestionElement = createMockElement();
-
-      // refのcurrentプロパティを適切にモック
-      Object.defineProperty(result.current.inputRef, "current", {
-        writable: true,
-        value: mockInputElement,
-      });
-      Object.defineProperty(result.current.suggestionRef, "current", {
-        writable: true,
-        value: mockSuggestionElement,
-      });
-
-      mockInputElement.contains.mockReturnValue(true);
-      mockSuggestionElement.contains.mockReturnValue(false);
-
-      const addEventListenerCalls = vi.mocked(document.addEventListener).mock.calls;
-      const mousedownHandler = addEventListenerCalls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
+      const mousedownHandler = vi
+        .mocked(document.addEventListener)
+        .mock.calls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
 
       if (mousedownHandler) {
         const mockMouseEvent = {
@@ -481,50 +389,21 @@ describe("useReviewSuggest", () => {
           mousedownHandler(mockMouseEvent);
         });
 
-        expect(mockProps.onSuggestionsToggleAction).not.toHaveBeenCalled();
-      }
-    });
-
-    test("should not close suggestions when clicking inside suggestion area", () => {
-      const { result } = renderHook(() => useReviewSuggest(mockProps));
-
-      const mockInputElement = createMockElement();
-      const mockSuggestionElement = createMockElement();
-
-      // refのcurrentプロパティを適切にモック
-      Object.defineProperty(result.current.inputRef, "current", {
-        writable: true,
-        value: mockInputElement,
-      });
-      Object.defineProperty(result.current.suggestionRef, "current", {
-        writable: true,
-        value: mockSuggestionElement,
-      });
-
-      mockInputElement.contains.mockReturnValue(false);
-      mockSuggestionElement.contains.mockReturnValue(true);
-
-      const addEventListenerCalls = vi.mocked(document.addEventListener).mock.calls;
-      const mousedownHandler = addEventListenerCalls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
-
-      if (mousedownHandler) {
-        const mockMouseEvent = {
-          target: document.createElement("div"),
-        } as unknown as MouseEvent;
-
-        act(() => {
-          mousedownHandler(mockMouseEvent);
-        });
-
-        expect(mockProps.onSuggestionsToggleAction).not.toHaveBeenCalled();
+        if (shouldCloseSuggestions) {
+          expect(mockProps.onSuggestionsToggleAction).toHaveBeenCalledWith(false);
+          expect(result.current.selectedIndex).toBe(-1);
+        } else {
+          expect(mockProps.onSuggestionsToggleAction).not.toHaveBeenCalled();
+        }
       }
     });
 
     test("should handle null refs gracefully", () => {
       renderHook(() => useReviewSuggest(mockProps));
 
-      const addEventListenerCalls = vi.mocked(document.addEventListener).mock.calls;
-      const mousedownHandler = addEventListenerCalls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
+      const mousedownHandler = vi
+        .mocked(document.addEventListener)
+        .mock.calls.find((call) => call[0] === "mousedown")?.[1] as EventListener;
 
       if (mousedownHandler) {
         const mockMouseEvent = {
@@ -554,54 +433,56 @@ describe("useReviewSuggest", () => {
 
       // ArrowDownで選択
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(0);
 
-      // さらにArrowDownで最初に戻る
+      // さらにArrowDownで最初に戻る（単一要素の場合は同じインデックス）
       act(() => {
-        result.current.handleKeyDown({
-          key: "ArrowDown",
-          preventDefault: vi.fn(),
-        } as unknown as React.KeyboardEvent);
+        result.current.handleKeyDown(createKeyboardEvent("ArrowDown"));
       });
 
       expect(result.current.selectedIndex).toBe(0);
     });
 
-    test("should handle undefined suggestions gracefully", () => {
-      const undefinedSuggestionsProps = {
-        ...mockProps,
+    test.each([
+      {
+        description: "should handle undefined suggestions gracefully",
         suggestions: undefined as unknown as typeof mockSuggestions,
-      };
-
-      expect(() => {
-        renderHook(() => useReviewSuggest(undefinedSuggestionsProps));
-      }).not.toThrow();
-    });
-
-    test("should handle null callback functions", () => {
-      const nullCallbackProps = {
-        onSuggestionsToggleAction: vi.fn(),
+        shouldThrow: false,
+      },
+      {
+        description: "should handle null callback functions",
         suggestions: mockSuggestions,
         onSuggestionSelectAction: null as unknown as typeof mockProps.onSuggestionSelectAction,
         onSearchExecuteAction: null as unknown as typeof mockProps.onSearchExecuteAction,
+        shouldThrow: false,
+      },
+    ])("$description", ({ suggestions, onSuggestionSelectAction, onSearchExecuteAction, shouldThrow }) => {
+      const testProps = {
+        onSuggestionsToggleAction: vi.fn(),
+        suggestions,
+        onSuggestionSelectAction: onSuggestionSelectAction ?? mockProps.onSuggestionSelectAction,
+        onSearchExecuteAction: onSearchExecuteAction ?? mockProps.onSearchExecuteAction,
       };
 
-      const { result } = renderHook(() => useReviewSuggest(nullCallbackProps));
+      if (shouldThrow) {
+        expect(() => {
+          renderHook(() => useReviewSuggest(testProps));
+        }).toThrow();
+      } else {
+        expect(() => {
+          const { result } = renderHook(() => useReviewSuggest(testProps));
 
-      expect(() => {
-        act(() => {
-          result.current.handleKeyDown({
-            key: "Enter",
-            preventDefault: vi.fn(),
-          } as unknown as React.KeyboardEvent);
-        });
-      }).not.toThrow();
+          // null callbacksのテストの場合は追加でキーイベントをテスト
+          if (onSuggestionSelectAction === null) {
+            act(() => {
+              result.current.handleKeyDown(createKeyboardEvent("Enter"));
+            });
+          }
+        }).not.toThrow();
+      }
     });
   });
 
@@ -611,11 +492,7 @@ describe("useReviewSuggest", () => {
     test("should handle invalid selectedIndex gracefully", () => {
       const { result } = renderHook(() => useReviewSuggest(mockProps));
 
-      // 無効なキーイベントでselectedIndexが範囲外になることを想定
-      const mockEvent = {
-        key: "Enter",
-        preventDefault: vi.fn(),
-      } as unknown as React.KeyboardEvent;
+      const mockEvent = createKeyboardEvent("Enter");
 
       // selectedIndexが-1の状態でEnterを押す
       act(() => {

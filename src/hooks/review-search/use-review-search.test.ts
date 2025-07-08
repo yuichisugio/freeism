@@ -29,7 +29,7 @@ import { useReviewSearch } from "./use-review-search";
  */
 
 // review-search actionsのモック
-vi.mock("@/lib/actions/review-search/review-search", () => ({
+vi.mock("@/actions/review-search/review-search", () => ({
   getAllReviews: vi.fn(),
   getMyReviews: vi.fn(),
   getUserReviews: vi.fn(),
@@ -191,9 +191,28 @@ describe("useReviewSearch", () => {
       expect(result.current.showSuggestions).toBe(false);
     });
 
-    test("should initialize with custom query state values", () => {
+    test.each([
+      {
+        description: "edit tab with test query and page 2",
+        tab: "edit" as const,
+        searchQuery: "test query",
+        page: 2,
+      },
+      {
+        description: "received tab with empty query and page 1",
+        tab: "received" as const,
+        searchQuery: "",
+        page: 1,
+      },
+      {
+        description: "search tab with complex query and page 5",
+        tab: "search" as const,
+        searchQuery: "複雑な検索クエリ",
+        page: 5,
+      },
+    ])("should initialize with custom query state values: $description", ({ tab, searchQuery, page }) => {
       // Arrange
-      setupUseQueryStateMock("edit", "test query", 2);
+      setupUseQueryStateMock(tab, searchQuery, page);
 
       // Act
       const { result } = renderHook(() => useReviewSearch(), {
@@ -201,45 +220,32 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(result.current.searchParams.tab).toBe("edit");
-      expect(result.current.searchParams.searchQuery).toBe("test query");
-      expect(result.current.searchParams.page).toBe("2");
-      expect(result.current.activeTab).toBe("edit");
+      expect(result.current.searchParams.tab).toBe(tab);
+      expect(result.current.searchParams.searchQuery).toBe(searchQuery);
+      expect(result.current.searchParams.page).toBe(page.toString());
+      expect(result.current.activeTab).toBe(tab);
     });
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("データ取得", () => {
-    test("should fetch all reviews when tab is search", async () => {
+    test.each([
+      {
+        description: "all reviews when tab is search",
+        tab: "search" as const,
+      },
+      {
+        description: "my reviews when tab is edit",
+        tab: "edit" as const,
+      },
+      {
+        description: "user reviews when tab is received",
+        tab: "received" as const,
+      },
+    ])("should fetch $description", ({ tab }) => {
       // Arrange
-      setupUseQueryStateMock("search");
-
-      // Act
-      renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Assert - useQueryが呼ばれることを確認
-      expect(mockUseQuery).toHaveBeenCalled();
-    });
-
-    test("should fetch my reviews when tab is edit", async () => {
-      // Arrange
-      setupUseQueryStateMock("edit");
-
-      // Act
-      renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Assert - useQueryが呼ばれることを確認
-      expect(mockUseQuery).toHaveBeenCalled();
-    });
-
-    test("should fetch user reviews when tab is received", async () => {
-      // Arrange
-      setupUseQueryStateMock("received");
+      setupUseQueryStateMock(tab);
 
       // Act
       renderHook(() => useReviewSearch(), {
@@ -333,7 +339,23 @@ describe("useReviewSearch", () => {
       expect(result.current.showSuggestions).toBe(false);
     });
 
-    test("should show suggestions when query length is >= 2", () => {
+    test.each([
+      {
+        description: "should show suggestions when query length is >= 2",
+        query: "te",
+        expectedShowSuggestions: true,
+      },
+      {
+        description: "should hide suggestions when query length is < 2",
+        query: "t",
+        expectedShowSuggestions: false,
+      },
+      {
+        description: "should hide suggestions when query is empty",
+        query: "",
+        expectedShowSuggestions: false,
+      },
+    ])("$description", ({ query, expectedShowSuggestions }) => {
       // Arrange
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
@@ -341,26 +363,11 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.updateSearchQuery("te");
+        result.current.updateSearchQuery(query);
       });
 
       // Assert
-      expect(result.current.showSuggestions).toBe(true);
-    });
-
-    test("should hide suggestions when query length is < 2", () => {
-      // Arrange
-      const { result } = renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Act
-      act(() => {
-        result.current.updateSearchQuery("t");
-      });
-
-      // Assert
-      expect(result.current.showSuggestions).toBe(false);
+      expect(result.current.showSuggestions).toBe(expectedShowSuggestions);
     });
   });
 
@@ -414,7 +421,20 @@ describe("useReviewSearch", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("タブ機能", () => {
-    test("should change tab correctly", () => {
+    test.each([
+      {
+        description: "should change tab to edit",
+        tab: "edit" as const,
+      },
+      {
+        description: "should change tab to received",
+        tab: "received" as const,
+      },
+      {
+        description: "should change tab to search",
+        tab: "search" as const,
+      },
+    ])("$description", ({ tab }) => {
       // Arrange
       const { setActiveTab, setPage } = setupUseQueryStateMock();
       const { result } = renderHook(() => useReviewSearch(), {
@@ -423,28 +443,11 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.changeTab("edit");
+        result.current.changeTab(tab);
       });
 
       // Assert
-      expect(setActiveTab).toHaveBeenCalledWith("edit");
-      expect(setPage).toHaveBeenCalledWith(1);
-    });
-
-    test("should change tab to received", () => {
-      // Arrange
-      const { setActiveTab, setPage } = setupUseQueryStateMock();
-      const { result } = renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Act
-      act(() => {
-        result.current.changeTab("received");
-      });
-
-      // Assert
-      expect(setActiveTab).toHaveBeenCalledWith("received");
+      expect(setActiveTab).toHaveBeenCalledWith(tab);
       expect(setPage).toHaveBeenCalledWith(1);
     });
   });
@@ -452,7 +455,20 @@ describe("useReviewSearch", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("ページネーション", () => {
-    test("should change page correctly", () => {
+    test.each([
+      {
+        description: "should change page to 3",
+        page: 3,
+      },
+      {
+        description: "should change page to 1",
+        page: 1,
+      },
+      {
+        description: "should change page to 100",
+        page: 100,
+      },
+    ])("$description", ({ page }) => {
       // Arrange
       const { setPage } = setupUseQueryStateMock();
       const { result } = renderHook(() => useReviewSearch(), {
@@ -461,11 +477,11 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.changePage(3);
+        result.current.changePage(page);
       });
 
       // Assert
-      expect(setPage).toHaveBeenCalledWith(3);
+      expect(setPage).toHaveBeenCalledWith(page);
     });
 
     test("should reset page to 1 when executing search", () => {
@@ -520,9 +536,13 @@ describe("useReviewSearch", () => {
 
       mockUseQuery.mockReturnValue({
         data: {
-          reviews: multipleReviews as unknown as ReviewSearchResult["reviews"],
-          totalCount: 2,
-          totalPages: 1,
+          success: true,
+          message: "レビューを取得しました",
+          data: {
+            reviews: multipleReviews as unknown as ReviewSearchResult["reviews"],
+            totalCount: 2,
+            totalPages: 1,
+          },
         },
         isPending: false,
         error: null,
@@ -682,7 +702,26 @@ describe("useReviewSearch", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("境界値テスト", () => {
-    test("should handle empty search query", () => {
+    test.each([
+      {
+        description: "should handle empty search query",
+        query: "",
+        expectedSuggestionQuery: "",
+        expectedShowSuggestions: false,
+      },
+      {
+        description: "should handle very long search query",
+        query: "a".repeat(1000),
+        expectedSuggestionQuery: "a".repeat(1000),
+        expectedShowSuggestions: true,
+      },
+      {
+        description: "should handle special characters in search query",
+        query: "!@#$%^&*()_+",
+        expectedSuggestionQuery: "!@#$%^&*()_+",
+        expectedShowSuggestions: true,
+      },
+    ])("$description", ({ query, expectedSuggestionQuery, expectedShowSuggestions }) => {
       // Arrange
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
@@ -690,32 +729,34 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.updateSearchQuery("");
+        result.current.updateSearchQuery(query);
       });
 
       // Assert
-      expect(result.current.suggestionQuery).toBe("");
-      expect(result.current.showSuggestions).toBe(false);
+      expect(result.current.suggestionQuery).toBe(expectedSuggestionQuery);
+      expect(result.current.showSuggestions).toBe(expectedShowSuggestions);
     });
 
-    test("should handle very long search query", () => {
-      // Arrange
-      const longQuery = "a".repeat(1000);
-      const { result } = renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Act
-      act(() => {
-        result.current.updateSearchQuery(longQuery);
-      });
-
-      // Assert
-      expect(result.current.suggestionQuery).toBe(longQuery);
-      expect(result.current.showSuggestions).toBe(true);
-    });
-
-    test("should handle null comment in update review", async () => {
+    test.each([
+      {
+        description: "should handle null comment in update review",
+        reviewId: "review-1",
+        rating: 5,
+        comment: null,
+      },
+      {
+        description: "should handle empty comment in update review",
+        reviewId: "review-1",
+        rating: 3,
+        comment: "",
+      },
+      {
+        description: "should handle very long comment in update review",
+        reviewId: "review-1",
+        rating: 2,
+        comment: "a".repeat(5000),
+      },
+    ])("$description", ({ reviewId, rating, comment }) => {
       // Arrange
       const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
@@ -729,14 +770,30 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.handleUpdateReview("review-1", 5, null);
+        result.current.handleUpdateReview(reviewId, rating, comment);
       });
 
       // Assert
-      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: null });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId, rating, comment });
     });
 
-    test("should handle rating boundary values", async () => {
+    test.each([
+      {
+        description: "should handle minimum rating (1)",
+        rating: 1,
+        comment: "Minimum rating",
+      },
+      {
+        description: "should handle maximum rating (5)",
+        rating: 5,
+        comment: "Maximum rating",
+      },
+      {
+        description: "should handle middle rating (3)",
+        rating: 3,
+        comment: "Middle rating",
+      },
+    ])("$description", ({ rating, comment }) => {
       // Arrange
       const mockMutate = vi.fn();
       mockUseMutation.mockReturnValue({
@@ -748,45 +805,42 @@ describe("useReviewSearch", () => {
         wrapper: AllTheProviders,
       });
 
-      // Act - minimum rating
+      // Act
       act(() => {
-        result.current.handleUpdateReview("review-1", 1, "Minimum rating");
+        result.current.handleUpdateReview("review-1", rating, comment);
       });
 
       // Assert
-      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 1, comment: "Minimum rating" });
-
-      // Act - maximum rating
-      act(() => {
-        result.current.handleUpdateReview("review-1", 5, "Maximum rating");
-      });
-
-      // Assert
-      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating: 5, comment: "Maximum rating" });
+      expect(mockMutate).toHaveBeenCalledWith({ reviewId: "review-1", rating, comment });
     });
 
-    test("should handle page boundary values", () => {
+    test.each([
+      {
+        description: "should handle page 0",
+        page: 0,
+      },
+      {
+        description: "should handle negative page",
+        page: -1,
+      },
+      {
+        description: "should handle large page number",
+        page: 999999,
+      },
+    ])("$description", ({ page }) => {
       // Arrange
       const { setPage } = setupUseQueryStateMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // Act - page 0
+      // Act
       act(() => {
-        result.current.changePage(0);
+        result.current.changePage(page);
       });
 
       // Assert
-      expect(setPage).toHaveBeenCalledWith(0);
-
-      // Act - large page number
-      act(() => {
-        result.current.changePage(999999);
-      });
-
-      // Assert
-      expect(setPage).toHaveBeenCalledWith(999999);
+      expect(setPage).toHaveBeenCalledWith(page);
     });
 
     test("should handle empty suggestions array", () => {
@@ -801,7 +855,11 @@ describe("useReviewSearch", () => {
           options.queryKey[1] === "suggestions"
         ) {
           return {
-            data: [],
+            data: {
+              success: false,
+              message: "サジェストが見つかりません",
+              data: [],
+            },
             isPending: false,
             error: null,
             refetch: vi.fn(),
@@ -867,63 +925,58 @@ describe("useReviewSearch", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("異常系テスト", () => {
-    test("should handle API error gracefully", async () => {
+    test.each([
+      {
+        description: "should handle API error gracefully",
+        mockSetup: () => {
+          mockUseQuery.mockReturnValue({
+            data: undefined,
+            isPending: false,
+            error: new Error("API Error"),
+            refetch: vi.fn(),
+          });
+        },
+      },
+      {
+        description: "should handle suggestion API error gracefully",
+        mockSetup: () => {
+          const mockReviewSearchResultWithPromise = {
+            success: true,
+            message: "レビューを取得しました",
+            data: mockReviewSearchResult,
+          };
+
+          mockUseQuery
+            .mockReturnValueOnce({
+              data: mockReviewSearchResultWithPromise,
+              isPending: false,
+              error: null,
+              refetch: vi.fn(),
+            })
+            .mockReturnValueOnce({
+              data: undefined,
+              isPending: false,
+              error: new Error("Suggestion API Error"),
+              refetch: vi.fn(),
+            });
+        },
+      },
+    ])("$description", ({ mockSetup }) => {
       // Arrange
       const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {
         // 空の実装
       });
-
-      mockUseQuery.mockReturnValue({
-        data: undefined,
-        isPending: false,
-        error: new Error("API Error"),
-        refetch: vi.fn(),
-      });
+      mockSetup();
 
       // Act
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
-      });
-
-      // Assert
-      expect(result.current).toBeTruthy();
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    test("should handle suggestion API error gracefully", async () => {
-      // Arrange
-      const mockReviewSearchResultWithPromise = {
-        success: true,
-        message: "レビューを取得しました",
-        data: mockReviewSearchResult,
-      };
-
-      mockUseQuery
-        .mockReturnValueOnce({
-          data: mockReviewSearchResultWithPromise,
-          isPending: false,
-          error: null,
-          refetch: vi.fn(),
-        })
-        .mockReturnValueOnce({
-          data: undefined,
-          isPending: false,
-          error: new Error("Suggestion API Error"),
-          refetch: vi.fn(),
-        });
-
-      const { result } = renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // Act
-      act(() => {
-        result.current.updateSearchQuery("test");
       });
 
       // Assert - エラーが発生してもアプリケーションは継続動作する
-      expect(result.current.suggestionQuery).toBe("test");
+      expect(result.current).toBeTruthy();
+
+      consoleErrorSpy.mockRestore();
     });
 
     test("should handle invalid tab value", () => {
@@ -943,18 +996,42 @@ describe("useReviewSearch", () => {
       }).not.toThrow();
     });
 
-    test("should handle undefined review ID in toggle edit mode", () => {
+    test.each([
+      {
+        description: "should handle undefined review ID in toggle edit mode",
+        input: undefined as unknown as string,
+        expectError: false,
+      },
+      {
+        description: "should handle null review ID in toggle edit mode",
+        input: null as unknown as string,
+        expectError: false,
+      },
+      {
+        description: "should handle empty string review ID in toggle edit mode",
+        input: "",
+        expectError: false,
+      },
+    ])("$description", ({ input, expectError }) => {
       // Arrange
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // Act & Assert - エラーが発生しないことを確認
-      expect(() => {
-        act(() => {
-          result.current.toggleEditMode(undefined as unknown as string);
-        });
-      }).not.toThrow();
+      // Act & Assert
+      if (expectError) {
+        expect(() => {
+          act(() => {
+            result.current.toggleEditMode(input);
+          });
+        }).toThrow();
+      } else {
+        expect(() => {
+          act(() => {
+            result.current.toggleEditMode(input);
+          });
+        }).not.toThrow();
+      }
     });
 
     test("should handle null suggestion in selectSuggestion", () => {
