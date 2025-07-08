@@ -10,7 +10,7 @@ import { deleteTask as deleteTaskAction } from "@/actions/task/task";
 import { TABLE_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { TaskStatus } from "@prisma/client";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useQueryState } from "nuqs";
 import { toast } from "sonner";
@@ -42,13 +42,6 @@ type UseMyTaskTableReturn = {
   resetFilters: () => void;
   resetSort: () => void;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * タスクデータの型
- */
-type TasksQueryResult = Awaited<ReturnType<typeof getMyTaskData>>;
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -112,6 +105,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       taskStatus: taskStatus as "ALL" | TaskStatus,
       contributionType: contributionType as "ALL" | ContributionType,
       itemPerPage,
+      isJoined: "all" as const,
     }),
     [page, sortField, sortDirection, searchQuery, taskStatus, contributionType, itemPerPage],
   );
@@ -146,8 +140,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   } = useQuery({
     queryKey: queryCacheKeys.table.myTaskConditions(tableConditions, currentUserId),
     queryFn: async () => await getMyTaskData(tableConditions, currentUserId),
-    enabled: !!currentUserId && !!tableConditions.searchQuery,
-    placeholderData: keepPreviousData,
+    enabled: !!currentUserId && !!tableConditions,
     staleTime: 1000 * 60 * 30, // 30 minutes
     gcTime: 1000 * 60 * 60, // 1 hour
   });
@@ -161,16 +154,20 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     if (!isPlaceholderData && tasksResult?.data?.tasks.length) {
       const currentPage = tableConditions.page;
       const totalPages = Math.ceil((tasksResult?.data?.totalTaskCount ?? 0) / tableConditions.itemPerPage);
+      // 次のページが存在する場合は、次ページをプリフェッチする
       if (currentPage < totalPages) {
         const nextPage = currentPage + 1;
-        void queryClient.prefetchQuery<
-          TasksQueryResult,
-          Error,
-          TasksQueryResult,
-          ReturnType<typeof queryCacheKeys.table.myTaskConditions>
-        >({
+        void queryClient.prefetchQuery({
           queryKey: queryCacheKeys.table.myTaskConditions({ ...tableConditions, page: nextPage }, currentUserId),
           queryFn: async () => await getMyTaskData({ ...tableConditions, page: nextPage }, currentUserId),
+        });
+      }
+      // 前のページが存在する場合は、前ページをプリフェッチする
+      if (currentPage > totalPages && currentPage > 1) {
+        const previousPage = currentPage - 1;
+        void queryClient.prefetchQuery({
+          queryKey: queryCacheKeys.table.myTaskConditions({ ...tableConditions, page: previousPage }, currentUserId),
+          queryFn: async () => await getMyTaskData({ ...tableConditions, page: previousPage }, currentUserId),
         });
       }
     }
@@ -179,29 +176,9 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * タスク編集・削除ロジック
-   */
-  const canEditTask = useCallback(
-    async (task: MyTaskTable): Promise<boolean> => {
-      const status = task.taskStatus;
-      const immutableStatuses = [TaskStatus.FIXED_EVALUATED, TaskStatus.POINTS_AWARDED, TaskStatus.ARCHIVED];
-      if (immutableStatuses.includes(status as (typeof immutableStatuses)[number])) return false;
-
-      if (task.isGroupOwner) return true;
-
-      const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
-
-      return !currentUserId || isOwner.success;
-    },
-    [currentUserId],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * タスク削除
    */
-  const { mutate: deleteTaskMutate, isPending: isDeletingTask } = useMutation({
+  const { mutate: handleDeleteTask, isPending: isDeletingTask } = useMutation({
     mutationFn: (taskId: string) => deleteTaskAction(taskId, currentUserId),
     onSuccess: async () => {
       router.refresh();
@@ -214,14 +191,45 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
+   * タスク編集・削除ロジック
+   * useMutationにしても、mutateの戻り値が必要なので、useCallbackでラップするハンドラーが必要になるため、どちらでも一緒なのでこのままにする
+   */
+  const canEditTask = useCallback(
+    async (task: MyTaskTable): Promise<boolean> => {
+      if (!task) return false;
+
+      const status = task.taskStatus;
+      const immutableStatuses = [
+        TaskStatus.FIXED_EVALUATED,
+        TaskStatus.POINTS_AWARDED,
+        TaskStatus.ARCHIVED,
+        TaskStatus.TASK_COMPLETED,
+      ];
+      if (immutableStatuses.includes(status as (typeof immutableStatuses)[number])) return false;
+
+      if (task.isGroupOwner) return true;
+
+      const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
+
+      return !!currentUserId && isOwner.success && isOwner.data;
+    },
+    [currentUserId],
+  );
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
    * タスク削除
+   * useMutationにしても、mutateの戻り値が必要なので、useCallbackでラップするハンドラーが必要になるため、どちらでも一緒なのでこのままにする
    */
   const canDeleteTask = useCallback(
     async (task: MyTaskTable): Promise<boolean> => {
+      if (!task) return false;
+
       if (task.isGroupOwner && task.taskStatus === TaskStatus.PENDING) return true;
 
       const isOwner = await checkIsPermission(currentUserId, task.groupId, task.id, true);
-      return isOwner.success && task.taskStatus === TaskStatus.PENDING;
+      return isOwner.success && isOwner.data && task.taskStatus === TaskStatus.PENDING;
     },
     [currentUserId],
   );
@@ -250,6 +258,7 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       searchQuery: null,
       taskStatus: "ALL",
       contributionType: "ALL",
+      sort: null,
       page: 1,
     });
   }, [changeTableConditions, tableConditions]);
@@ -279,15 +288,15 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     userId: currentUserId ?? null,
     tableConditions,
     totalTaskCount: tasksResult?.data?.totalTaskCount ?? 0,
+    router,
     editingTaskId,
     isTaskEditModalOpen,
-    router,
 
     // functions
     canEditTask,
     handleTaskEdited,
     canDeleteTask,
-    handleDeleteTask: deleteTaskMutate,
+    handleDeleteTask,
     openTaskEditModal: (task: MyTaskTable) => {
       setEditingTaskId(task.id);
       setIsTaskEditModalOpen(true);
