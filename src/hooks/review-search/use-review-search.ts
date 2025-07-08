@@ -142,7 +142,6 @@ export function useReviewSearch() {
   const {
     data: reviewData,
     isPending: isLoading,
-    error,
     refetch,
   } = useQuery({
     queryKey: ["reviews", activeTab, searchParams],
@@ -357,7 +356,6 @@ export function useReviewSearch() {
     activeTab,
     suggestionQuery,
     isLoading,
-    error,
     showSuggestions,
     isUpdating: isPending,
 

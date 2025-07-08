@@ -1,10 +1,10 @@
-"use client";
-
 import type { ReviewData, ReviewSearchParams, SearchSuggestion } from "@/components/review-search/review-search";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { EditableReviewCard, ReviewCard, ReviewPagination, ReviewSearchForm } from "./review-search";
+import { EditableReviewCard, ReviewCard } from "./review-search-card";
+import { ReviewSearchForm } from "./review-search-form";
+import { ReviewPagination } from "./review-search-pagination";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

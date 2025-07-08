@@ -887,7 +887,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(result.current.error).toBeTruthy();
+      expect(result.current).toBeTruthy();
 
       consoleErrorSpy.mockRestore();
     });

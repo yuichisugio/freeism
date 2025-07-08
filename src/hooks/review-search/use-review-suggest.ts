@@ -110,9 +110,12 @@ export function useReviewSuggest({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   return {
+    // state
     inputRef,
     suggestionRef,
     selectedIndex,
+
+    // functions
     handleKeyDown,
     handleSubmit,
   };
