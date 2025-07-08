@@ -190,11 +190,11 @@ describe("useTaskStatus", () => {
 
         // Act
         await act(async () => {
-          await result.current.handleStatusChange(
+          result.current.handleStatusChange({
             taskId,
             newStatus,
-            mockTableData as unknown as Record<string, unknown>[],
-          );
+            data: mockTableData as unknown as Record<string, unknown>[],
+          });
         });
 
         // Assert
@@ -240,11 +240,11 @@ describe("useTaskStatus", () => {
       for (const status of validStatuses) {
         // Act
         await act(async () => {
-          await result.current.handleStatusChange(
-            "task-1",
-            status,
-            mockTableData as unknown as Record<string, unknown>[],
-          );
+          result.current.handleStatusChange({
+            taskId: "task-1",
+            newStatus: status,
+            data: mockTableData as unknown as Record<string, unknown>[],
+          });
         });
 
         // Assert
@@ -294,11 +294,11 @@ describe("useTaskStatus", () => {
 
       // Act
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-1",
+          newStatus: TaskStatus.TASK_COMPLETED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert
@@ -326,11 +326,11 @@ describe("useTaskStatus", () => {
 
       // Act
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-1",
+          newStatus: TaskStatus.TASK_COMPLETED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert
@@ -404,11 +404,11 @@ describe("useTaskStatus", () => {
 
       // Act
       await act(async () => {
-        await result.current.handleStatusChange(
-          taskId as unknown as string,
-          newStatus as unknown as TaskStatus,
-          data as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: taskId as unknown as string,
+          newStatus: newStatus as unknown as TaskStatus,
+          data: data as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert
@@ -447,11 +447,11 @@ describe("useTaskStatus", () => {
         });
 
         await act(async () => {
-          await result.current.handleStatusChange(
-            "task-1",
-            TaskStatus.TASK_COMPLETED,
-            data as unknown as Record<string, unknown>[],
-          );
+          result.current.handleStatusChange({
+            taskId: "task-1",
+            newStatus: TaskStatus.TASK_COMPLETED,
+            data: data as unknown as Record<string, unknown>[],
+          });
         });
 
         // Assert - エラーが発生してもupdateTaskStatusは呼ばれる
@@ -462,11 +462,11 @@ describe("useTaskStatus", () => {
       } else {
         // Act
         await act(async () => {
-          await result.current.handleStatusChange(
-            "task-1",
-            TaskStatus.TASK_COMPLETED,
-            data as unknown as Record<string, unknown>[],
-          );
+          result.current.handleStatusChange({
+            taskId: "task-1",
+            newStatus: TaskStatus.TASK_COMPLETED,
+            data: data as unknown as Record<string, unknown>[],
+          });
         });
 
         // Assert
@@ -531,27 +531,27 @@ describe("useTaskStatus", () => {
 
       // Act - 複数のステータス変更を順次実行
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.AUCTION_ACTIVE,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-1",
+          newStatus: TaskStatus.AUCTION_ACTIVE,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-2",
-          TaskStatus.POINTS_DEPOSITED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-2",
+          newStatus: TaskStatus.POINTS_DEPOSITED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-3",
-          TaskStatus.ARCHIVED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-3",
+          newStatus: TaskStatus.ARCHIVED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert
@@ -572,11 +572,11 @@ describe("useTaskStatus", () => {
         data: null,
       });
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-1",
+          newStatus: TaskStatus.TASK_COMPLETED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
       expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
 
@@ -586,11 +586,11 @@ describe("useTaskStatus", () => {
         message: "権限がありません",
       } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-2",
-          TaskStatus.ARCHIVED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-2",
+          newStatus: TaskStatus.ARCHIVED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
       expect(mockToast.error).toHaveBeenCalledWith("権限がありません");
 
@@ -600,11 +600,11 @@ describe("useTaskStatus", () => {
         // console.errorの出力を抑制するためのモック実装
       });
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-3",
-          TaskStatus.POINTS_AWARDED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-3",
+          newStatus: TaskStatus.POINTS_AWARDED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
       expect(mockToast.error).toHaveBeenCalledWith("ステータスの更新に失敗しました");
       consoleErrorSpy.mockRestore();
@@ -628,11 +628,11 @@ describe("useTaskStatus", () => {
         data: null,
       });
       await act(async () => {
-        await result.current.handleStatusChange(
-          "task-1",
-          TaskStatus.TASK_COMPLETED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+        result.current.handleStatusChange({
+          taskId: "task-1",
+          newStatus: TaskStatus.TASK_COMPLETED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert - openStatusがnullにリセットされる
@@ -649,12 +649,12 @@ describe("useTaskStatus", () => {
         success: false,
         message: "エラーが発生しました",
       } as unknown as Awaited<ReturnType<typeof mockUpdateTaskStatus>>);
-      await act(async () => {
-        await result.current.handleStatusChange(
-          "task-2",
-          TaskStatus.ARCHIVED,
-          mockTableData as unknown as Record<string, unknown>[],
-        );
+      act(() => {
+        result.current.handleStatusChange({
+          taskId: "task-2",
+          newStatus: TaskStatus.ARCHIVED,
+          data: mockTableData as unknown as Record<string, unknown>[],
+        });
       });
 
       // Assert - エラーの場合でもopenStatusがnullにリセットされる

@@ -105,7 +105,7 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
   /**
    * タスクステータス管理フック
    */
-  const { openStatus, setOpenStatus, handleStatusChange } = useTaskStatus<T>(
+  const { openStatus, isTaskStatusChangeLoading, setOpenStatus, handleStatusChange } = useTaskStatus<T>(
     onDataChange ? (updatedData) => onDataChange(updatedData) : undefined,
   );
 
@@ -225,7 +225,12 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                     onOpenChange={(isOpen: boolean) => setOpenStatus(isOpen ? rowId : null)}
                                   >
                                     <PopoverTrigger asChild>
-                                      <Button variant="outline" role="combobox" className="mr-3">
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="mr-3"
+                                        disabled={isTaskStatusChangeLoading}
+                                      >
                                         {selectedLabel}
                                         <ChevronsUpDown />
                                       </Button>
@@ -241,13 +246,11 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                                 key={option.value}
                                                 value={option.label}
                                                 onSelect={() => {
-                                                  handleStatusChange(rowId, option.value, initialData)
-                                                    .catch((error) => {
-                                                      console.error(error);
-                                                    })
-                                                    .finally(() => {
-                                                      setOpenStatus(null);
-                                                    });
+                                                  handleStatusChange({
+                                                    taskId: rowId,
+                                                    newStatus: option.value,
+                                                    data: initialData,
+                                                  });
                                                 }}
                                               >
                                                 <Check
@@ -323,16 +326,8 @@ function ShareTableInner<T extends { id: string; isJoined?: boolean }>(props: Da
                                           <AlertDialogFooter>
                                             <AlertDialogCancel>キャンセル</AlertDialogCancel>
                                             <AlertDialogAction
-                                              onClick={() => {
-                                                column.deleteTask
-                                                  ?.onDelete(rowId)
-                                                  .then(() => {
-                                                    toast.success("タスクを削除しました");
-                                                  })
-                                                  .catch((error) => {
-                                                    console.error(error);
-                                                    toast.error("タスクの削除に失敗しました");
-                                                  });
+                                              onClick={async () => {
+                                                await column.deleteTask?.onDelete(rowId);
                                               }}
                                               className="bg-red-500 hover:bg-red-600"
                                             >

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { updateTaskStatus } from "@/actions/task/task";
 import { TaskStatus } from "@prisma/client";
-import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -43,33 +43,22 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
 
   /**
    * タスクステータス変更処理
-   * @param taskId - タスクID
-   * @param newStatus - 新しいステータス
-   * @param data - 現在のテーブルデータ
    */
-  const handleStatusChange = useCallback(
-    async (taskId: string, newStatus: TaskStatus, data: T[]): Promise<void> => {
-      try {
-        const result = await updateTaskStatus(taskId, newStatus);
-
-        if (result.success) {
-          if (onDataChange) {
-            // データが変更されたときにコールバックを呼び出す
-            onDataChange(data.map((row) => (row.id === taskId ? { ...row, status: newStatus } : row)));
-          }
-          toast.success("ステータスを更新しました");
-        } else if (!result.success && result.message) {
-          toast.error(result.message);
-        }
-      } catch (error) {
-        console.error(error);
-        toast.error("ステータスの更新に失敗しました");
-      } finally {
-        setOpenStatus(null);
+  const { mutate: handleStatusChange, isPending: isTaskStatusChangeLoading } = useMutation({
+    mutationFn: async (variables: { taskId: string; newStatus: TaskStatus; data: T[] }) => {
+      return await updateTaskStatus(variables.taskId, variables.newStatus);
+    },
+    onSuccess: (result, variables) => {
+      if (result.success && onDataChange) {
+        onDataChange(
+          variables.data.map((row) => (row.id === variables.taskId ? { ...row, status: variables.newStatus } : row)),
+        );
       }
     },
-    [onDataChange],
-  );
+    onSettled: () => {
+      setOpenStatus(null);
+    },
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -79,6 +68,7 @@ export function useTaskStatus<T extends Record<string, unknown>>(onDataChange?: 
   return {
     // state
     openStatus,
+    isTaskStatusChangeLoading,
 
     // function
     setOpenStatus,

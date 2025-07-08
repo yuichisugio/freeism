@@ -30,7 +30,6 @@ type UseMyTaskTableReturn = {
   editingTaskId: string | null;
   isTaskEditModalOpen: boolean;
   router: ReturnType<typeof useRouter>;
-  errorMessage: string | undefined;
 
   // functions
   canEditTask: (task: MyTaskTable) => Promise<boolean>;
@@ -70,6 +69,14 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
   if (!currentUserId) {
     redirect("/auth/signin");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * タスク編集モーダル開閉
+   */
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -136,11 +143,10 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     data: tasksResult,
     isPending: isLoadingTasks,
     isPlaceholderData,
-    error,
   } = useQuery({
     queryKey: queryCacheKeys.table.myTaskConditions(tableConditions, currentUserId),
     queryFn: async () => await getMyTaskData(tableConditions, currentUserId),
-    enabled: !!currentUserId, // ユーザーIDが取得できてからフェッチ
+    enabled: !!currentUserId && !!tableConditions.searchQuery,
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 30, // 30 minutes
     gcTime: 1000 * 60 * 60, // 1 hour
@@ -169,14 +175,6 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
       }
     }
   }, [tasksResult, tableConditions, isPlaceholderData, queryClient, currentUserId]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タスク編集モーダル開閉
-   */
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [isTaskEditModalOpen, setIsTaskEditModalOpen] = useState(false);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -284,7 +282,6 @@ export function useMyTaskTable(): UseMyTaskTableReturn {
     editingTaskId,
     isTaskEditModalOpen,
     router,
-    errorMessage: error?.message,
 
     // functions
     canEditTask,
