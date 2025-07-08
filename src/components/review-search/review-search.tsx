@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReviewSearch } from "@/hooks/review-search/use-review-search";
 
-import { EditableReviewCard, ReviewCard } from "./review-search-card";
+import { ReviewCard } from "./review-search-card";
 import { ReviewSearchForm } from "./review-search-form";
 import { ReviewPagination } from "./review-search-pagination";
 
@@ -149,10 +149,13 @@ export const ReviewSearchList = memo(function ReviewSearchList({
     switch (activeTab) {
       case "search":
         emptyMessage = "まだレビューが投稿されていません。";
+        break;
       case "edit":
         emptyMessage = "まだレビューを書いていません。";
+        break;
       case "received":
         emptyMessage = "まだレビューを受け取っていません。";
+        break;
       default:
         emptyMessage = "まだレビューがありません。";
     }
@@ -171,19 +174,16 @@ export const ReviewSearchList = memo(function ReviewSearchList({
    */
   return (
     <div className="space-y-4">
-      {reviews.map((review) =>
-        activeTab === "edit" ? (
-          <EditableReviewCard
-            key={review.id}
-            review={review}
-            onToggleEdit={toggleEditMode}
-            onUpdateReview={handleUpdateReview}
-            isUpdating={isUpdating}
-          />
-        ) : (
-          <ReviewCard key={review.id} review={review} showReviewer={activeTab === "received"} />
-        ),
-      )}
+      {reviews.map((review) => (
+        <ReviewCard
+          key={review.id}
+          review={review}
+          editable={activeTab === "edit"}
+          onToggleEdit={toggleEditMode}
+          onUpdateReview={handleUpdateReview}
+          isUpdating={isUpdating}
+        />
+      ))}
     </div>
   );
 });

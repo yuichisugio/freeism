@@ -88,7 +88,14 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
   /**
    * 共通のWHERE句を取得 (タスク条件を含む)
    */
-  const commonWhereClause = await buildCommonNotificationWhereClause(userId, true);
+  const commonWhereClauseResult = await buildCommonNotificationWhereClause(userId, true);
+
+  /**
+   * 共通のWHERE句の取得に失敗した場合はエラーを投げる
+   */
+  if (!commonWhereClauseResult.success) {
+    throw new Error(commonWhereClauseResult.message || "共通WHERE句の生成に失敗しました");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -96,7 +103,7 @@ export const cachedGetUnreadNotificationsCount = cache(async (userId: string): P
    * 未読条件を追加
    */
   const isReadCondition = Prisma.sql`(NOT (n."is_read" ? ${userId} AND (n."is_read" -> ${userId} ->> 'isRead')::boolean = TRUE))`;
-  const whereClause = Prisma.sql`${commonWhereClause} AND ${isReadCondition}`;
+  const whereClause = Prisma.sql`${commonWhereClauseResult.data} AND ${isReadCondition}`;
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

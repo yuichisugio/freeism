@@ -28,8 +28,9 @@ export function useReviewSearch() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * タブ
+   * URLパタメータ・条件の管理
    */
+  // タブ
   const [activeTab, setActiveTab] = useQueryState("tab", {
     defaultValue: "search" as ReviewSearchTab,
     parse: (value) => {
@@ -39,21 +40,13 @@ export function useReviewSearch() {
     history: "push",
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 検索クエリ
-   */
+  // 検索クエリ
   const [searchQuery, setSearchQuery] = useQueryState("q", {
     defaultValue: "",
     history: "push",
   });
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページ
-   */
+  // ページ
   const [page, setPage] = useQueryState("page", {
     defaultValue: 1,
     parse: (value) => parseInt(value) || 1,
@@ -141,7 +134,7 @@ export function useReviewSearch() {
    */
   const {
     data: reviewData,
-    isPending: isLoading,
+    isPending: isReviewPending,
     refetch,
   } = useQuery({
     queryKey: ["reviews", activeTab, searchParams],
@@ -164,7 +157,7 @@ export function useReviewSearch() {
   /**
    * サジェストデータを取得するクエリ
    */
-  const { data: suggestionsResponse } = useQuery({
+  const { data: suggestionsResponse, isPending: isSuggestionsPending } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
     enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions,
@@ -176,7 +169,7 @@ export function useReviewSearch() {
   /**
    * レビュー更新のミューテーション
    */
-  const { mutate: updateReviewMutate, isPending } = useMutation({
+  const { mutate: updateReviewMutate, isPending: isUpdateReviewPending } = useMutation({
     mutationFn: ({ reviewId, rating, comment }: { reviewId: string; rating: number; comment: string | null }) =>
       updateReview(reviewId, rating, comment, searchParams),
     onSuccess: (_updatedReview, variables) => {
@@ -355,9 +348,9 @@ export function useReviewSearch() {
     searchParams,
     activeTab,
     suggestionQuery,
-    isLoading,
+    isLoading: isReviewPending || (showSuggestions && isSuggestionsPending) || isUpdateReviewPending,
     showSuggestions,
-    isUpdating: isPending,
+    isUpdating: isUpdateReviewPending,
 
     // アクション
     updateSearchQuery,

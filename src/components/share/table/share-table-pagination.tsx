@@ -37,28 +37,39 @@ export type ShareTablePaginationProps = {
  */
 export function ShareTablePagination({ pagination }: { pagination: ShareTablePaginationProps }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * ページネーションのprops
    */
   const { currentPage, onPageChange, totalRowCount, itemPerPage, onItemPerPageChange } = pagination;
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * ページネーションの条件
    */
   // TotalPageを計算
   const calculatedTotalPages = useMemo(
-    () => Math.ceil((totalRowCount ?? 0) / itemPerPage),
+    () => Math.ceil((totalRowCount ?? 0) / (itemPerPage || 1)),
     [totalRowCount, itemPerPage],
   );
+
+  // 安全なプロップでusePaginationを呼び出し
+  const safeTotalPages = Math.max(calculatedTotalPages, 1);
+  const safeCurrentPage = Math.max(currentPage, 1);
+  const safeMaxPageToShow = 6;
+
   // ページネーションの条件
   const { totalPages, pageNumbers, hasPreviousPage, hasNextPage, isFirstPage, isLastPage } = usePagination({
-    totalPages: calculatedTotalPages,
-    currentPage: currentPage ?? 1,
-    maxPageToShow: 6,
+    totalPages: safeTotalPages,
+    currentPage: safeCurrentPage,
+    maxPageToShow: safeMaxPageToShow,
   });
   // 表示アイテム範囲の計算
-  const startItem = totalRowCount > 0 ? (currentPage - 1) * itemPerPage + 1 : 0;
-  const endItem = Math.min(currentPage * itemPerPage, totalRowCount);
+  const startItem = totalRowCount > 0 ? (safeCurrentPage - 1) * itemPerPage + 1 : 0;
+  const endItem = Math.min(safeCurrentPage * itemPerPage, totalRowCount);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * 表示件数のドロップダウンメニュー
@@ -137,7 +148,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
           {/* 前のページ */}
           {hasPreviousPage && (
             <button
-              onClick={() => onPageChange(currentPage - 1)}
+              onClick={() => onPageChange(safeCurrentPage - 1)}
               className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
               aria-label="前のページへ"
             >
@@ -154,7 +165,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
                   </div>
                 );
               }
-              const isActive = page === currentPage;
+              const isActive = page === safeCurrentPage;
               return (
                 <button
                   key={page}
@@ -176,7 +187,7 @@ export function ShareTablePagination({ pagination }: { pagination: ShareTablePag
           {/* 次のページ */}
           {hasNextPage && (
             <button
-              onClick={() => onPageChange(currentPage + 1)}
+              onClick={() => onPageChange(safeCurrentPage + 1)}
               className="inline-flex h-8 items-center justify-center rounded-md border border-blue-200 bg-white px-5 text-sm shadow-sm transition-colors hover:bg-blue-50"
               aria-label="次のページへ"
             >

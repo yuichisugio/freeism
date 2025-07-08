@@ -27,10 +27,18 @@ export const ReviewPagination = memo(function ReviewPagination({
   totalPages,
   onPageChange,
 }: ReviewPaginationProps) {
-  // 表示する最大ページ番号ボタン数
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示する最大ページ番号ボタン数
+   */
   const maxVisiblePages = 7;
 
-  // 表示するページ番号の範囲を計算
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示するページ番号の範囲を計算
+   */
   const getVisiblePageNumbers = useCallback(() => {
     if (totalPages <= maxVisiblePages) {
       // 総ページ数が最大表示数以下の場合、すべてのページを表示
@@ -56,12 +64,22 @@ export const ReviewPagination = memo(function ReviewPagination({
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [currentPage, totalPages, maxVisiblePages]);
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 表示するページ番号の範囲を計算
+   */
   const visiblePages = getVisiblePageNumbers();
   const showFirstPage = visiblePages[0] > 1; // 最初のページを個別表示するか
   const showLastPage = visiblePages[visiblePages.length - 1] < totalPages; // 最後のページを個別表示するか
   const showStartEllipsis = visiblePages[0] > 2; // 開始省略記号を表示するか
   const showEndEllipsis = visiblePages[visiblePages.length - 1] < totalPages - 1; // 終了省略記号を表示するか
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * ページネーションの表示
+   */
   return (
     <div className="flex items-center justify-center gap-1">
       {/* 前のページボタン */}

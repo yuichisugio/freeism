@@ -100,7 +100,16 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     /**
      * 共通のWHERE句を取得 (タスク条件を含む)
      */
-    const commonWhereClause = (await buildCommonNotificationWhereClause(userId, true)).data;
+    const commonWhereClauseResult = await buildCommonNotificationWhereClause(userId, true);
+
+    /**
+     * 共通のWHERE句の取得に失敗した場合はエラーを投げる
+     */
+    if (!commonWhereClauseResult.success) {
+      throw new Error(commonWhereClauseResult.message || "共通WHERE句の生成に失敗しました");
+    }
+
+    const commonWhereClause = commonWhereClauseResult.data;
 
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

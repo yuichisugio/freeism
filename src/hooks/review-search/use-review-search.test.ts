@@ -189,7 +189,6 @@ describe("useReviewSearch", () => {
       expect(result.current.suggestionQuery).toBe("");
       expect(result.current.isLoading).toBe(false);
       expect(result.current.showSuggestions).toBe(false);
-      expect(result.current.isUpdating).toBe(false);
     });
 
     test("should initialize with custom query state values", () => {

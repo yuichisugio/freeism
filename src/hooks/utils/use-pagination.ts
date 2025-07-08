@@ -40,6 +40,10 @@ export type UsePaginationResult = {
 export function usePagination({ currentPage, totalPages, maxPageToShow }: UsePaginationProps): UsePaginationResult {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("currentPage", currentPage);
+  console.log("totalPages", totalPages);
+  console.log("maxPageToShow", maxPageToShow);
+
   /**
    * プロップが無効な場合はエラーを投げる
    */
