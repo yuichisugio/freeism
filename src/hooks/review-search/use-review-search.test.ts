@@ -1137,4 +1137,168 @@ describe("useReviewSearch", () => {
       expect(result.current.reviews.find((r) => r.id === "review-1")?.isEditing).toBe(true);
     });
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("バグ修正：検索ワード削除後の再検索", () => {
+    test("should search with empty query after clearing input field", () => {
+      // Arrange
+      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      const { result } = renderHook(() => useReviewSearch(), {
+        wrapper: AllTheProviders,
+      });
+
+      // 検索クエリを設定
+      act(() => {
+        result.current.updateSearchQuery("test query");
+      });
+
+      // 検索を実行
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // クエリをクリア
+      act(() => {
+        result.current.updateSearchQuery("");
+      });
+
+      // Act - 空のクエリで検索を実行
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // Assert - 空のクエリで検索が実行されることを確認
+      expect(setSearchQuery).toHaveBeenCalledWith("");
+      expect(setPage).toHaveBeenCalledWith(1);
+    });
+
+    test("should search with current suggestionQuery value, not previous searchQuery", () => {
+      // Arrange
+      const { setSearchQuery } = setupUseQueryStateMock();
+      const { result } = renderHook(() => useReviewSearch(), {
+        wrapper: AllTheProviders,
+      });
+
+      // 最初の検索クエリを設定して実行
+      act(() => {
+        result.current.updateSearchQuery("old query");
+      });
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // 新しいクエリに変更（まだ検索は実行していない）
+      act(() => {
+        result.current.updateSearchQuery("new query");
+      });
+
+      // Act - 検索を実行
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // Assert - 新しいクエリで検索されることを確認
+      expect(setSearchQuery).toHaveBeenLastCalledWith("new query");
+    });
+
+    test("should properly handle clear search after text input", () => {
+      // Arrange
+      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      const { result } = renderHook(() => useReviewSearch(), {
+        wrapper: AllTheProviders,
+      });
+
+      // テキストを入力
+      act(() => {
+        result.current.updateSearchQuery("some text");
+      });
+
+      // Act - クリア操作
+      act(() => {
+        result.current.clearSearch();
+      });
+
+      // Assert - すべての状態がクリアされることを確認
+      expect(result.current.suggestionQuery).toBe("");
+      expect(setSearchQuery).toHaveBeenCalledWith("");
+      expect(setPage).toHaveBeenCalledWith(1);
+      expect(result.current.showSuggestions).toBe(false);
+    });
+
+    test("should not reset suggestionQuery to previous searchQuery when user is typing", () => {
+      // Arrange
+      const { result } = renderHook(() => useReviewSearch(), {
+        wrapper: AllTheProviders,
+      });
+
+      // 最初に検索を実行して searchQuery を設定
+      act(() => {
+        result.current.updateSearchQuery("test");
+      });
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // 現在の状態を確認
+      expect(result.current.suggestionQuery).toBe("test");
+
+      // ユーザーが文字を削除していく（このバグのシナリオ）
+      act(() => {
+        result.current.updateSearchQuery("tes");
+      });
+
+      // Assert - suggestionQuery が削除された文字数に応じて更新される
+      expect(result.current.suggestionQuery).toBe("tes");
+
+      // さらに削除
+      act(() => {
+        result.current.updateSearchQuery("te");
+      });
+
+      // Assert - suggestionQuery が元の値に戻らないことを確認
+      expect(result.current.suggestionQuery).toBe("te");
+
+      // さらに削除
+      act(() => {
+        result.current.updateSearchQuery("t");
+      });
+
+      // Assert - suggestionQuery が元の値に戻らないことを確認
+      expect(result.current.suggestionQuery).toBe("t");
+
+      // 完全に削除
+      act(() => {
+        result.current.updateSearchQuery("");
+      });
+
+      // Assert - 空文字になることを確認
+      expect(result.current.suggestionQuery).toBe("");
+    });
+
+    test("should properly sync suggestionQuery when search is executed after typing", () => {
+      // Arrange
+      const { setSearchQuery } = setupUseQueryStateMock();
+      const { result } = renderHook(() => useReviewSearch(), {
+        wrapper: AllTheProviders,
+      });
+
+      // ユーザーが入力
+      act(() => {
+        result.current.updateSearchQuery("typing...");
+      });
+
+      // 入力中はsuggestionQueryが独立して管理される
+      expect(result.current.suggestionQuery).toBe("typing...");
+
+      // 検索を実行すると同期される
+      act(() => {
+        result.current.executeSearch();
+      });
+
+      // Assert - 検索が実行されて同期が完了
+      expect(setSearchQuery).toHaveBeenCalledWith("typing...");
+      expect(result.current.suggestionQuery).toBe("typing...");
+    });
+  });
 });

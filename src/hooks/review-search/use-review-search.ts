@@ -123,15 +123,39 @@ export function useReviewSearch() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * searchQueryが外部から変更された時のみsuggestQueryを同期（初期化時など）
+   * searchQueryが変更された時にsuggestQueryを同期
+   * ユーザーの入力による変更と外部からの変更を区別して処理
    */
+  const lastUserInputRef = useRef<string>("");
   const isInitializing = useRef(true);
+  const isClearingRef = useRef(false);
+  const isUserTypingRef = useRef(false); // ユーザーが入力中かどうかを追跡
 
   useEffect(() => {
-    // 初期化時のみ同期
+    // 初期化時は必ず同期
     if (isInitializing.current) {
       setSuggestionQuery(searchQuery);
+      lastUserInputRef.current = searchQuery;
       isInitializing.current = false;
+      return;
+    }
+
+    // クリア処理中は同期をスキップ（一度だけ）
+    if (isClearingRef.current) {
+      isClearingRef.current = false;
+      return;
+    }
+
+    // ユーザーが入力中の場合は同期をスキップ
+    if (isUserTypingRef.current) {
+      return;
+    }
+
+    // ユーザーの入力による変更でない場合（URLパラメータの変更、プログラム的な変更など）
+    // suggestionQueryも同期する（ただし、クリア処理中でない場合のみ）
+    if (searchQuery !== lastUserInputRef.current && !isClearingRef.current) {
+      setSuggestionQuery(searchQuery);
+      lastUserInputRef.current = searchQuery;
     }
   }, [searchQuery]);
 
@@ -216,7 +240,9 @@ export function useReviewSearch() {
    */
   const updateSearchQuery = useCallback(
     (query: string) => {
+      isUserTypingRef.current = true; // ユーザーが入力中であることを記録
       setSuggestionQuery(query);
+      lastUserInputRef.current = query; // ユーザー入力を記録
       void setPage(1); // ページをリセット
       // 入力中はサジェストを表示（空白文字のみでない場合）
       if (query.length >= 2 && query.trim() !== "") {
@@ -225,7 +251,7 @@ export function useReviewSearch() {
         setShowSuggestions(false);
       }
     },
-    [setSuggestionQuery, setPage, setShowSuggestions],
+    [setPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -234,7 +260,11 @@ export function useReviewSearch() {
    * 検索を実行する関数
    */
   const executeSearch = useCallback(() => {
-    void setSearchQuery(suggestionQuery); // 検索実行時にsearchQueryを更新
+    // suggestionQueryの現在の値を使って検索を実行
+    const currentQuery = suggestionQuery;
+    isUserTypingRef.current = false; // ユーザーの入力が完了したことを記録
+    void setSearchQuery(currentQuery); // 現在のsuggestionQueryで検索
+    lastUserInputRef.current = currentQuery; // 同期を維持
     void setPage(1); // ページをリセット
     setShowSuggestions(false); // サジェストを閉じる
   }, [setSearchQuery, setPage, setShowSuggestions, suggestionQuery]);
@@ -249,12 +279,19 @@ export function useReviewSearch() {
     if (suggestionTimeoutRef.current) {
       clearTimeout(suggestionTimeoutRef.current);
     }
+
+    // クリア処理中のフラグを設定
+    isClearingRef.current = true;
+    isUserTypingRef.current = false; // ユーザーの入力状態もリセット
+
+    // 同期して全ての状態をクリア
     setSuggestionQuery("");
-    void setSearchQuery("");
     setDebouncedSuggestionQuery("");
+    lastUserInputRef.current = "";
+    void setSearchQuery("");
     void setPage(1);
     setShowSuggestions(false);
-  }, [setSuggestionQuery, setSearchQuery, setPage, setShowSuggestions]);
+  }, [setSearchQuery, setPage, setShowSuggestions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -265,11 +302,11 @@ export function useReviewSearch() {
     (tab: ReviewSearchTab) => {
       void setActiveTab(tab);
       void setPage(1); // ページをリセット
-      // タブ切り替え時にsuggestionQueryをsearchQueryと同期
-      setSuggestionQuery(searchQuery);
+      // タブ切り替え時は現在のsuggestQueryを保持（ユーザーの入力を尊重）
+      // 検索とsuggestの状態は変更しない
       setShowSuggestions(false); // サジェストを閉じる
     },
-    [setActiveTab, setPage, searchQuery],
+    [setActiveTab, setPage],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -293,6 +330,8 @@ export function useReviewSearch() {
     (suggestion: SearchSuggestion) => {
       // 入力フィールドの値を選択されたサジェストに設定
       setSuggestionQuery(suggestion.value);
+      lastUserInputRef.current = suggestion.value; // 同期を維持
+      isUserTypingRef.current = false; // ユーザーの入力が完了したことを記録
       // 即座に検索を実行
       void setSearchQuery(suggestion.value);
       void setPage(1); // ページをリセット

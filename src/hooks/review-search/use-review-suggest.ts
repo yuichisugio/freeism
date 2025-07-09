@@ -72,10 +72,10 @@ export function useReviewSuggest({
         e.preventDefault();
         if (suggestions.length > 0 && selectedIndex >= 0 && selectedIndex < suggestions.length) {
           // サジェストが選択されている場合：サジェストを選択
-          onSuggestionSelectAction?.(suggestions[selectedIndex]);
+          onSuggestionSelectAction(suggestions[selectedIndex]);
         } else {
           // サジェストが選択されていない場合：現在の入力内容で検索を実行
-          onSearchExecuteAction?.();
+          onSearchExecuteAction();
         }
         onSuggestionsToggleAction(false);
         setSelectedIndex(-1);
