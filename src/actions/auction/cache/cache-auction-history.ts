@@ -100,7 +100,7 @@ export async function getCachedAuctionHistoryCreatedDetail(
   /**
    * キャッシュにタグをつける
    */
-  cacheTag(useCacheKeys.auctionHistory.auctionByAuctionId(auction.id).join(":"));
+  cacheTag(useCacheKeys.auctionHistory.auctionByAuctionId(auction.id));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

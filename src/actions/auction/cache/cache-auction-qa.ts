@@ -24,7 +24,7 @@ export async function getCachedAuctionMessageContents(
   /**
    * キャッシュの設定
    */
-  cacheTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId).join(":"));
+  cacheTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId));
   cacheLife("hours");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

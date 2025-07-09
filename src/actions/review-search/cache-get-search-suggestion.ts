@@ -90,16 +90,6 @@ export async function getCachedSearchSuggestions(query: string): PromiseResult<S
     },
     select: {
       comment: true,
-      // レビュー送信者の情報
-      reviewer: {
-        select: {
-          settings: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      },
       // レビュー受信者の情報
       reviewee: {
         select: {
@@ -156,14 +146,6 @@ export async function getCachedSearchSuggestions(query: string): PromiseResult<S
    * レビューデータから各項目を抽出
    */
   reviews.forEach((review) => {
-    // ユーザー名（送信者）
-    if (review.reviewer?.settings?.username) {
-      const username = review.reviewer.settings.username;
-      if (username.toLowerCase().includes(query.toLowerCase())) {
-        uniqueUsernames.add(username);
-      }
-    }
-
     // ユーザー名（受信者）
     if (review.reviewee?.settings?.username) {
       const username = review.reviewee.settings.username;
@@ -204,11 +186,11 @@ export async function getCachedSearchSuggestions(query: string): PromiseResult<S
    * Array.from()でSetを配列に変換している
    */
   const MAX_LENGTH = 30;
-  // ユーザー名（送信者・受信者）
+  // ユーザー名（受信者）
   Array.from(uniqueUsernames).forEach((username) => {
     suggestions.push({
       value: username,
-      label: `ユーザー: ${username.length > MAX_LENGTH ? username.substring(0, MAX_LENGTH) + "..." : username}`,
+      label: `受信者: ${username.length > MAX_LENGTH ? username.substring(0, MAX_LENGTH) + "..." : username}`,
     });
   });
 

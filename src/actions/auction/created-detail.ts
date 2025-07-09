@@ -89,7 +89,7 @@ export async function updateDeliveryMethod(
   /**
    * キャッシュを無効化
    */
-  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId).join(":"));
+  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -152,7 +152,7 @@ export async function completeTaskDelivery(taskId: string, userId: string): Prom
   /**
    * キャッシュを無効化
    */
-  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId).join(":"));
+  revalidateTag(useCacheKeys.auctionCreatedDetail.auctionByAuctionId(taskId));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

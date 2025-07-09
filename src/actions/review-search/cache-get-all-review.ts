@@ -61,18 +61,7 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
    */
   if (searchParams?.searchQuery && searchParams.searchQuery.length > 0) {
     whereCondition.OR = [
-      // ユーザー名での検索（レビュー送信者）
-      {
-        reviewer: {
-          settings: {
-            username: {
-              contains: searchParams.searchQuery,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      // ユーザー名での検索（レビュー受信者）
+      // ユーザー名での検索（受信者）
       {
         reviewee: {
           settings: {
@@ -143,17 +132,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       createdAt: true,
       updatedAt: true,
       reviewPosition: true,
-      // レビュー送信者の情報
-      reviewer: {
-        select: {
-          id: true,
-          settings: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      },
       // レビュー受信者の情報
       reviewee: {
         select: {
@@ -201,14 +179,6 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
    * 取得したデータを型安全な形式に変換
    */
   const reviewData: ReviewData[] = reviews.map((review) => {
-    // レビュー送信者の情報を安全に取得
-    const reviewer = review.reviewer
-      ? {
-          id: review.reviewer.id,
-          username: review.reviewer.settings?.username ?? `未設定:${review.reviewer.id}`,
-        }
-      : null;
-
     // レビュー受信者の情報を安全に取得
     const reviewee = review.reviewee
       ? {
@@ -224,7 +194,7 @@ export async function getCachedAllReviews(searchParams: ReviewSearchParams | nul
       createdAt: review.createdAt,
       updatedAt: review.updatedAt,
       reviewPosition: review.reviewPosition,
-      reviewer,
+      reviewer: null,
       reviewee,
       auction: {
         id: review.auction.id,

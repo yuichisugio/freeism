@@ -13,6 +13,31 @@ import type { EditableReviewData, ReviewData } from "./review-search";
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
+ * サーバーとクライアントで一貫した日付フォーマットを提供する関数
+ */
+function formatDateConsistent(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}/${month}/${day}`;
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * コメントの改行を反映して表示するコンポーネント
+ */
+const FormattedComment = memo(function FormattedComment({ comment }: { comment: string }) {
+  return (
+    <div className="rounded-lg bg-gray-50 p-4">
+      <div className="leading-relaxed break-words whitespace-pre-wrap text-gray-800">{comment}</div>
+    </div>
+  );
+});
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
  * 統合されたレビューカードコンポーネント
  * editableプロパティで編集可能性を制御
  */
@@ -23,6 +48,7 @@ export const ReviewCard = memo(function ReviewCard({
   onToggleEdit,
   onUpdateReview,
   isUpdating,
+  isMounted = true,
 }: {
   review: EditableReviewData | ReviewData;
   showReviewer?: boolean;
@@ -31,6 +57,7 @@ export const ReviewCard = memo(function ReviewCard({
   onUpdateReview?: (reviewId: string, rating: number, comment: string | null) => void;
   isLoading?: boolean;
   isUpdating?: boolean;
+  isMounted?: boolean;
 }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -55,9 +82,12 @@ export const ReviewCard = memo(function ReviewCard({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 現在編集モードかどうか
+   * 現在編集モードかどうか（Hydration対策：マウント後のみ適用）
    */
-  const isEditing = useMemo(() => (isEditableReview(review) ? review.isEditing : false), [isEditableReview, review]);
+  const isEditing = useMemo(
+    () => (isMounted && isEditableReview(review) ? review.isEditing : false),
+    [isMounted, isEditableReview, review],
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -121,7 +151,7 @@ export const ReviewCard = memo(function ReviewCard({
         </div>
       );
     }
-  }, [isEditing, review.rating]);
+  }, [isEditing, review.rating, editRating]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -129,7 +159,7 @@ export const ReviewCard = memo(function ReviewCard({
    * 編集ボタンの表示コンポーネント
    */
   const renderEditButtons = useCallback(() => {
-    if (!editable || !onToggleEdit) return null;
+    if (!editable || !onToggleEdit || !isMounted) return null;
 
     if (isEditing) {
       return (
@@ -165,7 +195,7 @@ export const ReviewCard = memo(function ReviewCard({
         </Button>
       );
     }
-  }, [editable, isEditing, onToggleEdit, review.id, isUpdating, handleSave, handleCancel]);
+  }, [editable, isEditing, onToggleEdit, review.id, isUpdating, handleSave, handleCancel, isMounted]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -189,15 +219,28 @@ export const ReviewCard = memo(function ReviewCard({
         </div>
       );
     } else {
-      return (
-        review.comment && (
-          <div className="rounded-lg bg-gray-50 p-4">
-            <p className="leading-relaxed text-gray-800">{review.comment}</p>
-          </div>
-        )
-      );
+      return review.comment && <FormattedComment comment={review.comment} />;
     }
   }, [isEditing, review.id, review.comment, editComment, setEditComment]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration対策：初期レンダリング時は簡単な表示にする
+   */
+  if (!isMounted) {
+    return (
+      <Card className="transition-shadow hover:shadow-md">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <div className="h-4 w-1/4 rounded bg-gray-200"></div>
+            <div className="h-4 w-3/4 rounded bg-gray-200"></div>
+            <div className="h-16 rounded bg-gray-200"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -225,10 +268,8 @@ export const ReviewCard = memo(function ReviewCard({
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {review.createdAt.toLocaleDateString("ja-JP")}
-                  <span className="ml-2 text-xs text-blue-600">
-                    (更新: {review.updatedAt.toLocaleDateString("ja-JP")})
-                  </span>
+                  {formatDateConsistent(review.createdAt)}
+                  <span className="ml-2 text-xs text-blue-600">(更新: {formatDateConsistent(review.updatedAt)})</span>
                 </span>
               </div>
 

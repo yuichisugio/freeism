@@ -43,7 +43,7 @@ export async function getCachedDisplayUserInfo(
   /**
    * キャッシュタグを設定
    */
-  cacheTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition).join(":"));
+  cacheTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition));
   cacheLife("max");
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -101,6 +101,12 @@ export function useReviewSearch() {
       clearTimeout(suggestionTimeoutRef.current);
     }
 
+    // 空の文字列の場合は即座に更新（削除時の高速レスポンス）
+    if (suggestionQuery === "") {
+      setDebouncedSuggestionQuery("");
+      return;
+    }
+
     // 新しいタイムアウトを設定
     suggestionTimeoutRef.current = setTimeout(() => {
       setDebouncedSuggestionQuery(suggestionQuery);
@@ -119,13 +125,15 @@ export function useReviewSearch() {
   /**
    * searchQueryが外部から変更された時のみsuggestQueryを同期（初期化時など）
    */
+  const isInitializing = useRef(true);
+
   useEffect(() => {
-    // URLパラメータからの初期化やタブ切り替え時のみ同期
-    // ユーザーが入力中の場合は同期しない
-    if (suggestionQuery === "" || !showSuggestions) {
+    // 初期化時のみ同期
+    if (isInitializing.current) {
       setSuggestionQuery(searchQuery);
+      isInitializing.current = false;
     }
-  }, [searchQuery, showSuggestions, suggestionQuery]);
+  }, [searchQuery]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -137,9 +145,9 @@ export function useReviewSearch() {
     isPending: isReviewPending,
     refetch,
   } = useQuery({
-    queryKey: ["reviews", activeTab, searchParams],
+    queryKey: queryCacheKeys.review.searchAndTab(searchParams),
     queryFn: () => {
-      switch (activeTab) {
+      switch (searchParams.tab) {
         case "edit":
           return getMyReviews(searchParams);
         case "received":
@@ -157,10 +165,10 @@ export function useReviewSearch() {
   /**
    * サジェストデータを取得するクエリ
    */
-  const { data: suggestionsResponse, isPending: isSuggestionsPending } = useQuery({
+  const { data: suggestionsResponse } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
-    enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions,
+    enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions && debouncedSuggestionQuery.trim() !== "",
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
@@ -182,7 +190,10 @@ export function useReviewSearch() {
       });
     },
     meta: {
-      invalidateCacheKeys: [{ queryKey: queryCacheKeys.review.all(), exact: false }],
+      invalidateCacheKeys: [
+        { queryKey: queryCacheKeys.review.searchAndTab(searchParams), exact: false },
+        { queryKey: queryCacheKeys.review.suggestions(searchParams.searchQuery), exact: false },
+      ],
     },
   });
 
@@ -207,8 +218,8 @@ export function useReviewSearch() {
     (query: string) => {
       setSuggestionQuery(query);
       void setPage(1); // ページをリセット
-      // 入力中はサジェストを表示
-      if (query.length >= 2) {
+      // 入力中はサジェストを表示（空白文字のみでない場合）
+      if (query.length >= 2 && query.trim() !== "") {
         setShowSuggestions(true);
       } else {
         setShowSuggestions(false);
@@ -254,8 +265,11 @@ export function useReviewSearch() {
     (tab: ReviewSearchTab) => {
       void setActiveTab(tab);
       void setPage(1); // ページをリセット
+      // タブ切り替え時にsuggestionQueryをsearchQueryと同期
+      setSuggestionQuery(searchQuery);
+      setShowSuggestions(false); // サジェストを閉じる
     },
-    [setActiveTab, setPage],
+    [setActiveTab, setPage, searchQuery],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -347,9 +361,9 @@ export function useReviewSearch() {
 
     // 状態
     searchParams,
-    activeTab,
+    activeTab: searchParams.tab,
     suggestionQuery,
-    isLoading: isReviewPending || (showSuggestions && isSuggestionsPending) || isUpdateReviewPending,
+    isLoading: isReviewPending,
     showSuggestions,
     isUpdating: isUpdateReviewPending,
 

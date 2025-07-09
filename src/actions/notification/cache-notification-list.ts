@@ -86,7 +86,7 @@ export const cachedGetNotificationsAndUnreadCount = cache(
     /**
      * キャッシュタグを設定
      */
-    cacheTag(useCacheKeys.notification.notificationByUserId(userId).join(":"));
+    cacheTag(useCacheKeys.notification.notificationByUserId(userId));
 
     /**
      * パラメータチェック

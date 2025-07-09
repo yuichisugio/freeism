@@ -271,7 +271,7 @@ export async function getCachedGroupTaskAndCount(
   /**
    * キャッシュキーを取得
    */
-  cacheTag(useCacheKeys.groupDetailTable.groupByGroupId(groupId).join(":"));
+  cacheTag(useCacheKeys.groupDetailTable.groupByGroupId(groupId));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

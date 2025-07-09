@@ -13,6 +13,7 @@ export type ReviewPaginationProps = {
   currentPage: number; // 現在のページ番号
   totalPages: number; // 総ページ数
   onPageChange: (page: number) => void; // ページ変更時のコールバック
+  isMounted?: boolean; // Hydration対策：クライアント側でマウント済みかどうか
 };
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -26,6 +27,7 @@ export const ReviewPagination = memo(function ReviewPagination({
   currentPage,
   totalPages,
   onPageChange,
+  isMounted = true,
 }: ReviewPaginationProps) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -63,6 +65,26 @@ export const ReviewPagination = memo(function ReviewPagination({
 
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [currentPage, totalPages, maxVisiblePages]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration対策：クライアント側でのみレンダリング
+   */
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-center gap-1">
+        {/* スケルトンUI：前のページボタン */}
+        <div className="flex h-9 w-16 items-center gap-1 rounded-md border border-gray-300 bg-gray-200 px-3 py-2" />
+
+        {/* スケルトンUI：ページ番号ボタン */}
+        <div className="h-9 w-10 rounded-md border border-gray-300 bg-gray-200" />
+
+        {/* スケルトンUI：次のページボタン */}
+        <div className="flex h-9 w-16 items-center gap-1 rounded-md border border-gray-300 bg-gray-200 px-3 py-2" />
+      </div>
+    );
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -96,7 +96,7 @@ export async function createAuctionReview(
   /**
    * キャッシュを更新する
    */
-  revalidateTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition).join(":"));
+  revalidateTag(useCacheKeys.auctionRating.auctionByAuctionId(auctionId, reviewPosition));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -159,7 +159,7 @@ export async function sendAuctionMessage(
   /**
    * メッセージのキャッシュの更新に必要。
    */
-  revalidateTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId).join(":"));
+  revalidateTag(useCacheKeys.auctionQa.auctionByAuctionId(auctionId));
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

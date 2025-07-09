@@ -107,18 +107,17 @@ export async function updateReview(
 
   /**
    * キャッシュの更新
+   * 一つのタブのみ即時更新可能なので、一旦編集タブのみキャッシュを即時更新する
    */
   revalidateTag(
-    useCacheKeys.reviewSearch
-      .myReviews(
-        userId,
-        searchParams ?? {
-          searchQuery: "",
-          page: 1,
-          tab: "search",
-        },
-      )
-      .join(":"),
+    useCacheKeys.reviewSearch.reviews(
+      userId,
+      searchParams ?? {
+        searchQuery: "",
+        page: 1,
+        tab: "edit",
+      },
+    ),
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -1,3 +1,4 @@
+import type { ReviewSearchParams } from "@/components/review-search/review-search";
 import type { AuctionCreatedTabFilter, AuctionListingsConditions, FilterCondition } from "@/types/auction-types";
 import type { Result } from "@/types/general-types";
 import type { AllUserGroupTable, MyGroupTable, MyTaskTableConditions, TableConditions } from "@/types/group-types";
@@ -150,16 +151,15 @@ export const queryCacheKeys = {
   review: {
     _root: ["review"] as const,
     all: () => [...queryCacheKeys.review._root] as const,
-    allReviews: (searchParams: string, activeTab: string) =>
-      [...queryCacheKeys.review.all(), "allReviews", searchParams, activeTab] as const,
-    search: (searchParams: string, userId: string) =>
-      [...queryCacheKeys.review.all(), "search", searchParams, userId] as const,
-    myReviews: (searchParams: string, userId: string, activeTab: string) =>
-      [...queryCacheKeys.review.all(), "myReviews", searchParams, userId, activeTab] as const,
-    userReviews: (searchParams: string, userId: string, activeTab: string) =>
-      [...queryCacheKeys.review.all(), "userReviews", searchParams, userId, activeTab] as const,
+    searchAndTab: (searchParams: ReviewSearchParams) =>
+      [
+        ...queryCacheKeys.review.all(),
+        "searchAndTab",
+        searchParams.page,
+        searchParams.searchQuery,
+        searchParams.tab,
+      ] as const,
     suggestions: (query: string) => [...queryCacheKeys.review.all(), "suggestions", query] as const,
-    update: (reviewId: string) => [...queryCacheKeys.review.all(), "update", reviewId] as const,
   },
 } as const;
 

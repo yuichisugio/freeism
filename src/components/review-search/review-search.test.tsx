@@ -2,7 +2,7 @@ import type { ReviewData, ReviewSearchParams, SearchSuggestion } from "@/compone
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { EditableReviewCard, ReviewCard } from "./review-search-card";
+import { ReviewCard } from "./review-search-card";
 import { ReviewSearchForm } from "./review-search-form";
 import { ReviewPagination } from "./review-search-pagination";
 
@@ -95,7 +95,7 @@ describe("ReviewPagination", () => {
 
   describe("基本表示", () => {
     test("should render pagination with correct page numbers", () => {
-      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       // ページ番号ボタンが表示されることを確認
       expect(screen.getByText("1")).toBeInTheDocument();
@@ -110,24 +110,39 @@ describe("ReviewPagination", () => {
     });
 
     test("should highlight current page", () => {
-      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const currentPageButton = screen.getByText("3");
       expect(currentPageButton).toHaveClass("bg-blue-600");
     });
 
     test("should disable previous button on first page", () => {
-      render(<ReviewPagination currentPage={1} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={1} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const prevButton = screen.getByText("前へ");
       expect(prevButton).toBeDisabled();
     });
 
     test("should disable next button on last page", () => {
-      render(<ReviewPagination currentPage={5} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={5} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const nextButton = screen.getByText("次へ");
       expect(nextButton).toBeDisabled();
+    });
+
+    test("should render skeleton UI when not mounted", () => {
+      const { container } = render(
+        <ReviewPagination currentPage={1} totalPages={5} onPageChange={mockOnPageChange} isMounted={false} />,
+      );
+
+      // スケルトンUIが表示されることを確認
+      const skeletonElements = container.querySelectorAll("div.bg-gray-200");
+      expect(skeletonElements.length).toBeGreaterThan(0);
+
+      // 実際のページネーションボタンが表示されないことを確認
+      expect(screen.queryByText("前へ")).not.toBeInTheDocument();
+      expect(screen.queryByText("次へ")).not.toBeInTheDocument();
+      expect(screen.queryByText("1")).not.toBeInTheDocument();
     });
   });
 
@@ -135,7 +150,7 @@ describe("ReviewPagination", () => {
 
   describe("ページ変更機能", () => {
     test("should call onPageChange when page number is clicked", () => {
-      render(<ReviewPagination currentPage={2} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={2} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const pageButton = screen.getByText("4");
       fireEvent.click(pageButton);
@@ -145,7 +160,7 @@ describe("ReviewPagination", () => {
     });
 
     test("should call onPageChange when previous button is clicked", () => {
-      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const prevButton = screen.getByText("前へ");
       fireEvent.click(prevButton);
@@ -154,7 +169,7 @@ describe("ReviewPagination", () => {
     });
 
     test("should call onPageChange when next button is clicked", () => {
-      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={3} totalPages={5} onPageChange={mockOnPageChange} isMounted={true} />);
 
       const nextButton = screen.getByText("次へ");
       fireEvent.click(nextButton);
@@ -168,7 +183,7 @@ describe("ReviewPagination", () => {
   describe("省略記号の表示", () => {
     test("should show ellipsis when there are many pages", () => {
       const { container } = render(
-        <ReviewPagination currentPage={5} totalPages={15} onPageChange={mockOnPageChange} />,
+        <ReviewPagination currentPage={5} totalPages={15} onPageChange={mockOnPageChange} isMounted={true} />,
       );
 
       // 省略記号（MoreHorizontal）が表示されることを確認
@@ -178,7 +193,7 @@ describe("ReviewPagination", () => {
     });
 
     test("should show first and last page when in middle", () => {
-      render(<ReviewPagination currentPage={8} totalPages={15} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={8} totalPages={15} onPageChange={mockOnPageChange} isMounted={true} />);
 
       // 最初と最後のページが表示されることを確認
       expect(screen.getByText("1")).toBeInTheDocument();
@@ -190,7 +205,7 @@ describe("ReviewPagination", () => {
 
   describe("境界値テスト", () => {
     test("should handle single page correctly", () => {
-      render(<ReviewPagination currentPage={1} totalPages={1} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={1} totalPages={1} onPageChange={mockOnPageChange} isMounted={true} />);
 
       // 前へ・次へボタンが無効化されることを確認
       expect(screen.getByText("前へ")).toBeDisabled();
@@ -202,7 +217,7 @@ describe("ReviewPagination", () => {
     });
 
     test("should handle zero pages gracefully", () => {
-      render(<ReviewPagination currentPage={1} totalPages={0} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={1} totalPages={0} onPageChange={mockOnPageChange} isMounted={true} />);
 
       // 前へ・次へボタンが無効化されることを確認
       expect(screen.getByText("前へ")).toBeDisabled();
@@ -210,7 +225,7 @@ describe("ReviewPagination", () => {
     });
 
     test("should handle large number of pages", () => {
-      render(<ReviewPagination currentPage={50} totalPages={100} onPageChange={mockOnPageChange} />);
+      render(<ReviewPagination currentPage={50} totalPages={100} onPageChange={mockOnPageChange} isMounted={true} />);
 
       // 現在のページが表示されることを確認
       expect(screen.getByText("50")).toBeInTheDocument();
@@ -626,9 +641,9 @@ describe("ReviewCard", () => {
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * EditableReviewCardコンポーネントのテスト
+ * ReviewCard (editable)コンポーネントのテスト
  */
-describe("EditableReviewCard", () => {
+describe("ReviewCard (editable)", () => {
   const mockEditableReviewData = {
     id: "review-1",
     rating: 4,
@@ -661,9 +676,11 @@ describe("EditableReviewCard", () => {
 
   const mockProps = {
     review: mockEditableReviewData,
+    editable: true,
     onToggleEdit: vi.fn(),
     onUpdateReview: vi.fn(),
     isUpdating: false,
+    isMounted: true,
   };
 
   beforeEach(() => {
@@ -674,7 +691,7 @@ describe("EditableReviewCard", () => {
 
   describe("基本表示", () => {
     test("should render editable review card in view mode", () => {
-      render(<EditableReviewCard {...mockProps} />);
+      render(<ReviewCard {...mockProps} />);
 
       // 評価が表示されることを確認
       expect(screen.getByText("4.0")).toBeInTheDocument();
@@ -689,7 +706,7 @@ describe("EditableReviewCard", () => {
 
     test("should render editable review card in edit mode", () => {
       const editingReview = { ...mockEditableReviewData, isEditing: true };
-      render(<EditableReviewCard {...mockProps} review={editingReview} />);
+      render(<ReviewCard {...mockProps} review={editingReview} />);
 
       // 保存ボタンとキャンセルボタンが表示されることを確認（RatingStarのボタンも含まれる）
       const buttons = screen.getAllByRole("button");
@@ -706,7 +723,7 @@ describe("EditableReviewCard", () => {
 
   describe("編集機能", () => {
     test("should call onToggleEdit when edit button is clicked", () => {
-      render(<EditableReviewCard {...mockProps} />);
+      render(<ReviewCard {...mockProps} />);
 
       const editButton = screen.getByRole("button");
       fireEvent.click(editButton);
@@ -717,7 +734,7 @@ describe("EditableReviewCard", () => {
 
     test("should update comment when textarea value changes", () => {
       const editingReview = { ...mockEditableReviewData, isEditing: true };
-      render(<EditableReviewCard {...mockProps} review={editingReview} />);
+      render(<ReviewCard {...mockProps} review={editingReview} />);
 
       const textarea = screen.getByRole("textbox");
       fireEvent.change(textarea, { target: { value: "新しいコメント" } });
@@ -734,7 +751,7 @@ describe("EditableReviewCard", () => {
         ...mockEditableReviewData,
         updatedAt: new Date("2024-01-16T10:00:00Z"),
       };
-      render(<EditableReviewCard {...mockProps} review={updatedReview} />);
+      render(<ReviewCard {...mockProps} review={updatedReview} />);
 
       expect(screen.getByText(/更新: 2024\/1\/16/)).toBeInTheDocument();
     });
@@ -745,7 +762,7 @@ describe("EditableReviewCard", () => {
   describe("境界値テスト", () => {
     test("should handle empty comment", () => {
       const reviewWithoutComment = { ...mockEditableReviewData, comment: null, isEditing: true };
-      render(<EditableReviewCard {...mockProps} review={reviewWithoutComment} />);
+      render(<ReviewCard {...mockProps} review={reviewWithoutComment} />);
 
       const textarea = screen.getByRole("textbox");
       expect(textarea).toHaveValue("");

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReviewSearchTab } from "@/lib/constants";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReviewSearch } from "@/hooks/review-search/use-review-search";
@@ -99,6 +99,7 @@ export const ReviewSearchList = memo(function ReviewSearchList({
   isUpdating,
   toggleEditMode,
   handleUpdateReview,
+  isMounted = true,
 }: {
   reviews: ReviewData[];
   activeTab: ReviewSearchTab;
@@ -107,7 +108,31 @@ export const ReviewSearchList = memo(function ReviewSearchList({
   isUpdating: boolean;
   toggleEditMode: (reviewId: string) => void;
   handleUpdateReview: (reviewId: string, rating: number, comment: string | null) => void;
+  isMounted?: boolean;
 }) {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration対策：クライアント側でのみレンダリング
+   */
+  if (!isMounted) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="h-4 w-1/4 rounded bg-gray-200"></div>
+                <div className="h-4 w-3/4 rounded bg-gray-200"></div>
+                <div className="h-16 rounded bg-gray-200"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -119,7 +144,7 @@ export const ReviewSearchList = memo(function ReviewSearchList({
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-6">
-              <div className="animate-pulse space-y-3">
+              <div className="space-y-4">
                 <div className="h-4 w-1/4 rounded bg-gray-200"></div>
                 <div className="h-4 w-3/4 rounded bg-gray-200"></div>
                 <div className="h-16 rounded bg-gray-200"></div>
@@ -182,6 +207,7 @@ export const ReviewSearchList = memo(function ReviewSearchList({
           onToggleEdit={toggleEditMode}
           onUpdateReview={handleUpdateReview}
           isUpdating={isUpdating}
+          isMounted={isMounted}
         />
       ))}
     </div>
@@ -194,6 +220,17 @@ export const ReviewSearchList = memo(function ReviewSearchList({
  * ユーザーレビュー表示のメインコンポーネント
  */
 export const ReviewSearch = memo(function ReviewSearch() {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration対策：クライアント側でマウント状態を管理
+   */
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -247,7 +284,7 @@ export const ReviewSearch = memo(function ReviewSearch() {
       <Tabs value={activeTab} onValueChange={(value) => changeTab(value as ReviewSearchTab)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="search">レビュー検索</TabsTrigger>
-          <TabsTrigger value="edit">レビュー編集</TabsTrigger>
+          <TabsTrigger value="edit">自分が行ったレビュー</TabsTrigger>
           <TabsTrigger value="received">自身へのレビュー</TabsTrigger>
         </TabsList>
 
@@ -255,12 +292,13 @@ export const ReviewSearch = memo(function ReviewSearch() {
           <div className="text-sm text-gray-600">他のユーザーのレビューを検索・閲覧できます。</div>
           <ReviewSearchList
             reviews={reviews}
-            activeTab={activeTab as ReviewSearchTab}
+            activeTab={activeTab}
             searchParams={searchParams}
             isLoading={isLoading}
             isUpdating={isUpdating}
             toggleEditMode={toggleEditMode}
             handleUpdateReview={handleUpdateReview}
+            isMounted={isMounted}
           />
         </TabsContent>
 
@@ -275,12 +313,13 @@ export const ReviewSearch = memo(function ReviewSearch() {
           </div>
           <ReviewSearchList
             reviews={reviews}
-            activeTab={activeTab as ReviewSearchTab}
+            activeTab={activeTab}
             searchParams={searchParams}
             isLoading={isLoading}
             isUpdating={isUpdating}
             toggleEditMode={toggleEditMode}
             handleUpdateReview={handleUpdateReview}
+            isMounted={isMounted}
           />
         </TabsContent>
 
@@ -288,18 +327,24 @@ export const ReviewSearch = memo(function ReviewSearch() {
           <div className="text-sm text-gray-600">あなたが受け取ったレビューを確認できます。</div>
           <ReviewSearchList
             reviews={reviews}
-            activeTab={activeTab as ReviewSearchTab}
+            activeTab={activeTab}
             searchParams={searchParams}
             isLoading={isLoading}
             isUpdating={isUpdating}
             toggleEditMode={toggleEditMode}
             handleUpdateReview={handleUpdateReview}
+            isMounted={isMounted}
           />
         </TabsContent>
       </Tabs>
 
       {/* ページネーション */}
-      <ReviewPagination currentPage={searchParams.page ?? 1} totalPages={totalPages} onPageChange={changePage} />
+      <ReviewPagination
+        currentPage={searchParams.page ?? 1}
+        totalPages={totalPages ?? 1}
+        onPageChange={changePage}
+        isMounted={isMounted}
+      />
     </div>
   );
 });

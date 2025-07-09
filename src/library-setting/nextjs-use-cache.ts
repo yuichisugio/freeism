@@ -7,26 +7,26 @@ import { type ReviewPosition } from "@prisma/client";
  */
 export const useCacheKeys = {
   groupDetailTable: {
-    groupByGroupId: (groupId: string) => ["groupDetailTable", "groupByGroupId", groupId] as const,
+    groupByGroupId: (groupId: string): string => `groupDetailTable_groupByGroupId_${groupId}`,
   },
   auctionCreatedDetail: {
-    auctionByAuctionId: (auctionId: string) => ["auctionCreatedDetail", "auctionByAuctionId", auctionId] as const,
+    auctionByAuctionId: (auctionId: string): string => `auctionCreatedDetail_auctionByAuctionId_${auctionId}`,
   },
   auctionHistory: {
-    auctionByAuctionId: (auctionId: string) => ["auctionHistory", "auctionByAuctionId", auctionId] as const,
+    auctionByAuctionId: (auctionId: string): string => `auctionHistory_auctionByAuctionId_${auctionId}`,
   },
   auctionRating: {
-    auctionByAuctionId: (auctionId: string, reviewPosition: ReviewPosition) =>
-      ["auctionRating", "auctionByAuctionId", auctionId, reviewPosition] as const,
+    auctionByAuctionId: (auctionId: string, reviewPosition: ReviewPosition): string =>
+      `auctionRating_auctionByAuctionId_${auctionId}_${reviewPosition}`,
   },
   auctionQa: {
-    auctionByAuctionId: (auctionId: string) => ["auctionQa", "auctionByAuctionId", auctionId] as const,
+    auctionByAuctionId: (auctionId: string): string => `auctionQa_auctionByAuctionId_${auctionId}`,
   },
   notification: {
-    notificationByUserId: (userId: string) => ["notification", "notificationByUserId", userId] as const,
+    notificationByUserId: (userId: string): string => `notification_notificationByUserId_${userId}`,
   },
   reviewSearch: {
-    myReviews: (userId: string, searchParams: ReviewSearchParams) =>
-      ["reviewSearch", "myReviews", userId, JSON.stringify(searchParams)] as const,
+    reviews: (userId: string, searchParams: ReviewSearchParams): string =>
+      `reviewSearch_reviews_${userId}_${JSON.stringify(searchParams)}`,
   },
 };
