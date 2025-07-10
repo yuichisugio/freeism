@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReviewSearchTab } from "@/lib/constants";
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useReviewSearch } from "@/hooks/review-search/use-review-search";
@@ -223,17 +223,6 @@ export const ReviewSearch = memo(function ReviewSearch() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * Hydration対策：クライアント側でマウント状態を管理
-   */
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * レビュー検索のフック
    */
   const {
@@ -247,6 +236,7 @@ export const ReviewSearch = memo(function ReviewSearch() {
     suggestions,
     showSuggestions,
     isUpdating,
+    isMounted,
 
     // function
     updateSearchQuery,

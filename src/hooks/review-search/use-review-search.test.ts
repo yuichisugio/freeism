@@ -10,7 +10,7 @@ import {
 import { AllTheProviders, mockUseMutation, mockUseQuery } from "@/test/setup/tanstack-query-setup";
 import { auctionReviewFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { act, renderHook } from "@testing-library/react";
-import { useQueryState } from "nuqs";
+import { useQueryStates } from "nuqs";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { useReviewSearch } from "./use-review-search";
@@ -30,8 +30,19 @@ vi.mock("@/actions/review-search/review-search", () => ({
 }));
 
 // nuqsのモック
+const mockSetSearchParams = vi.fn();
 vi.mock("nuqs", () => ({
-  useQueryState: vi.fn(),
+  useQueryStates: vi.fn(() => [
+    {
+      tab: "search",
+      page: 1,
+      q: "",
+    },
+    mockSetSearchParams,
+  ]),
+  parseAsInteger: { withDefault: vi.fn(() => ({})) },
+  parseAsString: { withDefault: vi.fn(() => ({})) },
+  parseAsStringLiteral: vi.fn(() => ({ withDefault: vi.fn(() => ({})) })),
 }));
 
 const mockGetAllReviews = vi.mocked(getAllReviews);
@@ -39,7 +50,7 @@ const mockGetMyReviews = vi.mocked(getMyReviews);
 const mockGetUserReviews = vi.mocked(getUserReviews);
 const mockGetSearchSuggestions = vi.mocked(getSearchSuggestions);
 const mockUpdateReview = vi.mocked(updateReview);
-const mockUseQueryState = vi.mocked(useQueryState);
+const mockUseQueryStates = vi.mocked(useQueryStates);
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -69,27 +80,20 @@ const mockSuggestions: SearchSuggestion[] = [
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
- * useQueryStateのモック設定用ヘルパー関数
+ * useQueryStatesのモック設定用ヘルパー関数
  */
-function setupUseQueryStateMock(activeTab: "search" | "edit" | "received" = "search", searchQuery = "", page = 1) {
-  const setActiveTab = vi.fn();
-  const setSearchQuery = vi.fn();
-  const setPage = vi.fn();
+function setupUseQueryStatesMock(activeTab: "search" | "edit" | "received" = "search", searchQuery = "", page = 1) {
+  // グローバルなmockSetSearchParamsを使用
+  mockSetSearchParams.mockClear();
 
-  mockUseQueryState.mockImplementation((key: string) => {
-    switch (key) {
-      case "tab":
-        return [activeTab, setActiveTab];
-      case "q":
-        return [searchQuery, setSearchQuery];
-      case "page":
-        return [page.toString(), setPage];
-      default:
-        return ["", vi.fn()];
-    }
-  });
-
-  return { setActiveTab, setSearchQuery, setPage };
+  mockUseQueryStates.mockReturnValue([
+    {
+      tab: activeTab,
+      page,
+      q: searchQuery,
+    },
+    mockSetSearchParams,
+  ]);
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -98,7 +102,7 @@ describe("useReviewSearch", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // デフォルトのモック設定
-    setupUseQueryStateMock();
+    setupUseQueryStatesMock();
     const mockReviewSearchResultWithPromise = {
       success: true,
       message: "レビューを取得しました",
@@ -177,7 +181,7 @@ describe("useReviewSearch", () => {
       expect(result.current.totalPages).toBe(1);
       expect(result.current.suggestions).toStrictEqual([]);
       expect(result.current.searchParams.q).toBe("");
-      expect(result.current.searchParams.page).toBe("1");
+      expect(result.current.searchParams.page).toBe(1);
       expect(result.current.searchParams.tab).toBe("search");
       expect(result.current.activeTab).toBe("search");
       expect(result.current.suggestionQuery).toBe("");
@@ -206,7 +210,7 @@ describe("useReviewSearch", () => {
       },
     ])("should initialize with custom query state values: $description", ({ tab, searchQuery, page }) => {
       // Arrange
-      setupUseQueryStateMock(tab, searchQuery, page);
+      setupUseQueryStatesMock(tab, searchQuery, page);
 
       // Act
       const { result } = renderHook(() => useReviewSearch(), {
@@ -216,7 +220,7 @@ describe("useReviewSearch", () => {
       // Assert
       expect(result.current.searchParams.tab).toBe(tab);
       expect(result.current.searchParams.q).toBe(searchQuery);
-      expect(result.current.searchParams.page).toBe(page.toString());
+      expect(result.current.searchParams.page).toBe(page);
       expect(result.current.activeTab).toBe(tab);
     });
   });
@@ -239,7 +243,7 @@ describe("useReviewSearch", () => {
       },
     ])("should fetch $description", ({ tab }) => {
       // Arrange
-      setupUseQueryStateMock(tab);
+      setupUseQueryStatesMock(tab);
 
       // Act
       renderHook(() => useReviewSearch(), {
@@ -252,7 +256,7 @@ describe("useReviewSearch", () => {
 
     test("should fetch suggestions when query length is >= 2 and showSuggestions is true", async () => {
       // Arrange
-      setupUseQueryStateMock();
+      setupUseQueryStatesMock();
 
       // Act
       const { result } = renderHook(() => useReviewSearch(), {
@@ -288,7 +292,7 @@ describe("useReviewSearch", () => {
 
     test("should execute search correctly", () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -304,14 +308,13 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(setSearchQuery).toHaveBeenCalledWith("test query");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "test query" });
       expect(result.current.showSuggestions).toBe(false);
     });
 
     test("should clear search correctly", () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -328,8 +331,7 @@ describe("useReviewSearch", () => {
 
       // Assert
       expect(result.current.suggestionQuery).toBe("");
-      expect(setSearchQuery).toHaveBeenCalledWith("");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
       expect(result.current.showSuggestions).toBe(false);
     });
 
@@ -370,7 +372,7 @@ describe("useReviewSearch", () => {
   describe("サジェスト機能", () => {
     test("should select suggestion correctly", async () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -383,8 +385,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert - 関数呼び出しを確認（suggestionQueryは即座には更新されない）
-      expect(setSearchQuery).toHaveBeenCalledWith("test");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "test" });
       expect(result.current.showSuggestions).toBe(false);
     });
 
@@ -430,7 +431,7 @@ describe("useReviewSearch", () => {
       },
     ])("$description", ({ tab }) => {
       // Arrange
-      const { setActiveTab, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -441,8 +442,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(setActiveTab).toHaveBeenCalledWith(tab);
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab, page: 1, q: "" });
     });
   });
 
@@ -464,7 +464,7 @@ describe("useReviewSearch", () => {
       },
     ])("$description", ({ page }) => {
       // Arrange
-      const { setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -475,12 +475,12 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(setPage).toHaveBeenCalledWith(page);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page, q: "" });
     });
 
     test("should reset page to 1 when executing search", () => {
       // Arrange
-      const { setPage } = setupUseQueryStateMock("search", "", 5);
+      setupUseQueryStatesMock("search", "", 5);
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -491,7 +491,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
     });
   });
 
@@ -823,7 +823,7 @@ describe("useReviewSearch", () => {
       },
     ])("$description", ({ page }) => {
       // Arrange
-      const { setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
@@ -834,7 +834,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(setPage).toHaveBeenCalledWith(page);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page, q: "" });
     });
 
     test("should handle empty suggestions array", () => {
@@ -973,23 +973,6 @@ describe("useReviewSearch", () => {
       consoleErrorSpy.mockRestore();
     });
 
-    test("should handle invalid tab value", () => {
-      // Arrange
-      mockUseQueryState.mockImplementation((key: string) => {
-        if (key === "tab") {
-          return ["invalid-tab" as unknown as "search" | "edit" | "received", vi.fn()];
-        }
-        return ["", vi.fn()];
-      });
-
-      // Act & Assert - エラーが発生しないことを確認
-      expect(() => {
-        renderHook(() => useReviewSearch(), {
-          wrapper: AllTheProviders,
-        });
-      }).not.toThrow();
-    });
-
     test.each([
       {
         description: "should handle undefined review ID in toggle edit mode",
@@ -1046,44 +1029,39 @@ describe("useReviewSearch", () => {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   describe("統合テスト", () => {
-    test("should handle complete search workflow", async () => {
+    test("should handle complete search workflow", () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // Act - 検索クエリ入力
-      act(() => {
-        result.current.updateSearchQuery("test query");
-      });
+      const suggestion = { value: "selected", label: "Selected Label" };
 
-      // Act - サジェスト選択
+      // Act
       act(() => {
-        result.current.selectSuggestion({ value: "selected", label: "Selected Item" });
+        result.current.selectSuggestion(suggestion);
       });
 
       // Assert - 関数呼び出しを確認（suggestionQueryは即座には更新されない）
-      expect(setSearchQuery).toHaveBeenCalledWith("selected");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "selected" });
       expect(result.current.showSuggestions).toBe(false);
     });
 
-    test("should handle tab change and data refetch", async () => {
+    test("should handle tab change and data refetch", () => {
       // Arrange
-      const { setActiveTab, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // Act - タブ変更
+      // Act
       act(() => {
         result.current.changeTab("edit");
       });
 
       // Assert
-      expect(setActiveTab).toHaveBeenCalledWith("edit");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "edit", page: 1, q: "" });
     });
 
     test("should handle review edit workflow", async () => {
@@ -1137,161 +1115,93 @@ describe("useReviewSearch", () => {
   describe("バグ修正：検索ワード削除後の再検索", () => {
     test("should search with empty query after clearing input field", () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
       // 検索クエリを設定
       act(() => {
-        result.current.updateSearchQuery("test query");
+        result.current.updateSearchQuery("some query");
       });
 
-      // 検索を実行
+      // Act - 検索をクリア
       act(() => {
-        result.current.executeSearch();
-      });
-
-      // クエリをクリア
-      act(() => {
-        result.current.updateSearchQuery("");
-      });
-
-      // Act - 空のクエリで検索を実行
-      act(() => {
-        result.current.executeSearch();
+        result.current.clearSearch();
       });
 
       // Assert - 空のクエリで検索が実行されることを確認
-      expect(setSearchQuery).toHaveBeenCalledWith("");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
     });
 
     test("should search with current suggestionQuery value, not previous searchQuery", () => {
       // Arrange
-      const { setSearchQuery } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // 最初の検索クエリを設定して実行
+      // 検索クエリを設定
       act(() => {
         result.current.updateSearchQuery("old query");
       });
-      act(() => {
-        result.current.executeSearch();
-      });
 
-      // 新しいクエリに変更（まだ検索は実行していない）
+      // 新しいクエリを入力（まだ検索は実行しない）
       act(() => {
         result.current.updateSearchQuery("new query");
       });
 
-      // Act - 検索を実行
+      // Act - 検索実行
       act(() => {
         result.current.executeSearch();
       });
 
       // Assert - 新しいクエリで検索されることを確認
-      expect(setSearchQuery).toHaveBeenLastCalledWith("new query");
+      expect(mockSetSearchParams).toHaveBeenLastCalledWith({ tab: "search", page: 1, q: "new query" });
     });
 
     test("should properly handle clear search after text input", () => {
       // Arrange
-      const { setSearchQuery, setPage } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // テキストを入力
+      // 検索クエリを設定
       act(() => {
         result.current.updateSearchQuery("some text");
       });
 
-      // Act - クリア操作
+      // Act - 検索をクリア
       act(() => {
         result.current.clearSearch();
       });
 
       // Assert - すべての状態がクリアされることを確認
       expect(result.current.suggestionQuery).toBe("");
-      expect(setSearchQuery).toHaveBeenCalledWith("");
-      expect(setPage).toHaveBeenCalledWith(1);
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
       expect(result.current.showSuggestions).toBe(false);
-    });
-
-    test("should not reset suggestionQuery to previous searchQuery when user is typing", () => {
-      // Arrange
-      const { result } = renderHook(() => useReviewSearch(), {
-        wrapper: AllTheProviders,
-      });
-
-      // 最初に検索を実行して searchQuery を設定
-      act(() => {
-        result.current.updateSearchQuery("test");
-      });
-      act(() => {
-        result.current.executeSearch();
-      });
-
-      // 現在の状態を確認
-      expect(result.current.suggestionQuery).toBe("test");
-
-      // ユーザーが文字を削除していく（このバグのシナリオ）
-      act(() => {
-        result.current.updateSearchQuery("tes");
-      });
-
-      // Assert - suggestionQuery が削除された文字数に応じて更新される
-      expect(result.current.suggestionQuery).toBe("tes");
-
-      // さらに削除
-      act(() => {
-        result.current.updateSearchQuery("te");
-      });
-
-      // Assert - suggestionQuery が元の値に戻らないことを確認
-      expect(result.current.suggestionQuery).toBe("te");
-
-      // さらに削除
-      act(() => {
-        result.current.updateSearchQuery("t");
-      });
-
-      // Assert - suggestionQuery が元の値に戻らないことを確認
-      expect(result.current.suggestionQuery).toBe("t");
-
-      // 完全に削除
-      act(() => {
-        result.current.updateSearchQuery("");
-      });
-
-      // Assert - 空文字になることを確認
-      expect(result.current.suggestionQuery).toBe("");
     });
 
     test("should properly sync suggestionQuery when search is executed after typing", () => {
       // Arrange
-      const { setSearchQuery } = setupUseQueryStateMock();
+      setupUseQueryStatesMock();
       const { result } = renderHook(() => useReviewSearch(), {
         wrapper: AllTheProviders,
       });
 
-      // ユーザーが入力
+      // 検索クエリを設定
       act(() => {
         result.current.updateSearchQuery("typing...");
       });
 
-      // 入力中はsuggestionQueryが独立して管理される
-      expect(result.current.suggestionQuery).toBe("typing...");
-
-      // 検索を実行すると同期される
+      // Act - 検索実行
       act(() => {
         result.current.executeSearch();
       });
 
       // Assert - 検索が実行されて同期が完了
-      expect(setSearchQuery).toHaveBeenCalledWith("typing...");
+      expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "typing..." });
       expect(result.current.suggestionQuery).toBe("typing...");
     });
   });

@@ -39,6 +39,7 @@ export function useReviewSearch() {
    */
   // 検索欄に入力中の検索ワードを保持するstate。debouncedSuggestionQueryとは別に管理する。
   const [suggestionQuery, setSuggestionQuery] = useState<string>(searchParams.q);
+
   // サジェストを表示するかどうかを管理するstate
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
@@ -49,6 +50,17 @@ export function useReviewSearch() {
 
   // 編集状態の管理
   const [editingReviews, setEditingReviews] = useState<Set<string>>(new Set<string>());
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * Hydration対策：クライアント側でマウント状態を管理
+   */
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -152,11 +164,13 @@ export function useReviewSearch() {
    */
   const updateSearchQuery = useCallback(
     (query: string) => {
+      // 入力中の検索ワードを更新。常に呼ぶ必要がある。Formのvalueと同期させる必要があるため。
       setSuggestionQuery(query);
-      void setSearchParams({ ...searchParams, page: 1 }); // ページをリセット
       // 入力中はサジェストを表示（空白文字のみでない場合）
       if (query.length >= 2 && query.trim() !== "") {
         setShowSuggestions(true);
+        // executeSearchを呼ぶときにURLパラメータに入れるため、↓ではqを指定しない
+        void setSearchParams({ ...searchParams, page: 1 });
       } else {
         setShowSuggestions(false);
       }
@@ -234,30 +248,40 @@ export function useReviewSearch() {
     isLoading: isReviewPending,
     showSuggestions,
     isUpdating: isUpdateReviewPending,
+    isMounted,
 
     // アクション
     updateSearchQuery,
-    executeSearch: () => {
-      void setSearchParams({ ...searchParams, q: suggestionQuery, page: 1 });
-      setShowSuggestions(false);
-    },
     clearSearch,
-    changeTab: (tab: ReviewSearchTab) => {
-      void setSearchParams({ ...searchParams, tab, page: 1 });
-      setShowSuggestions(false);
-    },
-    changePage: (newPage: number) => {
-      void setSearchParams({ ...searchParams, page: newPage });
-      setShowSuggestions(false);
-    },
-    selectSuggestion: (suggestion: SearchSuggestion) => {
-      setSuggestionQuery(suggestion.value);
-      void setSearchParams({ ...searchParams, q: suggestion.value, page: 1 });
-      setShowSuggestions(false);
-    },
     setShowSuggestions,
     toggleEditMode,
     handleUpdateReview: updateReviewMutate,
     refetch,
+    executeSearch: useCallback(() => {
+      void setSearchParams({ ...searchParams, q: suggestionQuery, page: 1 });
+      setShowSuggestions(false);
+    }, [setSearchParams, searchParams, setShowSuggestions, suggestionQuery]),
+    changeTab: useCallback(
+      (tab: ReviewSearchTab) => {
+        void setSearchParams({ ...searchParams, tab, page: 1 });
+        setShowSuggestions(false);
+      },
+      [setSearchParams, searchParams, setShowSuggestions],
+    ),
+    changePage: useCallback(
+      (newPage: number) => {
+        void setSearchParams({ ...searchParams, page: newPage });
+        setShowSuggestions(false);
+      },
+      [setSearchParams, searchParams, setShowSuggestions],
+    ),
+    selectSuggestion: useCallback(
+      (suggestion: SearchSuggestion) => {
+        setSuggestionQuery(suggestion.value);
+        void setSearchParams({ ...searchParams, q: suggestion.value, page: 1 });
+        setShowSuggestions(false);
+      },
+      [setSearchParams, searchParams, setShowSuggestions],
+    ),
   };
 }
