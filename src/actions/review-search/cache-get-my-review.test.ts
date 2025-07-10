@@ -219,7 +219,7 @@ describe("cache-review-search", () => {
         // Arrange
         const userId = "test-user-id";
         const searchParams: ReviewSearchParams = {
-          searchQuery: "テスト",
+          q: "テスト",
           page: 1,
           tab: "received",
         };
@@ -268,7 +268,7 @@ describe("cache-review-search", () => {
         // Arrange
         const userId = "test-user-id";
         const searchParams: ReviewSearchParams = {
-          searchQuery: "",
+          q: "",
           page: 2,
           tab: "edit",
         };
@@ -297,7 +297,7 @@ describe("cache-review-search", () => {
         // Arrange
         const userId = "test-user-id";
         const searchParams: ReviewSearchParams = {
-          searchQuery: "",
+          q: "",
           page: 1,
           tab: "edit",
         };
@@ -333,7 +333,7 @@ describe("cache-review-search", () => {
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         const searchParams: ReviewSearchParams = {
-          searchQuery: "",
+          q: "",
           page: 1,
           tab,
         };
@@ -418,7 +418,7 @@ describe("cache-review-search", () => {
         test("should throw error when invalid tab is provided", async () => {
           const userId = "test-user-id";
           const searchParams: ReviewSearchParams = {
-            searchQuery: "",
+            q: "",
             page: 1,
             tab: "invalid-tab" as unknown as "search" | "edit" | "received",
           };
@@ -432,7 +432,7 @@ describe("cache-review-search", () => {
         ])("should throw error when $description", async ({ page }) => {
           const userId = "test-user-id";
           const searchParams: ReviewSearchParams = {
-            searchQuery: "searchしたいキーワード",
+            q: "searchしたいキーワード",
             page, // 無効なページ番号
             tab: "edit",
           };
@@ -444,12 +444,12 @@ describe("cache-review-search", () => {
         });
 
         test.each([
-          { searchQuery: null as unknown as string, description: "null searchQuery" },
-          { searchQuery: undefined as unknown as string, description: "undefined searchQuery" },
-        ])("should throw error when $description", async ({ searchQuery }) => {
+          { q: null as unknown as string, description: "null searchQuery" },
+          { q: undefined as unknown as string, description: "undefined searchQuery" },
+        ])("should throw error when $description", async ({ q }) => {
           const userId = "test-user-id";
           const searchParams: ReviewSearchParams = {
-            searchQuery,
+            q,
             page: 1,
             tab: "edit",
           };

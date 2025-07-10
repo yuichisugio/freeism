@@ -60,7 +60,7 @@ describe("review-search", () => {
   });
 
   const testSearchParams: ReviewSearchParams = {
-    searchQuery: "テスト",
+    q: "テスト",
     page: 1,
     tab: "search",
   };
@@ -198,7 +198,7 @@ describe("review-search", () => {
     test.each([
       { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
       { searchParams: null, expected: mockReviewSearchResultWithPromise },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { q: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return all reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetCachedAllReviews.mockResolvedValue(mockResult);
@@ -226,7 +226,7 @@ describe("review-search", () => {
     test.each([
       { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
       { searchParams: null, expected: mockReviewSearchResultWithPromise },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { q: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return user reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);
@@ -267,7 +267,7 @@ describe("review-search", () => {
     test.each([
       { searchParams: testSearchParams, expected: mockReviewSearchResultWithPromise },
       { searchParams: null, expected: mockReviewSearchResultWithPromise },
-      { searchParams: { searchQuery: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
+      { searchParams: { q: "", page: 1 }, expected: mockReviewSearchResultWithPromise },
     ])("should return my reviews for various search params", async ({ searchParams, expected }) => {
       const mockResult = { ...expected };
       mockGetAuthenticatedSessionUserId.mockResolvedValue(testUserId);

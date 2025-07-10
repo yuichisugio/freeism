@@ -152,13 +152,7 @@ export const queryCacheKeys = {
     _root: ["review"] as const,
     all: () => [...queryCacheKeys.review._root] as const,
     searchAndTab: (searchParams: ReviewSearchParams) =>
-      [
-        ...queryCacheKeys.review.all(),
-        "searchAndTab",
-        searchParams.page,
-        searchParams.searchQuery,
-        searchParams.tab,
-      ] as const,
+      [...queryCacheKeys.review.all(), "searchAndTab", searchParams.page, searchParams.q, searchParams.tab] as const,
     suggestions: (query: string) => [...queryCacheKeys.review.all(), "suggestions", query] as const,
   },
 } as const;

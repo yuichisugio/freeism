@@ -54,7 +54,7 @@ export const ReviewCard = memo(function ReviewCard({
   showReviewer?: boolean;
   editable?: boolean;
   onToggleEdit?: (reviewId: string) => void;
-  onUpdateReview?: (reviewId: string, rating: number, comment: string | null) => void;
+  onUpdateReview?: (params: { reviewId: string; rating: number; comment: string | null }) => void;
   isLoading?: boolean;
   isUpdating?: boolean;
   isMounted?: boolean;
@@ -108,7 +108,7 @@ export const ReviewCard = memo(function ReviewCard({
    */
   const handleSave = useCallback(() => {
     if (onUpdateReview) {
-      onUpdateReview(review.id, editRating, editComment.trim() || null);
+      onUpdateReview({ reviewId: review.id, rating: editRating, comment: editComment.trim() || null });
     }
   }, [review.id, editRating, editComment, onUpdateReview]);
 

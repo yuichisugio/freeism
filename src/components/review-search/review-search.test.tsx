@@ -74,7 +74,7 @@ const mockSuggestions: SearchSuggestion[] = [
 ];
 
 const mockSearchParams: ReviewSearchParams = {
-  searchQuery: "",
+  q: "",
   page: 1,
   tab: "search",
 };

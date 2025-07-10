@@ -42,7 +42,7 @@ export async function getCachedUserReviews(
   }
 
   // 検索クエリのバリデーション。空文字列は有効な値として扱うが、それ以外はエラー
-  if (searchParams && (searchParams.searchQuery === undefined || searchParams.searchQuery === null)) {
+  if (searchParams && (searchParams.q === undefined || searchParams.q === null)) {
     throw new Error("検索クエリの定義がありません");
   }
 
@@ -69,14 +69,14 @@ export async function getCachedUserReviews(
   /**
    * 検索条件がある場合、追加のフィルター条件を構築
    */
-  if (searchParams?.searchQuery && searchParams.searchQuery.length > 0) {
+  if (searchParams?.q && searchParams.q.length > 0) {
     whereCondition.OR = [
       // ユーザー名での検索（レビュー送信者）
       {
         reviewer: {
           settings: {
             username: {
-              contains: searchParams.searchQuery,
+              contains: searchParams.q,
               mode: "insensitive",
             },
           },
@@ -85,7 +85,7 @@ export async function getCachedUserReviews(
       // レビューコメントでの検索
       {
         comment: {
-          contains: searchParams.searchQuery,
+          contains: searchParams.q,
           mode: "insensitive",
         },
       },
@@ -95,7 +95,7 @@ export async function getCachedUserReviews(
           task: {
             group: {
               name: {
-                contains: searchParams.searchQuery,
+                contains: searchParams.q,
                 mode: "insensitive",
               },
             },
@@ -107,17 +107,17 @@ export async function getCachedUserReviews(
         auction: {
           task: {
             task: {
-              contains: searchParams.searchQuery,
+              contains: searchParams.q,
               mode: "insensitive",
             },
           },
         },
       },
       // ID系での検索
-      { reviewerId: searchParams.searchQuery },
-      { auctionId: searchParams.searchQuery },
-      { auction: { taskId: searchParams.searchQuery } },
-      { auction: { task: { groupId: searchParams.searchQuery } } },
+      { reviewerId: searchParams.q },
+      { auctionId: searchParams.q },
+      { auction: { taskId: searchParams.q } },
+      { auction: { task: { groupId: searchParams.q } } },
     ];
   }
 

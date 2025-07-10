@@ -113,7 +113,7 @@ export async function updateReview(
     useCacheKeys.reviewSearch.reviews(
       userId,
       searchParams ?? {
-        searchQuery: "",
+        q: "",
         page: 1,
         tab: "edit",
       },

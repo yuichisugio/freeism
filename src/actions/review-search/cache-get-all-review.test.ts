@@ -130,7 +130,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
     test("should handle search query with OR conditions", async () => {
       // Arrange
       const searchParams: ReviewSearchParams = {
-        searchQuery: "全体",
+        q: "全体",
         page: 1,
         tab: "search",
       };
@@ -215,7 +215,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
     test("should handle pagination correctly", async () => {
       // Arrange
       const searchParams: ReviewSearchParams = {
-        searchQuery: "",
+        q: "",
         page: 2,
         tab: "search",
       };
@@ -338,7 +338,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
     test("should handle empty searchQuery as valid input", async () => {
       // Arrange
       const searchParams: ReviewSearchParams = {
-        searchQuery: "",
+        q: "",
         page: 1,
         tab: "search",
       };
@@ -373,7 +373,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
       prismaMock.auctionReview.count.mockResolvedValue(0);
 
       const searchParams: ReviewSearchParams = {
-        searchQuery: "",
+        q: "",
         page: 1,
         tab,
       };
@@ -403,7 +403,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
       test("should throw error when invalid tab is provided", async () => {
         // Arrange
         const searchParams: ReviewSearchParams = {
-          searchQuery: "",
+          q: "",
           page: 1,
           tab: "invalid-tab" as unknown as "search" | "edit" | "received",
         };
@@ -416,7 +416,7 @@ describe("cache-review-search_getCachedAllReviews", () => {
         { page: -1, description: "negative page" },
       ])("should throw error when $description", async ({ page }) => {
         const searchParams: ReviewSearchParams = {
-          searchQuery: "searchしたいキーワード",
+          q: "searchしたいキーワード",
           page, // 無効なページ番号
           tab: "search",
         };
@@ -426,11 +426,11 @@ describe("cache-review-search_getCachedAllReviews", () => {
       });
 
       test.each([
-        { searchQuery: null as unknown as string, description: "null searchQuery" },
-        { searchQuery: undefined as unknown as string, description: "undefined searchQuery" },
-      ])("should throw error when $description", async ({ searchQuery }) => {
+        { q: null as unknown as string, description: "null q" },
+        { q: undefined as unknown as string, description: "undefined q" },
+      ])("should throw error when $description", async ({ q }) => {
         const searchParams: ReviewSearchParams = {
-          searchQuery,
+          q,
           page: 1,
           tab: "search",
         };

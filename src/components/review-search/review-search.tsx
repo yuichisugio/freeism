@@ -60,7 +60,7 @@ export type ReviewData = {
  * 検索条件の型定義
  */
 export type ReviewSearchParams = {
-  searchQuery: string; // 検索クエリ文字列
+  q: string; // 検索クエリ文字列
   page: number; // ページネーション用のページ番号
   tab: ReviewSearchTab; // タブの種類
 };
@@ -107,7 +107,7 @@ export const ReviewSearchList = memo(function ReviewSearchList({
   isLoading: boolean;
   isUpdating: boolean;
   toggleEditMode: (reviewId: string) => void;
-  handleUpdateReview: (reviewId: string, rating: number, comment: string | null) => void;
+  handleUpdateReview: (params: { reviewId: string; rating: number; comment: string | null }) => void;
   isMounted?: boolean;
 }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -166,7 +166,7 @@ export const ReviewSearchList = memo(function ReviewSearchList({
     let emptyMessage: string;
 
     // 検索条件に一致するレビューが見つからない場合
-    if (searchParams.searchQuery) {
+    if (searchParams.q) {
       emptyMessage = "検索条件に一致するレビューが見つかりませんでした。";
     }
 

@@ -1,12 +1,5 @@
-"use client";
-
 import type { ReviewSearchResult, SearchSuggestion } from "@/components/review-search/review-search";
 import type { UseQueryOptions } from "@tanstack/react-query";
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * モック関数のインポート
- */
 import {
   getAllReviews,
   getMyReviews,
@@ -27,7 +20,6 @@ import { useReviewSearch } from "./use-review-search";
 /**
  * モック設定
  */
-
 // review-search actionsのモック
 vi.mock("@/actions/review-search/review-search", () => ({
   getAllReviews: vi.fn(),
@@ -118,6 +110,7 @@ describe("useReviewSearch", () => {
       data: mockSuggestions,
     };
 
+    // モック関数の設定
     mockGetAllReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
     mockGetMyReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
     mockGetUserReviews.mockResolvedValue(mockReviewSearchResultWithPromise);
@@ -128,7 +121,7 @@ describe("useReviewSearch", () => {
       data: mockReviewData,
     });
 
-    // TanStack Queryのモック設定
+    // TanStack QueryのuseQueryモック設定
     mockUseQuery.mockReturnValue({
       data: mockReviewSearchResultWithPromise,
       isPending: false,
@@ -136,6 +129,7 @@ describe("useReviewSearch", () => {
       refetch: vi.fn(),
     });
 
+    // TanStack QueryのuseMutationモック設定
     mockUseMutation.mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue(mockReviewData),
       isPending: false,
@@ -182,7 +176,7 @@ describe("useReviewSearch", () => {
       expect(result.current.totalCount).toBe(1);
       expect(result.current.totalPages).toBe(1);
       expect(result.current.suggestions).toStrictEqual([]);
-      expect(result.current.searchParams.searchQuery).toBe("");
+      expect(result.current.searchParams.q).toBe("");
       expect(result.current.searchParams.page).toBe("1");
       expect(result.current.searchParams.tab).toBe("search");
       expect(result.current.activeTab).toBe("search");
@@ -221,7 +215,7 @@ describe("useReviewSearch", () => {
 
       // Assert
       expect(result.current.searchParams.tab).toBe(tab);
-      expect(result.current.searchParams.searchQuery).toBe(searchQuery);
+      expect(result.current.searchParams.q).toBe(searchQuery);
       expect(result.current.searchParams.page).toBe(page.toString());
       expect(result.current.activeTab).toBe(tab);
     });
@@ -578,7 +572,7 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.handleUpdateReview("review-1", 4, "Updated comment");
+        result.current.handleUpdateReview({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
       });
 
       // Assert
@@ -602,7 +596,7 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.handleUpdateReview("review-1", 4, "Updated comment");
+        result.current.handleUpdateReview({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
       });
 
       // Assert
@@ -770,7 +764,7 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.handleUpdateReview(reviewId, rating, comment);
+        result.current.handleUpdateReview({ reviewId, rating, comment });
       });
 
       // Assert
@@ -807,7 +801,7 @@ describe("useReviewSearch", () => {
 
       // Act
       act(() => {
-        result.current.handleUpdateReview("review-1", rating, comment);
+        result.current.handleUpdateReview({ reviewId: "review-1", rating, comment });
       });
 
       // Assert
@@ -1111,7 +1105,7 @@ describe("useReviewSearch", () => {
 
       // Act - レビュー更新
       act(() => {
-        result.current.handleUpdateReview("review-1", 4, "Updated comment");
+        result.current.handleUpdateReview({ reviewId: "review-1", rating: 4, comment: "Updated comment" });
       });
 
       // Assert

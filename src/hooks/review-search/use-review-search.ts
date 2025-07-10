@@ -1,10 +1,6 @@
 "use client";
 
-import type {
-  EditableReviewData,
-  ReviewSearchParams,
-  SearchSuggestion,
-} from "@/components/review-search/review-search";
+import type { EditableReviewData, SearchSuggestion } from "@/components/review-search/review-search";
 import type { ReviewSearchTab } from "@/lib/constants";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -17,7 +13,7 @@ import {
 import { REVIEW_SEARCH_CONSTANTS } from "@/lib/constants";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useQueryState } from "nuqs";
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -30,70 +26,36 @@ export function useReviewSearch() {
   /**
    * URLパタメータ・条件の管理
    */
-  // タブ
-  const [activeTab, setActiveTab] = useQueryState("tab", {
-    defaultValue: "search" as ReviewSearchTab,
-    parse: (value) => {
-      if (REVIEW_SEARCH_CONSTANTS.TAB_TYPES.includes(value as ReviewSearchTab)) return value;
-      return "search";
-    },
-    history: "push",
-  });
-
-  // 検索クエリ
-  const [searchQuery, setSearchQuery] = useQueryState("q", {
-    defaultValue: "",
-    history: "push",
-  });
-
-  // ページ
-  const [page, setPage] = useQueryState("page", {
-    defaultValue: 1,
-    parse: (value) => parseInt(value) || 1,
-    history: "push",
+  const [searchParams, setSearchParams] = useQueryStates({
+    tab: parseAsStringLiteral(REVIEW_SEARCH_CONSTANTS.TAB_TYPES).withDefault("search"),
+    page: parseAsInteger.withDefault(1),
+    q: parseAsString.withDefault(""),
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 検索状態の管理
+   * state
    */
-  const searchParams: ReviewSearchParams = useMemo(
-    () => ({
-      searchQuery,
-      page,
-      tab: activeTab as ReviewSearchTab,
-    }),
-    [searchQuery, page, activeTab],
-  );
+  // 検索欄に入力中の検索ワードを保持するstate。debouncedSuggestionQueryとは別に管理する。
+  const [suggestionQuery, setSuggestionQuery] = useState<string>(searchParams.q);
+  // サジェストを表示するかどうかを管理するstate
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * サジェスト機能の状態管理
-   */
-  const [suggestionQuery, setSuggestionQuery] = useState(searchQuery);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 編集状態の管理
-   */
-  const [editingReviews, setEditingReviews] = useState<Set<string>>(new Set());
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * debounce用のref
-   */
+  // debounce用の経過時間を保持するref
   const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // debounce用時に、サジェストを検索するための検索ワードを保持するstate
   const [debouncedSuggestionQuery, setDebouncedSuggestionQuery] = useState<string>("");
+
+  // 編集状態の管理
+  const [editingReviews, setEditingReviews] = useState<Set<string>>(new Set<string>());
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * debounce処理
+   * 検索ワードが入ってから400ms後にdebouncedSuggestionQueryを更新する
+   * それにより、連続的な入力の際に、入力途中でサジェストの検索を何度も行わないようにする。
    */
   useEffect(() => {
     // 以前のタイムアウトがあればクリア
@@ -119,45 +81,6 @@ export function useReviewSearch() {
       }
     };
   }, [suggestionQuery]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * searchQueryが変更された時にsuggestQueryを同期
-   * ユーザーの入力による変更と外部からの変更を区別して処理
-   */
-  const lastUserInputRef = useRef<string>("");
-  const isInitializing = useRef(true);
-  const isClearingRef = useRef(false);
-  const isUserTypingRef = useRef(false); // ユーザーが入力中かどうかを追跡
-
-  useEffect(() => {
-    // 初期化時は必ず同期
-    if (isInitializing.current) {
-      setSuggestionQuery(searchQuery);
-      lastUserInputRef.current = searchQuery;
-      isInitializing.current = false;
-      return;
-    }
-
-    // クリア処理中は同期をスキップ（一度だけ）
-    if (isClearingRef.current) {
-      isClearingRef.current = false;
-      return;
-    }
-
-    // ユーザーが入力中の場合は同期をスキップ
-    if (isUserTypingRef.current) {
-      return;
-    }
-
-    // ユーザーの入力による変更でない場合（URLパラメータの変更、プログラム的な変更など）
-    // suggestionQueryも同期する（ただし、クリア処理中でない場合のみ）
-    if (searchQuery !== lastUserInputRef.current && !isClearingRef.current) {
-      setSuggestionQuery(searchQuery);
-      lastUserInputRef.current = searchQuery;
-    }
-  }, [searchQuery]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -188,6 +111,7 @@ export function useReviewSearch() {
 
   /**
    * サジェストデータを取得するクエリ
+   * Strict Modeにより、レンダリング後すぐに検索欄の文字を削除すると、削除前に戻るが大きな問題ではない。
    */
   const { data: suggestionsResponse } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
@@ -216,22 +140,10 @@ export function useReviewSearch() {
     meta: {
       invalidateCacheKeys: [
         { queryKey: queryCacheKeys.review.searchAndTab(searchParams), exact: false },
-        { queryKey: queryCacheKeys.review.suggestions(searchParams.searchQuery), exact: false },
+        { queryKey: queryCacheKeys.review.suggestions(searchParams.q), exact: false },
       ],
     },
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * レビュー更新のハンドラー関数
-   */
-  const handleUpdateReview = useCallback(
-    (reviewId: string, rating: number, comment: string | null) => {
-      updateReviewMutate({ reviewId, rating, comment });
-    },
-    [updateReviewMutate],
-  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -240,10 +152,8 @@ export function useReviewSearch() {
    */
   const updateSearchQuery = useCallback(
     (query: string) => {
-      isUserTypingRef.current = true; // ユーザーが入力中であることを記録
       setSuggestionQuery(query);
-      lastUserInputRef.current = query; // ユーザー入力を記録
-      void setPage(1); // ページをリセット
+      void setSearchParams({ ...searchParams, page: 1 }); // ページをリセット
       // 入力中はサジェストを表示（空白文字のみでない場合）
       if (query.length >= 2 && query.trim() !== "") {
         setShowSuggestions(true);
@@ -251,94 +161,26 @@ export function useReviewSearch() {
         setShowSuggestions(false);
       }
     },
-    [setPage],
+    [setSearchParams, searchParams],
   );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 検索を実行する関数
-   */
-  const executeSearch = useCallback(() => {
-    // suggestionQueryの現在の値を使って検索を実行
-    const currentQuery = suggestionQuery;
-    isUserTypingRef.current = false; // ユーザーの入力が完了したことを記録
-    void setSearchQuery(currentQuery); // 現在のsuggestionQueryで検索
-    lastUserInputRef.current = currentQuery; // 同期を維持
-    void setPage(1); // ページをリセット
-    setShowSuggestions(false); // サジェストを閉じる
-  }, [setSearchQuery, setPage, setShowSuggestions, suggestionQuery]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * 検索をクリアする関数
+   * 検索欄のバツボタンを押した時に呼ばれる
    */
   const clearSearch = useCallback(() => {
     // debounceタイムアウトをクリア
     if (suggestionTimeoutRef.current) {
       clearTimeout(suggestionTimeoutRef.current);
     }
-
-    // クリア処理中のフラグを設定
-    isClearingRef.current = true;
-    isUserTypingRef.current = false; // ユーザーの入力状態もリセット
-
     // 同期して全ての状態をクリア
     setSuggestionQuery("");
     setDebouncedSuggestionQuery("");
-    lastUserInputRef.current = "";
-    void setSearchQuery("");
-    void setPage(1);
+    void setSearchParams({ ...searchParams, q: "", page: 1 });
     setShowSuggestions(false);
-  }, [setSearchQuery, setPage, setShowSuggestions]);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * タブを変更する関数
-   */
-  const changeTab = useCallback(
-    (tab: ReviewSearchTab) => {
-      void setActiveTab(tab);
-      void setPage(1); // ページをリセット
-      // タブ切り替え時は現在のsuggestQueryを保持（ユーザーの入力を尊重）
-      // 検索とsuggestの状態は変更しない
-      setShowSuggestions(false); // サジェストを閉じる
-    },
-    [setActiveTab, setPage],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ページを変更する関数
-   */
-  const changePage = useCallback(
-    (newPage: number) => {
-      void setPage(newPage);
-    },
-    [setPage],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * サジェストを選択した時の処理
-   */
-  const selectSuggestion = useCallback(
-    (suggestion: SearchSuggestion) => {
-      // 入力フィールドの値を選択されたサジェストに設定
-      setSuggestionQuery(suggestion.value);
-      lastUserInputRef.current = suggestion.value; // 同期を維持
-      isUserTypingRef.current = false; // ユーザーの入力が完了したことを記録
-      // 即座に検索を実行
-      void setSearchQuery(suggestion.value);
-      void setPage(1); // ページをリセット
-      setShowSuggestions(false);
-    },
-    [setSuggestionQuery, setSearchQuery, setPage, setShowSuggestions],
-  );
+  }, [setSearchParams, searchParams, setShowSuggestions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -359,19 +201,6 @@ export function useReviewSearch() {
     },
     [setEditingReviews],
   );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * コンポーネントのアンマウント時のクリーンアップ
-   */
-  useEffect(() => {
-    return () => {
-      if (suggestionTimeoutRef.current) {
-        clearTimeout(suggestionTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -408,14 +237,27 @@ export function useReviewSearch() {
 
     // アクション
     updateSearchQuery,
-    executeSearch,
+    executeSearch: () => {
+      void setSearchParams({ ...searchParams, q: suggestionQuery, page: 1 });
+      setShowSuggestions(false);
+    },
     clearSearch,
-    changeTab,
-    changePage,
-    selectSuggestion,
+    changeTab: (tab: ReviewSearchTab) => {
+      void setSearchParams({ ...searchParams, tab, page: 1 });
+      setShowSuggestions(false);
+    },
+    changePage: (newPage: number) => {
+      void setSearchParams({ ...searchParams, page: newPage });
+      setShowSuggestions(false);
+    },
+    selectSuggestion: (suggestion: SearchSuggestion) => {
+      setSuggestionQuery(suggestion.value);
+      void setSearchParams({ ...searchParams, q: suggestion.value, page: 1 });
+      setShowSuggestions(false);
+    },
     setShowSuggestions,
     toggleEditMode,
-    handleUpdateReview,
+    handleUpdateReview: updateReviewMutate,
     refetch,
   };
 }
