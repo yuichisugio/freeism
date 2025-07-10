@@ -165,6 +165,9 @@ export function useReviewSearch() {
 
   /**
    * レビュー編集モードを切り替える関数
+   * editingReviewsにレビューIDを追加する。
+   * editingReviewsには、編集中のレビューのIDのsetを管理する。
+   * 編集モードを終了すると、editingReviewsからレビューIDを削除する。
    */
   const toggleEditMode = useCallback(
     (reviewId: string) => {

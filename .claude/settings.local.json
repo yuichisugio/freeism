@@ -3,7 +3,8 @@
     "allow": [
       "Bash(rm:*)",
       "Bash(code.exe:*)",
-      "Bash(\"/mnt/c/Users/PC_User/AppData/Local/Programs/cursor/resources/app/bin/cursor\" --version)"
+      "Bash(\"/mnt/c/Users/PC_User/AppData/Local/Programs/cursor/resources/app/bin/cursor\" --version)",
+      "Bash(printenv)"
     ]
   },
   "enableAllProjectMcpServers": true,
