@@ -132,6 +132,7 @@ export function useReviewSearch() {
   const { data: suggestionsResponse } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
+    enabled: debouncedSuggestionQuery.trim().length >= 2,
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
@@ -230,7 +231,7 @@ export function useReviewSearch() {
       (query: string) => {
         // 入力中の検索ワードを更新。常に呼ぶ必要がある。Formのvalueと同期させる必要があるため。
         void setSearchParams({ ...searchParams, q: query });
-        //! ここで、setFixedSearchParamsを呼ぶのはNG。useQueryのqueryKeyに使用している。読んでしまうと、検索欄で入力するたびにデータ取得してしまう。
+        //! ここで、setFixedSearchParamsを呼ぶのはNG。useQueryのqueryKeyに使用している。呼ぶと、検索欄で入力するたびにデータ取得してしまう。
         // 入力中はサジェストを表示（空白文字のみでない場合）
         setShowSuggestions(query.trim().length >= 2);
       },
