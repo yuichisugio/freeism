@@ -10,6 +10,7 @@ import { prisma } from "@/library-setting/prisma";
 
 /**
  * 全レビューを検索する関数（検索タブ用）
+ * 送信者は伏せるようにしたいため、送信者の情報は取得しない
  * @param searchParams - 検索パラメータ
  * @returns レビューデータと統計情報
  */

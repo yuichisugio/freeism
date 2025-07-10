@@ -31,6 +31,7 @@ export function useReviewSuggest({
 
   /**
    * 外部クリックでサジェストを閉じる処理
+   * ref.current.contains(event.target)で、ref.currentがevent.targetを含んでいるかどうかを判定 = ref外を選択した判定
    */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
