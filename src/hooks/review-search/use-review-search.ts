@@ -19,6 +19,7 @@ import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } f
 
 /**
  * レビューデータとその操作を管理するカスタムフック
+ *
  */
 export function useReviewSearch() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -37,16 +38,15 @@ export function useReviewSearch() {
   /**
    * state
    */
-  // 検索欄に入力中の検索ワードを保持するstate。debouncedSuggestionQueryとは別に管理する。
-  const [suggestionQuery, setSuggestionQuery] = useState<string>(searchParams.q);
-
   // サジェストを表示するかどうかを管理するstate
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
-  // debounce用の経過時間を保持するref
-  const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // debounce用時に、サジェストを検索するための検索ワードを保持するstate
-  const [debouncedSuggestionQuery, setDebouncedSuggestionQuery] = useState<string>("");
+  // 検索パラメータを固定するためのstate。useQueryのqueryKeyに使用する。searchParamsとは別に管理する。
+  // searchParamsをuseQueryに、そのまま渡すと、キャッシュキー（searchParams）が変わるごとに、データ取得してしまう。
+  // でも、searchParams(URLパラメータ)と、検索欄の入力値を同期させないと、途中で別のレンダリングが入ると、変更前の入力値が表示されてしまい、入力内容が戻るバグに見える。
+  // なので、searchParamsとは別で、キャッシュキーの管理が必要で、入力値が変わるたびに変更するのではなく、データ取得をしたいタイミングに更新して、useQueryを実行する必要がある
+  // 冗長的だけど、↓は必要。
+  const [fixedSearchParams, setFixedSearchParams] = useState(searchParams);
 
   // 編集状態の管理
   const [editingReviews, setEditingReviews] = useState<Set<string>>(new Set<string>());
@@ -54,7 +54,8 @@ export function useReviewSearch() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * Hydration対策：クライアント側でマウント状態を管理
+   * Hydration対策
+   * クライアント側でマウント状態を管理
    */
   const [isMounted, setIsMounted] = useState(false);
 
@@ -69,6 +70,12 @@ export function useReviewSearch() {
    * 検索ワードが入ってから400ms後にdebouncedSuggestionQueryを更新する
    * それにより、連続的な入力の際に、入力途中でサジェストの検索を何度も行わないようにする。
    */
+  // タイムアウトの参照を保持するためのref
+  const suggestionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // debounce用に、サジェストを検索するための検索ワードを保持するstate
+  const [debouncedSuggestionQuery, setDebouncedSuggestionQuery] = useState<string>("");
+
+  // 検索ワードが変更されたら、debounce処理を行う
   useEffect(() => {
     // 以前のタイムアウトがあればクリア
     if (suggestionTimeoutRef.current) {
@@ -76,15 +83,15 @@ export function useReviewSearch() {
     }
 
     // 空の文字列の場合は即座に更新（削除時の高速レスポンス）
-    if (suggestionQuery === "") {
+    if (searchParams.q === "") {
       setDebouncedSuggestionQuery("");
       return;
     }
 
-    // 新しいタイムアウトを設定
+    // 新しいタイムアウトを設定。500ミリ秒後にdebouncedSuggestionQueryを更新する
     suggestionTimeoutRef.current = setTimeout(() => {
-      setDebouncedSuggestionQuery(suggestionQuery);
-    }, 400); // 400ミリ秒のデバウンス
+      setDebouncedSuggestionQuery(searchParams.q);
+    }, 500);
 
     // クリーンアップ関数
     return () => {
@@ -92,27 +99,23 @@ export function useReviewSearch() {
         clearTimeout(suggestionTimeoutRef.current);
       }
     };
-  }, [suggestionQuery]);
+  }, [searchParams.q]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
    * メインのレビューデータを取得するクエリ
    */
-  const {
-    data: reviewData,
-    isPending: isReviewPending,
-    refetch,
-  } = useQuery({
-    queryKey: queryCacheKeys.review.searchAndTab(searchParams),
+  const { data: reviewData, isPending: isReviewPending } = useQuery({
+    queryKey: queryCacheKeys.review.searchAndTab(fixedSearchParams),
     queryFn: () => {
-      switch (searchParams.tab) {
+      switch (fixedSearchParams.tab) {
         case "edit":
-          return getMyReviews(searchParams);
+          return getMyReviews(fixedSearchParams);
         case "received":
-          return getUserReviews(searchParams);
+          return getUserReviews(fixedSearchParams);
         default:
-          return getAllReviews(searchParams);
+          return getAllReviews(fixedSearchParams);
       }
     },
     staleTime: 30 * 60 * 1000,
@@ -124,11 +127,11 @@ export function useReviewSearch() {
   /**
    * サジェストデータを取得するクエリ
    * Strict Modeにより、レンダリング後すぐに検索欄の文字を削除すると、削除前に戻るが大きな問題ではない。
+   * useDeferredValueを使用すると、debouncedSuggestionQueryの更新が遅れるため、
    */
   const { data: suggestionsResponse } = useQuery({
     queryKey: queryCacheKeys.review.suggestions(debouncedSuggestionQuery),
     queryFn: () => getSearchSuggestions(debouncedSuggestionQuery),
-    enabled: debouncedSuggestionQuery.length >= 2 && showSuggestions && debouncedSuggestionQuery.trim() !== "",
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
   });
@@ -156,45 +159,6 @@ export function useReviewSearch() {
       ],
     },
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 検索クエリを更新する関数（入力フィールド用）
-   */
-  const updateSearchQuery = useCallback(
-    (query: string) => {
-      // 入力中の検索ワードを更新。常に呼ぶ必要がある。Formのvalueと同期させる必要があるため。
-      setSuggestionQuery(query);
-      // 入力中はサジェストを表示（空白文字のみでない場合）
-      if (query.length >= 2 && query.trim() !== "") {
-        setShowSuggestions(true);
-        // executeSearchを呼ぶときにURLパラメータに入れるため、↓ではqを指定しない
-        void setSearchParams({ ...searchParams, page: 1 });
-      } else {
-        setShowSuggestions(false);
-      }
-    },
-    [setSearchParams, searchParams],
-  );
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 検索をクリアする関数
-   * 検索欄のバツボタンを押した時に呼ばれる
-   */
-  const clearSearch = useCallback(() => {
-    // debounceタイムアウトをクリア
-    if (suggestionTimeoutRef.current) {
-      clearTimeout(suggestionTimeoutRef.current);
-    }
-    // 同期して全ての状態をクリア
-    setSuggestionQuery("");
-    setDebouncedSuggestionQuery("");
-    void setSearchParams({ ...searchParams, q: "", page: 1 });
-    setShowSuggestions(false);
-  }, [setSearchParams, searchParams, setShowSuggestions]);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -244,44 +208,71 @@ export function useReviewSearch() {
     // 状態
     searchParams,
     activeTab: searchParams.tab,
-    suggestionQuery,
     isLoading: isReviewPending,
     showSuggestions,
     isUpdating: isUpdateReviewPending,
     isMounted,
 
     // アクション
-    updateSearchQuery,
-    clearSearch,
     setShowSuggestions,
     toggleEditMode,
     handleUpdateReview: updateReviewMutate,
-    refetch,
-    executeSearch: useCallback(() => {
-      void setSearchParams({ ...searchParams, q: suggestionQuery, page: 1 });
+
+    // 検索をクリアする関数
+    clearSearch: useCallback(() => {
+      setFixedSearchParams({ ...searchParams, q: "", page: 1 });
+      void setSearchParams({ ...searchParams, q: "", page: 1 });
       setShowSuggestions(false);
-    }, [setSearchParams, searchParams, setShowSuggestions, suggestionQuery]),
+    }, [setSearchParams, searchParams, setShowSuggestions]),
+
+    // 検索ワードを更新する関数
+    updateSearchQuery: useCallback(
+      (query: string) => {
+        // 入力中の検索ワードを更新。常に呼ぶ必要がある。Formのvalueと同期させる必要があるため。
+        void setSearchParams({ ...searchParams, q: query });
+        //! ここで、setFixedSearchParamsを呼ぶのはNG。useQueryのqueryKeyに使用している。読んでしまうと、検索欄で入力するたびにデータ取得してしまう。
+        // 入力中はサジェストを表示（空白文字のみでない場合）
+        setShowSuggestions(query.trim().length >= 2);
+      },
+      [setSearchParams, searchParams, setShowSuggestions],
+    ),
+
+    // 検索を実行する関数
+    executeSearch: useCallback(() => {
+      setFixedSearchParams({ ...searchParams, q: searchParams.q, page: 1 });
+      // nuqsのsearchParamsは、入力値と同期しているので、↓でqを渡す必要はない
+      void setSearchParams({ ...searchParams, page: 1 });
+      setShowSuggestions(false);
+    }, [setSearchParams, searchParams, setShowSuggestions, setFixedSearchParams]),
+
+    // タブを切り替える関数
     changeTab: useCallback(
       (tab: ReviewSearchTab) => {
+        setFixedSearchParams({ ...searchParams, tab, page: 1 });
         void setSearchParams({ ...searchParams, tab, page: 1 });
         setShowSuggestions(false);
       },
-      [setSearchParams, searchParams, setShowSuggestions],
+      [setSearchParams, searchParams, setShowSuggestions, setFixedSearchParams],
     ),
+
+    // ページを変更する関数
     changePage: useCallback(
       (newPage: number) => {
+        setFixedSearchParams({ ...searchParams, page: newPage });
         void setSearchParams({ ...searchParams, page: newPage });
         setShowSuggestions(false);
       },
-      [setSearchParams, searchParams, setShowSuggestions],
+      [setSearchParams, searchParams, setShowSuggestions, setFixedSearchParams],
     ),
+
+    // サジェストを選択する関数
     selectSuggestion: useCallback(
       (suggestion: SearchSuggestion) => {
-        setSuggestionQuery(suggestion.value);
+        setFixedSearchParams({ ...searchParams, q: suggestion.value, page: 1 });
         void setSearchParams({ ...searchParams, q: suggestion.value, page: 1 });
         setShowSuggestions(false);
       },
-      [setSearchParams, searchParams, setShowSuggestions],
+      [setSearchParams, searchParams, setShowSuggestions, setFixedSearchParams],
     ),
   };
 }

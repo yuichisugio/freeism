@@ -184,7 +184,6 @@ describe("useReviewSearch", () => {
       expect(result.current.searchParams.page).toBe(1);
       expect(result.current.searchParams.tab).toBe("search");
       expect(result.current.activeTab).toBe("search");
-      expect(result.current.suggestionQuery).toBe("");
       expect(result.current.isLoading).toBe(false);
       expect(result.current.showSuggestions).toBe(false);
     });
@@ -286,7 +285,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(result.current.suggestionQuery).toBe("new query");
+      expect(result.current.searchParams.q).toBe("new query");
       expect(result.current.showSuggestions).toBe(true);
     });
 
@@ -330,7 +329,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(result.current.suggestionQuery).toBe("");
+      expect(result.current.searchParams.q).toBe("");
       expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
       expect(result.current.showSuggestions).toBe(false);
     });
@@ -663,7 +662,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert - 最後の値が設定されている
-      expect(result.current.suggestionQuery).toBe("test");
+      expect(result.current.searchParams.q).toBe("test");
 
       vi.useRealTimers();
     }, 15000); // タイムアウトを15秒に延長
@@ -727,7 +726,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert
-      expect(result.current.suggestionQuery).toBe(expectedSuggestionQuery);
+      expect(result.current.searchParams.q).toBe(expectedSuggestionQuery);
       expect(result.current.showSuggestions).toBe(expectedShowSuggestions);
     });
 
@@ -1104,7 +1103,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert - 状態が一貫している
-      expect(result.current.suggestionQuery).toBe("test");
+      expect(result.current.searchParams.q).toBe("test");
       expect(result.current.showSuggestions).toBe(true);
       expect(result.current.reviews.find((r) => r.id === "review-1")?.isEditing).toBe(true);
     });
@@ -1178,7 +1177,7 @@ describe("useReviewSearch", () => {
       });
 
       // Assert - すべての状態がクリアされることを確認
-      expect(result.current.suggestionQuery).toBe("");
+      expect(result.current.searchParams.q).toBe("");
       expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "" });
       expect(result.current.showSuggestions).toBe(false);
     });
@@ -1202,7 +1201,7 @@ describe("useReviewSearch", () => {
 
       // Assert - 検索が実行されて同期が完了
       expect(mockSetSearchParams).toHaveBeenCalledWith({ tab: "search", page: 1, q: "typing..." });
-      expect(result.current.suggestionQuery).toBe("typing...");
+      expect(result.current.searchParams.q).toBe("typing...");
     });
   });
 });

@@ -231,7 +231,6 @@ export const ReviewSearch = memo(function ReviewSearch() {
     totalPages,
     searchParams,
     activeTab,
-    suggestionQuery,
     isLoading,
     suggestions,
     showSuggestions,
@@ -260,7 +259,7 @@ export const ReviewSearch = memo(function ReviewSearch() {
       {/* 検索フォーム */}
       <ReviewSearchForm
         searchParams={searchParams}
-        suggestionQuery={suggestionQuery}
+        suggestionQuery={searchParams.q}
         suggestions={suggestions}
         showSuggestions={showSuggestions}
         onSearchQueryChange={updateSearchQuery}
