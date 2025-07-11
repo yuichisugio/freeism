@@ -6,10 +6,26 @@ import "./src/library-setting/env";
 
 const withPWA = require("next-pwa")({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development", // 開発環境ではService Workerを無効化
   register: true,
   skipWaiting: true,
   sw: "/next-pwa-service-worker.js",
+  // Windows環境でのパス問題を回避するため、path.joinを使用せずスラッシュで統一
+  swSrc: "./public/service-worker.js",
+  // Workboxファイルの絶対パス指定でケースセンシティブ問題を回避
+  buildExcludes: [/.*\.js\.map$/, /^manifest.*\.js$/, /\.map$/, /app-build-manifest\.json$/],
+  runtimeCaching: [
+    {
+      urlPattern: /^https?.*/,
+      handler: "NetworkFirst",
+      options: {
+        cacheName: "offlineCache",
+        expiration: {
+          maxEntries: 200,
+        },
+      },
+    },
+  ],
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

@@ -4,7 +4,7 @@ import type { UserSettings } from "@prisma/client";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type * as z from "zod";
 import { memo, useCallback, useEffect, useState } from "react";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getUserSettings, updateUserSetup } from "@/actions/user/user-settings";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
@@ -14,7 +14,7 @@ import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { setupSchema } from "@/library-setting/zod-schema";
 import { type PromiseResult } from "@/types/general-types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 
@@ -48,13 +48,6 @@ export const SetupForm = memo(function SetupForm() {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * ルーターを使用してリロードを行う
-   */
-  const router = useRouter();
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
    * ユーザーIDを取得
    */
   const { data: session } = useSession();
@@ -62,13 +55,6 @@ export const SetupForm = memo(function SetupForm() {
   if (!userId) {
     redirect("/auth/signin");
   }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * queryClientを取得
-   */
-  const queryClient = useQueryClient();
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -90,18 +76,8 @@ export const SetupForm = memo(function SetupForm() {
    */
   const { mutate, isPending, variables } = useMutation({
     mutationFn: (userSettings: SetupForm): PromiseResult<null> => updateUserSetup(userSettings, userId),
-    onError: (
-      error: Error,
-      _variables: SetupForm,
-      context: { previousUserSettings: UserSettings | undefined } | undefined,
-    ) => {
+    onError: (error: Error) => {
       form.setError("root", { message: error.message });
-      if (context !== undefined) {
-        queryClient.setQueryData(queryCacheKeys.userSettings.userAll(userId), context.previousUserSettings);
-      }
-    },
-    onSuccess: () => {
-      router.push("/dashboard/grouplist");
     },
     meta: {
       invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId), exact: true }],

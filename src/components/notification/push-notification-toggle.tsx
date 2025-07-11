@@ -24,6 +24,8 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
   /**
    * プッシュ通知のhookを使用
    */
+  console.log("WebPushNotificationToggle - initialIsPushEnabled:", initialIsPushEnabled, "isLoading:", isLoading);
+
   const {
     // state
     isSupported,
@@ -36,6 +38,21 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
     // function
     togglePushNotification,
   } = usePushNotification(initialIsPushEnabled);
+
+  console.log(
+    "WebPushNotificationToggle - isSupported:",
+    isSupported,
+    "isInitialized:",
+    isInitialized,
+    "isEnabled:",
+    isEnabled,
+    "isToggleUpdating:",
+    isToggleUpdating,
+    "errorMessage:",
+    errorMessage,
+    "permissionState:",
+    permissionState,
+  );
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

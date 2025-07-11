@@ -24,7 +24,7 @@ if (!self.define) {
     e[t] = Promise.all(n.map((s) => u[s] || r(s))).then((s) => (i(...s), c));
   };
 }
-define(["./workbox-e9849328"], function (s) {
+define(["/workbox-e9849328"], function (s) {
   "use strict";
   importScripts(),
     self.skipWaiting(),

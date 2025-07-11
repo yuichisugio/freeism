@@ -280,6 +280,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
    */
   const session = useSession();
   const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
+  console.log("userId", userId);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -333,6 +334,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
    * 初期化処理: サポート確認、状態取得、DB同期、リスナー設定
    */
   useEffect(() => {
+    console.log("useEffect - initializationRef.current:", initializationRef.current);
     // 既に初期化が完了していれば、何もしない（重複実行を防ぐ）
     if (initializationRef.current) return;
 
@@ -346,6 +348,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
       "PushManager" in window &&
       "Notification" in window;
 
+    console.log("useEffect - supported:", supported);
     const initialPermission = supported && typeof Notification !== "undefined" ? Notification.permission : "default";
 
     // サポート状況を更新
@@ -356,6 +359,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
 
     // サポートされていない場合は、初期化を完了
     if (!supported) {
+      console.log("useEffect - supported is false");
       dispatch({
         type: "SET_INITIALIZATION_ERROR",
         payload: { errorMessage: "このブラウザはプッシュ通知をサポートしていません" },
@@ -366,6 +370,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
 
     // 通知許可が拒否されている場合は、初期化を完了
     if (initialPermission === "denied") {
+      console.log("useEffect - initialPermission is denied");
       dispatch({
         type: "SET_INITIALIZATION_ERROR",
         payload: { errorMessage: "通知が拒否されています" },
@@ -380,14 +385,38 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
       try {
         // userIdが取得できない場合は待機
         if (!userId) {
+          console.log("useEffect - userId is not found");
           return;
         }
 
         // デバイスID取得
         const currentDeviceId = getDeviceId(userId);
+        console.log("useEffect - currentDeviceId:", currentDeviceId);
 
         // Service Workerの登録を取得
-        const registration = await navigator.serviceWorker.ready;
+        if (!navigator.serviceWorker.controller) {
+          await navigator.serviceWorker.register("/service-worker.js", {
+            scope: "/", // ルート配下すべてを対象にする
+            updateViaCache: "none", // 強制的に最新版を取得
+          });
+        }
+
+        // Service Workerの登録を取得
+        const registration = await navigator.serviceWorker.ready
+          .then((registration) => {
+            console.log("useEffect - registration:", registration);
+            return registration;
+          })
+          .catch((err) => {
+            console.error("SW register failed:", err);
+            return null;
+          });
+        console.log("useEffect - registration_2:", registration);
+
+        // Windows環境でのService Worker準備確認
+        if (!registration?.pushManager) {
+          throw new Error("Service Workerまたはプッシュマネージャーが利用できません");
+        }
 
         // 既存の購読情報を取得
         const existingSubscription = await registration.pushManager.getSubscription();

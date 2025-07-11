@@ -336,6 +336,8 @@ export async function saveSubscription(subscription: {
 }): PromiseResult<PushSubscription> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
+  console.log("saveSubscription - subscription:", subscription);
+
   /**
    * 購読情報が不完全な場合はエラー
    */
