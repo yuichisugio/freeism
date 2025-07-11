@@ -212,7 +212,7 @@ export const SetupForm = memo(function SetupForm() {
       {/* プッシュ通知設定 */}
       <div className="mb-8">
         <WebPushNotificationToggle
-          isPushEnabled={isClient ? userSettings?.data?.isPushEnabled : false}
+          isPushEnabled={isClient ? (userSettings?.data?.isPushEnabled ?? false) : false}
           isLoading={!isClient || isLoading}
         />
       </div>

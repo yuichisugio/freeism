@@ -196,7 +196,7 @@ function setupBrowserEnvironment(config: BrowserConfig = {}) {
  * 共通のテストヘルパー関数
  */
 async function renderHookAndWaitForInitialization() {
-  const { result } = renderHook(() => usePushNotification(), {
+  const { result } = renderHook(() => usePushNotification(false), {
     wrapper: AllTheProviders,
   });
 
@@ -273,16 +273,14 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { result } = renderHook(() => usePushNotification(), {
+      const { result } = renderHook(() => usePushNotification(false), {
         wrapper: AllTheProviders,
       });
 
       // Assert - 初期値の確認（初期化前）
       expect(result.current.isInitialized).toBe(false);
       expect(result.current.permissionState).toBe("default");
-      expect(result.current.registrationState).toBeNull();
-      expect(result.current.subscriptionState).toBeNull();
-      expect(result.current.error).toBeNull();
+      expect(result.current.errorMessage).toBeNull();
 
       // 初期化完了まで待機
       await waitFor(() => {
@@ -291,7 +289,7 @@ describe("usePushNotification", () => {
 
       // 初期化後の状態確認
       expect(result.current.isSupported).toBe(true);
-      expect(result.current.registrationState).toBe(mockServiceWorkerRegistration);
+      expect(result.current.isInitialized).toBe(true);
     });
 
     test("should handle unsupported browser", async () => {
@@ -305,7 +303,7 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       expect(result.current.isSupported).toBe(false);
-      expect(result.current.registrationState).toBeNull();
+      expect(result.current.isInitialized).toBe(true);
     });
 
     test("should handle denied notification permission", async () => {
@@ -328,14 +326,16 @@ describe("usePushNotification", () => {
       // Arrange & Act
       const { result } = await renderHookAndWaitForInitialization();
 
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
       expect(subscriptionResult).toBe(mockPushSubscriptionObject);
-      expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
+      expect(result.current.isEnabled).toBe(true);
       expect(mockServiceWorkerRegistration.pushManager.subscribe).toHaveBeenCalledWith({
         userVisibleOnly: true,
         applicationServerKey: expect.any(Uint8Array) as unknown as Uint8Array,
@@ -351,9 +351,11 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
@@ -376,7 +378,9 @@ describe("usePushNotification", () => {
 
       // Act
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
@@ -398,15 +402,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
       expect(subscriptionResult).toBeNull();
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain("通知の許可が得られませんでした");
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.errorMessage).toContain("通知の許可が得られませんでした");
     });
 
     test("should handle subscription error", async () => {
@@ -417,15 +423,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
       expect(subscriptionResult).toBeNull();
-      expect(result.current.error).toBe(subscribeError);
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.isEnabled).toBe(false);
     });
   });
 
@@ -441,16 +449,18 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let unsubscribeResult = false;
+      const unsubscribeResult = false;
       await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       // Assert
       expect(unsubscribeResult).toBe(true);
       expect(mockDeleteSubscription).toHaveBeenCalledWith(mockPushSubscriptionObject.endpoint);
       expect(mockPushSubscriptionObject.unsubscribe).toHaveBeenCalled();
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.isEnabled).toBe(false);
     });
 
     test("should handle no active subscription", async () => {
@@ -460,15 +470,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let unsubscribeResult = false;
+      const unsubscribeResult = false;
       await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       // Assert
       expect(unsubscribeResult).toBe(true);
       expect(mockDeleteSubscription).not.toHaveBeenCalled();
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.isEnabled).toBe(false);
     });
 
     test("should handle unsubscribe error", async () => {
@@ -482,15 +494,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let unsubscribeResult = false;
+      const unsubscribeResult = false;
       await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       // Assert
       expect(unsubscribeResult).toBe(false);
-      expect(result.current.error).toBe(unsubscribeError);
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.isEnabled).toBe(false);
     });
   });
 
@@ -505,15 +519,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
       expect(subscriptionResult).toBeNull();
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain("VAPID 公開鍵が設定されていません");
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.errorMessage).toContain("VAPID 公開鍵が設定されていません");
 
       // Cleanup - 環境変数を復元
       if (originalVapidKey) {
@@ -530,15 +546,17 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
       expect(subscriptionResult).toBeNull();
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain("Service WorkerまたはPush APIがサポートしていません");
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.errorMessage).toContain("Service WorkerまたはPush APIがサポートしていません");
     });
 
     test("should handle service worker registration error", async () => {
@@ -551,8 +569,8 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Assert
-      expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.registrationState).toBeNull();
+      expect(result.current.errorMessage).toBeDefined();
+      expect(result.current.isInitialized).toBe(true);
     });
 
     test("should handle save subscription error", async () => {
@@ -564,11 +582,13 @@ describe("usePushNotification", () => {
 
       // Act
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert - 購読は成功するが、保存エラーは内部で処理される
-      expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
+      expect(result.current.isEnabled).toBe(true);
     });
 
     test("should handle delete subscription error", async () => {
@@ -582,14 +602,16 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act
-      let unsubscribeResult = false;
+      const unsubscribeResult = false;
       await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       // Assert - 削除エラーが発生した場合、unsubscribeは失敗する
       expect(unsubscribeResult).toBe(false); // 実装ではcatch文でfalseを返す
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.isEnabled).toBe(false);
     });
   });
 
@@ -632,11 +654,13 @@ describe("usePushNotification", () => {
 
       // Act
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
-      expect(result.current.subscriptionState).toBe(emptyEndpointSubscription);
+      expect(result.current.isEnabled).toBe(false);
     });
 
     test("should handle missing keys in subscription", async () => {
@@ -659,11 +683,13 @@ describe("usePushNotification", () => {
 
       // Act
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert
-      expect(result.current.subscriptionState).toBe(invalidSubscription);
+      expect(result.current.isEnabled).toBe(false);
     });
   });
 
@@ -737,7 +763,7 @@ describe("usePushNotification", () => {
       }
 
       // Assert - エラーが発生しないことを確認
-      expect(result.current.error).toBeNull();
+      expect(result.current.errorMessage).toBeNull();
       expect(mockAddEventListener).toHaveBeenCalledWith("message", expect.any(Function));
     });
   });
@@ -804,7 +830,7 @@ describe("usePushNotification", () => {
       // Act & Assert
       const { result } = await renderHookAndWaitForInitialization();
 
-      expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
+      expect(result.current.isEnabled).toBe(true);
     });
 
     test("should handle sync error", async () => {
@@ -821,7 +847,7 @@ describe("usePushNotification", () => {
 
     test("should re-sync when userId changes", async () => {
       // Arrange
-      const { result, rerender } = renderHook(() => usePushNotification(), {
+      const { result, rerender } = renderHook(() => usePushNotification(false), {
         wrapper: AllTheProviders,
       });
 
@@ -865,7 +891,7 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { unmount } = renderHook(() => usePushNotification(), {
+      const { unmount } = renderHook(() => usePushNotification(false), {
         wrapper: AllTheProviders,
       });
 
@@ -882,7 +908,7 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { unmount } = renderHook(() => usePushNotification(), {
+      const { unmount } = renderHook(() => usePushNotification(false), {
         wrapper: AllTheProviders,
       });
 
@@ -901,27 +927,31 @@ describe("usePushNotification", () => {
       const { result } = await renderHookAndWaitForInitialization();
 
       // Act 2: 購読
-      let subscriptionResult: PushSubscription | null = null;
+      const subscriptionResult: PushSubscription | null = null;
       await act(async () => {
-        subscriptionResult = await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert 1: 購読成功
       expect(subscriptionResult).toBe(mockPushSubscriptionObject);
-      expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
+      expect(result.current.isEnabled).toBe(true);
 
       // Act 3: 購読解除
       vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
         mockPushSubscriptionObject,
       );
-      let unsubscribeResult = false;
+      const unsubscribeResult = false;
       await act(async () => {
-        unsubscribeResult = await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       // Assert 2: 購読解除成功
       expect(unsubscribeResult).toBe(true);
-      expect(result.current.subscriptionState).toBeNull();
+      expect(result.current.isEnabled).toBe(false);
     });
 
     test("should maintain state consistency", async () => {
@@ -939,10 +969,10 @@ describe("usePushNotification", () => {
 
       // 状態の一貫性を確認
       expect(result.current.isSupported).toBe(true);
-      expect(result.current.registrationState).toBe(mockServiceWorkerRegistration);
+      expect(result.current.isInitialized).toBe(true);
       expect(result.current.permissionState).toBe("default");
-      expect(result.current.subscriptionState).toBeNull();
-      expect(result.current.error).toBeNull();
+      expect(result.current.isEnabled).toBe(false);
+      expect(result.current.errorMessage).toBeNull();
     });
 
     test("should handle multiple consecutive operations", async () => {
@@ -951,23 +981,29 @@ describe("usePushNotification", () => {
 
       // Act - 連続した操作
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(
         mockPushSubscriptionObject,
       );
       await act(async () => {
-        await result.current.unsubscribe();
+        act(() => {
+          result.current.togglePushNotification(false);
+        });
       });
 
       vi.mocked(mockServiceWorkerRegistration.pushManager.getSubscription).mockResolvedValue(null);
       await act(async () => {
-        await result.current.subscribe();
+        act(() => {
+          result.current.togglePushNotification(true);
+        });
       });
 
       // Assert - 最終的な状態確認
-      expect(result.current.subscriptionState).toBe(mockPushSubscriptionObject);
+      expect(result.current.isEnabled).toBe(true);
     });
   });
 });

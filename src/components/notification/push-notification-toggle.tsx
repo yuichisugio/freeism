@@ -14,10 +14,10 @@ import { AlertCircle, Loader2 } from "lucide-react";
  */
 export const WebPushNotificationToggle = memo(function PushNotificationToggle({
   isPushEnabled: initialIsPushEnabled, // 初期値をリネーム
-  isLoading = false, // データ取得中フラグを追加
+  isLoading, // データ取得中フラグを追加
 }: {
-  isPushEnabled?: boolean; // オプショナルに変更
-  isLoading?: boolean; // データ取得中フラグを追加
+  isPushEnabled: boolean;
+  isLoading: boolean;
 }) {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -25,13 +25,16 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
    * プッシュ通知のhookを使用
    */
   const {
+    // state
     isSupported,
     isInitialized,
     isEnabled,
-    isUpdating,
-    togglePushNotification,
-    error: pushHookError,
+    isToggleUpdating,
+    errorMessage,
     permissionState,
+
+    // function
+    togglePushNotification,
   } = usePushNotification(initialIsPushEnabled);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -75,11 +78,11 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
             id="push-notification-toggle"
             checked={isEnabled}
             onCheckedChange={togglePushNotification} // hookのtoggle関数を直接使用
-            disabled={isUpdating} // 更新中はトグルを無効化
+            disabled={isToggleUpdating} // 更新中はトグルを無効化
           />
           <Label htmlFor="push-notification-toggle">
             現在：{isEnabled ? "受信中" : "受信拒否中"}
-            {isUpdating && " (更新中...)"}
+            {isToggleUpdating && " (更新中...)"}
           </Label>
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
@@ -88,9 +91,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
           アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。
         </p>
-        {/* usePushNotificationフックからのエラー表示 */}
-        {pushHookError && <p className="mt-2 text-sm text-red-500">エラー: {pushHookError.message}</p>}
-        {/* ブラウザで通知が拒否されている場合のアラート */}
+        {errorMessage && <p className="mt-2 text-sm text-red-500">エラー: {errorMessage}</p>}
         {permissionState === "denied" && (
           <div className="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2">
             <p className="text-sm text-yellow-800">

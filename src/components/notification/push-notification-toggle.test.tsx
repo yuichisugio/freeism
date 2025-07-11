@@ -35,6 +35,7 @@ vi.mock("@/lib/tanstack-query", () => ({
 
 describe("WebPushNotificationToggle", () => {
   const defaultProps = {
+    isLoading: false,
     isPushEnabled: false,
     userId: "test-user-id",
   };
