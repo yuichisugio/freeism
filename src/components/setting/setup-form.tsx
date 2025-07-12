@@ -188,7 +188,7 @@ export const SetupForm = memo(function SetupForm() {
       {/* プッシュ通知設定 */}
       <div className="mb-8">
         <WebPushNotificationToggle
-          isPushEnabled={isClient ? (userSettings?.data?.isPushEnabled ?? false) : false}
+          isPushEnabled={userSettings?.data?.isPushEnabled ?? false}
           isLoading={!isClient || isLoading}
         />
       </div>
@@ -196,7 +196,7 @@ export const SetupForm = memo(function SetupForm() {
       {/* メール通知設定 */}
       <div className="mb-8">
         <EmailNotificationToggle
-          isEmailEnabled={isClient ? (userSettings?.data?.isEmailEnabled ?? false) : false}
+          isEmailEnabled={userSettings?.data?.isEmailEnabled ?? false}
           userId={userId}
           isLoading={!isClient || isLoading}
         />

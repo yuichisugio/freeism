@@ -24,15 +24,13 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
   /**
    * プッシュ通知のhookを使用
    */
-  console.log("WebPushNotificationToggle - initialIsPushEnabled:", initialIsPushEnabled, "isLoading:", isLoading);
+  console.log("WebPushNotificationToggle.tsx - initialIsPushEnabled:", initialIsPushEnabled, "isLoading:", isLoading);
 
   const {
     // state
     isSupported,
-    isInitialized,
     isEnabled,
     isToggleUpdating,
-    errorMessage,
     permissionState,
 
     // function
@@ -40,16 +38,12 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
   } = usePushNotification(initialIsPushEnabled);
 
   console.log(
-    "WebPushNotificationToggle - isSupported:",
+    "WebPushNotificationToggle.tsx - isSupported:",
     isSupported,
-    "isInitialized:",
-    isInitialized,
     "isEnabled:",
     isEnabled,
     "isToggleUpdating:",
     isToggleUpdating,
-    "errorMessage:",
-    errorMessage,
     "permissionState:",
     permissionState,
   );
@@ -59,7 +53,7 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
   /**
    * データ取得中またはフック初期化中の場合
    */
-  if (isLoading || !isInitialized) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -108,7 +102,6 @@ export const WebPushNotificationToggle = memo(function PushNotificationToggle({
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
           アプリの通知設定は、このToggleでONにできますが、通知を受け取るにはchrome自体の通知設定もONにしてください。
         </p>
-        {errorMessage && <p className="mt-2 text-sm text-red-500">エラー: {errorMessage}</p>}
         {permissionState === "denied" && (
           <div className="mt-2 rounded-md border border-yellow-200 bg-yellow-50 p-2">
             <p className="text-sm text-yellow-800">

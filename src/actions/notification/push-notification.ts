@@ -1,6 +1,6 @@
 "use server";
 
-import type { PushSubscription } from "@prisma/client";
+import type { Prisma, PushSubscription } from "@prisma/client";
 import { getAuthSession } from "@/lib/utils";
 import { prisma } from "@/library-setting/prisma";
 import { type PromiseResult } from "@/types/general-types";
@@ -389,38 +389,35 @@ export async function saveSubscription(subscription: {
 
   let result: PushSubscription | undefined = undefined;
 
+  let where: Prisma.PushSubscriptionWhereUniqueInput = { id: subscription.recordId };
+  if (subscription.deviceId) {
+    where = { ...where, deviceId: subscription.deviceId };
+  }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
   /**
    * ダミーのレコードIDの場合は新規作成、それ以外は更新
    */
-  if (dummyRecordId === subscription.recordId) {
-    result = await prisma.pushSubscription.create({
-      data: {
-        userId: userId,
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        expirationTime: expirationTimeDate,
-        deviceId: subscription.deviceId,
-      },
-    });
-  } else {
-    /**
-     * Prismaを使用してDBに保存
-     */
-    result = await prisma.pushSubscription.update({
-      where: {
-        id: subscription.recordId,
-      },
-      data: {
-        endpoint: subscription.endpoint,
-        p256dh: subscription.keys.p256dh,
-        auth: subscription.keys.auth,
-        expirationTime: expirationTimeDate,
-        userId: userId,
-        deviceId: subscription.deviceId,
-      },
-    });
-  }
+  result = await prisma.pushSubscription.upsert({
+    where: where,
+    update: {
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      expirationTime: expirationTimeDate,
+      userId: userId,
+      deviceId: subscription.deviceId,
+    },
+    create: {
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+      expirationTime: expirationTimeDate,
+      userId: userId,
+      deviceId: subscription.deviceId,
+    },
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -453,6 +450,7 @@ export async function saveSubscription(subscription: {
 export async function deleteSubscription(endpoint: string): PromiseResult<null> {
   try {
     // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+    console.log("deleteSubscription.ts - endpoint:", endpoint);
 
     /**
      * エンドポイントがない場合はエラー
@@ -489,4 +487,31 @@ export async function deleteSubscription(endpoint: string): PromiseResult<null> 
     console.error("購読情報の削除に失敗しました:", error);
     throw new Error(`購読情報の削除に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
   }
+}
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+/**
+ * デバイスIDを指定して購読情報を削除するサーバーアクション
+ * @param deviceId - デバイスID
+ * @returns {success: boolean} 成功した場合はtrue, 失敗した場合はfalse
+ */
+export async function deleteSubscriptionByDeviceId(deviceId: string): PromiseResult<null> {
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * デバイスIDがない場合はエラー
+   */
+  if (!deviceId) throw new Error("デバイスIDがありません");
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 購読情報を削除
+   */
+  await prisma.pushSubscription.deleteMany({ where: { deviceId } });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  return { success: true, data: null, message: "購読情報を削除しました" };
 }

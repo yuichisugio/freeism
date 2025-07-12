@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef } from "react";
-import { deleteSubscription, getRecordId, saveSubscription } from "@/actions/notification/push-notification";
+import { useEffect, useMemo, useState } from "react";
+import { redirect } from "next/navigation";
+import {
+  deleteSubscription,
+  deleteSubscriptionByDeviceId,
+  getRecordId,
+  saveSubscription,
+} from "@/actions/notification/push-notification";
 import { updateUserSettingToggle } from "@/actions/user/user-settings";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,112 +20,14 @@ import { toast } from "sonner";
  * Notification State の型定義
  */
 export type PushNotificationState = {
-  isInitialized: boolean;
   isSupported: boolean;
   permissionState: NotificationPermission;
-  registrationState: ServiceWorkerRegistration | null;
-  subscriptionState: PushSubscription | null;
+  registration: ServiceWorkerRegistration | null;
+  subscription: PushSubscription | null;
   recordId: string | null;
   deviceId: string | null;
-  errorMessage: string | null;
   isEnabled: boolean;
 };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ステート管理のためのアクション型定義
- */
-export type NotificationAction =
-  | { type: "SET_SUPPORT_STATUS"; payload: { isSupported: boolean; permissionState: NotificationPermission } }
-  | {
-      type: "SET_INITIALIZATION_COMPLETE";
-      payload: {
-        deviceId: string;
-        registrationState: ServiceWorkerRegistration;
-        subscriptionState: PushSubscription | null;
-        recordId: string | null;
-      };
-    }
-  | { type: "SET_INITIALIZATION_ERROR"; payload: { errorMessage: string } }
-  | { type: "SET_ENABLED_STATE"; payload: { isEnabled: boolean } }
-  | { type: "SET_SUBSCRIPTION"; payload: { subscriptionState: PushSubscription | null; recordId?: string | null } }
-  | { type: "SET_ERROR"; payload: { errorMessage: string } }
-  | { type: "CLEAR_ERROR" }
-  | { type: "UPDATE_RECORD_ID"; payload: { recordId: string | null } };
-
-// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-/**
- * ステート管理のためのreducer関数
- * ステートの更新を一元管理することで、競合状態を防ぐ
- */
-export function notificationReducer(state: PushNotificationState, action: NotificationAction): PushNotificationState {
-  switch (action.type) {
-    case "SET_SUPPORT_STATUS":
-      return {
-        ...state,
-        isSupported: action.payload.isSupported,
-        permissionState: action.payload.permissionState,
-      };
-
-    case "SET_INITIALIZATION_COMPLETE":
-      return {
-        ...state,
-        isInitialized: true,
-        deviceId: action.payload.deviceId,
-        registrationState: action.payload.registrationState,
-        subscriptionState: action.payload.subscriptionState,
-        recordId: action.payload.recordId,
-        errorMessage: null,
-      };
-
-    case "SET_INITIALIZATION_ERROR":
-      return {
-        ...state,
-        isInitialized: true,
-        errorMessage: action.payload.errorMessage,
-        deviceId: null,
-        registrationState: null,
-        subscriptionState: null,
-        recordId: null,
-      };
-
-    case "SET_ENABLED_STATE":
-      return {
-        ...state,
-        isEnabled: action.payload.isEnabled,
-      };
-
-    case "SET_SUBSCRIPTION":
-      return {
-        ...state,
-        subscriptionState: action.payload.subscriptionState,
-        recordId: action.payload.recordId ?? state.recordId,
-      };
-
-    case "SET_ERROR":
-      return {
-        ...state,
-        errorMessage: action.payload.errorMessage,
-      };
-
-    case "CLEAR_ERROR":
-      return {
-        ...state,
-        errorMessage: null,
-      };
-
-    case "UPDATE_RECORD_ID":
-      return {
-        ...state,
-        recordId: action.payload.recordId,
-      };
-
-    default:
-      return state;
-  }
-}
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -240,10 +148,8 @@ export function getDeviceId(userId: string): string {
 export type PushNotificationHookReturnType = {
   // state
   isSupported: boolean;
-  isInitialized: boolean;
   isEnabled: boolean;
   isToggleUpdating: boolean;
-  errorMessage: string | null;
   permissionState: NotificationPermission;
 
   // function
@@ -261,15 +167,17 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
   /**
    * useReducerによるステート管理（競合状態を防ぐ）
    */
-  const [notificationState, dispatch] = useReducer(notificationReducer, {
-    isInitialized: false,
-    isSupported: false,
-    permissionState: "default" as NotificationPermission,
-    registrationState: null,
-    subscriptionState: null,
+  const [notificationState, setNotificationState] = useState<PushNotificationState>({
+    isSupported:
+      typeof window !== "undefined" &&
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      "Notification" in window,
+    permissionState: typeof Notification !== "undefined" ? Notification.permission : "default",
+    registration: null,
+    subscription: null,
     recordId: null,
     deviceId: null,
-    errorMessage: null,
     isEnabled: initialIsPushEnabled,
   });
 
@@ -279,232 +187,10 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
    * userId の取得
    */
   const session = useSession();
-  const userId = useMemo(() => session.data?.user?.id ?? null, [session.data?.user?.id]);
-  console.log("userId", userId);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 初期化完了フラグのref（useEffectの重複実行を防ぐ）
-   */
-  const initializationRef = useRef(false);
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * クライアント側で購読情報を更新する関数
-   * Service Workerからpushsubscriptionchangeイベントが発生した際に使用
-   */
-  const { mutate: handleSubscriptionChange } = useMutation({
-    mutationFn: async (newSubscription: PushSubscription) => {
-      // 新しい購読情報をステートに設定
-      dispatch({
-        type: "SET_SUBSCRIPTION",
-        payload: { subscriptionState: newSubscription },
-      });
-
-      // 購読情報を整形（現在のrecordIdとdeviceIdを使用）
-      const subscriptionData = formatSubscriptionForServer(
-        newSubscription,
-        notificationState.recordId ?? undefined,
-        notificationState.deviceId ?? undefined,
-      );
-
-      // 購読情報をサーバーに保存
-      await saveSubscription(subscriptionData);
-
-      // 購読情報のレコードIDを取得して更新
-      const updatedRecordId = await getRecordId(newSubscription.endpoint);
-      dispatch({
-        type: "UPDATE_RECORD_ID",
-        payload: { recordId: updatedRecordId.data },
-      });
-    },
-    onError: (error) => {
-      dispatch({
-        type: "SET_ERROR",
-        payload: { errorMessage: error instanceof Error ? error.message : String(error) },
-      });
-    },
-  });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * 初期化処理: サポート確認、状態取得、DB同期、リスナー設定
-   */
-  useEffect(() => {
-    console.log("useEffect - initializationRef.current:", initializationRef.current);
-    // 既に初期化が完了していれば、何もしない（重複実行を防ぐ）
-    if (initializationRef.current) return;
-
-    // エラーをクリア
-    dispatch({ type: "CLEAR_ERROR" });
-
-    // 1. Service Workerサポートと通知許可を確認
-    const supported =
-      typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      "PushManager" in window &&
-      "Notification" in window;
-
-    console.log("useEffect - supported:", supported);
-    const initialPermission = supported && typeof Notification !== "undefined" ? Notification.permission : "default";
-
-    // サポート状況を更新
-    dispatch({
-      type: "SET_SUPPORT_STATUS",
-      payload: { isSupported: supported, permissionState: initialPermission },
-    });
-
-    // サポートされていない場合は、初期化を完了
-    if (!supported) {
-      console.log("useEffect - supported is false");
-      dispatch({
-        type: "SET_INITIALIZATION_ERROR",
-        payload: { errorMessage: "このブラウザはプッシュ通知をサポートしていません" },
-      });
-      initializationRef.current = true;
-      return;
-    }
-
-    // 通知許可が拒否されている場合は、初期化を完了
-    if (initialPermission === "denied") {
-      console.log("useEffect - initialPermission is denied");
-      dispatch({
-        type: "SET_INITIALIZATION_ERROR",
-        payload: { errorMessage: "通知が拒否されています" },
-      });
-      initializationRef.current = true;
-      return;
-    }
-
-    let cleanupListener: (() => void) | null = null;
-
-    const init = async () => {
-      try {
-        // userIdが取得できない場合は待機
-        if (!userId) {
-          console.log("useEffect - userId is not found");
-          return;
-        }
-
-        // デバイスID取得
-        const currentDeviceId = getDeviceId(userId);
-        console.log("useEffect - currentDeviceId:", currentDeviceId);
-
-        // Service Workerの登録を取得
-        if (!navigator.serviceWorker.controller) {
-          await navigator.serviceWorker.register("/service-worker.js", {
-            scope: "/", // ルート配下すべてを対象にする
-            updateViaCache: "none", // 強制的に最新版を取得
-          });
-        }
-
-        // Service Workerの登録を取得
-        const registration = await navigator.serviceWorker.ready
-          .then((registration) => {
-            console.log("useEffect - registration:", registration);
-            return registration;
-          })
-          .catch((err) => {
-            console.error("SW register failed:", err);
-            return null;
-          });
-        console.log("useEffect - registration_2:", registration);
-
-        // Windows環境でのService Worker準備確認
-        if (!registration?.pushManager) {
-          throw new Error("Service Workerまたはプッシュマネージャーが利用できません");
-        }
-
-        // 既存の購読情報を取得
-        const existingSubscription = await registration.pushManager.getSubscription();
-
-        // レコードID取得とDB同期
-        let currentRecordId: string | null = null;
-        if (existingSubscription?.endpoint) {
-          try {
-            const result = await getRecordId(existingSubscription.endpoint);
-            currentRecordId = result.data;
-
-            // サーバーと同期
-            const subscriptionData = formatSubscriptionForServer(
-              existingSubscription,
-              currentRecordId ?? undefined,
-              currentDeviceId,
-            );
-
-            // サーバーに保存
-            await saveSubscription(subscriptionData);
-
-            // 最新のレコードIDを取得
-            const updatedRecordId = await getRecordId(existingSubscription.endpoint);
-            currentRecordId = updatedRecordId.data;
-          } catch (syncError) {
-            console.warn("購読情報の同期に失敗しました:", syncError);
-            // 同期エラーは致命的ではないので、初期化は続行
-          }
-        }
-
-        // Service Workerメッセージリスナーを設定
-        if (navigator.serviceWorker) {
-          const messageHandler = (event: MessageEvent) => {
-            const data = event.data as unknown;
-            if (data && typeof data === "object" && data !== null && "type" in data && "newSubscription" in data) {
-              const eventData = data as { type: string; newSubscription: PushSubscription };
-              if (eventData.type === "SUBSCRIPTION_CHANGED") {
-                void handleSubscriptionChange(eventData.newSubscription);
-              }
-            }
-          };
-
-          navigator.serviceWorker.addEventListener("message", messageHandler);
-
-          cleanupListener = () => {
-            if (navigator.serviceWorker) {
-              navigator.serviceWorker.removeEventListener("message", messageHandler);
-            }
-          };
-        } else {
-          cleanupListener = () => {
-            console.log("Service Worker was not available for listener cleanup.");
-          };
-        }
-
-        // 初期化完了：全ての状態を一括更新
-        dispatch({
-          type: "SET_INITIALIZATION_COMPLETE",
-          payload: {
-            deviceId: currentDeviceId,
-            registrationState: registration,
-            subscriptionState: existingSubscription,
-            recordId: currentRecordId,
-          },
-        });
-
-        // 初期化完了フラグを設定
-        initializationRef.current = true;
-      } catch (initError) {
-        dispatch({
-          type: "SET_INITIALIZATION_ERROR",
-          payload: {
-            errorMessage: initError instanceof Error ? initError.message : String(initError),
-          },
-        });
-        initializationRef.current = true;
-      }
-    };
-
-    void init();
-
-    // クリーンアップ処理
-    return () => {
-      if (cleanupListener) {
-        cleanupListener();
-      }
-    };
-  }, [userId, handleSubscriptionChange]);
+  const userId = useMemo(() => session.data?.user?.id ?? "", [session.data?.user?.id]);
+  if (!userId) {
+    redirect("/auth/login");
+  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -518,7 +204,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
       await queryClient.cancelQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId ?? "") });
 
       // UIをオプティミスティックに更新
-      dispatch({ type: "SET_ENABLED_STATE", payload: { isEnabled: newPushEnabledState } });
+      setNotificationState({ ...notificationState, isEnabled: newPushEnabledState });
 
       // ロールバック用に以前の値を返す
       return { previousIsEnabled: notificationState.isEnabled };
@@ -528,52 +214,55 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
        * トグルをONにする場合の処理
        */
       if (newPushEnabledState) {
-        // ブラウザの通知権限が拒否されている場合
-        if (notificationState.permissionState === "denied") {
-          const errorMsg = "通知がブラウザ設定で拒否されています。設定を変更してください。";
-          toast.error(errorMsg);
-          dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
-          throw new Error(errorMsg);
-        }
-
         // Push APIサポートチェック
         if (!notificationState.isSupported) {
           const errorMsg = "Service WorkerまたはPush APIがサポートされていません。";
           toast.error(errorMsg);
-          dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
           throw new Error(errorMsg);
         }
 
-        // Service Worker準備確認
-        if (!notificationState.registrationState) {
-          const errorMsg = "Service Worker の準備ができていません。";
-          toast.error(errorMsg);
-          dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
-          throw new Error(errorMsg);
-        }
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-        // 通知許可要求
-        if (notificationState.permissionState !== "granted") {
-          const permission = await Notification.requestPermission();
-          dispatch({
-            type: "SET_SUPPORT_STATUS",
-            payload: { isSupported: notificationState.isSupported, permissionState: permission },
-          });
+        // 通知許可を確認
+        let permission = notificationState.permissionState;
 
+        // 通知が得られていない場合
+        if (permission !== "granted") {
+          // 通知許可のダイアログを表示して許可を要求
+          permission = await Notification.requestPermission();
+
+          // 許可が得られていない場合
           if (permission !== "granted") {
             const errorMsg = "通知の許可が得られませんでした。";
             toast.error(errorMsg);
-            dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
             throw new Error(errorMsg);
           }
         }
 
-        // VAPID公開鍵の取得と変換
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // Service Workerがすでにアクティブかつコントロール状態ではない場合は、Service Workerを登録
+        let registration: ServiceWorkerRegistration;
+        // コントロール状態ではない場合は、Service Workerを登録
+        // serviceWorker.controllerでtrue(コントロール状態)になることをこのファイルで待つ必要はない。
+        // service-worker.jsのevent.waitUntil(clients.claim())で、待っているため
+        if (!navigator.serviceWorker.controller) {
+          registration = await navigator.serviceWorker.register("/service-worker.js", {
+            scope: "/", // ルート配下すべてを対象にする
+            updateViaCache: "none", // 強制的に最新版を取得
+          });
+        } else {
+          // すでにアクティブなService Workerを取得。アクティブな場合のみここに到達するので無限に待つことはない
+          registration = await navigator.serviceWorker.ready;
+        }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // VAPID公開鍵の取得と変換(Uint8Arrayに変換する必要があるため)
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
         if (!vapidPublicKey) {
           const errorMsg = "VAPID 公開鍵が設定されていません";
           toast.error(errorMsg);
-          dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
           throw new Error(errorMsg);
         }
 
@@ -581,31 +270,58 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
         const padding = "=".repeat((4 - (vapidPublicKey.length % 4)) % 4);
         const base64 = (vapidPublicKey + padding).replace(/-/g, "+").replace(/_/g, "/");
         const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
+        const applicationServerKey = new Uint8Array(rawData.length);
 
         for (let i = 0; i < rawData.length; ++i) {
-          outputArray[i] = rawData.charCodeAt(i);
+          applicationServerKey[i] = rawData.charCodeAt(i);
         }
-        const applicationServerKey = outputArray;
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // プッシュサービスに購読
-        const subscription = await notificationState.registrationState.pushManager.subscribe({
+        let subscription = await registration.pushManager.getSubscription();
+        subscription ??= await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey,
+          applicationServerKey: applicationServerKey,
         });
 
-        if (!subscription) {
-          const errorMsg = "プッシュ通知の購読に失敗しました。";
-          toast.error(errorMsg);
-          dispatch({ type: "SET_ERROR", payload: { errorMessage: errorMsg } });
-          throw new Error(errorMsg);
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // デバイスID取得
+        const currentDeviceId = getDeviceId(userId ?? "");
+
+        // レコードID取得とDB同期
+        let currentRecordId: string | null = null;
+        if (subscription?.endpoint) {
+          const result = await getRecordId(subscription.endpoint);
+
+          // サーバーと同期
+          const subscriptionData = formatSubscriptionForServer(subscription, result.data ?? undefined, currentDeviceId);
+
+          // サーバーに保存
+          await saveSubscription(subscriptionData);
+
+          // 最新のレコードIDを取得
+          currentRecordId = result.data;
         }
 
-        // 購読情報をステートに設定
-        dispatch({ type: "SET_SUBSCRIPTION", payload: { subscriptionState: subscription } });
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // 初期化完了：全ての状態を一括更新
+        setNotificationState({
+          ...notificationState,
+          isSupported: notificationState.isSupported,
+          permissionState: permission,
+          registration: registration,
+          subscription: subscription,
+          recordId: currentRecordId,
+          deviceId: currentDeviceId,
+        });
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // DBに保存
-        await updateUserSettingToggle({ userId: userId ?? "", isEnabled: true, column: "isPushEnabled" });
+        await updateUserSettingToggle({ userId: userId, isEnabled: true, column: "isPushEnabled" });
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -613,56 +329,86 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
          * トグルをOFFにする場合
          */
       } else {
+        // Service Workerの登録を取得して実際のサブスクリプションを確認
+        let registration: ServiceWorkerRegistration;
+        if (!navigator.serviceWorker.controller) {
+          registration = await navigator.serviceWorker.register("/service-worker.js", {
+            scope: "/",
+            updateViaCache: "none",
+          });
+        } else {
+          registration = await navigator.serviceWorker.ready;
+        }
+
+        // 実際のサブスクリプションを取得
+        const subscription = await registration.pushManager.getSubscription();
+
         // 購読情報がある場合
-        if (notificationState.subscriptionState) {
+        if (subscription) {
           // サーバーから購読情報を削除
-          await deleteSubscription(notificationState.subscriptionState.endpoint);
+          await deleteSubscription(subscription.endpoint);
 
           // プッシュサービスから購読を解除
-          await notificationState.subscriptionState.unsubscribe();
+          await subscription.unsubscribe();
 
           // ステートをクリア
-          dispatch({
-            type: "SET_SUBSCRIPTION",
-            payload: { subscriptionState: null, recordId: null },
-          });
+          setNotificationState({ ...notificationState, subscription: null, recordId: null });
         }
 
         // DBを更新
         await updateUserSettingToggle({ userId: userId ?? "", isEnabled: false, column: "isPushEnabled" });
       }
     },
-    onError: (_error: Error, newPushEnabledState, context) => {
+    onError: (_error: Error, _, context) => {
       // オプティミスティックアップデートをロールバック
       if (context?.previousIsEnabled !== undefined) {
-        dispatch({
-          type: "SET_ENABLED_STATE",
-          payload: { isEnabled: context.previousIsEnabled },
-        });
-      } else {
-        // フォールバック
-        dispatch({
-          type: "SET_ENABLED_STATE",
-          payload: { isEnabled: !newPushEnabledState },
-        });
+        setNotificationState({ ...notificationState, isEnabled: context.previousIsEnabled });
       }
-    },
-    onSettled: () => {
-      // ブラウザの実際の状態と同期
-      if (!notificationState.isSupported) {
-        return;
-      }
-
-      const browserIsEnabled = notificationState.permissionState === "granted" && !!notificationState.subscriptionState;
-      dispatch({
-        type: "SET_ENABLED_STATE",
-        payload: { isEnabled: browserIsEnabled },
-      });
     },
     meta: {
       invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId ?? ""), exact: true }],
     },
   });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  useEffect(() => {
+    // 初回マウント時だけ実行
+    console.log(
+      "usePushNotification.ts - useEffect - initialIsPushEnabled:",
+      initialIsPushEnabled,
+      "Notification.permission:",
+      Notification.permission,
+    );
+    void (async () => {
+      // ① Push が有効設定のまま ② ブラウザ権限が失効していたら cleanup
+      console.log(
+        "usePushNotification.ts - useEffect - initialIsPushEnabled:",
+        initialIsPushEnabled,
+        "Notification.permission:",
+        Notification.permission,
+      );
+      if (initialIsPushEnabled && Notification.permission !== "granted") {
+        const deviceId = getDeviceId(userId); // 既存 util を再利用
+        await deleteSubscriptionByDeviceId(deviceId); // DB の購読情報を削除
+        await updateUserSettingToggle({
+          // 設定フラグも OFF に
+          userId,
+          isEnabled: false,
+          column: "isPushEnabled",
+        });
+
+        // フロントの state も合わせてリセット
+        setNotificationState((prev) => ({
+          ...prev,
+          isEnabled: false,
+          subscription: null,
+          recordId: null,
+        }));
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ← 依存配列は空で OK（最初の 1 回だけ走らせたい）
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -672,10 +418,8 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
   return {
     // state
     isSupported: notificationState.isSupported,
-    isInitialized: notificationState.isInitialized,
     isEnabled: notificationState.isEnabled,
     isToggleUpdating: isToggleUpdating,
-    errorMessage: notificationState.errorMessage,
     permissionState: notificationState.permissionState,
 
     // function
