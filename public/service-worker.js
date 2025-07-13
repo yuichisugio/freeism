@@ -45,8 +45,24 @@ self.addEventListener("push", (event) => {
 
   if (event.data) {
     try {
-      const payload = event.data.json();
-      console.log("[SW] Push Payload:", payload);
+      // まずはテキストとして取得
+      const rawData = event.data.text();
+      console.log("[SW] Raw push data:", rawData);
+
+      // JSONとしてパース可能かチェック
+      let payload;
+      try {
+        payload = JSON.parse(rawData);
+        console.log("[SW] Push Payload (JSON):", payload);
+      } catch (jsonError) {
+        console.log("[SW] Data is not JSON, using as text:", rawData);
+        // JSONでない場合は、テキストをbodyとして使用
+        payload = {
+          title: defaultNotificationData.title,
+          body: rawData,
+        };
+      }
+
       // ペイロードの内容で通知データを上書き
       notificationData = {
         ...defaultNotificationData, // デフォルト値を保持しつつ上書き
@@ -59,8 +75,8 @@ self.addEventListener("push", (event) => {
         },
       };
     } catch (e) {
-      console.error("[SW] Error parsing push data:", e);
-      // ペイロードがJSONでないか、形式が違う場合はデフォルト値を使用
+      console.error("[SW] Error processing push data:", e);
+      // エラーが発生した場合はデフォルト値を使用
     }
   } else {
     console.log("[SW] Push event received without data.");
@@ -97,49 +113,59 @@ self.addEventListener("push", (event) => {
  */
 self.addEventListener("notificationclick", (event) => {
   console.log(`通知がクリックされました (v${SW_VERSION})`, event);
+  console.log("[SW] Action clicked:", event.action);
 
   // 通知を閉じる
   event.notification.close();
 
-  // 通知に関連付けられたURLを開く
-  const urlToOpen = event.notification.data?.url || "/"; // デフォルトはルート
-  console.log("[SW] Notification click: URL to open:", urlToOpen);
+  // アクションボタンがクリックされた場合の処理
+  if (event.action === "dismiss") {
+    console.log("[SW] Dismiss action clicked - closing notification only");
+    return; // 何もしない（通知を閉じるだけ）
+  }
 
-  // 適切なクライアント（タブ/ウィンドウ）を探してフォーカスまたは開く
-  event.waitUntil(
-    clients
-      .matchAll({
-        type: "window",
-        includeUncontrolled: true, // 他のService Workerが制御しているクライアントも含む
-      })
-      .then((clientList) => {
-        // すでに同じURLのタブが開いているか確認
-        for (const client of clientList) {
-          // URLのパス部分だけで比較するなどの調整が必要な場合がある
-          if (client.url === urlToOpen && "focus" in client) {
-            console.log("[SW] Found matching client, focusing...");
-            return client.focus(); // 見つかったらフォーカス
+  if (event.action === "open_url" || !event.action) {
+    // 「開く」ボタンがクリックされた場合、または通知本体がクリックされた場合
+    console.log("[SW] Opening URL action triggered");
+
+    // 通知に関連付けられたURLを開く
+    const urlToOpen = event.notification.data?.url || "/"; // デフォルトはルート
+    console.log("[SW] Notification click: URL to open:", urlToOpen);
+
+    // 適切なクライアント（タブ/ウィンドウ）を探してフォーカスまたは開く
+    event.waitUntil(
+      clients
+        .matchAll({
+          type: "window",
+          includeUncontrolled: true, // 他のService Workerが制御しているクライアントも含む
+        })
+        .then((clientList) => {
+          // すでに同じURLのタブが開いているか確認
+          for (const client of clientList) {
+            // URLのパス部分だけで比較するなどの調整が必要な場合がある
+            if (client.url === urlToOpen && "focus" in client) {
+              console.log("[SW] Found matching client, focusing...");
+              return client.focus(); // 見つかったらフォーカス
+            }
           }
-        }
-        // 開いているタブがなければ新しいタブで開く
-        if (clients.openWindow) {
-          console.log("[SW] No matching client found, opening new window...");
-          return clients.openWindow(urlToOpen);
-        }
-      }),
-  );
+          // 開いているタブがなければ新しいタブで開く
+          if (clients.openWindow) {
+            console.log("[SW] No matching client found, opening new window...");
+            return clients.openWindow(urlToOpen);
+          }
+        }),
+    );
+  }
 });
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
 /**
  * endpointなどのプッシュ購読が変更されたときのイベント
+ * 購読情報が期限切れなどで変更された場合に発生
+ * 新しい購読情報をサーバーに再送信する必要がある
  */
 self.addEventListener("pushsubscriptionchange", (event) => {
-  console.log(`[SW ${SW_VERSION}] Push Subscription Change`);
-  // 購読情報が期限切れなどで変更された場合に発生
-  // 新しい購読情報をサーバーに再送信する必要がある
-
   event.waitUntil(
     // 新しい購読情報を取得
     self.registration.pushManager
@@ -190,7 +216,6 @@ self.addEventListener("pushsubscriptionchange", (event) => {
       })
       .catch((error) => {
         console.error("[SW] Failed to resubscribe or update subscription:", error);
-        // エラーがあっても次のプッシュが届くように、できるだけ多くの処理を試みる
       }),
   );
 });

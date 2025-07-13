@@ -1,14 +1,15 @@
 "use client";
 
+import type { UserSettings } from "@prisma/client";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 import type * as z from "zod";
-import { memo, useEffect, useMemo } from "react";
-import { redirect } from "next/navigation";
+import { memo, useEffect, useMemo, useState } from "react";
 import { getUserSettings, updateUserSetup } from "@/actions/user/user-settings";
 import { EmailNotificationToggle } from "@/components/notification/email-notification-toggle";
 import { WebPushNotificationToggle } from "@/components/notification/push-notification-toggle";
 import { CustomFormField } from "@/components/share/form/form-field";
 import { FormLayout } from "@/components/share/form/form-layout";
+import { Skeleton } from "@/components/ui/skeleton";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { setupSchema } from "@/library-setting/zod-schema";
 import { type PromiseResult } from "@/types/general-types";
@@ -40,10 +41,17 @@ export const SetupForm = memo(function SetupForm() {
    * ユーザーIDを取得
    */
   const { data: session } = useSession();
-  const userId = useMemo(() => session?.user?.id, [session]);
-  if (!userId) {
-    redirect("/auth/signin");
-  }
+  const userId = useMemo(() => session?.user?.id ?? "", [session]);
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * クライアントサイドでのみレンダリングするためのフラグ
+   */
+  const [onMount, setOnMount] = useState(false);
+  useEffect(() => {
+    setOnMount(true);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -52,7 +60,7 @@ export const SetupForm = memo(function SetupForm() {
    */
   const { data: userSettings, isLoading } = useQuery({
     queryKey: queryCacheKeys.userSettings.userAll(userId),
-    queryFn: async () => getUserSettings(userId),
+    queryFn: async (): PromiseResult<UserSettings | null> => getUserSettings(userId),
     enabled: !!userId,
     staleTime: Infinity,
     gcTime: Infinity,
@@ -107,42 +115,43 @@ export const SetupForm = memo(function SetupForm() {
       {/* 現在の設定情報 */}
       <div className="mb-8 rounded-xl border border-blue-100 bg-white/80 p-6 shadow-lg shadow-blue-100/20 backdrop-blur-sm sm:p-8 dark:border-blue-800 dark:bg-blue-950 dark:shadow-blue-800/20">
         <h2 className="text-app dark:text-app-dark mb-4 text-xl font-bold">現在の設定</h2>
-        {isLoading ? (
-          <div className="text-center text-neutral-600 dark:text-neutral-400">読み込み中...</div>
-        ) : userSettings?.data ? (
-          <dl className="space-y-4">
-            <div>
-              <dt className="form-label-custom">ユーザー名</dt>
-              <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
-                {userSettings.data.username || "未設定"}
-              </dd>
-            </div>
-            <div>
-              <dt className="form-label-custom">人生の目標</dt>
-              <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">
-                {userSettings.data.lifeGoal || "未設定"}
-              </dd>
-            </div>
-            {/* displayDataがUserSettings型で、かつupdatedAtが存在する場合 */}
-            {userSettings.data && "updatedAt" in userSettings.data && userSettings.data.updatedAt instanceof Date && (
-              <div>
-                <dt className="form-label-custom">最終更新日</dt>
-                <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
-                  {format(userSettings.data.updatedAt, "yyyy/MM/dd", { locale: ja })}
-                </dd>
-              </div>
-            )}
-          </dl>
-        ) : (
-          <div className="text-center text-neutral-600 dark:text-neutral-400">
-            設定データがありません。下記のフォームから設定を行ってください。
+        <dl className="space-y-4">
+          <div>
+            <dt className="form-label-custom">ユーザー名</dt>
+            <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+              {isLoading || !onMount ? <Skeleton className="h-4 w-24" /> : (userSettings?.data?.username ?? "未設定")}
+            </dd>
           </div>
-        )}
+          <div>
+            <dt className="form-label-custom">人生の目標</dt>
+            <dd className="mt-1 text-sm whitespace-pre-wrap text-neutral-900 dark:text-neutral-100">
+              {isLoading || !onMount ? <Skeleton className="h-4 w-24" /> : (userSettings?.data?.lifeGoal ?? "未設定")}
+            </dd>
+          </div>
+          <div>
+            <dt className="form-label-custom">最終更新日</dt>
+            <dd className="mt-1 text-sm text-neutral-900 dark:text-neutral-100">
+              {isLoading || !onMount ? (
+                <Skeleton className="h-4 w-24" />
+              ) : userSettings?.data?.updatedAt && userSettings?.data?.createdAt ? (
+                format(userSettings?.data?.updatedAt ?? userSettings?.data?.createdAt, "yyyy/MM/dd", {
+                  locale: ja,
+                })
+              ) : (
+                "未設定"
+              )}
+            </dd>
+          </div>
+        </dl>
       </div>
 
       {/* プッシュ通知設定 */}
       <div className="mb-8">
-        <WebPushNotificationToggle isPushEnabled={userSettings?.data?.isPushEnabled ?? false} isLoading={isLoading} />
+        <WebPushNotificationToggle
+          isPushEnabled={userSettings?.data?.isPushEnabled ?? false}
+          isLoading={isLoading}
+          userId={userId}
+        />
       </div>
 
       {/* メール通知設定 */}

@@ -5,7 +5,8 @@
       "Bash(code.exe:*)",
       "Bash(\"/mnt/c/Users/PC_User/AppData/Local/Programs/cursor/resources/app/bin/cursor\" --version)",
       "Bash(printenv)",
-      "Bash(exec zsh)"
+      "Bash(exec zsh)",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "enableAllProjectMcpServers": true,

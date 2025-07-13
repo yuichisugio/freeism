@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { updateUserSettingToggle } from "@/actions/user/user-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   /**
    * メール通知設定の更新
    */
-  const { mutate, variables, isPending } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async (isEmailEnabled: boolean) =>
       await updateUserSettingToggle({ userId, isEnabled: isEmailEnabled, column: "isEmailEnabled" }),
     meta: {
@@ -39,21 +39,12 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
-   * 表示する値を決定（Hydrationエラーを防ぐため、サーバー・クライアント間で一貫した初期値を使用）
-   * isPendingで変更中の場合のみvariablesの値を使用し、それ以外は常にisEmailEnabledを使用
+   * クライアントサイドでのみレンダリングするためのフラグ
    */
-  const displayValue = isPending && variables !== undefined ? variables : isEmailEnabled;
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * ラベルテキストの決定（Hydrationエラーを防ぐため、サーバー・クライアント間で一貫性を保つ）
-   */
-  const getLabelText = () => {
-    const statusText = displayValue ? "受信中" : "受信拒否中";
-    const pendingText = isPending ? " (更新中...)" : "";
-    return `現在：${statusText}${pendingText}`;
-  };
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -65,7 +56,7 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
-          {isLoading ? (
+          {isLoading || !isMounted ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-neutral-600 dark:text-neutral-400">設定を読み込み中...</span>
@@ -74,11 +65,14 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
             <>
               <Switch
                 id="email-notification-toggle"
-                checked={displayValue}
+                checked={isEmailEnabled}
                 onCheckedChange={mutate}
                 disabled={isPending}
               />
-              <Label htmlFor="email-notification-toggle">{getLabelText()}</Label>
+              <Label htmlFor="email-notification-toggle">
+                現在：{isEmailEnabled ? "受信中" : "受信拒否中"}
+                {isPending && " (更新中...)"}
+              </Label>
             </>
           )}
         </div>

@@ -196,7 +196,7 @@ function setupBrowserEnvironment(config: BrowserConfig = {}) {
  * 共通のテストヘルパー関数
  */
 async function renderHookAndWaitForInitialization() {
-  const { result } = renderHook(() => usePushNotification(false), {
+  const { result } = renderHook(() => usePushNotification(false, "test-user-id"), {
     wrapper: AllTheProviders,
   });
 
@@ -273,7 +273,7 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { result } = renderHook(() => usePushNotification(false), {
+      const { result } = renderHook(() => usePushNotification(false, "test-user-id"), {
         wrapper: AllTheProviders,
       });
 
@@ -822,7 +822,7 @@ describe("usePushNotification", () => {
 
     test("should re-sync when userId changes", async () => {
       // Arrange
-      const { result, rerender } = renderHook(() => usePushNotification(false), {
+      const { result, rerender } = renderHook(() => usePushNotification(false, "test-user-id"), {
         wrapper: AllTheProviders,
       });
 
@@ -866,7 +866,7 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { unmount } = renderHook(() => usePushNotification(false), {
+      const { unmount } = renderHook(() => usePushNotification(false, "test-user-id"), {
         wrapper: AllTheProviders,
       });
 
@@ -883,7 +883,7 @@ describe("usePushNotification", () => {
       });
 
       // Act
-      const { unmount } = renderHook(() => usePushNotification(false), {
+      const { unmount } = renderHook(() => usePushNotification(false, "test-user-id"), {
         wrapper: AllTheProviders,
       });
 

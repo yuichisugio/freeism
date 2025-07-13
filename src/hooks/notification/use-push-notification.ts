@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { redirect } from "next/navigation";
+import { useState } from "react";
 import {
   deleteSubscription,
   deleteSubscriptionByDeviceId,
@@ -11,7 +10,6 @@ import {
 import { updateUserSettingToggle } from "@/actions/user/user-settings";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
@@ -56,16 +54,28 @@ export function formatSubscriptionForServer(
   recordId?: string,
   deviceId?: string,
 ): SaveSubscriptionParams {
-  // 購読情報をJSONに変換（ブラウザのPush APIが提供するメソッド）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 購読情報をJSONに変換（ブラウザのPush APIが提供するメソッド）
+   */
   const subscriptionJSON = subscription.toJSON();
 
-  // 必須のキーが存在するかチェック（endpoint、p256dh、authキーは必須）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 必須のキーが存在するかチェック（endpoint、p256dh、authキーは必須）
+   */
   if (!subscriptionJSON.endpoint || !subscriptionJSON.keys?.p256dh || !subscriptionJSON.keys?.auth) {
     console.error("有効な購読情報が取得できませんでした", subscriptionJSON);
     throw new Error("有効な購読情報が取得できませんでした");
   }
 
-  // サーバーに送信するデータを整形
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * サーバーに送信するデータを整形
+   */
   const subscriptionData: SaveSubscriptionParams = {
     endpoint: subscriptionJSON.endpoint, // プッシュサービスのエンドポイントURL
     expirationTime: subscriptionJSON.expirationTime ?? null, // 購読の有効期限
@@ -76,11 +86,20 @@ export function formatSubscriptionForServer(
     deviceId: deviceId, // デバイス識別子
   };
 
-  // recordIdが指定されている場合は追加（既存レコードの更新時）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * recordIdが指定されている場合は追加（既存レコードの更新時）
+   */
   if (recordId) {
     subscriptionData.recordId = recordId;
   }
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 戻り値
+   */
   return subscriptionData;
 }
 
@@ -101,7 +120,11 @@ export function getDeviceId(userId: string): string {
     userAgent: navigator.userAgent, // ブラウザのユーザーエージェント文字列
   };
 
-  // モダンブラウザのuserAgentDataがサポートされているか確認
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * モダンブラウザのuserAgentDataがサポートされているか確認
+   */
   if ("userAgentData" in navigator && navigator.userAgentData) {
     // navigator.userAgentDataから詳細なデバイス情報を取得
     const uaData = navigator.userAgentData as {
@@ -134,9 +157,18 @@ export function getDeviceId(userId: string): string {
     deviceInfo.mobile = isMobile;
   }
 
-  // デバイスIDを生成（プラットフォーム + モバイルフラグ + ブランド + ユーザーID）
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * デバイスIDを生成（プラットフォーム + モバイルフラグ + ブランド + ユーザーID）
+   */
   const generatedDeviceId = `${deviceInfo.platform}-${deviceInfo.mobile ? "mobile" : "desktop"}-${deviceInfo.brands?.map((b) => b.brand).join("-") || "unknown"}-${userId}`;
 
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 戻り値
+   */
   return generatedDeviceId;
 }
 
@@ -151,7 +183,7 @@ export type PushNotificationHookReturnType = {
   isEnabled: boolean;
   isToggleUpdating: boolean;
   permissionState: NotificationPermission;
-  isLoading: boolean;
+
   // function
   togglePushNotification: (newPushEnabledState: boolean) => void;
 };
@@ -161,7 +193,7 @@ export type PushNotificationHookReturnType = {
 /**
  * プッシュ通知を管理するフック
  */
-export function usePushNotification(initialIsPushEnabled: boolean): PushNotificationHookReturnType {
+export function usePushNotification(initialIsPushEnabled: boolean, userId: string): PushNotificationHookReturnType {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -180,17 +212,6 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
     deviceId: null,
     isEnabled: initialIsPushEnabled,
   });
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-  /**
-   * userId の取得
-   */
-  const session = useSession();
-  const userId = useMemo(() => session.data?.user?.id, [session.data?.user?.id]);
-  if (!userId) {
-    redirect("/auth/login");
-  }
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -242,10 +263,13 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
         // service-worker.jsのevent.waitUntil(clients.claim())で、待っているため
         if (!navigator.serviceWorker.controller) {
           registration = await navigator.serviceWorker.register("/service-worker.js");
-        } else {
-          // すでにアクティブなService Workerを取得。アクティブな場合のみここに到達するので無限に待つことはない
-          registration = await navigator.serviceWorker.ready;
         }
+
+        // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+        // すでにアクティブなService Workerを取得。アクティブな場合のみここに到達するので無限に待つことはない
+        // ここでregisterで登録完了まで待たないと、getSubscription()がnullを返す。
+        registration = await navigator.serviceWorker.ready;
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -414,9 +438,8 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
     // state
     isSupported: notificationState.isSupported,
     isEnabled: notificationState.isEnabled,
-    isToggleUpdating: isToggleUpdating,
+    isToggleUpdating: isToggleUpdating || isUserSettingsLoading,
     permissionState: notificationState.permissionState,
-    isLoading: isUserSettingsLoading,
 
     // function
     togglePushNotification,
