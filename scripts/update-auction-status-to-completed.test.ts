@@ -24,7 +24,7 @@ import { TaskWithRelations, updateAuctionStatusToCompleted } from "./update-auct
 /**
  * sendAuctionNotificationのモック
  */
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn().mockResolvedValue({ success: true }),
 }));
 

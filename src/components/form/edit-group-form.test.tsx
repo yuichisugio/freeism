@@ -9,12 +9,12 @@ import { EditGroupForm } from "./edit-group-form";
 const mockUseQuery = vi.mocked(useQuery);
 
 // モック設定
-vi.mock("@/lib/actions/group", () => ({
+vi.mock("@/actions/group", () => ({
   checkGroupExistByName: vi.fn(),
   updateGroup: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission", () => ({
   checkIsOwner: vi.fn(),
 }));
 

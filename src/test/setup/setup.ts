@@ -227,7 +227,7 @@ afterAll(() => {
 });
 
 // permission APIのモック
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission", () => ({
   checkIsOwner: vi.fn(),
   grantOwnerPermission: vi.fn(),
   checkIsAppOwner: vi.fn(),
@@ -236,7 +236,7 @@ vi.mock("@/lib/actions/permission", () => ({
 }));
 
 // notification form APIのモック
-vi.mock("@/lib/actions/notification/create-notification-form", () => ({
+vi.mock("@/actions/notification/create-notification-form", () => ({
   prepareCreateNotificationForm: vi.fn(),
 }));
 

@@ -14,15 +14,15 @@ import { UPLOAD_TYPE_INFO, useCsvUpload } from "./use-csv-upload";
  */
 
 // アクションのモック
-vi.mock("@/lib/actions/evaluation", () => ({
+vi.mock("@/actions/evaluation", () => ({
   bulkCreateEvaluations: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission", () => ({
   checkIsOwner: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/task/upload-modal", () => ({
+vi.mock("@/actions/task/upload-modal", () => ({
   bulkCreateTasks: vi.fn(),
   bulkUpdateFixedEvaluations: vi.fn(),
   bulkUpdateTaskStatuses: vi.fn(),

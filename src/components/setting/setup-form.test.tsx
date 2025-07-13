@@ -14,7 +14,7 @@ const { mockUseSession, mockRefresh } = vi.hoisted(() => ({
 }));
 
 // モック設定
-vi.mock("@/lib/actions/user-settings", () => ({
+vi.mock("@/actions/user-settings", () => ({
   updateUserSetup: vi.fn(),
 }));
 

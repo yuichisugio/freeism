@@ -66,17 +66,17 @@ vi.mock("sonner", () => ({
 }));
 
 // グループアクション関数のモック
-vi.mock("@/lib/actions/group", () => ({
+vi.mock("@/actions/group", () => ({
   joinGroup: mockJoinGroup,
   deleteGroup: mockDeleteGroup,
   removeMember: mockRemoveMember,
 }));
 
-vi.mock("@/lib/actions/group/group-detail", () => ({
+vi.mock("@/actions/group/group-detail", () => ({
   getGroupById: mockGetGroupById,
 }));
 
-vi.mock("@/lib/actions/group/my-group", () => ({
+vi.mock("@/actions/group/my-group", () => ({
   leaveGroup: mockLeaveGroup,
 }));
 

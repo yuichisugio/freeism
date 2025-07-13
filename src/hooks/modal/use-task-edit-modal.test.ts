@@ -18,12 +18,12 @@ import { useTaskEditModal } from "./use-task-edit-modal";
  */
 
 // アクション関数のモック
-vi.mock("@/lib/actions/task/edit-task-modal", () => ({
+vi.mock("@/actions/task/edit-task-modal", () => ({
   getTaskById: vi.fn(),
   updateTaskAction: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/user", () => ({
+vi.mock("@/actions/user", () => ({
   getAllUsers: vi.fn(),
 }));
 

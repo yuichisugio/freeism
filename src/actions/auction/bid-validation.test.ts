@@ -13,7 +13,7 @@ vi.mock("@/lib/utils", () => ({
   getAuthenticatedSessionUserId: vi.fn(),
 }));
 
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn().mockResolvedValue({ success: true }),
 }));
 

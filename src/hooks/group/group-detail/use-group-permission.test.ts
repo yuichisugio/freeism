@@ -21,12 +21,12 @@ import { useGroupPermission } from "./use-group-permission";
  */
 
 // group actionsのモック
-vi.mock("@/lib/actions/group", () => ({
+vi.mock("@/actions/group", () => ({
   getGroupMembers: vi.fn(),
 }));
 
 // permission actionsのモック
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission", () => ({
   checkIsOwner: vi.fn(),
   grantOwnerPermission: vi.fn(),
 }));

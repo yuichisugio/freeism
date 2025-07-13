@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useTaskInputForm } from "./use-create-task-form";
 
 // モック設定
-vi.mock("@/lib/actions/task/create-task-form", () => ({
+vi.mock("@/actions/task/create-task-form", () => ({
   createTask: vi.fn(),
   prepareCreateTaskForm: vi.fn(),
 }));

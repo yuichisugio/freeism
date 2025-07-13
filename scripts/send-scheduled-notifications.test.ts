@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { main, sendScheduledNotifications } from "./send-scheduled-notifications";
 
 // テスト対象のモジュールをモック
-vi.mock("@/lib/actions/notification/general-notification", () => ({
+vi.mock("@/actions/notification/general-notification", () => ({
   sendGeneralNotification: vi.fn(),
 }));
 

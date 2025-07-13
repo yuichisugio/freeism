@@ -28,7 +28,7 @@ vi.mock("next/server", () => ({
 }));
 
 // 外部依存のモック
-vi.mock("@/lib/actions/notification/push-notification", () => ({
+vi.mock("@/actions/notification/push-notification", () => ({
   getRecordId: vi.fn(),
   saveSubscription: vi.fn(),
 }));

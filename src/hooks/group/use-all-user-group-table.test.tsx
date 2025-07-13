@@ -45,11 +45,11 @@ const {
 /**
  * 外部依存のモック
  */
-vi.mock("@/lib/actions/group/all-user-group", () => ({
+vi.mock("@/actions/group/all-user-group", () => ({
   getAllUserGroupsAndCount: mockGetAllUserGroupsAndCount,
 }));
 
-vi.mock("@/lib/actions/group", () => ({
+vi.mock("@/actions/group", () => ({
   joinGroup: mockJoinGroup,
 }));
 

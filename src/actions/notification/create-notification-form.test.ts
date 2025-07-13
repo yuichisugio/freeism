@@ -10,7 +10,7 @@ import { prepareCreateNotificationForm } from "./create-notification-form";
  * setup.tsでモックされた関数をインポート
  * 実際の実装をテストするため、モックを無効化して実際の関数をインポート
  */
-vi.unmock("@/lib/actions/notification/create-notification-form");
+vi.unmock("@/actions/notification/create-notification-form");
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

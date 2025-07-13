@@ -25,7 +25,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // 通知関連アクションのモック
-vi.mock("@/lib/actions/notification/notification-utilities", () => ({
+vi.mock("@/actions/notification/notification-utilities", () => ({
   getNotificationsAndUnreadCount: vi.fn(),
   updateNotificationStatus: vi.fn(),
 }));

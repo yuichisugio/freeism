@@ -22,12 +22,12 @@ const { mockCheckIsAppOwner, mockCheckOneGroupOwner, mockPrepareCreateNotificati
 /**
  * モジュールのモック設定
  */
-vi.mock("@/lib/actions/permission", () => ({
+vi.mock("@/actions/permission", () => ({
   checkIsAppOwner: mockCheckIsAppOwner,
   checkOneGroupOwner: mockCheckOneGroupOwner,
 }));
 
-vi.mock("@/lib/actions/notification/create-notification-form", () => ({
+vi.mock("@/actions/notification/create-notification-form", () => ({
   prepareCreateNotificationForm: mockPrepareCreateNotificationForm,
 }));
 

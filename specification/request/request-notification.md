@@ -72,7 +72,7 @@ Query v5 の“楽観的更新 (optimistic update)”** と **queryClient の直
 ```ts
 // hooks/notification/useToggleRead.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateNotificationStatus } from "@/lib/actions/notification/notification-utilities";
+import { updateNotificationStatus } from "@/actions/notification/notification-utilities";
 
 export const useToggleRead = (userId: string | undefined) => {
   const qc = useQueryClient();

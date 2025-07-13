@@ -16,7 +16,7 @@ import { CreateGroupForm } from "./create-group-form";
 /**
  * createGroup actionのモック
  */
-vi.mock("@/lib/actions/group");
+vi.mock("@/actions/group");
 
 const mockCreateGroup = vi.mocked(createGroup);
 

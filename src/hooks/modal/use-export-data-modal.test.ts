@@ -22,7 +22,7 @@ vi.mock("papaparse", () => ({
 }));
 
 // アクション関数のモック
-vi.mock("@/lib/actions/task/export-modal", () => ({
+vi.mock("@/actions/task/export-modal", () => ({
   exportGroupTask: vi.fn(),
   exportGroupAnalytics: vi.fn(),
 }));

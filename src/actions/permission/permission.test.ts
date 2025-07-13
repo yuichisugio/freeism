@@ -13,7 +13,7 @@ import { checkGroupMembership, checkOneGroupOwner, grantOwnerPermission } from "
  * モックを定義
  */
 // テストファイル内でモックを上書きして実際の実装を使用
-vi.mock("@/lib/actions/permission", async (importOriginal) => {
+vi.mock("@/actions/permission", async (importOriginal) => {
   const actual = await importOriginal();
   return actual;
 });

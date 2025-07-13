@@ -19,7 +19,7 @@ import { main, returnAuctionDepositPoints } from "./return-auction-deposit-point
 /**
  * sendAuctionNotificationのモック
  */
-vi.mock("@/lib/actions/notification/auction-notification", () => ({
+vi.mock("@/actions/notification/auction-notification", () => ({
   sendAuctionNotification: vi.fn().mockResolvedValue({ success: true }),
 }));
 

@@ -13,7 +13,7 @@ const { mockUpdateUserSettingToggle } = vi.hoisted(() => ({
 }));
 
 // updateUserSettingToggleアクションのモック
-vi.mock("@/lib/actions/user-settings", () => ({
+vi.mock("@/actions/user-settings", () => ({
   updateUserSettingToggle: mockUpdateUserSettingToggle,
 }));
 

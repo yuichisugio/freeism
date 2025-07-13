@@ -17,7 +17,7 @@ import { checkIsPermission } from "./permission";
  * モックを定義
  */
 // permission APIのモックを無効化して実際の実装を使用
-vi.unmock("@/lib/actions/permission");
+vi.unmock("@/actions/permission");
 
 // getAuthenticatedSessionUserIdのモック
 vi.mock("@/lib/utils", () => ({

@@ -83,15 +83,15 @@ vi.mock("nuqs", () => ({
 }));
 
 // アクション関数のモック
-vi.mock("@/lib/actions/task/group-detail-table", () => ({
+vi.mock("@/actions/task/group-detail-table", () => ({
   getGroupTaskAndCount: mockGetGroupTaskAndCount,
 }));
 
-vi.mock("@/lib/actions/task/task", () => ({
+vi.mock("@/actions/task/task", () => ({
   deleteTask: mockDeleteTask,
 }));
 
-vi.mock("@/lib/actions/user", () => ({
+vi.mock("@/actions/user", () => ({
   getAllUsers: mockGetAllUsers,
 }));
 

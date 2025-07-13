@@ -22,7 +22,7 @@ import { useNotificationButton } from "./use-notification-button";
  */
 
 // notification-utilities actionsのモック
-vi.mock("@/lib/actions/notification/notification-utilities", () => ({
+vi.mock("@/actions/notification/notification-utilities", () => ({
   getNotificationsAndUnreadCount: vi.fn(),
   getUnreadNotificationsCount: vi.fn(),
 }));
