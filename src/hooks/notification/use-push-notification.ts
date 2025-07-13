@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { redirect } from "next/navigation";
 import {
   deleteSubscription,
@@ -10,7 +10,7 @@ import {
 } from "@/actions/notification/push-notification";
 import { updateUserSettingToggle } from "@/actions/user/user-settings";
 import { queryCacheKeys } from "@/library-setting/tanstack-query";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -151,7 +151,7 @@ export type PushNotificationHookReturnType = {
   isEnabled: boolean;
   isToggleUpdating: boolean;
   permissionState: NotificationPermission;
-
+  isLoading: boolean;
   // function
   togglePushNotification: (newPushEnabledState: boolean) => void;
 };
@@ -187,7 +187,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
    * userId の取得
    */
   const session = useSession();
-  const userId = useMemo(() => session.data?.user?.id ?? "", [session.data?.user?.id]);
+  const userId = useMemo(() => session.data?.user?.id, [session.data?.user?.id]);
   if (!userId) {
     redirect("/auth/login");
   }
@@ -197,18 +197,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
   /**
    * プッシュ通知のトグルの状態を更新する
    */
-  const queryClient = useQueryClient();
   const { mutate: togglePushNotification, isPending: isToggleUpdating } = useMutation({
-    onMutate: async (newPushEnabledState: boolean) => {
-      // キャッシュ更新をキャンセル
-      await queryClient.cancelQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId ?? "") });
-
-      // UIをオプティミスティックに更新
-      setNotificationState({ ...notificationState, isEnabled: newPushEnabledState });
-
-      // ロールバック用に以前の値を返す
-      return { previousIsEnabled: notificationState.isEnabled };
-    },
     mutationFn: async (newPushEnabledState: boolean) => {
       /**
        * トグルをONにする場合の処理
@@ -233,8 +222,13 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
 
           // 許可が得られていない場合
           if (permission !== "granted") {
-            const errorMsg = "通知の許可が得られませんでした。";
+            const errorMsg = "通知の許可が得られませんでした。ブラウザ設定から許可してください。";
             toast.error(errorMsg);
+            setNotificationState((prev) => ({
+              ...prev,
+              isEnabled: false,
+              permissionState: permission,
+            }));
             throw new Error(errorMsg);
           }
         }
@@ -247,10 +241,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
         // serviceWorker.controllerでtrue(コントロール状態)になることをこのファイルで待つ必要はない。
         // service-worker.jsのevent.waitUntil(clients.claim())で、待っているため
         if (!navigator.serviceWorker.controller) {
-          registration = await navigator.serviceWorker.register("/service-worker.js", {
-            scope: "/", // ルート配下すべてを対象にする
-            updateViaCache: "none", // 強制的に最新版を取得
-          });
+          registration = await navigator.serviceWorker.register("/service-worker.js");
         } else {
           // すでにアクティブなService Workerを取得。アクティブな場合のみここに到達するので無限に待つことはない
           registration = await navigator.serviceWorker.ready;
@@ -288,7 +279,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // デバイスID取得
-        const currentDeviceId = getDeviceId(userId ?? "");
+        const currentDeviceId = getDeviceId(userId);
 
         // レコードID取得とDB同期
         let currentRecordId: string | null = null;
@@ -308,20 +299,20 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // 初期化完了：全ての状態を一括更新
-        setNotificationState({
-          ...notificationState,
-          isSupported: notificationState.isSupported,
+        setNotificationState((prev) => ({
+          ...prev,
           permissionState: permission,
           registration: registration,
           subscription: subscription,
           recordId: currentRecordId,
           deviceId: currentDeviceId,
-        });
+          isEnabled: true,
+        }));
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
         // DBに保存
-        await updateUserSettingToggle({ userId: userId, isEnabled: true, column: "isPushEnabled" });
+        await updateUserSettingToggle({ userId, isEnabled: true, column: "isPushEnabled" });
 
         // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -329,70 +320,70 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
          * トグルをOFFにする場合
          */
       } else {
-        // Service Workerの登録を取得して実際のサブスクリプションを確認
-        let registration: ServiceWorkerRegistration;
-        if (!navigator.serviceWorker.controller) {
-          registration = await navigator.serviceWorker.register("/service-worker.js", {
-            scope: "/",
-            updateViaCache: "none",
-          });
-        } else {
-          registration = await navigator.serviceWorker.ready;
+        // Service Workerの登録がある場合
+        if (navigator.serviceWorker.controller) {
+          // Service Workerの登録を取得
+          const registration = await navigator.serviceWorker.ready;
+
+          // 実際のサブスクリプションを取得
+          const subscription = await registration.pushManager.getSubscription();
+
+          // 購読情報がある場合
+          if (subscription) {
+            // サーバーから購読情報を削除
+            await deleteSubscription(subscription.endpoint);
+
+            // プッシュサービスから購読を解除
+            await subscription.unsubscribe();
+          }
         }
 
-        // 実際のサブスクリプションを取得
-        const subscription = await registration.pushManager.getSubscription();
-
-        // 購読情報がある場合
-        if (subscription) {
-          // サーバーから購読情報を削除
-          await deleteSubscription(subscription.endpoint);
-
-          // プッシュサービスから購読を解除
-          await subscription.unsubscribe();
-
-          // ステートをクリア
-          setNotificationState({ ...notificationState, subscription: null, recordId: null });
-        }
+        // ステートをクリア
+        setNotificationState((prev) => ({
+          ...prev,
+          registration: null,
+          subscription: null,
+          recordId: null,
+          deviceId: null,
+          isEnabled: false,
+        }));
 
         // DBを更新
-        await updateUserSettingToggle({ userId: userId ?? "", isEnabled: false, column: "isPushEnabled" });
+        await updateUserSettingToggle({ userId, isEnabled: false, column: "isPushEnabled" });
       }
-    },
-    onError: (_error: Error, _, context) => {
-      // オプティミスティックアップデートをロールバック
-      if (context?.previousIsEnabled !== undefined) {
-        setNotificationState({ ...notificationState, isEnabled: context.previousIsEnabled });
-      }
+      return true;
     },
     meta: {
-      invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId ?? ""), exact: true }],
+      invalidateCacheKeys: [{ queryKey: queryCacheKeys.userSettings.userAll(userId), exact: true }],
     },
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  useEffect(() => {
-    // 初回マウント時だけ実行
-    console.log(
-      "usePushNotification.ts - useEffect - initialIsPushEnabled:",
+  /**
+   * push通知が受信中だが、ブラウザの権限が失効しているor無効にしている場合に、DBのデータを削除する処理
+   * 初回に開いたときに毎回実行したい
+   * queryKeyを、userAllにしてはダメ。既存の設定を上書きしてしまうし、この関数はtrueを返すのみのため。
+   * 毎回実行したいためキャッシュしない。なのでstaleTime,gcTimeを0に設定しておく
+   */
+  const queryClient = useQueryClient();
+  const { isPending: isUserSettingsLoading } = useQuery({
+    queryKey: [
+      "if-push-notification-permission-is-not-granted-and-push-notification-is-enabled-then-update-user-settings-to-false",
+      userId,
       initialIsPushEnabled,
-      "Notification.permission:",
-      Notification.permission,
-    );
-    void (async () => {
+    ],
+    queryFn: async () => {
       // ① Push が有効設定のまま ② ブラウザ権限が失効していたら cleanup
-      console.log(
-        "usePushNotification.ts - useEffect - initialIsPushEnabled:",
-        initialIsPushEnabled,
-        "Notification.permission:",
-        Notification.permission,
-      );
       if (initialIsPushEnabled && Notification.permission !== "granted") {
-        const deviceId = getDeviceId(userId); // 既存 util を再利用
-        await deleteSubscriptionByDeviceId(deviceId); // DB の購読情報を削除
+        // デバイスID取得
+        const deviceId = getDeviceId(userId);
+
+        // DB の購読情報を削除
+        await deleteSubscriptionByDeviceId(deviceId);
+
+        // DB の設定を無効にする
         await updateUserSettingToggle({
-          // 設定フラグも OFF に
           userId,
           isEnabled: false,
           column: "isPushEnabled",
@@ -405,10 +396,14 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
           subscription: null,
           recordId: null,
         }));
+
+        void queryClient.invalidateQueries({ queryKey: queryCacheKeys.userSettings.userAll(userId) });
       }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ← 依存配列は空で OK（最初の 1 回だけ走らせたい）
+      return true;
+    },
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
@@ -421,6 +416,7 @@ export function usePushNotification(initialIsPushEnabled: boolean): PushNotifica
     isEnabled: notificationState.isEnabled,
     isToggleUpdating: isToggleUpdating,
     permissionState: notificationState.permissionState,
+    isLoading: isUserSettingsLoading,
 
     // function
     togglePushNotification,

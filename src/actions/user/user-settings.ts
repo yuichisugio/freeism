@@ -149,6 +149,7 @@ export async function updateUserSetup(data: SetupForm, userId: string): PromiseR
  * ユーザー設定を取得
  */
 export const getUserSettings = cache(async (userId: string): PromiseResult<UserSettings | null> => {
+  console.log("user-settings.ts - userId", userId);
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
   /**
@@ -166,6 +167,7 @@ export const getUserSettings = cache(async (userId: string): PromiseResult<UserS
   const userSettings = await prisma.userSettings.findUnique({
     where: { userId: userId },
   });
+  console.log("user-settings.ts - getUserSettings - userSettings", userSettings);
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

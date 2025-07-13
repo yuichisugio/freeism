@@ -37,7 +37,6 @@ export const queryCacheKeys = {
     _root: ["userSettings"] as const,
     all: () => [...queryCacheKeys.userSettings._root] as const,
     userAll: (userId: string) => [...queryCacheKeys.userSettings.all(), userId] as const,
-    update: (userId: string) => [...queryCacheKeys.userSettings.userAll(userId), "update"] as const,
   },
 
   watchlist: {

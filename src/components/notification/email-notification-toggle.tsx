@@ -57,28 +57,6 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  /**
-   * ローディング中の表示
-   */
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-app dark:text-app-dark">メール通知設定</CardTitle>
-          <CardDescription>メール通知の受信設定を管理します</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm text-neutral-600 dark:text-neutral-400">設定を読み込み中...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
   return (
     <Card>
       <CardHeader>
@@ -87,8 +65,22 @@ export const EmailNotificationToggle = memo(function EmailNotificationToggle({
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
-          <Switch id="email-notification-toggle" checked={displayValue} onCheckedChange={mutate} disabled={isPending} />
-          <Label htmlFor="email-notification-toggle">{getLabelText()}</Label>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-neutral-600 dark:text-neutral-400">設定を読み込み中...</span>
+            </>
+          ) : (
+            <>
+              <Switch
+                id="email-notification-toggle"
+                checked={displayValue}
+                onCheckedChange={mutate}
+                disabled={isPending}
+              />
+              <Label htmlFor="email-notification-toggle">{getLabelText()}</Label>
+            </>
+          )}
         </div>
         <p className="mt-2 text-sm text-neutral-900 dark:text-neutral-100">
           メール通知を有効にすると、メールでの通知を受け取ることができます。

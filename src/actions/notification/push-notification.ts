@@ -336,8 +336,6 @@ export async function saveSubscription(subscription: {
 }): PromiseResult<PushSubscription> {
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-  console.log("saveSubscription - subscription:", subscription);
-
   /**
    * 購読情報が不完全な場合はエラー
    */
@@ -448,45 +446,32 @@ export async function saveSubscription(subscription: {
  * @returns {success: boolean} 成功した場合はtrue, 失敗した場合はfalse
  */
 export async function deleteSubscription(endpoint: string): PromiseResult<null> {
-  try {
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-    console.log("deleteSubscription.ts - endpoint:", endpoint);
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 
-    /**
-     * エンドポイントがない場合はエラー
-     */
-    if (!endpoint) {
-      throw new Error("エンドポイントがありません");
-    }
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 購読情報を削除
-     */
-    await prisma.pushSubscription.delete({
-      where: {
-        endpoint: endpoint,
-      },
-    });
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-
-    /**
-     * 結果を返却
-     */
-    return { success: true, data: null, message: "購読情報を削除しました" };
-
-    // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-  } catch (error) {
-    // レコードが見つからない場合(P2025)はエラーとしないことが多いが、ここでは念のためログ出力
-    if (error instanceof Error && (error as { code?: string }).code === "P2025") {
-      console.warn(`Subscription not found for endpoint: ${endpoint}. Already deleted?`);
-      return { success: true, data: null, message: "購読情報を削除しました" }; // すでに削除されている場合も成功として扱う
-    }
-    console.error("購読情報の削除に失敗しました:", error);
-    throw new Error(`購読情報の削除に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
+  /**
+   * エンドポイントがない場合はエラー
+   */
+  if (!endpoint) {
+    throw new Error("エンドポイントがありません");
   }
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 購読情報を削除
+   */
+  await prisma.pushSubscription.delete({
+    where: {
+      endpoint: endpoint,
+    },
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  /**
+   * 結果を返却
+   */
+  return { success: true, data: null, message: "購読情報を削除しました" };
 }
 
 // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
