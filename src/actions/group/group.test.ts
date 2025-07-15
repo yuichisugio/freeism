@@ -1,4 +1,4 @@
-import { type CreateGroupFormData } from "@/components/form/create-group-form";
+import { type CreateGroupFormData } from "@/components/group/create-group-form";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { createInvalidGroupData, groupFactory, groupMembershipFactory } from "@/test/test-utils/test-utils-prisma-orm";
 import { beforeEach, describe, expect, test, vi } from "vitest";

@@ -79,8 +79,8 @@ export async function checkIsPermission(
 
     // タスクの作成者、タスクの報告者、タスクの実行者のいずれかがユーザーIDと一致する場合はtrueを返す
     const isCreator = task.creator.id === userId;
-    const isReporter = task.reporters.find((reporter) => reporter.id);
-    const isExecutor = task.executors.find((executor) => executor.id);
+    const isReporter = task.reporters.find((reporter) => reporter.id === userId);
+    const isExecutor = task.executors.find((executor) => executor.id === userId);
     if (isCreator || isReporter || isExecutor) {
       return { success: true, data: true, message: "タスクの作成者or報告者or実行者の権限があります" };
     }

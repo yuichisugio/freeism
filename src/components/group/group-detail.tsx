@@ -2,7 +2,7 @@
 
 import type { GetGroupMembers } from "@/types/group-types";
 import { memo, useEffect, useState } from "react";
-import { EditGroupForm } from "@/components/form/edit-group-form";
+import { EditGroupForm } from "@/components/group/edit-group-form";
 import { GroupDetailTable } from "@/components/group/group-detail-table";
 import { CsvUploadModal } from "@/components/modal/csv-upload-modal";
 import { ExportDataModal } from "@/components/modal/export-data-modal";

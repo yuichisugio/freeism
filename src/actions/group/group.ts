@@ -1,6 +1,6 @@
 "use server";
 
-import type { CreateGroupFormData } from "@/components/form/create-group-form";
+import type { CreateGroupFormData } from "@/components/group/create-group-form";
 import type { GetGroupMembers } from "@/types/group-types";
 import { revalidatePath } from "next/cache";
 import { checkGroupMembership, checkIsPermission } from "@/actions/permission/permission";
