@@ -1,4 +1,0 @@
-# GitHub software contributor
-
-## 概要
-- 引数で指定したソフトウェアに貢献した開発者を調査する
