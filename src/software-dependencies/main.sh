@@ -91,14 +91,14 @@ run_all() {
   if ((${#result_files[@]} > 0)); then
     printf '%s\n' "結果を統合: ${#result_files[@]} files"
     jq -s 'map(.data // []) | add | unique_by(.host + ":" + .repo)' "${result_files[@]}" |
-      jq \
+      jq --arg owner "$OWNER" --arg repository "$REPO" \
         '
           { 
             meta: {
               createdAt: (now | strftime("%Y-%m-%dT%H:%M:%SZ")),
-              source_count: length
+              "specified-oss": { owner: $owner, Repository: $repository }
             },
-            data: . 
+            data: .
           }
         ' \
         >"${RESULTS_DIR}/result.json"
