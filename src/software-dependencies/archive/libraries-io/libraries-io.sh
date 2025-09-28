@@ -1,51 +1,52 @@
 #!/bin/bash
 
+# ----------------------------------------
 # Libraries.io から依存関係を取得するファイル
+# ----------------------------------------
 
-########################################
-# 設定
-########################################
-
-# エラー検知、パイプラインのエラー検知、未定義変数のエラー検知で、即時停止
 set -euo pipefail
 
-# スクリプトのディレクトリに移動。相対PATHを安定させる。
-cd "$(cd "$(dirname -- "$0")" && pwd -P)"
+printf '%s\n' "start: libraries-io"
 
+# ----------------------------------------
+# 出力ディレクトリ (環境変数が優先 / 未設定なら ./results)
+# ----------------------------------------
+readonly RESULTS_DIR="${RESULTS_DIR:-./results}"
+
+# ----------------------------------------
+# 出力ディレクトリ
+# ----------------------------------------
+readonly LIBRARIES_IO_DIR="${RESULTS_DIR}/libraries-io"
+mkdir -p "${LIBRARIES_IO_DIR}"
+
+readonly RAW_LIBRARIES_IO_PATH="${LIBRARIES_IO_DIR}/raw-libraries-io.json"
+readonly PROCESSED_LIBRARIES_IO_PATH="${LIBRARIES_IO_DIR}/processed-libraries-io.json"
+
+# ----------------------------------------
 # 環境変数から API キーを受け取る（どちらか設定されていればOK）
 # 例: export LIBRARIES_IO_API_KEY=xxxxx
+# ----------------------------------------
 API_KEY="${LIBRARIES_IO_API_KEY:-${LIBRARIES_API_KEY:-}}"
 if [[ -z "${API_KEY:-}" ]]; then
   printf '%s\n' 'ERROR: Libraries.io の API キーが未設定です。「LIBRARIES_IO_API_KEY」 または「LIBRARIES_API_KEY」を設定してください。' >&2
   exit 1
 fi
 
+# ----------------------------------------
 # 連続呼び出しの最小間隔（秒）。60req/min を超えないための保険。
+# ----------------------------------------
 RATE_LIMIT_DELAY="${RATE_LIMIT_DELAY:-1.2}"
 
-# curlのインストールを確認
-if ! command -v curl >/dev/null; then
-  echo "ERROR: curlが必要です。" >&2
-  exit 1
-fi
-
-# jqのインストールを確認
-if ! command -v jq >/dev/null; then
-  echo "ERROR: jq が必要です。" >&2
-  exit 1
-fi
-
+# ----------------------------------------
 # 引数: OWNER / REPO / SERVICE(github|gitlab|bitbucket)
+# ----------------------------------------
 readonly OWNER=${1:-"yoshiko-pg"}
 readonly REPO=${2:-"difit"}
 readonly SERVICE=${3:-"github"}
-readonly RESULTS_DIR="./results"
 
-########################################
-# ヘルプ表示
-########################################
-
+# ----------------------------------------
 # 使用方法の表示
+# ----------------------------------------
 function show_usage() {
   cat <<EOF
     Usage:
@@ -79,12 +80,12 @@ if [[ $# -gt 0 && ("$1" == "-h" || "$1" == "--help") ]]; then
   exit 0
 fi
 
-########################################
+# ----------------------------------------
 # 共通: JSON専用のHTTP GET (429/503はリトライ)
-########################################
 # 使い方: http_get_json "<URL>" "<保存ファイルパス>"
 # 成功時: 保存してから内容を標準出力に流す（= 呼び出し元で $(...) で受け取れる）
 # 失敗時: 非0で return
+# ----------------------------------------
 function http_get_json() {
   local url="$1"
   local out="$2"
@@ -157,41 +158,9 @@ function http_get_json() {
   done
 }
 
-########################################
-# 出力ディレクトリの作成
-########################################
-function setup_output_directory() {
-  # RESULTS_DIRディレクトリが存在しない場合は作成
-  if [[ ! -d "$RESULTS_DIR" ]]; then
-    mkdir -p "$RESULTS_DIR"
-  fi
-
-  # REPOディレクトリが存在しない場合は作成
-  if [[ ! -d "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}" ]]; then
-    mkdir -p "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}"
-  fi
-
-  # raw-data/dependenciesディレクトリが存在しない場合は作成
-  if [[ ! -d "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/dependencies" ]]; then
-    mkdir -p "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/dependencies"
-  fi
-
-  # raw-data/repo-infoディレクトリが存在しない場合は作成
-  if [[ ! -d "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/repo-info" ]]; then
-    mkdir -p "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/repo-info"
-  fi
-
-  # formatted-dataディレクトリが存在しない場合は作成
-  if [[ ! -d "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/formatted-data" ]]; then
-    mkdir -p "${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/formatted-data"
-  fi
-
-  return 0
-}
-
-########################################
+# ----------------------------------------
 # データ取得
-########################################
+# ----------------------------------------
 
 # 依存関係のデータを取得
 function get_dependencies() {
@@ -202,6 +171,7 @@ function get_dependencies() {
   # 出力PATHを作成
   local raw_file
   raw_file="${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/dependencies/${SERVICE}-${OWNER}-${REPO}-$(date +%Y%m%d_%H%M%S).json"
+  mkdir -p "$(dirname -- "$raw_file")"
 
   # 成功時はファイルに保存し、ファイルパスを標準出力に返す
   if http_get_json "$url" "$raw_file" >/dev/null; then
@@ -234,6 +204,7 @@ function get_repo_info() {
   local project_file_name="${project//\//-}"
   local raw_file
   raw_file="${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/raw-data/repo-info/${platform}-${project_file_name}-$(date +%Y%m%d_%H%M%S).json"
+  mkdir -p "$(dirname -- "$raw_file")"
 
   # ここで JSON を取得（429/503 は内部でリトライ）
   # 成功したら整形して標準出力に返す（呼び出し元の repo_info=$(...) に入る）
@@ -241,9 +212,9 @@ function get_repo_info() {
   return 0
 }
 
-########################################
+# ----------------------------------------
 # リポジトリURLを {host, owner, repo} に分解する
-########################################
+# ----------------------------------------
 function parse_repo_url() {
   local url="$1"
   jq -cn --arg u "$url" '
@@ -337,12 +308,12 @@ function parse_repo_url() {
   return 0
 }
 
-########################################
+# ----------------------------------------
 # 共通: 進捗表示
-########################################
 # 使い方: update_progress <done> <total>
 # - 端末(TTY)のときは同じ行を上書き（\r と \033[K を使用）
 # - 非TTY（ログ等）のときは毎回改行してもOK
+# ----------------------------------------
 function update_progress() {
   local done="$1"
   local total="$2"
@@ -356,9 +327,9 @@ function update_progress() {
   fi
 }
 
-########################################
+# ----------------------------------------
 # 加工
-########################################
+# ----------------------------------------
 function process_raw_data() {
   # $1: 依存関係の raw JSON
   local raw_file_path="$1"
@@ -513,24 +484,23 @@ function process_raw_data() {
   return 0
 }
 
-########################################
+# ----------------------------------------
 # 保存
-########################################
+# ----------------------------------------
 function save_output() {
   # $1: 出力 JSON
   local json="$1"
   local out_file
   out_file="${RESULTS_DIR}/${OWNER}-${REPO}-${SERVICE}/formatted-data/dependency_$(date +%Y%m%d_%H%M%S).json"
+  mkdir -p "$(dirname -- "$out_file")"
   echo "$json" | jq '.' >"$out_file"
   echo "Saved: $out_file" >&2
 }
 
-########################################
+# ----------------------------------------
 # 実行の流れを定義
-########################################
+# ----------------------------------------
 function main() {
-  # 出力ディレクトリの作成
-  setup_output_directory
 
   # 1) 依存関係の raw を取得
   local raw_file_path
@@ -546,7 +516,9 @@ function main() {
   return 0
 }
 
-########################################
+# ----------------------------------------
 # スクリプトを実行
-########################################
+# ----------------------------------------
 main
+
+printf '%s\n' "end: libraries-io"

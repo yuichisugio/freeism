@@ -3,6 +3,7 @@
 ## 概要
 
 - GitHub Dependency Graph の SBOM と Google Open Source Insights (deps.dev) を併用して、依存（パッケージ）ごとのリポジトリ URL を解決します。
+- 現在は、使用する必要がなさそうなのでアーカイブした
 - 依存単位で出力（重複除去なし）。formatted 出力の件数は SBOM の依存件数と一致します。
 - 参考:
   - <a href="https://docs.github.com/ja/rest/dependency-graph/sboms" target="_blank" rel="noopener noreferrer">GitHub SBOM API</a>
