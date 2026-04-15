@@ -5,6 +5,7 @@
   - [派生報酬の仕組み](#派生報酬の仕組み)
   - [公式パッケージの仕組み](#公式パッケージの仕組み)
   - [無料主義のデータ構造](#無料主義のデータ構造)
+  - [貢献度の算出の仕組み](#貢献度の算出の仕組み)
 
 ## 無料主義のフロー
 
@@ -133,4 +134,92 @@ flowchart LR
   %% 矢印
   group-1 -->|"一つのグループ(企業)が複数の商材を登録"| group-1-product-1
   group-1-product-1
+```
+
+## 貢献度の算出の仕組み
+
+```mermaid
+  flowchart TB
+
+  %% 変数
+  package-a["パッケージ（A）"]
+  evaluation-criteria-b["評価軸（B）"]
+  evaluation-criteria-c["評価軸（C）"]
+
+  contributor-d-b["貢献者（D）"]
+  contributor-d-c["貢献者（D）"]
+  saas-e-b["SaaS（E）"]
+  saas-e-c["SaaS（E）"]
+
+  package-f["パッケージ（F）"]
+  evaluation-criteria-g["評価軸（G）"]
+  evaluation-criteria-h["評価軸（H）"]
+
+  react-j-g["React（J）"]
+  react-j-h["React（J）"]
+  contributor-i-g["貢献者（I）"]
+
+  package-k["パッケージ（K）"]
+  evaluation-criteria-l["評価軸（L）"]
+  evaluation-criteria-m["評価軸（M）"]
+
+  contributor-n-l["貢献者（N）"]
+  contributor-o-l["貢献者（O）"]
+  contributor-p-l["貢献者（P）"]
+  contributor-q-m["貢献者（Q）"]
+
+  package-r["パッケージ（R）"]
+  evaluation-criteria-s["評価軸（S）"]
+  contributor-t["貢献者（T）"]
+  contributor-u["貢献者（U）"]
+
+  %% 配色は「公式パッケージの仕組み」「派生報酬の図」と種類ごとに対応。
+  classDef packageStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:3px,color:#000
+  classDef evaluationCriteriaStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#000
+  classDef contributorStyle fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+  classDef saasStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
+  classDef reactStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px,color:#000
+  class package-a,package-f,package-k,package-r packageStyle
+  class evaluation-criteria-b,evaluation-criteria-c,evaluation-criteria-g,evaluation-criteria-h,evaluation-criteria-l,evaluation-criteria-m,evaluation-criteria-s evaluationCriteriaStyle
+  class contributor-d-b,contributor-d-c,contributor-i-g,contributor-n-l,contributor-o-l,contributor-p-l,contributor-q-m,contributor-t,contributor-u contributorStyle
+  class saas-e-b,saas-e-c saasStyle
+  class react-j-g,react-j-h reactStyle
+
+  %% 矢印
+  package-a -->|"4"| evaluation-criteria-b
+  package-a -->|"6"| evaluation-criteria-c
+
+  evaluation-criteria-b -->|"3"| contributor-d-b
+  evaluation-criteria-c -->|"4"| contributor-d-c
+
+  evaluation-criteria-b -->|"7"| saas-e-b
+  evaluation-criteria-c -->|"6"| saas-e-c
+
+  saas-e-b -->|"10"| package-f
+  saas-e-c -->|"10"| package-f
+
+  package-f -->|"8"| evaluation-criteria-g
+  package-f -->|"2"| evaluation-criteria-h
+
+  evaluation-criteria-g -->|"8"| react-j-g
+  evaluation-criteria-g -->|"2"| contributor-i-g
+
+  evaluation-criteria-h -->|"10"| react-j-h
+
+  react-j-g -->|"10"| package-k
+  react-j-h -->|"10"| package-k
+
+  package-k -->|"5"| evaluation-criteria-l
+  package-k -->|"5"| evaluation-criteria-m
+
+  evaluation-criteria-l -->|"5"| contributor-n-l
+  evaluation-criteria-l -->|"3"| contributor-o-l
+  evaluation-criteria-l -->|"2"| contributor-p-l
+
+  evaluation-criteria-m -->|"10"| contributor-q-m
+
+  contributor-n-l -->|"10"| package-r
+  package-r -->|"10"| evaluation-criteria-s
+  evaluation-criteria-s -->|"7"| contributor-t
+  evaluation-criteria-s -->|"3"| contributor-u
 ```
