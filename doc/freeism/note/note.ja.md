@@ -6,6 +6,7 @@
   - [公式パッケージの仕組み](#公式パッケージの仕組み)
   - [無料主義のデータ構造](#無料主義のデータ構造)
   - [貢献度の算出の仕組み](#貢献度の算出の仕組み)
+  - [雑メモ](#雑メモ)
 
 ## 無料主義のフロー
 
@@ -110,6 +111,8 @@ flowchart LR
 ```mermaid
   graph LR
 
+  %%{init: {'flowchart': {'padding': 0}}}%%
+
   %% 項目変数名と表示名
   group-1["<b>グループ-1</b>"]
   group-2["<b>グループ-2</b>"]
@@ -140,6 +143,8 @@ flowchart LR
 
 ```mermaid
   flowchart TB
+
+  %%{init: {'flowchart': {'padding': 0}}}%%
 
   %% 変数
   package-a["パッケージ（A）"]
@@ -218,8 +223,10 @@ flowchart LR
 
   evaluation-criteria-m -->|"10"| contributor-q-m
 
-  contributor-n-l -->|"10"| package-r
+  contributor-n-l -->|"8"| package-r
   package-r -->|"10"| evaluation-criteria-s
   evaluation-criteria-s -->|"7"| contributor-t
   evaluation-criteria-s -->|"3"| contributor-u
 ```
+
+## 雑メモ

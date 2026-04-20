@@ -1,7 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(security find-internet-password *)"
-    ]
+    "allow": []
   }
 }

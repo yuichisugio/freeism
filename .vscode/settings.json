@@ -6,6 +6,6 @@
 	// このリポジトリ専用のファイルネスティングパターン
 	"explorer.fileNesting.patterns": {
 		// package.json関連のファイルをネスト
-		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, bun.lockb, .textlintrc, .markdownlint.json,.gitignore,LICENSE.md",
+		"package.json": "package-lock.json",
 	}
 }
