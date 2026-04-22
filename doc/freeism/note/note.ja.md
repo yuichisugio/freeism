@@ -87,20 +87,33 @@ flowchart LR
 
     C2["<b>商材C</b><br>※派生報酬でポイント受領"]
     OP["<b>公式パッケージ</b>"]
-    P1["<b>貢献者</b>"]
-    P2["<b>貢献者</b>"]
-    Pn["<b>貢献者</b>"]
+    P1-1["<b>貢献者_1-1</b>"]
+    P1-2["<b>貢献者_1-2</b>"]
+    P1-3["<b>貢献者_1-3</b>"]
+    P2-1["<b>貢献者_2-1</b>"]
+    P2-2["<b>貢献者_2-2</b>"]
+    P2-3["<b>貢献者_2-3</b>"]
+    R1["<b>評価軸_1</b>"]
+    R2["<b>評価軸_2</b>"]
 
     C2 -->|"受け取ったポイントの<br/>分配の単位として利用"| OP
-    OP -->|"分配"| P1
-    OP -->|"分配"| P2
-    OP -->|"分配"| Pn
+    OP  --> R1
+    OP  --> R2
+    R1 -->|"分配"| P1-1
+    R1 -->|"分配"| P1-2
+    R1 -->|"分配"| P1-3
+    R2 -->|"分配"| P2-1
+    R2 -->|"分配"| P2-2
+    R2 -->|"分配"| P2-3
 
     style C2 fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px,color:#000
     style OP fill:#f3e5f5,stroke:#6a1b9a,stroke-width:3px,color:#000
-    style P1 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
-    style P2 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
-    style Pn fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P1-1 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P1-2 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P1-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P2-1 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P2-2 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
+    style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 ```
 
 ## 無料主義のデータ構造
