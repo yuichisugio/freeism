@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is a documentation project for Freeism. Markdown sources live under `doc/`: `doc/readme/` contains localized README pages, and `doc/freeism/` contains the main Freeism documents and slide material. GitHub Actions workflows are in `.github/workflows/`, and the Husky pre-commit hook is in `.husky/pre-commit`.
+This repository is a documentation project for Freeism. Markdown sources live under `src/`: `src/readme/` contains localized README pages, and `src/freeism/` contains the main Freeism documents and slide material. GitHub Actions workflows are in `.github/workflows/`, and the Husky pre-commit hook is in `.husky/pre-commit`.
 
 ## Build, Test, and Development Commands
 

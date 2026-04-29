@@ -1,14 +1,21 @@
 # freeism v3
 
-- [freeism v3](#freeism-v3)- [freeism v3](#freeism-v3)
-  - [Introduction](#introduction)
-  - [**Overview**](#overview)
-    - [**What we want to achieve (in brief)**](#what-we-want-to-achieve-in-brief)
+## Languages
+
+[日本語](freeism.ja.md) | English(This page)
 
 ## Introduction
 
 As a social mechanism, we have devised a system called "freeism."<br>
 It is intended to be used as a mechanism to complement or replace capitalism.
+
+## Table of Contents
+
+- [freeism v3](#freeism-v3)
+  - [Languages](#languages)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [What we want to achieve (in brief)](#what-we-want-to-achieve-in-brief)
 
 ## Overview
 

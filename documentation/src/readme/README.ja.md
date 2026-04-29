@@ -6,7 +6,7 @@
 
 ## 言語
 
-README（日本語）| [README (English)](../../README.md)
+日本語（本ページ）| [English](../../README.md)
 
 ## 概要
 

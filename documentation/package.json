@@ -8,7 +8,7 @@
 		"url": "git+https://github.com/yuichisugio/freeism-documentation.git"
 	},
 	"scripts": {
-		"lint": "textlint --fix doc/README/README.ja.md && textlint --fix doc/freeism/freeism.ja.md && textlint --fix doc/README/README.en.md && textlint --fix doc/freeism/freeism.en.md"
+		"lint": "textlint --fix src/readme/README.ja.md && textlint --fix src/freeism/freeism.ja.md && textlint --fix src/freeism/freeism.en.md"
 	},
 	"keywords": [],
 	"devDependencies": {

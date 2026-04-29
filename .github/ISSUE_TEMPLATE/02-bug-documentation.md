@@ -8,7 +8,7 @@ assignees: ''
 
 ## 対象
 
-<!-- 例: doc/freeism/freeism.ja.md -->
+<!-- 例: src/freeism/freeism.ja.md -->
 
 - ファイルまたはディレクトリ:
 - 言語（ja / en など）:

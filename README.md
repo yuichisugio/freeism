@@ -7,7 +7,7 @@
 
 ## Language
 
-[README（日本語）](docs/README.ja.md) | README (English)
+[日本語](docs/README.ja.md) | English(This page)
 
 ## Overview
 
