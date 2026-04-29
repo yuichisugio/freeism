@@ -1,0 +1,242 @@
+[
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6tUF0T",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/24#pullrequestreview-2907725075",
+    "databaseId": 203740272,
+    "id": "REA_lAPOOyw9fc6tUF0Tzgwk1HA",
+    "content": "LAUGH",
+    "createdAt": "2025-06-07T20:01:22Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6tkMZO",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/50#pullrequestreview-2911946318",
+    "databaseId": 203808135,
+    "id": "REA_lAPOOyw9fc6tkMZOzgwl3Yc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T06:54:52Z",
+    "user": {
+      "databaseId": 57349533,
+      "id": "U_kgDOA2sVnQ",
+      "login": "srdw",
+      "name": "srdw",
+      "url": "https://github.com/srdw"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6u-kkP",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/80#pullrequestreview-2935638287",
+    "databaseId": 204102755,
+    "id": "REA_lAPOOyw9fc6u-kkPzgwqXGM",
+    "content": "HOORAY",
+    "createdAt": "2025-06-17T13:22:37Z",
+    "user": {
+      "databaseId": 2871146,
+      "id": "U_kgDOACvPag",
+      "login": "bradlishman",
+      "name": "Brad Lishman",
+      "url": "https://github.com/bradlishman"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6vJEv7",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/105#pullrequestreview-2938391547",
+    "databaseId": 204142881,
+    "id": "REA_lAPOOyw9fc6vJEv7zgwq-SE",
+    "content": "HEART",
+    "createdAt": "2025-06-18T09:20:24Z",
+    "user": {
+      "databaseId": 56141035,
+      "id": "U_kgDOA1ik6w",
+      "login": "penicillin0",
+      "name": "Nakamura Ayahito",
+      "url": "https://github.com/penicillin0"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6vPV_K",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/114#pullrequestreview-2940035018",
+    "databaseId": 204160601,
+    "id": "REA_lAPOOyw9fc6vPV_KzgwrPlk",
+    "content": "ROCKET",
+    "createdAt": "2025-06-18T16:55:58Z",
+    "user": {
+      "databaseId": 104000239,
+      "id": "U_kgDOBjLq7w",
+      "login": "nyatinte",
+      "name": "NakamuraTakumi",
+      "url": "https://github.com/nyatinte"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6ve-rV",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/120#pullrequestreview-2944133845",
+    "databaseId": 204217288,
+    "id": "REA_lAPOOyw9fc6ve-rVzgwsG8g",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-20T02:26:14Z",
+    "user": {
+      "databaseId": 3761686,
+      "id": "U_kgDOADlmFg",
+      "login": "infonobody",
+      "name": null,
+      "url": "https://github.com/infonobody"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6vuqZS",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/160#pullrequestreview-2948245074",
+    "databaseId": 204273178,
+    "id": "REA_lAPOOyw9fc6vuqZSzgws9ho",
+    "content": "ROCKET",
+    "createdAt": "2025-06-22T16:46:13Z",
+    "user": {
+      "databaseId": 104000239,
+      "id": "U_kgDOBjLq7w",
+      "login": "nyatinte",
+      "name": "NakamuraTakumi",
+      "url": "https://github.com/nyatinte"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6vvA0c",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/167#pullrequestreview-2948336924",
+    "databaseId": 204274938,
+    "id": "REA_lAPOOyw9fc6vvA0czgws_Po",
+    "content": "HOORAY",
+    "createdAt": "2025-06-22T21:03:21Z",
+    "user": {
+      "databaseId": 107334,
+      "id": "U_kgDOAAGjRg",
+      "login": "bobisme",
+      "name": "Bob",
+      "url": "https://github.com/bobisme"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6yGv0w",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/183#pullrequestreview-2988113200",
+    "databaseId": 204850807,
+    "id": "REA_lAPOOyw9fc6yGv0wzgw1xnc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-07T02:41:27Z",
+    "user": {
+      "databaseId": 788415,
+      "id": "U_kgDOAAwHvw",
+      "login": "phrazzld",
+      "name": "phaedrus",
+      "url": "https://github.com/phrazzld"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6xCKUA",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/193#pullrequestreview-2970133760",
+    "databaseId": 204590098,
+    "id": "REA_lAPOOyw9fc6xCKUAzgwxzBI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-30T23:58:58Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6w96Mc",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/202#pullrequestreview-2969019164",
+    "databaseId": 204536439,
+    "id": "REA_lAPOOyw9fc6w96Mczgww-nc",
+    "content": "HEART",
+    "createdAt": "2025-06-29T00:58:43Z",
+    "user": {
+      "databaseId": 6788611,
+      "id": "U_kgDOAGeWAw",
+      "login": "warpdev",
+      "name": "Uhyeon Park",
+      "url": "https://github.com/warpdev"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6yHJfg",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/219#pullrequestreview-2988218336",
+    "databaseId": 204843287,
+    "id": "REA_lAPOOyw9fc6yHJfgzgw1qRc",
+    "content": "HEART",
+    "createdAt": "2025-07-06T14:09:06Z",
+    "user": {
+      "databaseId": 95458917,
+      "id": "U_kgDOBbCWZQ",
+      "login": "salala01",
+      "name": "salala",
+      "url": "https://github.com/salala01"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc6x6hqq",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/238#pullrequestreview-2984909482",
+    "databaseId": 204762978,
+    "id": "REA_lAPOOyw9fc6x6hqqzgw0b2I",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-04T00:51:04Z",
+    "user": {
+      "databaseId": 40270352,
+      "id": "U_kgDOAmZ6EA",
+      "login": "Karibash",
+      "name": "Yuki Karibayashi",
+      "url": "https://github.com/Karibash"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc65gZlS",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/477#pullrequestreview-3112278354",
+    "databaseId": 206200640,
+    "id": "REA_lAPOOyw9fc65gZlSzgxKX0A",
+    "content": "HEART",
+    "createdAt": "2025-08-13T02:05:09Z",
+    "user": {
+      "databaseId": 56388157,
+      "id": "U_kgDOA1xqPQ",
+      "login": "Melvynx",
+      "name": "Melvyn",
+      "url": "https://github.com/Melvynx"
+    }
+  },
+  {
+    "node___typename": "PullRequestReview",
+    "node_id": "PRR_kwDOOyw9fc65it9L",
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/480#pullrequestreview-3112886091",
+    "databaseId": 206202371,
+    "id": "REA_lAPOOyw9fc65it9LzgxKZgM",
+    "content": "EYES",
+    "createdAt": "2025-08-13T03:18:46Z",
+    "user": {
+      "databaseId": 11440538,
+      "id": "U_kgDOAK6Rmg",
+      "login": "ItsLucas",
+      "name": "ItsLucas",
+      "url": "https://github.com/ItsLucas"
+    }
+  }
+]

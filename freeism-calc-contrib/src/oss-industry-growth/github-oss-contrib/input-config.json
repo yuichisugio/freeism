@@ -1,0 +1,19 @@
+{
+	"search_names": {
+		"github": {
+			"owner": "ryoppippi",
+			"repo": "ccusage"
+		},
+		"npm": {
+			"name": "ccusage"
+		}
+	},
+	"weighting": {
+		"npm_download_count": {
+			"per_install": 1
+		},
+		"github_star_count": {
+			"per_star": 2
+		}
+	}
+}

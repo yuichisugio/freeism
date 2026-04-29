@@ -1,0 +1,49 @@
+{
+	"meta": {
+		"createdAt": "2025-09-24T15:01:03Z",
+		"analysisPeriod": {
+			"since": "1970-01-01T00:00:00Z",
+			"until": "2025-09-27T23:59:59Z"
+		},
+		"search_names": ["ccusage"],
+		"weighting": {
+			"letter_count": 0.01,
+			"liked_count": 2,
+			"bookmarked_count": 3,
+			"task_date": 1
+		}
+	},
+	"data": {
+		"user_total_count": 1,
+		"user": [
+			{
+				"contribution_point": 2,
+				"id": 21709,
+				"username": "ryoppippi",
+				"name": "ryoppippi",
+				"task_total_count": 1,
+				"task": [
+					{
+						"id": 421411,
+						"post_type": "Article",
+						"title": "【祝 1K Star 達成】ccusageの３週間を振り返る",
+            "task_url": "https://zenn.dev/ryoppippi/articles/aad087994f26a7",
+						"task_name": "article_writing",
+						"task_date": "2025-06-19T07:17:09.382+09:00",
+						"reference_task_date_field": "publishedAt",
+						"task_start": "1970-01-01T00:00:00Z",
+						"letter_count": 652,
+						"liked_count": 0,
+						"bookmarked_count": 0,
+						"criterion_weight_for_task_type": 5,
+						"criterion_weight_for_liked_count": 364,
+						"criterion_weight_for_bookmarked_count": 46.6,
+						"criterion_weight_for_letter_count": 0.1,
+						"criterion_weight_for_task_date": 15,
+            "contribution_point": 1
+					}
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,480 @@
+{
+	"data": {
+		"user": [
+			{
+				"user_id": "U_kgDOA7ETrA",
+				"user_database_id": 61936556,
+				"user_login": "abhishek-notes",
+				"user_name": null,
+				"user_url": "https://github.com/abhishek-notes",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgJOT",
+						"task_database_id": 8426387,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/17",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-06T22:37:49Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 292,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAA454Q",
+				"user_database_id": 932321,
+				"user_login": "yabasha",
+				"user_name": "Bashar Ayyash",
+				"user_url": "https://github.com/yabasha",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ahfga",
+						"task_database_id": 8779802,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/579",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-23T06:43:27Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 335,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 1,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAdEOw",
+				"user_database_id": 476219,
+				"user_login": "bdmorin",
+				"user_name": "Brian",
+				"user_url": "https://github.com/bdmorin",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgZsQ",
+						"task_database_id": 8493840,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/197",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-25T13:47:36Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 11,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					},
+					{
+						"task_id": "D_kwDOOyw9fc4AgZsb",
+						"task_database_id": 8493851,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/198",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-25T13:48:49Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 175,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAqiRQ",
+				"user_database_id": 696901,
+				"user_login": "ggilestro",
+				"user_name": "Giorgio Gilestro",
+				"user_url": "https://github.com/ggilestro",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgY5P",
+						"task_database_id": 8490575,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/190",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-24T20:31:10Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 625,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAuANA",
+				"user_database_id": 753716,
+				"user_login": "psandler",
+				"user_name": "Phil Sandler",
+				"user_url": "https://github.com/psandler",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgXvr",
+						"task_database_id": 8485867,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/185",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-22T14:10:46Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 1542,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAv2Dw",
+				"user_database_id": 783887,
+				"user_login": "tyloch",
+				"user_name": "Artur Tyloch",
+				"user_url": "https://github.com/tyloch",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhN8i",
+						"task_database_id": 8707874,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-08T18:17:51Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 53,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 4,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOABfPvA",
+				"user_database_id": 1560508,
+				"user_login": "ryoppippi",
+				"user_name": "ryoppippi",
+				"user_url": "https://github.com/ryoppippi",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgJtV",
+						"task_database_id": 8428373,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-07T19:16:15Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 114,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAByPWA",
+				"user_database_id": 1871704,
+				"user_login": "lanice",
+				"user_name": "Leander Neiss",
+				"user_url": "https://github.com/lanice",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhH3R",
+						"task_database_id": 8682961,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/426",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-04T19:14:59Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 259,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAEQJfw",
+				"user_database_id": 4458879,
+				"user_login": "alxsbn",
+				"user_name": "alxsbn",
+				"user_url": "https://github.com/alxsbn",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhN8h",
+						"task_database_id": 8707873,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/463",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-10T08:08:05Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 405,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAKiu-A",
+				"user_database_id": 11054840,
+				"user_login": "NihilRex",
+				"user_name": null,
+				"user_url": "https://github.com/NihilRex",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ag7sE",
+						"task_database_id": 8633092,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/358",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-25T16:17:17Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 193,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAMkDgA",
+				"user_database_id": 13173632,
+				"user_login": "ampcpmgp",
+				"user_name": "Akira Makino",
+				"user_url": "https://github.com/ampcpmgp",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhMVd",
+						"task_database_id": 8701277,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/445",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-07T13:39:17Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 255,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAPvbeQ",
+				"user_database_id": 16505721,
+				"user_login": "Boh1",
+				"user_name": null,
+				"user_url": "https://github.com/Boh1",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhdSY",
+						"task_database_id": 8770712,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/565",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-21T04:29:39Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 847,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAYP6RA",
+				"user_database_id": 25426500,
+				"user_login": "IntegralMedia01",
+				"user_name": "JJ Dörig",
+				"user_url": "https://github.com/IntegralMedia01",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgJiG",
+						"task_database_id": 8427654,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/20",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-07T13:19:33Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 129,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAaarJw",
+				"user_database_id": 27700007,
+				"user_login": "shayonpal",
+				"user_name": "Shayon Pal",
+				"user_url": "https://github.com/shayonpal",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ahlmh",
+						"task_database_id": 8804769,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/608",
+						"task_name": "create-discussion",
+						"task_date": "2025-08-27T01:50:10Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 202,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAeDm5w",
+				"user_database_id": 31516391,
+				"user_login": "jarx88",
+				"user_name": "Jarosław Hartwich",
+				"user_url": "https://github.com/jarx88",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ag4Ih",
+						"task_database_id": 8618529,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/339",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-22T05:54:27Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 331,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAgju2w",
+				"user_database_id": 34139867,
+				"user_login": "michaeldstenner",
+				"user_name": null,
+				"user_url": "https://github.com/michaeldstenner",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ahw9a",
+						"task_database_id": 8851290,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/619",
+						"task_name": "create-discussion",
+						"task_date": "2025-09-06T21:39:48Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 953,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBFq84A",
+				"user_database_id": 73055456,
+				"user_login": "thangk",
+				"user_name": "Kap Thang",
+				"user_url": "https://github.com/thangk",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgyXW",
+						"task_database_id": 8594902,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/317",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-17T12:39:08Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 372,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 1,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBVMZ5A",
+				"user_database_id": 89332196,
+				"user_login": "rosmur",
+				"user_name": null,
+				"user_url": "https://github.com/rosmur",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4Ag2YE",
+						"task_database_id": 8611332,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/334",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-21T00:10:59Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 153,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOCjWHJA",
+				"user_database_id": 171280164,
+				"user_login": "tilman-d",
+				"user_name": "Tilman Dietrich",
+				"user_url": "https://github.com/tilman-d",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AhBDH",
+						"task_database_id": 8655047,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/382",
+						"task_name": "create-discussion",
+						"task_date": "2025-07-30T09:24:44Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 124,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 2,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOCp1G6w",
+				"user_database_id": 178079467,
+				"user_login": "GailElliott1990",
+				"user_name": null,
+				"user_url": "https://github.com/GailElliott1990",
+				"task": [
+					{
+						"task_id": "D_kwDOOyw9fc4AgFOv",
+						"task_database_id": 8410031,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+						"task_name": "create-discussion",
+						"task_date": "2025-06-03T15:55:05Z",
+						"reference_task_date_field": "publishedAt",
+						"discus_letter_count": 121,
+						"pr_state": null,
+						"change_record_count": 0,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			}
+		]
+	}
+}

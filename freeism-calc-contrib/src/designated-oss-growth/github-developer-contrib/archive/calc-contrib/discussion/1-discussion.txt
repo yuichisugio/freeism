@@ -1,0 +1,174 @@
+# discussionを作成した人を評価
+jq \
+  --arg task_name "create_discussion" \
+  --slurpfile weighting "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/weighting.json" \
+  '
+    # 最大値から、期間が過ぎた機関だけ引き算した重み付け値を返す
+    def clamp($max; $max_weight ;$unit; $days; $lower_limit):
+        (($max - $unit * $days) * $max_weight) as $v
+        | if $v < $lower_limit then $lower_limit else $v end;
+
+    # 値×重み → 下限補正
+    def metric_weight($src; $weight; $min):
+      (($src // 0) * ($weight // 0)) as $raw
+      | (if $raw < ($min // 0) then ($min // 0) else $raw end);
+
+    def build_row_fields($repo_ts; $w):
+      . as $t
+      | (
+          $t.task_date | fromdateiso8601
+        ) as $epoch_task_date
+      | ($w[$task_name].task_type // 0) as $tt
+      | (
+          (((($epoch_task_date // 0) - ($repo_ts // 0)) / 86400) | floor) as $rcttp_days
+          clamp(
+            $w[$task_name].repo_creation_to_task_period.max_period;
+            $w[$task_name].repo_creation_to_task_period.max_weight;
+            $w[$task_name].repo_creation_to_task_period.minus_unit;
+            $rcttp_days;
+            $w[$task_name].repo_creation_to_task_period.lower_limit
+          )
+        ) as $rcttp
+      | metric_weight(
+          $t.letter_count;
+          $w[$task_name].amount_of_work.letter_count;
+          $w[$task_name].amount_of_work.letter_count_lower_limit
+        ) as $aow_word
+      | metric_weight(
+          $t.lines_of_code;
+          $w[$task_name].amount_of_work.lines_of_code;
+          $w[$task_name].amount_of_work.lines_of_code_lower_limit
+        ) as $aow_code
+      | ( $aow_word + $aow_code ) as $aow
+      | metric_weight(
+          $t.good_reaction;
+          $w[$task_name].amount_of_reaction.good_reaction_count;
+          $w[$task_name].amount_of_reaction.good_reaction_count_lower_limit
+        ) as $good_reaction_weigting
+      | (
+          $t.bad_reaction 
+          * $w[$task_name].amount_of_reaction.bad_reaction_count
+        ) as $bad_reaction_weigting
+      | ($good_reaction_weigting + $bad_reaction_weigting) as $aor
+      | $w[$task_name].state[$t.state] as $state
+      | {
+          "criterion_weight_for_task_type": $tt,
+          "criterion_weight_for_repo_creation_to_task_period": $rcttp,
+          "criterion_weight_for_amount_of_work": $aow,
+          "criterion_weight_for_amount_of_reaction": $aor,
+          "criterion_weight_for_status": $state,
+          "contribution_point": (($tt * $rcttp * $aow * $aor * $state) | round)
+        };
+
+    $weighting[0] as $w
+    | . as $root
+    | ($root.meta.repository.created_at | fromdateiso8601) as $repo_ts
+
+    # ユーザー配列を安全に更新（常に全体を返す）
+    | .data.user = ((.data.user // []) | map(
+        . as $u
+        | ($u.task // []) as $tasks
+        | $u + { task: ($tasks | map(
+            if .task_name == $task_name then
+              . + build_row_fields($repo_ts; $w)
+            else .
+            end
+          )) }
+      ))
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/integrated-processed-data.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/discussion/1-1-result.json"
+
+
+# discussionで、回答した人を評価
+jq \
+  --arg task_name "answer_discussion" \
+  --slurpfile weighting "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/weighting.json" \
+  '
+    # 最大値から、期間が過ぎた機関だけ引き算した重み付け値を返す
+    def clamp($max; $max_weight ;$unit; $days; $lower_limit):
+        (($max - $unit * $days) * $max_weight) as $v
+        | if $v < $lower_limit then $lower_limit else $v end;
+
+    # 値×重み → 下限補正
+    def metric_weight($src; $weight; $min):
+      (($src // 0) * ($weight // 0)) as $raw
+      | (if $raw < ($min // 0) then ($min // 0) else $raw end);
+
+    def build_row_fields($repo_ts; $w):
+      . as $t
+      | (
+          $t.task_date | fromdateiso8601
+        ) as $epoch_task_date
+      | (
+          $w[$task_name].task_type // 0
+        ) as $tt
+      | (
+          (((($epoch_task_date // 0) - ($repo_ts // 0)) / 86400) | floor) as $rcttp_days
+          | clamp(
+            $w[$task_name].repo_creation_to_task_period.max_period;
+            $w[$task_name].repo_creation_to_task_period.max_weight;
+            $w[$task_name].repo_creation_to_task_period.minus_unit;
+            $rcttp_days;
+            $w[$task_name].repo_creation_to_task_period.lower_limit
+          )
+        ) as $rcttp
+      | metric_weight(
+          $t.letter_count;
+          $w[$task_name].amount_of_work.letter_count;
+          $w[$task_name].amount_of_work.letter_count_lower_limit
+        ) as $aow
+      | metric_weight(
+          $t.good_reaction;
+          $w[$task_name].amount_of_reaction.good_reaction_count;
+          $w[$task_name].amount_of_reaction.good_reaction_count_lower_limit
+        ) as $good_reaction_weigting
+      | (
+          $t.bad_reaction 
+          * $w[$task_name].amount_of_reaction.bad_reaction_count
+        ) as $bad_reaction_weigting
+      | ($good_reaction_weigting + $bad_reaction_weigting) as $aor
+      | (
+          ($t.task_start | fromdateiso8601) as $epoch_task_start
+          | (((($epoch_task_date // 0) - ($epoch_task_start // 0)) / 86400) | floor) as $rs_days
+          | clamp(
+              $w[$task_name].response_speed.max_period;
+              $w[$task_name].response_speed.max_weight;
+              $w[$task_name].response_speed.minus_unit;
+              $rs_days;
+              $w[$task_name].response_speed.lower_limit
+            )
+        ) as $rs
+      | {
+          "criterion_weight_for_task_type":                    $tt,
+          "criterion_weight_for_repo_creation_to_task_period": $rcttp,
+          "criterion_weight_for_amount_of_work":               $aow,
+          "criterion_weight_for_amount_of_reaction":           $aor,
+          "criterion_weight_for_response_speed":               $rs,
+          "contribution_point": (($tt * $rcttp * $aow * $aor * $rs) | round)
+        };
+
+    $weighting[0] as $w
+    | . as $root
+    | (
+        $root.meta.repository.created_at | fromdateiso8601
+      ) as $repo_ts
+
+    # ユーザー配列を安全に更新（常に全体を返す）
+    | .data.user = (
+      (.data.user // []) | map(
+        . as $u
+        | ($u.task // []) as $tasks
+        | $u + { 
+            task: ($tasks | map(
+              if .task_name == $task_name then
+                . + build_row_fields($repo_ts; $w)
+              else .
+              end
+            ))
+          }
+      )
+    )
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/integrated-processed-data.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/discussion/1-2-result.json"

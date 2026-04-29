@@ -1,0 +1,90 @@
+{
+	"search_names": ["ccusage"],
+	"repository_created_at": "2025-05-29T16:56:50Z",
+	"weighting": {
+		"zenn": {
+			"task_type": 1,
+			"liked_count": {
+				"weight": 0.5,
+				"lower_limit": 1
+			},
+			"bookmarked_count": {
+				"weight": 1,
+				"lower_limit": 1
+			},
+			"letter_count": {
+				"weight": 0.01,
+				"lower_limit": 1
+			},
+			"task_date": {
+				"max_period": 3650,
+				"period_weight": 0.1,
+				"minus_unit": 1,
+				"lower_limit": 1
+			}
+		},
+		"qiita": {
+			"task_type": 1,
+			"liked_count": {
+				"weight": 0.5,
+				"lower_limit": 1
+			},
+			"bookmarked_count": {
+				"weight": 1,
+				"lower_limit": 1
+			},
+			"letter_count": {
+				"weight": 0.005,
+				"lower_limit": 1
+			},
+			"task_date": {
+				"max_period": 3650,
+				"period_weight": 0.1,
+				"minus_unit": 1,
+				"lower_limit": 1
+			}
+		},
+		"note": {
+			"task_type": 1,
+			"liked_count": {
+				"weight": 0.5,
+				"lower_limit": 1
+			},
+			"bookmarked_count": {
+				"weight": 1,
+				"lower_limit": 1
+			},
+			"letter_count": {
+				"weight": 0.005,
+				"lower_limit": 1
+			},
+			"task_date": {
+				"max_period": 3650,
+				"period_weight": 0.1,
+				"minus_unit": 1,
+				"lower_limit": 1
+			}
+		},
+		"hatena": {
+			"task_type": 1,
+			"liked_count": {
+				"weight": 0.5,
+				"lower_limit": 1
+			},
+			"bookmarked_count": {
+				"weight": 1,
+				"lower_limit": 1
+			},
+			"letter_count": {
+				"weight": 0.005,
+				"lower_limit": 1
+			},
+			"task_date": {
+				"max_period": 3650,
+				"period_weight": 0.1,
+				"minus_unit": 1,
+				"lower_limit": 1
+			}
+		}
+	}
+}

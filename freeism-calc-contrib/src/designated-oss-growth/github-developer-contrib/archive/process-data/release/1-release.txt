@@ -1,0 +1,86 @@
+# release作成者のデータ加工。reactionはbadが無いため、カウントだけでOK
+jq '
+  {
+    data: {
+      user:
+        (
+          [ .[]?
+            | . as $release
+            | .author as $author
+            | {
+                user_id:          ($author | .id),
+                user_database_id: ($author | .databaseId),
+                user_login:       ($author | .login),
+                user_name:        ($author | .name),
+                user_url:
+                  ( if (($author|type)=="object" and ($author|has("url")) and ($author.url!=null))
+                    then $author.url
+                    elif (($author|type)=="object" and ($author|has("login")) and ($author.login!=null))
+                      then "https://github.com/\($author.login)"
+                    else null end ),
+                task: [
+                  {
+                    task_id: ($release | .id),
+                    task_database_id: ($release | .databaseId),
+                    task_full_database_id: ($release | .fullDatabaseId),
+                    task_name: "release",
+                    task_date: ($release | .publishedAt),
+                    reference_task_date_field: "publishedAt",
+                    letter_count: ($release | (.name | length) + (.description| length)),
+                    reaction: ($release | .reactions.totalCount)
+                  }
+                ]
+              }
+          ]
+          | sort_by(.user_id)               # group_by の前にソート
+          | group_by(.user_id)
+          | map(
+              (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+              + { task: (map(.task) | add) } # 同一ユーザーの task を結合
+            )
+        )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/release/1-1-result-release-node-id.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/release/1-1-processed-release.json"
+
+
+# releaseに対するリアクションした人のデータ加工
+jq '
+  {
+    data: {
+      user:
+        (
+          [ .[]?
+            | . as $release
+            | .user as $author
+            | {
+                user_id:          ($author | .id),
+                user_database_id: ($author | .databaseId),
+                user_login:       ($author | .login),
+                user_name:        ($author | .name),
+                user_url:         ($author | .url),
+                task: [
+                  {
+                    task_id: ($release | .id),
+                    task_database_id: ($release | .databaseId),
+                    task_full_database_id: ($release | .node_fullDatabaseId),
+                    task_name: "reaction",
+                    task_date: ($release | .createdAt),
+                    reference_field_task_date: "createdAt",
+                    task_start: ($release | .node_publishedAt),
+                  }
+                ]
+              }
+          ]
+          | sort_by(.user_id)               # group_by の前にソート
+          | group_by(.user_id)
+          | map(
+              (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+              + { task: (map(.task) | add) } # 同一ユーザーの task を結合
+            )
+        )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/release/1-2-result-release-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/release/1-2-processed-release.json"

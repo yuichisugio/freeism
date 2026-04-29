@@ -1,0 +1,452 @@
+[
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZiL8F",
+    "databaseId": 204905809,
+    "id": "REA_lAHOOyw9fc66aRExzgw2nVE",
+    "content": "HEART",
+    "createdAt": "2025-06-07T20:05:33Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zs9sY",
+    "databaseId": 204969777,
+    "id": "REA_lAHOOyw9fc66mZUwzgw3lzE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-09T15:41:27Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZxNnb",
+    "databaseId": 205016985,
+    "id": "REA_lAHOOyw9fc66rISFzgw4T5k",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T04:47:53Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZxNnb",
+    "databaseId": 205022797,
+    "id": "REA_lAHOOyw9fc66rISFzgw4Zk0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T06:55:07Z",
+    "user": {
+      "databaseId": 57349533,
+      "id": "U_kgDOA2sVnQ",
+      "login": "srdw",
+      "name": "srdw",
+      "url": "https://github.com/srdw"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aFsse",
+    "databaseId": 205195945,
+    "id": "REA_lAHOOyw9fc67B_H9zgw7Cqk",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-11T23:16:02Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6axReK",
+    "databaseId": 205580446,
+    "id": "REA_lAHOOyw9fc670DdYzgxA6J4",
+    "content": "EYES",
+    "createdAt": "2025-06-17T07:17:45Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bHU1W",
+    "databaseId": 205741724,
+    "id": "REA_lAHOOyw9fc68NPrdzgxDXpw",
+    "content": "HOORAY",
+    "createdAt": "2025-06-18T16:54:38Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bH9Z5",
+    "databaseId": 205755031,
+    "id": "REA_lAHOOyw9fc68N-Y9zgxDkpc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-18T19:27:16Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bSQxO",
+    "databaseId": 205861896,
+    "id": "REA_lAHOOyw9fc68ZigkzgxFNAg",
+    "content": "EYES",
+    "createdAt": "2025-06-19T23:10:34Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bi-bu",
+    "databaseId": 205997973,
+    "id": "REA_lAHOOyw9fc68swN-zgxHR5U",
+    "content": "EYES",
+    "createdAt": "2025-06-22T11:51:57Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bi-bu",
+    "databaseId": 206000516,
+    "id": "REA_lAHOOyw9fc68swN-zgxHUYQ",
+    "content": "HOORAY",
+    "createdAt": "2025-06-22T13:38:08Z",
+    "user": {
+      "databaseId": 29660599,
+      "id": "U_kgDOAcSVtw",
+      "login": "rubslopes",
+      "name": "Rubens Lopes",
+      "url": "https://github.com/rubslopes"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bi-bu",
+    "databaseId": 206008198,
+    "id": "REA_lAHOOyw9fc68swN-zgxHb4Y",
+    "content": "HOORAY",
+    "createdAt": "2025-06-22T19:05:38Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bjfpO",
+    "databaseId": 206104384,
+    "id": "REA_lAHOOyw9fc68tZBHzgxI50A",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T20:56:23Z",
+    "user": {
+      "databaseId": 20878653,
+      "id": "U_kgDOAT6VPQ",
+      "login": "jhb-dev",
+      "name": "Jens Becker",
+      "url": "https://github.com/jhb-dev"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bjfpO",
+    "databaseId": 206131171,
+    "id": "REA_lAHOOyw9fc68tZBHzgxJT-M",
+    "content": "EYES",
+    "createdAt": "2025-06-24T04:23:09Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b-CR3",
+    "databaseId": 206353345,
+    "id": "REA_lAHOOyw9fc69Lm6ZzgxMs8E",
+    "content": "EYES",
+    "createdAt": "2025-06-25T21:44:11Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cmMyq",
+    "databaseId": 206678163,
+    "id": "REA_lAHOOyw9fc697wRdzgxRqJM",
+    "content": "ROCKET",
+    "createdAt": "2025-06-30T00:06:40Z",
+    "user": {
+      "databaseId": 40270352,
+      "id": "U_kgDOAmZ6EA",
+      "login": "Karibash",
+      "name": "Yuki Karibayashi",
+      "url": "https://github.com/Karibash"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cmMyq",
+    "databaseId": 206678164,
+    "id": "REA_lAHOOyw9fc697wRdzgxRqJQ",
+    "content": "HEART",
+    "createdAt": "2025-06-30T00:06:41Z",
+    "user": {
+      "databaseId": 40270352,
+      "id": "U_kgDOAmZ6EA",
+      "login": "Karibash",
+      "name": "Yuki Karibayashi",
+      "url": "https://github.com/Karibash"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dosG0",
+    "databaseId": 207452708,
+    "id": "REA_lAHOOyw9fc6_ISDUzgxdeiQ",
+    "content": "HOORAY",
+    "createdAt": "2025-07-06T14:49:08Z",
+    "user": {
+      "databaseId": 91118218,
+      "id": "U_kgDOBW5aig",
+      "login": "rassi0429",
+      "name": "KOKOA",
+      "url": "https://github.com/rassi0429"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e55HC",
+    "databaseId": 209360190,
+    "id": "REA_lAHOOyw9fc7AkFbLzgx6lT4",
+    "content": "HEART",
+    "createdAt": "2025-07-19T12:18:09Z",
+    "user": {
+      "databaseId": 12677991,
+      "id": "U_kgDOAMFzZw",
+      "login": "paveg",
+      "name": "Ryota Ikezawa",
+      "url": "https://github.com/paveg"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fLY7p",
+    "databaseId": 209367344,
+    "id": "REA_lAHOOyw9fc7A3k4azgx6sTA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-19T16:21:01Z",
+    "user": {
+      "databaseId": 17768574,
+      "id": "U_kgDOAQ8gfg",
+      "login": "Muhlawor",
+      "name": null,
+      "url": "https://github.com/Muhlawor"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gz9u1",
+    "databaseId": 210409470,
+    "id": "REA_lAHOOyw9fc7Ctnr-zgyKl_4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-27T13:42:16Z",
+    "user": {
+      "databaseId": 54780737,
+      "id": "U_kgDOA0PjQQ",
+      "login": "bl-ue",
+      "name": null,
+      "url": "https://github.com/bl-ue"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hMrin",
+    "databaseId": 211426921,
+    "id": "REA_lAHOOyw9fc7DJWUJzgyaHmk",
+    "content": "EYES",
+    "createdAt": "2025-08-03T01:44:16Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hMrin",
+    "databaseId": 211426925,
+    "id": "REA_lAHOOyw9fc7DJWUJzgyaHm0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-03T01:44:18Z",
+    "user": {
+      "databaseId": 139499,
+      "id": "U_kgDOAAIg6w",
+      "login": "dashed",
+      "name": "Alberto Leal",
+      "url": "https://github.com/dashed"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i_Wwy",
+    "databaseId": 212796665,
+    "id": "REA_lAHOOyw9fc7FObEozgyvBPk",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-12T21:19:35Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j9ejJ",
+    "databaseId": 213365641,
+    "id": "REA_lAHOOyw9fc7GWFOHzgy3s4k",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T01:29:59Z",
+    "user": {
+      "databaseId": 5765843,
+      "id": "U_kgDOAFf60w",
+      "login": "dongzhenye",
+      "name": "Zhenye Dong",
+      "url": "https://github.com/dongzhenye"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lC1-g",
+    "databaseId": 214574076,
+    "id": "REA_lAHOOyw9fc7Hld5ezgzKI_w",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-26T07:29:05Z",
+    "user": {
+      "databaseId": 69416478,
+      "id": "U_kgDOBCM2Hg",
+      "login": "yoochangyeon",
+      "name": "유창연 Enoch",
+      "url": "https://github.com/yoochangyeon"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lC1-g",
+    "databaseId": 214574079,
+    "id": "REA_lAHOOyw9fc7Hld5ezgzKI_8",
+    "content": "HEART",
+    "createdAt": "2025-08-26T07:29:07Z",
+    "user": {
+      "databaseId": 69416478,
+      "id": "U_kgDOBCM2Hg",
+      "login": "yoochangyeon",
+      "name": "유창연 Enoch",
+      "url": "https://github.com/yoochangyeon"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lC1-g",
+    "databaseId": 216222200,
+    "id": "REA_lAHOOyw9fc7Hld5ezgzjSfg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-03T17:30:12Z",
+    "user": {
+      "databaseId": 16979860,
+      "id": "U_kgDOAQMXlA",
+      "login": "matlegit",
+      "name": "matlegit",
+      "url": "https://github.com/matlegit"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6pKuQE",
+    "databaseId": 219808901,
+    "id": "REA_lAHOOyw9fc7MU3Hizg0aBIU",
+    "content": "ROCKET",
+    "createdAt": "2025-09-18T14:41:42Z",
+    "user": {
+      "databaseId": 6907421,
+      "id": "U_kgDOAGlmHQ",
+      "login": "sudame",
+      "name": "Mikihiro SUDA",
+      "url": "https://github.com/sudame"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6pKuQE",
+    "databaseId": 220033083,
+    "id": "REA_lAHOOyw9fc7MU3Hizg0dcDs",
+    "content": "ROCKET",
+    "createdAt": "2025-09-19T07:51:58Z",
+    "user": {
+      "databaseId": 1109819,
+      "id": "U_kgDOABDvOw",
+      "login": "weiran",
+      "name": "Weiran Zhang",
+      "url": "https://github.com/weiran"
+    }
+  }
+]

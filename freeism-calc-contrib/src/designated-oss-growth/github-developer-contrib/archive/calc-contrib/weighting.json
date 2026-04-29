@@ -1,0 +1,302 @@
+{
+	"create_pull_request": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1,
+			"lines_of_code": 0.1,
+			"lines_of_code_lower_limit": 1
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		},
+		"state": {
+			"MERGED": 5,
+			"OPEN": 1,
+			"CLOSED": 1
+		}
+	},
+	"pr_review": {
+		"task_type": 5,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 30,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1,
+			"lines_of_code": 0.1,
+			"lines_of_code_lower_limit": 1
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		}
+	},
+	"create_issue": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		},
+		"state": {
+			"OPEN": 1,
+			"CLOSED_COMPLETED": 3,
+			"CLOSED_DUPLICATE": 1,
+			"CLOSED_NOT_PLANNED": 1,
+			"CLOSED_REOPENED": 1
+		}
+	},
+	"create_release": {
+		"task_type": 5,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"good_reaction_count_lower_limit": 0.1
+		}
+	},
+	"create_commit_with_pr": {
+		"task_type": 6,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.01,
+			"lines_of_code": 0.1,
+			"letter_count_lower_limit": 1,
+			"lines_of_code_lower_limit": 1
+		}
+	},
+	"change_issue_state": {
+		"task_type": 5,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 30,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1
+		}
+	},
+	"change_pull_request_state": {
+		"task_type": 5,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 30,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1,
+			"lines_of_code": 0.1,
+			"lines_of_code_lower_limit": 1
+		}
+	},
+	"sponsor": {
+		"task_type": 100,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"star": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"fork": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"watch": {
+		"task_type": 1
+	},
+	"reaction": {
+		"task_type": 0.1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 5,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"comment": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		},
+		"response_speed": {
+			"max_period": 3,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"labeling": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 3,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"assigning": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 3,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"answer_discussion": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.1,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		},
+		"response_speed": {
+			"max_period": 30,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		}
+	},
+	"create_discussion": {
+		"task_type": 1,
+		"repo_creation_to_task_period": {
+			"max_period": 3650,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"response_speed": {
+			"max_period": 3,
+			"max_weight": 0.5,
+			"minus_unit": 1,
+			"lower_limit": 1
+		},
+		"amount_of_work": {
+			"letter_count": 0.05,
+			"letter_count_lower_limit": 1
+		},
+		"amount_of_reaction": {
+			"good_reaction_count": 0.1,
+			"bad_reaction_count": -0.1,
+			"good_reaction_count_lower_limit": 0.1
+		},
+		"state": {
+			"OPEN": 1,
+			"CLOSED_RESOLVED": 1,
+			"CLOSED_DUPLICATE": 1,
+			"CLOSED_OUTDATED": 1,
+			"CLOSED_REOPENED": 1
+		}
+	}
+}

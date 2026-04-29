@@ -1,0 +1,4335 @@
+{
+  "data": {
+    "user": [
+      {
+        "user_id": "BOT_kgDOAbying",
+        "user_database_id": 29139614,
+        "user_login": "renovate",
+        "user_name": null,
+        "user_url": "https://github.com/apps/renovate",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc662fZBzwAAAAQ2Cnbu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/53#event-18086524654",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T04:51:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dN1TzwAAAAQzi3bx",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/30#event-18044647153",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:22:51Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66ebBmzwAAAAQzxceP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/41#event-18048468879",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T04:04:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dfn4zwAAAAQzi9ib",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/33#event-18044672155",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:30:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dtTKzwAAAAQzjIEi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/37#event-18044715298",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:39:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68C890zwAAAAQ8wP-8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/100#event-18199150524",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T22:13:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68C9BCzwAAAARAVMiM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/101#event-18259167372",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T23:20:16Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc676nqazwAAAAQ8l2Ai",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/86#event-18196422690",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T18:36:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc676n0bzwAAAAQ8l9v0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/87#event-18196454388",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T18:39:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc668g3ezwAAAAQ2lva2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/56#event-18095732406",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T14:28:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67IeqrzwAAAAQ3jW2i",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/63#event-18111884706",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-12T10:01:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67IewazwAAAAQ4SigP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/64#event-18124253199",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-12T23:52:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67UWVHzwAAAAQ46fZp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/67#event-18134726249",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-13T13:53:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67lkGjzwAAAAQ6IP1O",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/71#event-18155109710",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-15T10:54:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67yCwwzwAAAAQ7OkpT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/73#event-18173545043",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T15:52:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67yC0-zwAAAAQ7PH4s",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/74#event-18173689388",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T16:00:48Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67zpKpzwAAAAQ7ZgpE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/78#event-18176412228",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T18:56:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69FcufzwAAAARC8O6m",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/188#event-18302955174",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-24T21:27:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69Fcz9zwAAAARDQNqM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/189#event-18308192908",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-25T04:47:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69JZVBzwAAAAREeDSo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/191#event-18328597672",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-26T04:52:58Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68o_ilzwAAAARAMgVU",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/130#event-18256889172",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T11:27:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68plFzzwAAAARAOvcj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/132#event-18257475363",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T15:02:58Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68smZkzwAAAARAaxpU",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/151#event-18260630100",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:45:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68rpAEzwAAAARAZN9R",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/141#event-18260221777",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T07:14:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68rpAzzwAAAARAayU5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/142#event-18260632889",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:46:51Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68sS4SzwAAAARAa35H",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/148#event-18260655687",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:55:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68sS3nzwAAAARAa1rv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/147#event-18260646639",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:52:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68vz2VzwAAAARBr1bg",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/173#event-18281879264",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-23T22:01:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ydBMzwAAAARBpiFn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/176#event-18281275751",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-23T21:08:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ydJRzwAAAARB5LA8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/177#event-18285375548",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-24T04:32:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc689bTYzwAAAARClRUQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/187#event-18296935696",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-24T14:55:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-P7syzwAAAARJwYx2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/227#event-18417290358",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-01T18:47:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-P8IAzwAAAARKBJgi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/228#event-18421684258",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-02T01:03:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69R23RzwAAAAREN5IG",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/196#event-18324361734",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-25T21:05:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69grNrzwAAAARFaotc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/203#event-18344479580",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-26T21:32:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69grUmzwAAAARFsaKZ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/204#event-18349138585",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-27T04:53:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69kqyQzwAAAARGPmIj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/205#event-18358362659",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-27T13:55:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69kq1-zwAAAARHCJXE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/206#event-18371614148",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T22:37:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69n49czwAAAARG11cT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/207#event-18368386835",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T11:44:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69t7kLzwAAAARGw8uh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/209#event-18367105953",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T03:59:48Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69t7fazwAAAARGnFs_",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/208#event-18364521279",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-27T20:40:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc690B3jzwAAAARGzXYv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/211#event-18367739439",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T07:45:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc691WuOzwAAAARG4-BB",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/212#event-18369208385",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T15:07:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc692Ga5zwAAAARG_0uv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/214#event-18371005359",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T19:40:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6959uszwAAAARHN6eH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/217#event-18374698887",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-29T15:43:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6959v-zwAAAARHQedt",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/218#event-18375370605",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-29T19:01:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc697aKjzwAAAARHSJ96",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/220#event-18375810938",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-29T20:50:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-AgoLzwAAAARIQzHf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/223#event-18392232415",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-30T17:58:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-AgsdzwAAAARIkzLP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/224#event-18397475535",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-01T00:39:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-J77HzwAAAARJKYbA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/226#event-18407327424",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-01T10:31:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_b8f8zwAAAARQ1Fg0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/279#event-18535962676",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-09T00:52:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-dg6PzwAAAARK_Hfd",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/230#event-18437928925",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-02T18:48:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-qhehzwAAAARP_m5s",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/239#event-18521943660",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-08T09:32:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-qhjOzwAAAARMhjnv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/240#event-18463734255",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T03:53:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-vdnUzwAAAARMuRuH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/244#event-18467068807",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T08:31:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-17MVzwAAAARNRoek",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/248#event-18476337060",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T17:55:59Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-9zS5zwAAAARNggRX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/255#event-18480235607",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-05T03:08:44Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_CWiFzwAAAARN2-UT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/260#event-18486125843",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-05T18:00:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_CWkPzwAAAARODABv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/261#event-18489278575",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T03:24:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_BVhpzwAAAARN-xNL",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/258#event-18488169291",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-05T23:00:08Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_BVgpzwAAAARNzA9C",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/257#event-18485088066",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-05T15:01:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_HZgzzwAAAAROMnSu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/264#event-18491798702",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T13:44:44Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_HZjCzwAAAAROMwxm",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/265#event-18491837542",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T13:52:08Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_ITGyzwAAAAROSATz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/270#event-18493211891",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T18:59:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_JTh8zwAAAAROwF5x",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/272#event-18501099121",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-07T09:41:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_KWN3zwAAAAROc_fQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/273#event-18496092112",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-07T03:41:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_OkHVzwAAAARPWAgV",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/275#event-18511038485",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-07T18:44:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_OkNwzwAAAARRPQbX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/276#event-18542823127",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-09T10:01:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_U9lwzwAAAARSXuuX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/278#event-18561821591",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-10T09:31:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AfiO3zwAAAARWA7RB",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/303#event-18622952513",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-14T17:52:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AfiYMzwAAAARWTkgf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/304#event-18627840031",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-15T00:50:16Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AjCWrzwAAAARWu6sd",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/305#event-18635008797",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-15T10:07:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Anz88zwAAAARXVn6N",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/307#event-18645155469",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-15T19:10:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7An0DYzwAAAARXloQr",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/308#event-18649351211",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-16T01:27:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_vEKKzwAAAARR_oDM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/282#event-18555502796",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-10T00:28:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_vEUEzwAAAARS8Xpc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/283#event-18571426396",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-10T18:32:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6__aOEzwAAAARUIu3P",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/286#event-18591444431",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-11T17:41:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AJj0VzwAAAARUdpTn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/290#event-18596926695",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-12T03:54:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AJjr8zwAAAARUYpe5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/289#event-18595616697",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-11T23:56:08Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AMh0AzwAAAARUhlhY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/292#event-18597959768",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-12T07:43:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7APVw2zwAAAARUp3RI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/293#event-18600129608",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-12T14:59:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ASgwOzwAAAARU4ric",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/296#event-18604013724",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-13T07:05:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ASgyfzwAAAARU8eyK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/297#event-18605010058",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-13T11:35:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AT3DezwAAAARU_Ow1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/299#event-18605730869",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-13T15:33:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AUeGhzwAAAARVB47V",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/300#event-18606427861",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-13T19:07:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AVEZszwAAAARVE6J6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/301#event-18607219322",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-13T22:52:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AZh7rzwAAAARV_iF-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/302#event-18622587262",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-14T17:30:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Bv2kxzwAAAARdmnsC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/337#event-18750274306",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T11:36:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BD_YbzwAAAARZvJUc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/314#event-18685400348",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-17T18:09:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BD_hlzwAAAARaCeVH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/315#event-18690467143",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-18T00:28:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BM4rrzwAAAARabwPP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/319#event-18697094095",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-18T09:36:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BRiJ9zwAAAARa51S4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/320#event-18704979128",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-18T17:49:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BbhNdzwAAAARbRNi9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/323#event-18711107773",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T10:59:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BbtanzwAAAARbYHS4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/324#event-18712917176",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T19:41:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BbtbpzwAAAARbbfuD",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/325#event-18713803651",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T23:28:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BfnHCzwAAAARboD6p",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/327#event-18717097641",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-20T15:40:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Bg3ZizwAAAARbzNyK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/333#event-18720021642",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-21T03:33:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Bg3U-zwAAAARbtw5q",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/332#event-18718592618",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-20T23:43:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BgRJXzwAAAARbqs9H",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/330#event-18717790023",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-20T19:31:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BkyaKzwAAAARcb4Vf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/335#event-18730681695",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-21T14:41:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Ct_yGzwAAAARi7WL-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/367#event-18839593726",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-27T10:52:08Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CukuFzwAAAARi-xhK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/368#event-18840492106",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-27T14:56:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CwBBMzwAAAARjEnTq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/371#event-18842023146",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-27T23:42:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CvSyWzwAAAARjBuK9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/370#event-18841264829",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-27T19:07:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CybVPzwAAAARjqKHn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/372#event-18851865063",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-28T10:01:01Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7C2zzOzwAAAARkh0mO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/373#event-18866456974",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-29T00:59:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7C20K1zwAAAARlPrAo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/374#event-18878476328",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-29T13:08:44Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7B2mE1zwAAAAReJ5I5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/340#event-18759520825",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T19:31:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7B2mX3zwAAAARgdDr2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/341#event-18798099190",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-24T15:37:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7B8ZaJzwAAAARePBSM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/343#event-18760864908",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T20:53:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7B9MqRzwAAAARegP8f",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/344#event-18765381407",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-23T04:42:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CIPHbzwAAAARfknSK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/347#event-18783302794",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-23T21:54:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CIPMOzwAAAARfz0rN",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/348#event-18787289805",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-24T04:48:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CVO0TzwAAAARg7a4Y",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/351#event-18806058520",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-25T01:32:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Cd8DHzwAAAARhtX8O",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/356#event-18819153678",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-25T18:02:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Cd8JjzwAAAARiIkwi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/357#event-18826284066",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-26T03:55:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CjIKqzwAAAARh_vLK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/359#event-18823967434",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-25T23:56:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CnJWPzwAAAARiN77u",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/361#event-18827689710",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-26T07:10:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Co1DWzwAAAARijIyP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/364#event-18833247375",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-26T15:30:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D2UCwzwAAAARpluMz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/396#event-18951365427",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-02T15:55:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D7L1HzwAAAARp-wfW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/397#event-18957928406",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T15:04:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D7L2UzwAAAARqB47m",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/398#event-18958749414",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:50:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D7440zwAAAARqB_MF",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/399#event-18958775045",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T18:00:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D747GzwAAAARsraaf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/400#event-19003188895",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-06T02:52:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8TZDzwAAAARq-BfX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/402#event-18974513111",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T16:40:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8drNzwAAAARr3yl9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/407#event-18989656445",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T11:12:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8dtszwAAAARtmEE6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/408#event-19018563898",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-06T17:59:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D83CnzwAAAARqNaMP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/411#event-18961769231",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T04:28:51Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D-mDCzwAAAARrOvBu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/415#event-18978893934",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T21:38:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EBcBazwAAAARqflAG",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/416#event-18966532102",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T09:49:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EBcTQzwAAAARrYb6R",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/417#event-18981437073",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T02:00:27Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7C-OJFzwAAAARk3jTM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/376#event-18872153292",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-29T07:46:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DAQ4KzwAAAARlwEkC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/377#event-18886969602",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-29T21:10:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DRRSOzwAAAARmk7EP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/381#event-18900824335",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-30T14:28:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DcjvOzwAAAARnWjk2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/385#event-18913835318",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-31T07:54:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DhCzRzwAAAARoG9DT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/386#event-18926522579",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-31T20:39:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DmnmIzwAAAARoXdiq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/387#event-18930849962",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-01T03:40:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DrVhozwAAAARo3dtS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/388#event-18939239250",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-01T12:53:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Du2RczwAAAARpRlkA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/390#event-18946087168",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-01T19:54:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Du2XnzwAAAARphXXj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/391#event-18950223331",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-02T09:53:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DzNPczwAAAARpZvL7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/392#event-18948223739",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-01T23:45:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D0skfzwAAAARpdNqz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/393#event-18949135027",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-02T03:26:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D0sv-zwAAAARpuyRY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/394#event-18953741400",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T00:00:58Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D1YGmzwAAAARppV6t",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/395#event-18952314541",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-02T19:13:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FD0_czwAAAARwhgTn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/453#event-19067700455",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T13:30:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FFoIKzwAAAARwpiKR",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/456#event-19069805201",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T20:53:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FImRRzwAAAARxBqQq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/462#event-19076129834",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T13:46:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FJdQxzwAAAARxFAsl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/466#event-19077008165",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T17:25:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FJdTkzwAAAARxG6X0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/467#event-19077506548",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T20:17:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FLg9qzwAAAARxQbka",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/476#event-19080001818",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T04:54:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FK1LlzwAAAARxHPbB",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/470#event-19077592769",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T20:47:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FLFlNzwAAAARxIap2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/474#event-19077900918",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T22:19:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EGxvwzwAAAARsUJi7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/423#event-18997090491",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T17:57:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ELOskzwAAAARriAbf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/428#event-18983945951",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T06:07:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EQkCYzwAAAARsFQDq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/429#event-18993185002",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T14:08:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EVeoDzwAAAARsh01h",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/430#event-19000675681",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-05T22:02:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EdhjPzwAAAARtU_xQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/432#event-19014089808",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-06T14:00:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FOaUKzwAAAARxgCwi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/479#event-19084094498",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T09:38:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EjOc3zwAAAARt1Y2F",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/435#event-19022581125",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-06T22:14:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Erd3NzwAAAARuXXeM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/438#event-19031488396",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T09:42:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Ere4KzwAAAARyeK2O",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/439#event-19100380558",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T00:42:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EyU5QzwAAAARvIm3d",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/444#event-19044396509",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T22:11:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7E6GZzzwAAAARvulqr",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/446#event-19054353067",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-08T12:33:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7E6GmPzwAAAARv_5Kj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/447#event-19058889379",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-08T16:49:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7E-Ra3zwAAAARwNCnO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/448#event-19062335950",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-08T21:25:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GX10yzwAAAAR34HPS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/527#event-19191067602",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T12:17:59Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GK08RzwAAAAR25Kql",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/512#event-19174566565",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T10:52:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GMmZPzwAAAAR3NMiR",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/515#event-19179817105",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T18:04:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GPdObzwAAAAR3UDR1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/517#event-19181614197",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T20:29:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GPdmrzwAAAAR3cTAn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/518#event-19183775783",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T00:55:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GTCuozwAAAAR3oXXv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/519#event-19186939375",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T14:35:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GTCwezwAAAAR3jfom",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/520#event-19185662502",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T08:40:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GTrMvzwAAAAR3qkzD",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/521#event-19187518659",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T17:15:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GUxSfzwAAAAR3umHb",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/522#event-19188572635",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T21:26:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GUxTvzwAAAAR3vjFi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/523#event-19188822370",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T22:25:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GVRMDzwAAAAR3w3Y1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/524#event-19189167669",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T00:28:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FPvg3zwAAAARxvMce",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/481#event-19088066334",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T13:01:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FXE6MzwAAAARyUbt1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/484#event-19097828213",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T20:46:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FY0uBzwAAAARy_-BA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/485#event-19109240896",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T10:40:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FgiTlzwAAAARzOev4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/488#event-19113044984",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T13:42:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FjLd6zwAAAAR0D6bw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/490#event-19127052016",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T02:37:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FsOpQzwAAAAR0KNXK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/492#event-19128702410",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T05:40:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZDsCzwAAAAR37M3I",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/533#event-19191877064",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T16:28:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZDtuzwAAAAR37m-P",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/534#event-19191984015",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T17:03:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Fvh_FzwAAAAR0c872",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/494#event-19133615862",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T10:22:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7F3R9QzwAAAAR1wToT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/498#event-19155466771",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-14T09:30:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7F3SBQzwAAAAR2TDHx",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/499#event-19164574193",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-14T18:10:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7F4ya5zwAAAAR2nxdw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/500#event-19170006896",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T02:41:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7F-j7ozwAAAAR18Zfc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/505#event-19158636508",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-14T12:37:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GAy4nzwAAAAR2bEH9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/506#event-19166675453",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-14T20:33:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GAzE8zwAAAAR25u6y",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/507#event-19174715058",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T11:08:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GEzGpzwAAAAR3gaQO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/508#event-19184854030",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T05:00:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GInkuzwAAAAR2t0sP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/509#event-19171592975",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T05:58:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GInwIzwAAAAR2z9ts",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/510#event-19173202796",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T08:48:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GJwbvzwAAAAR29FXd",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/511#event-19175593437",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T12:38:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HYgpGzwAAAAR9tUPu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/572#event-19288900590",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T14:44:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HYgw_zwAAAAR9-sa2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/573#event-19293456054",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T19:43:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GeW8EzwAAAAR4ZP44",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/540#event-19199753784",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-18T09:34:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GeXA-zwAAAAR4zvI8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/541#event-19206697532",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-18T15:37:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GtgnGzwAAAAR5ugOV",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/547#event-19222102933",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T10:54:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HCIaXzwAAAAR7sooS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/558#event-19255167506",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-20T22:41:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HCIewzwAAAAR7zIbZ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/559#event-19256870617",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-21T02:11:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HEDNezwAAAAR76XAO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/561#event-19258765326",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-21T05:50:38Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HEDRIzwAAAAR9MOT6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/562#event-19280225530",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T05:37:38Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HFNu6zwAAAAR9CQqL",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/563#event-19277613707",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T01:15:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HFNy1zwAAAAR-EInv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/564#event-19294882287",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T21:07:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HLWrczwAAAAR83h1a",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/567#event-19274800474",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-21T21:06:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HRRkIzwAAAAR-QnjE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/570#event-19298154692",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T02:40:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HjFbezwAAAAR-qjoh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/595#event-19304954401",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T16:31:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HlH58zwAAAAR-pufF",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/599#event-19304736709",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T15:49:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Hr9eCzwAAAAR_TRl5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/606#event-19315628409",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-25T06:33:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Hr9hIzwAAAAR_cXbh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/607#event-19318011617",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-25T09:02:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7LnDGgzwAAAASVwHJ5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/629#event-19692286585",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-15T05:22:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7LnDJAzwAAAASWys8x",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/630#event-19709742897",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-15T20:01:17Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOA8BTKw",
+        "user_database_id": 62935851,
+        "user_login": "DonDawsy",
+        "user_name": null,
+        "user_url": "https://github.com/DonDawsy",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc68swN-zwAAAARAiYPg",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/157#event-18262623200",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T20:29:54Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAAEHEQ",
+        "user_database_id": 67345,
+        "user_login": "retroryan",
+        "user_name": "Ryan Knight",
+        "user_url": "https://github.com/retroryan",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc68rYmPzwAAAARAVLW-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/136#event-18259162558",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T23:19:15Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOABfPvA",
+        "user_database_id": 1560508,
+        "user_login": "ryoppippi",
+        "user_name": "ryoppippi",
+        "user_url": "https://github.com/ryoppippi",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc65n9j2zwAAAAQuk9bE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/5#event-17961309892",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-03T15:15:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc65pYTLzwAAAAQuqm3U",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/7#event-17962790356",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-03T16:20:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc64__KpzwAAAAQqybSl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/1#event-17897731237",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-05-31T06:58:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66zz-dzwAAAAQ2kypO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/52#event-18095483470",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T14:17:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc662fcrzwAAAAQ2X60u",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/54#event-18092109102",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T11:07:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc653KZhzwAAAAQv8jvn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/9#event-17984273383",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-04T15:29:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66Qb1AzwAAAAQzJBbh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/15#event-18037872353",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T17:28:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66Roe2zwAAAAQzI6nJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/16#event-18037844425",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T17:23:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66Z6cwzwAAAAQzKLZR",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/22#event-18038175313",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T18:29:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66ZsmSzwAAAAQzJ9jl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/21#event-18038118629",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T18:19:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66aFyezwAAAAQzMOyY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/24#event-18038713496",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T19:58:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66aRExzwAAAAQzMX0d",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/27#event-18038750493",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T20:04:10Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66acNjzwAAAAQzNl0Z",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/28#event-18039069977",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-07T20:49:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66afNezwAAAAQ2_l3a",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/29#event-18102509018",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T22:02:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dN46zwAAAAQzic3b",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/31#event-18044538331",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T12:56:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66ebCSzwAAAAQzqH5-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/42#event-18046549630",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T22:16:48Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dfm9zwAAAAQzidQa",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/32#event-18044539930",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T12:56:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dgBczwAAAAQzh-DC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/34#event-18044412098",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T12:33:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dk_mzwAAAAQziHSW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/35#event-18044449942",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T12:40:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dtB2zwAAAAQzi2Jp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/36#event-18044641897",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:20:53Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dtT2zwAAAAQzjIip",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/38#event-18044717225",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:40:01Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66duvAzwAAAAQzi9ng",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/39#event-18044672480",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:30:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66dwTUzwAAAAQzjHyW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/40#event-18044714134",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-08T13:38:51Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66fyxQzwAAAAQ0KDsP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/43#event-18054920975",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T12:38:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66mZUwzwAAAAQ0VZlc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/45#event-18057894236",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T15:40:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66m-AnzwAAAAQ0XrFQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/47#event-18058490192",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T16:19:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66qQeIzwAAAAQ0r-kA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/48#event-18063812864",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T22:32:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66qgNPzwAAAAQ0t_sM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/49#event-18064341772",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-09T23:23:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66rISFzwAAAAQ03jBl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/50#event-18066845797",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-10T04:49:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68C4TNzwAAAAQ8wNWu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/99#event-18199139758",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T22:12:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68DEQ5zwAAAAQ8xG1f",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/102#event-18199375199",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T22:37:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68DRdyzwAAAAQ8yOGQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/103#event-18199667088",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T23:15:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc677GO7zwAAAAQ9ER3s",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/88#event-18204401132",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T07:23:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67-ouSzwAAAAQ8XBGq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/89#event-18192535978",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T14:42:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67_q_XzwAAAAQ8dKdv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/91#event-18194147183",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T16:07:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68BJfLzwAAAAQ8nXG2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/94#event-18196820406",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T19:05:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68A6PYzwAAAAQ8kesK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/92#event-18196065034",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T18:13:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68A_QszwAAAAQ8k7Bw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/93#event-18196181104",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T18:20:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68BcE2zwAAAAQ8rZbt",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/95#event-18197878509",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T20:26:08Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68Bw5QzwAAAAQ8p2zp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/97#event-18197474537",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T19:59:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68CBz1zwAAAAQ8qo8U",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/98#event-18197679892",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T20:12:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc66-4AUzwAAAAQ2lnXm",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/57#event-18095699430",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-11T14:26:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67B_H9zwAAAAQ3h_XY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/58#event-18111526360",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-12T09:40:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67GIypzwAAAAQ7ZfBj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/60#event-18176405603",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T18:56:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67KKKTzwAAAAQ5UdYv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/65#event-18141533743",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-13T21:14:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68E7G8zwAAAAQ9LYyV",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/105#event-18206264469",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T09:10:01Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ED_zzwAAAAQ83Dgj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/104#event-18200934435",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T01:44:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67ZdL_zwAAAARHCp37",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/68#event-18371747323",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T23:33:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67hEeAzwAAAAQ6NQAW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/69#event-18156421142",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-15T13:48:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67ieYRzwAAAAQ7QDVP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/70#event-18173932879",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T16:15:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67lkHuzwAAAAQ6NP00",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/72#event-18156420404",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-15T13:48:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67ydFazwAAAAQ7QHfe",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/76#event-18173949918",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T16:16:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67ydQyzwAAAAQ7QKD1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/77#event-18173960437",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T16:17:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67yNaJzwAAAAQ7Ooqs",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/75#event-18173561516",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T15:53:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc67z1ktzwAAAAQ7akFg",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/79#event-18176688480",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T19:14:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc670DdYzwAAAAQ8QimY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/80#event-18190838168",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T13:16:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc670ZRJzwAAAAQ7bhsd",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/82#event-18176940829",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T19:30:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc670ll4zwAAAAQ7dgzI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/83#event-18177461448",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T20:04:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69Lm6ZzwAAAARMIU2w",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/193#event-18457120176",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-03T17:35:53Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69LjfIzwAAAARHCoNf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/192#event-18371740511",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T23:29:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68IqdgzwAAAAQ9Svi1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/106#event-18208192693",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T11:04:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68JLOxzwAAAAQ9UiAw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/107#event-18208661552",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T11:34:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68JwDszwAAAAQ9Xobm",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/108#event-18209474278",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T12:24:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68KJmXzwAAAAQ9d1ai",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/109#event-18211100322",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T13:46:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68LMJVzwAAAAQ9gEKR",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/111#event-18211685009",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T14:14:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68N-Y9zwAAAAQ90DB3",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/116#event-18216923255",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T19:33:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68NIaqzwAAAAQ9q92S",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/112#event-18214542738",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T16:45:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68NK2UzwAAAAQ9rOQc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/113#event-18214609948",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T16:49:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68NPrdzwAAAAQ9rkDv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/114#event-18214699247",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T16:55:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68Nbv6zwAAAAQ9zvAF",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/115#event-18216841221",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-18T19:27:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68SY-czwAAAAQ_fbo6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/118#event-18245073466",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T11:01:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68RlXUzwAAAAQ_XZtp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/117#event-18242968425",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T09:25:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68YhVlzwAAAAQ-_nlz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/119#event-18236733811",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-19T22:25:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ZigkzwAAAARADXOM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/120#event-18254492556",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T23:11:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68bq0IzwAAAAQ_eGw2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/122#event-18244725814",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T10:44:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68hBHwzwAAAAQ_c8SV",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/124#event-18244420757",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T10:31:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68huSjzwAAAAQ_h7qE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/125#event-18245728900",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T11:33:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68iAIvzwAAAARATtZ2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/126#event-18258777718",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T20:53:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68i0PIzwAAAAQ_piLU",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/128#event-18247721684",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T13:24:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68mQaOzwAAAARAAP0C",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/129#event-18253675778",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-20T21:09:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68pLpJzwAAAARAThWQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/131#event-18258728336",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T20:42:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68rSSazwAAAARAV8SU",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/134#event-18259362964",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T00:39:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68rbF_zwAAAARAVaIc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/138#event-18259223068",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-21T23:45:56Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68slHszwAAAARAauFS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/150#event-18260615506",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:40:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68smfgzwAAAARAa6bt",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/152#event-18260666093",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T09:58:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68spa6zwAAAARAbKp-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/153#event-18260732542",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T10:20:59Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ssJCzwAAAARAbKLl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/155#event-18260730597",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T10:20:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68suhizwAAAARAbPNv",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/156#event-18260751215",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T10:28:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68rlgNzwAAAARAWOe9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/140#event-18259437501",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T01:06:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68tFjYzwAAAARAi48G",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/159#event-18262757126",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T21:14:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68tP4fzwAAAARAfnH2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/160#event-18261897718",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T16:35:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68tZBHzwAAAARqmFRJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/163#event-18968237129",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T11:25:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68uDSszwAAAARAhuH1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/165#event-18262450677",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T19:47:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68uHtVzwAAAARAiuR2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/167#event-18262713462",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T21:01:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68uGvazwAAAARAhinV",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/166#event-18262403541",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T19:36:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68uMPSzwAAAARAh5QB",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/168#event-18262496257",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T20:02:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68uQStzwAAAARAiSyh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/169#event-18262600865",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T20:22:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68ua6CzwAAAARAjPw8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/170#event-18262850620",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T21:49:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68yWH1zwAAAARA6FoQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/175#event-18268838416",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-23T08:51:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc68zVgZzwAAAARA_Y5q",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/178#event-18270228074",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-23T10:06:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc680DCszwAAAARHCERK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/180#event-18371593290",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T22:27:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc683gVSzwAAAARbSD7J",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/183#event-18711330505",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T12:21:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69bhqZzwAAAARMH-_n",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/201#event-18457030631",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-03T17:30:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69fFeJzwAAAARHCILu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/202#event-18371609326",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T22:35:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6931vazwAAAARHCSpJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/215#event-18371652169",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T22:52:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc69310fzwAAAARHCIfT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/216#event-18371610579",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-28T22:36:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc696IhAzwAAAARNVrXC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/219#event-18477397442",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T19:42:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc697wRdzwAAAARKvcT3",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/221#event-18433819895",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-02T14:47:13Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-ZQgQzwAAAARMIGUK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/229#event-18457060618",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-03T17:32:09Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-f9OVzwAAAARK_FP6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/231#event-18437919738",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-02T18:47:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-gPEfzwAAAARKvcgf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/232#event-18433820703",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-02T14:47:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-nzqezwAAAARMY4Ri",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/238#event-18461459554",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-03T22:59:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-uHUPzwAAAARMH6wk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/242#event-18457013284",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-03T17:29:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-vdzuzwAAAARNWCnL",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/245#event-18477492683",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T19:51:01Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-6g5bzwAAAARN29dR",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/249#event-18486122321",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-05T17:59:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-6p6szwAAAARNWEqx",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/250#event-18477501105",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T19:51:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-7_-3zwAAAARNWB-x",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/251#event-18477490097",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T19:50:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6-8uOrzwAAAARNV6Bc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/252#event-18477457500",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-04T19:48:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_E-3OzwAAAAR-vqQo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/263#event-19306292264",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T20:31:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_HZnzzwAAAAReO_7E",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/266#event-18760859332",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T20:52:35Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_IEQMzwAAAAROMvIm",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/268#event-18491830822",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T13:50:48Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc6_ISDUzwAAAARONsbQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/269#event-18492081872",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-06T14:36:53Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AkFbLzwAAAARbRewI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/306#event-18711178248",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T11:23:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7AQ_q-zwAAAAR-vqQs",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/295#event-19306292268",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T20:31:01Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7A3k4azwAAAARbRL_1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/309#event-18711101429",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T10:56:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7A332_zwAAAARbRNLn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/310#event-18711106279",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T10:58:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7A7OUIzwAAAARbRNrk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/312#event-18711108324",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-19T10:59:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7BfnLXzwAAAAReO3f-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/328#event-18760824830",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T20:50:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7B9qYpzwAAAAReRrEE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/345#event-18761560324",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-22T21:49:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CV0zzzwAAAARggyMU",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/352#event-18799076116",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-24T16:33:39Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CdOtJzwAAAARqADsS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/355#event-18958269202",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T16:28:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7CpzDmzwAAAARqB0PA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/365#event-18958730176",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:46:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Ctnr-zwAAAARqAhML",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/366#event-18958390027",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T16:54:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ECBuCzwAAAARqid2r",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/419#event-18967289259",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T10:32:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ECdVzzwAAAARqmC7u",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/420#event-18968227566",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T11:24:55Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D87OUzwAAAARqD-0E",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/412#event-18959297796",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T20:52:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8TWHzwAAAAR-vqck",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/401#event-19306293028",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T20:31:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8VDDzwAAAARqBwuS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/404#event-18958715794",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:42:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8VC5zwAAAARqBLaP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/403#event-18958562959",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:19:27Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8YS-zwAAAARqBvy0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/405#event-18958711988",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:41:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8dI4zwAAAARqB9Pi",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/406#event-18958767074",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:57:10Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D8d-kzwAAAARqDqdP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/409#event-18959214415",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T20:25:37Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7D-AYrzwAAAARqedoE",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/414#event-18966239748",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T09:32:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EBisAzwAAAARqfOcn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/418#event-18966439719",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T09:44:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DJWUJzwAAAARqA_Ne",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/378#event-18958512990",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T17:12:10Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DKPYizwAAAARqAAtJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/379#event-18958256969",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T16:24:58Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7DXzJHzwAAAARqACbI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/384#event-18958264008",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-03T16:27:02Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FBnXfzwAAAARwTAn3",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/451#event-19063900663",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T01:52:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FBs-6zwAAAARwTBXN",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/452#event-19063903693",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T01:53:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FBY8ozwAAAARwSM68",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/450#event-19063688892",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T00:57:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FG8eAzwAAAARxIAwb",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/457#event-19077794843",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T21:44:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FG-Q-zwAAAARwwYkn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/458#event-19071600935",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-09T22:37:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FKxf5zwAAAARxHIyq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/469#event-19077565610",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T20:38:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FK2C9zwAAAARxHPfh",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/471#event-19077593057",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T20:47:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FK93MzwAAAARxHyt6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/472#event-19077737338",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T21:24:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FLEAnzwAAAARxIQ1T",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/473#event-19077860691",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T22:06:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FLHXXzwAAAARxIZNo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/475#event-19077895016",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-10T22:17:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FL7nXzwAAAARznpru",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/477#event-19119643374",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T18:49:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FMZ4azwAAAARxZLx7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/478#event-19082296443",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T07:59:57Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EILbVzwAAAARrGrHO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/424#event-18976780750",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-04T19:00:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EZjiyzwAAAARzxMMJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/431#event-19122144009",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T20:40:36Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FObEozwAAAAR0ZGpf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/480#event-19132607071",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T09:33:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7EiY8wzwAAAARzw_gI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/434#event-19122092040",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T20:37:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Erdf1zwAAAARuXSjp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/437#event-19031468265",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T09:41:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Eri1zzwAAAARuWqCz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/440#event-19031302323",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T09:31:52Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ErjoYzwAAAARuWvI5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/441#event-19031323193",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T09:33:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7ErkyTzwAAAARuXGUq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/442#event-19031418154",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-07T09:38:16Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GL2tRzwAAAAR25SKX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/513#event-19174597271",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T10:55:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GL9VfzwAAAAR267Ha",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/514#event-19175027162",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T11:38:59Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GNocpzwAAAAR55eeO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/516#event-19224979342",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T13:33:21Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GWFOHzwAAAAR3uzPz",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/525#event-19188626419",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-16T21:40:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GWMrZzwAAAAR35bcN",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/526#event-19191412493",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T14:07:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FSB5rzwAAAARx01ki",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/482#event-19089545506",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-11T13:59:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Fkuf6zwAAAARzXEXN",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/491#event-19115296205",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-12T15:12:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GYaO2zwAAAAR34MxQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/528#event-19191090256",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T12:25:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GYnX2zwAAAAR35Qbj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/529#event-19191367395",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T13:53:47Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GYq6PzwAAAAR35ZUA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/530#event-19191403776",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T14:04:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GYvPCzwAAAAR35q8Y",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/531#event-19191475992",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T14:27:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZDqbzwAAAAR37nbu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/532#event-19191985902",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T17:04:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZQXDzwAAAAR37zqA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/535#event-19192035968",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T17:20:06Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Fx3mYzwAAAAR0lITC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/495#event-19135759554",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T12:05:11Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7FyO2NzwAAAAR0nkQt",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/496#event-19136398381",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-13T12:32:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7F0czjzwAAAAR21FFq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/497#event-19173495146",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-15T09:14:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HYcbjzwAAAAR9fW1j",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/571#event-19285241187",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T11:02:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HYuCezwAAAAR9grF7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/574#event-19285586299",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T11:25:54Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HY1CXzwAAAAR9hFEk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/575#event-19285692708",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T11:33:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HZ1UqzwAAAAR9m4ya",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/578#event-19287215258",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-22T13:08:59Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZwuizwAAAAR391PZ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/537#event-19192566745",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-17T20:26:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GZxC8zwAAAAR5TAU8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/538#event-19214894396",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T02:07:44Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GewhYzwAAAAR4bjdK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/542#event-19200358218",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-18T10:06:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GouXXzwAAAAR53hxj",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/543#event-19224468579",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T13:09:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GpEeCzwAAAAR5TfSH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/544#event-19215021191",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T02:23:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GwbKyzwAAAAR5_KX1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/549#event-19226469877",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T14:44:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Gv2XAzwAAAAR55_4-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/548#event-19225116222",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T13:39:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Gw6OBzwAAAAR6X0Er",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/550#event-19232932139",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T21:30:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7GxeXYzwAAAAR6FvWX",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/551#event-19228194199",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T16:15:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7G0J1nzwAAAAR6YF8R",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/552#event-19233005329",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-19T21:36:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7G05LszwAAAAR6etEo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/553#event-19234738472",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-20T00:12:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7G2XTbzwAAAAR6fw0_",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/554#event-19235015999",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-20T00:38:18Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7G2mN9zwAAAAR6gtNA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/555#event-19235263296",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-20T01:01:40Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7G2vzfzwAAAAR6hqo0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/556#event-19235514932",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-20T01:25:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HLUB7zwAAAAR8VGkI",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/566#event-19265775880",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-21T12:51:50Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HlkQbzwAAAAR-sBC7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/601#event-19305337019",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T17:46:12Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Hk6mKzwAAAAR-puC9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/596#event-19304734909",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T15:49:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Hk-b6zwAAAAR-o1Xc",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/597#event-19304502748",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T15:06:46Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HlHuszwAAAAR-pgKu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/598#event-19304678062",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T15:40:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HmjVszwAAAAR-vnAJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/602#event-19306278921",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T20:25:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HmnpyzwAAAAR-v8or",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/603#event-19306367531",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T20:50:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Hmt87zwAAAAR-wNGY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/604#event-19306434968",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T21:04:32Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7HmxZZzwAAAAR-wpHQ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/605#event-19306549712",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-23T21:30:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7IzKq4zwAAAASHyu_b",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/611#event-19458093019",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-02T11:27:00Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7I5nMUzwAAAASGJVg-",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/612#event-19430463550",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-31T18:27:43Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7JHXTvzwAAAASHye6t",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/613#event-19458027181",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-02T11:23:07Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7JNJIxzwAAAASHz8mn",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/614#event-19458410919",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-02T11:45:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7JU0qNzwAAAASIgWWw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/615#event-19470050736",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-02T22:37:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7KMYaZzwAAAASSTngo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/620#event-19634485288",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-11T11:21:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7KMYkYzwAAAASSTmQa",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/621#event-19634480154",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-11T11:21:25Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7L_RoazwAAAASYgWto",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/631#event-19738487656",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T01:00:27Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MGcryzwAAAASZDvCC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/632#event-19747762306",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T11:07:34Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7LPovyzwAAAASTrWM5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/624#event-19657483065",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-12T10:16:05Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Li5eozwAAAASVT14x",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/627#event-19684875825",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-14T11:26:31Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Lj8QuzwAAAASVZDZx",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/628#event-19686241905",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-14T15:38:28Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MOTJwzwAAAASZOauM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/634#event-19750562700",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T13:23:26Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MNWIxzwAAAASZNJxC",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/633#event-19750231106",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T13:09:22Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MOdiozwAAAASZPU1N",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/635#event-19750800717",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T13:33:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MOpF7zwAAAASZQcU8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/636#event-19751093564",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T13:46:45Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MOxQ1zwAAAASZRQf1",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/637#event-19751307253",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T13:56:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MPGFCzwAAAASZTHS8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/638#event-19751793852",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T14:16:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MSSmHzwAAAASZm5ME",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/639#event-19756978948",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T18:27:17Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MSlMtzwAAAASZs5qk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/640#event-19758553764",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-17T19:48:03Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MU3HizwAAAASa9aJG",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/641#event-19779658310",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T16:04:24Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Ma67pzwAAAASbCCvl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/642#event-19780873189",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T17:00:30Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MhaLKzwAAAASbFUcs",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/644#event-19781732140",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T17:41:14Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MhHLMzwAAAASbCq1f",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/643#event-19781037407",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T17:08:20Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MhfY5zwAAAASbE9Jo",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/645#event-19781636712",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T17:36:29Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MhlKSzwAAAASbFWRq",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/646#event-19781739626",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T17:41:41Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Mh1W4zwAAAASbN6u6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/647#event-19783986106",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T19:33:49Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MiRSFzwAAAASbLcjH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/648#event-19783338183",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T19:03:27Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MiSwqzwAAAASbL1Oa",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/649#event-19783439258",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T19:08:04Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MjdSdzwAAAASbR379",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/650#event-19785023229",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T20:23:33Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Mkm8dzwAAAASbYxs6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/654#event-19786832698",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T22:57:19Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MkvXizwAAAASbZld8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/655#event-19787044732",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T23:20:42Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7Mj-JGzwAAAASbWmM9",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/651#event-19786261309",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T21:53:23Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MkaHqzwAAAASbXfpS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/652#event-19786496594",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T22:15:15Z",
+            "reference_task_date_field": "createdAt"
+          },
+          {
+            "task_id": "CE_lADOOyw9fc7MkjZkzwAAAASbYQs5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/653#event-19786697529",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-09-18T22:39:23Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAVOgVg",
+        "user_database_id": 22257750,
+        "user_login": "S1M0N38",
+        "user_name": null,
+        "user_url": "https://github.com/S1M0N38",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc7DXwTMzwAAAARmvirf",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/383#event-18903608031",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-30T16:48:45Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAVsLUw",
+        "user_database_id": 22743891,
+        "user_login": "iamwrm",
+        "user_name": null,
+        "user_url": "https://github.com/iamwrm",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc66y5SBzwAAAAQ7tHIO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/51#event-18181550606",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-17T02:47:27Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAWKiHw",
+        "user_database_id": 23241247,
+        "user_login": "nikshepsvn",
+        "user_name": "Nikshep Saravanan",
+        "user_url": "https://github.com/nikshepsvn",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc7EKpZBzwAAAARssEop",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/427#event-19003361833",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-06T03:12:58Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAdfKsw",
+        "user_database_id": 30919347,
+        "user_login": "hitesh-goel",
+        "user_name": "Hitesh Goel",
+        "user_url": "https://github.com/hitesh-goel",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc6_2qD7zwAAAARWA5k_",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/285#event-18622945599",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-07-14T17:52:29Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAfTk8A",
+        "user_database_id": 32826608,
+        "user_login": "Kaniikura",
+        "user_name": "Takuya Ono",
+        "user_url": "https://github.com/Kaniikura",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc670-8OzwAAAAQ7jo5s",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/84#event-18179067500",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-16T21:56:26Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAwBRBw",
+        "user_database_id": 50352391,
+        "user_login": "EphemeralSapient",
+        "user_name": null,
+        "user_url": "https://github.com/EphemeralSapient",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc668Gl_zwAAAAQ3jVad",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/55#event-18111878813",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-12T10:00:52Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAyGt3Q",
+        "user_database_id": 52538845,
+        "user_login": "dalmia007",
+        "user_name": "Anurag Dalmia",
+        "user_url": "https://github.com/dalmia007",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc68tou_zwAAAARAhsFP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/164#event-18262442319",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-06-22T19:44:44Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOC4_ifw",
+        "user_database_id": 193979007,
+        "user_login": "DevVig",
+        "user_name": "Jonathan Borgwing",
+        "user_url": "https://github.com/DevVig",
+        "task": [
+          {
+            "task_id": "CE_lADOOyw9fc7HABo1zwAAAASF5r9Z",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": "https://github.com/ryoppippi/ccusage/pull/557#event-19426361177",
+            "task_name": "pr-ClosedEvent",
+            "task_date": "2025-08-31T01:59:49Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,815 @@
+{
+  "data": {
+    "repository": {
+      "stargazerCount": 7912,
+      "stargazers": {
+        "pageInfo": {
+          "hasNextPage": true,
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wNi0wMVQxMzo1MDowNCswOTowMM4jb7iD"
+        },
+        "edges": [
+          {
+            "starredAt": "2025-05-29T22:14:44Z",
+            "node": {
+              "login": "mikinovation",
+              "id": "MDQ6VXNlcjMzMDI1MDcz",
+              "databaseId": 33025073
+            }
+          },
+          {
+            "starredAt": "2025-05-29T22:31:24Z",
+            "node": {
+              "login": "nekowasabi",
+              "id": "MDQ6VXNlcjM2NTc0NzM=",
+              "databaseId": 3657473
+            }
+          },
+          {
+            "starredAt": "2025-05-29T22:45:35Z",
+            "node": {
+              "login": "nabekou29",
+              "id": "MDQ6VXNlcjMxMzc2Njg5",
+              "databaseId": 31376689
+            }
+          },
+          {
+            "starredAt": "2025-05-30T00:11:34Z",
+            "node": {
+              "login": "mikedemarais",
+              "id": "MDQ6VXNlcjEzMjUxNDQ=",
+              "databaseId": 1325144
+            }
+          },
+          {
+            "starredAt": "2025-05-30T00:52:21Z",
+            "node": {
+              "login": "satoooh",
+              "id": "MDQ6VXNlcjM2MjQwNjEz",
+              "databaseId": 36240613
+            }
+          },
+          {
+            "starredAt": "2025-05-30T01:33:03Z",
+            "node": {
+              "login": "asayamakk",
+              "id": "MDQ6VXNlcjEyNTg0ODc4",
+              "databaseId": 12584878
+            }
+          },
+          {
+            "starredAt": "2025-05-30T03:03:23Z",
+            "node": {
+              "login": "onion-salad",
+              "id": "MDQ6VXNlcjgzNDU5NjIx",
+              "databaseId": 83459621
+            }
+          },
+          {
+            "starredAt": "2025-05-30T03:22:31Z",
+            "node": {
+              "login": "kazupon",
+              "id": "MDQ6VXNlcjcyOTg5",
+              "databaseId": 72989
+            }
+          },
+          {
+            "starredAt": "2025-05-30T04:05:17Z",
+            "node": {
+              "login": "fumi-sagawa",
+              "id": "MDQ6VXNlcjQ3MDc0NTg1",
+              "databaseId": 47074585
+            }
+          },
+          {
+            "starredAt": "2025-05-30T05:17:19Z",
+            "node": {
+              "login": "yugo-ibuki",
+              "id": "MDQ6VXNlcjY3Njc1Njcw",
+              "databaseId": 67675670
+            }
+          },
+          {
+            "starredAt": "2025-05-30T05:28:48Z",
+            "node": {
+              "login": "atsuyamaru",
+              "id": "MDQ6VXNlcjU2MTY1OTM=",
+              "databaseId": 5616593
+            }
+          },
+          {
+            "starredAt": "2025-05-30T06:37:02Z",
+            "node": {
+              "login": "phanithken",
+              "id": "MDQ6VXNlcjMzNDA3MDYx",
+              "databaseId": 33407061
+            }
+          },
+          {
+            "starredAt": "2025-05-30T07:15:24Z",
+            "node": {
+              "login": "shoichiaizawa",
+              "id": "MDQ6VXNlcjE1NzE2NDg=",
+              "databaseId": 1571648
+            }
+          },
+          {
+            "starredAt": "2025-05-30T07:52:43Z",
+            "node": {
+              "login": "ml0-1337",
+              "id": "U_kgDOB0bShQ",
+              "databaseId": 122081925
+            }
+          },
+          {
+            "starredAt": "2025-05-30T07:58:03Z",
+            "node": {
+              "login": "fbbp",
+              "id": "MDQ6VXNlcjk1NDkyMTM=",
+              "databaseId": 9549213
+            }
+          },
+          {
+            "starredAt": "2025-05-30T10:07:43Z",
+            "node": {
+              "login": "LoliloliNetwork",
+              "id": "U_kgDOCFu1Aw",
+              "databaseId": 140227843
+            }
+          },
+          {
+            "starredAt": "2025-05-30T10:25:43Z",
+            "node": {
+              "login": "yugapor",
+              "id": "MDQ6VXNlcjIzMjUyMDE4",
+              "databaseId": 23252018
+            }
+          },
+          {
+            "starredAt": "2025-05-30T11:25:20Z",
+            "node": {
+              "login": "anks2k",
+              "id": "MDQ6VXNlcjgxMzcyNTQ=",
+              "databaseId": 8137254
+            }
+          },
+          {
+            "starredAt": "2025-05-30T11:31:30Z",
+            "node": {
+              "login": "osamaa",
+              "id": "MDQ6VXNlcjUzMzA0NTE=",
+              "databaseId": 5330451
+            }
+          },
+          {
+            "starredAt": "2025-05-30T12:31:56Z",
+            "node": {
+              "login": "lhl",
+              "id": "MDQ6VXNlcjI1ODE=",
+              "databaseId": 2581
+            }
+          },
+          {
+            "starredAt": "2025-05-30T12:36:56Z",
+            "node": {
+              "login": "serinuntius",
+              "id": "MDQ6VXNlcjEwNTcxMjE5",
+              "databaseId": 10571219
+            }
+          },
+          {
+            "starredAt": "2025-05-30T12:41:49Z",
+            "node": {
+              "login": "yulin0629",
+              "id": "MDQ6VXNlcjI0MzQ1ODE=",
+              "databaseId": 2434581
+            }
+          },
+          {
+            "starredAt": "2025-05-30T13:03:50Z",
+            "node": {
+              "login": "asa1984",
+              "id": "MDQ6VXNlcjg0NDM1MjAx",
+              "databaseId": 84435201
+            }
+          },
+          {
+            "starredAt": "2025-05-30T13:34:53Z",
+            "node": {
+              "login": "stchakwdev",
+              "id": "MDQ6VXNlcjQ3OTgyMjA3",
+              "databaseId": 47982207
+            }
+          },
+          {
+            "starredAt": "2025-05-30T13:56:31Z",
+            "node": {
+              "login": "ansonwcy",
+              "id": "U_kgDOBlgy6A",
+              "databaseId": 106443496
+            }
+          },
+          {
+            "starredAt": "2025-05-30T14:01:59Z",
+            "node": {
+              "login": "yamadashy",
+              "id": "MDQ6VXNlcjUwMTkwNzI=",
+              "databaseId": 5019072
+            }
+          },
+          {
+            "starredAt": "2025-05-30T14:16:29Z",
+            "node": {
+              "login": "NightHammer1000",
+              "id": "MDQ6VXNlcjE5NzkyNTA=",
+              "databaseId": 1979250
+            }
+          },
+          {
+            "starredAt": "2025-05-30T14:30:10Z",
+            "node": {
+              "login": "cms",
+              "id": "MDQ6VXNlcjEzMDEyOA==",
+              "databaseId": 130128
+            }
+          },
+          {
+            "starredAt": "2025-05-30T14:46:44Z",
+            "node": {
+              "login": "fahadkaleem",
+              "id": "MDQ6VXNlcjIwMTEyNzk2",
+              "databaseId": 20112796
+            }
+          },
+          {
+            "starredAt": "2025-05-30T14:53:04Z",
+            "node": {
+              "login": "GeorgeShao",
+              "id": "MDQ6VXNlcjMxNTEyNjg4",
+              "databaseId": 31512688
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:11:23Z",
+            "node": {
+              "login": "hideakitai",
+              "id": "MDQ6VXNlcjg4OTk1MA==",
+              "databaseId": 889950
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:20:16Z",
+            "node": {
+              "login": "BullSupreme",
+              "id": "U_kgDOBjNMuA",
+              "databaseId": 104025272
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:23:49Z",
+            "node": {
+              "login": "IntegralMedia01",
+              "id": "MDQ6VXNlcjI1NDI2NTAw",
+              "databaseId": 25426500
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:27:45Z",
+            "node": {
+              "login": "abbott",
+              "id": "MDQ6VXNlcjY0MTEzOA==",
+              "databaseId": 641138
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:47:19Z",
+            "node": {
+              "login": "jordanrounds",
+              "id": "MDQ6VXNlcjYwNjU1",
+              "databaseId": 60655
+            }
+          },
+          {
+            "starredAt": "2025-05-30T15:49:11Z",
+            "node": {
+              "login": "alexhughson",
+              "id": "MDQ6VXNlcjgyNTk5Mg==",
+              "databaseId": 825992
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:12:11Z",
+            "node": {
+              "login": "jokiniemi",
+              "id": "MDQ6VXNlcjE4NDg2NDEz",
+              "databaseId": 18486413
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:25:07Z",
+            "node": {
+              "login": "daiokawa",
+              "id": "MDQ6VXNlcjgyMDc0NDY5",
+              "databaseId": 82074469
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:37:10Z",
+            "node": {
+              "login": "jgreaves8",
+              "id": "MDQ6VXNlcjY0OTQyMzk=",
+              "databaseId": 6494239
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:42:32Z",
+            "node": {
+              "login": "jemorriso",
+              "id": "MDQ6VXNlcjM2ODM1NzI4",
+              "databaseId": 36835728
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:51:44Z",
+            "node": {
+              "login": "bacoco",
+              "id": "MDQ6VXNlcjQ4NzUwNzc0",
+              "databaseId": 48750774
+            }
+          },
+          {
+            "starredAt": "2025-05-30T16:59:43Z",
+            "node": {
+              "login": "cstelmach",
+              "id": "MDQ6VXNlcjk5MTQ3ODM=",
+              "databaseId": 9914783
+            }
+          },
+          {
+            "starredAt": "2025-05-30T17:42:16Z",
+            "node": {
+              "login": "hatayou",
+              "id": "MDQ6VXNlcjIwMTMwNTYz",
+              "databaseId": 20130563
+            }
+          },
+          {
+            "starredAt": "2025-05-30T17:46:46Z",
+            "node": {
+              "login": "Suree33",
+              "id": "MDQ6VXNlcjQyNjQ1NTk0",
+              "databaseId": 42645594
+            }
+          },
+          {
+            "starredAt": "2025-05-30T18:18:05Z",
+            "node": {
+              "login": "shayanb",
+              "id": "MDQ6VXNlcjMwOTEwOA==",
+              "databaseId": 309108
+            }
+          },
+          {
+            "starredAt": "2025-05-30T18:21:03Z",
+            "node": {
+              "login": "prezus",
+              "id": "MDQ6VXNlcjIxODU3NzE=",
+              "databaseId": 2185771
+            }
+          },
+          {
+            "starredAt": "2025-05-30T18:26:05Z",
+            "node": {
+              "login": "bitandmortar",
+              "id": "U_kgDODJdGSA",
+              "databaseId": 211240520
+            }
+          },
+          {
+            "starredAt": "2025-05-30T19:15:50Z",
+            "node": {
+              "login": "dwalleck",
+              "id": "MDQ6VXNlcjg0MzExNg==",
+              "databaseId": 843116
+            }
+          },
+          {
+            "starredAt": "2025-05-30T19:31:18Z",
+            "node": {
+              "login": "petebytes",
+              "id": "MDQ6VXNlcjY3NjczOQ==",
+              "databaseId": 676739
+            }
+          },
+          {
+            "starredAt": "2025-05-30T19:43:35Z",
+            "node": {
+              "login": "zev101311",
+              "id": "U_kgDOBYIiqA",
+              "databaseId": 92414632
+            }
+          },
+          {
+            "starredAt": "2025-05-30T20:06:05Z",
+            "node": {
+              "login": "alexzeitgeist",
+              "id": "MDQ6VXNlcjQ0MzQ4ODM=",
+              "databaseId": 4434883
+            }
+          },
+          {
+            "starredAt": "2025-05-30T21:25:01Z",
+            "node": {
+              "login": "darkyy92",
+              "id": "MDQ6VXNlcjg1MTAwMzQw",
+              "databaseId": 85100340
+            }
+          },
+          {
+            "starredAt": "2025-05-30T23:26:22Z",
+            "node": {
+              "login": "localer-sub",
+              "id": "U_kgDOCn4uTw",
+              "databaseId": 176041551
+            }
+          },
+          {
+            "starredAt": "2025-05-30T23:35:19Z",
+            "node": {
+              "login": "gmrrww",
+              "id": "MDQ6VXNlcjMzNjM1MTM1",
+              "databaseId": 33635135
+            }
+          },
+          {
+            "starredAt": "2025-05-31T01:20:45Z",
+            "node": {
+              "login": "ctrlbrk42",
+              "id": "MDQ6VXNlcjEwMDEwOTc=",
+              "databaseId": 1001097
+            }
+          },
+          {
+            "starredAt": "2025-05-31T02:40:23Z",
+            "node": {
+              "login": "MikeeI",
+              "id": "MDQ6VXNlcjEzOTQ0OTA1",
+              "databaseId": 13944905
+            }
+          },
+          {
+            "starredAt": "2025-05-31T03:29:38Z",
+            "node": {
+              "login": "jhbush",
+              "id": "MDQ6VXNlcjk2MzA3MA==",
+              "databaseId": 963070
+            }
+          },
+          {
+            "starredAt": "2025-05-31T03:30:50Z",
+            "node": {
+              "login": "mimikun",
+              "id": "MDQ6VXNlcjEzNDUwMzIx",
+              "databaseId": 13450321
+            }
+          },
+          {
+            "starredAt": "2025-05-31T04:07:19Z",
+            "node": {
+              "login": "thimslugga",
+              "id": "MDQ6VXNlcjI4NTA1NQ==",
+              "databaseId": 285055
+            }
+          },
+          {
+            "starredAt": "2025-05-31T04:35:22Z",
+            "node": {
+              "login": "tsukumijima",
+              "id": "MDQ6VXNlcjM5MjcxMTY2",
+              "databaseId": 39271166
+            }
+          },
+          {
+            "starredAt": "2025-05-31T04:39:05Z",
+            "node": {
+              "login": "NaoyukiHamada",
+              "id": "MDQ6VXNlcjMwMDAxMTEw",
+              "databaseId": 30001110
+            }
+          },
+          {
+            "starredAt": "2025-05-31T04:41:44Z",
+            "node": {
+              "login": "unbobounbobo",
+              "id": "MDQ6VXNlcjU5MzA0NzI5",
+              "databaseId": 59304729
+            }
+          },
+          {
+            "starredAt": "2025-05-31T05:51:00Z",
+            "node": {
+              "login": "gtrev500",
+              "id": "U_kgDODCIeaA",
+              "databaseId": 203562600
+            }
+          },
+          {
+            "starredAt": "2025-05-31T05:51:32Z",
+            "node": {
+              "login": "greglamb",
+              "id": "MDQ6VXNlcjIzMjE0",
+              "databaseId": 23214
+            }
+          },
+          {
+            "starredAt": "2025-05-31T06:27:05Z",
+            "node": {
+              "login": "0xkaz",
+              "id": "MDQ6VXNlcjg3NDkwODQx",
+              "databaseId": 87490841
+            }
+          },
+          {
+            "starredAt": "2025-05-31T06:55:04Z",
+            "node": {
+              "login": "javdl",
+              "id": "MDQ6VXNlcjI3NDIyNTk=",
+              "databaseId": 2742259
+            }
+          },
+          {
+            "starredAt": "2025-05-31T07:13:16Z",
+            "node": {
+              "login": "harumeri",
+              "id": "MDQ6VXNlcjU4NzI5ODcz",
+              "databaseId": 58729873
+            }
+          },
+          {
+            "starredAt": "2025-05-31T07:16:43Z",
+            "node": {
+              "login": "dockettidal0b",
+              "id": "U_kgDOB-JiJA",
+              "databaseId": 132276772
+            }
+          },
+          {
+            "starredAt": "2025-05-31T07:34:51Z",
+            "node": {
+              "login": "melodyclue",
+              "id": "U_kgDOBwNkMw",
+              "databaseId": 117662771
+            }
+          },
+          {
+            "starredAt": "2025-05-31T07:39:32Z",
+            "node": {
+              "login": "alexghirelli",
+              "id": "MDQ6VXNlcjU0MTEwMTI=",
+              "databaseId": 5411012
+            }
+          },
+          {
+            "starredAt": "2025-05-31T07:57:20Z",
+            "node": {
+              "login": "ramu",
+              "id": "MDQ6VXNlcjE0ODE4NA==",
+              "databaseId": 148184
+            }
+          },
+          {
+            "starredAt": "2025-05-31T08:47:59Z",
+            "node": {
+              "login": "umisora",
+              "id": "MDQ6VXNlcjE2MDU0MjA1",
+              "databaseId": 16054205
+            }
+          },
+          {
+            "starredAt": "2025-05-31T09:39:47Z",
+            "node": {
+              "login": "shibayu36",
+              "id": "MDQ6VXNlcjExMzI0ODk=",
+              "databaseId": 1132489
+            }
+          },
+          {
+            "starredAt": "2025-05-31T12:38:27Z",
+            "node": {
+              "login": "raidoh",
+              "id": "MDQ6VXNlcjQ2NDk2ODA=",
+              "databaseId": 4649680
+            }
+          },
+          {
+            "starredAt": "2025-05-31T12:47:46Z",
+            "node": {
+              "login": "MaansenV",
+              "id": "MDQ6VXNlcjcwMDYzOTU5",
+              "databaseId": 70063959
+            }
+          },
+          {
+            "starredAt": "2025-05-31T14:15:54Z",
+            "node": {
+              "login": "nejime-yoshiaki24-fixer",
+              "id": "U_kgDOCeTxfg",
+              "databaseId": 165998974
+            }
+          },
+          {
+            "starredAt": "2025-05-31T15:20:14Z",
+            "node": {
+              "login": "webhead2oo9",
+              "id": "MDQ6VXNlcjQzODQyNTgx",
+              "databaseId": 43842581
+            }
+          },
+          {
+            "starredAt": "2025-05-31T16:00:12Z",
+            "node": {
+              "login": "nicosuave",
+              "id": "MDQ6VXNlcjQ2NDY4Nw==",
+              "databaseId": 464687
+            }
+          },
+          {
+            "starredAt": "2025-05-31T16:29:23Z",
+            "node": {
+              "login": "inherigraceYang",
+              "id": "MDQ6VXNlcjIxMTAzODc4",
+              "databaseId": 21103878
+            }
+          },
+          {
+            "starredAt": "2025-05-31T17:23:33Z",
+            "node": {
+              "login": "mrbenosborne",
+              "id": "MDQ6VXNlcjcyNjgwNzU=",
+              "databaseId": 7268075
+            }
+          },
+          {
+            "starredAt": "2025-05-31T18:52:35Z",
+            "node": {
+              "login": "mikes-bowden",
+              "id": "U_kgDOBz5gjw",
+              "databaseId": 121528463
+            }
+          },
+          {
+            "starredAt": "2025-05-31T19:36:59Z",
+            "node": {
+              "login": "hackertron",
+              "id": "MDQ6VXNlcjc2Njc1MTQ=",
+              "databaseId": 7667514
+            }
+          },
+          {
+            "starredAt": "2025-05-31T20:47:19Z",
+            "node": {
+              "login": "soax-dev",
+              "id": "U_kgDOBcd6xQ",
+              "databaseId": 96959173
+            }
+          },
+          {
+            "starredAt": "2025-05-31T21:08:04Z",
+            "node": {
+              "login": "adamist521",
+              "id": "MDQ6VXNlcjI5NzQ5NTE=",
+              "databaseId": 2974951
+            }
+          },
+          {
+            "starredAt": "2025-05-31T21:19:38Z",
+            "node": {
+              "login": "Aniruddh1",
+              "id": "MDQ6VXNlcjE2NDk1ODQx",
+              "databaseId": 16495841
+            }
+          },
+          {
+            "starredAt": "2025-05-31T22:16:40Z",
+            "node": {
+              "login": "sadeq-sardari",
+              "id": "MDQ6VXNlcjE2MjI4MDQz",
+              "databaseId": 16228043
+            }
+          },
+          {
+            "starredAt": "2025-05-31T23:21:15Z",
+            "node": {
+              "login": "daaa1k",
+              "id": "MDQ6VXNlcjQ1ODU0OTY=",
+              "databaseId": 4585496
+            }
+          },
+          {
+            "starredAt": "2025-05-31T23:38:14Z",
+            "node": {
+              "login": "linroger",
+              "id": "U_kgDOCCXxaQ",
+              "databaseId": 136704361
+            }
+          },
+          {
+            "starredAt": "2025-06-01T00:46:39Z",
+            "node": {
+              "login": "mikoim",
+              "id": "MDQ6VXNlcjM5NTgzNDA=",
+              "databaseId": 3958340
+            }
+          },
+          {
+            "starredAt": "2025-06-01T01:15:56Z",
+            "node": {
+              "login": "coygeek",
+              "id": "MDQ6VXNlcjY1MzYzOTE5",
+              "databaseId": 65363919
+            }
+          },
+          {
+            "starredAt": "2025-06-01T01:39:26Z",
+            "node": {
+              "login": "zdyxry",
+              "id": "MDQ6VXNlcjEyMDE2Mzcz",
+              "databaseId": 12016373
+            }
+          },
+          {
+            "starredAt": "2025-06-01T02:11:11Z",
+            "node": {
+              "login": "rysk-tanaka",
+              "id": "U_kgDOCaTO_g",
+              "databaseId": 161795838
+            }
+          },
+          {
+            "starredAt": "2025-06-01T02:15:21Z",
+            "node": {
+              "login": "octo127",
+              "id": "MDQ6VXNlcjI2ODMyOTY4",
+              "databaseId": 26832968
+            }
+          },
+          {
+            "starredAt": "2025-06-01T02:32:35Z",
+            "node": {
+              "login": "ucpr",
+              "id": "MDQ6VXNlcjE3ODg2Mzcw",
+              "databaseId": 17886370
+            }
+          },
+          {
+            "starredAt": "2025-06-01T02:52:06Z",
+            "node": {
+              "login": "p1ass",
+              "id": "MDQ6VXNlcjMwMDE1NzI4",
+              "databaseId": 30015728
+            }
+          },
+          {
+            "starredAt": "2025-06-01T03:28:21Z",
+            "node": {
+              "login": "nwiizo",
+              "id": "MDQ6VXNlcjEyNDYxMTIw",
+              "databaseId": 12461120
+            }
+          },
+          {
+            "starredAt": "2025-06-01T03:28:56Z",
+            "node": {
+              "login": "perminder-klair",
+              "id": "MDQ6VXNlcjM5ODQ0MTI=",
+              "databaseId": 3984412
+            }
+          },
+          {
+            "starredAt": "2025-06-01T03:34:37Z",
+            "node": {
+              "login": "hei147",
+              "id": "MDQ6VXNlcjc4MDA0NDgw",
+              "databaseId": 78004480
+            }
+          },
+          {
+            "starredAt": "2025-06-01T04:17:50Z",
+            "node": {
+              "login": "leotulipan",
+              "id": "MDQ6VXNlcjEzNTg1MDU=",
+              "databaseId": 1358505
+            }
+          },
+          {
+            "starredAt": "2025-06-01T04:50:04Z",
+            "node": {
+              "login": "nkihrk",
+              "id": "MDQ6VXNlcjQwNTg0Mzkx",
+              "databaseId": 40584391
+            }
+          }
+        ]
+      }
+    }
+  }
+}

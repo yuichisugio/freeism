@@ -1,0 +1,82 @@
+{
+  "data": {
+    "node": {
+      "id": "PRR_kwDOPDzQl86xH7ob",
+      "url": "https://github.com/yoshiko-pg/difit/pull/5#pullrequestreview-2971646491",
+      "comments": {
+        "totalCount": 1,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpK0MjAyNS0wNi0zMFQxNToxNTozN1rOgajZxw=="
+        },
+        "nodes": [
+          {
+            "fullDatabaseId": "2175326663",
+            "id": "PRRC_kwDOPDzQl86BqNnH",
+            "url": "https://github.com/yoshiko-pg/difit/pull/5#discussion_r2175326663",
+            "author": {
+              "__typename": "User",
+              "databaseId": 73962,
+              "id": "U_kgDOAAEg6g",
+              "login": "mizchi",
+              "name": "Kotaro Chikuba",
+              "url": "https://github.com/mizchi"
+            },
+            "bodyText": "I will fix soon. Too dangerous without escape",
+            "publishedAt": "2025-06-30T15:15:37Z",
+            "reactionGroups": [
+              {
+                "content": "THUMBS_UP",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "THUMBS_DOWN",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "LAUGH",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HOORAY",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "CONFUSED",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HEART",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "ROCKET",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "EYES",
+                "reactors": {
+                  "totalCount": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

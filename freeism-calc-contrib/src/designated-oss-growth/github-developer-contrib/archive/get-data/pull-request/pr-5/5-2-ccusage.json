@@ -1,0 +1,28 @@
+{
+  "data": {
+    "node": {
+      "reactions": {
+        "totalCount": 1,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpHODDeXMQ=="
+        },
+        "nodes": [
+          {
+            "databaseId": 204969777,
+            "id": "REA_lAHOOyw9fc66mZUwzgw3lzE",
+            "content": "THUMBS_UP",
+            "createdAt": "2025-06-09T15:41:27Z",
+            "user": {
+              "databaseId": 1560508,
+              "id": "U_kgDOABfPvA",
+              "login": "ryoppippi",
+              "name": "ryoppippi",
+              "url": "https://github.com/ryoppippi"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# 直pushコミットだけを取得し、最後に単一JSONへ集約
+set -euo pipefail
+
+cd "$(cd "$(dirname -- "$0")" && pwd -P)"
+
+usage() {
+  cat <<USAGE
+Usage: $0 -r OWNER/REPO [options]
+  -r, --repo OWNER/REPO
+  -b, --branch BRANCH
+      --since YYYY-MM-DD
+      --days N
+      --page-size N      (default 50, max 100)
+USAGE
+}
+
+REPO=""
+BRANCH=""
+SINCE=""
+DAYS=""
+PAGE_SIZE=50
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -r | --repo)
+    REPO="$2"
+    shift 2
+    ;;
+  -b | --branch)
+    BRANCH="$2"
+    shift 2
+    ;;
+  --since)
+    SINCE="$2"
+    shift 2
+    ;;
+  --days)
+    DAYS="$2"
+    shift 2
+    ;;
+  --page-size)
+    PAGE_SIZE="$2"
+    shift 2
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Unknown option: $1" >&2
+    usage
+    exit 1
+    ;;
+  esac
+done
+[[ -z "${REPO}" ]] && {
+  echo "Error: --repo は必須です" >&2
+  usage
+  exit 1
+}
+
+command -v gh >/dev/null || {
+  echo "gh が必要です（gh auth login）" >&2
+  exit 1
+}
+command -v jq >/dev/null || {
+  echo "jq が必要です" >&2
+  exit 1
+}
+
+OWNER="${REPO%/*}"
+NAME="${REPO#*/}"
+
+# since 計算
+if [[ -z "${SINCE}" && -n "${DAYS}" ]]; then
+  if date -v -"${DAYS}"d >/dev/null 2>&1; then
+    SINCE="$(date -u -v -"${DAYS}"d +"%Y-%m-%dT%H:%M:%SZ")" # macOS/BSD
+  else
+    SINCE="$(date -u -d "-${DAYS} days" +"%Y-%m-%dT%H:%M:%SZ")" # GNU
+  fi
+fi
+if [[ -n "${SINCE}" && "${SINCE}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+  SINCE="${SINCE}T00:00:00Z"
+fi
+
+# ブランチ自動検出（main→master）
+if [[ -z "${BRANCH}" ]]; then
+  BRJSON="$(gh api graphql -f owner="$OWNER" -f name="$NAME" -f query='
+    query($owner:String!,$name:String!){
+      repository(owner:$owner,name:$name){
+        refMain: ref(qualifiedName:"refs/heads/main"){ name }
+        refMaster: ref(qualifiedName:"refs/heads/master"){ name }
+      }
+    }')"
+  BRANCH="$(jq -r '.data.repository.refMain.name // .data.repository.refMaster.name // empty' <<<"$BRJSON")"
+  [[ -z "${BRANCH}" ]] && {
+    echo "Error: main/master が見つかりません。--branch を指定してください。" >&2
+    exit 1
+  }
+fi
+QUALIFIED="refs/heads/${BRANCH}"
+
+# GraphQL（Commit.history の since/after/firstを利用）
+# Commit.associatedPullRequests: デフォルトブランチ上なら導入した merged PR を返す。無ければ0件＝直push。:contentReference[oaicite:1]{index=1}
+GQL=$(
+  cat <<'EOF'
+query($owner:String!, $name:String!, $qualifiedRef:String!, $pageSize:Int!, $since:GitTimestamp, $after:String){
+  rateLimit { cost remaining resetAt }
+  repository(owner:$owner, name:$name) {
+    ref(qualifiedName: $qualifiedRef) {
+      name
+      target {
+        ... on Commit {
+          history(first: $pageSize, after: $after, since: $since) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              oid abbreviatedOid committedDate messageHeadline url
+              author { name email user { login } }
+              associatedPullRequests(first: 1) { totalCount }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+EOF
+)
+
+# 一時ファイル（直pushだけをJSONLで貯める）
+TMP_JSONL="$(mktemp)"
+trap 'rm -f "$TMP_JSONL"' EXIT
+
+AFTER=""
+LAST_RL="null"
+
+while :; do
+  RESP="$(
+    gh api graphql \
+      -f query="$GQL" \
+      -F owner="$OWNER" \
+      -F name="$NAME" \
+      -F qualifiedRef="$QUALIFIED" \
+      -F pageSize="$PAGE_SIZE" \
+      ${SINCE:+-F since="$SINCE"} \
+      ${AFTER:+-F after="$AFTER"}
+  )"
+
+  # ブランチ存在チェック
+  if [[ "$(jq -r '.data.repository.ref == null' <<<"$RESP")" == "true" ]]; then
+    echo "Error: ブランチ ${BRANCH} が見つかりません（${OWNER}/${NAME})." >&2
+    exit 1
+  fi
+
+  # ★ 直pushのみをJSONLで追記（ここでフィルタするので「全部表示」にならない）
+  jq -c '.data.repository.ref.target.history.nodes[]
+         | select(.associatedPullRequests.totalCount == 0)' \
+    <<<"$RESP" >>"$TMP_JSONL"
+
+  # rate limit（最後のページの値を使う）
+  LAST_RL="$(jq '.data.rateLimit' <<<"$RESP")"
+
+  # ページング
+  if [[ "$(jq -r '.data.repository.ref.target.history.pageInfo.hasNextPage' <<<"$RESP")" == "true" ]]; then
+    AFTER="$(jq -r '.data.repository.ref.target.history.pageInfo.endCursor' <<<"$RESP")"
+  else
+    break
+  fi
+done
+
+# 単一JSONへ集約（JSONL -> 配列）
+# jq -s は入力中の各JSON行を配列にまとめる。argvは1ファイルだけなので「Argument list too long」を回避。
+jq -s \
+  --arg repo "$OWNER/$NAME" \
+  --arg branch "$BRANCH" \
+  --arg qualified "$QUALIFIED" \
+  --arg since "${SINCE:-}" \
+  --arg collected "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+  --argjson rateLimit "$LAST_RL" \
+  '{
+    repository: $repo,
+    branch: $branch,
+    qualifiedRef: $qualified,
+    since: (if $since=="" then null else $since end),
+    collectedAt: $collected,
+    rateLimit: $rateLimit,
+    count: length,
+    nodes: .
+  }' "$TMP_JSONL"

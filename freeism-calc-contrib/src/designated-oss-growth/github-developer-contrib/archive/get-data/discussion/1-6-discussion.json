@@ -1,0 +1,33 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "DiscussionComment",
+        "id": "DC_kwDOMAoJw84A3CHT",
+        "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426579",
+        "reactions": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOAD6idQ=="
+          },
+          "nodes": [
+            {
+              "databaseId": 4104821,
+              "id": "REA_lAbOMAoJw84A3CHTzgA-onU",
+              "content": "THUMBS_UP",
+              "createdAt": "2025-09-17T10:15:19Z",
+              "user": {
+                "databaseId": 170410034,
+                "id": "U_kgDOCihAMg",
+                "login": "yuichisugio",
+                "name": "sugio",
+                "url": "https://github.com/yuichisugio"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

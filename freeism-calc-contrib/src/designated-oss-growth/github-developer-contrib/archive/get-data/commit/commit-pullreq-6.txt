@@ -1,0 +1,49 @@
+gh api graphql \
+  -F owner="ryoppippi" \
+  -F name="ccusage" \
+  -f query='
+    query(
+    $owner: String!,
+    $name: String!,
+  ){
+    repository(owner:$owner, name:$name){
+      ref(qualifiedName:"refs/heads/main"){
+        name
+        target {
+          ... on Commit {
+            history(first:50) {
+              pageInfo { hasNextPage endCursor }
+              nodes {
+                oid
+                authoredDate
+                message
+                additions
+                deletions
+                authoredByCommitter
+                authors(first:5) {
+                  totalCount
+                  nodes {
+                    name
+                    user { login databaseId }
+                  }
+                }
+                url
+                associatedPullRequests(first:3) {
+                  nodes {
+                    author { login url }
+                    baseRefName
+                    fullDatabaseId
+                    url
+                    title
+                    bodyText
+                    reactionGroups{content reactors { totalCount }}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/commit/commit-pullreq-4.json"

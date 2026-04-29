@@ -1,0 +1,17 @@
+{
+  "pullRequests_totalCount": 452,
+  "comments_max": 18,
+  "labels_max": 2,
+  "participants_max": 9,
+  "reactions_max": 3,
+  "timelineItems_max": 303,
+  "reviewRequests_max": 1,
+  "reviewThreads_max": 27,
+  "reviewThreads_comments_max": 9,
+  "reviews_max": 23,
+  "reviews_comments_max": 19,
+  "latestReviews_max": 5,
+  "latestReviews_comments_max": 19,
+  "latestOpinionatedReviews_max": 2,
+  "latestOpinionatedReviews_comments_max": 5
+}

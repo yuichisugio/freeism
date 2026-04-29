@@ -1,0 +1,20 @@
+# taskごとの貢献度を合算して、ユーザーごとの貢献度を算出する
+jq \
+  '
+    .data.user |= map(
+      . as $u
+      | ($u.task // [] | map(.contribution_point // 0) | add // 0) as $sum
+      | { contribution_point: $sum } + $u
+    )
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/result/ai-integrated-calced.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/other/1-1-result.json"
+
+
+# 構造はそのままに、各ユーザーの task キーだけ消す
+jq \
+  '
+    .data.user |= map(del(.task))
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/other/1-1-result.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/other/1-2-result.json"

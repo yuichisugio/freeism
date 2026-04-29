@@ -1,0 +1,52 @@
+# commitと紐づくPR一覧。authorsフィールドの数だけtaskの内容を複製する
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $commit
+          # 著者を全員分展開（authors が無い/空でも安全）
+          | (.authors.nodes // [])[]
+          | . as $a
+          | ($a.user // empty) as $author   # user が null の著者はスキップ
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:
+                ( if ($author|type)=="object" and ($author|has("url")) and ($author.url!=null)
+                  then $author.url
+                  elif ($author|type)=="object" and ($author|has("login")) and ($author.login!=null)
+                  then "https://github.com/\($author.login)"
+                  else null end ),
+              task: [
+                {
+                  task_id:               $commit.id,
+                  task_database_id:      $commit.databaseId,
+                  task_full_database_id: $commit.fullDatabaseId,
+                  task_name:             "release",
+                  task_date:             ($commit.publishedAt // $commit.committedDate // $commit.authoredDate),
+                  reference_task_date_field:
+                    ( if ($commit|has("publishedAt")) then "publishedAt"
+                      elif ($commit|has("committedDate")) then "committedDate"
+                      elif ($commit|has("authoredDate")) then "authoredDate"
+                      else null end ),
+                  # 無い場合は空文字にして length を安全に計算
+                  letter_count:            ( ($commit.name? // "" | length) + ($commit.description? // "" | length) ),
+                  reaction:              ($commit.reactions.totalCount // 0)
+                }
+              ]
+            }
+        ]
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+            + { task: (map(.task) | add) }   # 同一ユーザーの task を結合
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/commit/1-result-commit-node-id-with-pr.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/commit/1-2-processed-commit.json"

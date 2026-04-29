@@ -1,0 +1,97 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "Discussion",
+        "id": "D_kwDOMAoJw84AhuHS",
+        "databaseId": 8839634,
+        "number": 5,
+        "url": "https://github.com/yuichisugio/myFirstTest/discussions/5",
+        "title": "test",
+        "bodyText": "いいね！",
+        "publishedAt": "2025-09-04T09:54:32Z",
+        "comments": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wOS0xN1QxOToxNDo1NyswOTowMM4A3CHQ"
+          },
+          "nodes": [
+            {
+              "databaseId": 14426576,
+              "id": "DC_kwDOMAoJw84A3CHQ",
+              "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426576",
+              "upvoteCount": 1,
+              "author": {
+                "__typename": "User",
+                "databaseId": 170410034,
+                "id": "U_kgDOCihAMg",
+                "login": "yuichisugio",
+                "name": "sugio",
+                "url": "https://github.com/yuichisugio"
+              },
+              "bodyText": "リプライをしたい",
+              "publishedAt": "2025-09-17T10:14:57Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "replies": {
+                "totalCount": 2
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

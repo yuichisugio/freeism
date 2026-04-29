@@ -1,0 +1,60 @@
+{
+  "data": {
+    "user": [
+      {
+        "user_id": "U_kgDOAByPWA",
+        "user_database_id": 1871704,
+        "user_login": "lanice",
+        "user_name": "Leander Neiss",
+        "user_url": "https://github.com/lanice",
+        "task": [
+          {
+            "task_id": "REA_lAbOOyw9fc4A1eLQzgA8yaw",
+            "task_database_id": 3983788,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "reaction",
+            "task_date": "2025-08-06T15:21:32Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAMkDgA",
+        "user_database_id": 13173632,
+        "user_login": "ampcpmgp",
+        "user_name": "Akira Makino",
+        "user_url": "https://github.com/ampcpmgp",
+        "task": [
+          {
+            "task_id": "REA_lAbOOyw9fc4A1k_mzgA84To",
+            "task_database_id": 3989818,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "reaction",
+            "task_date": "2025-08-08T12:02:12Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOCihAMg",
+        "user_database_id": 170410034,
+        "user_login": "yuichisugio",
+        "user_name": "sugio",
+        "user_url": "https://github.com/yuichisugio",
+        "task": [
+          {
+            "task_id": "REA_lAbOOyw9fc4A1eLQzgA-yMQ",
+            "task_database_id": 4114628,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "reaction",
+            "task_date": "2025-09-20T14:15:21Z",
+            "reference_task_date_field": "createdAt"
+          }
+        ]
+      }
+    ]
+  }
+}

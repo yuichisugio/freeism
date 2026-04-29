@@ -1,0 +1,199 @@
+# Commit：コミット一覧&node_id取得「commit-with-pr.sh」の内容
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f owner="yoshiko-pg" \
+  -f name="difit" \
+  -f qualified="refs/heads/main" \
+  -F prsPerCommit=3 \
+  -F since="1970-01-01T00:00:00Z" \
+  -F until="2099-12-13T23:59:59Z" \
+  -F perPage=50 \
+  -f query='
+    query(
+      $owner: String!,
+      $name: String!,
+      $endCursor: String,
+      $qualified: String!,
+      $prsPerCommit: Int!,
+      $perPage: Int!,
+      $since: GitTimestamp!,
+      $until: GitTimestamp!
+    ) {
+      repository(owner:$owner, name:$name) {
+        ref(qualifiedName:$qualified) {
+          id
+          name
+          target {
+            id
+            oid
+            abbreviatedOid
+            commitUrl
+            ... on Commit {
+              history(first: $perPage, after:$endCursor, since:$since, until:$until) {
+                totalCount
+                pageInfo { hasNextPage endCursor }
+                nodes {
+                  id
+                  oid
+                  abbreviatedOid
+                  url
+                  commitUrl
+                  authoredDate  # git commitした日
+                  committedDate # リポジトリにコミットを適応した日。rebaseなどでズレる
+                  messageHeadline
+                  messageBody
+                  message
+                  authoredByCommitter
+                  committer {
+                    name
+                    date
+                    user { databaseId id login name url }
+                  }
+                  authors(first: $perPage) {
+                    totalCount
+                    pageInfo { hasNextPage endCursor }
+                    nodes{
+                      name
+                      date
+                      user { databaseId id login name url }
+                    }
+                  }
+                  status{
+                    id
+                    state
+                  }
+                  additions
+                  deletions
+                  comments(first:1) {
+                    totalCount
+                    pageInfo { hasNextPage endCursor }
+                  }
+                  associatedPullRequests(first: $prsPerCommit) {
+                    totalCount
+                    pageInfo { hasNextPage endCursor }
+                    nodes {
+                      fullDatabaseId
+                      id
+                      number
+                      url
+                      permalink
+                      checksUrl
+                      revertUrl
+                      reviewDecision
+                      state
+                      author {
+                        __typename
+                        ... on Bot { databaseId id login url }
+                        ... on EnterpriseUserAccount { id login name url }
+                        ... on Mannequin { databaseId id login name url }
+                        ... on Organization { databaseId id login name url }
+                        ... on User { databaseId id login name url }
+                      }
+                      title
+                      bodyText
+                      publishedAt
+                      reactionGroups { content reactors { totalCount } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/get-data/commit/1-1-commit.json
+
+
+# Commit.comments：コミットのコメント「commit-comment.sh」の内容
+gh api graphql \
+  --paginate --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="C_kwDOPDzQl9oAKDdlODBkMDI0YTg5MTZjNDZiNmEwYzM2YTM4YzYyYjYwYzRiYWI2NTg" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        ... on Commit {
+          id
+          oid
+          abbreviatedOid
+          url
+          commitUrl
+          comments(first: $perPage, after:$endCursor) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              databaseId
+              id
+              url
+              body
+              bodyText
+              publishedAt
+              reactionGroups { content reactors { totalCount } }
+              author {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Organization { databaseId id login name url }
+                ... on EnterpriseUserAccount { user { databaseId id login name url } }
+              }
+              reactions(first:1) {
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' > ./src/designated-oss-growth/github-developer-contrib/archive/get-data/commit/1-2-commit.json
+
+
+# Commit.comments.reactions：コミットのコメントのリアクション「commit-comment-reaction.sh」の内容
+gh api graphql \
+  --paginate --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="CC_kwDOPDzQl84Jm1ca" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        ... on CommitComment {
+          id
+          databaseId
+          url
+          body
+          reactions(first: $perPage, after:$endCursor) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              databaseId
+              id
+              content
+              createdAt
+              user { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' > ./src/designated-oss-growth/github-developer-contrib/archive/get-data/commit/1-3-commit.json
+
+
+# ブランチが存在するかどうかをチェック
+gh api graphql \
+  -f owner="yoshiko-pg" \
+  -f name="difit" \
+  -f qualified="refs/heads/master" \
+  -f query='
+    query($owner:String!, $name:String!, $qualified:String!){
+      repository(owner: $owner, name: $name) {
+        ref(qualifiedName: $qualified) {
+          name
+        }
+      }
+    }
+  ' --jq 'if .data.repository.ref == null then false else true end'

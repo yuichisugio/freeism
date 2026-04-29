@@ -1,0 +1,28 @@
+# repo-meta。未完成。多分不要
+jq '
+  # 安全に obj[key] を取り出し、無ければ null
+  def get_or_null(obj; key):
+    if (obj|type)=="object" and (obj|has(key)) and (obj[key]!=null) then obj[key] else null end;
+
+  .data.repository as $repo
+  | ( if ($repo|has("owner")) then $repo.owner else {} end ) as $owner
+  | ( if ($repo|has("defaultBranchRef")) then $repo.defaultBranchRef else {} end ) as $default_branch
+  | {
+      data: {
+        repo_id:            get_or_null($repo; "id"),
+        repo_database_id:   get_or_null($repo; "databaseId"),
+        repo_name:          get_or_null($repo; "name"),
+        repo_description:   get_or_null($repo; "description"),
+        repo_createdAt:     get_or_null($repo; "createdAt"),
+        repo_url:           get_or_null($repo; "url"),
+        repo_homepageUrl:   get_or_null($repo; "homepageUrl"),
+        owner_id:           get_or_null($owner; "id"),
+        owner_database_id:  get_or_null($owner; "databaseId"),
+        owner_login:        get_or_null($owner; "login"),
+        owner_name:         get_or_null($owner; "name"),
+        owner_url:          get_or_null($owner; "url"),
+        default_branch:     get_or_null($default_branch; "name")
+      }
+    }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/repo-meta/1-result-repo-meta.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/repo-meta/1-1-processed-repo-meta.json"

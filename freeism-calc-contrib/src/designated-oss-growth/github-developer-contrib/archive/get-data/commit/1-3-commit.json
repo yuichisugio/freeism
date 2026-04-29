@@ -1,0 +1,34 @@
+[
+  {
+    "data": {
+      "node": {
+        "id": "CC_kwDOPDzQl84Jm1ca",
+        "databaseId": 161175322,
+        "url": "https://github.com/yoshiko-pg/difit/commit/7e80d024a8916c46b6a0c36a38c62b60c4bab658#r161175322",
+        "body": "`diffArgs = [resolvedCommit];`",
+        "reactions": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOCsg5ig=="
+          },
+          "nodes": [
+            {
+              "databaseId": 180894090,
+              "id": "REA_lADOPDzQl84Jm1cazgrIOYo",
+              "content": "THUMBS_UP",
+              "createdAt": "2025-07-01T04:36:32Z",
+              "user": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

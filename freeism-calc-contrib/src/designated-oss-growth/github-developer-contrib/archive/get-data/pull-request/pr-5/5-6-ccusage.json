@@ -1,0 +1,90 @@
+{
+  "data": {
+    "node": {
+      "id": "PR_kwDOOyw9fc6Zk0o_",
+      "number": 31,
+      "url": "https://github.com/ryoppippi/ccusage/pull/31",
+      "timelineItems": {
+        "totalCount": 4,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpPPAAABl08t67gBqzE4MDQzODY0NDY4"
+        },
+        "nodes": [
+          {
+            "__typename": "LabeledEvent",
+            "id": "LE_lADOOyw9fc66dN46zwAAAAQzf4QC",
+            "createdAt": "2025-06-08T10:54:58Z",
+            "label": {
+              "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+              "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+              "name": "dependencies",
+              "description": null
+            },
+            "actor": {
+              "__typename": "Bot",
+              "databaseId": 29139614,
+              "id": "BOT_kgDOAbying",
+              "login": "renovate",
+              "url": "https://github.com/apps/renovate"
+            }
+          },
+          {
+            "__typename": "LabeledEvent",
+            "id": "LE_lADOOyw9fc66dN46zwAAAAQzf4Qa",
+            "createdAt": "2025-06-08T10:54:58Z",
+            "label": {
+              "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+              "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+              "name": "renovate",
+              "description": null
+            },
+            "actor": {
+              "__typename": "Bot",
+              "databaseId": 29139614,
+              "id": "BOT_kgDOAbying",
+              "login": "renovate",
+              "url": "https://github.com/apps/renovate"
+            }
+          },
+          {
+            "__typename": "LabeledEvent",
+            "id": "LE_lADOOyw9fc66dN46zwAAAAQzf4Vx",
+            "createdAt": "2025-06-08T10:54:59Z",
+            "label": {
+              "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+              "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+              "name": "dependencies",
+              "description": null
+            },
+            "actor": {
+              "__typename": "Bot",
+              "databaseId": 29139614,
+              "id": "BOT_kgDOAbying",
+              "login": "renovate",
+              "url": "https://github.com/apps/renovate"
+            }
+          },
+          {
+            "__typename": "LabeledEvent",
+            "id": "LE_lADOOyw9fc66dN46zwAAAAQzf4WU",
+            "createdAt": "2025-06-08T10:54:59Z",
+            "label": {
+              "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+              "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+              "name": "renovate",
+              "description": null
+            },
+            "actor": {
+              "__typename": "Bot",
+              "databaseId": 29139614,
+              "id": "BOT_kgDOAbying",
+              "login": "renovate",
+              "url": "https://github.com/apps/renovate"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

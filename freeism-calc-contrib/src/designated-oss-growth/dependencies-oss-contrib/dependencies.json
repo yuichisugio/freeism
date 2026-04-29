@@ -1,0 +1,316 @@
+{
+  "meta": {
+    "createdAt": "2025-09-28T08:01:05Z",
+    "specified-oss": {
+      "owner": "ryoppippi",
+      "Repository": "ccusage"
+    }
+  },
+  "data": [
+    {
+      "host": "github",
+      "repo": "ryoppippi/ccusage",
+      "purl": "pkg:github/ryoppippi/ccusage@main"
+    },
+    {
+      "host": "githubactions",
+      "repo": "actions/checkout",
+      "purl": "pkg:githubactions/actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8"
+    },
+    {
+      "host": "githubactions",
+      "repo": "actions/setup-node",
+      "purl": "pkg:githubactions/actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444"
+    },
+    {
+      "host": "githubactions",
+      "repo": "amannn/action-semantic-pull-request",
+      "purl": "pkg:githubactions/amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50"
+    },
+    {
+      "host": "githubactions",
+      "repo": "crate-ci/typos",
+      "purl": "pkg:githubactions/crate-ci/typos@master"
+    },
+    {
+      "host": "githubactions",
+      "repo": "oven-sh/setup-bun",
+      "purl": "pkg:githubactions/oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76"
+    },
+    {
+      "host": "githubactions",
+      "repo": "pnpm/action-setup",
+      "purl": "pkg:githubactions/pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda"
+    },
+    {
+      "host": "npm",
+      "repo": "@antfu/utils",
+      "purl": "pkg:npm/%40antfu/utils@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@hono/mcp",
+      "purl": "pkg:npm/%40hono/mcp@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@hono/node-server",
+      "purl": "pkg:npm/%40hono/node-server@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@mizchi/lsmcp",
+      "purl": "pkg:npm/%40mizchi/lsmcp@catalog%3Amcp"
+    },
+    {
+      "host": "npm",
+      "repo": "@modelcontextprotocol/sdk",
+      "purl": "pkg:npm/%40modelcontextprotocol/sdk@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@oxc-project/runtime",
+      "purl": "pkg:npm/%40oxc-project/runtime@catalog%3Abuild"
+    },
+    {
+      "host": "npm",
+      "repo": "@praha/byethrow",
+      "purl": "pkg:npm/%40praha/byethrow@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@praha/byethrow-mcp",
+      "purl": "pkg:npm/%40praha/byethrow-mcp@catalog%3Amcp"
+    },
+    {
+      "host": "npm",
+      "repo": "@ryoppippi/eslint-config",
+      "purl": "pkg:npm/%40ryoppippi/eslint-config@catalog%3Alint"
+    },
+    {
+      "host": "npm",
+      "repo": "@ryoppippi/limo",
+      "purl": "pkg:npm/%40ryoppippi/limo@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@ryoppippi/vite-plugin-cloudflare-redirect",
+      "purl": "pkg:npm/%40ryoppippi/vite-plugin-cloudflare-redirect@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "@std/async",
+      "purl": "pkg:npm/%40std/async@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "@types/bun",
+      "purl": "pkg:npm/%40types/bun@catalog%3Atypes"
+    },
+    {
+      "host": "npm",
+      "repo": "@types/react",
+      "purl": "pkg:npm/%40types/react@catalog%3Atypes"
+    },
+    {
+      "host": "npm",
+      "repo": "@typescript/native-preview",
+      "purl": "pkg:npm/%40typescript/native-preview@catalog%3Atypes"
+    },
+    {
+      "host": "npm",
+      "repo": "ansi-escapes",
+      "purl": "pkg:npm/ansi-escapes@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "bumpp",
+      "purl": "pkg:npm/bumpp@catalog%3Arelease"
+    },
+    {
+      "host": "npm",
+      "repo": "clean-pkg-json",
+      "purl": "pkg:npm/clean-pkg-json@catalog%3Arelease"
+    },
+    {
+      "host": "npm",
+      "repo": "cli-table3",
+      "purl": "pkg:npm/cli-table3@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "consola",
+      "purl": "pkg:npm/consola@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "es-toolkit",
+      "purl": "pkg:npm/es-toolkit@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "eslint",
+      "purl": "pkg:npm/eslint@catalog%3Alint"
+    },
+    {
+      "host": "npm",
+      "repo": "eslint-plugin-format",
+      "purl": "pkg:npm/eslint-plugin-format@catalog%3Alint"
+    },
+    {
+      "host": "npm",
+      "repo": "fast-sort",
+      "purl": "pkg:npm/fast-sort@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "fs-fixture",
+      "purl": "pkg:npm/fs-fixture@catalog%3Atesting"
+    },
+    {
+      "host": "npm",
+      "repo": "get-stdin",
+      "purl": "pkg:npm/get-stdin@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "gunshi",
+      "purl": "pkg:npm/gunshi@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "hono",
+      "purl": "pkg:npm/hono@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "lint-staged",
+      "purl": "pkg:npm/lint-staged@catalog%3Arelease"
+    },
+    {
+      "host": "npm",
+      "repo": "nano-spawn",
+      "purl": "pkg:npm/nano-spawn@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "p-limit",
+      "purl": "pkg:npm/p-limit@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "path-type",
+      "purl": "pkg:npm/path-type@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "picocolors",
+      "purl": "pkg:npm/picocolors@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "pretty-ms",
+      "purl": "pkg:npm/pretty-ms@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "publint",
+      "purl": "pkg:npm/publint@catalog%3Alint"
+    },
+    {
+      "host": "npm",
+      "repo": "sitemcp",
+      "purl": "pkg:npm/sitemcp@catalog%3Amcp"
+    },
+    {
+      "host": "npm",
+      "repo": "sort-package-json",
+      "purl": "pkg:npm/sort-package-json@catalog%3Arelease"
+    },
+    {
+      "host": "npm",
+      "repo": "string-width",
+      "purl": "pkg:npm/string-width@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "tinyglobby",
+      "purl": "pkg:npm/tinyglobby@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "tsdown",
+      "purl": "pkg:npm/tsdown@catalog%3Abuild"
+    },
+    {
+      "host": "npm",
+      "repo": "type-fest",
+      "purl": "pkg:npm/type-fest@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "typedoc",
+      "purl": "pkg:npm/typedoc@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "typedoc-plugin-markdown",
+      "purl": "pkg:npm/typedoc-plugin-markdown@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "typedoc-vitepress-theme",
+      "purl": "pkg:npm/typedoc-vitepress-theme@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "unplugin-macros",
+      "purl": "pkg:npm/unplugin-macros@catalog%3Abuild"
+    },
+    {
+      "host": "npm",
+      "repo": "unplugin-unused",
+      "purl": "pkg:npm/unplugin-unused@catalog%3Abuild"
+    },
+    {
+      "host": "npm",
+      "repo": "valibot",
+      "purl": "pkg:npm/valibot@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "vitepress",
+      "purl": "pkg:npm/vitepress@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "vitepress-plugin-group-icons",
+      "purl": "pkg:npm/vitepress-plugin-group-icons@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "vitepress-plugin-llms",
+      "purl": "pkg:npm/vitepress-plugin-llms@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "vitest",
+      "purl": "pkg:npm/vitest@catalog%3Atesting"
+    },
+    {
+      "host": "npm",
+      "repo": "wrangler",
+      "purl": "pkg:npm/wrangler@catalog%3Adocs"
+    },
+    {
+      "host": "npm",
+      "repo": "xdg-basedir",
+      "purl": "pkg:npm/xdg-basedir@catalog%3Aruntime"
+    },
+    {
+      "host": "npm",
+      "repo": "zod",
+      "purl": "pkg:npm/zod@catalog%3Aruntime"
+    }
+  ]
+}

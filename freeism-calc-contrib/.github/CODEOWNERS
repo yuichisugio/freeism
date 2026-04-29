@@ -1,0 +1,8 @@
+# ファイルパターン @ユーザー名 または @チーム名
+# 特定のディレクトリに対して自動的にレビュアーを指定
+./src/ @yuichisugio
+*.sh @yuichisugio
+*.md @yuichisugio
+*.json @yuichisugio
+*.csv @yuichisugio
+*.txt @yuichisugio

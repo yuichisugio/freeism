@@ -1,0 +1,381 @@
+# repositoryクエリ：Issues&node_idの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f owner="yoshiko-pg" \
+  -f name="difit" \
+  -F perPage=50 \
+  -f query='
+    query(
+      $owner: String!,
+      $name: String!,
+      $perPage: Int!,
+      $endCursor: String
+    ) {
+      repository(owner:$owner, name:$name) {
+        id
+        databaseId
+        createdAt
+        name
+        description
+        homepageUrl
+        url
+        hasIssuesEnabled
+        isBlankIssuesEnabled
+        issueTemplates {
+          about
+          body
+          filename
+          name
+          title
+          type {
+            id
+            name
+            description
+            isEnabled
+          }
+        }
+        issues(first: $perPage, after: $endCursor, orderBy:{field: CREATED_AT, direction: ASC } ){
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            id # node_id
+            fullDatabaseId
+            databaseId
+            number
+            url
+            bodyUrl
+            bodyText
+            title
+            state
+            publishedAt # draftからOpenになった日 or 直接Openになった日
+            createdAt
+            closedAt
+            author {
+              __typename
+              ... on Bot { databaseId id login url }
+              ... on EnterpriseUserAccount { id login name url }
+              ... on Mannequin { databaseId id login name url }
+              ... on Organization { databaseId id login name url }
+              ... on User { databaseId id login name url }
+            }
+            reactionGroups { content reactors { totalCount } } # リアクション数
+            reactions(first: 1){
+              totalCount
+            }
+            assignedActors(first: 1){
+              totalCount
+            }
+            labels(first: 1){
+              totalCount
+            }
+            timelineItems(last: 1, itemTypes: [LABELED_EVENT, ASSIGNED_EVENT]) {
+              totalCount
+              pageCount
+              filteredCount
+            }
+            comments(first: 1){
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-1-issue.json
+
+
+# nodeクエリ：Issue.reactionsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-EeKd" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          reactions(first: $perPage, after:$endCursor){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              databaseId
+              id
+              content
+              createdAt
+              user { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-2-issue.json"
+
+
+# nodeクエリ：Issue.assignedActorsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-ZbAT" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          assignedActors(first: $perPage, after:$endCursor){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on User { databaseId id login name url }
+              ... on Bot { databaseId id login url }
+              ... on Mannequin { databaseId id login name url }
+              ... on Organization { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-3-issue.json"
+
+
+# nodeクエリ：Issue.timelineItems.ASSIGNED_EVENTの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-ZbAT" \
+  -f since="1970-01-01T00:00:00Z" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String, $since: DateTime!) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          timelineItems(first: $perPage, after: $endCursor, itemTypes: [ASSIGNED_EVENT], since: $since) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on AssignedEvent {
+                id
+                createdAt
+                actor { # アサインした人（実行者）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                  ... on EnterpriseUserAccount { user { databaseId id login name url } }
+                }
+                assignee { # アサインされた側（User/Mannequin 等の Union）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-4-issue.json"
+
+
+# nodeクエリ：Issue.labelsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-lWo4" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          labels(first: $perPage, after: $endCursor, orderBy: {field: CREATED_AT, direction: ASC}) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes { 
+              id
+              url
+              name
+              description
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-5-issue.json"
+
+
+# nodeクエリ：Issue.timelineItems.LABELED_EVENTの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-lWo4" \
+  -f since="1970-01-01T00:00:00Z" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String, $since: DateTime!) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          timelineItems(first: $perPage, after: $endCursor, itemTypes: [LABELED_EVENT], since: $since) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on LabeledEvent {
+                id
+                createdAt
+                label { 
+                  id
+                  url
+                  name
+                  description
+                }
+                actor { # ラベル付けした人（実行者）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                  ... on EnterpriseUserAccount { user { databaseId id login name url } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-6-issue.json"
+
+
+# nodeクエリ：Issue.commentsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="I_kwDOPDzQl86-Z8VZ" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on Issue{
+          id
+          fullDatabaseId
+          databaseId
+          number
+          url
+          title
+          state
+          publishedAt
+          comments(first: $perPage, after:$endCursor){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              fullDatabaseId
+              databaseId
+              id
+              url
+              author {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Organization { databaseId id login name url }
+                ... on EnterpriseUserAccount { user { databaseId id login name url } }
+              }
+              bodyText
+              publishedAt
+              reactionGroups { content reactors { totalCount } }
+              reactions(first: 1){
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-7-issue.json"
+
+
+# nodeクエリ：Issue.comments.reactionsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="IC_kwDOPDzQl860ZGJG" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on IssueComment{
+          id
+          url
+          reactions(first: $perPage, after: $endCursor){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes{ 
+              databaseId
+              id
+              content
+              createdAt
+              user { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/issue/1-8-issue.json"

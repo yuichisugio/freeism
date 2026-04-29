@@ -1,0 +1,19 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "IssueComment",
+        "id": "IC_kwDOPDzQl860ZGJG",
+        "url": "https://github.com/yoshiko-pg/difit/issues/21#issuecomment-3026477638",
+        "reactions": {
+          "totalCount": 0,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": []
+        }
+      }
+    }
+  }
+]

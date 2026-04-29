@@ -1,0 +1,57 @@
+{
+  "data": {
+    "user": [
+      {
+        "user_id": "MDQ6VXNlcjEzNzEyNzE1",
+        "user_database_id": 13712715,
+        "user_login": "sadnessOjisan",
+        "user_name": "sadnessOjisan",
+        "user_url": "https://github.com/sadnessOjisan",
+        "task": [
+          {
+            "task_id": "S_kwDOAGgcC84ABVo7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-14T07:06:14Z",
+            "reference_task_date": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "MDQ6VXNlcjU2MDg5NDg=",
+        "user_database_id": 5608948,
+        "user_login": "unhappychoice",
+        "user_name": "Yuji Ueki",
+        "user_url": "https://github.com/unhappychoice",
+        "task": [
+          {
+            "task_id": "S_kwDOAGgcC84ABXFS",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-03T11:09:53Z",
+            "reference_task_date": "createdAt"
+          }
+        ]
+      },
+      {
+        "user_id": "MDQ6VXNlcjY4ODI4Nzg=",
+        "user_database_id": 6882878,
+        "user_login": "syumai",
+        "user_name": "syumai",
+        "user_url": "https://github.com/syumai",
+        "task": [
+          {
+            "task_id": "S_kwDOAGgcC84ABVpA",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-14T07:24:03Z",
+            "reference_task_date": "createdAt"
+          }
+        ]
+      }
+    ]
+  }
+}

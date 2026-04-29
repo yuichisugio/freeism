@@ -1,0 +1,158 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "DiscussionComment",
+        "id": "DC_kwDOMAoJw84A3CHQ",
+        "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426576",
+        "replies": {
+          "totalCount": 2,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOANwh1Q=="
+          },
+          "nodes": [
+            {
+              "databaseId": 14426579,
+              "id": "DC_kwDOMAoJw84A3CHT",
+              "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426579",
+              "upvoteCount": 0,
+              "author": {
+                "__typename": "User",
+                "databaseId": 170410034,
+                "id": "U_kgDOCihAMg",
+                "login": "yuichisugio",
+                "name": "sugio",
+                "url": "https://github.com/yuichisugio"
+              },
+              "bodyText": "リプライのテスト",
+              "publishedAt": "2025-09-17T10:15:05Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 14426581,
+              "id": "DC_kwDOMAoJw84A3CHV",
+              "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426581",
+              "upvoteCount": 0,
+              "author": {
+                "__typename": "User",
+                "databaseId": 170410034,
+                "id": "U_kgDOCihAMg",
+                "login": "yuichisugio",
+                "name": "sugio",
+                "url": "https://github.com/yuichisugio"
+              },
+              "bodyText": "できるじゃん！",
+              "publishedAt": "2025-09-17T10:15:12Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 2
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

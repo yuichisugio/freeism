@@ -1,0 +1,112 @@
+{
+	"meta": {
+		"version": "0.0.1",
+		"createdAt": "2025-08-26T00:00:00Z",
+		"updatedAt": "2025-08-26T00:00:00Z"
+	},
+	"baseValue": 5,
+	"evaluationCriteria": [
+		{
+			"key": "timeResources",
+			"description": "Time Resources",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "financialResources",
+			"description": "Financial Resources",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "humanResources",
+			"description": "Human Resources",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "security",
+			"description": "Security",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "backwardCompatibility",
+			"description": "Backward Compatibility",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "documentation",
+			"description": "Documentation",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "performance",
+			"description": "Performance",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "scalability",
+			"description": "Scalability",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "governance",
+			"description": "Governance",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "license",
+			"description": "License",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfImplementation",
+			"description": "Ease of Implementation",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfIntegration",
+			"description": "Ease of Integration",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfMaintenance",
+			"description": "Ease of Maintenance",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfTesting",
+			"description": "Ease of Testing",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfMonitoring",
+			"description": "Ease of Monitoring",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfBackup",
+			"description": "Ease of Backup",
+			"value": 5,
+			"enabled": true
+		},
+		{
+			"key": "easeOfRecovery",
+			"description": "Ease of Recovery",
+			"value": 5,
+			"enabled": true
+		}
+	]
+}

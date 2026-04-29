@@ -1,0 +1,60 @@
+gh api graphql -F q='is:public archived:false sort:stars-desc' -f query='
+  query($q: String!) {
+    search(type: REPOSITORY, query: $q, first: 3) {
+      nodes {
+        ... on Repository {
+          nameWithOwner
+          url
+          stargazerCount
+          forkCount
+          pullRequests { totalCount }
+        }
+      }
+    }
+  }'
+
+gh api graphql -F q='is:public archived:false sort:forks-desc' -f query='
+  query($q: String!) {
+    search(type: REPOSITORY, query: $q, first: 3) {
+      nodes {
+        ... on Repository {
+          nameWithOwner
+          url
+          stargazerCount
+          forkCount
+          pullRequests { totalCount }
+        }
+      }
+    }
+  }'
+
+gh api graphql -F q='is:public archived:false sort:comments-desc' -f query='
+  query($q: String!) {
+    search(type: REPOSITORY, query: $q, first: 3) {
+      nodes {
+        ... on Repository {
+          nameWithOwner
+          url
+          stargazerCount
+          forkCount
+          pullRequests { totalCount }
+        }
+      }
+    }
+  }'
+ 
+
+gh api graphql -F q='is:public archived:false sort:interactions-desc' -f query='
+  query($q: String!) {
+    search(type: REPOSITORY, query: $q, first: 3) {
+      nodes {
+        ... on Repository {
+          nameWithOwner
+          url
+          stargazerCount
+          forkCount
+          pullRequests { totalCount }
+        }
+      }
+    }
+  }'

@@ -1,0 +1,23 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "Release",
+        "databaseId": 228955200,
+        "id": "RE_kwDOPDzQl84NpZRA",
+        "name": "v1.0.0 - 2025-06-30",
+        "description": "### Added\n\n- First stable release 🌱",
+        "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.0",
+        "publishedAt": "2025-06-30T23:34:01Z",
+        "reactions": {
+          "totalCount": 0,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          },
+          "nodes": []
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,11 @@
+jq '
+  [ .data.user[]?.task[]? | select((.task_id // "") != "") ]
+  | group_by(.task_id)
+  | map(select(length > 1) | {task_id: .[0].task_id, count: length})
+' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/integrated-processed-data/integrated-processed-data.json"
+
+jq '
+  [ .data.user[]?.task[]? | select((.task_id // "") != "") ]
+  | group_by(.task_id)
+  | map(select(length > 1) | {task_id: .[0].task_id, count: length})
+' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/integrated-processed-data/1-integrated-processed-data.json"

@@ -1,0 +1,102 @@
+[
+  {
+    "node___typename": "Release",
+    "node_databaseId": 231010739,
+    "node_id": "RE_kwDOPDzQl84NxPGz",
+    "node_name": "v2.0.0",
+    "node_description": "### Changed\n\n- Rename to difit (#33)",
+    "node_url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.0",
+    "node_publishedAt": "2025-07-09T03:15:03Z",
+    "databaseId": 183912409,
+    "id": "REA_lAfOPDzQl84NxPGzzgr2R9k",
+    "content": "HEART",
+    "createdAt": "2025-07-09T06:10:24Z",
+    "user": {
+      "databaseId": 102337893,
+      "id": "U_kgDOBhmNZQ",
+      "login": "naitokosuke",
+      "name": "ナイトウコウスケ",
+      "url": "https://github.com/naitokosuke"
+    }
+  },
+  {
+    "node___typename": "Release",
+    "node_databaseId": 231969914,
+    "node_id": "RE_kwDOPDzQl84N05R6",
+    "node_name": "v2.0.6",
+    "node_description": "### Changed\n\n- Keyboard accessibility improvements for Checkbox component (#42)\n- Refactored code to use optional chaining (#41)\n- Refactored test code to remove redundant return (#44)\n\n### Fixed\n\n- Fixed file tree display to prevent collapsing root node when showing nested folders\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for keyboard accessibility improvements #42\n- [@noritaka1166](https://github.com/noritaka1166) for optional chaining refactor #41\n- [@noritaka1166](https://github.com/noritaka1166) for test code refactor #44",
+    "node_url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.6",
+    "node_publishedAt": "2025-07-12T13:48:47Z",
+    "databaseId": 183940437,
+    "id": "REA_lAfOPDzQl84N05R6zgr2tVU",
+    "content": "HOORAY",
+    "createdAt": "2025-07-14T00:29:38Z",
+    "user": {
+      "databaseId": 5636512,
+      "id": "U_kgDOAFYBoA",
+      "login": "azzgo",
+      "name": "Ishan",
+      "url": "https://github.com/azzgo"
+    }
+  },
+  {
+    "node___typename": "Release",
+    "node_databaseId": 232370156,
+    "node_id": "RE_kwDOPDzQl84N2a_s",
+    "node_name": "v2.0.8",
+    "node_description": "### Changed\n\n- Improved type definitions and removed unnecessary casts (#48)\n- HP bar style progress display\n\n### Fixed\n\n- Replaced deprecated GitHub icon with new GitHubIcon component (#47)\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for improving type definitions #48\n- [@noritaka1166](https://github.com/noritaka1166) for replacing deprecated GitHub icon #47",
+    "node_url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.8",
+    "node_publishedAt": "2025-07-15T00:18:14Z",
+    "databaseId": 183946895,
+    "id": "REA_lAfOPDzQl84N2a_szgr2zo8",
+    "content": "HOORAY",
+    "createdAt": "2025-07-15T02:09:41Z",
+    "user": {
+      "databaseId": 189505037,
+      "id": "U_kgDOC0ueDQ",
+      "login": "noritaka1166",
+      "name": "Noritaka Kobayashi",
+      "url": "https://github.com/noritaka1166"
+    }
+  },
+  {
+    "node___typename": "Release",
+    "node_databaseId": 235489890,
+    "node_id": "RE_kwDOPDzQl84OCUpi",
+    "node_name": "v2.1.1",
+    "node_description": "### Added\n\n- Keyboard shortcuts help to footer\n- Added screenshot to all README\n- Added protobuf support to README\n\n### Changed\n\n- Changed Reload button to Refresh with updated icon",
+    "node_url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.1.1",
+    "node_publishedAt": "2025-07-28T01:08:17Z",
+    "databaseId": 184029415,
+    "id": "REA_lAfOPDzQl84OCUpizgr4EOc",
+    "content": "ROCKET",
+    "createdAt": "2025-07-28T04:01:25Z",
+    "user": {
+      "databaseId": 95130624,
+      "id": "U_kgDOBauUAA",
+      "login": "maro114510",
+      "name": "Atsuki Nohira",
+      "url": "https://github.com/maro114510"
+    }
+  },
+  {
+    "node___typename": "Release",
+    "node_databaseId": 242132921,
+    "node_id": "RE_kwDOPDzQl84Obqe5",
+    "node_name": "v2.2.1",
+    "node_description": "## Added\n\n- Support for Svelte syntax highlighting (#85)\n\n## Changed\n\n- Replace uuid package with native crypto.randomUUID for better performance (#82)\n\n## Fixed\n\n- Comment line numbers now display correctly in server output (#87)\n- '.' keyboard shortcut no longer triggers when modifier keys are pressed (#86)\n\n## Thanks\n\n- [@basyura](https://github.com/basyura) for fixing '.' shortcut with modifier keys #86\n- [@KraXen72](https://github.com/KraXen72) for adding Svelte syntax highlighting support #85\n- [@noritaka1166](https://github.com/noritaka1166) for replacing uuid package with crypto.randomUUID #82",
+    "node_url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.2.1",
+    "node_publishedAt": "2025-08-24T23:57:06Z",
+    "databaseId": 184338461,
+    "id": "REA_lAfOPDzQl84Obqe5zgr8yB0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-16T10:17:00Z",
+    "user": {
+      "databaseId": 170410034,
+      "id": "U_kgDOCihAMg",
+      "login": "yuichisugio",
+      "name": "sugio",
+      "url": "https://github.com/yuichisugio"
+    }
+  }
+]

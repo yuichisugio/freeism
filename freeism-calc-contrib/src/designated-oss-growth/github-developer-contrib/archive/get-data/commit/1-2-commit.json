@@ -1,0 +1,160 @@
+[
+  {
+    "data": {
+      "node": {
+        "id": "C_kwDOPDzQl9oAKDdlODBkMDI0YTg5MTZjNDZiNmEwYzM2YTM4YzYyYjYwYzRiYWI2NTg",
+        "oid": "7e80d024a8916c46b6a0c36a38c62b60c4bab658",
+        "abbreviatedOid": "7e80d02",
+        "url": "https://github.com/yoshiko-pg/difit/commit/7e80d024a8916c46b6a0c36a38c62b60c4bab658",
+        "commitUrl": "https://github.com/yoshiko-pg/difit/commit/7e80d024a8916c46b6a0c36a38c62b60c4bab658",
+        "comments": {
+          "totalCount": 2,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOCZtZyA=="
+          },
+          "nodes": [
+            {
+              "databaseId": 161175322,
+              "id": "CC_kwDOPDzQl84Jm1ca",
+              "url": "https://github.com/yoshiko-pg/difit/commit/7e80d024a8916c46b6a0c36a38c62b60c4bab658#r161175322",
+              "body": "`diffArgs = [resolvedCommit];`",
+              "bodyText": "diffArgs = [resolvedCommit];",
+              "publishedAt": "2025-07-01T04:24:55Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "author": {
+                "__typename": "User",
+                "databaseId": 54097100,
+                "id": "U_kgDOAzl0zA",
+                "login": "aku11i",
+                "name": "Shuhei Akutagawa",
+                "url": "https://github.com/aku11i"
+              },
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 161176008,
+              "id": "CC_kwDOPDzQl84Jm1nI",
+              "url": "https://github.com/yoshiko-pg/difit/commit/7e80d024a8916c46b6a0c36a38c62b60c4bab658#r161176008",
+              "body": "resolved: https://github.com/yoshiko-pg/reviewit/releases/tag/v1.1.4",
+              "bodyText": "resolved: https://github.com/yoshiko-pg/reviewit/releases/tag/v1.1.4",
+              "publishedAt": "2025-07-01T04:40:20Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactions": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,2882 @@
+[
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358125,
+    "id": "DC_kwDOOyw9fc4Ay9Qt",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358125",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 178079467,
+      "id": "U_kgDOCp1G6w",
+      "login": "GailElliott1990",
+      "name": null,
+      "url": "https://github.com/GailElliott1990"
+    },
+    "bodyText": "Added screenshot.",
+    "publishedAt": "2025-06-03T16:07:38Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358126,
+    "id": "DC_kwDOOyw9fc4Ay9Qu",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358126",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "which version you use\nare you sure that you use the claude code today?\nwhich claude code version you use?",
+    "publishedAt": "2025-06-03T16:10:34Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358127,
+    "id": "DC_kwDOOyw9fc4Ay9Qv",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358127",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 178079467,
+      "id": "U_kgDOCp1G6w",
+      "login": "GailElliott1990",
+      "name": null,
+      "url": "https://github.com/GailElliott1990"
+    },
+    "bodyText": "It's 0.2.3\nI have used it today and yesterday.\nClaude Sonnet 4",
+    "publishedAt": "2025-06-03T16:14:41Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358128,
+    "id": "DC_kwDOOyw9fc4Ay9Qw",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358128",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "I cannot reproduce it\nupdate claude code itself. check claude --version",
+    "publishedAt": "2025-06-03T16:16:37Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358129,
+    "id": "DC_kwDOOyw9fc4Ay9Qx",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358129",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 178079467,
+      "id": "U_kgDOCp1G6w",
+      "login": "GailElliott1990",
+      "name": null,
+      "url": "https://github.com/GailElliott1990"
+    },
+    "bodyText": "I'm on Claude Code 1.0.9.",
+    "publishedAt": "2025-06-03T16:19:23Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358130,
+    "id": "DC_kwDOOyw9fc4Ay9Qy",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358130",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "Okay so you are using the latest one. Do you use the latest ccusage.\nI cannot reproduce it",
+    "publishedAt": "2025-06-03T16:20:51Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358131,
+    "id": "DC_kwDOOyw9fc4Ay9Qz",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358131",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "You can make sure the local log.",
+    "publishedAt": "2025-06-03T16:23:14Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358361,
+    "id": "DC_kwDOOyw9fc4Ay9UZ",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358361",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 178079467,
+      "id": "U_kgDOCp1G6w",
+      "login": "GailElliott1990",
+      "name": null,
+      "url": "https://github.com/GailElliott1990"
+    },
+    "bodyText": "Uninstalled, reinstalled. Works again now. Please feel free to close this issue. Thanks.",
+    "publishedAt": "2025-06-03T16:41:15Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgFOv",
+    "node_databaseId": 8410031,
+    "node_number": 8,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "node_title": "Polling is currently broken.",
+    "node_bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "node_publishedAt": "2025-06-03T15:55:05Z",
+    "databaseId": 13358436,
+    "id": "DC_kwDOOyw9fc4Ay9Vk",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8#discussioncomment-13358436",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "I'm glad to hear that!",
+    "publishedAt": "2025-06-03T16:47:04Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJOT",
+    "node_databaseId": 8426387,
+    "node_number": 17,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/17",
+    "node_title": "Combine stats with isolated docker containers running claude code",
+    "node_bodyText": "It would be nice if it can include the files from isolated docker container running claude code as well or pass the directory where the container is running and has the files - combination of both ones on mac + docker container",
+    "node_publishedAt": "2025-06-06T22:37:49Z",
+    "databaseId": 13398555,
+    "id": "DC_kwDOOyw9fc4AzHIb",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/17#discussioncomment-13398555",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "We have path option.",
+    "publishedAt": "2025-06-07T17:31:06Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJOT",
+    "node_databaseId": 8426387,
+    "node_number": 17,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/17",
+    "node_title": "Combine stats with isolated docker containers running claude code",
+    "node_bodyText": "It would be nice if it can include the files from isolated docker container running claude code as well or pass the directory where the container is running and has the files - combination of both ones on mac + docker container",
+    "node_publishedAt": "2025-06-06T22:37:49Z",
+    "databaseId": 13400046,
+    "id": "DC_kwDOOyw9fc4AzHfu",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/17#discussioncomment-13400046",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 61936556,
+      "id": "U_kgDOA7ETrA",
+      "login": "abhishek-notes",
+      "name": null,
+      "url": "https://github.com/abhishek-notes"
+    },
+    "bodyText": "Oh, I missed that, thank you.",
+    "publishedAt": "2025-06-08T01:57:54Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJiG",
+    "node_databaseId": 8427654,
+    "node_number": 20,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/20",
+    "node_title": "5 hours sessions tracker",
+    "node_bodyText": "please add ability to keep track of those 5 hours sessions. how many sessions already used for the month.",
+    "node_publishedAt": "2025-06-07T13:19:33Z",
+    "databaseId": 13398551,
+    "id": "DC_kwDOOyw9fc4AzHIX",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/20#discussioncomment-13398551",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "Do you have any plans to implement it? PRs are welcome",
+    "publishedAt": "2025-06-07T17:30:17Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJiG",
+    "node_databaseId": 8427654,
+    "node_number": 20,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/20",
+    "node_title": "5 hours sessions tracker",
+    "node_bodyText": "please add ability to keep track of those 5 hours sessions. how many sessions already used for the month.",
+    "node_publishedAt": "2025-06-07T13:19:33Z",
+    "databaseId": 13497598,
+    "id": "DC_kwDOOyw9fc4AzfT-",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/20#discussioncomment-13497598",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "done! Thank you @a-c-m",
+    "publishedAt": "2025-06-17T13:55:52Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13398954,
+    "id": "DC_kwDOOyw9fc4AzHOq",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13398954",
+    "upvoteCount": 2,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "",
+    "publishedAt": "2025-06-07T19:18:59Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13429214,
+    "id": "DC_kwDOOyw9fc4AzOne",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13429214",
+    "upvoteCount": 3,
+    "author": {
+      "__typename": "User",
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    },
+    "bodyText": "",
+    "publishedAt": "2025-06-11T06:50:14Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 1
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13477301,
+    "id": "DC_kwDOOyw9fc4AzaW1",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13477301",
+    "upvoteCount": 3,
+    "author": {
+      "__typename": "User",
+      "databaseId": 90320947,
+      "id": "U_kgDOBWIwMw",
+      "login": "adriangalilea",
+      "name": "Adrian Galilea",
+      "url": "https://github.com/adriangalilea"
+    },
+    "bodyText": "I also used another computer with Claude Code, but 95% on this one.\ntagged on x\nP.S.: One of the most underrated features of Claude Code is being the best sysadmin. Never had such nice dotfiles + custom utilities.",
+    "publishedAt": "2025-06-16T00:01:27Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13487343,
+    "id": "DC_kwDOOyw9fc4Azczv",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13487343",
+    "upvoteCount": 2,
+    "author": {
+      "__typename": "User",
+      "databaseId": 45671633,
+      "id": "U_kgDOArjk0Q",
+      "login": "ibushimaru",
+      "name": "ibushimaru",
+      "url": "https://github.com/ibushimaru"
+    },
+    "bodyText": "",
+    "publishedAt": "2025-06-16T18:13:41Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 1
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13487486,
+    "id": "DC_kwDOOyw9fc4Azc1-",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13487486",
+    "upvoteCount": 3,
+    "author": {
+      "__typename": "User",
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    },
+    "bodyText": "Haha - you all are killing it. I no longer feel like I'm going to get flagged for over-use!",
+    "publishedAt": "2025-06-16T18:30:14Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 3
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 3
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13488474,
+    "id": "DC_kwDOOyw9fc4AzdFa",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13488474",
+    "upvoteCount": 2,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "Come on guys! Happy vibe coding",
+    "publishedAt": "2025-06-16T20:39:42Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13488481,
+    "id": "DC_kwDOOyw9fc4AzdFh",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13488481",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 45671633,
+      "id": "U_kgDOArjk0Q",
+      "login": "ibushimaru",
+      "name": "ibushimaru",
+      "url": "https://github.com/ibushimaru"
+    },
+    "bodyText": "\\Happy vibe coding/",
+    "publishedAt": "2025-06-16T20:40:54Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 13565443,
+    "id": "DC_kwDOOyw9fc4Azv4D",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-13565443",
+    "upvoteCount": 2,
+    "author": {
+      "__typename": "User",
+      "databaseId": 28214807,
+      "id": "U_kgDOAa6GFw",
+      "login": "aranej",
+      "name": null,
+      "url": "https://github.com/aranej"
+    },
+    "bodyText": "CC in VPS hetzner CX22",
+    "publishedAt": "2025-06-24T18:49:31Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgJtV",
+    "node_databaseId": 8428373,
+    "node_number": 26,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "node_title": "Share your screenshot of `ccusage`!!!",
+    "node_bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "node_publishedAt": "2025-06-07T19:16:15Z",
+    "databaseId": 14198284,
+    "id": "DC_kwDOOyw9fc4A2KYM",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26#discussioncomment-14198284",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 58865044,
+      "id": "U_kgDOA4I1lA",
+      "login": "ahSOLO",
+      "name": "Andrew Han",
+      "url": "https://github.com/ahSOLO"
+    },
+    "bodyText": "Does anyone know the rough limit on cost per block for Max5 and Max20?",
+    "publishedAt": "2025-08-23T18:39:31Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgXvr",
+    "node_databaseId": 8485867,
+    "node_number": 185,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/185",
+    "node_title": "No valid Claude data directories found (Windows/WSL)",
+    "node_bodyText": "I'm sure this is just my unfamiliarity with Claude Code.\nfile:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287\nif (paths.length === 0) throw new Error(`No valid Claude data directories found. Please ensure at least one of the following exists:\n^\nError: No valid Claude data directories found. Please ensure at least one of the following exists:\n\nC:\\Users\\psand.config\\claude\\projects\nC:\\Users\\psand.claude\\projects\nOr set CLAUDE_CONFIG_DIR environment variable to valid directory path(s) containing a 'projects' subdirectory\nat getClaudePaths (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287:32)\nat loadDailyUsageData (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3624:54)\nat Object.run (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:4230:27)\nat executeCommand (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1122:17)\nat cli (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1034:8)\nat async file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:5032:1\n\nI then created the directory in one of examples listed, but then got \" WARN  No Claude usage data found. \" (I wasn't really expecting that to work.)\nI know how to set the env variable, what I don't know is how to find where CC is storing logs (CC doesn't know either). Any help?",
+    "node_publishedAt": "2025-06-22T14:10:46Z",
+    "databaseId": 13554944,
+    "id": "DC_kwDOOyw9fc4AztUA",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/185#discussioncomment-13554944",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "Ok so this is for WSL, i don't know it so I'll convert it into discussion",
+    "publishedAt": "2025-06-23T20:21:32Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgXvr",
+    "node_databaseId": 8485867,
+    "node_number": 185,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/185",
+    "node_title": "No valid Claude data directories found (Windows/WSL)",
+    "node_bodyText": "I'm sure this is just my unfamiliarity with Claude Code.\nfile:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287\nif (paths.length === 0) throw new Error(`No valid Claude data directories found. Please ensure at least one of the following exists:\n^\nError: No valid Claude data directories found. Please ensure at least one of the following exists:\n\nC:\\Users\\psand.config\\claude\\projects\nC:\\Users\\psand.claude\\projects\nOr set CLAUDE_CONFIG_DIR environment variable to valid directory path(s) containing a 'projects' subdirectory\nat getClaudePaths (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287:32)\nat loadDailyUsageData (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3624:54)\nat Object.run (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:4230:27)\nat executeCommand (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1122:17)\nat cli (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1034:8)\nat async file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:5032:1\n\nI then created the directory in one of examples listed, but then got \" WARN  No Claude usage data found. \" (I wasn't really expecting that to work.)\nI know how to set the env variable, what I don't know is how to find where CC is storing logs (CC doesn't know either). Any help?",
+    "node_publishedAt": "2025-06-22T14:10:46Z",
+    "databaseId": 13609561,
+    "id": "DC_kwDOOyw9fc4Az6pZ",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/185#discussioncomment-13609561",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 5219141,
+      "id": "U_kgDOAE-jRQ",
+      "login": "machug",
+      "name": "Hugh",
+      "url": "https://github.com/machug"
+    },
+    "bodyText": "yeah you need to run this under WSL @psandler as that's where claude code is running.",
+    "publishedAt": "2025-06-29T13:07:29Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4Ag2YE",
+    "node_databaseId": 8611332,
+    "node_number": 334,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/334",
+    "node_title": "Data collection and privacy",
+    "node_bodyText": "There is no information on data privacy - is there anything collected now or in the future? Request to add a statement on this",
+    "node_publishedAt": "2025-07-21T00:10:59Z",
+    "databaseId": 13991951,
+    "id": "DC_kwDOOyw9fc4A1YAP",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/334#discussioncomment-13991951",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "we don't collect any data actually",
+    "publishedAt": "2025-08-04T17:46:33Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 1
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4Ahfga",
+    "node_databaseId": 8779802,
+    "node_number": 579,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/579",
+    "node_title": "Monitoring Shared Usage Limits Across Claude and Claude Code",
+    "node_bodyText": "According to Anthropic, \"Both Pro and Max plans offer rate limits that are shared across Claude and Claude Code, meaning all activity in both tools counts against the same usage limits.\" Since they share sessions, is there a way to monitor usage beyond just using ClaudeCode?",
+    "node_publishedAt": "2025-07-23T06:43:27Z",
+    "databaseId": 14191220,
+    "id": "DC_kwDOOyw9fc4A2Ip0",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/579#discussioncomment-14191220",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 222114332,
+      "id": "U_kgDODT0yHA",
+      "login": "strandnerd",
+      "name": "Strand",
+      "url": "https://github.com/strandnerd"
+    },
+    "bodyText": "That would be a great feature, but unfortunately it's not currently possible. The ccusage tool works by scanning local JSONL files that contain detailed usage data generated specifically by Claude Code. Since we don't have access to the cloud-based usage data from the web interface, there's no way to combine both sources to provide a complete picture of your total usage across both platforms.\n@ryoppippi please, correct me if I'm wrong!",
+    "publishedAt": "2025-08-22T13:53:36Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4Ahfga",
+    "node_databaseId": 8779802,
+    "node_number": 579,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/579",
+    "node_title": "Monitoring Shared Usage Limits Across Claude and Claude Code",
+    "node_bodyText": "According to Anthropic, \"Both Pro and Max plans offer rate limits that are shared across Claude and Claude Code, meaning all activity in both tools counts against the same usage limits.\" Since they share sessions, is there a way to monitor usage beyond just using ClaudeCode?",
+    "node_publishedAt": "2025-07-23T06:43:27Z",
+    "databaseId": 14191221,
+    "id": "DC_kwDOOyw9fc4A2Ip1",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/579#discussioncomment-14191221",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "there is no log for claude desktop\nso we move it into discussion",
+    "publishedAt": "2025-08-22T15:40:21Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhBDH",
+    "node_databaseId": 8655047,
+    "node_number": 382,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/382",
+    "node_title": "Weekly usage?",
+    "node_bodyText": "As Anthropic recently introduced weekly limits, wouldn't it make sense to add a \"weekly\" feature to ccusage? :)",
+    "node_publishedAt": "2025-07-30T09:24:44Z",
+    "databaseId": 13991954,
+    "id": "DC_kwDOOyw9fc4A1YAS",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/382#discussioncomment-13991954",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "done!",
+    "publishedAt": "2025-08-04T17:47:12Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhH3R",
+    "node_databaseId": 8682961,
+    "node_number": 426,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/426",
+    "node_title": "Usage more than 1 month ago",
+    "node_bodyText": "I recently noticed that my usage statistics that are longer than 1 month in the past seem to have disappeared / are not showing anymore... Is that something related to ccusage, or is claude code only storing up to one month of logs?",
+    "node_publishedAt": "2025-08-04T19:14:59Z",
+    "databaseId": 14017232,
+    "id": "DC_kwDOOyw9fc4A1eLQ",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/426#discussioncomment-14017232",
+    "upvoteCount": 2,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "@lanice\nhttps://docs.anthropic.com/en/docs/claude-code/settings#available-settings\ncleanupPeriodDays",
+    "publishedAt": "2025-08-06T09:12:50Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhMVd",
+    "node_databaseId": 8701277,
+    "node_number": 445,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/445",
+    "node_title": "Is there a time lag with ccusage?",
+    "node_bodyText": "I have the ccusage command launched immediately after entering the Claude Code, but the amount doesn't seem to change immediately.\nIs it supposed to be reflected immediately, or does it take a few seconds to a few minutes?",
+    "node_publishedAt": "2025-08-07T13:39:17Z",
+    "databaseId": 14045158,
+    "id": "DC_kwDOOyw9fc4A1k_m",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/445#discussioncomment-14045158",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "claude code writes log after they finish thier task",
+    "publishedAt": "2025-08-08T10:23:47Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhMVd",
+    "node_databaseId": 8701277,
+    "node_number": 445,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/445",
+    "node_title": "Is there a time lag with ccusage?",
+    "node_bodyText": "I have the ccusage command launched immediately after entering the Claude Code, but the amount doesn't seem to change immediately.\nIs it supposed to be reflected immediately, or does it take a few seconds to a few minutes?",
+    "node_publishedAt": "2025-08-07T13:39:17Z",
+    "databaseId": 14045905,
+    "id": "DC_kwDOOyw9fc4A1lLR",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/445#discussioncomment-14045905",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 13173632,
+      "id": "U_kgDOAMkDgA",
+      "login": "ampcpmgp",
+      "name": "Akira Makino",
+      "url": "https://github.com/ampcpmgp"
+    },
+    "bodyText": "Thank you for your reply.\nIt seems that task completion detection is not working properly.\nI will check that.",
+    "publishedAt": "2025-08-08T12:02:13Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8i",
+    "node_databaseId": 8707874,
+    "node_number": 464,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "node_title": "Wrong usage limits for PRO",
+    "node_bodyText": "Wrong usage limits for PRO.",
+    "node_publishedAt": "2025-08-08T18:17:51Z",
+    "databaseId": 14063916,
+    "id": "DC_kwDOOyw9fc4A1pks",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/464#discussioncomment-14063916",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 8167849,
+      "id": "U_kgDOAHyhqQ",
+      "login": "teethandnail",
+      "name": null,
+      "url": "https://github.com/teethandnail"
+    },
+    "bodyText": "me too",
+    "publishedAt": "2025-08-09T23:36:35Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8h",
+    "node_databaseId": 8707873,
+    "node_number": 463,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/463",
+    "node_title": "[Bug] ccusage statusline output \"❌ No input provided\"",
+    "node_bodyText": "Description\nThe ccusage statusline output only : ❌ No input provided\nThe behavior is the same within Claude code the advised configuration from the ccusage documentation:\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bun x ccusage statusline\",\n    \"padding\": 0\n  }\n}\n\nEnvironment\n\nccusage: 15.9.1\nRuntime: Bun v1.2.19\nOS: Pop!_OS 22.04 LTS",
+    "node_publishedAt": "2025-08-10T08:08:05Z",
+    "databaseId": 14063914,
+    "id": "DC_kwDOOyw9fc4A1pkq",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14063914",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 4739633,
+      "id": "U_kgDOAEhSMQ",
+      "login": "bcihanc",
+      "name": "Cihan Cengiz",
+      "url": "https://github.com/bcihanc"
+    },
+    "bodyText": "Same here, but I missed these docs; after this, it works for me.\nhttps://github.com/ryoppippi/ccusage/blob/6f1449c696dea07a1c85fde378d7f35ca90436db/docs/guide/statusline.md",
+    "publishedAt": "2025-08-10T10:06:00Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8h",
+    "node_databaseId": 8707873,
+    "node_number": 463,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/463",
+    "node_title": "[Bug] ccusage statusline output \"❌ No input provided\"",
+    "node_bodyText": "Description\nThe ccusage statusline output only : ❌ No input provided\nThe behavior is the same within Claude code the advised configuration from the ccusage documentation:\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bun x ccusage statusline\",\n    \"padding\": 0\n  }\n}\n\nEnvironment\n\nccusage: 15.9.1\nRuntime: Bun v1.2.19\nOS: Pop!_OS 22.04 LTS",
+    "node_publishedAt": "2025-08-10T08:08:05Z",
+    "databaseId": 14063915,
+    "id": "DC_kwDOOyw9fc4A1pkr",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14063915",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "bodyText": "I'll convert it as discussion because it is not a bug",
+    "publishedAt": "2025-08-10T12:38:15Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8h",
+    "node_databaseId": 8707873,
+    "node_number": 463,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/463",
+    "node_title": "[Bug] ccusage statusline output \"❌ No input provided\"",
+    "node_bodyText": "Description\nThe ccusage statusline output only : ❌ No input provided\nThe behavior is the same within Claude code the advised configuration from the ccusage documentation:\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bun x ccusage statusline\",\n    \"padding\": 0\n  }\n}\n\nEnvironment\n\nccusage: 15.9.1\nRuntime: Bun v1.2.19\nOS: Pop!_OS 22.04 LTS",
+    "node_publishedAt": "2025-08-10T08:08:05Z",
+    "databaseId": 14068792,
+    "id": "DC_kwDOOyw9fc4A1qw4",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14068792",
+    "upvoteCount": 3,
+    "author": {
+      "__typename": "User",
+      "databaseId": 28305187,
+      "id": "U_kgDOAa_nIw",
+      "login": "antoniocascais",
+      "name": null,
+      "url": "https://github.com/antoniocascais"
+    },
+    "bodyText": "Same here:\n$ npx -y ccusage statusline\n❌ No input provided\n\n$ npx -y ccusage -v\n15.9.2\n\n$ npx -v\n10.9.2\n\n$ uname -r\n6.6.99-1-MANJARO",
+    "publishedAt": "2025-08-11T07:37:15Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8h",
+    "node_databaseId": 8707873,
+    "node_number": 463,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/463",
+    "node_title": "[Bug] ccusage statusline output \"❌ No input provided\"",
+    "node_bodyText": "Description\nThe ccusage statusline output only : ❌ No input provided\nThe behavior is the same within Claude code the advised configuration from the ccusage documentation:\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bun x ccusage statusline\",\n    \"padding\": 0\n  }\n}\n\nEnvironment\n\nccusage: 15.9.1\nRuntime: Bun v1.2.19\nOS: Pop!_OS 22.04 LTS",
+    "node_publishedAt": "2025-08-10T08:08:05Z",
+    "databaseId": 14133914,
+    "id": "DC_kwDOOyw9fc4A16qa",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14133914",
+    "upvoteCount": 1,
+    "author": {
+      "__typename": "User",
+      "databaseId": 18434999,
+      "id": "U_kgDOARlLtw",
+      "login": "dw820",
+      "name": "Wei Tu",
+      "url": "https://github.com/dw820"
+    },
+    "bodyText": "Any suggestion how to debug this? Thanks!\n$ ccusage -v \n15.9.9\n\n$ ccusage daily\nworking as expected\n\n$ ccusage statusline\n❌ No input provided",
+    "publishedAt": "2025-08-17T20:06:21Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "replies": {
+      "totalCount": 1
+    }
+  }
+]

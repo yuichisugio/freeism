@@ -1,0 +1,297 @@
+[
+  {
+    "data": {
+      "repository": {
+        "id": "R_kgDOMAoJww",
+        "databaseId": 805964227,
+        "createdAt": "2024-05-26T01:14:36Z",
+        "name": "myFirstTest",
+        "description": null,
+        "homepageUrl": null,
+        "url": "https://github.com/yuichisugio/myFirstTest",
+        "hasDiscussionsEnabled": true,
+        "discussionCategories": {
+          "totalCount": 6,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpKtc2hvdy1hbmQtdGVsbM4CtuMN"
+          },
+          "nodes": [
+            {
+              "id": "DIC_kwDOMAoJw84CtuMJ",
+              "name": "Announcements",
+              "description": "Updates from maintainers",
+              "slug": "announcements",
+              "createdAt": "2025-08-03T05:56:21Z",
+              "updatedAt": "2025-08-03T05:56:21Z"
+            },
+            {
+              "id": "DIC_kwDOMAoJw84CtuMK",
+              "name": "General",
+              "description": "Chat about anything and everything here",
+              "slug": "general",
+              "createdAt": "2025-08-03T05:56:21Z",
+              "updatedAt": "2025-08-03T05:56:21Z"
+            },
+            {
+              "id": "DIC_kwDOMAoJw84CtuMM",
+              "name": "Ideas",
+              "description": "Share ideas for new features",
+              "slug": "ideas",
+              "createdAt": "2025-08-03T05:56:21Z",
+              "updatedAt": "2025-08-03T05:56:21Z"
+            },
+            {
+              "id": "DIC_kwDOMAoJw84CtuMO",
+              "name": "Polls",
+              "description": "Take a vote from the community",
+              "slug": "polls",
+              "createdAt": "2025-08-03T05:56:22Z",
+              "updatedAt": "2025-08-03T05:56:22Z"
+            },
+            {
+              "id": "DIC_kwDOMAoJw84CtuML",
+              "name": "Q&A",
+              "description": "Ask the community for help",
+              "slug": "q-a",
+              "createdAt": "2025-08-03T05:56:21Z",
+              "updatedAt": "2025-08-03T05:56:21Z"
+            },
+            {
+              "id": "DIC_kwDOMAoJw84CtuMN",
+              "name": "Show and tell",
+              "description": "Show off something you've made",
+              "slug": "show-and-tell",
+              "createdAt": "2025-08-03T05:56:21Z",
+              "updatedAt": "2025-08-03T05:56:21Z"
+            }
+          ]
+        },
+        "discussions": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wOS0wNFQxODo1NDozMiswOTowMM4AhuHS"
+          },
+          "nodes": [
+            {
+              "id": "D_kwDOMAoJw84AhuHS",
+              "databaseId": 8839634,
+              "number": 5,
+              "url": "https://github.com/yuichisugio/myFirstTest/discussions/5",
+              "title": "test",
+              "bodyText": "いいね！",
+              "createdAt": "2025-09-04T09:54:32Z",
+              "publishedAt": "2025-09-04T09:54:32Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1,
+                "pageInfo": {
+                  "hasNextPage": false,
+                  "endCursor": "Y3Vyc29yOnYyOpHOACA3JA=="
+                },
+                "nodes": [
+                  {
+                    "databaseId": 2111268,
+                    "id": "REA_lAXOMAoJw84AhuHSzgAgNyQ",
+                    "content": "THUMBS_UP",
+                    "createdAt": "2025-09-04T09:54:45Z",
+                    "user": {
+                      "databaseId": 170410034,
+                      "id": "U_kgDOCihAMg",
+                      "login": "yuichisugio",
+                      "name": "sugio",
+                      "url": "https://github.com/yuichisugio"
+                    }
+                  }
+                ]
+              },
+              "category": {
+                "id": "DIC_kwDOMAoJw84CtuMK",
+                "name": "General",
+                "description": "Chat about anything and everything here",
+                "slug": "general",
+                "createdAt": "2025-08-03T05:56:21Z",
+                "isAnswerable": false,
+                "emoji": ":speech_balloon:"
+              },
+              "author": {
+                "__typename": "User",
+                "databaseId": 170410034,
+                "id": "U_kgDOCihAMg",
+                "login": "yuichisugio",
+                "name": "sugio",
+                "url": "https://github.com/yuichisugio"
+              },
+              "closedAt": null,
+              "comments": {
+                "totalCount": 1,
+                "pageInfo": {
+                  "hasNextPage": false,
+                  "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wOS0xN1QxOToxNDo1NyswOTowMM4A3CHQ"
+                },
+                "nodes": [
+                  {
+                    "author": {
+                      "__typename": "User",
+                      "databaseId": 170410034,
+                      "id": "U_kgDOCihAMg",
+                      "login": "yuichisugio",
+                      "name": "sugio",
+                      "url": "https://github.com/yuichisugio"
+                    },
+                    "bodyText": "リプライをしたい",
+                    "createdAt": "2025-09-17T10:14:57Z",
+                    "databaseId": 14426576,
+                    "deletedAt": null,
+                    "id": "DC_kwDOMAoJw84A3CHQ",
+                    "isAnswer": false,
+                    "publishedAt": "2025-09-17T10:14:57Z",
+                    "reactionGroups": [
+                      {
+                        "content": "THUMBS_UP",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "THUMBS_DOWN",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "LAUGH",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "HOORAY",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "CONFUSED",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "HEART",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "ROCKET",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      },
+                      {
+                        "content": "EYES",
+                        "reactors": {
+                          "totalCount": 0
+                        }
+                      }
+                    ],
+                    "reactions": {
+                      "totalCount": 0
+                    },
+                    "url": "https://github.com/yuichisugio/myFirstTest/discussions/5#discussioncomment-14426576",
+                    "upvoteCount": 1,
+                    "replies": {
+                      "totalCount": 2,
+                      "pageInfo": {
+                        "hasNextPage": false,
+                        "endCursor": "Y3Vyc29yOnYyOpHOANwh1Q=="
+                      },
+                      "nodes": [
+                        {
+                          "bodyText": "リプライのテスト"
+                        },
+                        {
+                          "bodyText": "できるじゃん！"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "labels": {
+                "totalCount": 1,
+                "pageInfo": {
+                  "hasNextPage": false,
+                  "endCursor": "MQ"
+                },
+                "nodes": [
+                  {
+                    "id": "LA_kwDOMAoJw88AAAABoSVhCw",
+                    "url": "https://github.com/yuichisugio/myFirstTest/labels/enhancement",
+                    "name": "enhancement",
+                    "description": "New feature or request"
+                  }
+                ]
+              },
+              "poll": null,
+              "answerChosenBy": null,
+              "answerChosenAt": null,
+              "answer": null
+            }
+          ]
+        }
+      }
+    }
+  }
+]

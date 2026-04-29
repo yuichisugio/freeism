@@ -1,0 +1,45 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "Issue",
+        "id": "I_kwDOPDzQl86-lWo4",
+        "fullDatabaseId": "3197463096",
+        "databaseId": 3197463096,
+        "number": 26,
+        "url": "https://github.com/yoshiko-pg/difit/issues/26",
+        "title": "mode option is not working",
+        "state": "CLOSED",
+        "publishedAt": "2025-07-02T23:38:01Z",
+        "timelineItems": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABl82BI5ABqzE4NDQxMzI0MzMy"
+          },
+          "nodes": [
+            {
+              "__typename": "LabeledEvent",
+              "id": "LE_lADOPDzQl86-lWo4zwAAAARLMEcs",
+              "createdAt": "2025-07-02T23:38:02Z",
+              "label": {
+                "id": "LA_kwDOPDzQl88AAAACEBsBzg",
+                "url": "https://github.com/yoshiko-pg/difit/labels/good%20first%20issue",
+                "name": "good first issue",
+                "description": "Good for newcomers"
+              },
+              "actor": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

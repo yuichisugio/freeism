@@ -1,0 +1,4691 @@
+{
+	"data": {
+		"user": [
+			{
+				"user_id": "U_kgDNKn0",
+				"user_database_id": 10877,
+				"user_login": "mitsuru",
+				"user_name": null,
+				"user_url": "https://github.com/mitsuru",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE2NjAyZWI4ZjJhMTI4ZWVkYTlhZDIzMzJhMzkxOWI2ZDhkNWQwYzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T23:12:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDNpn8",
+				"user_database_id": 42623,
+				"user_login": "basyura",
+				"user_name": "basyura",
+				"user_url": "https://github.com/basyura",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ0MDIyNWI2NzgyYWQxODAxYmNmMWIwNzQwNmIyMDY3ODE4NjlhYTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-24T13:43:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOA-30ew",
+				"user_database_id": 65926267,
+				"user_login": "tsukasaI",
+				"user_name": "tsukasa-ino",
+				"user_url": "https://github.com/tsukasaI",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYyOGQzZmQxNDI1MmRkOTE4NWQ5NDBkNzBjMDJlMTExNzViNGFiODY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:46:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlkMTQ0N2MwNmZkOGMxZjUyOGJiYTJiZDJhMzcxN2E3YTUyMmI2YmE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T00:11:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOA8FO6Q",
+				"user_database_id": 63000297,
+				"user_login": "no-yan",
+				"user_name": null,
+				"user_url": "https://github.com/no-yan",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRkNWU2ZDFiMDk4MjM4YjE1NzQ1Y2E5NGRlYzE5ZDkyZTIzNGFjZWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T13:21:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUzNzM1MzgyZTU4ZmQwNzQ1NDlmMTNhMTg0ZmYwNWNlMzY4YjBkMmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T09:55:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAA0USg",
+				"user_database_id": 857162,
+				"user_login": "rfkm",
+				"user_name": "Ryo Fukumuro",
+				"user_url": "https://github.com/rfkm",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ5Nzg1ZTI5YTg5MTlmYzhhM2Q1MzJjMWMwNTllN2IzOTBhMTlhNTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:02:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAA6RLA",
+				"user_database_id": 954668,
+				"user_login": "yicrotkd",
+				"user_name": "yicrotkd",
+				"user_url": "https://github.com/yicrotkd",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1MTM3OGJhMDQzZmFjZjk2MDM4NGUzMGZhZjIwYzgzNWI1YzlhNTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T10:20:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAE_tw",
+				"user_database_id": 81847,
+				"user_login": "claude",
+				"user_name": "Claude",
+				"user_url": "https://github.com/claude",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQxN2IxYTYxMDliNWMwMzc5MTc0NDc1NDI2MjIxNTE5ZWViMWEzNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T15:49:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUxZTE1ZjIxYjExZDJhZTNjMWRlYjAyNDQwMmMwOWZmMmFlZGRmOGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T08:17:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRmNzZhNjRhYTRkZGI1MGI1YjZhMzg4YWU4ZDY2ZDYwYzZlZDgyM2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-24T16:43:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGExZTk2NzkzZWY1ZTkyNTJmZGQ5ZjdlMjU1ODlhZDNhNTAwYWUyMzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-03T12:17:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZlNDgzMGUyOGJiOWI5YzA2MmQ4YWQyMzVhZGM1NzRjN2QzMzk3YTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-02T14:03:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEwYTFmZTRlOGRkYzliODRlMDFjZWM5NTVkYWIyZDNlOGYzMDlmNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-02T08:33:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVkMTMzY2M4MDE5YThjZTgzODMxNjY4MGJkNzVjN2Q5NzVkMGY1MmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:48:36Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAyZTdlZTA5NDVjOWQ2YjU2YjgyZWYyNTQ0Y2NlYmVkNjZhZTdiMjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:41:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2OGU5ZDhmNzY0NDkyMzBhYzFhMTVlMjIzOTIwYmFiMmMzZTgyZWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:21:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0MTRhZWZiYzg5MGJjMzFkZWNhZmM4YmE4M2U5MmExZjAyOThkNGU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:06:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5NjFlM2Q5YTk3M2Q5ZGRiNDM4ZTFjNDg0OTdjY2FkMzJlMTlkZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:57:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEwYjllMzg2MDQ3YmI4ZWUxMzA0ODM3NGRiNmExYzViNGZjNWYxZWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:11:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkwNzY0ODA2MDcwYjZlYzg4MDMwNmM4OTdlODE3MDYwOWE5ZmE1MjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:11:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNmMmI4OTdlOTRlNjRiZWU1NmY4OWIxM2IyYmM3OTg4YjIwZGQ5ZmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T03:39:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiZWY1NzY0ZmY5N2Q5MGM1ZDg3YzNlMzZiZmIzYWFkNTYwNDJmYmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T03:23:58Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwN2Y2ZDlhODFlNWNlMjMzNDdjNjk1NGI2YjdhMzJmYmNhZGQyNDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-29T00:58:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI3OTEwMzdlNmEwZWYzYzFkNzhkZjVjZWU3YTA2MDkzMzZlYTRlOTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-29T00:45:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMzY2M3NzlkMjkyMzYzODdhN2MzN2RiYmRkODJiMTJhN2E4MDM4ZDc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:07:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVjOTY3NDBlMzhjMzI2NTkxMWU3Yzg0NTVmN2ZhMzY5MDJhZjA4YTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:04:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5OWFlZDliYWYzMjhjODM5MTYyNjEyNWViMGM2ZjRmNDQxNzFjMWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:04:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZjMGJjYmZkYjFiNTQzODRlM2I0MTMxNjBjMWIxYjFkYTc1MmEwMGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T17:02:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM4Mjk3YWIzOGY2MGQ4MjVlZWE2ZjE0ZWNjNWNhZTNlMmFiNTlkYWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T17:02:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE0NGRiYjJiN2QwNTVkYWYzMDc4NTYyMzRjMzliMDdkM2RmNzQ4NzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T14:48:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc4Yzg2ZWI3M2FiMDc3ZGU3MzgzM2I4YmNkNzZiYTlkNDUyZTVmYWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:41:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQzMzFlNTljOWU5OTk4MDc5ZDU2ZjA2OTIzYmNhMzBjOWJjMGU5Y2M",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:41:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM0YTM0NmQ4NGRjZmIyOTcwMWIwZDdiYTcxNTYyOGZjZWI3Yzk1MmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:40:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAxZDAyYzM0MmE0NjZhZGQ5YmFlYzllMzU1MzQ5MzY5Yzc3N2MyNzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:33:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNhNzU0ZjU0MWRjMGQzMzNjMDJhNGQyY2EwNGEzZmY4MjY1YmEzOWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:29:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2NDM3NjEzZjJmODVlZTdiMTA5MTJhZGQxOTYzY2FhYzVlYzdlOGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:28:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNjZWJjYjgxZDJmMjAzY2NiNjU1ZjI1MmZiNDQzYWIyY2I0MDBkNDI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T23:59:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE2YjU4ZGFmYTM0NGQyMjU4ZDAyNzdjZmQ5NGVlZWMxOWFhODk2ZTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T12:31:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhOWI2ZTAzNjk0MmMwZTZlOGEyN2M1MzgyZWMyZDhiMTIwOWY5MDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T12:01:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZiNTRiNDNhMTU3OTkxY2E4ZTRkNTdkNjVlNmRiZGIyOGJiYzZlYzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T08:42:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdiOTAwMGNkMmFkYjU0NzY1ODM2OGI0MWJiZTMzOGM3ZWFjZTY3ZTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T02:59:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI5Mjc2ZDAzZmQwNzA5N2I3MDQyNDIzNTUzYWFkMzFiODhkZDI4Yjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:35:24Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRhNjhlMGY4NDQ4MWU5MTZjZGRlNDhlOTIxOWE2ZjhkNDNlMzkyNTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:29:25Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4OWYzZDMzYmM4MDUzZjkwMWUyYWRkYTRjOGM2ZWVlMWNiYWU3ODA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T14:50:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVjYzA2Mjc5YWYyMzgzYTFkOGU0NTU2MTk4NmUxNDFiYWU5OTg5MWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T13:53:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkyM2ZiMDcyMTI0NDc4YjY4Y2VmYzA2MmVkOWMyYWQzYTQ2ZDJmMDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T13:01:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhlMWE3NTZhYzdjMTc5NzBiZTI4YThiOWE0MGEzNmIzMzA1YmQ2Mzg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T01:08:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDk0NzBlMzcxNTA5ZjcxNWZhZDdiODgxYjVlNDM4MjE4NWNjNzM2OWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T01:03:03Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFjM2I3ZDQ4YzM4YjdmZDE5YzE0NGY2NGM0MGYyNzhjZTRhODhlZDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:53:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY3OWNlNTY5MmM1NWZlYWZjZjU5ZGIyMWY5YjVhZTg0MThmNTM4MzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:46:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhYWU4NzI2ZWRjNmYxMDk2NDE4ZGI0NmE5ZmE0ZWQwNmZkYjk2YjA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:34:58Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMxOTNmN2Q0MWRhZDVlMDhlNGY0NzEzYjNiOWQ3MWEzYTljZmVkMWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T11:00:03Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNkYTc4YzFkZGQwMzAwZTU1ODEwNWFlYTZhNzI0MTk5Mzk4YWExZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T10:49:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ5ZDJiYTk2YWM1ZTI4ZjEwNTRiMzQ2ODYxMmUwZjUxOWJkNmQ4NzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T00:17:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNkNTI4NmY0YmJkZmJhNmQ3MjJjYjQ4NWY2YjU0NGJhMGViMjMwNDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T00:01:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFkMWY2ZGFkOGRlYjFiMzdkNmRhNWYyY2I4MWRhMjU1MjEyODJkZmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T00:14:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc0ZjE1M2RiOTUyYjljYjA3MzJhYjFjMWFjYjQwZmIxZWI1MjE3NTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:44:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNmMjQ1NWU1OTY1YzJjODY5ZDRiNzhmNDA1MjkzMmJjOWQyNGQ3ZDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:40:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDg1ODIzY2Y1MTRiN2ExOTJmYThjZTU4MTg3YWRiM2Q5MzY2MTlhYTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:33:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBiOGFhYTM3ODgzMjMzMGY1OThlN2U2YWY4NzBmODg2OWQyZGZiYmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T11:23:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYxYzc3ZjFiZDg2YmIxMTBlZjAwNDY3NmU0OGY5NGFkNTdkYmJlYTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:46:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgzMWJhNDliNTEyZjc3OWE0OGYyOTMxNmQxOTdkMjA4NzMzMTJjYzc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:43:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVhNzBkZjM3ZDE3NmU4ZWNhYzEyM2VmN2QwMWQ5YWM0YzJmNWRlYTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:26:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEzN2MzNGZkYjBjY2ZhYzkxYTQwZjRmNDhmNDA3NWU5YTRlYzRlZTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T15:14:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVlODgwZmYwOWMzNmQzNmFkZDQwZjlkNWY1MGY2NTE3M2FlNGNhOTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:54:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNiN2VlM2MzMzQ4Zjc4NTQyMTUyNDU1ZTRmZTBiZmE4NDFlZWY3ZDQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:09:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU1ZWQ4N2YyMzhlZjc1ZjBmNjU3N2NlZjY5NzljZTE3ZDZkNjRkZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:00:00Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ4MjczZWEzOTg0YThjMTE3Y2ZmNzk2YjYwNWNkNDQ0YzIwYmJjZWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:54:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBkOGJiNDJhYmU4ZTc1MWIwYWJiNGMyOTdkNWY5MDdiM2Y3OTBkMmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:49:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM0YTQ1ODdkZmY1NGEwMTc2NTJhYWIwNDI1OTMyMjgwOTAzNjJjNmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:23:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUwZTI1NTgwOTFjY2U0NzQxMDU2ZDhkZDNlNzIxNDlkM2U4ZmU1MDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:23:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4ODBmMDA2MmJiNGQ4ZDY1MjI5ZTE5ZTA3NzQwYTUwODIyZDc0OGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:13:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM1NTNmMGE5MTZjYTllODllYTFjYWMyZDdlOWU3NTg4MTZhMjE3NzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:34:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM1Y2M4N2VmNmZjYmNkMjM2MjllMDUyY2YwMjhiZGZjMDE2YWI3MGI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:28:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0YjAzMGI3ZGIzZjdjM2YxODUwZmJhNTBhZDM1ZWNmNDBhOWNmMGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:14:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGExYzkzN2U1N2UzM2I4MjcyYTg5Y2ZjYWQ2MTFhNzhiZTRjOTFjZjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-07T09:56:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRkYmJkNGFmZDBhYzlmNTBkYWRmMGM4NTAwYzA0YjRjYTRkMWE2MzQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:32:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDliNDlmNmE4NDgxNmU4NDA1MDYwZWM2NGI3ZmYxZjQzMGQ2YWYxN2Q",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:27:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ1OTBhYjJjN2FiZThmYmZmZDNjMzNmNWJjNmU0Nzc5NmRiZGJmNWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:19:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlhMGFjNDAxOWZlYjgyNWViYTUzZTk3ZTZhMTYyYTQzYTljMWY4NjU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T11:00:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0NjYxMTQ3ZWFkOGRlZmQwODFkNDViYjZiN2ZhZDRhOGY3ODk4YWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:57:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ5YTdiYjMyOWI0NDZkZjBlOTVmM2RjOTVjMGM0YzAyMmY5NTM1Mzc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:55:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwM2M1N2E1ZTExYmYzNmVlZjM3MGMxMjJkN2Y4NTNiYmM0MmYzOGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T00:44:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFiYjYyOTBkYmIwOTNkNzQ5YjgxYWQ1Zjc2MzNhZWY1ODVjYjdlNDA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T00:27:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE2NjAyZWI4ZjJhMTI4ZWVkYTlhZDIzMzJhMzkxOWI2ZDhkNWQwYzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T23:12:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRkNWU2ZDFiMDk4MjM4YjE1NzQ1Y2E5NGRlYzE5ZDkyZTIzNGFjZWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T13:21:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1MTM3OGJhMDQzZmFjZjk2MDM4NGUzMGZhZjIwYzgzNWI1YzlhNTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T10:20:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0YThlZTFlNDE4MjcwMWQ3NzczODA5Njg0ZDA4MTQ4MjMzNjI2OTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:32:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZmZmMxNzY2MTA0ZDlhNjM0NTliNDBiYzEwOGRkOWFiZGFkNTNlN2I",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:14:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2ZjA1NjhjNmY1ODgyM2I4MjhmMTY3MjM3ODA3ZDQ3NzM3M2Q4ZDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:11:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YmRiYzJkMDlhYzlhOGQ4MzRhM2M5YmY4YjU4NGU1YTgyMTFmZTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:48:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFmZGYwZDU1OGFiMzBiMWRiOWQ3ZDFmMDZlMGU2MDY5ODNiMDc4NGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:43:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRiMDM1YjkyZDFkOTk2YTRiZGRjZTE5YjJjODE4ODI2MTJmNzc0ZTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:43:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFhZTBmMzIyZmUwYTMwMmE1ZDBhZDc1ZDRiZWYxMTAwYTg5ZmRjOTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T23:39:33Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIwNjBkMDEzMzZhM2YwMTY4YjIwMGY5NmMwNjRiZmQ3Mzg0M2NiMjk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:08:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY1YzlkYmIwM2M4NjdlMzQ5Y2NlMTQwMTdkMDQxMTI2MTUyZjI3NGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:02:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU4ODMwMjUzODRlZDk4NWQ5MjAzY2RhZTJhYWYxMTU3NzViYjczYjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:38:59Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGJkNGI3NTEzZTA3NWI1YjI0NTI4NGMzOGZkMjM0MjdiOWJkMGY0MmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:34:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5NmYxMTFhMGRiNjJiMWE1YWNhNWFlYTgzNjAzMTA5ZjhkNmY1MDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T08:49:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4NzA5MGMyMjQ3ZTVlY2Y2NjVhZjRjYTk4MDU4NGZhNTQyMmVhNmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T05:11:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI2Mzk3MmQxN2Y5MDM3OTQ5NDdiNDAzODVhOTc0MTIzMWFmNjk3ODQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T05:03:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM5NmI5MTI5N2FjNDc3ZWM4NDA3MDg0NGQ4NWVjZjFkMzYyM2I1MjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:54:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU4M2RlZGZlY2Y4ZjA0MmZjMGEwN2I0NTg5ZWE2NDczYjg0YzM3YjQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:37:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI1MmM5NzU2Y2UzNjMzNWY1YTI0NmUzOTU0MmMyMzViYjU3NjBiNTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:35:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFiNzZiNGFkZDM1ODBmYjI5M2YzOTMwMjM5NDJlNzBkZWFhM2U4N2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:06:20Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2YTc0NGIxNjRlNmQwODk0ZGM3NzcxYmY4MGVmNTQyYmUzYzhiM2I",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:02:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdlODBkMDI0YTg5MTZjNDZiNmEwYzM2YTM4YzYyYjYwYzRiYWI2NTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T03:54:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDczMjY1MTBkZTk1YzZmMDA0YzM0ZTc2YzZkNTM1ZDJmZjFhMDM0MmE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:57:00Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwNmY1MjgyZTFhYTI1OGM1NTU5ZWVhZDc4MTQ1ZDJlY2MwYTAyZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:29:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ3YjY4MGVmYTMyYzA0NWI0YTI1NTMzNWFhNGY1NDQyMjk0OGU5NTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T23:31:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhNjc1YTRjMGVhZTI0NWI1MWRmYmYyZmQzZGFjZDQ0Nzk1ZWVjZTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:23:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjY2I2MzZjNDk5NjdkOWNkMGU4Nzc5M2YwNmNkZWU3OWI4Zjg0MzQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:23:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkwYWEwYmJlN2IxMDc2MmE1ZjBiMGFiMDgwY2MxMzJlZjBhYTMyNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T12:53:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUxNzk5ZGY0YTA3Yzk1MWMyMjQ5ZjQxZWFlYmJlNmJkZTlmODY4ZjA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T12:42:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEyMTJiNGVlNGI0NGRiYTcxZGI3YjQ1NDY4ZTc3ZWJhYTE1NjFhZjk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:37:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2ZmY3YzYyMWI5NWViMTJhMDFlYTRmMmY2YWZmMDYwOTFjNzYwYjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:27:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY1MjcwMzkxNTM0ODZiOGNiYmNkMGI5NjUxNGEzM2U0Yzc5NGI4N2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:25:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdjNTAwY2Q1ZGMyMDU1ZjkwZmIzNjJlYTZhMzljMjEwMGUwZmQ2NzU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T09:01:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRiNzYxMmVkZjQzODg3NjI4NGViZjY3NWNjNzNkOGE3YzA3M2QwYzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:55:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIxNzQ0NWFkZDgyODU4NzI3ZWI1ZDYyNTg4NzEyYzIxOTE3YTJmNWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:55:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGMxMDRiMzc5YTFiOTQ5ZDg3YzNmYzA1NDExZjc5NjM0ZWE1MGQ4NWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:43:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiNGUwMDg0YTIzZDRmZTEzMjRhODU3MTVhMjkyYTlkYTMxMzkyMmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:20:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiNDFhNzAwMDUxZThjZWNmNDBiYTM4MmYwMzM2YThlMTQ3ZTYyNzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:15:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFlYTYyYjg4NGFiNmQ5MDY1NTBmN2MwNGY0NTI3NTk5ZDRmYTExZTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:07:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjZjg2OTg0ZjY1ZTdkNWZkMWRjNjg1MzNlNzBjNjU0ZDAxNjMwOWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:01:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZiNDUzZTRlMmQ3MGYwMGJlOGNkOTVkNDQyYTk5OTljNjg5NGFlNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T00:19:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGIzMTM4Mjg3ZTE3MjViM2IxYzE4NDMzNzU1NTZjMmRkMDc4NTczMDQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T00:00:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRmYmRmM2Q5MTE3N2FiYjhmZDhlMDVhNjE2YjJhYzJjNDY1MzExOGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:58:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUzODg4MmVkNjFmOWRkMmUzNDgxMTE2ZWI4YmZjMWQyNDA0NGVmNGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:53:24Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI4N2QyMTAzM2Y1NzU3YmFhMTQwMTRkZWRjMWFiM2I0MWUwMmUzZWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:51:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc4YTI2ODI0ZGM3ZDBhZTY4NjcwNjZkM2U4YjQ1ZDEwODE3NzM4OWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:48:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM3OTcyMjI4YzU3MDE3NTU2NDYwOTZmMGYzZThmYjQ5NTNjNWMyMGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:43:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE4NGE3YTc2MmMyOWYxNzI0MGMxOWMwNTg1NWMxNGY4ZTljZjA1ZGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:28:59Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVhNmEzNTAzM2VmNTk5NzIyZDc5NzUxMTE5NDZlYjZhODdiOWI0MGI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:23:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRjNDY1YWY2ZjM5ODM5N2Q5ODc0MGJlNWQzMmIwMDI2MGUyNjhjMmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:22:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgzZmJiMGQzNjhhMGFiOTM3YjQ1M2RkYzU2YTRhYWQzNjgzOTE1N2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:20:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYyYTk0MWZmYWYyMWY5YmQzN2I1ZDQwMjFlOWI3MTAyOWI5OWJkYWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:14:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1NmRkODFmMTdiYmRhZmZjN2ZmMDJiOTY5NDY1YzdlODRjMWVlNGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:08:02Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ5Zjg2NGU0MzRiY2I0ZDQxZTNhYzE4ZTUwZDFlMjhmODY2MzA1YTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:03:36Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY4ODRjMTMzNzQ4MTk5YTU1NDMwMjU5ZGY3OTU4YTg0ZjMxNzU4OGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:02:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZmM2VjMzI1Zjg2MTdiZGEyYjQ3NmRjNzVmNDM5Yzg4YTY4YjJmOTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:51:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFiYWQwNjA3YjQ5NjNkNTNmOWUzMTU2MzYwNDNlNmJiNTBiNzBmZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:45:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZiZDRkMzM2MTgxNDViZGYyZDVhNzVlYjUyYWY1MmRmZDk0MWY1M2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:40:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5NjFhMzlkNTU3NDc1YmY0ODNhMDZlZTU1NzhiMzEzMjkyYjQwZjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:40:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2MDczOGM3OTg1YmU1M2E1YjRkMjFlN2NlYzkwZDVkMzI3ZmFkNjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:39:46Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI3YmI3NzcxMGE2MmFmMWE0OGE5YzNhMWM2OGY3NGNjOTMxYjcyZDc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:22:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDUxNTJjZDYxOTdmZmNkODNkMjQzYzEyMGJlYzk5YTc2NjEzNTJjYTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:53:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZkZjhkODE0MzZiZWIzYmVhYmE5YmJmYjlhMjFmMDI2OGU2ZjMxYjY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:50:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1YzJiYWZjODhlYjIyYjljYmUzZDI5OGI3MTQzNzAzZGU4NmY5ZDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:14:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYxY2YzYTY0OGQyNTg3NjBmMmE1NTFlZGU3OWI3Y2RlNGJlY2Q3NTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:40:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY5YzJkNjI1MGMwNTg1ZTA1NmRmNzk0OWNmMzYzZDBkMGU0MzJmM2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:36:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YzdkNDczMjM2YTk0NjgzNjhkNTUwMGU5NGMzNGM3OTU1OTg2MTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:34:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdlNzA1ZmE2ZTdjYTIwZjdmNTUxOThkMmUwMGFiZjU1MjlkNDZhNWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:27:14Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMxOWU2OWY0NmU2YTMyM2I2NGJjOWFkMTc5N2QzZmI0MmFmMDUzMTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:20:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDllMWMxZDJlMDQxNWVlMmRhMTRjZGRlZTJiN2IzNDE5MzUxMzQyMGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:18:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM1YWZiNDk3MGM0ZDBjYWVlNTI2MGJlNjFlYTY0NGFiZmVjZWMwNDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:18:14Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDllNDNhNmE2ZDA1ZWY3MjI3Y2I3MWJkNDFkZTFiOWJmY2YwYjdkYWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:08:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNhMzFmOWYzYjMxNzMwZWJlOTA1OWExMmM1NjVlYjQ5ZmYxMjVmZmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:55:02Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjMmQ1OTc0Zjc4YmEwODEwZjA4OWNiZTFkYzVjYTdmNTc4NzE2MmE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:40:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YzAyYjVjZTIxODhjNzdhMjYyNzQxMTJmNmZmYzUwMTE0OGUzMWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:31:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhhODFjMDA5ZmU5YTQ2ZWE5NDZkN2Q1YjczNDAzODM5ZGY2MjgxZGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:44:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEyMzljMTIwYWJiNjIxYmVmN2JhN2MyOGFhOGZmMDQwNDkwZjE1ZjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:19:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE1ZTI2ZmU4ZGJlMDYxYzRiN2MwMGZhMTAyZGI1MzMxMmJlYTc5MDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:16:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVkNzZkOGU2MjA0ZjJlOTYyMWIyMzdlNGNlNDZjM2Q3YWFhYjBiZmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:10:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMzMTM0Yjk0MjI2YmNhMWZlNTBjYWI0MDE1OWVkZWRkZDRmNzU1MzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:08:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZiYmZmMGY1ZDE0YmUyNDNkMjMyMDBmOTM5YTQ3MTJkZjRlZWI2MzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:06:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM3NzlkMDkyNGIzMGZiZjM4OGY1NDVlMTQzZDU4OTg4ZGQ4YjA2NTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:02:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUwODQ1ZTc2NmM5ZGU4OTNiNDVhYWNjNGMwZTk4MGRiNDdmY2JmOWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:01:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI3MTAxOGQ5YmM3MDkyMDY0ZDFmNDE3NDFhNzAwMTRiNmQyYmM2MTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:01:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEzYWZiYTk2MDIwNTA3MjllOTcwNTVjMzg0ZDZjZjQ4NTk5ZDNkZDE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:38:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRiMGJlNThlZGRhODI4Yjc4YjgxYTU2ZDViYjlhNGFkNmQyZjAwMTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:32:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDA2YTZjNjZiNDFiYjI4ZjEyZjQ4MmU4YTYzZjAzMzI5NDA3OGQ0YWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:10:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGIwOTkzMzhiNzQwMDJiMTY1NGJiOGFiMDIzOWQzZWMzNjAyNTBjMTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:10:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAEg6g",
+				"user_database_id": 73962,
+				"user_login": "mizchi",
+				"user_name": "Kotaro Chikuba",
+				"user_url": "https://github.com/mizchi",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEyMTJiNGVlNGI0NGRiYTcxZGI3YjQ1NDY4ZTc3ZWJhYTE1NjFhZjk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:37:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAANg6g",
+				"user_database_id": 221418,
+				"user_login": "emcd",
+				"user_name": "Eric McDonald",
+				"user_url": "https://github.com/emcd",
+				"task": [
+					{
+						"task_id": " ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T08:17:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUxZTE1ZjIxYjExZDJhZTNjMWRlYjAyNDQwMmMwOWZmMmFlZGRmOGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T08:17:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAfVdA",
+				"user_database_id": 513396,
+				"user_login": "umiyosh",
+				"user_name": "umiyosh",
+				"user_url": "https://github.com/umiyosh",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU4OTJiOGNlOTM1M2EyNjVlNmU5MTVmOTI4MWU4ZjU1YWYwYjZhMGU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T23:14:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAAzbWw",
+				"user_database_id": 842587,
+				"user_login": "hatayama",
+				"user_name": "Masamichi Hatayama",
+				"user_url": "https://github.com/hatayama",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNhM2ZkMmE4MDFlMGVlN2M2NzljZGQ1MDMyOTUyOGJmOGI1NDExOTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T13:52:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOABON5Q",
+				"user_database_id": 1281509,
+				"user_login": "tsumuchan",
+				"user_name": null,
+				"user_url": "https://github.com/tsumuchan",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlhMGFjNDAxOWZlYjgyNWViYTUzZTk3ZTZhMTYyYTQzYTljMWY4NjU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T11:00:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOADnwRg",
+				"user_database_id": 3797062,
+				"user_login": "haya14busa",
+				"user_name": "haya14busa",
+				"user_url": "https://github.com/haya14busa",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE5NTYyM2ViNGYyNzg4MTYzNzIwYWQ1MmYxYWM0N2Y2OTkwNDJjZWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T03:16:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwN2Y2ZDlhODFlNWNlMjMzNDdjNjk1NGI2YjdhMzJmYmNhZGQyNDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-29T00:58:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI3OTEwMzdlNmEwZWYzYzFkNzhkZjVjZWU3YTA2MDkzMzZlYTRlOTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-29T00:45:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE0NGRiYjJiN2QwNTVkYWYzMDc4NTYyMzRjMzliMDdkM2RmNzQ4NzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T14:48:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc4Yzg2ZWI3M2FiMDc3ZGU3MzgzM2I4YmNkNzZiYTlkNDUyZTVmYWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:41:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQzMzFlNTljOWU5OTk4MDc5ZDU2ZjA2OTIzYmNhMzBjOWJjMGU5Y2M",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:41:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM0YTM0NmQ4NGRjZmIyOTcwMWIwZDdiYTcxNTYyOGZjZWI3Yzk1MmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T13:40:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAxZDAyYzM0MmE0NjZhZGQ5YmFlYzllMzU1MzQ5MzY5Yzc3N2MyNzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:33:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNhNzU0ZjU0MWRjMGQzMzNjMDJhNGQyY2EwNGEzZmY4MjY1YmEzOWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:29:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNjZWJjYjgxZDJmMjAzY2NiNjU1ZjI1MmZiNDQzYWIyY2I0MDBkNDI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T23:59:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhOWI2ZTAzNjk0MmMwZTZlOGEyN2M1MzgyZWMyZDhiMTIwOWY5MDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T12:01:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkyM2ZiMDcyMTI0NDc4YjY4Y2VmYzA2MmVkOWMyYWQzYTQ2ZDJmMDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T13:01:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAFXc7w",
+				"user_database_id": 5627119,
+				"user_login": "arayaryoma",
+				"user_name": "araya",
+				"user_url": "https://github.com/arayaryoma",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI0MGYxMzdkZGM4NDgxNTQyYzFlYTk1ZDlmNDRmMjFmYTA0NTU5M2M",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T23:19:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAGgcCw",
+				"user_database_id": 6822923,
+				"user_login": "yoshiko-pg",
+				"user_name": "yoshiko",
+				"user_url": "https://github.com/yoshiko-pg",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVmMzMzMmJkYWZhOTI5NzMyZGFjZWMzZGYxYjJiMmNiZTc4MWRjMzg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T16:33:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQxN2IxYTYxMDliNWMwMzc5MTc0NDc1NDI2MjIxNTE5ZWViMWEzNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T15:49:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ1ZTg4ODQzMTI1ZGQxZjZjZTkyMGJlNzg5OWI2NWMxMDVmZTFkMzU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T15:38:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFkYmM3NDYyNjA1MjEyYzJmYjEyZDU0ZDdlZDM5NGJlYTI3NTE5OGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T15:33:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAzMWM4N2M0ZDU5N2VjZTViZjdmYTdkYTg1NzMwZTg5ZmQ0ZDRiZTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T15:28:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUzNWIzNzE0MjE1YzNlM2MzZWJlOTY4MmZiNGYzMzhlMDNlYzEzODY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T14:00:12Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIxNDA1Njc5ZWMyODllMTY2YmEwOGNlNWExOTdiMjhkZDQ0MGJkMDQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T09:59:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE0OGEwZWQyMGRkOWM1NzgzZmUyYTkzYjNlYTg0N2IxOGQxYmUyYjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T09:43:53Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDk4N2Q5M2JkMzk0MzQwMTAzYzU1MjM2NjEyM2JlZDlkNTVkZDM0Yzc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T08:47:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDcwMjZlNjFkNDFhMjZlMTQxZmViYWNkMGE0ZmQwMDYzOWRiNWQwZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T08:47:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIzMjBhOWZhZjZjZTQ5NjNiZWE1NDdmZTg0YmNmNWFlMzNhNmRmYTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-26T11:10:36Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZlMDBlYzRmMTljMTM0N2JjYWExMDMzZTdmNDUwYjhiN2RlNGYwY2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-24T23:56:00Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRmNzZhNjRhYTRkZGI1MGI1YjZhMzg4YWU4ZDY2ZDYwYzZlZDgyM2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-24T16:43:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBjZTc1MTI2Yzg0YjVlYzIwNDllNGI5NWRiYzYyNDFkNjQ0MzVkZDA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-06T16:10:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYxN2UxZGI0NjE2NTc0NzVkZjIxZTJjODM4MTUyYzUzYWQxYmE4OWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-03T12:27:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGExZTk2NzkzZWY1ZTkyNTJmZGQ5ZjdlMjU1ODlhZDNhNTAwYWUyMzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-03T12:17:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZlNDgzMGUyOGJiOWI5YzA2MmQ4YWQyMzVhZGM1NzRjN2QzMzk3YTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-02T14:03:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEwYTFmZTRlOGRkYzliODRlMDFjZWM5NTVkYWIyZDNlOGYzMDlmNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-02T08:33:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVkMTMzY2M4MDE5YThjZTgzODMxNjY4MGJkNzVjN2Q5NzVkMGY1MmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:48:36Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY0ZmI0NDNjNzE5NzFiZTA2ZjkyY2VmMWFhYWI4OGZlY2NlMDgzOGU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:43:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAyZTdlZTA5NDVjOWQ2YjU2YjgyZWYyNTQ0Y2NlYmVkNjZhZTdiMjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:41:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2OGU5ZDhmNzY0NDkyMzBhYzFhMTVlMjIzOTIwYmFiMmMzZTgyZWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:21:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0MTRhZWZiYzg5MGJjMzFkZWNhZmM4YmE4M2U5MmExZjAyOThkNGU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T05:06:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5NjFlM2Q5YTk3M2Q5ZGRiNDM4ZTFjNDg0OTdjY2FkMzJlMTlkZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:57:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEwYjllMzg2MDQ3YmI4ZWUxMzA0ODM3NGRiNmExYzViNGZjNWYxZWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:11:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkwNzY0ODA2MDcwYjZlYzg4MDMwNmM4OTdlODE3MDYwOWE5ZmE1MjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T04:11:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNmMmI4OTdlOTRlNjRiZWU1NmY4OWIxM2IyYmM3OTg4YjIwZGQ5ZmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T03:39:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiZWY1NzY0ZmY5N2Q5MGM1ZDg3YzNlMzZiZmIzYWFkNTYwNDJmYmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-30T03:23:58Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMzY2M3NzlkMjkyMzYzODdhN2MzN2RiYmRkODJiMTJhN2E4MDM4ZDc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:07:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVjOTY3NDBlMzhjMzI2NTkxMWU3Yzg0NTVmN2ZhMzY5MDJhZjA4YTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:04:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5OWFlZDliYWYzMjhjODM5MTYyNjEyNWViMGM2ZjRmNDQxNzFjMWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:04:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE5OTllMTU1NjQwMzNmOWYwOGI4OGJjODc3ZDUyNWRiNzA4ODFmNDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-28T01:04:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZjMGJjYmZkYjFiNTQzODRlM2I0MTMxNjBjMWIxYjFkYTc1MmEwMGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T17:02:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM4Mjk3YWIzOGY2MGQ4MjVlZWE2ZjE0ZWNjNWNhZTNlMmFiNTlkYWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T17:02:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAzMzc0NmU1MjU0YjBjMmM5ZDE0MmQ5MDM3ZmU0ZWMxODNmOTQ5ZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T16:30:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU5MzI0NDc3NzRlZDkwN2Q0ZjU1NDU2MDBlYjVhZWJmY2NlNWZlYTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T16:06:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2ZTQ3MDg2MzBkMTNlYjk0NzY0ODFlZGM0MWMyMTkxZDY5N2Y2OGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T15:59:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYxZmViOTc5M2IzOTc0ODgyMDZmNDBhOWEzMzc4YWFiNDdiM2U1MzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T15:49:38Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQxOWY4YWI4ZDFlNTlmMTU5Y2I2ZTRkYTY0ZTg4YTE1ZWM2MzIwNTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T15:37:38Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBmZWUwMzYwNjllNTFjNzljZmM5ZjI5NTllM2Q1NzY2M2EyZGY1NDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T15:26:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc5YjM0NDFjNWRhNjJkNzY4OGI5MGIxMmMxMzU2OGJkMTdkZDg5Zjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T14:48:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE2YjU4ZGFmYTM0NGQyMjU4ZDAyNzdjZmQ5NGVlZWMxOWFhODk2ZTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T12:31:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZiNTRiNDNhMTU3OTkxY2E4ZTRkNTdkNjVlNmRiZGIyOGJiYzZlYzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T08:42:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdiOTAwMGNkMmFkYjU0NzY1ODM2OGI0MWJiZTMzOGM3ZWFjZTY3ZTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-21T02:59:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI5Mjc2ZDAzZmQwNzA5N2I3MDQyNDIzNTUzYWFkMzFiODhkZDI4Yjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:35:24Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRhNjhlMGY4NDQ4MWU5MTZjZGRlNDhlOTIxOWE2ZjhkNDNlMzkyNTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:29:25Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwMDhjM2Q5ZThiZDk2OGVjNDk3MTcyNzQ3ZTQ2YjBmODRhMmFiM2Q",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:19:38Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgyOWJiMzE5MWQxM2RjZDUxNDJhMmExNjVjOGY0NDU4OWMyY2RiYmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T14:52:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4OWYzZDMzYmM4MDUzZjkwMWUyYWRkYTRjOGM2ZWVlMWNiYWU3ODA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T14:50:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVjYzA2Mjc5YWYyMzgzYTFkOGU0NTU2MTk4NmUxNDFiYWU5OTg5MWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T13:53:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhlMWE3NTZhYzdjMTc5NzBiZTI4YThiOWE0MGEzNmIzMzA1YmQ2Mzg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T01:08:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDk0NzBlMzcxNTA5ZjcxNWZhZDdiODgxYjVlNDM4MjE4NWNjNzM2OWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T01:03:03Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFjM2I3ZDQ4YzM4YjdmZDE5YzE0NGY2NGM0MGYyNzhjZTRhODhlZDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:53:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY3OWNlNTY5MmM1NWZlYWZjZjU5ZGIyMWY5YjVhZTg0MThmNTM4MzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:46:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhYWU4NzI2ZWRjNmYxMDk2NDE4ZGI0NmE5ZmE0ZWQwNmZkYjk2YjA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:34:58Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRhN2JmZWY1NzRkYzAyMzUxOGIwYmE0NGM1MGNjMDRlOWRiMDZjNzE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-17T00:05:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMxOTNmN2Q0MWRhZDVlMDhlNGY0NzEzYjNiOWQ3MWEzYTljZmVkMWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T11:00:03Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNkYTc4YzFkZGQwMzAwZTU1ODEwNWFlYTZhNzI0MTk5Mzk4YWExZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T10:49:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ5ZDJiYTk2YWM1ZTI4ZjEwNTRiMzQ2ODYxMmUwZjUxOWJkNmQ4NzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T00:17:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNkNTI4NmY0YmJkZmJhNmQ3MjJjYjQ4NWY2YjU0NGJhMGViMjMwNDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-15T00:01:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDAxYjcyNjUzOThhNzM2Y2U4NjU4NDM2MjdkM2M0M2NiNjhjOTdlMTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-14T07:53:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDg4YjE3ZmI1NDNlYTYwZGVmMjg2NDQ5MjBjYzgxYjQ3YmM2MmZhODU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-14T07:51:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU0NmMyOTUwNDM2NDNlNDJmYTQ4ZDI2Njk3NTgxNzg1YjMwYTY5ODQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-12T13:48:19Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgwMmRjMjFmNWRhODNmYzkxNWVlNTVhOWU4YjczY2E5ZmM0ODE1YjU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-12T13:38:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFkMWY2ZGFkOGRlYjFiMzdkNmRhNWYyY2I4MWRhMjU1MjEyODJkZmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T00:14:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc0ZjE1M2RiOTUyYjljYjA3MzJhYjFjMWFjYjQwZmIxZWI1MjE3NTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:44:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNmMjQ1NWU1OTY1YzJjODY5ZDRiNzhmNDA1MjkzMmJjOWQyNGQ3ZDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:40:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDg1ODIzY2Y1MTRiN2ExOTJmYThjZTU4MTg3YWRiM2Q5MzY2MTlhYTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:33:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYxYzc3ZjFiZDg2YmIxMTBlZjAwNDY3NmU0OGY5NGFkNTdkYmJlYTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:46:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgzMWJhNDliNTEyZjc3OWE0OGYyOTMxNmQxOTdkMjA4NzMzMTJjYzc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:43:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVhNzBkZjM3ZDE3NmU4ZWNhYzEyM2VmN2QwMWQ5YWM0YzJmNWRlYTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T00:26:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEzN2MzNGZkYjBjY2ZhYzkxYTQwZjRmNDhmNDA3NWU5YTRlYzRlZTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T15:14:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVlODgwZmYwOWMzNmQzNmFkZDQwZjlkNWY1MGY2NTE3M2FlNGNhOTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:54:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNiN2VlM2MzMzQ4Zjc4NTQyMTUyNDU1ZTRmZTBiZmE4NDFlZWY3ZDQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:09:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU1ZWQ4N2YyMzhlZjc1ZjBmNjU3N2NlZjY5NzljZTE3ZDZkNjRkZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T14:00:00Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ4MjczZWEzOTg0YThjMTE3Y2ZmNzk2YjYwNWNkNDQ0YzIwYmJjZWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:54:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE2OTQwYzUxOWRjYTg2YTE5YWU0OTcxY2U0ZmNmMDA5ZmIxNGNkYzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:52:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBkOGJiNDJhYmU4ZTc1MWIwYWJiNGMyOTdkNWY5MDdiM2Y3OTBkMmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:49:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRiM2ZhZGFjYjU3NDQ5YjU3NThiY2ExMTExNDViNzBmOTVhN2RhODA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:45:55Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM0YTQ1ODdkZmY1NGEwMTc2NTJhYWIwNDI1OTMyMjgwOTAzNjJjNmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:23:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUwZTI1NTgwOTFjY2U0NzQxMDU2ZDhkZDNlNzIxNDlkM2U4ZmU1MDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:23:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM1NTNmMGE5MTZjYTllODllYTFjYWMyZDdlOWU3NTg4MTZhMjE3NzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:34:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM1Y2M4N2VmNmZjYmNkMjM2MjllMDUyY2YwMjhiZGZjMDE2YWI3MGI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:28:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc0ZTUxOWE5NzQ1OTBjZDZhMTRhOTE3NTE3NDk1ZWU1MjA4YzFjMWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:23:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0YjAzMGI3ZGIzZjdjM2YxODUwZmJhNTBhZDM1ZWNmNDBhOWNmMGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:14:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFmNWQwMTAyNzY3YTEyNjNhNTRhZTQwY2E4NmFjNjI0N2YwOGU5MjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:11:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGExYzkzN2U1N2UzM2I4MjcyYTg5Y2ZjYWQ2MTFhNzhiZTRjOTFjZjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-07T09:56:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRkYmJkNGFmZDBhYzlmNTBkYWRmMGM4NTAwYzA0YjRjYTRkMWE2MzQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:32:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDliNDlmNmE4NDgxNmU4NDA1MDYwZWM2NGI3ZmYxZjQzMGQ2YWYxN2Q",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:27:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ1OTBhYjJjN2FiZThmYmZmZDNjMzNmNWJjNmU0Nzc5NmRiZGJmNWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-06T15:19:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhmM2E2ODQwNTFiYmFjNTQ1ZWZhMTAzZWQyMDljZGM2OTQyYjc0Mjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T23:43:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYxMWU1NzM3ZGE3N2E3NTM1NTNlNTg2ZDJmYjc4NGFjN2YzNDgwZTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T15:11:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlkM2VlNWI0NGZkN2JkNmM0ODk3NmZkN2Q3YjUxNjk0ZmJhMDc1ZTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T15:09:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0NjYxMTQ3ZWFkOGRlZmQwODFkNDViYjZiN2ZhZDRhOGY3ODk4YWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:57:08Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ5YTdiYjMyOWI0NDZkZjBlOTVmM2RjOTVjMGM0YzAyMmY5NTM1Mzc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:55:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjMjBiOTdiODQ5OGQ4OTA3Y2IwMDRhNDU0Njg5Mzk1YmIxZTUzY2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:51:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE2YWY5OGVkOGMyZTQ5MGY2YzA2Mzc1NDczYmQ1NjZkOWE4ZjgxNmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:40:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDA1OTRmMmM5YjgwNTY3Nzg2ZTNjYmY1YWQzM2YwMTY3MDY5NWU4MTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:40:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNiNDIwMWExMzRkMTBlMGRiNDRjOTE3NTcyNzU0ZTljODFiNzZkNzg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:40:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc5ZWU2MjhhMzRjNmRhZGFiMGJjODQwYzY2MTMzYzU5ODliYzE0NTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T14:40:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVkZmI5ZWMwMGI5ZGY1ZWMxNjljMDc5M2ZkZTgzZGZhZTUwYzlmMTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T00:54:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwM2M1N2E1ZTExYmYzNmVlZjM3MGMxMjJkN2Y4NTNiYmM0MmYzOGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T00:44:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFiYjYyOTBkYmIwOTNkNzQ5YjgxYWQ1Zjc2MzNhZWY1ODVjYjdlNDA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-03T00:27:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNlMzZkYTU5MDMxZTUwMGRkMTI3N2EyMTQ4YmM2NjYyM2NkZmRhY2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T23:23:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDUzN2Y0Mjc2NDUyN2VkOTFiMzE0YTYyMTk1ZDkxOWMzNDc4ZWZjNjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T23:23:12Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY0YThlZTFlNDE4MjcwMWQ3NzczODA5Njg0ZDA4MTQ4MjMzNjI2OTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:32:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZmZmMxNzY2MTA0ZDlhNjM0NTliNDBiYzEwOGRkOWFiZGFkNTNlN2I",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:14:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2ZjA1NjhjNmY1ODgyM2I4MjhmMTY3MjM3ODA3ZDQ3NzM3M2Q4ZDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T01:11:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YmRiYzJkMDlhYzlhOGQ4MzRhM2M5YmY4YjU4NGU1YTgyMTFmZTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:48:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFmZGYwZDU1OGFiMzBiMWRiOWQ3ZDFmMDZlMGU2MDY5ODNiMDc4NGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:43:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRiMDM1YjkyZDFkOTk2YTRiZGRjZTE5YjJjODE4ODI2MTJmNzc0ZTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T00:43:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRkMGI4MjdhZTVkODE2Mjg0OTZhODdlMTAwNzU1NGQ4ZmNiYTJkYzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T23:42:12Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFhZTBmMzIyZmUwYTMwMmE1ZDBhZDc1ZDRiZWYxMTAwYTg5ZmRjOTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T23:39:33Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIzZDQ5NjdlN2Q0ZTE3MWU3NWQ1MTEwM2ZiNjEwNDdhYTdiMGFjMWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T23:37:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY2YmQ1NTllMzFjN2QzNzViZTEzMDJhZmE4N2ZkZjI4Y2EyZjQzNDA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:11:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIwNjBkMDEzMzZhM2YwMTY4YjIwMGY5NmMwNjRiZmQ3Mzg0M2NiMjk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:08:29Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY1YzlkYmIwM2M4NjdlMzQ5Y2NlMTQwMTdkMDQxMTI2MTUyZjI3NGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T16:02:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU4ODMwMjUzODRlZDk4NWQ5MjAzY2RhZTJhYWYxMTU3NzViYjczYjM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:38:59Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlmYTdlOWY0MGZiYTg0OTA3NzFiMzUwOGQwYTAxYTczM2ZlODBmYjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:34:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU4ZWZkMTZlNDNiZDRjYTIzYjc1ZTVjMmYzZGI4MTMxYjlmMDUwMmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:34:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGJkNGI3NTEzZTA3NWI1YjI0NTI4NGMzOGZkMjM0MjdiOWJkMGY0MmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T15:34:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY5NmYxMTFhMGRiNjJiMWE1YWNhNWFlYTgzNjAzMTA5ZjhkNmY1MDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T08:49:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4NzA5MGMyMjQ3ZTVlY2Y2NjVhZjRjYTk4MDU4NGZhNTQyMmVhNmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T05:11:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI2Mzk3MmQxN2Y5MDM3OTQ5NDdiNDAzODVhOTc0MTIzMWFmNjk3ODQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T05:03:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM5NmI5MTI5N2FjNDc3ZWM4NDA3MDg0NGQ4NWVjZjFkMzYyM2I1MjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:54:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU4M2RlZGZlY2Y4ZjA0MmZjMGEwN2I0NTg5ZWE2NDczYjg0YzM3YjQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:37:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI1MmM5NzU2Y2UzNjMzNWY1YTI0NmUzOTU0MmMyMzViYjU3NjBiNTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:35:50Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFiNzZiNGFkZDM1ODBmYjI5M2YzOTMwMjM5NDJlNzBkZWFhM2U4N2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:06:20Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFmMWY1MGY0YTIzM2NkMmM3ZDJmODQwYjk1ZDJjMzhmMDA5M2JiNmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:03:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2YTc0NGIxNjRlNmQwODk0ZGM3NzcxYmY4MGVmNTQyYmUzYzhiM2I",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T04:02:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdlODBkMDI0YTg5MTZjNDZiNmEwYzM2YTM4YzYyYjYwYzRiYWI2NTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T03:54:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEwYjdjMTA0YjUyNGJhMDg2ZWUxOThmMTZmYTA2NzkzMjJhZjU2ODk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T01:01:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDczMjY1MTBkZTk1YzZmMDA0YzM0ZTc2YzZkNTM1ZDJmZjFhMDM0MmE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:57:00Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc0OGNjNmI3YmI2MjJlNzhjYWJmYjg0ZTAxOTg3MTM0MjA1OWU1ZmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:51:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYwNmY1MjgyZTFhYTI1OGM1NTU5ZWVhZDc4MTQ1ZDJlY2MwYTAyZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:29:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNkNmNhOGIwZGM1OTlhNWZmYmY2ZGYwMzc2ODBiOWU5MGQ1MTZkYjQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:23:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ0ODY0ZGUyNjFkOTE1Y2YzMjQ5NzMyMDFjMDE4OTBhMGVkOGM3NDA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:23:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE0ZDJhODk2ODFlZmEzM2ZlYmM4ODE2NzYwN2I3OWI3ZGUxOTI4NmY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-01T00:22:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZlNzcwMDY5NDY2NTRjM2NhZTE3MTM1Y2VhYzdmZmMxY2VlY2RiNTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T23:59:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDA5ZjI0N2JmYTcyOGIyM2MxNjA0NjMzOTUxYjk0YzgxNDE2MzdjYzg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T23:43:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ3YjY4MGVmYTMyYzA0NWI0YTI1NTMzNWFhNGY1NDQyMjk0OGU5NTk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T23:31:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYzMmIyOGE5ZjhkZGEzM2IxYzc3OTI4OWY0NjlhYmE0ZTEwMWRlOGU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:50:53Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI4OGQ1YTZiMTE5Nzc3YmUyODY1OTQ0ZDg1MjI1NDkzMjA5NDk1Mzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:47:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBhNjc1YTRjMGVhZTI0NWI1MWRmYmYyZmQzZGFjZDQ0Nzk1ZWVjZTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:23:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDE0Mzg0MjE4OWQxOTNmN2JkMWEwMDlkNjQ3OGEyZDg4NWM0YWZkZTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:23:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjY2I2MzZjNDk5NjdkOWNkMGU4Nzc5M2YwNmNkZWU3OWI4Zjg0MzQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:23:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDNiZWU0YTc5ZGY3NTUyZDc5NTg5ZjkwODU2N2ZiMjE0YzEyMTU1YTY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T13:16:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDkwYWEwYmJlN2IxMDc2MmE1ZjBiMGFiMDgwY2MxMzJlZjBhYTMyNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T12:53:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUxNzk5ZGY0YTA3Yzk1MWMyMjQ5ZjQxZWFlYmJlNmJkZTlmODY4ZjA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T12:42:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY3MThkYWYzNDg1ZWQ3OGEzMTZhZjE2NzBiNjA4ZDViZDY1ZWY3OGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T12:14:39Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZmZmRhMzZiZTgxYzg4ZTdjNjdhOGYzMWVlYjM1NTc5NjYzMTZhOTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:33:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVmMWRjNTU4NTI3NzFiZGY2MjEwN2M3Nzk0ODIyMDdjMmE1ZGFhMjQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:32:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGU2OTc3ZmVkMjdmZjNmZmEzMGE3N2M5N2EwZTlmY2Q1Y2Y2MWM2YzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:28:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2ZmY3YzYyMWI5NWViMTJhMDFlYTRmMmY2YWZmMDYwOTFjNzYwYjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:27:13Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY1MjcwMzkxNTM0ODZiOGNiYmNkMGI5NjUxNGEzM2U0Yzc5NGI4N2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T11:25:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM5YmVhMmM1YmVhY2ZhOTkzNjcwYTcxNzMzNjNiMGU4YTM5OWM3ZDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T10:59:19Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVkNWNmYjQzMDkwNmQ3YzMzZmNiZWFlOTIxYmVhMzg4ODRhYTkwNzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T09:02:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdjNTAwY2Q1ZGMyMDU1ZjkwZmIzNjJlYTZhMzljMjEwMGUwZmQ2NzU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T09:01:56Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRiNzYxMmVkZjQzODg3NjI4NGViZjY3NWNjNzNkOGE3YzA3M2QwYzI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:55:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDIxNzQ0NWFkZDgyODU4NzI3ZWI1ZDYyNTg4NzEyYzIxOTE3YTJmNWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:55:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ0MTM5YWQyNzc4OWQxYzFhNDA5Njk4Mjc0MWVlNjUwM2M2YTBlMDY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:44:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGMxMDRiMzc5YTFiOTQ5ZDg3YzNmYzA1NDExZjc5NjM0ZWE1MGQ4NWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:43:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiNGUwMDg0YTIzZDRmZTEzMjRhODU3MTVhMjkyYTlkYTMxMzkyMmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:20:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlmZjZkOGMxOWFjNWU2MmNlMDU0MWY1Yjc3ODJmYzM3YmVhNjYyYjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:15:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhiNDFhNzAwMDUxZThjZWNmNDBiYTM4MmYwMzM2YThlMTQ3ZTYyNzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:15:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDg1YjVlODg1Mzg5YmU0ZTU0MjcyMGVlYmFkZTUyYWQ2ODczMjY1ZDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:09:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFlYTYyYjg4NGFiNmQ5MDY1NTBmN2MwNGY0NTI3NTk5ZDRmYTExZTU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:07:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjZjg2OTg0ZjY1ZTdkNWZkMWRjNjg1MzNlNzBjNjU0ZDAxNjMwOWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T08:01:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZiNDUzZTRlMmQ3MGYwMGJlOGNkOTVkNDQyYTk5OTljNjg5NGFlNGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T00:19:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2NzkzNTQ2NjNjMGI3Y2MwNWEwYmI1Njc2ZjkyNjQzMzZjNTExODI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T00:00:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGIzMTM4Mjg3ZTE3MjViM2IxYzE4NDMzNzU1NTZjMmRkMDc4NTczMDQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T00:00:09Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRmYmRmM2Q5MTE3N2FiYjhmZDhlMDVhNjE2YjJhYzJjNDY1MzExOGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:58:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUzODg4MmVkNjFmOWRkMmUzNDgxMTE2ZWI4YmZjMWQyNDA0NGVmNGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:53:24Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI4N2QyMTAzM2Y1NzU3YmFhMTQwMTRkZWRjMWFiM2I0MWUwMmUzZWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:51:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc4YTI2ODI0ZGM3ZDBhZTY4NjcwNjZkM2U4YjQ1ZDEwODE3NzM4OWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:48:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM3OTcyMjI4YzU3MDE3NTU2NDYwOTZmMGYzZThmYjQ5NTNjNWMyMGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:43:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU4YTlhMDA1ZmZjMWIwYmM0MzVkYzkzM2U1ODlhYjU5YmQzNzY1MDg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:30:59Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE4NGE3YTc2MmMyOWYxNzI0MGMxOWMwNTg1NWMxNGY4ZTljZjA1ZGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:28:59Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFmOTg4ZWViZTlhMzQyNzAwMGIzMTk1MDI3NzFkZDVlOWY2YjU4Yzk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:24:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc1ODAzN2ZiMDBlNzRhOTg5NjRlMmI3N2M4NTZiZWM0NzY5NTZkYzU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:23:40Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVhNmEzNTAzM2VmNTk5NzIyZDc5NzUxMTE5NDZlYjZhODdiOWI0MGI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:23:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGRjNDY1YWY2ZjM5ODM5N2Q5ODc0MGJlNWQzMmIwMDI2MGUyNjhjMmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:22:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgzZmJiMGQzNjhhMGFiOTM3YjQ1M2RkYzU2YTRhYWQzNjgzOTE1N2E",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:20:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGYyYTk0MWZmYWYyMWY5YmQzN2I1ZDQwMjFlOWI3MTAyOWI5OWJkYWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:14:34Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1NmRkODFmMTdiYmRhZmZjN2ZmMDJiOTY5NDY1YzdlODRjMWVlNGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:08:02Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQ5Zjg2NGU0MzRiY2I0ZDQxZTNhYzE4ZTUwZDFlMjhmODY2MzA1YTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:03:36Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY4ODRjMTMzNzQ4MTk5YTU1NDMwMjU5ZGY3OTU4YTg0ZjMxNzU4OGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T23:02:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZmM2VjMzI1Zjg2MTdiZGEyYjQ3NmRjNzVmNDM5Yzg4YTY4YjJmOTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:51:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFiYWQwNjA3YjQ5NjNkNTNmOWUzMTU2MzYwNDNlNmJiNTBiNzBmZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:45:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZiZDRkMzM2MTgxNDViZGYyZDVhNzVlYjUyYWY1MmRmZDk0MWY1M2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:40:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5NjFhMzlkNTU3NDc1YmY0ODNhMDZlZTU1NzhiMzEzMjkyYjQwZjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T22:40:52Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDljZDYxMjNmMjdiZDVmNjQ5YTJlNTM5NDhiNGI1MTMwY2VhN2QwY2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:41:12Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDc2MDczOGM3OTg1YmU1M2E1YjRkMjFlN2NlYzkwZDVkMzI3ZmFkNjc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:39:46Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI3YmI3NzcxMGE2MmFmMWE0OGE5YzNhMWM2OGY3NGNjOTMxYjcyZDc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:22:49Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGEyN2MxNDZmN2Y4YTM1Y2QwMGJhNzhlY2NkNzY2MDc5ZDFjZTZhNDc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T16:04:11Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhhYzVjOTQ4NDUwMzBkODI2ZTgzZDhlZDRjZmI0NmNiMzY4YjQwNTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:59:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDUxNTJjZDYxOTdmZmNkODNkMjQzYzEyMGJlYzk5YTc2NjEzNTJjYTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:53:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGZkZjhkODE0MzZiZWIzYmVhYmE5YmJmYjlhMjFmMDI2OGU2ZjMxYjY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:50:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY1YzJiYWZjODhlYjIyYjljYmUzZDI5OGI3MTQzNzAzZGU4NmY5ZDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:14:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQwYjFmYzJhNDI3ZmE2MTJjZGE4NGQ0MGRlNGM2YmQ1ZDgzZmI1NWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T15:13:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYxY2YzYTY0OGQyNTg3NjBmMmE1NTFlZGU3OWI3Y2RlNGJlY2Q3NTg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:40:15Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdjYjQyMjgwYTY3YjhlODdlYTE5NDE2NWE0ZmYyZDAwNGQ0YWVkYTA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:37:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGY5YzJkNjI1MGMwNTg1ZTA1NmRmNzk0OWNmMzYzZDBkMGU0MzJmM2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:36:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YzdkNDczMjM2YTk0NjgzNjhkNTUwMGU5NGMzNGM3OTU1OTg2MTI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:34:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDYxOGU5YjMyZTM5ODRjYjkxZTM1OTA1OTQyMDk1Zjg2N2IyYWJlNWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:31:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDdlNzA1ZmE2ZTdjYTIwZjdmNTUxOThkMmUwMGFiZjU1MjlkNDZhNWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:27:14Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDgxNjQxODczYjMzYWY2MTM1ZDg0YTNiZDY4MDNlODg4M2FhYmE0Mjg",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:23:16Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDk3YzMwOTFmNDFiM2UxZjJmNmVhOTE2YTIzNDVhNjMyYzljZjM0MTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:21:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMxOWU2OWY0NmU2YTMyM2I2NGJjOWFkMTc5N2QzZmI0MmFmMDUzMTc",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:20:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDllMWMxZDJlMDQxNWVlMmRhMTRjZGRlZTJiN2IzNDE5MzUxMzQyMGQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:18:42Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM1YWZiNDk3MGM0ZDBjYWVlNTI2MGJlNjFlYTY0NGFiZmVjZWMwNDU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:18:14Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDllNDNhNmE2ZDA1ZWY3MjI3Y2I3MWJkNDFkZTFiOWJmY2YwYjdkYWI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T14:08:10Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNhMzFmOWYzYjMxNzMwZWJlOTA1OWExMmM1NjVlYjQ5ZmYxMjVmZmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:55:02Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGFjMmQ1OTc0Zjc4YmEwODEwZjA4OWNiZTFkYzVjYTdmNTc4NzE2MmE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:40:45Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU5YzAyYjVjZTIxODhjNzdhMjYyNzQxMTJmNmZmYzUwMTE0OGUzMWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:31:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDg4YzdlMzQ4OTJlYWRlOTE4OGU2NGEwMzA2MmQ1MDFlNTI3ZDIyY2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T13:13:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhhODFjMDA5ZmU5YTQ2ZWE5NDZkN2Q1YjczNDAzODM5ZGY2MjgxZGM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:44:26Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEyMzljMTIwYWJiNjIxYmVmN2JhN2MyOGFhOGZmMDQwNDkwZjE1ZjE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:19:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGE1ZTI2ZmU4ZGJlMDYxYzRiN2MwMGZhMTAyZGI1MzMxMmJlYTc5MDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:16:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVkNzZkOGU2MjA0ZjJlOTYyMWIyMzdlNGNlNDZjM2Q3YWFhYjBiZmM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:10:23Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDMzMTM0Yjk0MjI2YmNhMWZlNTBjYWI0MDE1OWVkZWRkZDRmNzU1MzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:08:06Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZiYmZmMGY1ZDE0YmUyNDNkMjMyMDBmOTM5YTQ3MTJkZjRlZWI2MzA",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:06:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDM3NzlkMDkyNGIzMGZiZjM4OGY1NDVlMTQzZDU4OTg4ZGQ4YjA2NTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:02:37Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGUwODQ1ZTc2NmM5ZGU4OTNiNDVhYWNjNGMwZTk4MGRiNDdmY2JmOWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:01:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDI3MTAxOGQ5YmM3MDkyMDY0ZDFmNDE3NDFhNzAwMTRiNmQyYmM2MTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T12:01:21Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDEzYWZiYTk2MDIwNTA3MjllOTcwNTVjMzg0ZDZjZjQ4NTk5ZDNkZDE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:38:27Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRiMGJlNThlZGRhODI4Yjc4YjgxYTU2ZDViYjlhNGFkNmQyZjAwMTM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:32:47Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDA2YTZjNjZiNDFiYjI4ZjEyZjQ4MmU4YTYzZjAzMzI5NDA3OGQ0YWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:10:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGIwOTkzMzhiNzQwMDJiMTY1NGJiOGFiMDIzOWQzZWMzNjAyNTBjMTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-29T11:10:04Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAHxPvA",
+				"user_database_id": 8146876,
+				"user_login": "kawarimidoll",
+				"user_name": "カワリミ人形",
+				"user_url": "https://github.com/kawarimidoll",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDRkMjRkZjY2OGQ5MjYyMTlkZmVhM2RlYTVhOWFlYWNhNTk3NGZiZTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-02T05:10:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOALel-g",
+				"user_database_id": 12035578,
+				"user_login": "konojunya",
+				"user_name": "JJ",
+				"user_url": "https://github.com/konojunya",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGJmYTgzNmNmNGQ3YTkxNTRmMjI2MzllMTBkNmI1NGQ5MWJhOTdlNTE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T03:18:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOANFGWg",
+				"user_database_id": 13715034,
+				"user_login": "uzimaru0000",
+				"user_name": "uzimaru0000",
+				"user_url": "https://github.com/uzimaru0000",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDQ4ODBmMDA2MmJiNGQ4ZDY1MjI5ZTE5ZTA3NzQwYTUwODIyZDc0OGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-09T13:13:32Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAPgwww",
+				"user_database_id": 16265411,
+				"user_login": "yukukotani",
+				"user_name": "Yuku Kotani",
+				"user_url": "https://github.com/yukukotani",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY2NDM3NjEzZjJmODVlZTdiMTA5MTJhZGQxOTYzY2FhYzVlYzdlOGE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-27T10:28:51Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAU8IlA",
+				"user_database_id": 21956756,
+				"user_login": "KraXen72",
+				"user_name": null,
+				"user_url": "https://github.com/KraXen72",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhjYWM0NDI4YjFjY2QzNjY4ZGM2NjMwZmM2ZTE0ZmFiNjQ1MGQ2N2Y",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-20T04:39:22Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAknynQ",
+				"user_database_id": 38400669,
+				"user_login": "unvalley",
+				"user_name": "unvalley",
+				"user_url": "https://github.com/unvalley",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQyNmZmNmM2YzE4MTE3OGM1MGFhOTMzZDM0ZWQ3YjZmZDdhY2VlOWE",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T17:20:30Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBKneSg",
+				"user_database_id": 78241354,
+				"user_login": "maguroid",
+				"user_name": "maguro",
+				"user_url": "https://github.com/maguroid",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKGNmODhlZDk2YTRkMGIzY2E4MWRjZmY5OTQ5ZDBlZjUyN2MxNWZhZDk",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-07T09:53:19Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBj3kNA",
+				"user_database_id": 104719412,
+				"user_login": "yu7400ki",
+				"user_name": "Yuki Natori",
+				"user_url": "https://github.com/yu7400ki",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDUzNjk4ZmM1YTA0YTI1ZDJhYzVjN2JlM2I5ZGYzMjIxOWUyMWJlYWM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-06-30T16:00:35Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBrQswg",
+				"user_database_id": 112471234,
+				"user_login": "seesaw-monster",
+				"user_name": null,
+				"user_url": "https://github.com/seesaw-monster",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDBiOGFhYTM3ODgzMjMzMGY1OThlN2U2YWY4NzBmODg2OWQyZGZiYmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T11:23:43Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOC0ueDQ",
+				"user_database_id": 189505037,
+				"user_login": "noritaka1166",
+				"user_name": "Noritaka Kobayashi",
+				"user_url": "https://github.com/noritaka1166",
+				"task": [
+					{
+						"task_id": "C_kwDOPDzQl9oAKDZmYjYzY2Q2MjYwNGI2ZjEzYjc5MDk2OWM3M2M0OTI1NjllOTkxZWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-09-17T07:25:28Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDVmYjExNTRiMTJlMWI1NDFhNjFlODNjOTc4MmIyYWQyY2E4ODFmOWU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-20T04:23:01Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFhMTA1ZGUxNTBlMzE0OTYwYzk5YjhmNGY1Y2UwMzMwZWIzOGRiMWY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-08-02T08:23:18Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGJjN2QxZmNjNTNiNDM1OTA2MWQ2ODAwYmJlM2Y2NDVhZTBlYTA5MzQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-22T00:00:07Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDUwZGQ0ZGMzODQ0NjJmZWI5NTMzM2Y4ZDhkZmE1OThhNmU5MzgyZmU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T15:32:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGI2ZWUzZDE4YTFmMjMyMDMyODIyYjkwZWQ1NTgxYjRiYjQ0NGVlNmQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-20T00:24:17Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDU2M2EzOTIzZjIxZjE4OWVkMmRiNWY5MzBlYWZhNDA1Y2M5MDA4NGY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-14T23:21:57Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDY4M2NlYjUzY2YyZmY2YmQ3YjNlMmE5NjRlOWEwNDkwNjA5YjA1YTQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-14T16:18:54Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDhjYzVmYzQ1YTYwOWM5YjU2ZmNlMTMxODAxNzA4ZWM2OWUwZTFmZmI",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-13T09:00:46Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGQzOGExNGUwMWVhNjlmZmQ5ZTJhMTg3MTJkMzk0YzkzNmNhMmVhNzY",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-13T08:57:31Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGVmODNiNjRkZjVjNmU3YmJhZmFjNjNkMzU3NzczNjU4YmJhM2E4NjU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-12T06:55:41Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFiNTNjOGNkYzY3ODk2YmNkMmJlNzU1MWJhODRkOTBlZjQxMTA0NWQ",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T15:27:30Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKGM2NDQyMTJlMjc0NGJjYTE1NjBmNDdlNTRkMDg1YWYxZTlhOWIyZjU",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T06:18:48Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDFhZTUzOWU1ZTlkNDhkNzQyOWU0ODE3YzExNTgyMDM5MWY1NGU1ZDM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-11T00:10:05Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					},
+					{
+						"task_id": "C_kwDOPDzQl9oAKDlmYzJlOGQ1NGNiODY2YmZhNjIwOWM4Njk4ZTg2ZTUyYzMwYzZjMzM",
+						"task_database_id": null,
+						"task_full_database_id": null,
+						"task_name": "release",
+						"task_date": "2025-07-10T12:25:24Z",
+						"reference_task_date_field": "committedDate",
+						"letter_count": 0,
+						"reaction": 0
+					}
+				]
+			}
+		]
+	}
+}

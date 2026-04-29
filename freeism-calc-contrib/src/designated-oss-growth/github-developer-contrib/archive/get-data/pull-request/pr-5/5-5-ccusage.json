@@ -1,0 +1,17 @@
+{
+  "data": {
+    "node": {
+      "id": "PR_kwDOPDzQl86cqQUY",
+      "number": 1,
+      "url": "https://github.com/yoshiko-pg/difit/pull/1",
+      "labels": {
+        "totalCount": 0,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": null
+        },
+        "nodes": []
+      }
+    }
+  }
+}

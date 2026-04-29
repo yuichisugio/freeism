@@ -1,0 +1,38 @@
+[
+  {
+    "data": {
+      "node": {
+        "id": "I_kwDOPDzQl86-EeKd",
+        "fullDatabaseId": "3188843165",
+        "databaseId": 3188843165,
+        "number": 4,
+        "url": "https://github.com/yoshiko-pg/difit/issues/4",
+        "title": "Feature Request: Allow users to change font family and font size",
+        "state": "CLOSED",
+        "publishedAt": "2025-06-30T15:06:18Z",
+        "reactions": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHODFPTeQ=="
+          },
+          "nodes": [
+            {
+              "databaseId": 206820217,
+              "id": "REA_lAHOPDzQl86-EeKdzgxT03k",
+              "content": "THUMBS_UP",
+              "createdAt": "2025-07-01T03:14:40Z",
+              "user": {
+                "databaseId": 3532528,
+                "id": "U_kgDOADXm8A",
+                "login": "gh640",
+                "name": "Goto Hayato",
+                "url": "https://github.com/gh640"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

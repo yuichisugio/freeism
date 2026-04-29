@@ -1,0 +1,48 @@
+{
+	"data": {
+		"user": [
+			{
+				"user_id": "U_kgDOARlLtw",
+				"user_database_id": 18434999,
+				"user_login": "dw820",
+				"user_name": "Wei Tu",
+				"user_url": "https://github.com/dw820",
+				"task": [
+					{
+						"task_id": "DC_kwDOOyw9fc4A16q7",
+						"task_database_id": 14133947,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14133947",
+						"task_name": "comment",
+						"task_date": "2025-08-17T20:15:22Z",
+						"reference_task_date_field": "publishedAt",
+						"commit_letter_count": 182,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOBVMZ5A",
+				"user_database_id": 89332196,
+				"user_login": "rosmur",
+				"user_name": null,
+				"user_url": "https://github.com/rosmur",
+				"task": [
+					{
+						"task_id": "DC_kwDOOyw9fc4A1YBR",
+						"task_database_id": 13992017,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/334#discussioncomment-13992017",
+						"task_name": "comment",
+						"task_date": "2025-08-04T17:53:07Z",
+						"reference_task_date_field": "publishedAt",
+						"commit_letter_count": 38,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,602 @@
+[
+  {
+    "data": {
+      "repositoryOwner": {
+        "__typename": "User",
+        "sponsorshipsAsMaintainer": {
+          "nodes": [
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2024-09-30T21:31:22Z",
+              "tierSelectedAt": "2024-09-30T21:31:22Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "timoxley",
+                "name": "Tim Kevin Oxley",
+                "url": "https://github.com/timoxley"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-08-20T03:24:05Z",
+              "tierSelectedAt": "2025-08-20T03:24:05Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "odiak",
+                "name": "Kaido Iwamoto",
+                "url": "https://github.com/odiak"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-07-10T18:11:42Z",
+              "tierSelectedAt": "2025-07-10T18:11:42Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "donjo",
+                "name": "John Donmoyer",
+                "url": "https://github.com/donjo"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-07-03T20:32:48Z",
+              "tierSelectedAt": "2025-07-03T20:32:48Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "GregBaugues",
+                "name": "Greg Baugues",
+                "url": "https://github.com/GregBaugues"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T13:28:26Z",
+              "tierSelectedAt": "2025-06-22T13:28:26Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "matsu7874",
+                "name": "Kentaro Matsumoto",
+                "url": "https://github.com/matsu7874"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T13:36:12Z",
+              "tierSelectedAt": "2025-06-22T13:36:12Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "srvhat09",
+                "name": "Reiki Hattori",
+                "url": "https://github.com/srvhat09"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-07-08T21:57:44Z",
+              "tierSelectedAt": "2025-07-08T21:57:44Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "frogggias",
+                "name": "Tomáš Šůstek",
+                "url": "https://github.com/frogggias"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-24T06:32:27Z",
+              "tierSelectedAt": "2025-06-24T06:32:27Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "kiyono",
+                "name": "kiyono",
+                "url": "https://github.com/kiyono"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T23:39:54Z",
+              "tierSelectedAt": "2025-06-23T23:39:54Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "ysaito8015",
+                "name": "Yusuke Saito",
+                "url": "https://github.com/ysaito8015"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-16T14:21:21Z",
+              "tierSelectedAt": "2025-06-16T14:21:21Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "yamadashy",
+                "name": "Kazuki Yamada",
+                "url": "https://github.com/yamadashy"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-08-16T00:47:35Z",
+              "tierSelectedAt": "2025-08-16T00:47:35Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "tayloramurphy",
+                "name": "Taylor A. Murphy",
+                "url": "https://github.com/tayloramurphy"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-24T02:48:44Z",
+              "tierSelectedAt": "2025-06-24T02:48:44Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "vintersnow",
+                "name": "vintersnow",
+                "url": "https://github.com/vintersnow"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T15:20:19Z",
+              "tierSelectedAt": "2025-06-23T15:20:19Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "suzuki86",
+                "name": "suzuki86",
+                "url": "https://github.com/suzuki86"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T15:15:32Z",
+              "tierSelectedAt": "2025-06-22T15:15:32Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "sudame",
+                "name": "Mikihiro SUDA",
+                "url": "https://github.com/sudame"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T08:38:53Z",
+              "tierSelectedAt": "2025-06-22T08:38:53Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "sgr-ksmt",
+                "name": "Suguru Kishimoto",
+                "url": "https://github.com/sgr-ksmt"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-04-15T15:07:48Z",
+              "tierSelectedAt": "2025-06-05T07:25:31Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "takeokunn",
+                "name": "take",
+                "url": "https://github.com/takeokunn"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2024-07-05T03:18:29Z",
+              "tierSelectedAt": "2024-12-18T16:45:01Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "samchon",
+                "name": "Jeongho Nam",
+                "url": "https://github.com/samchon"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-18T08:29:32Z",
+              "tierSelectedAt": "2025-07-16T10:54:59Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "terasakisatoshi",
+                "name": "Satoshi Terasaki",
+                "url": "https://github.com/terasakisatoshi"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T04:17:18Z",
+              "tierSelectedAt": "2025-06-23T04:17:18Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "motoki317",
+                "name": "motoki317",
+                "url": "https://github.com/motoki317"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T22:04:55Z",
+              "tierSelectedAt": "2025-06-23T22:04:55Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "DoguD",
+                "name": "Doğu Deniz Uğur",
+                "url": "https://github.com/DoguD"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-24T12:38:04Z",
+              "tierSelectedAt": "2025-06-24T12:38:04Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "mgr-kb",
+                "name": "mogura",
+                "url": "https://github.com/mgr-kb"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T13:55:04Z",
+              "tierSelectedAt": "2025-06-22T13:55:04Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "currypurin",
+                "name": "Murata Hideki",
+                "url": "https://github.com/currypurin"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T13:30:58Z",
+              "tierSelectedAt": "2025-06-22T13:30:58Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "schroneko",
+                "name": "ぬこぬこ",
+                "url": "https://github.com/schroneko"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-18T05:43:21Z",
+              "tierSelectedAt": "2025-06-18T05:43:21Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "tegnike",
+                "name": "ニケちゃん / nikechan",
+                "url": "https://github.com/tegnike"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T11:54:50Z",
+              "tierSelectedAt": "2025-06-23T11:54:50Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "oikon48",
+                "name": "Oikon",
+                "url": "https://github.com/oikon48"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T04:50:44Z",
+              "tierSelectedAt": "2025-06-28T01:30:42Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "sumire0204",
+                "name": null,
+                "url": "https://github.com/sumire0204"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T00:54:25Z",
+              "tierSelectedAt": "2025-06-23T00:54:25Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "Tomoki-Saito",
+                "name": "Tomoki Saito - 齋藤 智樹",
+                "url": "https://github.com/Tomoki-Saito"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-22T14:39:18Z",
+              "tierSelectedAt": "2025-06-22T14:39:18Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "sergicalsix",
+                "name": "sergicalsix",
+                "url": "https://github.com/sergicalsix"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T20:17:04Z",
+              "tierSelectedAt": "2025-06-23T20:17:04Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "thecatfix",
+                "name": "John Shelburne",
+                "url": "https://github.com/thecatfix"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-02T11:30:40Z",
+              "tierSelectedAt": "2025-06-02T11:30:40Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "harumeri",
+                "name": "harumeri",
+                "url": "https://github.com/harumeri"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-23T15:35:23Z",
+              "tierSelectedAt": "2025-06-23T15:35:23Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "Ikwus",
+                "name": "Ikwus",
+                "url": "https://github.com/Ikwus"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-04-15T15:01:34Z",
+              "tierSelectedAt": "2025-04-15T15:01:34Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "L4Ph",
+                "name": "Katsuyuki Karasawa",
+                "url": "https://github.com/L4Ph"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-08-15T23:54:47Z",
+              "tierSelectedAt": "2025-08-15T23:54:47Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "Organization",
+                "login": "lemonshark-jp",
+                "name": "株式会社 レモンシャーク",
+                "url": "https://github.com/lemonshark-jp"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-07-06T13:00:12Z",
+              "tierSelectedAt": "2025-07-06T13:00:12Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "rassi0429",
+                "name": "KOKOA",
+                "url": "https://github.com/rassi0429"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-18T02:49:32Z",
+              "tierSelectedAt": "2025-06-18T02:49:32Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "mozumasu",
+                "name": null,
+                "url": "https://github.com/mozumasu"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-08-09T05:58:38Z",
+              "tierSelectedAt": "2025-08-09T05:58:38Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "salala01",
+                "name": "salala",
+                "url": "https://github.com/salala01"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-06-15T08:05:28Z",
+              "tierSelectedAt": "2025-06-15T08:05:28Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "miyashita-code",
+                "name": "Takuma Miyashita",
+                "url": "https://github.com/miyashita-code"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": false,
+              "isOneTimePayment": true,
+              "paymentSource": null,
+              "createdAt": "2025-08-09T12:11:43Z",
+              "tierSelectedAt": "2025-08-09T12:11:43Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "wmoto-ai",
+                "name": "生ビール",
+                "url": "https://github.com/wmoto-ai"
+              }
+            },
+            {
+              "privacyLevel": "PUBLIC",
+              "isActive": true,
+              "isOneTimePayment": false,
+              "paymentSource": null,
+              "createdAt": "2025-06-24T23:41:02Z",
+              "tierSelectedAt": "2025-06-24T23:41:02Z",
+              "tier": null,
+              "sponsorEntity": {
+                "__typename": "User",
+                "login": "tomiyamaluca",
+                "name": "兎耳山ルカ",
+                "url": "https://github.com/tomiyamaluca"
+              }
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Mzk"
+          }
+        }
+      }
+    }
+  }
+]

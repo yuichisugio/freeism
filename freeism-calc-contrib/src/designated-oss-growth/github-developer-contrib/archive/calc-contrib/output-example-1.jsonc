@@ -1,0 +1,79 @@
+/*
+仕様
+- データ形式に記載のカラムのデータがない場合は`null`を入れる
+- `reference_task_date`には、参照するカラム名を入れる
+- `task_name`には、watchersの位置に属する名前を入れる
+*/
+
+// 追加例
+// {
+//   "data": {
+//     "user":[
+//       {
+//         "contribution_point": 150,
+//         "task": [
+//           {
+//             "letter_count_criterion_weight": 100,
+//             "contribution_point": 100
+//           },
+//           {
+//             "letter_count_criterion_weight": 50,
+//             "contribution_point": 50
+//           }
+//         ]
+//       }
+//     ]
+//   }
+// }
+
+// 出力例
+{
+	"meta": {
+		"createdAt": "2025-09-16T11:09:53Z",
+		"user_total_count": 2
+	},
+	"data": {
+		"user": [
+			{
+				"contribution_point": 150,
+				"task_total_count": 1,
+				"user_id": "user-id-1",
+				"user_database_id": "user-database-id-1",
+				"user_login": "test-user-1",
+				"user_name": "test-user-1",
+				"user_url": "https://github.com/test-user-1",
+				"task": [
+					{
+						"letter_count_criterion_weight": 100,
+						"contribution_point": 100,
+						"task_id": "task-id-1",
+						"task_database_id": "task-database-id-1",
+						"task_name": "task-name-1",
+						"task_date": "2025-09-16T11:09:53Z",
+						"reference_task_date": "publishedAt"
+					}
+				]
+			},
+			{
+				"contribution_point": 50,
+				"task_total_count": 1,
+				"user_id": "user-id-2",
+				"user_database_id": "user-database-id-2",
+				"user_login": "test-user-2",
+				"user_name": "test-user-2",
+				"user_url": "https://github.com/test-user-2",
+				"task": [
+					{
+						"letter_count_criterion_weight": 50,
+						"contribution_point": 50,
+						"task_id": "task-id-3",
+						"task_database_id": "task-database-id-3",
+						"task_name": "task-name-3",
+						"task_date": "2025-09-16T11:09:53Z",
+						"reference_task_date": "publishedAt"
+					}
+				]
+			}
+		]
+	}
+}

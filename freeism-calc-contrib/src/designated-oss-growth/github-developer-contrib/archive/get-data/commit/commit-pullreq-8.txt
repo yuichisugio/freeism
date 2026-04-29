@@ -1,0 +1,263 @@
+gh api graphql \
+  -f owner="yuichisugio" \
+  -f name="myFirstTest" \
+  -f qualified="refs/heads/main" \
+  -F prsPerCommit="1" \
+  -f query='
+query($owner: String!, $name: String!, $qualified: String!, $prsPerCommit: Int!) {
+  repository(owner:$owner, name:$name) {
+    ref(qualifiedName:$qualified) {
+      name
+      target {
+        ... on Commit {
+          history(first: 50) {
+            nodes {
+              abbreviatedOid
+              additions
+              author { name email user { login id } }
+              authoredByCommitter
+              authoredDate
+              authors(first: 2) {
+                totalCount
+                nodes{
+                  avatarUrl
+                  date
+                  email
+                  name
+                  user{login bio}
+                }
+              }
+              changedFiles
+              changedFilesIfAvailable
+              checkSuites(first: 5) {
+                totalCount
+                nodes {
+                  app{
+                    description
+                    name
+                  }
+                  branch{
+                    name
+                  }
+                  conclusion
+                }
+              }
+              comments(first: 5) {
+                totalCount
+                nodes {
+                  author { login avatarUrl resourcePath url }
+                  body
+                  bodyHTML
+                  bodyText
+                  createdAt
+                  publishedAt
+                  reactionGroups {
+                    content
+                    reactors {
+                      totalCount
+                    }
+                  }
+                }
+              }
+              commitResourcePath
+              commitUrl
+              committedDate
+              committedViaWeb
+              committer { name email user { login id } }
+              deletions
+              deployments(first: 5) {
+                totalCount
+                nodes {
+                  createdAt
+                  description
+                }
+              }
+              id
+              message
+              messageBody
+              messageBodyHTML
+              messageHeadline
+              messageHeadlineHTML
+              oid
+              onBehalfOf{
+                createdAt
+                description
+                email
+              }
+              parents(first: 1){
+                totalCount
+                nodes{
+                  message
+                  oid
+                }
+              }
+              pushedDate
+              repository{
+                nameWithOwner
+              }
+              resourcePath
+              signature{
+                verifiedAt
+              }
+              status{
+                id
+                state
+              }
+              statusCheckRollup{
+                state
+              }
+              url
+              viewerCanSubscribe
+              viewerSubscription
+              associatedPullRequests(first: $prsPerCommit) {
+                totalCount
+                nodes {
+                  activeLockReason
+                  additions
+                  assignedActors(first: 2) { totalCount nodes { ... on User { login id } } }
+                  assignees(first: 2) { nodes { login ... on User { id } } }
+                  author { login avatarUrl resourcePath url }
+                  authorAssociation
+                  autoMergeRequest{authorEmail commitHeadline commitBody enabledAt enabledBy{login} mergeMethod }
+                  baseRef{name }
+                  baseRefName
+                  baseRefOid
+                  baseRepository { nameWithOwner id }
+                  body
+                  bodyHTML
+                  bodyText
+                  canBeRebased
+                  changedFiles
+                  checksResourcePath
+                  checksUrl
+                  closed
+                  closedAt
+                  closingIssuesReferences(first:2) { totalCount nodes { author { login ... on User { id } } number title state } }
+                  comments(first:2) { totalCount nodes { author { login } createdAt bodyText reactionGroups { content reactors { totalCount } } } }
+                  createdAt
+                  createdViaEmail
+                  deletions
+                  editor{login avatarUrl resourcePath url}
+                  files(first: 1) { totalCount }
+                  fullDatabaseId
+                  headRef{name }
+                  headRefName
+                  headRefOid
+                  headRepository { nameWithOwner id }
+                  headRepositoryOwner { login avatarUrl resourcePath url }
+                  hovercard { contexts { message octicon } }
+                  id
+                  includesCreatedEdit
+                  isCrossRepository
+                  isDraft
+                  isInMergeQueue
+                  isMergeQueueEnabled
+                  isReadByViewer
+                  lastEditedAt
+                  latestOpinionatedReviews(first: 1) { nodes { id } }
+                  latestReviews(first: 1) { nodes { id } }
+                  locked
+                  maintainerCanModify
+                  labels(first:2) { nodes { name } }
+                  mergeQueue{ id }
+                  mergeQueueEntry{ id }
+                  mergeStateStatus
+                  mergeable
+                  merged
+                  mergedAt
+                  mergedBy { login }
+                  milestone{ id title number }
+                  number
+                  participants(first: 1) { totalCount }
+                  permalink
+                  potentialMergeCommit { oid }
+                  projectItems(first: 1) { totalCount }
+                  publishedAt
+                  reactionGroups{content reactors { totalCount }}
+                  reactions(first:2){nodes{content createdAt}}
+                  repository{nameWithOwner}
+                  resourcePath
+                  revertResourcePath
+                  revertUrl
+                  reviewDecision
+                  reviewRequests(first:2){ nodes { requestedReviewer { __typename ... on User { login id } ... on Team { name id } } } }
+                  reviewThreads(first:5){
+                    nodes {
+                      comments(first:5){ nodes {
+                        author { login ... on User { id } }
+                        createdAt
+                        bodyText
+                        reactionGroups { content reactors { totalCount } }
+                        }
+                      }
+                    }
+                  }
+                  reviews(first:5){
+                    totalCount
+                    nodes{
+                      body
+                      comments(first:10){
+                        totalCount
+                        nodes{
+                          author { login avatarUrl resourcePath url }
+                          body
+                          createdAt
+                        }
+                      }
+                      author{
+                        login ... on User{
+                          id
+                        }
+                      } 
+                      state 
+                      submittedAt
+                    }
+                  }
+                  state
+                  title
+                  titleHTML
+                  totalCommentsCount
+                  updatedAt
+                  url
+                  userContentEdits{totalCount}
+                  viewerCanUpdate
+                  viewerCanReact
+                  viewerCanSubscribe
+                  viewerCanReopen
+                  viewerCanClose
+                  viewerCanDeleteHeadRef
+                  viewerCanMergeAsAdmin
+                  statusCheckRollup{state contexts(first: 1) { totalCount }}
+                  timelineItems(first:2, itemTypes:[
+                    LABELED_EVENT,
+                    UNLABELED_EVENT,
+                    ASSIGNED_EVENT,
+                    UNASSIGNED_EVENT,
+                    REVIEW_REQUESTED_EVENT,
+                    READY_FOR_REVIEW_EVENT,
+                    MERGED_EVENT,
+                    CLOSED_EVENT
+                  ]) {
+                    totalCount
+                    pageInfo { hasNextPage endCursor }
+                    nodes {
+                      __typename
+                      ... on LabeledEvent { createdAt label { name } actor { login } }
+                      ... on UnlabeledEvent { createdAt label { name } actor { login } }
+                      ... on AssignedEvent { createdAt assignee { __typename ... on User { login id } } actor { login } }
+                      ... on UnassignedEvent { createdAt assignee { __typename ... on User { login id } } actor { login } }
+                      ... on ReviewRequestedEvent { createdAt requestedReviewer { __typename ... on User { login id } ... on Team { name id } } actor { login } }
+                      ... on ReadyForReviewEvent { createdAt actor { login } }
+                      ... on MergedEvent { createdAt mergeRefName }
+                      ... on ClosedEvent { createdAt }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/coding-commit-pullreq/commit-pullreq-8.json

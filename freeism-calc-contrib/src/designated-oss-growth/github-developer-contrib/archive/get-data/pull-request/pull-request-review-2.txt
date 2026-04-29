@@ -1,0 +1,19 @@
+gh api graphql \
+  --paginate \
+  -H X-Github-Next-Global-ID:1 \
+  -F q="repo:yuichisugio/myFirstTest is:pr created:1970-01-01T00:00:00Z.."2025-09-11T23:59:59Z"" \
+  -f query='
+    query($q: String!, $endCursor: String) {
+      search(query:$q, type:ISSUE, first:50, after:$endCursor) {
+        issueCount
+        pageInfo { hasNextPage endCursor }
+        nodes { 
+          ... on PullRequest { 
+            number 
+            url 
+            createdAt
+          } 
+        }
+      }
+    }
+  ' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/2-pull-request-review.json

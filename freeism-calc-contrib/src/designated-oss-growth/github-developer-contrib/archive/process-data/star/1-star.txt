@@ -1,0 +1,40 @@
+# starデータ加工jq。UserConnectionしかなく、task_idはないためnullを入れる
+jq '
+  {
+    data: {
+      user:
+        (
+          [ .[]?
+            | . as $obj
+            | .node as $author
+            | {
+                user_type:        $author.__typename,
+                user_id:          $author.id,
+                user_database_id: $author.databaseId,
+                user_login:       $author.login,
+                user_name:        $author.name,
+                user_url:         $author.url,
+                task: [
+                  {
+                    task_id:               $obj.id,
+                    task_database_id:      $obj.databaseId,
+                    task_full_database_id: $obj.fullDatabaseId,
+                    task_url:              $obj.url,
+                    task_name:             "star",
+                    task_date:             $obj.starredAt,
+                    reference_task_date:   "starredAt"
+                  }
+                ]
+              }
+          ]
+          | sort_by(.user_id)
+          | group_by(.user_id)
+          | map(
+              (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+              + { task: (map(.task) | add) }
+            )
+        )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/star/result-star.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/star/1-1-processed-star.json"

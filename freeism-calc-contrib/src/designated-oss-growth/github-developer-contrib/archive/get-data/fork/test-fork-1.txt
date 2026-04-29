@@ -1,0 +1,24 @@
+gh api graphql --paginate --slurp -f owner="ryoppippi" -f name="ccusage" -f query='
+  query($owner: String!, $name: String!, $endCursor: String) {
+    repository(owner: $owner, name: $name) {
+      forks(
+        first: 50
+        orderBy: { field: CREATED_AT, direction: DESC }
+        after: $endCursor
+      ) {
+        totalCount
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          createdAt
+          owner {
+            __typename
+            login
+            id
+            ... on User { databaseId }
+            ... on Organization { databaseId }
+          }
+        }
+      }
+    }
+  }
+' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/fork/test-fork-1.json"

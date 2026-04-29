@@ -1,0 +1,106 @@
+{
+  "data": {
+    "user": [
+      {
+        "user_id": "U_kgDOABfPvA",
+        "user_database_id": 1560508,
+        "user_login": "ryoppippi",
+        "user_name": "ryoppippi",
+        "user_url": "https://github.com/ryoppippi",
+        "task": [
+          {
+            "task_id": "AE_lADOOyw9fc65ewgAzwAAAAQtovi4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-03T00:31:12Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc65ewgA",
+            "assignee_id": "U_kgDOABfPvA",
+            "assignee_name": "ryoppippi",
+            "assignee_url": "https://github.com/ryoppippi"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc66NI4RzwAAAAQzKRcd",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-07T18:33:40Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc66NI4R",
+            "assignee_id": "U_kgDOCyXCqg",
+            "assignee_name": null,
+            "assignee_url": "https://github.com/yonghao2011"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc66mqcOzwAAAAQ0Y07C",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-09T16:40:29Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc66mqcO",
+            "assignee_id": "U_kgDOBjLq7w",
+            "assignee_name": "NakamuraTakumi",
+            "assignee_url": "https://github.com/nyatinte"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc67_WoHzwAAAAQ8hA4w",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-17T17:12:59Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc67_WoH",
+            "assignee_id": "U_kgDOAExhKQ",
+            "assignee_name": "nakatanakatana",
+            "assignee_url": "https://github.com/nakatanakatana"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc680ajtzwAAAARBogho",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-23T20:47:40Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc680ajt",
+            "assignee_id": "U_kgDOAM08UQ",
+            "assignee_name": "Yuto Tanaka",
+            "assignee_url": "https://github.com/mimikun"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc68ujF_zwAAAARAjjly",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-22T22:16:45Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc68ujF_",
+            "assignee_id": "U_kgDOABfPvA",
+            "assignee_name": "ryoppippi",
+            "assignee_url": "https://github.com/ryoppippi"
+          },
+          {
+            "task_id": "AE_lADOOyw9fc68vIACzwAAAARHCtfH",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "issue-assigned",
+            "task_date": "2025-06-28T23:37:51Z",
+            "reference_task_date_field": "createdAt",
+            "issue_node_id": "I_kwDOOyw9fc68vIAC",
+            "assignee_id": "U_kgDOBQULoQ",
+            "assignee_name": "あすぱる",
+            "assignee_url": "https://github.com/AsPulse"
+          }
+        ]
+      }
+    ]
+  }
+}

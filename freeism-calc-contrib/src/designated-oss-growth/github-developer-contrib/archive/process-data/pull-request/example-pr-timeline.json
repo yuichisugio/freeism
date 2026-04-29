@@ -1,0 +1,51 @@
+[
+
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Y1wKA",
+    "node_fullDatabaseId": "2564227712",
+    "node_number": 5,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/5",
+    "node_title": "feat: Debug Features and Cost Calculation Modes types to log function",
+    "node_state": "MERGED",
+    "__typename": "ReviewRequestedEvent",
+    "id": "RRE_lADOOyw9fc65n9j2zwAAAAQug6VI",
+    "createdAt": "2025-06-03T14:37:42Z",
+    "actor": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "requestedReviewer": {
+      "__typename": "Bot",
+      "databaseId": 175728472,
+      "id": "BOT_kgDOCnlnWA",
+      "login": "copilot-pull-request-reviewer",
+      "url": "https://github.com/apps/copilot-pull-request-reviewer"
+    }
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6pY87g",
+    "node_fullDatabaseId": "2841890528",
+    "node_number": 655,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/655",
+    "node_title": "docs(codex): add critical bunx warning and shell alias recommendation",
+    "node_state": "MERGED",
+    "__typename": "ClosedEvent",
+    "id": "CE_lADOOyw9fc7MkvXizwAAAASbZld8",
+    "url": "https://github.com/ryoppippi/ccusage/pull/655#event-19787044732",
+    "createdAt": "2025-09-18T23:20:42Z",
+    "actor": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  }
+]

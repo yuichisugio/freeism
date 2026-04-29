@@ -1,0 +1,84 @@
+# integration.sh
+./src/designated-oss-growth/github-developer-contrib/scripts/get-data/integration.sh ryoppippi ccusage ../../archive/results.json
+
+
+gh api -H "Accept: application/vnd.github+json" "/repos/ryoppippi/ccusage" | jq -r '.default_branch'
+
+gh api graphql -f query='
+query {
+  repository(owner: "ryoppippi", name: "ccusage") {
+    defaultBranchRef {
+      name
+    }
+  }
+}' --jq '.data.repository.defaultBranchRef.name'
+
+gh api graphql \
+  -f query='
+    query($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
+        defaultBranchRef {
+          name
+        }
+      }
+    }
+  ' \
+  -f owner="ryoppippi" \
+  -f name="ccusage" \
+  --jq '.data.repository.defaultBranchRef.name'
+
+
+gh api graphql -F owner="yoshiko-pg" -F name="difit" -f query='
+    query($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
+        pullRequests(first: 50, orderBy: {field: CREATED_AT, direction: DESC}) {
+          totalCount
+          nodes {
+            author {
+              login
+              ... on User {
+                id
+                databaseId
+              }
+            }
+          }
+        }
+      }
+      rateLimit{
+        cost
+        limit
+        nodeCount
+        used
+        remaining
+        resetAt
+      }
+    }
+  '
+
+
+gh api graphql -F owner="yoshiko-pg" -F name="difit" -f query="
+    query($owner: String!, $name: String!) {
+      repository(owner: $owner, name: $name) {
+        pullRequests(first: 50, orderBy: {field: CREATED_AT, direction: DESC}) {
+          totalCount
+          nodes {
+            author {
+              login
+              ... on User {
+                id
+                databaseId
+              }
+            }
+          }
+        }
+      }
+      rateLimit{
+        cost
+        limit
+        nodeCount
+        used
+        remaining
+        resetAt
+      }
+    }
+  "

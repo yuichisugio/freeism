@@ -1,0 +1,16 @@
+gh api graphql -F owner="ryoppippi" -F name="ccusage" -f query='
+  query($owner:String!, $name:String!) {
+    repository(owner:$owner, name:$name) {
+      watchers(first: 50) {
+        totalCount
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          login
+          name
+          id          # GraphQL Node ID（Base64）
+          databaseId  # 数値のユーザーID
+        }
+      }
+    }
+  }
+' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/watch/test-watch-1.json"

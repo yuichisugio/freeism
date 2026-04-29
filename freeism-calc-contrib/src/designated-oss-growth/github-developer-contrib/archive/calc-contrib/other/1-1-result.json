@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "analytics": {
+      "createdAt": "2025-09-22T09:34:32Z"
+    },
+    "repository": {
+      "host": "github.com",
+      "owner_username": "yoshiko-pg",
+      "owner_user_id": "U_kgDOAGgcCw",
+      "repository_name": "difit",
+      "repository_id": "R_kgDOPDzQlw",
+      "repository_url": "https://github.com/yoshiko-pg/difit",
+      "created_at": "2025-06-29T13:09:26Z",
+      "default_branch": "main"
+    }
+  },
+  "data": {
+    "user_total_count": 1496,
+    "user": [
+      {
+        "contribution_point": 2,
+        "user_id": "U_kgDOAAzeFg",
+        "user_database_id": 843286,
+        "user_login": "aliyome",
+        "user_name": "aliyome",
+        "user_url": "https://github.com/aliyome",
+        "user_type": "node",
+        "task_total_count": 2,
+        "task": [
+          {
+            "task_id": null,
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "watch",
+            "task_date": null,
+            "reference_task_date_field": "null",
+            "contribution_point": 1
+          },
+          {
+            "task_id": null,
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "star",
+            "task_date": "2025-06-30T02:00:24Z",
+            "reference_task_date_field": "starredAt",
+            "task_type_criterion_weight": 1,
+            "contribution_point": 1
+          }
+        ]
+      },
+      {
+        "contribution_point": 1,
+        "user_id": "U_kgDOABIsEw",
+        "user_database_id": 1190931,
+        "user_login": "izelnakri",
+        "user_name": "Izel Nakri | izelnakri.eth",
+        "user_url": "https://github.com/izelnakri",
+        "user_type": "author",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": null,
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "watch",
+            "task_date": null,
+            "reference_task_date_field": "null",
+            "contribution_point": 1
+          }
+        ]
+      }
+    ]
+  }
+}

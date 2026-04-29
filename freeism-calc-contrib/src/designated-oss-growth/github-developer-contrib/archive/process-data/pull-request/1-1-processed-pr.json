@@ -1,0 +1,75 @@
+{
+	"data": {
+		"user": [
+			{
+				"user_id": "U_kgDOAAEg6g",
+				"user_database_id": 73962,
+				"user_login": "mizchi",
+				"user_name": "Kotaro Chikuba",
+				"user_url": "https://github.com/mizchi",
+				"task": [
+					{
+						"task_id": "PR_kwDOPDzQl86ct2Rc",
+						"task_database_id": null,
+						"task_full_database_id": "2629264476",
+						"task_url": "https://github.com/yoshiko-pg/difit/pull/5",
+						"task_name": "create-not-merged-pull-request",
+						"task_date": "2025-06-30T15:10:51Z",
+						"reference_task_date_field": "publishedAt",
+						"pr_letter_count": 1363,
+						"pr_state": "CLOSED",
+						"change_record_count": 191,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAFEE6A",
+				"user_database_id": 5309672,
+				"user_login": "sakamossan",
+				"user_name": "sakamossan",
+				"user_url": "https://github.com/sakamossan",
+				"task": [
+					{
+						"task_id": "PR_kwDOPDzQl86czjcE",
+						"task_database_id": null,
+						"task_full_database_id": "2630760196",
+						"task_url": "https://github.com/yoshiko-pg/difit/pull/11",
+						"task_name": "create-not-merged-pull-request",
+						"task_date": "2025-07-01T03:44:23Z",
+						"reference_task_date_field": "publishedAt",
+						"pr_letter_count": 51,
+						"pr_state": "CLOSED",
+						"change_record_count": 6,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			},
+			{
+				"user_id": "U_kgDOAGgcCw",
+				"user_database_id": 6822923,
+				"user_login": "yoshiko-pg",
+				"user_name": "yoshiko",
+				"user_url": "https://github.com/yoshiko-pg",
+				"task": [
+					{
+						"task_id": "PR_kwDOPDzQl86pCPLm",
+						"task_database_id": null,
+						"task_full_database_id": "2835935974",
+						"task_url": "https://github.com/yoshiko-pg/difit/pull/94",
+						"task_name": "create-not-merged-pull-request",
+						"task_date": "2025-09-17T09:48:43Z",
+						"reference_task_date_field": "publishedAt",
+						"pr_letter_count": 990,
+						"pr_state": "CLOSED",
+						"change_record_count": 131,
+						"good_reaction": 0,
+						"bad_reaction": 0
+					}
+				]
+			}
+		]
+	}
+}

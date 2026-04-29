@@ -1,0 +1,16 @@
+{
+  "data": {
+    "repository": {
+      "owner": {
+        "login": "ryoppippi",
+        "__typename": "User"
+      },
+      "fundingLinks": [
+        {
+          "platform": "GITHUB",
+          "url": "https://github.com/ryoppippi"
+        }
+      ]
+    }
+  }
+}

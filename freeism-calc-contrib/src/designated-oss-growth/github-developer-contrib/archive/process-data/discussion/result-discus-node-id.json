@@ -1,0 +1,1989 @@
+[
+  {
+    "id": "D_kwDOOyw9fc4AgFOv",
+    "databaseId": 8410031,
+    "number": 8,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/8",
+    "title": "Polling is currently broken.",
+    "bodyText": "I haven't been able to generate any statistics for June 2nd. All other days have polled fine.",
+    "publishedAt": "2025-06-03T15:55:05Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 178079467,
+      "id": "U_kgDOCp1G6w",
+      "login": "GailElliott1990",
+      "name": null,
+      "url": "https://github.com/GailElliott1990"
+    },
+    "closedAt": "2025-06-03T16:41:59Z",
+    "comments": {
+      "totalCount": 9
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgJOT",
+    "databaseId": 8426387,
+    "number": 17,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/17",
+    "title": "Combine stats with isolated docker containers running claude code",
+    "bodyText": "It would be nice if it can include the files from isolated docker container running claude code as well or pass the directory where the container is running and has the files - combination of both ones on mac + docker container",
+    "publishedAt": "2025-06-06T22:37:49Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WJ",
+      "name": "Ideas",
+      "description": "Share ideas for new features",
+      "slug": "ideas",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":bulb:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 61936556,
+      "id": "U_kgDOA7ETrA",
+      "login": "abhishek-notes",
+      "name": null,
+      "url": "https://github.com/abhishek-notes"
+    },
+    "closedAt": "2025-06-08T01:57:54Z",
+    "comments": {
+      "totalCount": 2
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgJiG",
+    "databaseId": 8427654,
+    "number": 20,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/20",
+    "title": "5 hours sessions tracker",
+    "bodyText": "please add ability to keep track of those 5 hours sessions. how many sessions already used for the month.",
+    "publishedAt": "2025-06-07T13:19:33Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WH",
+      "name": "General",
+      "description": "Chat about anything and everything here",
+      "slug": "general",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":speech_balloon:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 25426500,
+      "id": "U_kgDOAYP6RA",
+      "login": "IntegralMedia01",
+      "name": "JJ Dörig",
+      "url": "https://github.com/IntegralMedia01"
+    },
+    "closedAt": "2025-06-17T13:55:55Z",
+    "comments": {
+      "totalCount": 2
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgJtV",
+    "databaseId": 8428373,
+    "number": 26,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/26",
+    "title": "Share your screenshot of `ccusage`!!!",
+    "bodyText": "Also please share your screenshot on twitter or bluesky with hashtag #ccusage",
+    "publishedAt": "2025-06-07T19:16:15Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WK",
+      "name": "Show and tell",
+      "description": "Show off something you've made",
+      "slug": "show-and-tell",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":raised_hands:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 9
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgXvr",
+    "databaseId": 8485867,
+    "number": 185,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/185",
+    "title": "No valid Claude data directories found (Windows/WSL)",
+    "bodyText": "I'm sure this is just my unfamiliarity with Claude Code.\nfile:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287\nif (paths.length === 0) throw new Error(`No valid Claude data directories found. Please ensure at least one of the following exists:\n^\nError: No valid Claude data directories found. Please ensure at least one of the following exists:\n\nC:\\Users\\psand.config\\claude\\projects\nC:\\Users\\psand.claude\\projects\nOr set CLAUDE_CONFIG_DIR environment variable to valid directory path(s) containing a 'projects' subdirectory\nat getClaudePaths (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3287:32)\nat loadDailyUsageData (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/data-loader-BeaFK_sH.js:3624:54)\nat Object.run (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:4230:27)\nat executeCommand (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1122:17)\nat cli (file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:1034:8)\nat async file:///C:/Users/psand/AppData/Roaming/npm/node_modules/ccusage/dist/index.js:5032:1\n\nI then created the directory in one of examples listed, but then got \" WARN  No Claude usage data found. \" (I wasn't really expecting that to work.)\nI know how to set the env variable, what I don't know is how to find where CC is storing logs (CC doesn't know either). Any help?",
+    "publishedAt": "2025-06-22T14:10:46Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 753716,
+      "id": "U_kgDOAAuANA",
+      "login": "psandler",
+      "name": "Phil Sandler",
+      "url": "https://github.com/psandler"
+    },
+    "closedAt": "2025-08-04T17:46:57Z",
+    "comments": {
+      "totalCount": 2
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgY5P",
+    "databaseId": 8490575,
+    "number": 190,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/190",
+    "title": "Archilinux AUR package available",
+    "bodyText": "I've created an AUR package for ccusage to make installation easier for Arch Linux users.\nInstallation:\nyay -S ccusage\n# or\nparu -S ccusage\nPackage details:\n\nPackage name: ccusage\nAUR page: https://aur.archlinux.org/packages/ccusage\nCurrent version: 15.2.0\nDependencies: nodejs, npm\nBuild process: Compiles from source using npm\n\nThe package follows standard AUR conventions and builds the project from the GitHub source tarball. It installs the compiled binary to /usr/bin/ccusage for system-wide access.\nTested on Manjaro/Arch Linux. Let me know if you encounter any issues with the package.",
+    "publishedAt": "2025-06-24T20:31:10Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WK",
+      "name": "Show and tell",
+      "description": "Show off something you've made",
+      "slug": "show-and-tell",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":raised_hands:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 696901,
+      "id": "U_kgDOAAqiRQ",
+      "login": "ggilestro",
+      "name": "Giorgio Gilestro",
+      "url": "https://github.com/ggilestro"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgZsQ",
+    "databaseId": 8493840,
+    "number": 197,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/197",
+    "title": "My Monthly.",
+    "bodyText": "",
+    "publishedAt": "2025-06-25T13:47:36Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WK",
+      "name": "Show and tell",
+      "description": "Show off something you've made",
+      "slug": "show-and-tell",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":raised_hands:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 476219,
+      "id": "U_kgDOAAdEOw",
+      "login": "bdmorin",
+      "name": "Brian",
+      "url": "https://github.com/bdmorin"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgZsb",
+    "databaseId": 8493851,
+    "number": 198,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/198",
+    "title": "Group by API Key?",
+    "bodyText": "Are there any plans to add a group by API key?\nWe're assigning api keys to projects so we can track (or attempt to) track individual costs for projects/tasks.",
+    "publishedAt": "2025-06-25T13:48:49Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 476219,
+      "id": "U_kgDOAAdEOw",
+      "login": "bdmorin",
+      "name": "Brian",
+      "url": "https://github.com/bdmorin"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AgyXW",
+    "databaseId": 8594902,
+    "number": 317,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/317",
+    "title": "Account based?",
+    "bodyText": "Hi, thanks for the tool. It's really nice to have.\nI have a quick question. Is it possible to make it account based? For example, if I run the tool on my local desktop and server, they show their own usages, so I need to add them to get my actual Anthropic's ccuage. I though the results are tied to the account but I guess it's based on the machine as well.",
+    "publishedAt": "2025-07-17T12:39:08Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WJ",
+      "name": "Ideas",
+      "description": "Share ideas for new features",
+      "slug": "ideas",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":bulb:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 73055456,
+      "id": "U_kgDOBFq84A",
+      "login": "thangk",
+      "name": "Kap Thang",
+      "url": "https://github.com/thangk"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ag2YE",
+    "databaseId": 8611332,
+    "number": 334,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/334",
+    "title": "Data collection and privacy",
+    "bodyText": "There is no information on data privacy - is there anything collected now or in the future? Request to add a statement on this",
+    "publishedAt": "2025-07-21T00:10:59Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 89332196,
+      "id": "U_kgDOBVMZ5A",
+      "login": "rosmur",
+      "name": null,
+      "url": "https://github.com/rosmur"
+    },
+    "closedAt": "2025-08-04T17:46:38Z",
+    "comments": {
+      "totalCount": 1
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ag4Ih",
+    "databaseId": 8618529,
+    "number": 339,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/339",
+    "title": "Adding a time summary column.",
+    "bodyText": "It would be useful to add a column that summarizes the time spent on a given day with Claude code, similar to how ccusage blocks currently shows it, but it's difficult to summarize there and you can't see which project it relates to. I would need such a solution for billing my work on a given project.",
+    "publishedAt": "2025-07-22T05:54:27Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WJ",
+      "name": "Ideas",
+      "description": "Share ideas for new features",
+      "slug": "ideas",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":bulb:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 31516391,
+      "id": "U_kgDOAeDm5w",
+      "login": "jarx88",
+      "name": "Jarosław Hartwich",
+      "url": "https://github.com/jarx88"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ahfga",
+    "databaseId": 8779802,
+    "number": 579,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/579",
+    "title": "Monitoring Shared Usage Limits Across Claude and Claude Code",
+    "bodyText": "According to Anthropic, \"Both Pro and Max plans offer rate limits that are shared across Claude and Claude Code, meaning all activity in both tools counts against the same usage limits.\" Since they share sessions, is there a way to monitor usage beyond just using ClaudeCode?",
+    "publishedAt": "2025-07-23T06:43:27Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 932321,
+      "id": "U_kgDOAA454Q",
+      "login": "yabasha",
+      "name": "Bashar Ayyash",
+      "url": "https://github.com/yabasha"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 2
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ag7sE",
+    "databaseId": 8633092,
+    "number": 358,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/358",
+    "title": "Ability for CC to check its own usage%?",
+    "bodyText": "I get frustrated when I hit my usage limit and CC is in the middle of a task.\nBeing able to tell Claude to check usage% between subtasks would be awesome.",
+    "publishedAt": "2025-07-25T16:17:17Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WJ",
+      "name": "Ideas",
+      "description": "Share ideas for new features",
+      "slug": "ideas",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":bulb:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 11054840,
+      "id": "U_kgDOAKiu-A",
+      "login": "NihilRex",
+      "name": null,
+      "url": "https://github.com/NihilRex"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhBDH",
+    "databaseId": 8655047,
+    "number": 382,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/382",
+    "title": "Weekly usage?",
+    "bodyText": "As Anthropic recently introduced weekly limits, wouldn't it make sense to add a \"weekly\" feature to ccusage? :)",
+    "publishedAt": "2025-07-30T09:24:44Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WJ",
+      "name": "Ideas",
+      "description": "Share ideas for new features",
+      "slug": "ideas",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": false,
+      "emoji": ":bulb:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 171280164,
+      "id": "U_kgDOCjWHJA",
+      "login": "tilman-d",
+      "name": "Tilman Dietrich",
+      "url": "https://github.com/tilman-d"
+    },
+    "closedAt": "2025-08-04T17:47:13Z",
+    "comments": {
+      "totalCount": 1
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhH3R",
+    "databaseId": 8682961,
+    "number": 426,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/426",
+    "title": "Usage more than 1 month ago",
+    "bodyText": "I recently noticed that my usage statistics that are longer than 1 month in the past seem to have disappeared / are not showing anymore... Is that something related to ccusage, or is claude code only storing up to one month of logs?",
+    "publishedAt": "2025-08-04T19:14:59Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 1871704,
+      "id": "U_kgDOAByPWA",
+      "login": "lanice",
+      "name": "Leander Neiss",
+      "url": "https://github.com/lanice"
+    },
+    "closedAt": "2025-08-06T09:12:50Z",
+    "comments": {
+      "totalCount": 1
+    },
+    "poll": null,
+    "answerChosenBy": {
+      "__typename": "User",
+      "databaseId": 1871704,
+      "id": "U_kgDOAByPWA",
+      "login": "lanice",
+      "name": "Leander Neiss",
+      "url": "https://github.com/lanice"
+    },
+    "answerChosenAt": "2025-08-06T15:21:38Z",
+    "answer": {
+      "databaseId": 14017232,
+      "id": "DC_kwDOOyw9fc4A1eLQ",
+      "url": "https://github.com/ryoppippi/ccusage/discussions/426#discussioncomment-14017232",
+      "upvoteCount": 2,
+      "author": {
+        "__typename": "User",
+        "databaseId": 1560508,
+        "id": "U_kgDOABfPvA",
+        "login": "ryoppippi",
+        "name": "ryoppippi",
+        "url": "https://github.com/ryoppippi"
+      },
+      "bodyText": "@lanice\nhttps://docs.anthropic.com/en/docs/claude-code/settings#available-settings\ncleanupPeriodDays",
+      "publishedAt": "2025-08-06T09:12:50Z",
+      "createdAt": "2025-08-06T09:12:50Z",
+      "deletedAt": null,
+      "reactionGroups": [
+        {
+          "content": "THUMBS_UP",
+          "reactors": {
+            "totalCount": 2
+          }
+        },
+        {
+          "content": "THUMBS_DOWN",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "LAUGH",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "HOORAY",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "CONFUSED",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "HEART",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "ROCKET",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "EYES",
+          "reactors": {
+            "totalCount": 0
+          }
+        }
+      ],
+      "reactions": {
+        "totalCount": 2
+      },
+      "replies": {
+        "totalCount": 0
+      }
+    }
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhMVd",
+    "databaseId": 8701277,
+    "number": 445,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/445",
+    "title": "Is there a time lag with ccusage?",
+    "bodyText": "I have the ccusage command launched immediately after entering the Claude Code, but the amount doesn't seem to change immediately.\nIs it supposed to be reflected immediately, or does it take a few seconds to a few minutes?",
+    "publishedAt": "2025-08-07T13:39:17Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 13173632,
+      "id": "U_kgDOAMkDgA",
+      "login": "ampcpmgp",
+      "name": "Akira Makino",
+      "url": "https://github.com/ampcpmgp"
+    },
+    "closedAt": "2025-08-08T12:02:14Z",
+    "comments": {
+      "totalCount": 2
+    },
+    "poll": null,
+    "answerChosenBy": {
+      "__typename": "User",
+      "databaseId": 13173632,
+      "id": "U_kgDOAMkDgA",
+      "login": "ampcpmgp",
+      "name": "Akira Makino",
+      "url": "https://github.com/ampcpmgp"
+    },
+    "answerChosenAt": "2025-08-08T12:02:22Z",
+    "answer": {
+      "databaseId": 14045158,
+      "id": "DC_kwDOOyw9fc4A1k_m",
+      "url": "https://github.com/ryoppippi/ccusage/discussions/445#discussioncomment-14045158",
+      "upvoteCount": 1,
+      "author": {
+        "__typename": "User",
+        "databaseId": 1560508,
+        "id": "U_kgDOABfPvA",
+        "login": "ryoppippi",
+        "name": "ryoppippi",
+        "url": "https://github.com/ryoppippi"
+      },
+      "bodyText": "claude code writes log after they finish thier task",
+      "publishedAt": "2025-08-08T10:23:47Z",
+      "createdAt": "2025-08-08T10:23:47Z",
+      "deletedAt": null,
+      "reactionGroups": [
+        {
+          "content": "THUMBS_UP",
+          "reactors": {
+            "totalCount": 1
+          }
+        },
+        {
+          "content": "THUMBS_DOWN",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "LAUGH",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "HOORAY",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "CONFUSED",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "HEART",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "ROCKET",
+          "reactors": {
+            "totalCount": 0
+          }
+        },
+        {
+          "content": "EYES",
+          "reactors": {
+            "totalCount": 0
+          }
+        }
+      ],
+      "reactions": {
+        "totalCount": 1
+      },
+      "replies": {
+        "totalCount": 0
+      }
+    }
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhN8i",
+    "databaseId": 8707874,
+    "number": 464,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "title": "Wrong usage limits for PRO",
+    "bodyText": "Wrong usage limits for PRO.",
+    "publishedAt": "2025-08-08T18:17:51Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 2
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 4
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 783887,
+      "id": "U_kgDOAAv2Dw",
+      "login": "tyloch",
+      "name": "Artur Tyloch",
+      "url": "https://github.com/tyloch"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 1
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhN8h",
+    "databaseId": 8707873,
+    "number": 463,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463",
+    "title": "[Bug] ccusage statusline output \"❌ No input provided\"",
+    "bodyText": "Description\nThe ccusage statusline output only : ❌ No input provided\nThe behavior is the same within Claude code the advised configuration from the ccusage documentation:\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"bun x ccusage statusline\",\n    \"padding\": 0\n  }\n}\n\nEnvironment\n\nccusage: 15.9.1\nRuntime: Bun v1.2.19\nOS: Pop!_OS 22.04 LTS",
+    "publishedAt": "2025-08-10T08:08:05Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 4458879,
+      "id": "U_kgDOAEQJfw",
+      "login": "alxsbn",
+      "name": "alxsbn",
+      "url": "https://github.com/alxsbn"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 4
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4AhdSY",
+    "databaseId": 8770712,
+    "number": 565,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/565",
+    "title": "Windows and --project",
+    "bodyText": "Windows (not WSL) user here. When I try to see project specific info, I can't get anything. When running with the project option and the project name, I keep seeing\n\nNo Claude usage data found.\n\nSessions show up just fine and there's more than one project in my .claude directory and the directory is in my path. I even set the environment variable suggested, just in case.\nI've tried this at a command prompt, in PowerShell and the results are always the same. Providing the complete path to the project folder doesn't seem to help. Escaped backslashes in the project name don't help either.\nIs there some magic way to get ccusage to give me project data or am just hooped? I realize that, as a Windows user, I'm in the minority here. Installed via npm if that matters.\nOther than this minor issue, this is an excellent tool!",
+    "publishedAt": "2025-08-21T04:29:39Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 16505721,
+      "id": "U_kgDOAPvbeQ",
+      "login": "Boh1",
+      "name": null,
+      "url": "https://github.com/Boh1"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ahlmh",
+    "databaseId": 8804769,
+    "number": 608,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/608",
+    "title": "Does ccusage only show cost, or does it show token usage as well?",
+    "bodyText": "Simce I am on the MAX plan, I have no use of the cost info. Just looking for tracking context usage in current session. Can this do that?",
+    "publishedAt": "2025-08-27T01:50:10Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 27700007,
+      "id": "U_kgDOAaarJw",
+      "login": "shayonpal",
+      "name": "Shayon Pal",
+      "url": "https://github.com/shayonpal"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  },
+  {
+    "id": "D_kwDOOyw9fc4Ahw9a",
+    "databaseId": 8851290,
+    "number": 619,
+    "url": "https://github.com/ryoppippi/ccusage/discussions/619",
+    "title": "How do costs work?",
+    "bodyText": "OK.   I feel like I'm missing something.  Anthropic has two different billing options: subscription and API-based.  Personally, I use both.  I use the \"PRO\" plan most of the time, but will switch over to API for heavy sessions when I exceed my pro quota.  But there's no discussion of API/subscription in any of the ccusage cost or token documentation.\nDoes the cost calculator just translate tokens to cost using the API rate?  What I'd really like to know is (in a Block) how much of my pro usage quota have I consumed, and if I've switched over to API billing, how much money have I spent on that.  I don't really need either of these to be exact.\nSo, under the assumption that we're really just treating everything like it's API-based, I guess the right thing for me to do is calculate expected cost quota, and then (usage/quote) as long as that's <1, and then COST_OF(usage - quota) thereafter.  Am I understanding this correctly?",
+    "publishedAt": "2025-09-06T21:39:48Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "category": {
+      "id": "DIC_kwDOOyw9fc4Cq_WI",
+      "name": "Q&A",
+      "description": "Ask the community for help",
+      "slug": "q-a",
+      "createdAt": "2025-06-03T16:23:23Z",
+      "isAnswerable": true,
+      "emoji": ":pray:"
+    },
+    "author": {
+      "__typename": "User",
+      "databaseId": 34139867,
+      "id": "U_kgDOAgju2w",
+      "login": "michaeldstenner",
+      "name": null,
+      "url": "https://github.com/michaeldstenner"
+    },
+    "closedAt": null,
+    "comments": {
+      "totalCount": 0
+    },
+    "poll": null,
+    "answerChosenBy": null,
+    "answerChosenAt": null,
+    "answer": null
+  }
+]

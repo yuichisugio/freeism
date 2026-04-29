@@ -1,0 +1,46 @@
+[
+  {
+    "data": {
+      "node": {
+        "id": "I_kwDOPDzQl86-ZbAT",
+        "fullDatabaseId": "3194335251",
+        "databaseId": 3194335251,
+        "number": 17,
+        "url": "https://github.com/yoshiko-pg/difit/issues/17",
+        "title": "Implement ReviewIt MCP Server",
+        "state": "OPEN",
+        "publishedAt": "2025-07-02T02:50:44Z",
+        "timelineItems": {
+          "totalCount": 1,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABl8kLM6ABqzE4NDIyNTQzOTQ1"
+          },
+          "nodes": [
+            {
+              "__typename": "AssignedEvent",
+              "id": "AE_lADOPDzQl86-ZbATzwAAAARKEbZJ",
+              "createdAt": "2025-07-02T02:50:44Z",
+              "actor": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "assignee": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

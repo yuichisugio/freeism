@@ -1,0 +1,146 @@
+[
+  {
+    "node___typename": "DiscussionComment",
+    "node_id": "DC_kwDOOyw9fc4A1YAP",
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/334#discussioncomment-13991951",
+    "databaseId": 13992017,
+    "id": "DC_kwDOOyw9fc4A1YBR",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/334#discussioncomment-13992017",
+    "upvoteCount": 0,
+    "author": {
+      "__typename": "User",
+      "databaseId": 89332196,
+      "id": "U_kgDOBVMZ5A",
+      "login": "rosmur",
+      "name": null,
+      "url": "https://github.com/rosmur"
+    },
+    "bodyText": "Can you please add this to the readme?",
+    "publishedAt": "2025-08-04T17:53:07Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    }
+  },
+  {
+    "node___typename": "DiscussionComment",
+    "node_id": "DC_kwDOOyw9fc4A16qa",
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14133914",
+    "databaseId": 14133947,
+    "id": "DC_kwDOOyw9fc4A16q7",
+    "url": "https://github.com/ryoppippi/ccusage/discussions/463#discussioncomment-14133947",
+    "upvoteCount": 0,
+    "author": {
+      "__typename": "User",
+      "databaseId": 18434999,
+      "id": "U_kgDOARlLtw",
+      "login": "dw820",
+      "name": "Wei Tu",
+      "url": "https://github.com/dw820"
+    },
+    "bodyText": "I put npx -y ccusage statusline inside my statusline.sh this doesn't work.\nI then followed the doc and directly add npx -y ccusage statusline in ~/.claude/settings.json it works now.",
+    "publishedAt": "2025-08-17T20:15:22Z",
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    }
+  }
+]

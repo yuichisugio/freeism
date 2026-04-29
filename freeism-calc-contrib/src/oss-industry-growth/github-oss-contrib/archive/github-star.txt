@@ -1,0 +1,7 @@
+gh api graphql -F owner="ryoppippi" -F name="ccusage" -f query='
+  query($owner:String!, $name:String!) {
+    repository(owner:$owner, name:$name) {
+      stargazerCount
+    }
+  }
+' | jq '.' >"src/oss-industry-growth/github-oss-contrib/archive/1-github-star.json"

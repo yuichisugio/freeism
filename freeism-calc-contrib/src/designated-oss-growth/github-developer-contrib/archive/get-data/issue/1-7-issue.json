@@ -1,0 +1,233 @@
+[
+  {
+    "data": {
+      "node": {
+        "__typename": "Issue",
+        "id": "I_kwDOPDzQl86-Z8VZ",
+        "fullDatabaseId": "3194471769",
+        "databaseId": 3194471769,
+        "number": 21,
+        "url": "https://github.com/yoshiko-pg/difit/issues/21",
+        "title": "doesn't work for git worktree",
+        "state": "OPEN",
+        "publishedAt": "2025-07-02T04:13:05Z",
+        "comments": {
+          "totalCount": 3,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOtJ29Bg=="
+          },
+          "nodes": [
+            {
+              "fullDatabaseId": "3026477638",
+              "databaseId": 3026477638,
+              "id": "IC_kwDOPDzQl860ZGJG",
+              "url": "https://github.com/yoshiko-pg/difit/issues/21#issuecomment-3026477638",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "bodyText": "I hadn't noticed. I'll take care of it!",
+              "publishedAt": "2025-07-02T05:12:55Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "fullDatabaseId": "3028344078",
+              "databaseId": 3028344078,
+              "id": "IC_kwDOPDzQl860gN0O",
+              "url": "https://github.com/yoshiko-pg/difit/issues/21#issuecomment-3028344078",
+              "author": {
+                "__typename": "User",
+                "databaseId": 54097100,
+                "id": "U_kgDOAzl0zA",
+                "login": "aku11i",
+                "name": "Shuhei Akutagawa",
+                "url": "https://github.com/aku11i"
+              },
+              "bodyText": "@omanuke I think you should run npx reviewit . to review uncommitted changes.\nhttps://github.com/yoshiko-pg/reviewit?tab=readme-ov-file#special-arguments",
+              "publishedAt": "2025-07-02T15:40:37Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "fullDatabaseId": "3030236422",
+              "databaseId": 3030236422,
+              "id": "IC_kwDOPDzQl860nb0G",
+              "url": "https://github.com/yoshiko-pg/difit/issues/21#issuecomment-3030236422",
+              "author": {
+                "__typename": "User",
+                "databaseId": 1901757,
+                "id": "U_kgDOAB0EvQ",
+                "login": "omanuke",
+                "name": null,
+                "url": "https://github.com/omanuke"
+              },
+              "bodyText": "@omanuke I think you should run npx reviewit . to review uncommitted changes. https://github.com/yoshiko-pg/reviewit?tab=readme-ov-file#special-arguments\n\nThe right side of attached image displays the result of `npw reviewit' in git worktree branch folder. It indicates that reviewit shows the changes of root folder git instead of the changes in git worktree.",
+              "publishedAt": "2025-07-03T02:03:03Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

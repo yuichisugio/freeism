@@ -1,0 +1,2208 @@
+[
+  {
+    "data": {
+      "repository": {
+        "id": "R_kgDOPDzQlw",
+        "databaseId": 1010618519,
+        "createdAt": "2025-06-29T13:09:26Z",
+        "name": "difit",
+        "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
+        "homepageUrl": "https://www.npmjs.com/package/difit",
+        "url": "https://github.com/yoshiko-pg/difit",
+        "releases": {
+          "totalCount": 39,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wOC0yNVQwODo1NjowMCswOTowMM4Obqe5"
+          },
+          "nodes": [
+            {
+              "databaseId": 228955200,
+              "id": "RE_kwDOPDzQl84NpZRA",
+              "name": "v1.0.0 - 2025-06-30",
+              "description": "### Added\n\n- First stable release 🌱",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.0",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:34:01Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955277,
+              "id": "RE_kwDOPDzQl84NpZSN",
+              "name": "v1.0.1 - 2025-06-30",
+              "description": "### Changed\n\n- Auto-collapse lock files by default",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.1",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:05Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955280,
+              "id": "RE_kwDOPDzQl84NpZSQ",
+              "name": "v1.0.2 - 2025-06-30",
+              "description": "### Changed\n\n- Use custom favicon",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.2",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:09Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955286,
+              "id": "RE_kwDOPDzQl84NpZSW",
+              "name": "v1.0.3 - 2025-06-30",
+              "description": "### Changed\n\n- Simplify comment prompt format to file:line format\n\n### Fixed\n\n- Fix folder name truncation in file tree",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.3",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:11Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955292,
+              "id": "RE_kwDOPDzQl84NpZSc",
+              "name": "v1.0.4 - 2025-06-30",
+              "description": "### Changed\n\n- Show commit hash range in short format",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.4",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:14Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955295,
+              "id": "RE_kwDOPDzQl84NpZSf",
+              "name": "v1.0.5 - 2025-06-30",
+              "description": "### Added\n\n- `.` argument to show HEAD vs working directory diff",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.5",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:17Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955348,
+              "id": "RE_kwDOPDzQl84NpZTU",
+              "name": "v1.0.6 - 2025-06-30",
+              "description": "### Added\n\n- Automatic server shutdown when browser tab is closed",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.6",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:43Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955351,
+              "id": "RE_kwDOPDzQl84NpZTX",
+              "name": "v1.0.7 - 2025-06-30",
+              "description": "### Fixed\n\n- Use version from package.json\n\n### Thanks\n\n- [@no-yan](https://github.com/no-yan) for version handling improvement #1",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.7",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:46Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955356,
+              "id": "RE_kwDOPDzQl84NpZTc",
+              "name": "v1.0.8 - 2025-06-30",
+              "description": "### Added\n\n- Dynamic syntax highlighting for additional languages - bash, ruby, java, php, sql",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.0.8",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:49Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955363,
+              "id": "RE_kwDOPDzQl84NpZTj",
+              "name": "v1.1.0 - 2025-06-30",
+              "description": "### Added\n\n- TUI (Terminal User Interface) mode\n\n### Thanks\n\n- [@mizchi](https://github.com/mizchi) for TUI implementation #2",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.0",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:52Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228955366,
+              "id": "RE_kwDOPDzQl84NpZTm",
+              "name": "v1.1.1 - 2025-06-30",
+              "description": "### Added\n\n- Compare-with option support\n\n### Thanks\n\n- [@unvalley](https://github.com/unvalley) for removing undefined `staging` option documentation #7\n- [@yu7400ki](https://github.com/yu7400ki) for improving build scripts in package.json #3",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.1",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-06-30T23:35:55Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228964542,
+              "id": "RE_kwDOPDzQl84Npbi-",
+              "name": "v1.1.2",
+              "description": "## Added\n\n- Comment export feature on process termination (#9)\n- /release command for automated release workflow\n- CI workflow for pull requests\n\n## Changed\n\n- Package dependencies updated\n- Improved lint configuration\n- Enhanced pre-commit hooks setup",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.2",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T01:04:27Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228981741,
+              "id": "RE_kwDOPDzQl84Npfvt",
+              "name": "v1.1.3",
+              "description": "### Changed\n\n- Git commit comparison now uses three dots (...) instead of two dots (..) for better range comparison\n\n### Fixed\n\n- Node.js requirement updated to 21+ with ES2022 support\n  - fixed: https://github.com/yoshiko-pg/reviewit/issues/10",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.3",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T04:06:52Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228986856,
+              "id": "RE_kwDOPDzQl84Npg_o",
+              "name": "v1.1.4",
+              "description": "### Fixed\n\n- Fix frontend display to correctly split on three dots (...) instead of two dots (..)\n- Fix git diff arguments to use resolvedCommit string instead of individual commitish values",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.4",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T04:38:14Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 228990406,
+              "id": "RE_kwDOPDzQl84Nph3G",
+              "name": "v1.1.5",
+              "description": "### Added\n\n- MIT License\n- Line-type specific comment positioning\n  - Delete lines: comments positioned on left half\n  - Add lines: comments positioned on right half\n  - Unchanged lines: comments positioned full width\n\n### Changed\n\n- Comment display format simplified to file:line (removed timestamp)",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.5",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T05:11:45Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 229166262,
+              "id": "RE_kwDOPDzQl84NqMy2",
+              "name": "v1.1.6",
+              "description": "### Added\n\n- GitHub PR URL support with `--pr <url>` option\n  - `npx reviewit --pr https://github.com/owner/repo/pull/123`\n\n### Changed\n\n- README.md features section simplified for better readability\n\n### Fixed\n\n- Fixed error when using `working` as target argument that was incorrectly causing validation failures",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.6",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T15:39:23Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 229173474,
+              "id": "RE_kwDOPDzQl84NqOji",
+              "name": "v1.1.7",
+              "description": "### Added\n\n- Scala syntax highlighting support\n\n### Fixed\n\n- Fixed error when specifying a specific commit hash that prevented the application from starting\n  - Now correctly validates commit formats like `abc123^` and `abc123~1`\n  - Resolves \"Invalid base commit-ish format\" error when using commit^ syntax\n\n### Thanks\n\n- [@rfkm](https://github.com/rfkm) for adding Scala syntax highlighting support #14",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.7",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T16:10:04Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 229257015,
+              "id": "RE_kwDOPDzQl84Nqi83",
+              "name": "v1.1.8",
+              "description": "## Fixed\n\n- Fixed port fallback behavior to prevent displaying `localhost:undefined` when the initial port is in use\n\n## Thanks\n\n- [@arayaryoma](https://github.com/arayaryoma) for fixing port fallback behavior #15",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.8",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-01T23:41:42Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 229266682,
+              "id": "RE_kwDOPDzQl84NqlT6",
+              "name": "v1.1.9",
+              "description": "### Added\n\n- Customizable appearance settings to Web UI with font size, font family, theme selection, and syntax highlighting options (#16)\n\n### Changed\n\n- Skip browser auto-launch when no differences are found, displaying informative CLI message instead\n\n### Fixed\n\n- Comment areas now use full width in inline mode for improved readability",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.9",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-02T01:33:24Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 229772320,
+              "id": "RE_kwDOPDzQl84Nsgwg",
+              "name": "Release v1.1.10",
+              "description": "### Added\n\n- Untracked file detection with CLI prompt (#6)\n- --host option to configure server bind address (#13)\n- Comprehensive CLI and server integration tests (#27)\n\n### Changed\n\n- UI misc\n  - Remove comment badges from directories in left pane\n  - Visual feedback for file path copy button\n  - Visible border on top of file header in right pane\n  - Directory path collapsing in left pane\n\n### Fixed\n\n- Diff display issue when non-default git diff tool is set (#24)\n- Server URL to reflect --host option (#25)\n- Remove unnecessary default value in help (#22)\n- Mode option now working\n\n### Thanks\n\n- [@umiyosh](https://github.com/umiyosh) for fixing diff display issue #24\n- [@mitsuru](https://github.com/mitsuru) for fixing server URL to reflect --host option #25\n- [@no-yan](https://github.com/no-yan) for adding untracked file detection with CLI prompt #6\n- [@yicrotkd](https://github.com/yicrotkd) for adding --host option to configure server bind address #13\n- [@kawarimidoll](https://github.com/kawarimidoll) for removing unnecessary default value in help #22",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.10",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-03T15:10:26Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 230294801,
+              "id": "RE_kwDOPDzQl84NugUR",
+              "name": "v1.1.11",
+              "description": "### Added\n\n- Image diff display support for inline and side-by-side layouts (#30)\n\n### Fixed\n\n- Git diff header parsing now works correctly with diff.noprefix=true (#29)\n\n### Thanks\n\n- [@tsumuchan](https://github.com/tsumuchan) for fixing git diff header parsing #29",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.11",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-06T15:33:31Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 230403638,
+              "id": "RE_kwDOPDzQl84Nu642",
+              "name": "v1.1.12",
+              "description": "### Added\n\n- Solidity syntax highlighting support (#31)\n\n### Thanks\n\n- [@maguroid](https://github.com/maguroid) for adding Solidity syntax highlighting support #31",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v1.1.12",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-07T09:56:54Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231010739,
+              "id": "RE_kwDOPDzQl84NxPGz",
+              "name": "v2.0.0",
+              "description": "### Changed\n\n- Rename to difit (#33)",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.0",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-09T03:15:03Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 231012760,
+              "id": "RE_kwDOPDzQl84NxPmY",
+              "name": "v2.0.1",
+              "description": "### Added\n\n- vim script syntax highlighting support (#32)\n\n### Changed\n\n- Prettier formatting with experimentalTernaries option enabled\n- Prettier configuration updated to use oxc plugin\n\n### Thanks\n\n- [@konojunya](https://github.com/konojunya) for adding vim script syntax highlighting support #32",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.1",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-09T03:35:26Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231169797,
+              "id": "RE_kwDOPDzQl84Nx18F",
+              "name": "Release v2.0.2",
+              "description": "### Added\n\n- Multi-line comment support for diff viewer with proper display formatting (#34)\n\n### Changed\n\n- Improve comment UI with resolve button and simplified tooltips\n- Improve icons throughout the interface\n- Add GitHub link to sidebar footer\n- Change logo color for softer appearance\n\n### Fixed\n\n- Fix branch name validation to allow @ character\n\n### Thanks\n\n- [@uzimaru0000](https://github.com/uzimaru0000) for adding multi-line comment support #34",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.2",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-09T14:12:09Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231299258,
+              "id": "RE_kwDOPDzQl84NyVi6",
+              "name": "v2.0.3",
+              "description": "### Changed\n\n- Migrate to ESLint Flat Config with TypeScript support\n- File status display now shows line edits as modified (only new files as added, deleted files as deleted)\n- Default host changed from 127.0.0.1 to localhost\n\n### Fixed\n\n- Git branch name validation now follows proper git check-ref-format rules",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.3",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-10T00:47:29Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231456235,
+              "id": "RE_kwDOPDzQl84Ny73r",
+              "name": "v2.0.4",
+              "description": "### Added\n\n- Collapsible file tree section (#37)\n\n### Changed\n\n- Simplified loop iteration and removed unnecessary type assertions (#38)\n- Smooth CSS transitions for sidebar toggle animations\n\n### Thanks\n\n- [@seesaw-monster](https://github.com/seesaw-monster) for adding collapsible file tree section #37\n- [@noritaka1166](https://github.com/noritaka1166) for refactoring loop iteration #38\n\n🤖 Generated with [Claude Code](https://claude.ai/code)",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.4",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-10T12:45:59Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231634544,
+              "id": "RE_kwDOPDzQl84NznZw",
+              "name": "v2.0.5",
+              "description": "## [2.0.5] - 2025-07-11\n\n### Added\n\n- Dart language support (#40)\n\n### Changed\n\n- Removed unused @eslint/eslintrc dependency (#39)\n\n### Thanks\n\n- [@tsukasaI](https://github.com/tsukasaI) for adding Dart language support #40\n- [@noritaka1166](https://github.com/noritaka1166) for removing unused @eslint/eslintrc dependency #39",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.5",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-11T00:15:33Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 231969914,
+              "id": "RE_kwDOPDzQl84N05R6",
+              "name": "v2.0.6",
+              "description": "### Changed\n\n- Keyboard accessibility improvements for Checkbox component (#42)\n- Refactored code to use optional chaining (#41)\n- Refactored test code to remove redundant return (#44)\n\n### Fixed\n\n- Fixed file tree display to prevent collapsing root node when showing nested folders\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for keyboard accessibility improvements #42\n- [@noritaka1166](https://github.com/noritaka1166) for optional chaining refactor #41\n- [@noritaka1166](https://github.com/noritaka1166) for test code refactor #44",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.6",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-12T13:48:47Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 232141326,
+              "id": "RE_kwDOPDzQl84N1jIO",
+              "name": "v2.0.7",
+              "description": "### Added\n\n- Display progress of reviewed files in client (#45)\n- FUNDING.yml for GitHub Sponsors\n\n### Changed\n\n- Refactored code to fix some ESLint warnings (#46)\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for adding progress display feature #45\n- [@noritaka1166](https://github.com/noritaka1166) for fixing ESLint warnings #46",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.7",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-14T07:54:10Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 232370156,
+              "id": "RE_kwDOPDzQl84N2a_s",
+              "name": "v2.0.8",
+              "description": "### Changed\n\n- Improved type definitions and removed unnecessary casts (#48)\n- HP bar style progress display\n\n### Fixed\n\n- Replaced deprecated GitHub icon with new GitHubIcon component (#47)\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for improving type definitions #48\n- [@noritaka1166](https://github.com/noritaka1166) for replacing deprecated GitHub icon #47",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.8",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-15T00:18:14Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 233012545,
+              "id": "RE_kwDOPDzQl84N431B",
+              "name": "v2.0.9",
+              "description": "### Changed\n\n- Replace full line click with dedicated comment button on line numbers for commenting\n- Make code area selectable for text copying\n- Simplify ESLint config by extracting shared rules and plugins to reduce duplication\n\n### Fixed\n\n- Fix issue where same line numbers in old/new sides both show comment forms\n- Resolve ESLint warnings across the codebase with proper type handling",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.9",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-17T01:08:43Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 233758742,
+              "id": "RE_kwDOPDzQl84N7uAW",
+              "name": "Release v2.0.10",
+              "description": "### Added\n\n- `--clean` flag to clear existing comments on startup and Button menu for cleanup all prompts\n- GitHub Enterprise support for --pr option\n- C# syntax highlighting support\n\n### Removed\n\n- Unused props from Checkbox and DiffViewer components\n\n### Thanks\n\n- [@hatayama](https://github.com/hatayama) for adding C# syntax highlighting support #52\n- [@haya14busa](https://github.com/haya14busa) for adding --clean flag to clear existing comments on startup #51\n- [@noritaka1166](https://github.com/noritaka1166) for removing unused props from Checkbox and DiffViewer components #49",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.10",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-20T15:30:26Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 233900425,
+              "id": "RE_kwDOPDzQl84N8QmJ",
+              "name": "v2.0.11",
+              "description": "## [2.0.11] - 2025-07-21\n\n### Added\n\n- Gerrit-style keyboard navigation with comprehensive shortcuts (#54)\n  - j/k for line navigation, ]/[ for file navigation\n  - n/p for chunk navigation, N/P for comment navigation\n  - h/l or arrow keys for side switching in side-by-side view\n  - r for toggling review state, c for creating comments\n  - ? for help modal, . for center navigation\n  - Shift+C to copy all comments prompt\n  - Mouse click to focus on lines\n  - Visual cursor indicators and smart scrolling\n  - Skip collapsed files during navigation\n- Multi-language README support with Japanese, Chinese, and Korean translations (#56)\n- --clean option documentation to README\n\n### Fixed\n\n- GitHub Enterprise Server authentication error messages now explain that tokens must be generated on the specific Enterprise instance\n\n### Removed\n\n- Unused dependency (#53)\n\n### Thanks\n\n- [@haya14busa](https://github.com/haya14busa) for implementing Gerrit-style keyboard navigation #54\n- [@noritaka1166](https://github.com/noritaka1166) for removing unused dependency #53",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.0.11",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-21T12:32:33Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 235460955,
+              "id": "RE_kwDOPDzQl84OCNlb",
+              "name": "v2.1.0",
+              "description": "## [2.1.0] - 2025-07-28\n\n### Added\n\n- Comment list view with keyboard navigation (#64)\n  - View all comments in one place with Shift+L\n  - Navigate comments with j/k, jump with Enter, delete with d\n  - Scope-based keyboard shortcuts management\n  - Shift+D to delete all comments\n- Stdin support for reading unified diffs (#58)\n  - Automatically detect piped input\n  - Support explicit stdin mode with '-' argument\n  - Enable workflows like `git diff | npx difit`\n- Hot reload feature with file watching (#61)\n  - Automatic diff updates when files change\n  - Manual refresh button\n  - SSE-based real-time updates\n- Word highlighting in diff viewer like Gerrit (#62)\n  - Highlight all occurrences of hovered word\n  - Theme-aware styling\n  - Case-insensitive matching\n- Protobuf (.proto) syntax highlighting support\n\n### Changed\n\n- Default port changed from 3000 to 4966\n- Refactored code to use optional chaining (#59)\n\n### Fixed\n\n- Cmd+Enter shortcut for updating comments (#67)\n- Last comment not output when closing window (#63)\n- Empty files handling in keyboard navigation (#60)\n- Script hanging when browser tab is closed (#65)\n- Support for two commitish arguments in dev script (#65)\n- Fix validation for @ symbol as Git HEAD alias (#57)\n- Row selection on mouse click disabled - only keyboard navigation moves cursor\n\n### Thanks\n\n- [@haya14busa](https://github.com/haya14busa) for @ symbol support #57, stdin support #58, word highlighting #62, comment list view #64, and bug fixes #60 #63 #65\n- [@noritaka1166](https://github.com/noritaka1166) for optional chaining refactor #59\n- [@yukukotani](https://github.com/yukukotani) for hot reload feature with file watching #61\n- [@tsukasaI](https://github.com/tsukasaI) for Cmd+Enter comment update shortcut #67",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.1.0",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-27T16:33:31Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 235489890,
+              "id": "RE_kwDOPDzQl84OCUpi",
+              "name": "v2.1.1",
+              "description": "### Added\n\n- Keyboard shortcuts help to footer\n- Added screenshot to all README\n- Added protobuf support to README\n\n### Changed\n\n- Changed Reload button to Refresh with updated icon",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.1.1",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-28T01:08:17Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            },
+            {
+              "databaseId": 236152680,
+              "id": "RE_kwDOPDzQl84OE2do",
+              "name": "v2.1.2",
+              "description": "## [2.1.2] - 2025-07-30\n\n### Added\n\n- Highlight selected file in the file list when a line is selected in diff view\n- Keyboard shortcuts to jump to first/last file with \\`{\\` (\\`Shift+[\\`) and \\`}\\` (\\`Shift+]\\`)\n- Performance testing infrastructure with GitHub Actions workflow\n\n### Changed\n\n- Restored row selection on mouse click functionality\n- Automatic row deselection when clicking outside selected row\n- Automatic close of empty comment forms when clicking outside\n- Keyboard shortcut 'v' for toggling viewed state (previously 'r')\n- Keyboard shortcut 'r' for refresh when changes are detected\n\n### Fixed\n\n- Enable watch mode for dot argument with comparison\n- Support for stdin in dev.js script\n- Syntax highlighting disappearing on hover by passing filename prop\n- Performance degradation with large diffs (81.7% reduction in keyboard navigation latency)\n\n### Thanks\n\n- [@haya14busa](https://github.com/haya14busa) for performance improvements #72, syntax highlighting fix #74, and watch mode fix #73",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.1.2",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-07-30T05:50:41Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 237130080,
+              "id": "RE_kwDOPDzQl84OIlFg",
+              "name": "v2.2.0",
+              "description": "### Changed\n\n- Comment storage now saves with diff context (baseCommitish and targetCommitish) to prevent comments from appearing in wrong diff ranges (#78)\n- Viewed state persistence now includes file diff content hash to detect changes between reviews (#78)\n- Keyboard shortcut for refresh changed from 'r' to 'Shift+R'\n\n### Thanks\n\n- [@noritaka1166](https://github.com/noritaka1166) for removing unused imports and variables #77",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.2.0",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-08-03T12:28:41Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              }
+            },
+            {
+              "databaseId": 242132921,
+              "id": "RE_kwDOPDzQl84Obqe5",
+              "name": "v2.2.1",
+              "description": "## Added\n\n- Support for Svelte syntax highlighting (#85)\n\n## Changed\n\n- Replace uuid package with native crypto.randomUUID for better performance (#82)\n\n## Fixed\n\n- Comment line numbers now display correctly in server output (#87)\n- '.' keyboard shortcut no longer triggers when modifier keys are pressed (#86)\n\n## Thanks\n\n- [@basyura](https://github.com/basyura) for fixing '.' shortcut with modifier keys #86\n- [@KraXen72](https://github.com/KraXen72) for adding Svelte syntax highlighting support #85\n- [@noritaka1166](https://github.com/noritaka1166) for replacing uuid package with crypto.randomUUID #82",
+              "url": "https://github.com/yoshiko-pg/difit/releases/tag/v2.2.1",
+              "author": {
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "publishedAt": "2025-08-24T23:57:06Z",
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

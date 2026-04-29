@@ -1,0 +1,38 @@
+{
+  "data": {
+    "user": [
+      {
+        "user_id": "MDQ6VXNlcjExOTA5MzE=",
+        "user_database_id": 1190931,
+        "user_login": "izelnakri",
+        "user_name": "Izel Nakri | izelnakri.eth",
+        "user_url": "https://github.com/izelnakri",
+        "task": [
+          {
+            "task_id": "MDQ6VXNlcjExOTA5MzE=",
+            "task_database_id": 1190931,
+            "task_name": "watchers",
+            "task_date": null,
+            "reference_task_date": null
+          }
+        ]
+      },
+      {
+        "user_id": "MDQ6VXNlcjg0MzI4Ng==",
+        "user_database_id": 843286,
+        "user_login": "aliyome",
+        "user_name": "aliyome",
+        "user_url": "https://github.com/aliyome",
+        "task": [
+          {
+            "task_id": "MDQ6VXNlcjg0MzI4Ng==",
+            "task_database_id": 843286,
+            "task_name": "watchers",
+            "task_date": null,
+            "reference_task_date": null
+          }
+        ]
+      }
+    ]
+  }
+}

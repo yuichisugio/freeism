@@ -1,0 +1,14 @@
+gh api graphql -F owner="ryoppippi" -F name="ccusage" -f query='
+  query($owner:String!, $name:String!) {
+    repository(owner:$owner, name:$name) {
+      stargazerCount
+      stargazers(first:50, orderBy:{field: STARRED_AT, direction: ASC}) {
+        pageInfo { hasNextPage endCursor }
+        edges {
+          starredAt
+          node { login id databaseId }
+        }
+      }
+    }
+  }
+' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/star/test-star-2.json"

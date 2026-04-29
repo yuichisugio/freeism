@@ -1,0 +1,39 @@
+{
+	"data": {
+		"user": [
+			{
+				"user_id": "U_kgDOABfPvA",
+				"user_database_id": 1560508,
+				"user_login": "ryoppippi",
+				"user_name": "ryoppippi",
+				"user_url": "https://github.com/ryoppippi",
+				"task": [
+					{
+						"task_id": "DC_kwDOOyw9fc4A1eLQ",
+						"task_database_id": 14017232,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/426#discussioncomment-14017232",
+						"task_name": "answer-discussion",
+						"task_date": "2025-08-06T09:12:50Z",
+						"reference_task_date_field": "publishedAt",
+						"letter_count": 100,
+						"good_reaction": 4,
+						"bad_reaction": 0
+					},
+					{
+						"task_id": "DC_kwDOOyw9fc4A1k_m",
+						"task_database_id": 14045158,
+						"task_full_database_id": null,
+						"task_url": "https://github.com/ryoppippi/ccusage/discussions/445#discussioncomment-14045158",
+						"task_name": "answer-discussion",
+						"task_date": "2025-08-08T10:23:47Z",
+						"reference_task_date_field": "publishedAt",
+						"letter_count": 51,
+						"good_reaction": 2,
+						"bad_reaction": 0
+					}
+				]
+			}
+		]
+	}
+}

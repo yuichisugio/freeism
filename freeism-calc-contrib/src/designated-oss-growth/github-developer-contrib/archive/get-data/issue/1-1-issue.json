@@ -1,0 +1,2697 @@
+[
+  {
+    "data": {
+      "repository": {
+        "id": "R_kgDOPDzQlw",
+        "databaseId": 1010618519,
+        "createdAt": "2025-06-29T13:09:26Z",
+        "name": "difit",
+        "description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
+        "homepageUrl": "https://www.npmjs.com/package/difit",
+        "url": "https://github.com/yoshiko-pg/difit",
+        "hasIssuesEnabled": true,
+        "isBlankIssuesEnabled": true,
+        "issueTemplates": [],
+        "issues": {
+          "totalCount": 30,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpK5MjAyNS0wOS0wMlQyMjo1Mjo1MSswOTowMM7JO-Tn"
+          },
+          "nodes": [
+            {
+              "id": "I_kwDOPDzQl86-EeKd",
+              "fullDatabaseId": "3188843165",
+              "databaseId": 3188843165,
+              "number": 4,
+              "url": "https://github.com/yoshiko-pg/difit/issues/4",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/4#issue-3188843165",
+              "bodyText": "First of all, Thank you for creating a very useful tool!\nDescribe the problem\nThe current default font is a little hard to read for me.\nDesired outcome\nAdd a setting (or configuration option) that lets users:\n\nSelect a custom font family (e.g., system default, monospace, sans-serif).\nAdjust the base font size to suit individual preferences.",
+              "title": "Feature Request: Allow users to change font family and font size",
+              "state": "CLOSED",
+              "publishedAt": "2025-06-30T15:06:18Z",
+              "createdAt": "2025-06-30T15:06:18Z",
+              "closedAt": "2025-07-02T00:43:30Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6247314,
+                "id": "U_kgDOAF9Tkg",
+                "login": "vintersnow",
+                "name": "vintersnow",
+                "url": "https://github.com/vintersnow"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 5
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-GdSG",
+              "fullDatabaseId": "3189363846",
+              "databaseId": 3189363846,
+              "number": 8,
+              "url": "https://github.com/yoshiko-pg/difit/issues/8",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/8#issue-3189363846",
+              "bodyText": "Add video captures to the README\n\nLocal code check\nLocal code review with AI\n\n\nAlso mention that users can choose a color theme\nAlso mention that users can use TUI mode",
+              "title": "Add captures to the README",
+              "state": "CLOSED",
+              "publishedAt": "2025-06-30T17:48:55Z",
+              "createdAt": "2025-06-30T17:48:55Z",
+              "closedAt": "2025-07-27T16:44:40Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 1
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 1,
+                "pageCount": 1,
+                "filteredCount": 1
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-K8MB",
+              "fullDatabaseId": "3190539009",
+              "databaseId": 3190539009,
+              "number": 10,
+              "url": "https://github.com/yoshiko-pg/difit/issues/10",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/10#issue-3190539009",
+              "bodyText": "Problem\nRunning npx reviewit on Node.js v20 results in a SyntaxError:\n$ npx reviewit\nfile:///Users/sakamossan/.nodebrew/node/v20.9.0/lib/node_modules/reviewit/dist/cli/index.js:4\nimport pkg from '../../package.json' with { type: 'json' };\n                                     ^^^^\n\nSyntaxError: Unexpected token 'with'\n    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:118:18)\n    at callTranslator (node:internal/modules/esm/loader:273:14)\n    at ModuleLoader.moduleProvider (node:internal/modules/esm/loader:278:30)\n    at async link (node:internal/modules/esm/module_job:76:21)\n\nNode.js v20.9.0\nCause\nThe with syntax for importing JSON files is not supported by default in Node.js versions prior to v21.\nEarlier versions require the --harmony-import-attributes flag.\n\nV8 now implements the with syntax, behind the --harmony-import-attributes flag. This syntax is already supported in other server-side environments, such as Deno and Bun.\n\nReference: Import Attribute proposal syntax support has landed in V8 · Issue #50134 · nodejs/node\nI believe maintaining the simple npx reviewit execution experience is preferable over requiring users to add flags.\nPotential approaches:\n\nUse fs.readFileSync: Read package.json using traditional file system methods for better compatibility\nRequire Node.js v21+: Update the minimum Node.js version requirement in package.json\nDocument flag usage: Provide instructions for using --harmony-import-attributes with older versions\n\nWhat are your thoughts on these approaches?\nReference\n\n#1",
+              "title": "SyntaxError occurs when running on Node.js versions below v21",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-01T03:20:30Z",
+              "createdAt": "2025-07-01T03:20:30Z",
+              "closedAt": "2025-07-01T04:10:28Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 5309672,
+                "id": "U_kgDOAFEE6A",
+                "login": "sakamossan",
+                "name": "sakamossan",
+                "url": "https://github.com/sakamossan"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 2
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-L3YS",
+              "fullDatabaseId": "3190781458",
+              "databaseId": 3190781458,
+              "number": 12,
+              "url": "https://github.com/yoshiko-pg/difit/issues/12",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/12#issue-3190781458",
+              "bodyText": "When starting the ReviewIt server with npx reviewit ., if port 3000 is already in use, the application tries the next available port (e.g., 3001). However, the server startup message shows the URL as http://localhost:undefined instead of displaying the actual port number. This makes it difficult to know which port the server is running on and prevents the browser from opening the correct URL automatically.\nSteps to reproduce:\nStart another process on port 3000 (e.g., run any server on port 3000).\nnpx reviewit .\nPort 3000 is busy, trying 3001...\n\n🚀 ReviewIt server started on http://localhost:undefined\n📋 Reviewing: .\n🌐 Opening browser...\n\nThe browser opens a URL with undefined as the port.\nExpected behavior:\nThe server URL should display the correct port number (e.g., http://localhost:3001) when port 3000 is unavailable and a fallback port is used. The browser should also open the correct URL.\nEnvironment:\nOS: macOS 26 beta 2\nNode.js version: v22.14.0\nReviewIt version: 1.1.5\nPlease let me know if you need any more details!",
+              "title": "Port Fallback Causes \"undefined\" in Server URL When Port 3000 Is Busy.",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-01T05:37:18Z",
+              "createdAt": "2025-07-01T05:37:18Z",
+              "closedAt": "2025-07-01T23:20:38Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 39002408,
+                "id": "U_kgDOAlMhKA",
+                "login": "kaito0228",
+                "name": "Ryo S.",
+                "url": "https://github.com/kaito0228"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 2
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-ZbAT",
+              "fullDatabaseId": "3194335251",
+              "databaseId": 3194335251,
+              "number": 17,
+              "url": "https://github.com/yoshiko-pg/difit/issues/17",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/17#issue-3194335251",
+              "bodyText": "Implement a ReviewIt MCP server so that the coding agent can call ReviewIt autonomously and send review requests to the user.\nAfter the user finishes the review and closes the tab, the review content should be printed to standard output, enabling the coding agent to continue addressing the review immediately.",
+              "title": "Implement ReviewIt MCP Server",
+              "state": "OPEN",
+              "publishedAt": "2025-07-02T02:50:44Z",
+              "createdAt": "2025-07-02T02:50:44Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 6
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 6
+              },
+              "assignedActors": {
+                "totalCount": 1
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 1,
+                "pageCount": 1,
+                "filteredCount": 1
+              },
+              "comments": {
+                "totalCount": 4
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-ZkpC",
+              "fullDatabaseId": "3194374722",
+              "databaseId": 3194374722,
+              "number": 18,
+              "url": "https://github.com/yoshiko-pg/difit/issues/18",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/18#issue-3194374722",
+              "bodyText": "Use the target commitish as the key\nWhen in working/staged state, the key may duplicate, so prompt the user to clean up on close\nPersist “Viewed” state similarly",
+              "title": "Fix comment persistence data structure",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-02T03:16:56Z",
+              "createdAt": "2025-07-02T03:16:56Z",
+              "closedAt": "2025-08-04T01:17:10Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 1
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 1,
+                "pageCount": 1,
+                "filteredCount": 1
+              },
+              "comments": {
+                "totalCount": 3
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-Zm3u",
+              "fullDatabaseId": "3194383854",
+              "databaseId": 3194383854,
+              "number": 19,
+              "url": "https://github.com/yoshiko-pg/difit/issues/19",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/19#issue-3194383854",
+              "bodyText": "Description\nreviewit currently fails to display diffs on systems where a custom Git diff.external tool, such as difftastic, is configured in the user's .gitconfig.\nEven when git status clearly shows unstaged modifications, reviewit reports that no differences were found. This appears to happen because the application's internal diff parser receives human-readable, formatted output from the custom tool instead of the standard machine-readable unified diff format it expects.\nRoot Cause Analysis\nThe GitDiffParser uses simple-git to execute git diff. This git diff command respects the user's Git configuration. If diff.external is set (e.g., diff.external = difft --background=light), Git pipes the output through this external tool.\nThe current parser is designed for the standard unified diff format and cannot interpret the structured output from tools like difftastic, which likely causes the parsing to fail and results in an empty diff.\nSteps to Reproduce\n\n\nConfigure a custom diff tool.\nBash\nbrew install difftastic\n\ngit config --global diff.external \"difft --background=light\"\n\n\n\nMake a file modification in any Git repository.\nBash\necho \"# test change\" >> README.md\n\n\n\nRun reviewit.\nBash\nnpx reviewit .\n\n\n\nObserve the output. The terminal shows \"No differences found\" even though unstaged changes exist.\nExample Terminal Output\n$ git status\nOn branch main\nYour branch is up to date with 'origin/main'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n        modified:   README.md\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\n\n$ npx reviewit .\n\n🚀 ReviewIt server started on http://localhost:3000\n📋 Reviewing: .\n\n⚠️  No differences found. Browser will not open automatically.\n   Server is running at http://localhost:3000 if you want to check manually.\n\n\n\nSuggested Solution\nTo make reviewit more robust, it's thought that ensuring it always requests a standard unified diff from Git would be an effective solution. This would make the tool independent of any user's local configuration.\nThis can likely be achieved by modifying the parseDiff method in src/server/git-diff.ts to always include flags that bypass external diff tools. Adding these options directly to the diffArgs array seems to be the most concise approach.\nTypeScript\n// File: src/server/git-diff.ts\n\n// ... inside the parseDiff method of the GitDiffParser class\n\n      if (ignoreWhitespace) {\n        diffArgs.push('-w');\n      }\n\n      // By adding these flags directly to diffArgs, it is thought that\n      // reviewit can be made resilient to custom user configurations.\n      diffArgs.push('--no-ext-diff', '--color=never');\n\n      // Use the same modified diffArgs for both calls\n      const diffSummary = await this.git.diffSummary(diffArgs);\n      const diffRaw = await this.git.diff(diffArgs);\n\n      const files = this.parseUnifiedDiff(diffRaw, diffSummary.files);\n\n// ...\n\nThis approach is expected to resolve the issue at its source, allowing reviewit to function correctly without requiring users to create wrapper scripts or modify their environment.",
+              "title": "Fails to Parse Diff on Systems Using a Custom `diff.external` Tool",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-02T03:22:47Z",
+              "createdAt": "2025-07-02T03:22:47Z",
+              "closedAt": "2025-07-02T23:38:34Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 513396,
+                "id": "U_kgDOAAfVdA",
+                "login": "umiyosh",
+                "name": "umiyosh",
+                "url": "https://github.com/umiyosh"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 4
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-Zpw6",
+              "fullDatabaseId": "3194395706",
+              "databaseId": 3194395706,
+              "number": 20,
+              "url": "https://github.com/yoshiko-pg/difit/issues/20",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/20#issue-3194395706",
+              "bodyText": "When the server falls back to a port other than 3000, a Not Found error is printed on shutdown.\n❯ npx reviewit\nNeed to install the following packages:\nreviewit@1.1.8\nOk to proceed? (y)\n\nPort 3000 is busy, trying 3001...\n\n🚀 ReviewIt server started on http://localhost:3001\n📋 Reviewing: HEAD\n🌐 Opening browser...\n\nNotFoundError: Not Found\n    at createHttpError (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:861:12)\n    at SendStream.error (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:168:31)\n    at SendStream.pipe (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:468:14)\n    at sendfile (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/express/lib/response.js:1000:8)\n    at ServerResponse.sendFile (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/express/lib/response.js:409:3)\n    at file:///Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/reviewit/dist/server/server.js:115:17\n    at Layer.handleRequest (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/layer.js:152:17)\n    at next (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/route.js:117:3)\n    at handle (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/index.js:435:11)\nNotFoundError: Not Found\n    at createHttpError (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:861:12)\n    at SendStream.error (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:168:31)\n    at SendStream.pipe (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/send/index.js:468:14)\n    at sendfile (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/express/lib/response.js:1000:8)\n    at ServerResponse.sendFile (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/express/lib/response.js:409:3)\n    at file:///Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/reviewit/dist/server/server.js:115:17\n    at Layer.handleRequest (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/layer.js:152:17)\n    at next (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/route.js:157:13)\n    at Route.dispatch (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/lib/route.js:117:3)\n    at handle (/Users/maasa/.npm/_npx/6fa7092a5d22c976/node_modules/router/index.js:435:11)\nClient disconnected, shutting down server...",
+              "title": "Not Found error shown on shutdown when falling back from port 3000",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-02T03:31:45Z",
+              "createdAt": "2025-07-02T03:31:45Z",
+              "closedAt": "2025-07-30T06:22:38Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-Z8VZ",
+              "fullDatabaseId": "3194471769",
+              "databaseId": 3194471769,
+              "number": 21,
+              "url": "https://github.com/yoshiko-pg/difit/issues/21",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/21#issue-3194471769",
+              "bodyText": "I tried npx reviewit in git worktree folder but it display the git status of root folder.\nCurrently, git worktree isn't supported?",
+              "title": "doesn't work for git worktree",
+              "state": "OPEN",
+              "publishedAt": "2025-07-02T04:13:05Z",
+              "createdAt": "2025-07-02T04:13:05Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 1901757,
+                "id": "U_kgDOAB0EvQ",
+                "login": "omanuke",
+                "name": null,
+                "url": "https://github.com/omanuke"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 3
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-lWo4",
+              "fullDatabaseId": "3197463096",
+              "databaseId": 3197463096,
+              "number": 26,
+              "url": "https://github.com/yoshiko-pg/difit/issues/26",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/26#issue-3197463096",
+              "bodyText": "Even when starting with --mode inline, it launches in side-by-side mode.\nThe argument doesn’t seem to be passed correctly to server/tui.",
+              "title": "mode option is not working",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-02T23:38:01Z",
+              "createdAt": "2025-07-02T23:38:01Z",
+              "closedAt": "2025-07-03T00:54:39Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 1
+              },
+              "timelineItems": {
+                "totalCount": 1,
+                "pageCount": 1,
+                "filteredCount": 1
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86-y5OM",
+              "fullDatabaseId": "3201012620",
+              "databaseId": 3201012620,
+              "number": 28,
+              "url": "https://github.com/yoshiko-pg/difit/issues/28",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/28#issue-3201012620",
+              "bodyText": "Thank you very much for the wonderful feature.\npnpx reviewit HEAD~3\nI would like to execute it in lowercase as\npnpx reviewit head~3\nbut it seems that this is not possible at present.\n“HEAD” can be referenced as “head” in GIt, so it would be very helpful if this feature could be supported in the app as well.",
+              "title": "refer to HEAD as head in lowercase letters",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-04T01:18:57Z",
+              "createdAt": "2025-07-04T01:18:57Z",
+              "closedAt": "2025-07-05T09:35:22Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 47932189,
+                "id": "U_kgDOAttjHQ",
+                "login": "eitches",
+                "name": "eitches",
+                "url": "https://github.com/eitches"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 2
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl86_tCFP",
+              "fullDatabaseId": "3216253263",
+              "databaseId": 3216253263,
+              "number": 35,
+              "url": "https://github.com/yoshiko-pg/difit/issues/35",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/35#issue-3216253263",
+              "bodyText": "I'm using difit to view the changes I've made before submitting a PR. A lot of PRs I raise have quite a few files in them - this one has 98 so far. I'd really like feedback as to how far I am through the list whilst marking things as viewed - much like GitHub does, when it shows you the viewed file count, eg 68 / 100. The TUI should also give the same progress feedback.",
+              "title": "Feature request: progress feedback",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-09T15:02:13Z",
+              "createdAt": "2025-07-09T15:02:13Z",
+              "closedAt": "2025-07-13T09:03:25Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 4669340,
+                "id": "U_kgDOAEc_nA",
+                "login": "fluffynuts",
+                "name": "Davyd McColl",
+                "url": "https://github.com/fluffynuts"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87AKSPV",
+              "fullDatabaseId": "3223921621",
+              "databaseId": 3223921621,
+              "number": 43,
+              "url": "https://github.com/yoshiko-pg/difit/issues/43",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/43#issue-3223921621",
+              "bodyText": "Works perfectly amazing on windows environment.\nI thought this would be perfect match for CC.\nHowever, when using with WSL (because windows cannot use CC directly), I get \"Cannot GET /\" error upon opening localhost:3000 (port is available)\nI just need to run difit on non WSL environment on same folder, but would be nice if I don't have to get out of the WSL environment.",
+              "title": "Will receive \"Cannot GET /\" using under wsl environment.",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-11T19:03:11Z",
+              "createdAt": "2025-07-11T19:03:11Z",
+              "closedAt": "2025-07-12T07:39:47Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 184517169,
+                "id": "U_kgDOCv-CMQ",
+                "login": "articraftor",
+                "name": "Articraftor",
+                "url": "https://github.com/articraftor"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 2
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87BeQUR",
+              "fullDatabaseId": "3245933841",
+              "databaseId": 3245933841,
+              "number": 50,
+              "url": "https://github.com/yoshiko-pg/difit/issues/50",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/50#issue-3245933841",
+              "bodyText": "I want to use this with GitHub Enterprise. It seems that the current build does not support this, but do you have a plan to do it?",
+              "title": "Can I use this with the host other than github.com?",
+              "state": "OPEN",
+              "publishedAt": "2025-07-20T03:36:03Z",
+              "createdAt": "2025-07-20T03:36:03Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 1239245,
+                "id": "U_kgDOABLozQ",
+                "login": "delphinus",
+                "name": "JINNOUCHI Yasushi",
+                "url": "https://github.com/delphinus"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 11
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87BjYVh",
+              "fullDatabaseId": "3247277409",
+              "databaseId": 3247277409,
+              "number": 55,
+              "url": "https://github.com/yoshiko-pg/difit/issues/55",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/55#issue-3247277409",
+              "bodyText": "",
+              "title": "README i18n",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-21T05:37:37Z",
+              "createdAt": "2025-07-21T05:37:37Z",
+              "closedAt": "2025-07-21T11:51:13Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 1
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 1,
+                "pageCount": 1,
+                "filteredCount": 1
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87CbXVP",
+              "fullDatabaseId": "3261953359",
+              "databaseId": 3261953359,
+              "number": 66,
+              "url": "https://github.com/yoshiko-pg/difit/issues/66",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/66#issue-3261953359",
+              "bodyText": "",
+              "title": "proto syntax highlight",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-25T04:35:39Z",
+              "createdAt": "2025-07-25T04:35:39Z",
+              "closedAt": "2025-07-27T13:54:44Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87CxIfc",
+              "fullDatabaseId": "3267659740",
+              "databaseId": 3267659740,
+              "number": 68,
+              "url": "https://github.com/yoshiko-pg/difit/issues/68",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/68#issue-3267659740",
+              "bodyText": "The Refresh button for hot reload appears even when the file is saved without any changes.",
+              "title": "Refresh button appears on hot reload after no-op save",
+              "state": "OPEN",
+              "publishedAt": "2025-07-28T01:31:35Z",
+              "createdAt": "2025-07-28T01:31:35Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87CxYhb",
+              "fullDatabaseId": "3267725403",
+              "databaseId": 3267725403,
+              "number": 69,
+              "url": "https://github.com/yoshiko-pg/difit/issues/69",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/69#issue-3267725403",
+              "bodyText": "I’ll try to handle whitespace ignoring internally, but if that’s not feasible, I’ll simply hide the checkbox when using stdin.",
+              "title": "The ‘Ignore Whitespace’ checkbox does not work when using stdin",
+              "state": "OPEN",
+              "publishedAt": "2025-07-28T01:58:06Z",
+              "createdAt": "2025-07-28T01:58:06Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87CxwSw",
+              "fullDatabaseId": "3267822768",
+              "databaseId": 3267822768,
+              "number": 70,
+              "url": "https://github.com/yoshiko-pg/difit/issues/70",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/70#issue-3267822768",
+              "bodyText": "It looks like the --watch flag doc was removed accidentally by f1feb97",
+              "title": "Documentation about --watch mode was removed from README",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-28T02:43:48Z",
+              "createdAt": "2025-07-28T02:43:48Z",
+              "closedAt": "2025-07-28T03:03:10Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 3797062,
+                "id": "U_kgDOADnwRg",
+                "login": "haya14busa",
+                "name": "haya14busa",
+                "url": "https://github.com/haya14busa"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87CyoPY",
+              "fullDatabaseId": "3268051928",
+              "databaseId": 3268051928,
+              "number": 71,
+              "url": "https://github.com/yoshiko-pg/difit/issues/71",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/71#issue-3268051928",
+              "bodyText": "Summary\nCommit 66e4708 removed the ability to position the cursor by clicking on diff lines. This feature is essential for efficient code review workflows and should be restored.\nUse Case\nWhen reviewing diffs (especially those with large additions), I typically:\n\nScroll through the diff using the mouse to get an overview\nClick on a specific line to position the cursor there\nUse keyboard shortcuts (n/p) to navigate between diff chunks from that position\n\nWithout the click-to-position functionality, the cursor remains at its original position after scrolling. This causes unexpected behavior when using n/p shortcuts, as they navigate from the old cursor position rather than the currently visible area. The workaround of manually navigating to the desired position defeats the purpose of having both mouse and keyboard navigation.\nAdditional Context\nThis click-to-focus functionality exists in the original Gerrit interface that difit was inspired by, demonstrating its importance in code review workflows.\nProposed Solution\nIf the removal was due to concerns about:\n\nUnwanted cursor movement being annoying\nInterference with text selection/copying\n\nWe can explore solutions that minimize these issues while preserving the core functionality:\n\nOnly move cursor on click when not dragging (to preserve text selection)\nAdd a modifier key requirement (e.g., Ctrl+Click) to position cursor\nMake the feature configurable in settings\nAdd visual feedback to make cursor positioning more intentional\n\nI'm happy to discuss implementation details and contribute a PR if needed. The goal is to find a balance that preserves this essential navigation feature while addressing any usability concerns.",
+              "title": "Request to restore cursor positioning on mouse click functionality",
+              "state": "CLOSED",
+              "publishedAt": "2025-07-28T04:32:00Z",
+              "createdAt": "2025-07-28T04:32:00Z",
+              "closedAt": "2025-07-31T15:33:32Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 3797062,
+                "id": "U_kgDOADnwRg",
+                "login": "haya14busa",
+                "name": "haya14busa",
+                "url": "https://github.com/haya14busa"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 11
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87DPNH4",
+              "fullDatabaseId": "3275543032",
+              "databaseId": 3275543032,
+              "number": 75,
+              "url": "https://github.com/yoshiko-pg/difit/issues/75",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/75#issue-3275543032",
+              "bodyText": "",
+              "title": "Enforce memoization via lint for performance",
+              "state": "OPEN",
+              "publishedAt": "2025-07-30T03:21:24Z",
+              "createdAt": "2025-07-30T03:21:24Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87DPNZF",
+              "fullDatabaseId": "3275544133",
+              "databaseId": 3275544133,
+              "number": 76,
+              "url": "https://github.com/yoshiko-pg/difit/issues/76",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/76#issue-3275544133",
+              "bodyText": "",
+              "title": "Make it easy to swap out file viewers based on language or file type",
+              "state": "OPEN",
+              "publishedAt": "2025-07-30T03:22:24Z",
+              "createdAt": "2025-07-30T03:22:24Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87EiIZF",
+              "fullDatabaseId": "3297281605",
+              "databaseId": 3297281605,
+              "number": 79,
+              "url": "https://github.com/yoshiko-pg/difit/issues/79",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/79#issue-3297281605",
+              "bodyText": "@claude Just reply if you can see this.",
+              "title": "test cca",
+              "state": "CLOSED",
+              "publishedAt": "2025-08-06T16:10:41Z",
+              "createdAt": "2025-08-06T16:10:41Z",
+              "closedAt": "2025-08-06T16:11:18Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 6822923,
+                "id": "U_kgDOAGgcCw",
+                "login": "yoshiko-pg",
+                "name": "yoshiko",
+                "url": "https://github.com/yoshiko-pg"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87Enenp",
+              "fullDatabaseId": "3298683369",
+              "databaseId": 3298683369,
+              "number": 80,
+              "url": "https://github.com/yoshiko-pg/difit/issues/80",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/80#issue-3298683369",
+              "bodyText": "First, let me say thank you for making this wonderful tool. I just discovered it today and it perfectly fills a gap that has been bothering me for some time: providing batched code review feedback to LLMs from a side-by-side diff. Your project deserves way more stars.\nNow, for the report. When difit exits, I notice that the filename and line number for each comment is reported as undefined, which I assume is what JS null renders as into a string. Example:\n📝 Comments from review session:\n==================================================\nundefined:Lundefined\nMight want to allow `WebFetch` and `WebSearch` for research on packages.\n=====\nundefined:Lundefined\nWe can drop the parenthetical \"refer to\" remarks, since the agent may not know about the other commands and will not be able to execute them, if it does.\n=====\nundefined:Lundefined\nThe `find` command does not respect `.gitignore` afaik. Not sure how useful this is. Would simply expect the `filesystem.rst` to be up-to-date.\n\nWould be more useful to list the contents of `documentation/architecture/designs`.\n\nBy contrast, what I paste from the clipboard into Claude Code has the correct context:\n  .auxiliary/configuration/claude/commands/cs-design-python.md:L2\n  Might want to allow `WebFetch` and `WebSearch` for research on packages.\n  =====\n  .auxiliary/configuration/claude/commands/cs-design-python.md:L14-L15\n  We can drop the parenthetical \"refer to\" remarks, since the agent may not know about the other commands and will not be able to execute them, if it does.\n  =====\n  .auxiliary/configuration/claude/commands/cs-design-python.md:L25\n  The `find` command does not respect `.gitignore` afaik. Not sure how useful this is. Would simply expect the `filesystem.rst` to be up-to-date.\n\n  Would be more useful to list the contents of `documentation/architecture/designs`.\n\nObviously, this is a very minor issue, since the clipboard actually does have the context which the LLM needs. But, I could see this as being problematic if someone was trying to use this as a Claude Code hook or ! command. (Possible timeout issues notwithstanding.)",
+              "title": "Minor Bug: Nulls for filename and line number in final execution report.",
+              "state": "CLOSED",
+              "publishedAt": "2025-08-07T02:44:50Z",
+              "createdAt": "2025-08-07T02:44:50Z",
+              "closedAt": "2025-08-24T16:43:30Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 221418,
+                "id": "U_kgDOAANg6g",
+                "login": "emcd",
+                "name": "Eric McDonald",
+                "url": "https://github.com/emcd"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87FJpnC",
+              "fullDatabaseId": "3307641282",
+              "databaseId": 3307641282,
+              "number": 81,
+              "url": "https://github.com/yoshiko-pg/difit/issues/81",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/81#issue-3307641282",
+              "bodyText": "Reproduction\n\nStart difit\n\nnpx difit --no-open --mode=inline\n\n\nHover over the - and + lines in the diff.\nThe comment icon appears on each of the - and + lines.\n\n\nExpected result\nThe comment icon is shown only on the hovered line.\nActual result\nThe comment icon is not limited to the hovered line; it appears on both the - and + lines.\nOn GitHub\nThe comment icon is shown only on the hovered line.",
+              "title": "When mode=inline is used, two comment icons are displayed",
+              "state": "OPEN",
+              "publishedAt": "2025-08-10T14:47:12Z",
+              "createdAt": "2025-08-10T14:47:12Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 19714,
+                "id": "U_kgDNTQI",
+                "login": "azu",
+                "name": "azu",
+                "url": "https://github.com/azu"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 2
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 2
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87FqJYP",
+              "fullDatabaseId": "3316160015",
+              "databaseId": 3316160015,
+              "number": 83,
+              "url": "https://github.com/yoshiko-pg/difit/issues/83",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/83#issue-3316160015",
+              "bodyText": "When reviewing file or directory names with spaces in them (e.g., Copier or Cookiecutter templates), only the portion of the name after the last space is shown.\nExample:",
+              "title": "Bug: Only displays last portion of filenames containing spaces.",
+              "state": "OPEN",
+              "publishedAt": "2025-08-12T22:37:44Z",
+              "createdAt": "2025-08-12T22:37:44Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 221418,
+                "id": "U_kgDOAANg6g",
+                "login": "emcd",
+                "name": "Eric McDonald",
+                "url": "https://github.com/emcd"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 1
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87GRVDR",
+              "fullDatabaseId": "3326431441",
+              "databaseId": 3326431441,
+              "number": 84,
+              "url": "https://github.com/yoshiko-pg/difit/issues/84",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/84#issue-3326431441",
+              "bodyText": "highlighting of .svelte files not supported\n\nplease add highlighting syntax for .svelte files",
+              "title": "highlighting of .svelte files not supported",
+              "state": "CLOSED",
+              "publishedAt": "2025-08-15T21:39:20Z",
+              "createdAt": "2025-08-15T21:39:20Z",
+              "closedAt": "2025-08-20T04:39:23Z",
+              "author": {
+                "__typename": "User",
+                "databaseId": 21956756,
+                "id": "U_kgDOAU8IlA",
+                "login": "KraXen72",
+                "name": null,
+                "url": "https://github.com/KraXen72"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87IDyvE",
+              "fullDatabaseId": "3356437444",
+              "databaseId": 3356437444,
+              "number": 88,
+              "url": "https://github.com/yoshiko-pg/difit/issues/88",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/88#issue-3356437444",
+              "bodyText": "The git command treats new files as though they are changes relative to /dev/null. E.g.:\nnew file mode 100644\nindex 0000000..6dde9fd\n--- /dev/null\n+++ b/documentation/architecture/decisions/004-subcommand-architecture.rst\nYou can even do, for example, git diff -- /dev/null .auxiliary/notes/cli-discussion.md, to see an existing file presented as though it is new. Would be nice if difit supported similar syntax; perhaps difit -- /dev/null <target-file> or maybe something more elegant?\nBeing able to perform a review on a whole existing file is useful for several reasons:\n\nFile was not previously reviewed but targeted LLM-executed edits are desired in it. (Removal of redundant content, summarization and compaction of content, expansion of content, rewording of entire sections, etc....)\nVarious changes to file have been reviewed during its evolution, but it needs an LLM to perform a holistic cleanup or rewrite, based on human-supplied comments.\n\nWhat do you think? Beyond the scope of difit or something worthwhile?",
+              "title": "Feature: Ability to display whole existing file as a new diff.",
+              "state": "OPEN",
+              "publishedAt": "2025-08-26T16:59:38Z",
+              "createdAt": "2025-08-26T16:59:38Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 221418,
+                "id": "U_kgDOAANg6g",
+                "login": "emcd",
+                "name": "Eric McDonald",
+                "url": "https://github.com/emcd"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 1
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87IGbtz",
+              "fullDatabaseId": "3357129587",
+              "databaseId": 3357129587,
+              "number": 89,
+              "url": "https://github.com/yoshiko-pg/difit/issues/89",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/89#issue-3357129587",
+              "bodyText": "When opening difit on a mobile device, some components overflow off the page or are not aligned\n\nI'm developing a workflow where i review diffs easily when I'm traveling, so would love if the mobile web experience was also first class ❤️",
+              "title": "Feat: Mobile Support",
+              "state": "OPEN",
+              "publishedAt": "2025-08-26T21:07:59Z",
+              "createdAt": "2025-08-26T21:07:59Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 48701178,
+                "id": "U_kgDOAuce-g",
+                "login": "ndbaker1",
+                "name": "Nick Baker",
+                "url": "https://github.com/ndbaker1"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            },
+            {
+              "id": "I_kwDOPDzQl87JO-Tn",
+              "fullDatabaseId": "3376145639",
+              "databaseId": 3376145639,
+              "number": 91,
+              "url": "https://github.com/yoshiko-pg/difit/issues/91",
+              "bodyUrl": "https://github.com/yoshiko-pg/difit/issues/91#issue-3376145639",
+              "bodyText": "Once a file has been marked as viewed, by clicking the \"Viewed\" checkbox, the counter does not reset if the --clean flag is applied. This causes erroneous displays like the one below:",
+              "title": "Bug: Files viewed counter is not reset by `--clean`.",
+              "state": "OPEN",
+              "publishedAt": "2025-09-02T13:52:51Z",
+              "createdAt": "2025-09-02T13:52:51Z",
+              "closedAt": null,
+              "author": {
+                "__typename": "User",
+                "databaseId": 221418,
+                "id": "U_kgDOAANg6g",
+                "login": "emcd",
+                "name": "Eric McDonald",
+                "url": "https://github.com/emcd"
+              },
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "THUMBS_DOWN",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "LAUGH",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HOORAY",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "CONFUSED",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "HEART",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "ROCKET",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ],
+              "reactions": {
+                "totalCount": 0
+              },
+              "assignedActors": {
+                "totalCount": 0
+              },
+              "labels": {
+                "totalCount": 0
+              },
+              "timelineItems": {
+                "totalCount": 0,
+                "pageCount": 0,
+                "filteredCount": 0
+              },
+              "comments": {
+                "totalCount": 0
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+]

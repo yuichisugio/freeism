@@ -1,0 +1,43 @@
+# ver3。`def`なしの簡潔バージョン
+jq '
+  {
+    data: {
+      user:
+        (
+          [ .[]?
+            | . as $repo
+            | .owner? as $o
+            | {
+                user_id:          ($o | .id),
+                user_database_id: ($o | .databaseId),
+                user_login:       ($o | .login),
+                user_name:        ($o | .name),
+                user_url:
+                  ( if (($o|type)=="object" and ($o|has("url")) and ($o.url!=null))
+                    then $o.url
+                    elif (($o|type)=="object" and ($o|has("login")) and ($o.login!=null))
+                      then "https://github.com/\($o.login)"
+                    else null end ),
+                task: [
+                  {
+                    task_id:               ($repo | .id),
+                    task_database_id:      ($repo | .databaseId),
+                    task_full_database_id: null,
+                    task_name:             "forks",
+                    task_date:             ($repo | .createdAt),
+                    reference_task_date:   "createdAt"
+                  }
+                ]
+              }
+          ]
+          | sort_by(.user_id)               # group_by の前にソート
+          | group_by(.user_id)
+          | map(
+              (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+              + { task: (map(.task) | add) } # 同一ユーザーの task を結合
+            )
+        )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/fork/1-result-fork.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/fork/1-3-processed-fork.json"

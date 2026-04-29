@@ -1,0 +1,56 @@
+[
+  {
+    "id": "S_kwDOAGgcC84ABVo7",
+    "privacyLevel": "PUBLIC",
+    "isActive": true,
+    "isOneTimePayment": false,
+    "paymentSource": null,
+    "createdAt": "2025-07-14T07:06:14Z",
+    "tierSelectedAt": "2025-07-14T07:06:14Z",
+    "tier": null,
+    "sponsorEntity": {
+      "__typename": "User",
+      "databaseId": 13712715,
+      "id": "MDQ6VXNlcjEzNzEyNzE1",
+      "login": "sadnessOjisan",
+      "name": "sadnessOjisan",
+      "url": "https://github.com/sadnessOjisan"
+    }
+  },
+  {
+    "id": "S_kwDOAGgcC84ABVpA",
+    "privacyLevel": "PUBLIC",
+    "isActive": false,
+    "isOneTimePayment": true,
+    "paymentSource": null,
+    "createdAt": "2025-07-14T07:24:03Z",
+    "tierSelectedAt": "2025-07-14T07:24:03Z",
+    "tier": null,
+    "sponsorEntity": {
+      "__typename": "User",
+      "databaseId": 6882878,
+      "id": "MDQ6VXNlcjY4ODI4Nzg=",
+      "login": "syumai",
+      "name": "syumai",
+      "url": "https://github.com/syumai"
+    }
+  },
+  {
+    "id": "S_kwDOAGgcC84ABXFS",
+    "privacyLevel": "PUBLIC",
+    "isActive": false,
+    "isOneTimePayment": true,
+    "paymentSource": null,
+    "createdAt": "2025-08-03T11:09:53Z",
+    "tierSelectedAt": "2025-08-03T11:09:53Z",
+    "tier": null,
+    "sponsorEntity": {
+      "__typename": "User",
+      "databaseId": 5608948,
+      "id": "MDQ6VXNlcjU2MDg5NDg=",
+      "login": "unhappychoice",
+      "name": "Yuji Ueki",
+      "url": "https://github.com/unhappychoice"
+    }
+  }
+]

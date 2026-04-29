@@ -1,0 +1,131 @@
+[
+  {
+    "data": {
+      "repository": {
+        "watchers": {
+          "totalCount": 19,
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOjEyNjY4NzE1Mg=="
+          },
+          "nodes": [
+            {
+              "login": "tanigon",
+              "name": "TANIGUCHI Hikaru",
+              "id": "MDQ6VXNlcjY0ODE=",
+              "databaseId": 6481
+            },
+            {
+              "login": "Wemago",
+              "name": "André Philip",
+              "id": "MDQ6VXNlcjEzNTYxMg==",
+              "databaseId": 135612
+            },
+            {
+              "login": "Tancy",
+              "name": "nitianxue",
+              "id": "MDQ6VXNlcjE4NDQxOQ==",
+              "databaseId": 184419
+            },
+            {
+              "login": "jevinskie",
+              "name": "Jevin Sweval",
+              "id": "MDQ6VXNlcjE4Nzg0OA==",
+              "databaseId": 187848
+            },
+            {
+              "login": "dsoul",
+              "name": null,
+              "id": "MDQ6VXNlcjI3MzI4OA==",
+              "databaseId": 273288
+            },
+            {
+              "login": "witcheng",
+              "name": "Jim Cheng",
+              "id": "MDQ6VXNlcjE0NTM3MzI=",
+              "databaseId": 1453732
+            },
+            {
+              "login": "vs0uz4",
+              "name": "Vitor Rodrigues",
+              "id": "MDQ6VXNlcjIwODA1NDc=",
+              "databaseId": 2080547
+            },
+            {
+              "login": "hanibalsk",
+              "name": "Martin Janči",
+              "id": "MDQ6VXNlcjI0NzgwNzg=",
+              "databaseId": 2478078
+            },
+            {
+              "login": "dgarson",
+              "name": "David",
+              "id": "MDQ6VXNlcjI5MDQ4MzQ=",
+              "databaseId": 2904834
+            },
+            {
+              "login": "AlanHowlett",
+              "name": "Alan Howlett",
+              "id": "MDQ6VXNlcjQ3NTM1MDE=",
+              "databaseId": 4753501
+            },
+            {
+              "login": "RafTurek",
+              "name": null,
+              "id": "MDQ6VXNlcjEzMzgxNzYw",
+              "databaseId": 13381760
+            },
+            {
+              "login": "d3prof3t",
+              "name": "Saurabh Sharma",
+              "id": "MDQ6VXNlcjEzNzIwMzk4",
+              "databaseId": 13720398
+            },
+            {
+              "login": "DomPolizzi",
+              "name": "Dominic",
+              "id": "MDQ6VXNlcjIwMTg2MzA3",
+              "databaseId": 20186307
+            },
+            {
+              "login": "wx-b",
+              "name": "Matt Shaffer",
+              "id": "MDQ6VXNlcjY0MTAyMzM1",
+              "databaseId": 64102335
+            },
+            {
+              "login": "AlexandreTrader",
+              "name": null,
+              "id": "MDQ6VXNlcjY2ODgzNTM0",
+              "databaseId": 66883534
+            },
+            {
+              "login": "lin72h",
+              "name": null,
+              "id": "U_kgDOBY61UA",
+              "databaseId": 93238608
+            },
+            {
+              "login": "yangbrr17",
+              "name": "BORUI YANG",
+              "id": "U_kgDOBhasjg",
+              "databaseId": 102149262
+            },
+            {
+              "login": "MidnightDarling",
+              "name": "Alice",
+              "id": "U_kgDOByd1NA",
+              "databaseId": 120026420
+            },
+            {
+              "login": "baikaishui888",
+              "name": "一杯白开水",
+              "id": "U_kgDOB40XsA",
+              "databaseId": 126687152
+            }
+          ]
+        }
+      }
+    }
+  }
+]

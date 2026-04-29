@@ -1,0 +1,77 @@
+./src/designated-oss-growth/github-developer-contrib/scripts/get-data/commit.sh -r yoshiko-pg/difit | jq '.' > ./src/designated-oss-growth/github-developer-contrib/archive/commit.json
+
+コミット267件で、push直コミットが267件で、4ポイント消費
+287
+
+210
+
+gh api graphql -f query='
+  query(){
+    rateLimit {
+      cost
+      limit
+      nodeCount
+      remaining
+      used
+      resetAt
+    }
+  }
+'
+
+# 直接 main/master に push されたコミット候補（= PR 非紐付）のみ判定材料を取る
+query($owner: String!, $name: String!, $pageSize: Int = 50, $since: GitTimestamp, $after: String) {
+  repository(owner: $owner, name: $name) {
+    nameWithOwner
+    defaultBranchRef {
+      name
+      target {
+        ... on Commit {
+          history(first: $pageSize, after: $after, since: $since) {
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              oid
+              abbreviatedOid
+              committedDate
+              messageHeadline
+              author { name email user { login } }
+              associatedPullRequests(first: 1) {
+                totalCount
+                nodes { number state mergedAt url }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# 例: 2025-01-01 以降、直近50件ずつ取りつつ PR 非紐付コミットだけ出力
+gh api graphql \
+  -F owner=OWNER -F name=REPO \
+  -F since='2025-01-01T00:00:00Z' -F pageSize=50 \
+  -f query='
+query($owner:String!,$name:String!,$pageSize:Int,$since:GitTimestamp,$after:String){
+  repository(owner:$owner,name:$name){
+    defaultBranchRef{
+      name
+      target{ ... on Commit{
+        history(first:$pageSize,after:$after,since:$since){
+          pageInfo{hasNextPage endCursor}
+          nodes{
+            oid
+            abbreviatedOid
+            committedDate
+            messageHeadline
+            author{ name email user{ login } }
+            associatedPullRequests(first:1){ totalCount nodes{ number state url mergedAt } }
+          }
+        }
+      }}
+    }
+  }
+}' | jq -r '
+  .data.repository.defaultBranchRef.target.history.nodes[]
+  | select(.associatedPullRequests.totalCount == 0)
+  | "\(.abbreviatedOid)\t\(.committedDate)\t\(.author.user.login // .author.name)\t\(.messageHeadline)"
+'

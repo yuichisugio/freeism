@@ -1,0 +1,17 @@
+{
+  "data": {
+    "repository": {
+      "id": "R_kgDOOyw9fQ",
+      "name": "ccusage",
+      "url": "https://github.com/ryoppippi/ccusage",
+      "createdAt": "2025-05-29T16:56:50Z",
+      "owner": {
+        "login": "ryoppippi",
+        "id": "MDQ6VXNlcjE1NjA1MDg="
+      },
+      "defaultBranchRef": {
+        "name": "main"
+      }
+    }
+  }
+}

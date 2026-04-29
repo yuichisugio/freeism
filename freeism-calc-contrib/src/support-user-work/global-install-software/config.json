@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "version": "0.0.1",
+    "createdAt": "2025-09-28T00:00:00Z",
+    "updatedAt": "2025-09-28T00:00:00Z"
+  },
+  "baseValue": 5,
+  "evaluationCriteria": [
+    {
+      "key": "timeResources",
+      "description": "Time Resources",
+      "value": 5,
+      "enabled": true
+    }
+  ]
+}

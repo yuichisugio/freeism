@@ -1,0 +1,8 @@
+gh api graphql -f owner="ryoppippi" -f name="ccusage" -f query='
+query($owner:String!, $name:String!) {
+  repository(owner:$owner, name:$name) {
+    hasSponsorshipsEnabled
+    owner { login __typename }  # ユーザか組織か
+    fundingLinks { platform url } # FUNDING.yml 由来のリンク
+  }
+}' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/test-sponsor-1.json

@@ -1,0 +1,4 @@
+# 
+curl -fsS "https://zenn.dev/api/articles?topicname=react&order=latest&count=48&page=1" | jq '.' > "src/designated-oss-growth/article-writer-contrib/archive/get-data/1-zenn.json"
+
+curl -fsS "https://zenn.dev/api/articles?topicname=react&page=1" | jq '.' > "src/designated-oss-growth/article-writer-contrib/archive/get-data/2-zenn.json"

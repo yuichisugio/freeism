@@ -1,0 +1,656 @@
+# MERGED以外のpull-requestの作成者を評価。MERGEDのPR作成者はcommit一覧で作成済み
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | select((.state? // "") != "MERGED")
+          | . as $obj
+          | .author as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "create-not-merged-pull-request",
+                  task_date:                  $obj.publishedAt,
+                  reference_task_date_field:  "publishedAt",
+                  pr_letter_count:
+                    (
+                      ($obj.title? // "" | length) + ($obj.bodyText? // "" | length)
+                    ),
+                  pr_state: $obj.state,
+                  change_record_count: (($obj.additions? // 0) + ($obj.deletions? // 0)),
+
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-node-id.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-1-processed-pr.json"
+
+
+# pull-requestにリアクションした人を評価。
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-2-processed-pr.json"
+
+
+# pull-requestのレビュー担当者をアサインした人を評価。timelineのみからアサインした人を取得
+jq '
+  {
+    data: {
+      user: (
+        [
+          (
+            # 1: 対象となるイベントだけ残す（review request の付与/解除）
+            [ .[]?
+              | select(
+                  ((.__typename? // "") == "ReviewRequestedEvent" or
+                   (.__typename? // "") == "ReviewRequestRemovedEvent")
+                  and (.requestedReviewer?.id?)      # reviewer が特定できるものだけ
+                )
+            ]
+
+            # 2: PR × reviewer ごとに時系列で評価できるよう並べ替え
+            | sort_by(
+                [
+                  .node_id, 
+                  (.requestedReviewer.id // ""), 
+                  ((.createdAt // "1970-01-01T00:00:00Z") | fromdateiso8601)
+                ]
+              )
+
+            # 3: PR × reviewer でグルーピングし、各グループの「最後のイベント」を取得
+            | group_by([.node_id, (.requestedReviewer.id // "")])
+            | map( max_by((.createdAt // "1970-01-01T00:00:00Z") | fromdateiso8601) )
+
+            # 4: 最新が付与イベントのもの＝現在も依頼が残っている reviewer だけ残す
+            | map( select((.__typename? // "") == "ReviewRequestedEvent") )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      ($obj.databaseId // null),
+                  task_full_database_id: ($obj.fullDatabaseId // null),
+                  task_url:              ($obj.url // null),
+                  task_name:             "pr-reviewer-assigned",
+                  task_date:             $obj.createdAt,
+                  reference_task_date_field: "createdAt",
+
+                  # どのPRに対して、誰が reviewer として「現在も」アサインされているか
+                  pr_node_id:            $obj.node_id,
+                  pr_node_url:            $obj.node_url,
+                  reviewer_id:           $obj.requestedReviewer.id,
+                  reviewer_login:        ($obj.requestedReviewer.login // null),
+                  reviewer_name:         ($obj.requestedReviewer.name  // null),
+                  reviewer_url:          ($obj.requestedReviewer.url   // null)
+                }
+              ]
+            }
+        ]
+        # 5: 同一 user(= actor) ごとに task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-timeline.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-3-processed-pr.json"
+
+
+# pull-requestヘラベル付けした人を評価。①現在のラベル一覧 & ②timelineからラベル付けした人を取得
+jq \
+  --slurpfile curr "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-now-label.json" \
+  '
+  # ②: { issue_node_id: [label_id, ...] } を作成
+  ($curr[0] // []) as $labels
+  | (
+      $labels
+      | group_by(.node_id)
+      | map({ (.[0].node_id): (map(.id) | unique) })
+      | add
+    ) as $by_issue
+
+  # ①のタイムライン配列を処理
+  |
+  {
+    data: {
+      user: (
+        [
+          (
+            # まず「オブジェクトのみ」を対象にする（配列等を除外）
+            [ .[]? | select((.__typename? // "") == "LabeledEvent") ]
+
+            # 現在ついているラベルに該当する LabeledEvent のみ残す
+            # （文脈が配列に切り替わらないよう各要素を $e に保存して参照）
+            | map(
+                . as $e
+                | select(
+                    ($e.node_id? and $e.label?.id?)
+                    and (( $by_issue[$e.node_id] // [] ) | index($e.label.id) != null)
+                  )
+              )
+
+            # issue × label ごとに「最後の設定イベント」だけ残す
+            | sort_by([.node_id, .label.id, (.createdAt | fromdateiso8601)])
+            | group_by([.node_id, .label.id])
+            | map( max_by(.createdAt | fromdateiso8601) )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      ($obj.databaseId // null),
+                  task_full_database_id: ($obj.fullDatabaseId // null),
+                  task_url:              ($obj.url // null),
+                  task_name:             "pr-labeled",
+                  task_date:             $obj.createdAt,
+                  reference_task_date_field: "createdAt",
+                  pr_node_id:         $obj.node_id,
+                  label_id:              $obj.label.id,
+                  label_name:            $obj.label.name,
+                  label_url:             ($obj.label.url // null)
+                }
+              ]
+            }
+        ]
+        # 同一ユーザーの task を結合（ラベルが複数でも配列に積まれます）
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-timeline.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-4-processed-pr.json"
+
+
+# pull-requestのコメントした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .author as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      $obj.databaseId,
+                  task_full_database_id: $obj.fullDatabaseId,
+                  task_url:              $obj.url,
+                  task_name:             "comment",
+                  task_date:             $obj.publishedAt,
+                  reference_task_date_field: "publishedAt",
+                  commit_letter_count:     ($obj.bodyText? // "" | length),
+
+                  # content == "THUMBS_DOWN" だけを bad、それ以外は good
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }   # 同一ユーザーの task を結合
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-comment.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-5-processed-pr.json"
+
+
+# pull-requestへのコメントへリアクションした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-comment-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-6-processed-pr.json"
+
+
+# pull-requestをレビューした人を評価。
+# レビュー行数・pr文字数・pr公開日とレビュー公開日も必要
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .author as $author
+          | {
+              user_type:        $author.__typename,
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      $obj.databaseId,
+                  task_full_database_id: $obj.fullDatabaseId,
+                  task_url:              $obj.url,
+                  task_name:             "pr-review",
+                  task_date:             $obj.publishedAt,
+                  reference_task_date_field: "publishedAt",
+                  review_letter_count:     ($obj.bodyText? // "" | length),
+                  pr_start_date: $obj.node_publishedAt,
+                  pr_letter_count:(($obj.node_title? // "" | length)+($obj.node_bodyText? // "" | length)),
+                  pr_change_record_count:(($obj.node_additions? // 0)+($obj.node_deletions? // 0)),
+
+                  # content == "THUMBS_DOWN" だけを bad、それ以外は good
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }   # 同一ユーザーの task を結合
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-review.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-7-processed-pr.json"
+
+
+# pull-requestのレビューにリアクションした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_type:                      $author.__typename,
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-comment-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-8-processed-pr.json"
+
+
+# pull-requestのレビューにコメントした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .author as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      $obj.databaseId,
+                  task_full_database_id: $obj.fullDatabaseId,
+                  task_url:              $obj.url,
+                  task_name:             "comment",
+                  task_date:             $obj.publishedAt,
+                  reference_task_date_field: "publishedAt",
+                  commit_letter_count:     ($obj.bodyText? // "" | length),
+
+                  # content == "THUMBS_DOWN" だけを bad、それ以外は good
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }   # 同一ユーザーの task を結合
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-review-comment.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-9-processed-pr.json"
+
+
+# pull-requestのレビューへのコメントにリアクションした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-comment-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-10-processed-issue.json"
+
+
+# pull-requestのステータスを更新した人を評価。merged or closed
+jq '
+  {
+    data: {
+      user: (
+        [
+          (
+            # ClosedEventのみ残す
+            [ .[]? | select((.__typename? // "") == "ClosedEvent") ]
+            # group_by の前にキーでソート
+            | sort_by(.node_id)
+            # node_id ごとにグルーピング
+            | group_by(.node_id)
+            # 各グループの最新だけ残す
+            | map( max_by(.createdAt | fromdateiso8601) )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  ("pr-"+($obj.__typename)),
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt",
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/result-pr-timeline.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/pull-request/1-11-processed-pr.json"
+
+
+# pull-requestのプルリク担当者をアサインした人を評価。①現在のアサイン一覧 & ②timelineからアサインした人を取得
+.shに実装してみた！

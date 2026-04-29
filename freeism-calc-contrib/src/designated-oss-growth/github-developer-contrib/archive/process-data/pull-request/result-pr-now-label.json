@@ -1,0 +1,4542 @@
+[
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zk0lf",
+    "node_number": 30,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/30",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zk0lf",
+    "node_number": 30,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/30",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zk0o_",
+    "node_number": 31,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/31",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zk0o_",
+    "node_number": 31,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/31",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlEcd",
+    "node_number": 32,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/32",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlEcd",
+    "node_number": 32,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/32",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlEdQ",
+    "node_number": 33,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/33",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlEdQ",
+    "node_number": 33,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/33",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlQXM",
+    "node_number": 37,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/37",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlQXM",
+    "node_number": 37,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/37",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlQXt",
+    "node_number": 38,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/38",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ZlQXt",
+    "node_number": 38,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/38",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zl3sy",
+    "node_number": 41,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/41",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zl3sy",
+    "node_number": 41,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/41",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zl3tV",
+    "node_number": 42,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/42",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Zl3tV",
+    "node_number": 42,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/42",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Z7aqU",
+    "node_number": 53,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/53",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Z7aqU",
+    "node_number": 53,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/53",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Z7ata",
+    "node_number": 54,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/54",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6Z7ata",
+    "node_number": 54,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/54",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aAv9G",
+    "node_number": 56,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/56",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aAv9G",
+    "node_number": 56,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/56",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aLetO",
+    "node_number": 63,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/63",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aLetO",
+    "node_number": 63,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/63",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aLeyX",
+    "node_number": 64,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/64",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aLeyX",
+    "node_number": 64,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/64",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aWBdU",
+    "node_number": 67,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/67",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aWBdU",
+    "node_number": 67,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/67",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ahY3Z",
+    "node_number": 69,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/69",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ahY3Z",
+    "node_number": 69,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/69",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6akqOq",
+    "node_number": 71,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/71",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6akqOq",
+    "node_number": 71,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/71",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6akqPl",
+    "node_number": 72,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/72",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6akqPl",
+    "node_number": 72,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/72",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ave8b",
+    "node_number": 73,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/73",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ave8b",
+    "node_number": 73,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/73",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6avfAP",
+    "node_number": 74,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/74",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6avfAP",
+    "node_number": 74,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/74",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aw54s",
+    "node_number": 78,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/78",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6aw54s",
+    "node_number": 78,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/78",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a3B-h",
+    "node_number": 86,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/86",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a3B-h",
+    "node_number": 86,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/86",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a3CH6",
+    "node_number": 87,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/87",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a3CH6",
+    "node_number": 87,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/87",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a-XKW",
+    "node_number": 100,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/100",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a-XKW",
+    "node_number": 100,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/100",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a-XNT",
+    "node_number": 101,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/101",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6a-XNT",
+    "node_number": 101,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/101",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bf8EL",
+    "node_number": 130,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/130",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bf8EL",
+    "node_number": 130,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/130",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bgayr",
+    "node_number": 132,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/132",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bgayr",
+    "node_number": 132,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/132",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6biGan",
+    "node_number": 141,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/141",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6biGan",
+    "node_number": 141,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/141",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6biGbS",
+    "node_number": 142,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/142",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6biGbS",
+    "node_number": 142,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/142",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bincY",
+    "node_number": 147,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/147",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bincY",
+    "node_number": 147,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/147",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6binc7",
+    "node_number": 148,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/148",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6binc7",
+    "node_number": 148,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/148",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bi2rj",
+    "node_number": 151,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/151",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bi2rj",
+    "node_number": 151,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/151",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6blgCu",
+    "node_number": 173,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/173",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6blgCu",
+    "node_number": 173,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/173",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bn1WS",
+    "node_number": 176,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/176",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bn1WS",
+    "node_number": 176,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/176",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bn1dU",
+    "node_number": 177,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/177",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bn1dU",
+    "node_number": 177,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/177",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bxhID",
+    "node_number": 187,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/187",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6bxhID",
+    "node_number": 187,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/187",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b4qpk",
+    "node_number": 188,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/188",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b4qpk",
+    "node_number": 188,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/188",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b4quW",
+    "node_number": 189,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/189",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b4quW",
+    "node_number": 189,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/189",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b8H4t",
+    "node_number": 191,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/191",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6b8H4t",
+    "node_number": 191,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/191",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cDfA0",
+    "node_number": 196,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/196",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cDfA0",
+    "node_number": 196,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/196",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cQOi9",
+    "node_number": 203,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/203",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cQOi9",
+    "node_number": 203,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/203",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cQOpG",
+    "node_number": 204,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/204",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cQOpG",
+    "node_number": 204,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/204",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cTqSc",
+    "node_number": 205,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/205",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cTqSc",
+    "node_number": 205,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/205",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cTqU6",
+    "node_number": 206,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/206",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cTqU6",
+    "node_number": 206,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/206",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cWa70",
+    "node_number": 207,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/207",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cWa70",
+    "node_number": 207,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/207",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cboxK",
+    "node_number": 208,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/208",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cboxK",
+    "node_number": 208,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/208",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cbo1X",
+    "node_number": 209,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/209",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cbo1X",
+    "node_number": 209,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/209",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cgmqX",
+    "node_number": 211,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/211",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cgmqX",
+    "node_number": 211,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/211",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6chgwD",
+    "node_number": 212,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/212",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6chgwD",
+    "node_number": 212,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/212",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ciCHx",
+    "node_number": 214,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/214",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ciCHx",
+    "node_number": 214,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/214",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cjX_Y",
+    "node_number": 215,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/215",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cjX_Y",
+    "node_number": 215,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/215",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cjYDa",
+    "node_number": 216,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/216",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cjYDa",
+    "node_number": 216,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/216",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ck1EM",
+    "node_number": 217,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/217",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ck1EM",
+    "node_number": 217,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/217",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ck1FN",
+    "node_number": 218,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/218",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ck1FN",
+    "node_number": 218,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/218",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cl6Ln",
+    "node_number": 220,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/220",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cl6Ln",
+    "node_number": 220,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/220",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cqUGI",
+    "node_number": 223,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/223",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cqUGI",
+    "node_number": 223,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/223",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cqUJ4",
+    "node_number": 224,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/224",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6cqUJ4",
+    "node_number": 224,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/224",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6c34WI",
+    "node_number": 227,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/227",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6c34WI",
+    "node_number": 227,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/227",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6c34vL",
+    "node_number": 228,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/228",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6c34vL",
+    "node_number": 228,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/228",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dDyPJ",
+    "node_number": 230,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/230",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dDyPJ",
+    "node_number": 230,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/230",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dPThN",
+    "node_number": 239,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/239",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dPThN",
+    "node_number": 239,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/239",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dPTlS",
+    "node_number": 240,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/240",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dPTlS",
+    "node_number": 240,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/240",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dTt6f",
+    "node_number": 244,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/244",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dTt6f",
+    "node_number": 244,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/244",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dTuGj",
+    "node_number": 245,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/245",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dTuGj",
+    "node_number": 245,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/245",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dZWqK",
+    "node_number": 248,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/248",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dZWqK",
+    "node_number": 248,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/248",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6desAa",
+    "node_number": 251,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/251",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6desAa",
+    "node_number": 251,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/251",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dgOHI",
+    "node_number": 255,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/255",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dgOHI",
+    "node_number": 255,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/255",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6djHkF",
+    "node_number": 257,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/257",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6djHkF",
+    "node_number": 257,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/257",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6djHk1",
+    "node_number": 258,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/258",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6djHk1",
+    "node_number": 258,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/258",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dj9ga",
+    "node_number": 260,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/260",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dj9ga",
+    "node_number": 260,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/260",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dj9iD",
+    "node_number": 261,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/261",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dj9iD",
+    "node_number": 261,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/261",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dl86z",
+    "node_number": 263,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/263",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dl86z",
+    "node_number": 263,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/263",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dn83-",
+    "node_number": 264,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/264",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dn83-",
+    "node_number": 264,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/264",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dn854",
+    "node_number": 265,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/265",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dn854",
+    "node_number": 265,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/265",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dos-1",
+    "node_number": 270,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/270",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dos-1",
+    "node_number": 270,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/270",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dpjFA",
+    "node_number": 272,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/272",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dpjFA",
+    "node_number": 272,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/272",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dqcYL",
+    "node_number": 273,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/273",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dqcYL",
+    "node_number": 273,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/273",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6duG3J",
+    "node_number": 275,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/275",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6duG3J",
+    "node_number": 275,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/275",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6duG8i",
+    "node_number": 276,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/276",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6duG8i",
+    "node_number": 276,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/276",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dz0N1",
+    "node_number": 278,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/278",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6dz0N1",
+    "node_number": 278,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/278",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eK65k",
+    "node_number": 282,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/282",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eK65k",
+    "node_number": 282,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/282",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eK7CN",
+    "node_number": 283,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/283",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eK7CN",
+    "node_number": 283,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/283",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eZh43",
+    "node_number": 286,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/286",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eZh43",
+    "node_number": 286,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/286",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eiotO",
+    "node_number": 289,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/289",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eiotO",
+    "node_number": 289,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/289",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eio0b",
+    "node_number": 290,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/290",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eio0b",
+    "node_number": 290,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/290",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6elTFZ",
+    "node_number": 292,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/292",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6elTFZ",
+    "node_number": 292,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/292",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ent5F",
+    "node_number": 293,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/293",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ent5F",
+    "node_number": 293,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/293",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6epI4D",
+    "node_number": 295,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/295",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6epI4D",
+    "node_number": 295,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/295",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eqcrh",
+    "node_number": 296,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/296",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eqcrh",
+    "node_number": 296,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/296",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eqctt",
+    "node_number": 297,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/297",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6eqctt",
+    "node_number": 297,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/297",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ermPQ",
+    "node_number": 299,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/299",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ermPQ",
+    "node_number": 299,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/299",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6esFfg",
+    "node_number": 300,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/300",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6esFfg",
+    "node_number": 300,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/300",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6esk3q",
+    "node_number": 301,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/301",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6esk3q",
+    "node_number": 301,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/301",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ewegw",
+    "node_number": 302,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/302",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ewegw",
+    "node_number": 302,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/302",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e13-s",
+    "node_number": 303,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/303",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e13-s",
+    "node_number": 303,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/303",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e14HT",
+    "node_number": 304,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/304",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e14HT",
+    "node_number": 304,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/304",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e4_U7",
+    "node_number": 305,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/305",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e4_U7",
+    "node_number": 305,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/305",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e9Ohk",
+    "node_number": 307,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/307",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e9Ohk",
+    "node_number": 307,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/307",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e9OnL",
+    "node_number": 308,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/308",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6e9OnL",
+    "node_number": 308,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/308",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fWiWI",
+    "node_number": 314,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/314",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fWiWI",
+    "node_number": 314,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/314",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fWiez",
+    "node_number": 315,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/315",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fWiez",
+    "node_number": 315,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/315",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6feiL-",
+    "node_number": 319,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/319",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6feiL-",
+    "node_number": 319,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/319",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fiuYT",
+    "node_number": 320,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/320",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fiuYT",
+    "node_number": 320,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/320",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6frex1",
+    "node_number": 323,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/323",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6frex1",
+    "node_number": 323,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/323",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6froj7",
+    "node_number": 324,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/324",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6froj7",
+    "node_number": 324,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/324",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6frokp",
+    "node_number": 325,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/325",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6frokp",
+    "node_number": 325,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/325",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fu1GO",
+    "node_number": 327,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/327",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fu1GO",
+    "node_number": 327,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/327",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fvXDF",
+    "node_number": 330,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/330",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fvXDF",
+    "node_number": 330,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/330",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fv1wt",
+    "node_number": 332,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/332",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fv1wt",
+    "node_number": 332,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/332",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fv10l",
+    "node_number": 333,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/333",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6fv10l",
+    "node_number": 333,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/333",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6f9RMR",
+    "node_number": 337,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/337",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6f9RMR",
+    "node_number": 337,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/337",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gDWaC",
+    "node_number": 340,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/340",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gDWaC",
+    "node_number": 340,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/340",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gDWrB",
+    "node_number": 341,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/341",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gDWrB",
+    "node_number": 341,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/341",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gIjg-",
+    "node_number": 343,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/343",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gIjg-",
+    "node_number": 343,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/343",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gJRuy",
+    "node_number": 344,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/344",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gJRuy",
+    "node_number": 344,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/344",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gTIHd",
+    "node_number": 347,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/347",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gTIHd",
+    "node_number": 347,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/347",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gTILr",
+    "node_number": 348,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/348",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gTILr",
+    "node_number": 348,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/348",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6geudD",
+    "node_number": 351,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/351",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6geudD",
+    "node_number": 351,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/351",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gmb6v",
+    "node_number": 356,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/356",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gmb6v",
+    "node_number": 356,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/356",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gmcAR",
+    "node_number": 357,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/357",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gmcAR",
+    "node_number": 357,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/357",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6grCeD",
+    "node_number": 359,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/359",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6grCeD",
+    "node_number": 359,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/359",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6guhJh",
+    "node_number": 361,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/361",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6guhJh",
+    "node_number": 361,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/361",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gv5W8",
+    "node_number": 364,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/364",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6gv5W8",
+    "node_number": 364,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/364",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g0Tda",
+    "node_number": 367,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/367",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g0Tda",
+    "node_number": 367,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/367",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g0xG0",
+    "node_number": 368,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/368",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g0xG0",
+    "node_number": 368,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/368",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g1Xi6",
+    "node_number": 370,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/370",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g1Xi6",
+    "node_number": 370,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/370",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g19oI",
+    "node_number": 371,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/371",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g19oI",
+    "node_number": 371,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/371",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g4DlL",
+    "node_number": 372,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/372",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g4DlL",
+    "node_number": 372,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/372",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g8BIM",
+    "node_number": 373,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/373",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g8BIM",
+    "node_number": 373,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/373",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g8BeI",
+    "node_number": 374,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/374",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6g8BeI",
+    "node_number": 374,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/374",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hCxRw",
+    "node_number": 376,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/376",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hCxRw",
+    "node_number": 376,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/376",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hEkC-",
+    "node_number": 377,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/377",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hEkC-",
+    "node_number": 377,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/377",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hTm0s",
+    "node_number": 381,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/381",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hTm0s",
+    "node_number": 381,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/381",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hdldG",
+    "node_number": 385,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/385",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hdldG",
+    "node_number": 385,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/385",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hhgOe",
+    "node_number": 386,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/386",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hhgOe",
+    "node_number": 386,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/386",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hmfX9",
+    "node_number": 387,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/387",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hmfX9",
+    "node_number": 387,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/387",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hqrjB",
+    "node_number": 388,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/388",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hqrjB",
+    "node_number": 388,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/388",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ht1f2",
+    "node_number": 390,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/390",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ht1f2",
+    "node_number": 390,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/390",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ht1lO",
+    "node_number": 391,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/391",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ht1lO",
+    "node_number": 391,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/391",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hxwrV",
+    "node_number": 392,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/392",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hxwrV",
+    "node_number": 392,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/392",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzFIg",
+    "node_number": 393,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/393",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzFIg",
+    "node_number": 393,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/393",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzFTH",
+    "node_number": 394,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/394",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzFTH",
+    "node_number": 394,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/394",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzqZv",
+    "node_number": 395,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/395",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6hzqZv",
+    "node_number": 395,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/395",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h0b4N",
+    "node_number": 396,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/396",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h0b4N",
+    "node_number": 396,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/396",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h4dwL",
+    "node_number": 397,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/397",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h4dwL",
+    "node_number": 397,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/397",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h4dxO",
+    "node_number": 398,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/398",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h4dxO",
+    "node_number": 398,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/398",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Cvs",
+    "node_number": 399,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/399",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Cvs",
+    "node_number": 399,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/399",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Cxg",
+    "node_number": 400,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/400",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Cxg",
+    "node_number": 400,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/400",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Xy0",
+    "node_number": 401,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/401",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5Xy0",
+    "node_number": 401,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/401",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5X0-",
+    "node_number": 402,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/402",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5X0-",
+    "node_number": 402,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/402",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5gg9",
+    "node_number": 407,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/407",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5gg9",
+    "node_number": 407,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/407",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5gi4",
+    "node_number": 408,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/408",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5gi4",
+    "node_number": 408,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/408",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5zxD",
+    "node_number": 411,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/411",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h5zxD",
+    "node_number": 411,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/411",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h7QYf",
+    "node_number": 415,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/415",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h7QYf",
+    "node_number": 415,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/415",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h9w6s",
+    "node_number": 416,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/416",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h9w6s",
+    "node_number": 416,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/416",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h9xKU",
+    "node_number": 417,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/417",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6h9xKU",
+    "node_number": 417,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/417",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iCk8S",
+    "node_number": 423,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/423",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iCk8S",
+    "node_number": 423,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/423",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iGg0-",
+    "node_number": 428,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/428",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iGg0-",
+    "node_number": 428,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/428",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iLPqt",
+    "node_number": 429,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/429",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iLPqt",
+    "node_number": 429,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/429",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iPlZ7",
+    "node_number": 430,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/430",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iPlZ7",
+    "node_number": 430,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/430",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iWmDa",
+    "node_number": 432,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/432",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6iWmDa",
+    "node_number": 432,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/432",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ibuHy",
+    "node_number": 435,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/435",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ibuHy",
+    "node_number": 435,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/435",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ijDFJ",
+    "node_number": 438,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/438",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ijDFJ",
+    "node_number": 438,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/438",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ijD_L",
+    "node_number": 439,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/439",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ijD_L",
+    "node_number": 439,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/439",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ipF2d",
+    "node_number": 444,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/444",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ipF2d",
+    "node_number": 444,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/444",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ivgWi",
+    "node_number": 446,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/446",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ivgWi",
+    "node_number": 446,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/446",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ivghV",
+    "node_number": 447,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/447",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ivghV",
+    "node_number": 447,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/447",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6izH5s",
+    "node_number": 448,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/448",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6izH5s",
+    "node_number": 448,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/448",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i3mf0",
+    "node_number": 453,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/453",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i3mf0",
+    "node_number": 453,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/453",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i419s",
+    "node_number": 456,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/456",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i419s",
+    "node_number": 456,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/456",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7C_Y",
+    "node_number": 462,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/462",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7C_Y",
+    "node_number": 462,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/462",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7p-F",
+    "node_number": 466,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/466",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7p-F",
+    "node_number": 466,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/466",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7qAF",
+    "node_number": 467,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/467",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i7qAF",
+    "node_number": 467,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/467",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8gCI",
+    "node_number": 470,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/470",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8gCI",
+    "node_number": 470,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/470",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8rpI",
+    "node_number": 474,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/474",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8rpI",
+    "node_number": 474,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/474",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8_ct",
+    "node_number": 476,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/476",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i8_ct",
+    "node_number": 476,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/476",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i_WHK",
+    "node_number": 479,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/479",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6i_WHK",
+    "node_number": 479,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/479",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jAfaH",
+    "node_number": 481,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/481",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jAfaH",
+    "node_number": 481,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/481",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jGzw6",
+    "node_number": 484,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/484",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jGzw6",
+    "node_number": 484,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/484",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jIWcO",
+    "node_number": 485,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/485",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jIWcO",
+    "node_number": 485,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/485",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jPDKz",
+    "node_number": 488,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/488",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jPDKz",
+    "node_number": 488,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/488",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jRabD",
+    "node_number": 490,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/490",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jRabD",
+    "node_number": 490,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/490",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jZQ3j",
+    "node_number": 492,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/492",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jZQ3j",
+    "node_number": 492,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/492",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jcIwI",
+    "node_number": 494,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/494",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jcIwI",
+    "node_number": 494,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/494",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ji_QQ",
+    "node_number": 498,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/498",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ji_QQ",
+    "node_number": 498,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/498",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ji_Tw",
+    "node_number": 499,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/499",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ji_Tw",
+    "node_number": 499,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/499",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jkWAj",
+    "node_number": 500,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/500",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jkWAj",
+    "node_number": 500,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/500",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jpcCr",
+    "node_number": 505,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/505",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jpcCr",
+    "node_number": 505,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/505",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jrXKD",
+    "node_number": 506,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/506",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jrXKD",
+    "node_number": 506,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/506",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jrXVB",
+    "node_number": 507,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/507",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jrXVB",
+    "node_number": 507,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/507",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ju3XK",
+    "node_number": 508,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/508",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6ju3XK",
+    "node_number": 508,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/508",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jyLOQ",
+    "node_number": 509,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/509",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jyLOQ",
+    "node_number": 509,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/509",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jyLYx",
+    "node_number": 510,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/510",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jyLYx",
+    "node_number": 510,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/510",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jzLTq",
+    "node_number": 511,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/511",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6jzLTq",
+    "node_number": 511,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/511",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j0Fiq",
+    "node_number": 512,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/512",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j0Fiq",
+    "node_number": 512,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/512",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j1f9V",
+    "node_number": 515,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/515",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j1f9V",
+    "node_number": 515,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/515",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j36xr",
+    "node_number": 517,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/517",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j36xr",
+    "node_number": 517,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/517",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j37Hx",
+    "node_number": 518,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/518",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j37Hx",
+    "node_number": 518,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/518",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7AEa",
+    "node_number": 519,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/519",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7AEa",
+    "node_number": 519,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/519",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7AF0",
+    "node_number": 520,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/520",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7AF0",
+    "node_number": 520,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/520",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7hIt",
+    "node_number": 521,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/521",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j7hIt",
+    "node_number": 521,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/521",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8ZCx",
+    "node_number": 522,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/522",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8ZCx",
+    "node_number": 522,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/522",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8ZDt",
+    "node_number": 523,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/523",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8ZDt",
+    "node_number": 523,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/523",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8zZV",
+    "node_number": 524,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/524",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j8zZV",
+    "node_number": 524,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/524",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j-tKA",
+    "node_number": 527,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/527",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j-tKA",
+    "node_number": 527,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/527",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j_odC",
+    "node_number": 533,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/533",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j_odC",
+    "node_number": 533,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/533",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j_oec",
+    "node_number": 534,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/534",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6j_oec",
+    "node_number": 534,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/534",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kEFNL",
+    "node_number": 540,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/540",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kEFNL",
+    "node_number": 540,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/540",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kEFRQ",
+    "node_number": 541,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/541",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kEFRQ",
+    "node_number": 541,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/541",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kRNmZ",
+    "node_number": 547,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/547",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kRNmZ",
+    "node_number": 547,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/547",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kjkGC",
+    "node_number": 558,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/558",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kjkGC",
+    "node_number": 558,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/558",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kjkJ6",
+    "node_number": 559,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/559",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kjkJ6",
+    "node_number": 559,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/559",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6klRKG",
+    "node_number": 561,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/561",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6klRKG",
+    "node_number": 561,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/561",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6klRNV",
+    "node_number": 562,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/562",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6klRNV",
+    "node_number": 562,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/562",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kmQ6Y",
+    "node_number": 563,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/563",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kmQ6Y",
+    "node_number": 563,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/563",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kmQ91",
+    "node_number": 564,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/564",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kmQ91",
+    "node_number": 564,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/564",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6krpGJ",
+    "node_number": 567,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/567",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6krpGJ",
+    "node_number": 567,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/567",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kw7EK",
+    "node_number": 570,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/570",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6kw7EK",
+    "node_number": 570,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/570",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6k3WUK",
+    "node_number": 572,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/572",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6k3WUK",
+    "node_number": 572,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/572",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6k3WbM",
+    "node_number": 573,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/573",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6k3WbM",
+    "node_number": 573,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/573",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lAur9",
+    "node_number": 595,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/595",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lAur9",
+    "node_number": 595,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/595",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lCjcb",
+    "node_number": 599,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/599",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lCjcb",
+    "node_number": 599,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/599",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lIH8m",
+    "node_number": 606,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/606",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lIH8m",
+    "node_number": 606,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/606",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lIH_P",
+    "node_number": 607,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/607",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6lIH_P",
+    "node_number": 607,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/607",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6nSDYO",
+    "node_number": 620,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/620",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6nSDYO",
+    "node_number": 620,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/620",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6nSDhV",
+    "node_number": 621,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/621",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6nSDhV",
+    "node_number": 621,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/621",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6oiNEL",
+    "node_number": 629,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/629",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6oiNEL",
+    "node_number": 629,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/629",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6oiNGb",
+    "node_number": 630,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/630",
+    "id": "LA_kwDOOyw9fc8AAAACCWevBg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/dependencies",
+    "name": "dependencies",
+    "description": null
+  },
+  {
+    "node___typename": "PullRequest",
+    "node_id": "PR_kwDOOyw9fc6oiNGb",
+    "node_number": 630,
+    "node_url": "https://github.com/ryoppippi/ccusage/pull/630",
+    "id": "LA_kwDOOyw9fc8AAAACCWevDg",
+    "url": "https://github.com/ryoppippi/ccusage/labels/renovate",
+    "name": "renovate",
+    "description": null
+  }
+]

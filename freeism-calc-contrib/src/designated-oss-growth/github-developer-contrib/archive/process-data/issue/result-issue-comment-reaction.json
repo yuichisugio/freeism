@@ -1,0 +1,2706 @@
+[
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6uXn49",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/3#issuecomment-2925428285",
+    "databaseId": 290321991,
+    "id": "REA_lALOOyw9fc6uXn49zhFN9kc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-02T11:30:13Z",
+    "user": {
+      "databaseId": 859015,
+      "id": "U_kgDOAA0bhw",
+      "login": "zippoxer",
+      "name": "Zippo",
+      "url": "https://github.com/zippoxer"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u0aot",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2932976173",
+    "databaseId": 290454392,
+    "id": "REA_lALOOyw9fc6u0aotzhFP-3g",
+    "content": "HOORAY",
+    "createdAt": "2025-06-03T00:32:40Z",
+    "user": {
+      "databaseId": 1039311,
+      "id": "U_kgDOAA_bzw",
+      "login": "nnamon",
+      "name": "nnamon",
+      "url": "https://github.com/nnamon"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u0aot",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2932976173",
+    "databaseId": 290475130,
+    "id": "REA_lALOOyw9fc6u0aotzhFQTHo",
+    "content": "HOORAY",
+    "createdAt": "2025-06-03T04:07:07Z",
+    "user": {
+      "databaseId": 82367604,
+      "id": "U_kgDOBOjUdA",
+      "login": "doyeongk",
+      "name": null,
+      "url": "https://github.com/doyeongk"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u6Vag",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934527648",
+    "databaseId": 290541626,
+    "id": "REA_lALOOyw9fc6u6VagzhFRUDo",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-03T10:30:06Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u6kwm",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934590502",
+    "databaseId": 290541949,
+    "id": "REA_lALOOyw9fc6u6kwmzhFRUX0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-03T10:32:03Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u66En",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934677799",
+    "databaseId": 290546105,
+    "id": "REA_lALOOyw9fc6u66EnzhFRYbk",
+    "content": "HOORAY",
+    "createdAt": "2025-06-03T11:04:46Z",
+    "user": {
+      "databaseId": 29482493,
+      "id": "U_kgDOAcHd_Q",
+      "login": "itsUndefined",
+      "name": "Themistoklis Chatziemmanouil",
+      "url": "https://github.com/itsUndefined"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u66En",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934677799",
+    "databaseId": 290546121,
+    "id": "REA_lALOOyw9fc6u66EnzhFRYck",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-03T11:04:52Z",
+    "user": {
+      "databaseId": 29482493,
+      "id": "U_kgDOAcHd_Q",
+      "login": "itsUndefined",
+      "name": "Themistoklis Chatziemmanouil",
+      "url": "https://github.com/itsUndefined"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u66En",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934677799",
+    "databaseId": 290546126,
+    "id": "REA_lALOOyw9fc6u66EnzhFRYc4",
+    "content": "HEART",
+    "createdAt": "2025-06-03T11:04:53Z",
+    "user": {
+      "databaseId": 29482493,
+      "id": "U_kgDOAcHd_Q",
+      "login": "itsUndefined",
+      "name": "Themistoklis Chatziemmanouil",
+      "url": "https://github.com/itsUndefined"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u69Yk",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934691364",
+    "databaseId": 290552074,
+    "id": "REA_lALOOyw9fc6u69YkzhFReQo",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-03T11:45:55Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u7DLj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2934715107",
+    "databaseId": 290549936,
+    "id": "REA_lALOOyw9fc6u7DLjzhFRcLA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-03T11:30:38Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u_qol",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2935925285",
+    "databaseId": 290599049,
+    "id": "REA_lALOOyw9fc6u_qolzhFSMIk",
+    "content": "HOORAY",
+    "createdAt": "2025-06-03T15:50:22Z",
+    "user": {
+      "databaseId": 29482493,
+      "id": "U_kgDOAcHd_Q",
+      "login": "itsUndefined",
+      "name": "Themistoklis Chatziemmanouil",
+      "url": "https://github.com/itsUndefined"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u_qol",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2935925285",
+    "databaseId": 293524987,
+    "id": "REA_lALOOyw9fc6u_qolzhF-1fs",
+    "content": "HOORAY",
+    "createdAt": "2025-06-25T17:33:26Z",
+    "user": {
+      "databaseId": 26914352,
+      "id": "U_kgDOAZquMA",
+      "login": "djsavvy",
+      "name": "Savvy Raghuvanshi",
+      "url": "https://github.com/djsavvy"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6u_qol",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/4#issuecomment-2935925285",
+    "databaseId": 293524994,
+    "id": "REA_lALOOyw9fc6u_qolzhF-1gI",
+    "content": "ROCKET",
+    "createdAt": "2025-06-25T17:33:31Z",
+    "user": {
+      "databaseId": 26914352,
+      "id": "U_kgDOAZquMA",
+      "login": "djsavvy",
+      "name": "Savvy Raghuvanshi",
+      "url": "https://github.com/djsavvy"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6vy5WQ",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/11#issuecomment-2949354896",
+    "databaseId": 291180558,
+    "id": "REA_lALOOyw9fc6vy5WQzhFbEA4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-06T13:59:20Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6z_wDl",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/11#issuecomment-3019833573",
+    "databaseId": 294179762,
+    "id": "REA_lALOOyw9fc6z_wDlzhGI07I",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-30T22:02:29Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xjCQj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/12#issuecomment-2978751523",
+    "databaseId": 292455194,
+    "id": "REA_lALOOyw9fc6xjCQjzhFugxo",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-17T13:56:42Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wvciO",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/13#issuecomment-2965227662",
+    "databaseId": 291863486,
+    "id": "REA_lALOOyw9fc6wvciOzhFle74",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-12T09:16:19Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wpDVH",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/19#issuecomment-2963551559",
+    "databaseId": 291781934,
+    "id": "REA_lALOOyw9fc6wpDVHzhFkPS4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-11T22:05:14Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xdglz",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/23#issuecomment-2977302899",
+    "databaseId": 292338633,
+    "id": "REA_lALOOyw9fc6xdglzzhFsu8k",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-16T19:16:19Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xdglz",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/23#issuecomment-2977302899",
+    "databaseId": 292349432,
+    "id": "REA_lALOOyw9fc6xdglzzhFs5fg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-16T20:44:33Z",
+    "user": {
+      "databaseId": 32826608,
+      "id": "U_kgDOAfTk8A",
+      "login": "Kaniikura",
+      "name": "Takuya Ono",
+      "url": "https://github.com/Kaniikura"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xdglz",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/23#issuecomment-2977302899",
+    "databaseId": 292489939,
+    "id": "REA_lALOOyw9fc6xdglzzhFvCtM",
+    "content": "HOORAY",
+    "createdAt": "2025-06-17T17:55:46Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xgYH2",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/23#issuecomment-2978054646",
+    "databaseId": 292349444,
+    "id": "REA_lALOOyw9fc6xgYH2zhFs5gQ",
+    "content": "HEART",
+    "createdAt": "2025-06-16T20:44:39Z",
+    "user": {
+      "databaseId": 32826608,
+      "id": "U_kgDOAfTk8A",
+      "login": "Kaniikura",
+      "name": "Takuya Ono",
+      "url": "https://github.com/Kaniikura"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wNd_k",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2956320740",
+    "databaseId": 291421109,
+    "id": "REA_lALOOyw9fc6wNd_kzhFeu7U",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-09T16:41:00Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wNe-i",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2956324770",
+    "databaseId": 291421211,
+    "id": "REA_lALOOyw9fc6wNe-izhFevBs",
+    "content": "HEART",
+    "createdAt": "2025-06-09T16:41:58Z",
+    "user": {
+      "databaseId": 104000239,
+      "id": "U_kgDOBjLq7w",
+      "login": "nyatinte",
+      "name": "NakamuraTakumi",
+      "url": "https://github.com/nyatinte"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wN9Uv",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2956449071",
+    "databaseId": 291458989,
+    "id": "REA_lALOOyw9fc6wN9UvzhFfT60",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-09T22:16:46Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wN9Uv",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2956449071",
+    "databaseId": 291501055,
+    "id": "REA_lALOOyw9fc6wN9UvzhFf8_8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T06:55:35Z",
+    "user": {
+      "databaseId": 57349533,
+      "id": "U_kgDOA2sVnQ",
+      "login": "srdw",
+      "name": "srdw",
+      "url": "https://github.com/srdw"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wQqnB",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2957158849",
+    "databaseId": 291475923,
+    "id": "REA_lALOOyw9fc6wQqnBzhFfkdM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T01:15:49Z",
+    "user": {
+      "databaseId": 104000239,
+      "id": "U_kgDOBjLq7w",
+      "login": "nyatinte",
+      "name": "NakamuraTakumi",
+      "url": "https://github.com/nyatinte"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wQqnB",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2957158849",
+    "databaseId": 291501049,
+    "id": "REA_lALOOyw9fc6wQqnBzhFf8_k",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-10T06:55:31Z",
+    "user": {
+      "databaseId": 57349533,
+      "id": "U_kgDOA2sVnQ",
+      "login": "srdw",
+      "name": "srdw",
+      "url": "https://github.com/srdw"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6weAom",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2960656934",
+    "databaseId": 291630345,
+    "id": "REA_lALOOyw9fc6weAomzhFh7Qk",
+    "content": "EYES",
+    "createdAt": "2025-06-11T01:01:39Z",
+    "user": {
+      "databaseId": 104000239,
+      "id": "U_kgDOBjLq7w",
+      "login": "nyatinte",
+      "name": "NakamuraTakumi",
+      "url": "https://github.com/nyatinte"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6we68o",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2960895784",
+    "databaseId": 291629383,
+    "id": "REA_lALOOyw9fc6we68ozhFh6Uc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-11T00:47:04Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6we68o",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/46#issuecomment-2960895784",
+    "databaseId": 291632026,
+    "id": "REA_lALOOyw9fc6we68ozhFh85o",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-11T01:26:26Z",
+    "user": {
+      "databaseId": 57349533,
+      "id": "U_kgDOA2sVnQ",
+      "login": "srdw",
+      "name": "srdw",
+      "url": "https://github.com/srdw"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wqyDH",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/59#issuecomment-2964005063",
+    "databaseId": 291769714,
+    "id": "REA_lALOOyw9fc6wqyDHzhFkDXI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-11T20:05:21Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wqyDH",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/59#issuecomment-2964005063",
+    "databaseId": 293140741,
+    "id": "REA_lALOOyw9fc6wqyDHzhF4-QU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T10:53:34Z",
+    "user": {
+      "databaseId": 6516539,
+      "id": "U_kgDOAGNvOw",
+      "login": "aalimovs",
+      "name": "Alexander Alimovs",
+      "url": "https://github.com/aalimovs"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wyEKO",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/61#issuecomment-2965914254",
+    "databaseId": 291871344,
+    "id": "REA_lALOOyw9fc6wyEKOzhFlmnA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-12T10:15:55Z",
+    "user": {
+      "databaseId": 1039311,
+      "id": "U_kgDOAA_bzw",
+      "login": "nnamon",
+      "name": "nnamon",
+      "url": "https://github.com/nnamon"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6wyEKO",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/61#issuecomment-2965914254",
+    "databaseId": 291963744,
+    "id": "REA_lALOOyw9fc6wyEKOzhFnA2A",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-12T22:32:14Z",
+    "user": {
+      "databaseId": 16469483,
+      "id": "U_kgDOAPtN6w",
+      "login": "skikkh",
+      "name": "Ikki Shoka",
+      "url": "https://github.com/skikkh"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xdEO_",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/66#issuecomment-2977186751",
+    "databaseId": 292338607,
+    "id": "REA_lALOOyw9fc6xdEO_zhFsu68",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-16T19:16:05Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xdEO_",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/66#issuecomment-2977186751",
+    "databaseId": 300481792,
+    "id": "REA_lALOOyw9fc6xdEO_zhHo_QA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T23:16:20Z",
+    "user": {
+      "databaseId": 402927,
+      "id": "U_kgDOAAYl7w",
+      "login": "dezza",
+      "name": null,
+      "url": "https://github.com/dezza"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6xfZew",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/66#issuecomment-2977798064",
+    "databaseId": 292398110,
+    "id": "REA_lALOOyw9fc6xfZewzhFtpB4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-17T06:58:39Z",
+    "user": {
+      "databaseId": 15273128,
+      "id": "U_kgDOAOkMqA",
+      "login": "ciffelia",
+      "name": "Oji Ishimori",
+      "url": "https://github.com/ciffelia"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6yK7PC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/121#issuecomment-2989208514",
+    "databaseId": 292821716,
+    "id": "REA_lALOOyw9fc6yK7PCzhF0GtQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-19T22:21:20Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ycp71",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/133#issuecomment-2993856245",
+    "databaseId": 295128111,
+    "id": "REA_lALOOyw9fc6ycp71zhGXTC8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-05T17:55:12Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ycp71",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/133#issuecomment-2993856245",
+    "databaseId": 297454007,
+    "id": "REA_lALOOyw9fc6ycp71zhG6ybc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-23T18:29:05Z",
+    "user": {
+      "databaseId": 179761,
+      "id": "U_kgDOAAK-MQ",
+      "login": "wiiiimm",
+      "name": "wiIIimm",
+      "url": "https://github.com/wiiiimm"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ys2iZ",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/145#issuecomment-2998102169",
+    "databaseId": 295332484,
+    "id": "REA_lALOOyw9fc6ys2iZzhGaaoQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-07T19:22:46Z",
+    "user": {
+      "databaseId": 3809115,
+      "id": "U_kgDOADofWw",
+      "login": "YeomansIII",
+      "name": "Jason Yeomans",
+      "url": "https://github.com/YeomansIII"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ys2iZ",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/145#issuecomment-2998102169",
+    "databaseId": 302737899,
+    "id": "REA_lALOOyw9fc6ys2iZzhILaes",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-03T17:31:51Z",
+    "user": {
+      "databaseId": 16979860,
+      "id": "U_kgDOAQMXlA",
+      "login": "matlegit",
+      "name": "matlegit",
+      "url": "https://github.com/matlegit"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zJqjw",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/145#issuecomment-3005655280",
+    "databaseId": 293534509,
+    "id": "REA_lALOOyw9fc6zJqjwzhF--y0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-25T18:47:51Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zJqjw",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/145#issuecomment-3005655280",
+    "databaseId": 295157080,
+    "id": "REA_lALOOyw9fc6zJqjwzhGXvVg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-06T10:03:01Z",
+    "user": {
+      "databaseId": 7395279,
+      "id": "U_kgDOAHDXzw",
+      "login": "novacellus",
+      "name": "Krzysztof Nowak",
+      "url": "https://github.com/novacellus"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ydKJ4",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/146#issuecomment-2993988216",
+    "databaseId": 293062414,
+    "id": "REA_lALOOyw9fc6ydKJ4zhF3xw4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-22T08:36:48Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ydKJ4",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/146#issuecomment-2993988216",
+    "databaseId": 293071507,
+    "id": "REA_lALOOyw9fc6ydKJ4zhF36pM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-22T15:15:14Z",
+    "user": {
+      "databaseId": 95458917,
+      "id": "U_kgDOBbCWZQ",
+      "login": "salala01",
+      "name": "salala",
+      "url": "https://github.com/salala01"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ydKJ4",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/146#issuecomment-2993988216",
+    "databaseId": 293125408,
+    "id": "REA_lALOOyw9fc6ydKJ4zhF4vSA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T08:57:32Z",
+    "user": {
+      "databaseId": 1167535,
+      "id": "U_kgDOABHQrw",
+      "login": "skyerday",
+      "name": "Skyer Tai",
+      "url": "https://github.com/skyerday"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc60LUJG",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/146#issuecomment-3022864966",
+    "databaseId": 295082941,
+    "id": "REA_lALOOyw9fc60LUJGzhGWm70",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-05T04:03:41Z",
+    "user": {
+      "databaseId": 4985901,
+      "id": "U_kgDOAEwULQ",
+      "login": "MangoB1",
+      "name": "MangoB1",
+      "url": "https://github.com/MangoB1"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61KuZw",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/146#issuecomment-3039487600",
+    "databaseId": 295128079,
+    "id": "REA_lALOOyw9fc61KuZwzhGXTA8",
+    "content": "HEART",
+    "createdAt": "2025-07-05T17:54:04Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6yiWBh",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/162#issuecomment-2995347553",
+    "databaseId": 293117579,
+    "id": "REA_lALOOyw9fc6yiWBhzhF4nos",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T07:59:42Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ytnFJ",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/172#issuecomment-2998301001",
+    "databaseId": 293421962,
+    "id": "REA_lALOOyw9fc6ytnFJzhF9Q4o",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-25T05:08:35Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zxs_w",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/172#issuecomment-3016151024",
+    "databaseId": 294022534,
+    "id": "REA_lALOOyw9fc6zxs_wzhGGbYY",
+    "content": "ROCKET",
+    "createdAt": "2025-06-29T12:57:07Z",
+    "user": {
+      "databaseId": 84216737,
+      "id": "U_kgDOBQULoQ",
+      "login": "AsPulse",
+      "name": "あすぱる",
+      "url": "https://github.com/AsPulse"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64cEUn",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/172#issuecomment-3094365479",
+    "databaseId": 297198831,
+    "id": "REA_lALOOyw9fc64cEUnzhG25O8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-22T09:43:56Z",
+    "user": {
+      "databaseId": 1961027,
+      "id": "U_kgDOAB3sQw",
+      "login": "istisiki",
+      "name": "stacey",
+      "url": "https://github.com/istisiki"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ymxH3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/179#issuecomment-2996507127",
+    "databaseId": 293190431,
+    "id": "REA_lALOOyw9fc6ymxH3zhF5ux8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T16:58:00Z",
+    "user": {
+      "databaseId": 142297487,
+      "id": "U_kgDOCHtJjw",
+      "login": "BogdanSerbanBW",
+      "name": "Bogdan Serban",
+      "url": "https://github.com/BogdanSerbanBW"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6ylczE",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/181#issuecomment-2996161732",
+    "databaseId": 293153346,
+    "id": "REA_lALOOyw9fc6ylczEzhF5KkI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-23T12:37:49Z",
+    "user": {
+      "databaseId": 13450321,
+      "id": "U_kgDOAM08UQ",
+      "login": "mimikun",
+      "name": "Yuto Tanaka",
+      "url": "https://github.com/mimikun"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6y_yAE",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/181#issuecomment-3003064324",
+    "databaseId": 294004859,
+    "id": "REA_lALOOyw9fc6y_yAEzhGGKHs",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-06-28T22:44:21Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6yrwXf",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/184#issuecomment-2997814751",
+    "databaseId": 293215667,
+    "id": "REA_lALOOyw9fc6yrwXfzhF6HbM",
+    "content": "HEART",
+    "createdAt": "2025-06-23T20:20:07Z",
+    "user": {
+      "databaseId": 14079121,
+      "id": "U_kgDOANbUkQ",
+      "login": "adawalli",
+      "name": null,
+      "url": "https://github.com/adawalli"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6z1d7s",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/194#issuecomment-3017137900",
+    "databaseId": 294377748,
+    "id": "REA_lALOOyw9fc6z1d7szhGL2RQ",
+    "content": "ROCKET",
+    "createdAt": "2025-07-01T18:27:24Z",
+    "user": {
+      "databaseId": 10660283,
+      "id": "U_kgDOAKKpuw",
+      "login": "natac13",
+      "name": "Sean Campbell",
+      "url": "https://github.com/natac13"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc60_pH4",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/194#issuecomment-3036582392",
+    "databaseId": 295048197,
+    "id": "REA_lALOOyw9fc60_pH4zhGWFAU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-04T17:14:47Z",
+    "user": {
+      "databaseId": 95458917,
+      "id": "U_kgDOBbCWZQ",
+      "login": "salala01",
+      "name": "salala",
+      "url": "https://github.com/salala01"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 294008826,
+    "id": "REA_lALOOyw9fc6zuE0dzhGGN_o",
+    "content": "HEART",
+    "createdAt": "2025-06-29T01:20:22Z",
+    "user": {
+      "databaseId": 484816,
+      "id": "U_kgDOAAdl0A",
+      "login": "jtn0123",
+      "name": null,
+      "url": "https://github.com/jtn0123"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 294012395,
+    "id": "REA_lALOOyw9fc6zuE0dzhGGRes",
+    "content": "HEART",
+    "createdAt": "2025-06-29T05:17:27Z",
+    "user": {
+      "databaseId": 2871146,
+      "id": "U_kgDOACvPag",
+      "login": "bradlishman",
+      "name": "Brad Lishman",
+      "url": "https://github.com/bradlishman"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 294110255,
+    "id": "REA_lALOOyw9fc6zuE0dzhGHxC8",
+    "content": "HEART",
+    "createdAt": "2025-06-30T13:11:33Z",
+    "user": {
+      "databaseId": 4420411,
+      "id": "U_kgDOAENzOw",
+      "login": "jsumner",
+      "name": "John Sumner",
+      "url": "https://github.com/jsumner"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 295038191,
+    "id": "REA_lALOOyw9fc6zuE0dzhGV7O8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-04T15:38:38Z",
+    "user": {
+      "databaseId": 12569289,
+      "id": "U_kgDOAL_KyQ",
+      "login": "TakiGuan",
+      "name": "Taki",
+      "url": "https://github.com/TakiGuan"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 296039562,
+    "id": "REA_lALOOyw9fc6zuE0dzhGlNIo",
+    "content": "HEART",
+    "createdAt": "2025-07-12T01:12:32Z",
+    "user": {
+      "databaseId": 464595,
+      "id": "U_kgDOAAcW0w",
+      "login": "MonkeyIsNull",
+      "name": "Adam Guyot",
+      "url": "https://github.com/MonkeyIsNull"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zuE0d",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3015200029",
+    "databaseId": 296706694,
+    "id": "REA_lALOOyw9fc6zuE0dzhGvYoY",
+    "content": "HEART",
+    "createdAt": "2025-07-17T15:21:05Z",
+    "user": {
+      "databaseId": 28115,
+      "id": "U_kgDNbdM",
+      "login": "dannysmith",
+      "name": "Danny Smith",
+      "url": "https://github.com/dannysmith"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64G6CG",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3088818310",
+    "databaseId": 297523617,
+    "id": "REA_lALOOyw9fc64G6CGzhG72aE",
+    "content": "ROCKET",
+    "createdAt": "2025-07-24T07:24:24Z",
+    "user": {
+      "databaseId": 830386,
+      "id": "U_kgDOAAyrsg",
+      "login": "Anima-t3d",
+      "name": null,
+      "url": "https://github.com/Anima-t3d"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64G6CG",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/199#issuecomment-3088818310",
+    "databaseId": 297620483,
+    "id": "REA_lALOOyw9fc64G6CGzhG9VAM",
+    "content": "ROCKET",
+    "createdAt": "2025-07-24T19:28:56Z",
+    "user": {
+      "databaseId": 1282393,
+      "id": "U_kgDOABORWQ",
+      "login": "nsheaps",
+      "name": "Nathan Heaps",
+      "url": "https://github.com/nsheaps"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6zyCNU",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/213#issuecomment-3016237908",
+    "databaseId": 295562673,
+    "id": "REA_lALOOyw9fc6zyCNUzhGd7bE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-09T05:24:09Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6011b2",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/222#issuecomment-3034011382",
+    "databaseId": 296807441,
+    "id": "REA_lALOOyw9fc6011b2zhGw7BE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-18T07:56:29Z",
+    "user": {
+      "databaseId": 7410605,
+      "id": "U_kgDOAHETrQ",
+      "login": "hsawano",
+      "name": "Hiroaki SAWANO",
+      "url": "https://github.com/hsawano"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6011b2",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/222#issuecomment-3034011382",
+    "databaseId": 299594022,
+    "id": "REA_lALOOyw9fc6011b2zhHbcSY",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-09T08:03:00Z",
+    "user": {
+      "databaseId": 8284972,
+      "id": "U_kgDOAH5rLA",
+      "login": "entrptaher",
+      "name": "Md. Abu Taher",
+      "url": "https://github.com/entrptaher"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 295331750,
+    "id": "REA_lALOOyw9fc61jXfMzhGaZ6Y",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-07T19:16:14Z",
+    "user": {
+      "databaseId": 3809115,
+      "id": "U_kgDOADofWw",
+      "login": "YeomansIII",
+      "name": "Jason Yeomans",
+      "url": "https://github.com/YeomansIII"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 295463788,
+    "id": "REA_lALOOyw9fc61jXfMzhGca2w",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-08T13:49:49Z",
+    "user": {
+      "databaseId": 60938164,
+      "id": "U_kgDOA6HXtA",
+      "login": "IgnisDa",
+      "name": "Diptesh Choudhuri",
+      "url": "https://github.com/IgnisDa"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 295474861,
+    "id": "REA_lALOOyw9fc61jXfMzhGclq0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-08T14:57:13Z",
+    "user": {
+      "databaseId": 62935851,
+      "id": "U_kgDOA8BTKw",
+      "login": "DonDawsy",
+      "name": null,
+      "url": "https://github.com/DonDawsy"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 295669009,
+    "id": "REA_lALOOyw9fc61jXfMzhGfjRE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-09T17:42:07Z",
+    "user": {
+      "databaseId": 33583906,
+      "id": "U_kgDOAgBzIg",
+      "login": "VladyslavKochetkov",
+      "name": "Vladyslav Kochetkov",
+      "url": "https://github.com/VladyslavKochetkov"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 295757570,
+    "id": "REA_lALOOyw9fc61jXfMzhGg5wI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-10T08:46:55Z",
+    "user": {
+      "databaseId": 12988459,
+      "id": "U_kgDOAMYwKw",
+      "login": "matsfinsas",
+      "name": "Mats Finsås",
+      "url": "https://github.com/matsfinsas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 297029440,
+    "id": "REA_lALOOyw9fc61jXfMzhG0T0A",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-21T10:19:07Z",
+    "user": {
+      "databaseId": 45716379,
+      "id": "U_kgDOArmTmw",
+      "login": "coollx",
+      "name": "Xiang Li",
+      "url": "https://github.com/coollx"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 298855547,
+    "id": "REA_lALOOyw9fc61jXfMzhHQLHs",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-04T13:38:14Z",
+    "user": {
+      "databaseId": 7579214,
+      "id": "U_kgDOAHOmTg",
+      "login": "mudassirkhan19",
+      "name": "Mudassir Khan",
+      "url": "https://github.com/mudassirkhan19"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 300651557,
+    "id": "REA_lALOOyw9fc61jXfMzhHrlCU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-19T02:38:52Z",
+    "user": {
+      "databaseId": 59288386,
+      "id": "U_kgDOA4irQg",
+      "login": "tushgaurav",
+      "name": "Tushar Gaurav",
+      "url": "https://github.com/tushgaurav"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 300689128,
+    "id": "REA_lALOOyw9fc61jXfMzhHsJug",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-19T08:10:40Z",
+    "user": {
+      "databaseId": 41055141,
+      "id": "U_kgDOAnJzpQ",
+      "login": "sigridjineth",
+      "name": "Sigrid Jin (ง'̀-'́)ง oO",
+      "url": "https://github.com/sigridjineth"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61jXfM",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/234#issuecomment-3045947340",
+    "databaseId": 302607710,
+    "id": "REA_lALOOyw9fc61jXfMzhIJbV4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-03T01:16:34Z",
+    "user": {
+      "databaseId": 144249901,
+      "id": "U_kgDOCJkULQ",
+      "login": "sczheng189",
+      "name": "SCzheng",
+      "url": "https://github.com/sczheng189"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6_wuXQ",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/262#issuecomment-3217221072",
+    "databaseId": 301350298,
+    "id": "REA_lALOOyw9fc6_wuXQzhH2PZo",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-23T20:43:02Z",
+    "user": {
+      "databaseId": 745625,
+      "id": "U_kgDOAAtgmQ",
+      "login": "SDpower",
+      "name": "SDpower",
+      "url": "https://github.com/SDpower"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61SJjh",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/267#issuecomment-3041433825",
+    "databaseId": 295164480,
+    "id": "REA_lALOOyw9fc61SJjhzhGX2kA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-06T12:51:31Z",
+    "user": {
+      "databaseId": 91118218,
+      "id": "U_kgDOBW5aig",
+      "login": "rassi0429",
+      "name": "KOKOA",
+      "url": "https://github.com/rassi0429"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc61SMVU",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/267#issuecomment-3041445204",
+    "databaseId": 295164866,
+    "id": "REA_lALOOyw9fc61SMVUzhGX28I",
+    "content": "ROCKET",
+    "createdAt": "2025-07-06T13:05:10Z",
+    "user": {
+      "databaseId": 91118218,
+      "id": "U_kgDOBW5aig",
+      "login": "rassi0429",
+      "name": "KOKOA",
+      "url": "https://github.com/rassi0429"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc65gZgn",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/294#issuecomment-3112278055",
+    "databaseId": 302564969,
+    "id": "REA_lALOOyw9fc65gZgnzhIIxmk",
+    "content": "EYES",
+    "createdAt": "2025-09-02T18:21:42Z",
+    "user": {
+      "databaseId": 6939968,
+      "id": "U_kgDOAGnlQA",
+      "login": "anthrotype",
+      "name": "Cosimo Lupo",
+      "url": "https://github.com/anthrotype"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc65gZgn",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/294#issuecomment-3112278055",
+    "databaseId": 304060102,
+    "id": "REA_lALOOyw9fc65gZgnzhIflsY",
+    "content": "EYES",
+    "createdAt": "2025-09-12T05:57:27Z",
+    "user": {
+      "databaseId": 51183636,
+      "id": "U_kgDOAw0AFA",
+      "login": "jaweDream",
+      "name": "Jawe Sace",
+      "url": "https://github.com/jaweDream"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 296519587,
+    "id": "REA_lALOOyw9fc63fQgCzhGsh6M",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-16T12:59:19Z",
+    "user": {
+      "databaseId": 32291845,
+      "id": "U_kgDOAey8BQ",
+      "login": "PaloSP",
+      "name": null,
+      "url": "https://github.com/PaloSP"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 296527986,
+    "id": "REA_lALOOyw9fc63fQgCzhGsqHI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-16T13:56:04Z",
+    "user": {
+      "databaseId": 15910616,
+      "id": "U_kgDOAPLG2A",
+      "login": "lhall-amphibee",
+      "name": "Loïc HALL",
+      "url": "https://github.com/lhall-amphibee"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 296593186,
+    "id": "REA_lALOOyw9fc63fQgCzhGtpyI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-16T21:51:22Z",
+    "user": {
+      "databaseId": 33583906,
+      "id": "U_kgDOAgBzIg",
+      "login": "VladyslavKochetkov",
+      "name": "Vladyslav Kochetkov",
+      "url": "https://github.com/VladyslavKochetkov"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 296612752,
+    "id": "REA_lALOOyw9fc63fQgCzhGt85A",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-17T02:18:39Z",
+    "user": {
+      "databaseId": 40446332,
+      "id": "U_kgDOAmkpfA",
+      "login": "kei9o",
+      "name": "Keigo Yamauchi",
+      "url": "https://github.com/kei9o"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 296971247,
+    "id": "REA_lALOOyw9fc63fQgCzhGza-8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-20T14:15:16Z",
+    "user": {
+      "databaseId": 830386,
+      "id": "U_kgDOAAyrsg",
+      "login": "Anima-t3d",
+      "name": null,
+      "url": "https://github.com/Anima-t3d"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc63fQgC",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/298#issuecomment-3078424578",
+    "databaseId": 297018027,
+    "id": "REA_lALOOyw9fc63fQgCzhG0Iqs",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-21T08:44:16Z",
+    "user": {
+      "databaseId": 33649841,
+      "id": "U_kgDOAgF0sQ",
+      "login": "iamhassaan",
+      "name": "Muhammad Anwar",
+      "url": "https://github.com/iamhassaan"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc630hOH",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3083998087",
+    "databaseId": 296721124,
+    "id": "REA_lALOOyw9fc630hOHzhGvmuQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-17T17:07:23Z",
+    "user": {
+      "databaseId": 22979098,
+      "id": "U_kgDOAV6iGg",
+      "login": "TianyuDu",
+      "name": "Tianyu Du",
+      "url": "https://github.com/TianyuDu"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc68frMH",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3162419975",
+    "databaseId": 299484224,
+    "id": "REA_lALOOyw9fc68frMHzhHZxEA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-08T12:06:11Z",
+    "user": {
+      "databaseId": 639345,
+      "id": "U_kgDOAAnBcQ",
+      "login": "jaens",
+      "name": "Jaen",
+      "url": "https://github.com/jaens"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69ARD_",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3170963711",
+    "databaseId": 299628621,
+    "id": "REA_lALOOyw9fc69ARD_zhHb-E0",
+    "content": "EYES",
+    "createdAt": "2025-08-10T05:17:10Z",
+    "user": {
+      "databaseId": 20507989,
+      "id": "U_kgDOATjtVQ",
+      "login": "charliez0",
+      "name": "Zheng Chaojian",
+      "url": "https://github.com/charliez0"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69X3kF",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3177150725",
+    "databaseId": 299949996,
+    "id": "REA_lALOOyw9fc69X3kFzhHg36w",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-12T20:49:40Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69X3kF",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3177150725",
+    "databaseId": 299949999,
+    "id": "REA_lALOOyw9fc69X3kFzhHg368",
+    "content": "HEART",
+    "createdAt": "2025-08-12T20:49:41Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69X3kF",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3177150725",
+    "databaseId": 300433854,
+    "id": "REA_lALOOyw9fc69X3kFzhHoQb4",
+    "content": "HEART",
+    "createdAt": "2025-08-16T13:49:50Z",
+    "user": {
+      "databaseId": 90691873,
+      "id": "U_kgDOBWfZIQ",
+      "login": "dev-mirzabicer",
+      "name": "MirzaBicer",
+      "url": "https://github.com/dev-mirzabicer"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69X3kF",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3177150725",
+    "databaseId": 300433855,
+    "id": "REA_lALOOyw9fc69X3kFzhHoQb8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-16T13:49:50Z",
+    "user": {
+      "databaseId": 90691873,
+      "id": "U_kgDOBWfZIQ",
+      "login": "dev-mirzabicer",
+      "name": "MirzaBicer",
+      "url": "https://github.com/dev-mirzabicer"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69nKKx",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/313#issuecomment-3181159089",
+    "databaseId": 300203349,
+    "id": "REA_lALOOyw9fc69nKKxzhHkvVU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-14T11:14:47Z",
+    "user": {
+      "databaseId": 6935309,
+      "id": "U_kgDOAGnTDQ",
+      "login": "alexstewartja",
+      "name": "Alex Stewart",
+      "url": "https://github.com/alexstewartja"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64blnY",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/326#issuecomment-3094239704",
+    "databaseId": 300142980,
+    "id": "REA_lALOOyw9fc64blnYzhHj0YQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-14T00:39:24Z",
+    "user": {
+      "databaseId": 65269617,
+      "id": "U_kgDOA-PvcQ",
+      "login": "Bristopher",
+      "name": "Christopher Buzicky",
+      "url": "https://github.com/Bristopher"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64vVN3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/331#issuecomment-3099415415",
+    "databaseId": 297126848,
+    "id": "REA_lALOOyw9fc64vVN3zhG1y8A",
+    "content": "HEART",
+    "createdAt": "2025-07-21T22:15:39Z",
+    "user": {
+      "databaseId": 8826392,
+      "id": "U_kgDOAIauGA",
+      "login": "pguigli",
+      "name": null,
+      "url": "https://github.com/pguigli"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64vVN3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/331#issuecomment-3099415415",
+    "databaseId": 297251468,
+    "id": "REA_lALOOyw9fc64vVN3zhG3sow",
+    "content": "HEART",
+    "createdAt": "2025-07-22T15:27:29Z",
+    "user": {
+      "databaseId": 1701388,
+      "id": "U_kgDOABn2DA",
+      "login": "Rokurolize",
+      "name": null,
+      "url": "https://github.com/Rokurolize"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc64vVN3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/331#issuecomment-3099415415",
+    "databaseId": 297574774,
+    "id": "REA_lALOOyw9fc64vVN3zhG8oXY",
+    "content": "HEART",
+    "createdAt": "2025-07-24T13:51:52Z",
+    "user": {
+      "databaseId": 30770259,
+      "id": "U_kgDOAdWEUw",
+      "login": "arnavpraneet",
+      "name": "Arnav Praneet",
+      "url": "https://github.com/arnavpraneet"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc65n2lv",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/349#issuecomment-3114232175",
+    "databaseId": 297628624,
+    "id": "REA_lALOOyw9fc65n2lvzhG9c9A",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-24T20:34:37Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc66j7Ma",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/375#issuecomment-3129979674",
+    "databaseId": 298118581,
+    "id": "REA_lALOOyw9fc66j7MazhHE7bU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-29T10:13:03Z",
+    "user": {
+      "databaseId": 114495200,
+      "id": "U_kgDOBtMO4A",
+      "login": "joshryandavis",
+      "name": "JD",
+      "url": "https://github.com/joshryandavis"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc66j7Ma",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/375#issuecomment-3129979674",
+    "databaseId": 298162450,
+    "id": "REA_lALOOyw9fc66j7MazhHFmRI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-29T15:28:43Z",
+    "user": {
+      "databaseId": 6897215,
+      "id": "U_kgDOAGk-Pw",
+      "login": "basnijholt",
+      "name": "Bas Nijholt",
+      "url": "https://github.com/basnijholt"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc66j7Ma",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/375#issuecomment-3129979674",
+    "databaseId": 298217426,
+    "id": "REA_lALOOyw9fc66j7MazhHGb9I",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-29T22:35:52Z",
+    "user": {
+      "databaseId": 12415654,
+      "id": "U_kgDOAL1ypg",
+      "login": "C4T4",
+      "name": "Catalin Waack",
+      "url": "https://github.com/C4T4"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc66vIPV",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/375#issuecomment-3132916693",
+    "databaseId": 298336212,
+    "id": "REA_lALOOyw9fc66vIPVzhHIP9Q",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-30T16:00:12Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc66vIPV",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/375#issuecomment-3132916693",
+    "databaseId": 298347080,
+    "id": "REA_lALOOyw9fc66vIPVzhHIakg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-30T17:14:48Z",
+    "user": {
+      "databaseId": 1271817,
+      "id": "U_kgDOABNoCQ",
+      "login": "brynnb",
+      "name": "Brynn",
+      "url": "https://github.com/brynnb"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc67vmVU",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/413#issuecomment-3149817172",
+    "databaseId": 298887102,
+    "id": "REA_lALOOyw9fc67vmVUzhHQp74",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-04T17:30:02Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6736ni",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/422#issuecomment-3151997410",
+    "databaseId": 298928603,
+    "id": "REA_lALOOyw9fc6736nizhHRSds",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-04T23:34:21Z",
+    "user": {
+      "databaseId": 8023903,
+      "id": "U_kgDOAHpvXw",
+      "login": "marukei",
+      "name": "KAMIMURA, Masaharu",
+      "url": "https://github.com/marukei"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc67690B",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/422#issuecomment-3152796929",
+    "databaseId": 298965395,
+    "id": "REA_lALOOyw9fc67690BzhHR2ZM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-05T07:13:14Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69FIUT",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/449#issuecomment-3172238611",
+    "databaseId": 299631014,
+    "id": "REA_lALOOyw9fc69FIUTzhHcAaY",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-10T07:16:57Z",
+    "user": {
+      "databaseId": 1571956,
+      "id": "U_kgDOABf8dA",
+      "login": "joegoldin",
+      "name": "Joe Goldin",
+      "url": "https://github.com/joegoldin"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69Kk_b",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/454#issuecomment-3173666779",
+    "databaseId": 299726687,
+    "id": "REA_lALOOyw9fc69Kk_bzhHdd18",
+    "content": "HEART",
+    "createdAt": "2025-08-11T14:08:46Z",
+    "user": {
+      "databaseId": 1738049,
+      "id": "U_kgDOABqFQQ",
+      "login": "9wick",
+      "name": "kido",
+      "url": "https://github.com/9wick"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69yYyD",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/455#issuecomment-3184102531",
+    "databaseId": 300087887,
+    "id": "REA_lALOOyw9fc69yYyDzhHi-k8",
+    "content": "HEART",
+    "createdAt": "2025-08-13T16:27:47Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-XBii",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3193706658",
+    "databaseId": 300436955,
+    "id": "REA_lALOOyw9fc6-XBiizhHoTds",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-16T15:39:12Z",
+    "user": {
+      "databaseId": 6935309,
+      "id": "U_kgDOAGnTDQ",
+      "login": "alexstewartja",
+      "name": "Alex Stewart",
+      "url": "https://github.com/alexstewartja"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-XBii",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3193706658",
+    "databaseId": 300448041,
+    "id": "REA_lALOOyw9fc6-XBiizhHoeSk",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-16T23:10:23Z",
+    "user": {
+      "databaseId": 68254,
+      "id": "U_kgDOAAEKng",
+      "login": "thushan",
+      "name": "Thushan Fernando",
+      "url": "https://github.com/thushan"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-XBii",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3193706658",
+    "databaseId": 300481385,
+    "id": "REA_lALOOyw9fc6-XBiizhHo-2k",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T23:02:23Z",
+    "user": {
+      "databaseId": 106648827,
+      "id": "U_kgDOBltU-w",
+      "login": "ursisterbtw",
+      "name": "ursisterbtw",
+      "url": "https://github.com/ursisterbtw"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-XLAO",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3193745422",
+    "databaseId": 300449272,
+    "id": "REA_lALOOyw9fc6-XLAOzhHoffg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T00:14:54Z",
+    "user": {
+      "databaseId": 1738049,
+      "id": "U_kgDOABqFQQ",
+      "login": "9wick",
+      "name": "kido",
+      "url": "https://github.com/9wick"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aLu3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3194534839",
+    "databaseId": 300478973,
+    "id": "REA_lALOOyw9fc6-aLu3zhHo8f0",
+    "content": "ROCKET",
+    "createdAt": "2025-08-17T21:25:02Z",
+    "user": {
+      "databaseId": 6935309,
+      "id": "U_kgDOAGnTDQ",
+      "login": "alexstewartja",
+      "name": "Alex Stewart",
+      "url": "https://github.com/alexstewartja"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aLu3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3194534839",
+    "databaseId": 300481113,
+    "id": "REA_lALOOyw9fc6-aLu3zhHo-lk",
+    "content": "ROCKET",
+    "createdAt": "2025-08-17T22:50:22Z",
+    "user": {
+      "databaseId": 106648827,
+      "id": "U_kgDOBltU-w",
+      "login": "ursisterbtw",
+      "name": "ursisterbtw",
+      "url": "https://github.com/ursisterbtw"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aLu3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3194534839",
+    "databaseId": 300628892,
+    "id": "REA_lALOOyw9fc6-aLu3zhHrO5w",
+    "content": "ROCKET",
+    "createdAt": "2025-08-18T22:03:37Z",
+    "user": {
+      "databaseId": 1738049,
+      "id": "U_kgDOABqFQQ",
+      "login": "9wick",
+      "name": "kido",
+      "url": "https://github.com/9wick"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-eff3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/459#issuecomment-3195664375",
+    "databaseId": 300565090,
+    "id": "REA_lALOOyw9fc6-eff3zhHqQmI",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-18T14:05:19Z",
+    "user": {
+      "databaseId": 6935309,
+      "id": "U_kgDOAGnTDQ",
+      "login": "alexstewartja",
+      "name": "Alex Stewart",
+      "url": "https://github.com/alexstewartja"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc69pSd9",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/483#issuecomment-3181717373",
+    "databaseId": 300132325,
+    "id": "REA_lALOOyw9fc69pSd9zhHjp-U",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-13T22:10:47Z",
+    "user": {
+      "databaseId": 128596662,
+      "id": "U_kgDOB6o6tg",
+      "login": "QuantumCipherMaster",
+      "name": "0xQCM",
+      "url": "https://github.com/QuantumCipherMaster"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7BCHTy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/483#issuecomment-3238556914",
+    "databaseId": 302402792,
+    "id": "REA_lALOOyw9fc7BCHTyzhIGTOg",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-01T15:40:49Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7BS9mg",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/483#issuecomment-3242973600",
+    "databaseId": 302411534,
+    "id": "REA_lALOOyw9fc7BS9mgzhIGbw4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-01T17:26:35Z",
+    "user": {
+      "databaseId": 190874150,
+      "id": "U_kgDOC2CCJg",
+      "login": "Joncik91",
+      "name": "Jounes De Schrijver",
+      "url": "https://github.com/Joncik91"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7BS9mg",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/483#issuecomment-3242973600",
+    "databaseId": 302452881,
+    "id": "REA_lALOOyw9fc7BS9mgzhIHEJE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-02T04:57:01Z",
+    "user": {
+      "databaseId": 128596662,
+      "id": "U_kgDOB6o6tg",
+      "login": "QuantumCipherMaster",
+      "name": "0xQCM",
+      "url": "https://github.com/QuantumCipherMaster"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-nkQy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3198043186",
+    "databaseId": 300666945,
+    "id": "REA_lALOOyw9fc6-nkQyzhHr0EE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-19T05:57:52Z",
+    "user": {
+      "databaseId": 4113483,
+      "id": "U_kgDOAD7ESw",
+      "login": "fwends",
+      "name": "Greg",
+      "url": "https://github.com/fwends"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-nkQy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3198043186",
+    "databaseId": 300817244,
+    "id": "REA_lALOOyw9fc6-nkQyzhHuG1w",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-20T00:21:32Z",
+    "user": {
+      "databaseId": 165782,
+      "id": "U_kgDOAAKHlg",
+      "login": "zebdro",
+      "name": "Zeb Dropkin",
+      "url": "https://github.com/zebdro"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-nkQy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3198043186",
+    "databaseId": 301087875,
+    "id": "REA_lALOOyw9fc6-nkQyzhHyPIM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-21T15:26:36Z",
+    "user": {
+      "databaseId": 130197762,
+      "id": "U_kgDOB8KpAg",
+      "login": "JordanPalafox",
+      "name": "Jordan Palafox",
+      "url": "https://github.com/JordanPalafox"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-rUkr",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3199027499",
+    "databaseId": 300666929,
+    "id": "REA_lALOOyw9fc6-rUkrzhHr0DE",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-19T05:57:43Z",
+    "user": {
+      "databaseId": 4113483,
+      "id": "U_kgDOAD7ESw",
+      "login": "fwends",
+      "name": "Greg",
+      "url": "https://github.com/fwends"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-rUkr",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3199027499",
+    "databaseId": 301087879,
+    "id": "REA_lALOOyw9fc6-rUkrzhHyPIc",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-21T15:26:38Z",
+    "user": {
+      "databaseId": 130197762,
+      "id": "U_kgDOB8KpAg",
+      "login": "JordanPalafox",
+      "name": "Jordan Palafox",
+      "url": "https://github.com/JordanPalafox"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-rUkr",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/487#issuecomment-3199027499",
+    "databaseId": 301138739,
+    "id": "REA_lALOOyw9fc6-rUkrzhHzAzM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-21T22:35:58Z",
+    "user": {
+      "databaseId": 43341428,
+      "id": "U_kgDOApVWdA",
+      "login": "LukaszBielsko",
+      "name": "Łukasz Walczak",
+      "url": "https://github.com/LukaszBielsko"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aPen",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194550183",
+    "databaseId": 300475350,
+    "id": "REA_lALOOyw9fc6-aPenzhHo49Y",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T19:05:56Z",
+    "user": {
+      "databaseId": 47034448,
+      "id": "U_kgDOAs2wUA",
+      "login": "vladiftimie",
+      "name": null,
+      "url": "https://github.com/vladiftimie"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300475374,
+    "id": "REA_lALOOyw9fc6-aZvjzhHo4-4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T19:07:07Z",
+    "user": {
+      "databaseId": 225116771,
+      "id": "U_kgDODWsCYw",
+      "login": "j2lab-csm",
+      "name": null,
+      "url": "https://github.com/j2lab-csm"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300475427,
+    "id": "REA_lALOOyw9fc6-aZvjzhHo5CM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T19:08:32Z",
+    "user": {
+      "databaseId": 5417892,
+      "id": "U_kgDOAFKrpA",
+      "login": "b14r",
+      "name": "Bruno Montibeller",
+      "url": "https://github.com/b14r"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300475845,
+    "id": "REA_lALOOyw9fc6-aZvjzhHo5cU",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T19:24:03Z",
+    "user": {
+      "databaseId": 1859540,
+      "id": "U_kgDOABxf1A",
+      "login": "mattharvill",
+      "name": "MattHar",
+      "url": "https://github.com/mattharvill"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300475940,
+    "id": "REA_lALOOyw9fc6-aZvjzhHo5iQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T19:28:41Z",
+    "user": {
+      "databaseId": 1254537,
+      "id": "U_kgDOABMkiQ",
+      "login": "devondragon",
+      "name": "Devon Hillard",
+      "url": "https://github.com/devondragon"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300480735,
+    "id": "REA_lALOOyw9fc6-aZvjzhHo-N8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T22:36:15Z",
+    "user": {
+      "databaseId": 57263782,
+      "id": "U_kgDOA2nGpg",
+      "login": "kip-d",
+      "name": "Kip DeGraaf",
+      "url": "https://github.com/kip-d"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-aZvj",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194592227",
+    "databaseId": 300535277,
+    "id": "REA_lALOOyw9fc6-aZvjzhHpze0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-18T10:18:16Z",
+    "user": {
+      "databaseId": 47034448,
+      "id": "U_kgDOAs2wUA",
+      "login": "vladiftimie",
+      "name": null,
+      "url": "https://github.com/vladiftimie"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adf0",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194607604",
+    "databaseId": 300476618,
+    "id": "REA_lALOOyw9fc6-adf0zhHo6Mo",
+    "content": "HOORAY",
+    "createdAt": "2025-08-17T19:56:18Z",
+    "user": {
+      "databaseId": 899333,
+      "id": "U_kgDOAA25BQ",
+      "login": "meltenc",
+      "name": "Clément Billiot ",
+      "url": "https://github.com/meltenc"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adf0",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194607604",
+    "databaseId": 300477679,
+    "id": "REA_lALOOyw9fc6-adf0zhHo7O8",
+    "content": "HOORAY",
+    "createdAt": "2025-08-17T20:35:41Z",
+    "user": {
+      "databaseId": 2659641,
+      "id": "U_kgDOACiVOQ",
+      "login": "SpaceEraser",
+      "name": null,
+      "url": "https://github.com/SpaceEraser"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adf0",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194607604",
+    "databaseId": 300480044,
+    "id": "REA_lALOOyw9fc6-adf0zhHo9iw",
+    "content": "HOORAY",
+    "createdAt": "2025-08-17T22:06:21Z",
+    "user": {
+      "databaseId": 602569,
+      "id": "U_kgDOAAkxyQ",
+      "login": "kconner",
+      "name": "Kevin Conner",
+      "url": "https://github.com/kconner"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adf0",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194607604",
+    "databaseId": 300535296,
+    "id": "REA_lALOOyw9fc6-adf0zhHpzgA",
+    "content": "ROCKET",
+    "createdAt": "2025-08-18T10:18:25Z",
+    "user": {
+      "databaseId": 47034448,
+      "id": "U_kgDOAs2wUA",
+      "login": "vladiftimie",
+      "name": null,
+      "url": "https://github.com/vladiftimie"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adzy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194608882",
+    "databaseId": 300479896,
+    "id": "REA_lALOOyw9fc6-adzyzhHo9Zg",
+    "content": "HEART",
+    "createdAt": "2025-08-17T22:00:07Z",
+    "user": {
+      "databaseId": 1859540,
+      "id": "U_kgDOABxf1A",
+      "login": "mattharvill",
+      "name": "MattHar",
+      "url": "https://github.com/mattharvill"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adzy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194608882",
+    "databaseId": 300494254,
+    "id": "REA_lALOOyw9fc6-adzyzhHpLa4",
+    "content": "HEART",
+    "createdAt": "2025-08-18T03:26:20Z",
+    "user": {
+      "databaseId": 39157998,
+      "id": "U_kgDOAlWA7g",
+      "login": "tadashis-85",
+      "name": "tadashi",
+      "url": "https://github.com/tadashis-85"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-adzy",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194608882",
+    "databaseId": 300535360,
+    "id": "REA_lALOOyw9fc6-adzyzhHpzkA",
+    "content": "HEART",
+    "createdAt": "2025-08-18T10:19:00Z",
+    "user": {
+      "databaseId": 47034448,
+      "id": "U_kgDOAs2wUA",
+      "login": "vladiftimie",
+      "name": null,
+      "url": "https://github.com/vladiftimie"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-afdR",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194615633",
+    "databaseId": 300477757,
+    "id": "REA_lALOOyw9fc6-afdRzhHo7T0",
+    "content": "HOORAY",
+    "createdAt": "2025-08-17T20:37:59Z",
+    "user": {
+      "databaseId": 68125,
+      "id": "U_kgDOAAEKHQ",
+      "login": "isometry",
+      "name": "Robin Breathe",
+      "url": "https://github.com/isometry"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-afdR",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194615633",
+    "databaseId": 300494259,
+    "id": "REA_lALOOyw9fc6-afdRzhHpLbM",
+    "content": "HOORAY",
+    "createdAt": "2025-08-18T03:26:27Z",
+    "user": {
+      "databaseId": 39157998,
+      "id": "U_kgDOAlWA7g",
+      "login": "tadashis-85",
+      "name": "tadashi",
+      "url": "https://github.com/tadashis-85"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-au1o",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/536#issuecomment-3194678632",
+    "databaseId": 300482623,
+    "id": "REA_lALOOyw9fc6-au1ozhHpAD8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-17T23:41:55Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6-_Y14",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/545#issuecomment-3204287864",
+    "databaseId": 300857311,
+    "id": "REA_lALOOyw9fc6-_Y14zhHut98",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-20T07:47:45Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6_x2CW",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/569#issuecomment-3217514646",
+    "databaseId": 301485188,
+    "id": "REA_lALOOyw9fc6_x2CWzhH4TIQ",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-25T15:39:14Z",
+    "user": {
+      "databaseId": 131403454,
+      "id": "U_kgDOB9UOvg",
+      "login": "t0ddharris",
+      "name": "Todd Harris",
+      "url": "https://github.com/t0ddharris"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6_m5M5",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/576#issuecomment-3214644025",
+    "databaseId": 301232195,
+    "id": "REA_lALOOyw9fc6_m5M5zhH0cEM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-22T14:53:18Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6_m5-U",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/576#issuecomment-3214647188",
+    "databaseId": 301232191,
+    "id": "REA_lALOOyw9fc6_m5-UzhH0cD8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-22T14:53:16Z",
+    "user": {
+      "databaseId": 20713656,
+      "id": "U_kgDOATwQuA",
+      "login": "ben-vargas",
+      "name": "Ben Vargas",
+      "url": "https://github.com/ben-vargas"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc6_n4gk",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/576#issuecomment-3214903332",
+    "databaseId": 301336944,
+    "id": "REA_lALOOyw9fc6_n4gkzhH2CXA",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-23T14:00:40Z",
+    "user": {
+      "databaseId": 1560508,
+      "id": "U_kgDOABfPvA",
+      "login": "ryoppippi",
+      "name": "ryoppippi",
+      "url": "https://github.com/ryoppippi"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7BS5kF",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/609#issuecomment-3242957061",
+    "databaseId": 302431746,
+    "id": "REA_lALOOyw9fc7BS5kFzhIGvgI",
+    "content": "HOORAY",
+    "createdAt": "2025-09-01T23:16:15Z",
+    "user": {
+      "databaseId": 33043201,
+      "id": "U_kgDOAfgzAQ",
+      "login": "tanu360",
+      "name": "Tarun",
+      "url": "https://github.com/tanu360"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304459694,
+    "id": "REA_lALOOyw9fc7EUDB3zhIlr64",
+    "content": "HEART",
+    "createdAt": "2025-09-15T21:57:02Z",
+    "user": {
+      "databaseId": 150287015,
+      "id": "U_kgDOCPUypw",
+      "login": "gwh2002",
+      "name": "Greg Hills",
+      "url": "https://github.com/gwh2002"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304474382,
+    "id": "REA_lALOOyw9fc7EUDB3zhIl6Q4",
+    "content": "HEART",
+    "createdAt": "2025-09-16T00:53:53Z",
+    "user": {
+      "databaseId": 53654735,
+      "id": "U_kgDOAzK0zw",
+      "login": "DaKheera47",
+      "name": "Shaheer Sarfaraz",
+      "url": "https://github.com/DaKheera47"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304527758,
+    "id": "REA_lALOOyw9fc7EUDB3zhImuY4",
+    "content": "HEART",
+    "createdAt": "2025-09-16T08:52:39Z",
+    "user": {
+      "databaseId": 16515780,
+      "id": "U_kgDOAPwCxA",
+      "login": "rebers",
+      "name": "Robin Ebers",
+      "url": "https://github.com/rebers"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304533748,
+    "id": "REA_lALOOyw9fc7EUDB3zhIm0PQ",
+    "content": "HEART",
+    "createdAt": "2025-09-16T09:29:12Z",
+    "user": {
+      "databaseId": 25737801,
+      "id": "U_kgDOAYi6SQ",
+      "login": "hayschan",
+      "name": "Hays Chan",
+      "url": "https://github.com/hayschan"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304533762,
+    "id": "REA_lALOOyw9fc7EUDB3zhIm0QI",
+    "content": "ROCKET",
+    "createdAt": "2025-09-16T09:29:14Z",
+    "user": {
+      "databaseId": 25737801,
+      "id": "U_kgDOAYi6SQ",
+      "login": "hayschan",
+      "name": "Hays Chan",
+      "url": "https://github.com/hayschan"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304548579,
+    "id": "REA_lALOOyw9fc7EUDB3zhInCuM",
+    "content": "HEART",
+    "createdAt": "2025-09-16T11:02:47Z",
+    "user": {
+      "databaseId": 63063345,
+      "id": "U_kgDOA8JFMQ",
+      "login": "Livvux",
+      "name": "Livvux",
+      "url": "https://github.com/Livvux"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304589067,
+    "id": "REA_lALOOyw9fc7EUDB3zhInqQs",
+    "content": "ROCKET",
+    "createdAt": "2025-09-16T14:52:00Z",
+    "user": {
+      "databaseId": 113827671,
+      "id": "U_kgDOBsjfVw",
+      "login": "FutureExcited",
+      "name": "Murzin Artem",
+      "url": "https://github.com/FutureExcited"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304636325,
+    "id": "REA_lALOOyw9fc7EUDB3zhIoYaU",
+    "content": "HEART",
+    "createdAt": "2025-09-16T19:48:13Z",
+    "user": {
+      "databaseId": 112261071,
+      "id": "U_kgDOBrD3zw",
+      "login": "zebangeth",
+      "name": "zebang.eth",
+      "url": "https://github.com/zebangeth"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304636330,
+    "id": "REA_lALOOyw9fc7EUDB3zhIoYao",
+    "content": "ROCKET",
+    "createdAt": "2025-09-16T19:48:14Z",
+    "user": {
+      "databaseId": 112261071,
+      "id": "U_kgDOBrD3zw",
+      "login": "zebangeth",
+      "name": "zebang.eth",
+      "url": "https://github.com/zebangeth"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304876546,
+    "id": "REA_lALOOyw9fc7EUDB3zhIsDAI",
+    "content": "HEART",
+    "createdAt": "2025-09-18T01:57:05Z",
+    "user": {
+      "databaseId": 94959476,
+      "id": "U_kgDOBaj3dA",
+      "login": "ZainZh",
+      "name": "Zain_Ingram",
+      "url": "https://github.com/ZainZh"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7EUDB3",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/626#issuecomment-3293589623",
+    "databaseId": 304939675,
+    "id": "REA_lALOOyw9fc7EUDB3zhItAps",
+    "content": "HEART",
+    "createdAt": "2025-09-18T10:35:28Z",
+    "user": {
+      "databaseId": 1109819,
+      "id": "U_kgDOABDvOw",
+      "login": "weiran",
+      "name": "Weiran Zhang",
+      "url": "https://github.com/weiran"
+    }
+  },
+  {
+    "node___typename": "IssueComment",
+    "node_id": "IC_kwDOOyw9fc7FYVwg",
+    "node_url": "https://github.com/ryoppippi/ccusage/issues/656#issuecomment-3311492128",
+    "databaseId": 305153068,
+    "id": "REA_lALOOyw9fc7FYVwgzhIwRCw",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-09-19T11:32:23Z",
+    "user": {
+      "databaseId": 1060585,
+      "id": "U_kgDOABAu6Q",
+      "login": "cobra91",
+      "name": null,
+      "url": "https://github.com/cobra91"
+    }
+  }
+]

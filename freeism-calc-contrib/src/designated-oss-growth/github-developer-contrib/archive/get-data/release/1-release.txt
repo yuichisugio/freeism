@@ -1,0 +1,80 @@
+# repositoryクエリ：Release & node_idの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f owner="yoshiko-pg" \
+  -f name="difit" \
+  -F perPage=50 \
+  -f query='
+    query(
+      $owner: String!,
+      $name: String!,
+      $perPage: Int!,
+      $endCursor: String
+    ) {
+      repository(owner:$owner, name:$name) {
+        id
+        databaseId
+        createdAt
+        name
+        description
+        homepageUrl
+        url
+        releases(first: $perPage, after:$endCursor, orderBy:{field: CREATED_AT, direction: ASC } ){
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            databaseId
+            id
+            name
+            description
+            url
+            author {
+              databaseId id login name url
+            }
+            publishedAt
+            reactionGroups { content reactors { totalCount } }
+            reactions(first: 1){
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.'> ./src/designated-oss-growth/github-developer-contrib/archive/get-data/release/1-1-release.json
+
+
+# nodeクエリ：Release.reactionsの取得
+gh api graphql \
+  --paginate \
+  --slurp \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="RE_kwDOPDzQl84NpZRA" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $endCursor: String) {
+      node(id: $node_id) {
+        __typename
+        ... on Release{
+          databaseId
+          id
+          name
+          description
+          url
+          publishedAt
+          reactions(first: $perPage, after:$endCursor){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              databaseId
+              id
+              content
+              createdAt
+              user { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/get-data/release/1-2-release.json"

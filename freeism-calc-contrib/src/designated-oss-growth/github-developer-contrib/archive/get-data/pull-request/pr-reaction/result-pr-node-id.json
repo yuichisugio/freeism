@@ -1,0 +1,5756 @@
+[
+  {
+    "fullDatabaseId": "2628322584",
+    "id": "PR_kwDOPDzQl86cqQUY",
+    "number": 1,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/1",
+    "url": "https://github.com/yoshiko-pg/difit/pull/1",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/1/checks",
+    "additions": 2,
+    "deletions": 1,
+    "title": "バージョンをpackage.jsonから取得する",
+    "bodyText": "CLIの表示するバージョンがpackage.jsonのバージョンと異なっていたため、CLIが直接package.jsonからバージョンを読み込むように変更しました。\n動作確認\n最新リリース\n❯ npx reviewit@latest  --version\nNeed to install the following packages:\nreviewit@1.0.6\nOk to proceed? (y)\n\n0.1.0\n\n修正後\n❯ pnpm run dev:cli --version\n\n> reviewit@1.0.6 dev:cli /Users/noyan/ghq/github.com/yoshiko-pg/reviewit\n> tsc --project tsconfig.cli.json && NODE_ENV=development node dist/cli/index.js --version\n\n1.0.6",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T09:26:59Z",
+    "closedAt": "2025-06-30T09:55:16Z",
+    "mergedAt": "2025-06-30T09:55:16Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2628595161",
+    "id": "PR_kwDOPDzQl86crS3Z",
+    "number": 2,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/2",
+    "url": "https://github.com/yoshiko-pg/difit/pull/2",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/2/checks",
+    "additions": 1198,
+    "deletions": 6,
+    "title": "TUI",
+    "bodyText": "Add --tui options to show side-by-side in terminal\nreviewit --tui\nDiffView\n\nFile Selector\n\n\nCommands\n\nNext/Prev: Tab   Shift+Tab\nMove: ↑/↓/j/k\nReload: r\nSelector: Esc",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T11:15:14Z",
+    "closedAt": "2025-06-30T11:37:39Z",
+    "mergedAt": "2025-06-30T11:37:39Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 6
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2628885464",
+    "id": "PR_kwDOPDzQl86csZvY",
+    "number": 3,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/3",
+    "url": "https://github.com/yoshiko-pg/difit/pull/3",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/3/checks",
+    "additions": 4,
+    "deletions": 4,
+    "title": "fix: improve build scripts in package.json",
+    "bodyText": "個別のtscコマンドをtsc -bに置き換え、プロジェクトリファレンスを正しくビルド出来るように修正しました。それに伴って、冗長になったビルドコマンドの削除も行いました。\n\nbuild: pnpm run build:cli && tsc -> tsc -b\ntsconfig.jsonで参照されたtsconfig.cli.jsonがビルドされるようになります\nstart: 不要になったbuild:cli呼び出しを削除\ntypecheck: tsc --noEmit -> tsc -b\n以前までcliのビルドを行っていなかったところを行うように修正しました。tsconfig.jsonには元々noEmit: trueが設定されているため、この変更でpnpm run build:cli && tsc --noEmitと同じような効果が得られるはずです\nprepublishOnly: 不要になったbuild:cli呼び出しを削除",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T13:10:49Z",
+    "closedAt": "2025-06-30T16:00:35Z",
+    "mergedAt": "2025-06-30T16:00:35Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2629264476",
+    "id": "PR_kwDOPDzQl86ct2Rc",
+    "number": 5,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/5",
+    "url": "https://github.com/yoshiko-pg/difit/pull/5",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/5/checks",
+    "additions": 183,
+    "deletions": 8,
+    "title": "feat: Add GitHub PR URL support for diff viewing",
+    "bodyText": "Summary\n\nAdded support for viewing GitHub PR diffs directly using PR URLs\nImplemented remote repository detection and validation\nPR branches are fetched without checking out, preserving current work\n\nFeatures\n\nParse and validate GitHub PR URLs (e.g., https://github.com/owner/repo/pull/123)\nAutomatically detect the correct remote for the PR repository\nFetch PR branches using GitHub's pull request refs without changing current branch\nSupport PR diffs in both TUI and web interface modes\nShow helpful error messages when remote repository is not configured\n\nUsage\n# View PR diff in TUI mode\nreviewit --tui https://github.com/owner/repo/pull/123\n\n# View PR diff in web mode\nreviewit https://github.com/owner/repo/pull/123\nImplementation Details\n\nAdded pr-utils.ts for PR-related functionality\nExtended CLI to handle PR URLs before starting TUI/web interface\nModified git-diff components to support base branch parameter for PR diffs\nUses refs/pull/*/head to fetch PR branches without local checkout\n\nTest plan\n\n Test with valid PR URL in TUI mode\n Test with valid PR URL in web mode\n Test error handling when remote is not configured\n Verify current branch and files are not affected by PR fetch\n Test with various PR states (open, closed, merged)\n Test with PRs from different remotes\n\n🤖 Generated with Claude Code",
+    "state": "CLOSED",
+    "publishedAt": "2025-06-30T15:10:51Z",
+    "closedAt": "2025-07-01T16:33:26Z",
+    "mergedAt": null,
+    "mergedBy": null,
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reviews": {
+      "totalCount": 2
+    }
+  },
+  {
+    "fullDatabaseId": "2629275756",
+    "id": "PR_kwDOPDzQl86ct5Bs",
+    "number": 6,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/6",
+    "url": "https://github.com/yoshiko-pg/difit/pull/6",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/6/checks",
+    "additions": 94,
+    "deletions": 15,
+    "title": "Add untracked file detection with CLI prompt",
+    "bodyText": "Summary\ngit diff doesn't show untracked files, which is inconvenient for this tool's purpose.\nAdded a check for untracked files at CLI startup.\nIf any are found, the user is prompted for confirmation before adding them to git's index using git add --intent-to-add.\nPrompt examples\nUser says \"yes\":\n📝 Found 1 untracked file(s):\n    - difftest.txt\n\n❓ Would you like to include these untracked files in the diff review? (y/N): y\n✅ Files added with --intent-to-add\n   💡 To undo this, run `git reset --mixed`\n\nUser says \"no\"(default):\n❓ Would you like to include these untracked files in the diff review? (y/N): n\nℹ️ Untracked files will not be shown in diff\n\nTest\n\n Confirm untracked files appear in diff with \"Yes\"\n Confirm untracked files do not appear in diff with \"No\"\n Show diff with tui\n git reset --mixed returns files to an untracked state",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T15:14:25Z",
+    "closedAt": "2025-07-02T13:21:11Z",
+    "mergedAt": "2025-07-02T13:21:11Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 5
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2629541303",
+    "id": "PR_kwDOPDzQl86cu523",
+    "number": 7,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/7",
+    "url": "https://github.com/yoshiko-pg/difit/pull/7",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/7/checks",
+    "additions": 2,
+    "deletions": 2,
+    "title": "docs: remove undefined `staging` option",
+    "bodyText": "I think there is no staging option (staged exists).\nThis PR updates README.md to remove it, and sort option order for consistency in the doc.",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T16:44:46Z",
+    "closedAt": "2025-06-30T17:20:30Z",
+    "mergedAt": "2025-06-30T17:20:30Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2630446307",
+    "id": "PR_kwDOPDzQl86cyWzj",
+    "number": 9,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/9",
+    "url": "https://github.com/yoshiko-pg/difit/pull/9",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/9/checks",
+    "additions": 91,
+    "deletions": 2,
+    "title": "Add comment export feature on process termination",
+    "bodyText": "Added /api/comments endpoint to receive comments from client\nAdded /api/comments-output endpoint to retrieve formatted comments\nImplemented automatic comment sending on page unload using sendBeacon\nAdded comment output to stdout when CLI process terminates (SIGINT)\nComments are formatted in same style as 'Copy All Prompt' feature\nEnables seamless integration with Claude Code workflow\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude noreply@anthropic.com",
+    "state": "MERGED",
+    "publishedAt": "2025-06-30T23:53:21Z",
+    "closedAt": "2025-07-01T00:29:36Z",
+    "mergedAt": "2025-07-01T00:29:36Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2630760196",
+    "id": "PR_kwDOPDzQl86czjcE",
+    "number": 11,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/11",
+    "url": "https://github.com/yoshiko-pg/difit/pull/11",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/11/checks",
+    "additions": 3,
+    "deletions": 3,
+    "title": "Change the requested node version to v21",
+    "bodyText": "resolve #10",
+    "state": "CLOSED",
+    "publishedAt": "2025-07-01T03:44:23Z",
+    "closedAt": "2025-07-01T04:10:12Z",
+    "mergedAt": null,
+    "mergedBy": null,
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2631272002",
+    "id": "PR_kwDOPDzQl86c1gZC",
+    "number": 13,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/13",
+    "url": "https://github.com/yoshiko-pg/difit/pull/13",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/13/checks",
+    "additions": 13,
+    "deletions": 4,
+    "title": " feat: Add --host option to configure server bind address",
+    "bodyText": "Summary\n\nAdded --host option to configure server bind address\nEnables external access to ReviewIt diff viewer when needed\nMaintains secure localhost-only default for backward compatibility\n\nFeatures\n\nNew --host <host> CLI option with default value 127.0.0.1\nSupport for binding to specific IP addresses or 0.0.0.0 for external access\nSmart URL generation (displays localhost when host is 0.0.0.0)\nPreserves existing port fallback logic with specified host\nUpdated documentation with usage examples\n\nUsage\n# Default behavior (localhost only)\nreviewit HEAD\n\n# Allow external access\nreviewit --host 0.0.0.0 HEAD\n\n# Bind to specific IP address\nreviewit --host 192.168.1.100 HEAD\n\n# Combine with other options\nreviewit --host 0.0.0.0 --port 8080 HEAD\nImplementation Details\n\nExtended CliOptions interface to include optional host property\nUpdated ServerOptions interface in server module to accept host parameter\nModified startServerWithFallback function to use configurable host instead of hardcoded 127.0.0.1\nEnhanced URL generation logic to handle 0.0.0.0 display as localhost for better UX\nUpdated README.md with CLI options table and usage examples\n\nTest plan\n\n CLI help displays --host option correctly\n TypeScript compilation passes with new interfaces\n All existing tests continue to pass\n Linting and formatting checks pass\n Default behavior unchanged when --host not specified\n Backward compatibility maintained\n\n🤖 Generated with https://claude.ai/code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-01T07:37:42Z",
+    "closedAt": "2025-07-02T10:20:49Z",
+    "mergedAt": "2025-07-02T10:20:49Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 5
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2632876766",
+    "id": "PR_kwDOPDzQl86c7oLe",
+    "number": 14,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/14",
+    "url": "https://github.com/yoshiko-pg/difit/pull/14",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/14/checks",
+    "additions": 6,
+    "deletions": 1,
+    "title": "Add Scala syntax highlighting support",
+    "bodyText": "",
+    "state": "MERGED",
+    "publishedAt": "2025-07-01T15:32:03Z",
+    "closedAt": "2025-07-01T16:02:26Z",
+    "mergedAt": "2025-07-01T16:02:26Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2633159230",
+    "id": "PR_kwDOPDzQl86c8tI-",
+    "number": 15,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/15",
+    "url": "https://github.com/yoshiko-pg/difit/pull/15",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/15/checks",
+    "additions": 24,
+    "deletions": 13,
+    "title": "(patch) Fix port fallback behavior",
+    "bodyText": "Summary\nIn v1.1.7, There are bugs when the prefered port is in-use.\n\nPrinting localhost:undefined as the listening server address.\nOpening browser doesn't work\n\nreproduce bug\n\nlaunch a some server on port 3000\nrun npx reviewit\nThe server log prints http://localhost:undefined in stdout\n\nPort 3000 is busy, trying 3001...\n\n🚀 ReviewIt server started on http://localhost:undefined\n📋 Reviewing: HEAD\n🌐 Opening browser...\n\nWhat I changed\nExpress v5 passes an Error instance to the callback function for listen method. https://expressjs.com/en/guide/migrating-5.html#app.listen\nBy using this feature, we can do error handling more easier and simple than server.on('error', ....\nNow, the fallback port is printed correctly and opening browser works.\nPort 3000 is busy, trying 3001...\n\n🚀 ReviewIt server started on http://localhost:3001\n📋 Reviewing: HEAD\n🌐 Opening browser...",
+    "state": "MERGED",
+    "publishedAt": "2025-07-01T17:25:56Z",
+    "closedAt": "2025-07-01T23:19:39Z",
+    "mergedAt": "2025-07-01T23:19:39Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2633943826",
+    "id": "PR_kwDOPDzQl86c_ssS",
+    "number": 16,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/16",
+    "url": "https://github.com/yoshiko-pg/difit/pull/16",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/16/checks",
+    "additions": 548,
+    "deletions": 10,
+    "title": "Add customizable appearance settings to Web UI",
+    "bodyText": "Summary\n\nAdd comprehensive appearance settings modal for customizing the Web UI\nImplement real-time preview of settings changes\nAdd support for light/dark/auto themes with proper syntax highlighting\nInclude font size and font family customization options\n\nChanges Made\n\nAdded SettingsModal component with comprehensive appearance options\nImplemented useAppearanceSettings hook for managing settings state and localStorage persistence\nAdded real-time theme switching with proper CSS custom properties\nIntegrated syntax theme selection with automatic validation for light/dark themes\nAdded smooth transitions for theme changes\nUpdated all diff components to support customizable syntax highlighting\n\nTest plan\n\n Verify settings modal opens and closes correctly\n Test real-time preview of all appearance settings\n Confirm theme switching (light/dark/auto) works properly\n Validate syntax highlighting themes change correctly\n Check font size and family changes apply immediately\n Ensure settings persist across browser sessions\n\n🤖 Generated with Claude Code\n\nFix: #4",
+    "state": "MERGED",
+    "publishedAt": "2025-07-02T00:42:19Z",
+    "closedAt": "2025-07-02T00:43:28Z",
+    "mergedAt": "2025-07-02T00:43:28Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2634282806",
+    "id": "PR_kwDOPDzQl86dA_c2",
+    "number": 22,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/22",
+    "url": "https://github.com/yoshiko-pg/difit/pull/22",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/22/checks",
+    "additions": 1,
+    "deletions": 1,
+    "title": "docs: remove unnecessary default value in help",
+    "bodyText": "Since commander.js automatically displays the default value, it is not necessary to include it in the help text.",
+    "state": "MERGED",
+    "publishedAt": "2025-07-02T04:57:06Z",
+    "closedAt": "2025-07-02T05:10:54Z",
+    "mergedAt": "2025-07-02T05:10:54Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2634653727",
+    "id": "PR_kwDOPDzQl86dCaAf",
+    "number": 23,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/23",
+    "url": "https://github.com/yoshiko-pg/difit/pull/23",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/23/checks",
+    "additions": 11777,
+    "deletions": 176,
+    "title": "feat: support Jupyter Notebook cells",
+    "bodyText": "I made an implementation for Jupyter Notebook.\nMerging this PR, it will able to render and process diffs of Jupyter Notebook files (.ipynb) by each cells. The changes span the frontend and backend to handle notebook-specific diffing, rendering, and interaction.\nSample Image\n\n(This is sample. I gonna fix some details and it might be changed.)\n\nI made this for myself, so you might think it doesn't need to be added. How about this?",
+    "state": "MERGED",
+    "publishedAt": "2025-07-02T08:07:45Z",
+    "closedAt": "2025-07-18T21:54:48Z",
+    "mergedAt": "2025-07-18T21:54:48Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 6
+    },
+    "reviews": {
+      "totalCount": 3
+    }
+  },
+  {
+    "fullDatabaseId": "2635655805",
+    "id": "PR_kwDOPDzQl86dGOp9",
+    "number": 24,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/24",
+    "url": "https://github.com/yoshiko-pg/difit/pull/24",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/24/checks",
+    "additions": 4,
+    "deletions": 0,
+    "title": "Fix diff display issue when non-default git diff tool is set",
+    "bodyText": "Summary\n#19\nI have fixed an issue where reviewIt could not display diffs when an external diff tool was configured in Git. For more details, please refer to the issue above.\nwhat I changed\n\nTo ensure consistent output results, I have adjusted the options to use our original Diff tool instead of relying on external Diff tools.\n\nManual Test Result\n\n$ git config --global --get diff.external\ndifft --background=light\n\n$ git status\nOn branch fix/no-ext-diff\nChanges not staged for commit:\n        new file:   hoge\n        modified:   src/server/git-diff.ts\n\n$ pnpm run start .\n\n> reviewit@1.1.9 start\n> pnpm run build && node dist/cli/index.js .\n\n> reviewit@1.1.9 build\n> tsc -b && vite build\n\nvite v7.0.0 building for production...\n1678 modules transformed.\nbuilt in 1.51s\n\nReviewIt server started on http://localhost:3000\nReviewing: .\nOpening browser...\n\nClient disconnected, shutting down server...",
+    "state": "MERGED",
+    "publishedAt": "2025-07-02T14:34:18Z",
+    "closedAt": "2025-07-02T23:14:36Z",
+    "mergedAt": "2025-07-02T23:14:36Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2636164719",
+    "id": "PR_kwDOPDzQl86dIK5v",
+    "number": 25,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/25",
+    "url": "https://github.com/yoshiko-pg/difit/pull/25",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/25/checks",
+    "additions": 9,
+    "deletions": 1,
+    "title": "Fix server URL to reflect --host option",
+    "bodyText": "Summary\n\nFixed the server URL display to include the --host option when specified\nUpdated the server URL construction logic to use the configured host instead of always showing localhost\n\nTest plan\n\n Start server with default settings - should show http://localhost:3000\n Start server with --host 0.0.0.0 - should show http://0.0.0.0:3000\n Start server with custom host - URL reflects the custom host\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-02T17:48:28Z",
+    "closedAt": "2025-07-02T23:12:57Z",
+    "mergedAt": "2025-07-02T23:12:57Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2636897213",
+    "id": "PR_kwDOPDzQl86dK9u9",
+    "number": 27,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/27",
+    "url": "https://github.com/yoshiko-pg/difit/pull/27",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/27/checks",
+    "additions": 1520,
+    "deletions": 9,
+    "title": "Implement integration tests",
+    "bodyText": "Add comprehensive documentation for codebase structure and testing strategy\nAdd comprehensive CLI and server tests with mode option bug fix",
+    "state": "MERGED",
+    "publishedAt": "2025-07-03T00:23:03Z",
+    "closedAt": "2025-07-03T00:27:16Z",
+    "mergedAt": "2025-07-03T00:27:16Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2640602442",
+    "id": "PR_kwDOPDzQl86dZGVK",
+    "number": 29,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/29",
+    "url": "https://github.com/yoshiko-pg/difit/pull/29",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/29/checks",
+    "additions": 1,
+    "deletions": 1,
+    "title": "Fix git diff header parsing to handle paths without prefix",
+    "bodyText": "Problem\nCurrently, the git diff header parsing fails when git is configured with diff.noprefix=true. This configuration removes the a/ and b/ prefixes from file paths in diff output, causing the regex to not match and breaking the diff parsing functionality.\nExample\nWith default git config (works):\ndiff --git a/src/file.js b/src/file.js\n\nWith diff.noprefix=true (currently broken):\ndiff --git src/file.js src/file.js\n\nSolution\nUpdated the regex pattern to make the a/ and b/ prefixes optional using non-capturing groups (?:[a-z]\\/)?, allowing the parser to handle both formats correctly.\nImpact\n\n✅ Maintains backward compatibility with default git configuration\n✅ Adds support for diff.noprefix=true configuration\n✅ Makes the tool more robust across different git setups\n✅ No breaking changes to existing functionality\n\nThis change ensures the tool works consistently regardless of the user's git configuration.\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-04T07:59:05Z",
+    "closedAt": "2025-07-06T11:00:17Z",
+    "mergedAt": "2025-07-06T11:00:17Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2644577187",
+    "id": "PR_kwDOPDzQl86doQuj",
+    "number": 30,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/30",
+    "url": "https://github.com/yoshiko-pg/difit/pull/30",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/30/checks",
+    "additions": 2105,
+    "deletions": 24,
+    "title": "Add image diff display support",
+    "bodyText": "Summary\n\nAdd support for displaying image files in diff view with side-by-side comparison\nShow image dimensions and file sizes below each image\nAdd checkerboard background pattern for transparent images\nSupport both inline and side-by-side display modes\nHandle added, deleted, and modified image files appropriately\nSupport various image formats including PNG, JPG, SVG, WebP, ICO, etc.\nUse actual commit references instead of hardcoded HEAD/HEAD~1\n\nFeatures Added\n\nImage Detection: Automatically detect image files by extension and display them with ImageDiffChunk component\nVisual Comparison: Display before/after images side-by-side in both inline and side-by-side modes\nImage Information: Show dimensions (W: 800px | H: 168px) and file size (1.2 KB) below each image\nTransparency Support: Gray and white checkerboard background pattern for transparent images\nFile Status Support: Proper handling of added, deleted, and modified image files with appropriate labels\nLarge File Support: Handle images up to 10MB with proper error messaging for oversized files\nCommit Reference Support: Use actual base/target commit references passed from diff arguments\nSpecial Case Handling: Support for working directory (.) and staged files (staged) references\n\nTechnical Implementation\n\nCreated ImageDiffChunk.tsx component for image diff display\nAdded imageUtils.ts for image file detection by extension\nExtended server /api/blob/* endpoint to serve image files with proper binary handling\nAdded getBlobContent method to GitDiffParser using git cat-file for proper binary data retrieval\nImproved file status detection logic to properly identify added/deleted files using git diff headers\nAdded cache-control headers to prevent image caching issues\nIncreased maxBuffer limit to 10MB for large image files\n\nTest Plan\n\n Test image display in both inline and side-by-side modes\n Verify added, deleted, and modified image files display correctly\n Check image size information is displayed accurately\n Test transparent images show checkerboard background\n Verify various image formats (PNG, JPG, SVG, WebP, ICO) work\n Test large file handling and error messages\n Verify commit reference handling works with actual commit arguments\n Test working directory and staged file references\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-06T12:32:17Z",
+    "closedAt": "2025-07-06T15:19:29Z",
+    "mergedAt": "2025-07-06T15:19:29Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2645531310",
+    "id": "PR_kwDOPDzQl86dr5qu",
+    "number": 31,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/31",
+    "url": "https://github.com/yoshiko-pg/difit/pull/31",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/31/checks",
+    "additions": 3,
+    "deletions": 1,
+    "title": "Add Solidity syntax highlighting support",
+    "bodyText": "Added language support for Solidity",
+    "state": "MERGED",
+    "publishedAt": "2025-07-07T05:34:38Z",
+    "closedAt": "2025-07-07T09:53:20Z",
+    "mergedAt": "2025-07-07T09:53:20Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  },
+  {
+    "fullDatabaseId": "2648301243",
+    "id": "PR_kwDOPDzQl86d2d67",
+    "number": 32,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/32",
+    "url": "https://github.com/yoshiko-pg/difit/pull/32",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/32/checks",
+    "additions": 3,
+    "deletions": 1,
+    "title": "update: reviewit supports vim script",
+    "bodyText": "SSIA",
+    "state": "MERGED",
+    "publishedAt": "2025-07-08T01:50:45Z",
+    "closedAt": "2025-07-09T03:18:19Z",
+    "mergedAt": "2025-07-09T03:18:19Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2651501688",
+    "id": "PR_kwDOPDzQl86eCrR4",
+    "number": 33,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/33",
+    "url": "https://github.com/yoshiko-pg/difit/pull/33",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/33/checks",
+    "additions": 118,
+    "deletions": 89,
+    "title": "Rename to difit",
+    "bodyText": "reviewit -> difit\nDifit -> difit\nReplace images",
+    "state": "MERGED",
+    "publishedAt": "2025-07-09T03:10:16Z",
+    "closedAt": "2025-07-09T03:11:07Z",
+    "mergedAt": "2025-07-09T03:11:07Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2652770343",
+    "id": "PR_kwDOPDzQl86eHhAn",
+    "number": 34,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/34",
+    "url": "https://github.com/yoshiko-pg/difit/pull/34",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/34/checks",
+    "additions": 229,
+    "deletions": 54,
+    "title": "Add multi-line comment support for diff viewer",
+    "bodyText": "Overview\nThis PR introduces multi-line comment functionality to the diff viewer, allowing users to select and comment on multiple lines of code at once.\n\n\n\nSide by Side\nInline\n\n\n\n\n\n\n\n\n\nChanges\n\nEnhanced the diff viewer components to support multi-line selection\nUpdated comment handling logic to work with line ranges instead of single lines\nModified the SideBySideDiffChunk component to handle multi-line comment interactions\nUpdated the comment data structure to support line ranges\nAdded visual styling for multi-line selections\nBreaking Change: Updated comment position format from <path>:<line> to <path>:L<line> for single lines and <path>:L<line>-L<line> for multi-line ranges (following GitHub's line reference format)\n\ne.g. https://github.com/yoshiko-pg/difit/blob/main/package.json#L2\ne.g. https://github.com/yoshiko-pg/difit/blob/main/package.json#L2-L5\n\n\n\nAffected Components\n\nDiffViewer: Main diff viewer component updated to handle multi-line comments\nSideBySideDiffChunk: Added logic for multi-line selection and comment creation\nInlineComment: Updated to work with line ranges\nuseLocalComments: Modified hook to handle multi-line comment data\nComment type definitions updated to support line ranges\n\nBenefits\n\nUsers can now comment on blocks of code instead of individual lines\nImproves code review efficiency by allowing contextual comments across multiple lines\nBetter aligns with standard code review workflows",
+    "state": "MERGED",
+    "publishedAt": "2025-07-09T12:30:42Z",
+    "closedAt": "2025-07-09T13:13:32Z",
+    "mergedAt": "2025-07-09T13:13:32Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  },
+  {
+    "fullDatabaseId": "2654292968",
+    "id": "PR_kwDOPDzQl86eNUvo",
+    "number": 36,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/36",
+    "url": "https://github.com/yoshiko-pg/difit/pull/36",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/36/checks",
+    "additions": 155,
+    "deletions": 112,
+    "title": "eslint flat config",
+    "bodyText": "Migrate to ESLint Flat Config\nfix eslint import/order on tui dir\nFix all ESLint errors",
+    "state": "MERGED",
+    "publishedAt": "2025-07-10T00:24:57Z",
+    "closedAt": "2025-07-10T00:26:37Z",
+    "mergedAt": "2025-07-10T00:26:37Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2654309733",
+    "id": "PR_kwDOPDzQl86eNY1l",
+    "number": 37,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/37",
+    "url": "https://github.com/yoshiko-pg/difit/pull/37",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/37/checks",
+    "additions": 84,
+    "deletions": 56,
+    "title": "Add toggle for file tree section",
+    "bodyText": "",
+    "state": "MERGED",
+    "publishedAt": "2025-07-10T00:40:45Z",
+    "closedAt": "2025-07-10T11:23:43Z",
+    "mergedAt": "2025-07-10T11:23:43Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 4
+    },
+    "reviews": {
+      "totalCount": 2
+    }
+  },
+  {
+    "fullDatabaseId": "2655758732",
+    "id": "PR_kwDOPDzQl86eS6mM",
+    "number": 38,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/38",
+    "url": "https://github.com/yoshiko-pg/difit/pull/38",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/38/checks",
+    "additions": 4,
+    "deletions": 6,
+    "title": "refactor: simplify loop iteration and remove unnecessary type assertions",
+    "bodyText": "simplify loop iteration and remove unnecessary type assertions",
+    "state": "MERGED",
+    "publishedAt": "2025-07-10T12:20:31Z",
+    "closedAt": "2025-07-10T12:25:24Z",
+    "mergedAt": "2025-07-10T12:25:24Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2655854228",
+    "id": "PR_kwDOPDzQl86eTR6U",
+    "number": 39,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/39",
+    "url": "https://github.com/yoshiko-pg/difit/pull/39",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/39/checks",
+    "additions": 0,
+    "deletions": 4,
+    "title": "chore: remove unused @eslint/eslintrc",
+    "bodyText": "remove unused @eslint/eslintrc\n\nhttps://www.npmjs.com/package/@eslint/eslintrc",
+    "state": "MERGED",
+    "publishedAt": "2025-07-10T12:51:15Z",
+    "closedAt": "2025-07-11T00:10:05Z",
+    "mergedAt": "2025-07-11T00:10:05Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2656031416",
+    "id": "PR_kwDOPDzQl86eT9K4",
+    "number": 40,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/40",
+    "url": "https://github.com/yoshiko-pg/difit/pull/40",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/40/checks",
+    "additions": 4,
+    "deletions": 1,
+    "title": "Add Dart language syntax highlighting support",
+    "bodyText": "Summary\n\nAdd syntax highlighting support for Dart language (.dart files)\nReorganize README documentation with dedicated Mobile Languages section",
+    "state": "MERGED",
+    "publishedAt": "2025-07-10T13:48:15Z",
+    "closedAt": "2025-07-11T00:11:27Z",
+    "mergedAt": "2025-07-11T00:11:27Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2657796482",
+    "id": "PR_kwDOPDzQl86easGC",
+    "number": 41,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/41",
+    "url": "https://github.com/yoshiko-pg/difit/pull/41",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/41/checks",
+    "additions": 4,
+    "deletions": 5,
+    "title": "refactor: use optional chaining",
+    "bodyText": "use optional chaining for better readability",
+    "state": "MERGED",
+    "publishedAt": "2025-07-11T03:57:34Z",
+    "closedAt": "2025-07-11T06:18:49Z",
+    "mergedAt": "2025-07-11T06:18:49Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2659391694",
+    "id": "PR_kwDOPDzQl86egxjO",
+    "number": 42,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/42",
+    "url": "https://github.com/yoshiko-pg/difit/pull/42",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/42/checks",
+    "additions": 12,
+    "deletions": 0,
+    "title": "feat: improve keyboard accessibility for Checkbox component",
+    "bodyText": "improve keyboard accessibility for Checkbox component\n\nAdd accessibility attributes\n\nrole=\"checkbox\": Communicates to assistive technologies that the element is a checkbox\naria-checked={checked}: Communicates the checked state to assistive technologies\ntabIndex={0}: Enables keyboard navigation\n\n\nAdd keyboard support\n\nAdd a handleKeyDown function: Allows the checkbox to be toggled with Enter and Space keys\nonKeyDown={handleKeyDown}: Adds a keyboard event listener",
+    "state": "MERGED",
+    "publishedAt": "2025-07-11T14:52:48Z",
+    "closedAt": "2025-07-11T15:27:30Z",
+    "mergedAt": "2025-07-11T15:27:30Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2660792708",
+    "id": "PR_kwDOPDzQl86emHmE",
+    "number": 44,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/44",
+    "url": "https://github.com/yoshiko-pg/difit/pull/44",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/44/checks",
+    "additions": 0,
+    "deletions": 3,
+    "title": "refactor(test): remove redundant return",
+    "bodyText": "remove redundant return in test",
+    "state": "MERGED",
+    "publishedAt": "2025-07-12T03:25:29Z",
+    "closedAt": "2025-07-12T06:55:41Z",
+    "mergedAt": "2025-07-12T06:55:41Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2661885746",
+    "id": "PR_kwDOPDzQl86eqScy",
+    "number": 45,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/45",
+    "url": "https://github.com/yoshiko-pg/difit/pull/45",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/45/checks",
+    "additions": 10,
+    "deletions": 0,
+    "title": "feat: display progress of reviewed files in client",
+    "bodyText": "I implemented the client side of the progress bar proposed in #35",
+    "state": "MERGED",
+    "publishedAt": "2025-07-13T02:26:10Z",
+    "closedAt": "2025-07-13T09:00:46Z",
+    "mergedAt": "2025-07-13T09:00:46Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2661913619",
+    "id": "PR_kwDOPDzQl86eqZQT",
+    "number": 46,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/46",
+    "url": "https://github.com/yoshiko-pg/difit/pull/46",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/46/checks",
+    "additions": 8,
+    "deletions": 6,
+    "title": "refactor: fix some eslint warnings",
+    "bodyText": "fix some eslint warnings",
+    "state": "MERGED",
+    "publishedAt": "2025-07-13T03:11:21Z",
+    "closedAt": "2025-07-13T08:57:32Z",
+    "mergedAt": "2025-07-13T08:57:32Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2662356314",
+    "id": "PR_kwDOPDzQl86esFVa",
+    "number": 47,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/47",
+    "url": "https://github.com/yoshiko-pg/difit/pull/47",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/47/checks",
+    "additions": 28,
+    "deletions": 10,
+    "title": "feat: replace deprecated Github icon",
+    "bodyText": "The Github icon for lucide-react seems to be deprecated.\n\nlucide-icons/lucide#670\n\nI replaced it with the icon provided by  Github itself.",
+    "state": "MERGED",
+    "publishedAt": "2025-07-13T15:32:06Z",
+    "closedAt": "2025-07-14T16:18:54Z",
+    "mergedAt": "2025-07-14T16:18:54Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  },
+  {
+    "fullDatabaseId": "2665500448",
+    "id": "PR_kwDOPDzQl86e4E8g",
+    "number": 48,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/48",
+    "url": "https://github.com/yoshiko-pg/difit/pull/48",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/48/checks",
+    "additions": 13,
+    "deletions": 12,
+    "title": "refactor: improve type definitions and remove unnecessary casts",
+    "bodyText": "improve type definitions and remove unnecessary casts",
+    "state": "MERGED",
+    "publishedAt": "2025-07-14T21:52:59Z",
+    "closedAt": "2025-07-14T23:21:57Z",
+    "mergedAt": "2025-07-14T23:21:57Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2679062762",
+    "id": "PR_kwDOPDzQl86fr0Dq",
+    "number": 49,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/49",
+    "url": "https://github.com/yoshiko-pg/difit/pull/49",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/49/checks",
+    "additions": 5,
+    "deletions": 14,
+    "title": "refactor: remove unused props from Checkbox and DiffViewer components",
+    "bodyText": "remove unused props from Checkbox and DiffViewer components\nremove redundant assertion in test\nreplace if in else to else if",
+    "state": "MERGED",
+    "publishedAt": "2025-07-19T13:59:06Z",
+    "closedAt": "2025-07-20T00:24:17Z",
+    "mergedAt": "2025-07-20T00:24:17Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  },
+  {
+    "fullDatabaseId": "2679839903",
+    "id": "PR_kwDOPDzQl86fuxyf",
+    "number": 51,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/51",
+    "url": "https://github.com/yoshiko-pg/difit/pull/51",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/51/checks",
+    "additions": 693,
+    "deletions": 24,
+    "title": "feat: Add ability to delete all existing comments",
+    "bodyText": "Thank you for creating difit! It's an incredibly useful tool for code reviews. This PR adds functionality to help manage comments across multiple review sessions.\nProblem\nWhen using difit for multiple review sessions:\n\nComments from previous sessions remain visible even after code changes\nComments on lines that no longer exist in the diff cannot be deleted through the UI\nThere's no way to start a fresh review session without old comments\n\nSolution\nThis PR introduces two ways to delete all existing comments:\n1. UI Button - \"Delete All Comments\"\n\nAdded a red button next to \"Copy All Comments\" button\nShows confirmation dialog before deletion\nAllows users to clear all comments during a review session\n\n2. CLI Flag - --clean\n\nStart difit with a clean slate by clearing all existing comments on startup\nUsage: difit --clean\nOnly clears comments once on initial load (new comments added during the session are not affected)\n\nImplementation Details\n\nModified useLocalComments hook to expose the existing clearAllComments function\nAdded confirmation dialog using window.confirm() for safety\nUsed useRef to ensure CLI flag only triggers cleanup once\nAdded comprehensive tests for both UI and CLI functionality\n\nTesting\n\nAdded tests for useLocalComments hook\nAdded tests for App component (UI button functionality)\nAdded tests for CLI flag functionality\nAll existing tests pass\n\nBreaking Changes\nNone. This is a purely additive feature.",
+    "state": "MERGED",
+    "publishedAt": "2025-07-20T11:14:41Z",
+    "closedAt": "2025-07-20T13:01:29Z",
+    "mergedAt": "2025-07-20T13:01:29Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2679900134",
+    "id": "PR_kwDOPDzQl86fvAfm",
+    "number": 52,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/52",
+    "url": "https://github.com/yoshiko-pg/difit/pull/52",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/52/checks",
+    "additions": 3,
+    "deletions": 1,
+    "title": "  feat: add C# syntax highlighting support",
+    "bodyText": "Summary\nAdd comprehensive C# syntax highlighting support to difit with proper language categorization.\nChanges\n\nAdd .cs file extension mapping to csharp language in PrismSyntaxHighlighter.tsx\nAdd dynamic loading for prism-csharp.js component in languageLoader.ts\nUpdate README.md to include C# in Systems Languages section (positioned after C++)\n\nTechnical Details\n\nFollows existing language addition patterns for consistency\nUses PrismJS standard csharp language identifier\nCategorizes C# as a Systems Language alongside C, C++, Rust, and Go\nMaintains dynamic loading performance optimization\n\nTest Plan\n\n[x ] Verify C# files (.cs) are properly syntax highlighted\n Confirm dynamic loading works without errors\n[x ] Check language detection from file extensions",
+    "state": "MERGED",
+    "publishedAt": "2025-07-20T13:13:35Z",
+    "closedAt": "2025-07-20T13:52:28Z",
+    "mergedAt": "2025-07-20T13:52:28Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2679978380",
+    "id": "PR_kwDOPDzQl86fvTmM",
+    "number": 53,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/53",
+    "url": "https://github.com/yoshiko-pg/difit/pull/53",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/53/checks",
+    "additions": 0,
+    "deletions": 314,
+    "title": "chore: remove unused dependency",
+    "bodyText": "remove unused dependency",
+    "state": "MERGED",
+    "publishedAt": "2025-07-20T15:13:23Z",
+    "closedAt": "2025-07-20T15:32:31Z",
+    "mergedAt": "2025-07-20T15:32:31Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2680670669",
+    "id": "PR_kwDOPDzQl86fx8nN",
+    "number": 54,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/54",
+    "url": "https://github.com/yoshiko-pg/difit/pull/54",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/54/checks",
+    "additions": 2630,
+    "deletions": 104,
+    "title": "feat: Add Gerrit-style keyboard navigation",
+    "bodyText": "Summary\nThis PR introduces comprehensive Gerrit-style keyboard navigation to difit, enabling users to efficiently navigate through diffs using keyboard shortcuts. The implementation includes visual cursor highlighting, smart scrolling, and a help modal.\n\nKey Features\n🎯 Navigation Commands\n\nLine Navigation: j/k or ↓/↑ - Navigate between diff lines\nFile Navigation: ]/[ - Jump between files\nChunk Navigation: n/p - Navigate between change chunks (added/deleted lines)\nComment Navigation: N/P (Shift+n/p) - Jump between comments\nSide Navigation: h/l or ←/→ - Switch between left/right sides (side-by-side mode only)\n\n🔧 Actions\n\nReview Toggle: r - Mark file as reviewed/unreviewed (with auto-scroll to file header)\nAdd Comment: c - Create comment at current line (not on deleted lines)\nCopy Comments: Shift+C - Copy all comments prompt to clipboard\nCenter View: . - Move cursor to center of viewport\nHelp: ? - Toggle keyboard shortcuts help modal\n\n🎨 Visual Improvements\n\nVisual cursor highlighting with blue outline (#4d7adb)\nResponsive 2-column help modal layout on larger screens (≥1024px)\nSmart scrolling that positions focused elements at 1/3 from top\nSkip collapsed/reviewed files during navigation\n\n🔨 Technical Improvements\n\nModular architecture with separate files for navigation logic\nComprehensive test coverage (1000+ lines of tests)\nFilter-based navigation system for extensibility\nProper handling of side-by-side vs inline modes\nMouse click integration to set cursor position\n\nImplementation Details\nThe keyboard navigation is implemented using:\n\nA custom React hook (useKeyboardNavigation) that manages cursor state\nFilter-based navigation system that makes it easy to define navigation targets\nSmart scrolling behavior inspired by Gerrit's implementation\nProper handling of edge cases (deleted lines, paired add/delete lines, etc.)\n\nTest plan\n\n All existing tests pass\n Added comprehensive test suite for keyboard navigation (24 test cases)\n Pre-commit hooks pass (format, typecheck, test, lint)\n Manual testing of all keyboard shortcuts\n Manual testing in both side-by-side and inline modes\n Manual testing of help modal responsiveness\n Manual testing with large diffs\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-21T05:29:10Z",
+    "closedAt": "2025-07-21T12:01:09Z",
+    "mergedAt": "2025-07-21T12:01:09Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 1
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 2
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2681052731",
+    "id": "PR_kwDOPDzQl86fzZ47",
+    "number": 56,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/56",
+    "url": "https://github.com/yoshiko-pg/difit/pull/56",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/56/checks",
+    "additions": 568,
+    "deletions": 52,
+    "title": "README i18n",
+    "bodyText": "docs: add Japanese README (README.ja.md)\ndocs: add Japanese language link to README\ndocs: update README with improved descriptions and Japanese version sync\ndocs: add Chinese and Korean README translations with cross-links",
+    "state": "MERGED",
+    "publishedAt": "2025-07-21T08:23:06Z",
+    "closedAt": "2025-07-21T08:42:56Z",
+    "mergedAt": "2025-07-21T08:42:56Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2681858434",
+    "id": "PR_kwDOPDzQl86f2emC",
+    "number": 57,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/57",
+    "url": "https://github.com/yoshiko-pg/difit/pull/57",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/57/checks",
+    "additions": 15,
+    "deletions": 2,
+    "title": "feat: Add support for @ symbol as Git HEAD alias",
+    "bodyText": "Summary\n\nAdd support for @ symbol as a Git HEAD alias in difit\nAllow @ with parent/ancestor references like @^, @~3, etc.\nFix validation that was explicitly rejecting @ despite it being a valid Git reference\n\nChanges\n\nUpdated validateCommitish function to recognize @ patterns with regex /^@(~\\d+|\\^\\d*)*$/\nRemoved explicit rejection of @ from isValidBranchName function\nAdded comprehensive tests for @ symbol usage\nUpdated README with @ usage examples\n\nTest plan\n\n Added new test cases for @, @^, @~1, @~2^1 etc.\n All existing tests pass\n Manually verified git log -1 @ and git log -1 @~3 work correctly\n Build and lint checks pass\n\nWhy this matters\nGit has supported @ as an alias for HEAD since version 1.8.5. This is a common shorthand that many Git users expect to work. The previous validation was unnecessarily restrictive.\nExample usage:\nnpx difit @          # Same as npx difit HEAD\nnpx difit @ main     # Compare HEAD with main\nnpx difit @^ @~3     # Compare previous commit with 3 commits ago\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-21T12:59:03Z",
+    "closedAt": "2025-07-21T23:59:14Z",
+    "mergedAt": "2025-07-21T23:59:14Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2682042438",
+    "id": "PR_kwDOPDzQl86f3LhG",
+    "number": 58,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/58",
+    "url": "https://github.com/yoshiko-pg/difit/pull/58",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/58/checks",
+    "additions": 380,
+    "deletions": 21,
+    "title": "feat: Add stdin support for reading unified diffs",
+    "bodyText": "Summary\nThis PR adds support for reading unified diffs from stdin, enabling powerful pipeline workflows with difit.\nFeatures\n\nAutomatic detection: Detects piped input via \\!process.stdin.isTTY\nExplicit mode: Use - argument to force reading from stdin\nFull compatibility: Reuses existing diff parsing logic for consistency\nFlexible workflows: Works with any tool that outputs unified diff format\n\nUsage Examples\n# Basic usage - pipe git diff output\ngit diff | npx difit\n\n# Explicit stdin mode\ngit diff | npx difit -\n\n# Custom context lines\ngit diff -U10 | npx difit\n\n# Compare against merge base\ngit diff --merge-base main feature | npx difit\n\n# View diffs from other tools\ndiff -u file1.txt file2.txt | npx difit\n\n# Review saved patches\ncat changes.patch | npx difit\nImplementation Details\n\nAdded readStdin() function to read from process.stdin\nCreated parseStdinDiff() method that leverages existing parseUnifiedDiff()\nExtracted countLinesFromChunks() helper to avoid code duplication\nAdded comprehensive test coverage in git-diff.test.ts\nUpdated server to handle pre-parsed diff data from stdin\n\nTest Plan\n\n Added 9 new test cases for stdin parsing functionality\n Added unit test for countLinesFromChunks helper\n All existing tests pass (209 passed)\n Manual testing with various diff sources\n ESLint and TypeScript checks pass\n\nNotes\n\nSyntax highlighting works as expected (language detection from filenames in diff)\nComments work but use a generic storage key since there's no git commit hash\nImage diffs cannot be displayed (no access to actual file content)\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude noreply@anthropic.com",
+    "state": "MERGED",
+    "publishedAt": "2025-07-21T13:57:48Z",
+    "closedAt": "2025-07-27T13:40:23Z",
+    "mergedAt": "2025-07-27T13:40:23Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 4
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2682071108",
+    "id": "PR_kwDOPDzQl86f3ShE",
+    "number": 59,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/59",
+    "url": "https://github.com/yoshiko-pg/difit/pull/59",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/59/checks",
+    "additions": 2,
+    "deletions": 2,
+    "title": "refactor: use optional chain",
+    "bodyText": "use optional chain for better readability",
+    "state": "MERGED",
+    "publishedAt": "2025-07-21T14:06:16Z",
+    "closedAt": "2025-07-22T00:00:07Z",
+    "mergedAt": "2025-07-22T00:00:07Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2683669575",
+    "id": "PR_kwDOPDzQl86f9YxH",
+    "number": 60,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/60",
+    "url": "https://github.com/yoshiko-pg/difit/pull/60",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/60/checks",
+    "additions": 262,
+    "deletions": 28,
+    "title": "fix: handle empty files in keyboard navigation",
+    "bodyText": "Summary\n\nFixed keyboard navigation to properly handle empty files and chunks\nPrevents navigation from getting stuck when encountering files with no content\nAdded comprehensive test coverage for empty file scenarios\n\nProblem\nKeyboard navigation would break in rare cases when encountering:\n\nEmpty files (files with no chunks)\nFiles with empty chunks (chunks with no lines)\n\nThis can occur in edge cases such as:\n\nFiles temporarily added with git add -N (intent to add) that are later deleted\nCertain diff scenarios where files exist but have no actual content changes\nOther rare cases where the diff parser produces empty chunks/lines\n\nSolution\nModified the advancePosition function in navigationCore.ts to:\n\nContinue advancing through empty files/chunks instead of returning invalid positions\nProperly wrap around when all files are empty (to prevent infinite loops)\nSkip to the next file with actual content when normal advancement fails\n\nTest plan\n\n Added comprehensive tests for empty file scenarios\n All existing tests pass\n Linting passes\n Manually tested keyboard navigation with empty files\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-22T01:11:06Z",
+    "closedAt": "2025-07-27T10:29:45Z",
+    "mergedAt": "2025-07-27T10:29:45Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2683816463",
+    "id": "PR_kwDOPDzQl86f98oP",
+    "number": 61,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/61",
+    "url": "https://github.com/yoshiko-pg/difit/pull/61",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/61/checks",
+    "additions": 2036,
+    "deletions": 8,
+    "title": "Add Hot Reload Feature with File Watching and Manual Refresh",
+    "bodyText": "Summary\nAdded a hot reload feature that automatically detects repository changes and provides a GitHub-style manual reload button. This implementation uses high-performance file watching with mode-aware monitoring strategies.\ndifit --watch\n\n  \n    \n    \n\n    2025-07-22.at.12.09.31.mp4\n    \n  \n\n  \n\n  \n\n\ndifit . --watch\n\n  \n    \n    \n\n    2025-07-22.at.12.13.41.mp4\n    \n  \n\n  \n\n  \n\n\nKey Features\n\nAutomatic Change Detection: Monitors file changes and commits based on diff mode\nGitHub-style Reload Button: Orange-colored reload button that appears when changes are detected\nSmart Mode-aware Watching: Different monitoring strategies for each diff mode (DEFAULT, WORKING, STAGED, DOT)\nGitignore Support: Respects .gitignore patterns when watching working directory\nReal-time Communication: Server-Sent Events (SSE) for instant change notifications\nComprehensive Testing: 265 test cases covering all components and edge cases\n\nUsage\nEnable file watching by adding the --watch flag to any difit command:\n# Watch for new commits when viewing HEAD diff\ndifit --watch\n\n# Watch for file changes when viewing working directory\ndifit . --watch\n\n# Watch for staging changes\ndifit working --watch\n\n# Watch for uncommitted changes (files + commits)\ndifit HEAD main --watch\nWhen changes are detected, an orange \"Reload\" button appears next to the \"Ignore Whitespace\" toggle. Click it to refresh the diff view with the latest changes.\nNote: The --watch flag is currently supported only in GUI mode. TUI support will be added in future releases.\nDesign Decisions\n\nManual Reload vs Auto-reload: Chose manual reload button over automatic refresh to prevent disrupting the review experience when AI tools are running in the background\nGUI-first Implementation: Started with GUI support as it provides better user experience for the reload button. TUI support is planned for future releases\n\nImplementation Details\nArchitecture Overview\n┌─────────────────┐    SSE     ┌──────────────────┐    File Events    ┌─────────────────┐\n│   React Client  │ ◄────────► │   Express Server │ ◄───────────────► │ @parcel/watcher │\n│                 │            │                  │                   │                 │\n│ - ReloadButton  │            │ - FileWatcher    │                   │ - .git/HEAD     │\n│ - useFileWatch  │            │ - SSE Endpoint   │                   │ - .git/index    │\n│ - App.tsx       │            │ - Cache Manager  │                   │ - Working files │\n└─────────────────┘            └──────────────────┘                   └─────────────────┘\n\nFile Watching Strategy by Mode\n\nDEFAULT Mode: Watches .git/HEAD for new commits\nWORKING Mode: Watches working directory + staging area for file changes\nSTAGED Mode: Watches .git/index for staging changes\nDOT Mode: Watches working directory + commits for uncommitted changes\nSPECIFIC Mode: No watching (static commit comparison)\n\nCore Components\n\nFileWatcherService: High-performance file monitoring with @parcel/watcher\nReloadButton: GitHub-style UI component with loading states\nuseFileWatch: React hook for SSE communication and state management\nType System: Comprehensive TypeScript definitions for watch events\n\nChanges Made\nNew Files\n\nsrc/types/watch.ts - Shared type definitions for watch functionality\nsrc/server/file-watcher.ts - Core file watching service implementation\nsrc/client/hooks/useFileWatch.ts - React hook for file watch integration\nsrc/client/components/ReloadButton.tsx - GitHub-style reload button component\n\nEnhanced Files\n\nsrc/server/server.ts - Added SSE endpoint and cache invalidation\nsrc/client/App.tsx - Integrated reload button with keyboard navigation\nsrc/cli/index.ts - Added --watch flag and diff mode detection\n\nTest Coverage\n\n29 ReloadButton tests: Visibility, states, interactions, accessibility\n13 useFileWatch tests: SSE connection, reconnection, error handling\n14 FileWatcherService tests: Mode-specific watching, gitignore, debouncing\nAdditional CLI tests: Watch functionality and mode detection\n\nTechnical Highlights\n\nDebounced Change Detection (300ms): Prevents excessive reload notifications\nGitignore Integration: Uses simple-git's checkIgnore for accurate file filtering\nAuto-reconnection: SSE connections automatically recover from network issues\nOrange Color Scheme: Matches GitHub's design language for reload buttons\nMemory Efficient: Proper cleanup of watchers and event listeners\n\n🤖 Generated with Claude Code\nCo-Authored-By: Claude noreply@anthropic.com",
+    "state": "MERGED",
+    "publishedAt": "2025-07-22T02:32:51Z",
+    "closedAt": "2025-07-27T10:28:52Z",
+    "mergedAt": "2025-07-27T10:28:52Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 2
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 2
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2683985185",
+    "id": "PR_kwDOPDzQl86f-l0h",
+    "number": 62,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/62",
+    "url": "https://github.com/yoshiko-pg/difit/pull/62",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/62/checks",
+    "additions": 1040,
+    "deletions": 230,
+    "title": "feat: Add Gerrit-style word highlighting to diff viewer",
+    "bodyText": "Summary\n\nImplemented Gerrit-style word highlighting feature for the diff viewer\nWhen hovering over a word, all occurrences of that word are highlighted throughout the visible diff\nHelps track variable usage and identify patterns in code reviews\n\nImplementation Details\n\nCreated WordHighlightContext for global state management\nExtended PrismSyntaxHighlighter with EnhancedPrismSyntaxHighlighter to preserve syntax highlighting\nAdded 200ms hover delay to avoid accidental highlights\nCase-insensitive word matching\nSupports both light and dark themes\nHandles XML/HTML tokens that contain multiple words\n\nTest Plan\n\n Unit tests for word detection logic\n Unit tests for WordHighlightContext\n Unit tests for EnhancedPrismSyntaxHighlighter\n Manual testing in both light and dark modes\n Verified no regression in existing syntax highlighting\n Tested with various file types (JS, TS, HTML, etc.)\n Verified memory leak prevention with proper cleanup\n\nScreenshots\nThe implementation matches Gerrit's behavior with a yellow highlight on hover.\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-22T03:59:31Z",
+    "closedAt": "2025-07-27T13:41:23Z",
+    "mergedAt": "2025-07-27T13:41:23Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2684287086",
+    "id": "PR_kwDOPDzQl86f_vhu",
+    "number": 63,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/63",
+    "url": "https://github.com/yoshiko-pg/difit/pull/63",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/63/checks",
+    "additions": 23,
+    "deletions": 9,
+    "title": "fix: Fix issue where last comment is not output when closing window",
+    "bodyText": "Summary\nFixed a bug where the last comment was not displayed in stdout when closing the browser window with multiple comments.\nBug Details\nSymptom\nWhen posting multiple comments and then closing the window, the last comment was missing from the terminal output.\nRoot Cause\nThe original implementation had two issues:\n\nUnnecessary comment syncing: The useEffect cleanup function was sending old comment states to the server every time comments changed\nServer shutdown timing: The server was shutting down before the beforeunload event's sendBeacon request could be processed\n\n// Original problematic code\nuseEffect(() => {\n  const sendCommentsBeforeUnload = () => {\n    // This function captures 'comments' at the time of creation (closure)\n    if (comments.length > 0) {\n      navigator.sendBeacon('/api/comments', { comments });\n    }\n  };\n  \n  window.addEventListener('beforeunload', sendCommentsBeforeUnload);\n  \n  return () => {\n    window.removeEventListener('beforeunload', sendCommentsBeforeUnload);\n    sendCommentsBeforeUnload(); // ⚠️ Sends old 'comments' state\\!\n  };\n}, [comments]); // Re-runs every time comments change\nExample Timeline\n\n\nAdd comment 1:\n\ncomments changes from [] to ['comment 1']\nCleanup runs with comments = [] → sends empty array to server\nNew listener created with comments = ['comment 1']\n\n\n\nAdd comment 2:\n\ncomments changes to ['comment 1', 'comment 2']\nCleanup runs with comments = ['comment 1'] → sends to server (missing comment 2)\nNew listener created with comments = ['comment 1', 'comment 2']\nServer now has ['comment 1'] stored\n\n\n\nClose window:\n\nbeforeunload event fires → sends ['comment 1', 'comment 2'] via sendBeacon\nSSE connection closes → server immediately exits\nProblem: Server exits before processing the sendBeacon request\nServer outputs the last received data: ['comment 1'] (missing comment 2)\n\n\n\nSolution\n\nChanged to sync comments on every update - ensures server always has the latest comments:\n\n// New implementation\nuseEffect(() => {\n  // Sync comments whenever they change\n  if (comments.length > 0) {\n    fetch('/api/comments', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ comments }),\n    });\n  }\n\n  // Also handle page unload as fallback\n  const sendCommentsBeforeUnload = () => {\n    if (comments.length > 0) {\n      navigator.sendBeacon('/api/comments', data);\n    }\n  };\n\n  window.addEventListener('beforeunload', sendCommentsBeforeUnload);\n\n  return () => {\n    window.removeEventListener('beforeunload', sendCommentsBeforeUnload);\n  };\n}, [comments]);\n\nAdded server-side delay - gives time for sendBeacon requests to be processed:\n\nreq.on('close', () => {\n  clearInterval(heartbeatInterval);\n  // Add a small delay to ensure any pending sendBeacon requests are processed\n  setTimeout(() => {\n    console.log('Client disconnected, shutting down server...');\n    outputFinalComments();\n    process.exit(0);\n  }, 100);\n});\nImplementation Notes\n\nThe 100ms server-side delay is crucial - without it, the sendBeacon request doesn't get processed before the server exits\nThis approach maintains the original behavior of syncing comments but ensures it's always the latest state\nThe beforeunload handler remains as a fallback for reliability\n\nAlternative Approach\nIf the intention is to send comments only once at the end, we could use useRef to maintain a reference to the latest comments:\nconst commentsRef = useRef(comments);\nuseEffect(() => {\n  commentsRef.current = comments;\n}, [comments]);\n\nuseEffect(() => {\n  // Set up listener only once\n  const sendComments = () => {\n    navigator.sendBeacon('/api/comments', { comments: commentsRef.current });\n  };\n  window.addEventListener('beforeunload', sendComments);\n  // ...\n}, []); // Empty dependency array\nHowever, this would still require the server-side delay for sendBeacon processing.\nTest Plan\n\n Add multiple comments and verify all are displayed when closing the window\n Test with Ctrl+C termination\n Verify existing /api/comments-output endpoint still works\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-22T06:19:22Z",
+    "closedAt": "2025-07-27T13:41:57Z",
+    "mergedAt": "2025-07-27T13:41:57Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2692413949",
+    "id": "PR_kwDOPDzQl86gevn9",
+    "number": 64,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/64",
+    "url": "https://github.com/yoshiko-pg/difit/pull/64",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/64/checks",
+    "additions": 1786,
+    "deletions": 1533,
+    "title": "feat: Add comment list view with keyboard navigation and scope-based shortcuts",
+    "bodyText": "Summary\n\nAdd a new comment list view (Shift+L) that shows all comments in a modal with keyboard navigation\nImplement scope-based keyboard navigation management using react-hotkeys-hook\nMake Shift+C and Shift+D shortcuts available globally, even when modals are open\n\n\nChanges\nComment List View\n\nNew CommentsListModal component that displays all comments in a scrollable list\nFull keyboard navigation support (j/k for navigation, Enter to jump, d to delete)\nAccessible from CommentsDropdown or via Shift+L shortcut\nPreserves the same comment UI design as inline comments\n\nKeyboard Navigation Improvements\n\nMigrated from custom keyboard handling to react-hotkeys-hook library\nImplemented scope-based shortcut management ('navigation' and 'comments-list' scopes)\nMoved HotkeysProvider to root level for proper scope management\nAdded Shift+D shortcut for deleting all comments\nMade Shift+C (copy all) and Shift+D (delete all) available in both navigation and modal contexts\n\nCode Organization\n\nRefactored navigation utilities into separate modules for better maintainability\nUpdated all modals to properly manage keyboard scopes\nAdded comprehensive tests for the new features\n\nTest plan\n\n Open comment list with Shift+L\n Navigate comments with j/k or arrow keys\n Jump to comment location with Enter\n Delete individual comments with d key\n Use Shift+C and Shift+D in both main view and modal\n Verify other shortcuts are disabled when modals are open\n Close modal with Escape\n All existing tests pass\n New tests added for CommentsListModal and scope management\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-24T15:39:01Z",
+    "closedAt": "2025-07-27T14:48:41Z",
+    "mergedAt": "2025-07-27T14:48:41Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2692437816",
+    "id": "PR_kwDOPDzQl86ge1c4",
+    "number": 65,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/65",
+    "url": "https://github.com/yoshiko-pg/difit/pull/65",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/65/checks",
+    "additions": 12,
+    "deletions": 3,
+    "title": "fix: use pnpm to execute vite, support two commitish arguments, and fix hanging on browser close",
+    "bodyText": "Summary\n\nUse pnpm to execute vite for consistency with the project's package manager\nAdd support for two commitish arguments to the dev script\nFix issue where the process would hang when the browser is closed\n\nTest plan\n\n Run pnpm dev and verify vite starts correctly\n Test with two commitish arguments\n Verify the process exits properly when closing the browser\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-24T15:48:50Z",
+    "closedAt": "2025-07-27T10:33:50Z",
+    "mergedAt": "2025-07-27T10:33:50Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2698227177",
+    "id": "PR_kwDOPDzQl86g063p",
+    "number": 67,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/67",
+    "url": "https://github.com/yoshiko-pg/difit/pull/67",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/67/checks",
+    "additions": 26,
+    "deletions": 8,
+    "title": "Add shortcut for updating comment",
+    "bodyText": "Hi! Thank you for creating such cool tool!\nI'd like to update comments with shortcut command, and this is the PR to enabling it.",
+    "state": "MERGED",
+    "publishedAt": "2025-07-27T12:06:19Z",
+    "closedAt": "2025-07-27T13:46:57Z",
+    "mergedAt": "2025-07-27T13:46:57Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2699283559",
+    "id": "PR_kwDOPDzQl86g48xn",
+    "number": 72,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/72",
+    "url": "https://github.com/yoshiko-pg/difit/pull/72",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/72/checks",
+    "additions": 1816,
+    "deletions": 657,
+    "title": "perf: Improve keyboard navigation performance with React.memo",
+    "bodyText": "Summary\nThis PR optimizes the performance of keyboard navigation in large diffs by preventing unnecessary re-renders of syntax highlighter components.\nChanges\nPerformance Optimizations\n\nAdded React.memo to PrismSyntaxHighlighter and EnhancedPrismSyntaxHighlighter components\nUsed useCallback for render functions to ensure proper memoization\nResult: 81.7% reduction in keyboard navigation latency (474ms → 87ms)\n\nPerformance Measurement Infrastructure\n\nCreated performance measurement scripts for consistent testing\nAdded comparison tool to track performance changes between commits\nImproved measurement timing accuracy to properly capture React rendering\n\nCI/CD Improvements\n\nAdded GitHub Actions workflow for automated performance testing on PRs\nTests compare base vs head branch performance\nFails PR if performance degrades by >10%\nShows results in Job Summary and PR comments\n\nPerformance Results\n\n\n\nMetric\nBefore\nAfter\nImprovement\n\n\n\n\nAverage Navigation Time\n474.05ms\n86.67ms\n81.7% faster\n\n\n\nThe optimization is particularly effective for large diffs with many syntax highlighted code blocks.\nTest Plan\n\n Run performance tests locally with pnpm perf\n Compare results with pnpm perf:compare\n Verify no visual or functional changes\n Test GitHub Actions workflow on this PR",
+    "state": "MERGED",
+    "publishedAt": "2025-07-28T06:02:06Z",
+    "closedAt": "2025-07-29T00:58:07Z",
+    "mergedAt": "2025-07-29T00:58:07Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 3
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2700934917",
+    "id": "PR_kwDOPDzQl86g_P8F",
+    "number": 73,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/73",
+    "url": "https://github.com/yoshiko-pg/difit/pull/73",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/73/checks",
+    "additions": 55,
+    "deletions": 3,
+    "title": "feat: Enable watch mode for dot argument with comparison",
+    "bodyText": "Summary\n\nAllow watch mode to work when using '.' as the first argument even when comparing with another branch (e.g., 'difit . origin/main')\nPreviously, this would be treated as a specific commit comparison and disable watching\nAdded unit test to verify the behavior\n\nTest plan\n\n Run difit . origin/main and verify that file watching is enabled\n Modify a file and verify that the diff automatically reloads\n Run existing tests with npm test to ensure no regression\n Run difit commit1 commit2 and verify watch mode is still disabled for specific commits\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-28T14:08:58Z",
+    "closedAt": "2025-07-29T00:45:43Z",
+    "mergedAt": "2025-07-29T00:45:43Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2702362912",
+    "id": "PR_kwDOPDzQl86hEskg",
+    "number": 74,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/74",
+    "url": "https://github.com/yoshiko-pg/difit/pull/74",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/74/checks",
+    "additions": 15,
+    "deletions": 14,
+    "title": "fix: Fix syntax highlighting disappearing on hover by passing filename prop",
+    "bodyText": "Summary\n\nFix syntax highlighting that disappears when hovering over files, especially with large diffs\nPass filename as a prop through the component hierarchy instead of relying on the global currentFilename variable\nRemove the global currentFilename variable completely as it was causing issues\n\nProblem\nWhen hovering over diff lines, all lines were using the same global currentFilename variable for language detection, causing incorrect syntax highlighting. The global variable approach was fundamentally flawed as it couldn't handle multiple files being rendered simultaneously.\nSolution\n\nAdded filename prop to PrismSyntaxHighlighter, EnhancedPrismSyntaxHighlighter, DiffLineRow, DiffChunk, and SideBySideDiffChunk\nPass the actual filename from DiffViewer through the component hierarchy\nEach component now receives the correct filename for proper language detection\nRemoved the global currentFilename variable and setCurrentFilename function entirely\n\nWhy global variables were problematic\nUsing a global variable for filename was a mistake because:\n\nMultiple files can be rendered at the same time in the diff view\nReact components can re-render in any order\nThe global state could be overwritten by any component, causing all components to use the wrong filename\n\nTest plan\n\n Tested locally with large diffs\n Verified syntax highlighting remains stable when hovering\n All tests pass\n\n🤖 Generated with Claude Code",
+    "state": "MERGED",
+    "publishedAt": "2025-07-29T01:36:16Z",
+    "closedAt": "2025-07-30T03:16:45Z",
+    "mergedAt": "2025-07-30T03:16:45Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2714761094",
+    "id": "PR_kwDOPDzQl86hz_eG",
+    "number": 77,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/77",
+    "url": "https://github.com/yoshiko-pg/difit/pull/77",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/77/checks",
+    "additions": 0,
+    "deletions": 7,
+    "title": "refactor: Remove unused imports and variables in generate-large-diff.js",
+    "bodyText": "Remove unused imports and variables in generate-large-diff.js",
+    "state": "MERGED",
+    "publishedAt": "2025-08-02T06:18:21Z",
+    "closedAt": "2025-08-02T08:23:18Z",
+    "mergedAt": "2025-08-02T08:23:18Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2714986188",
+    "id": "PR_kwDOPDzQl86h02bM",
+    "number": 78,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/78",
+    "url": "https://github.com/yoshiko-pg/difit/pull/78",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/78/checks",
+    "additions": 1825,
+    "deletions": 81,
+    "title": "fix comment storage structure",
+    "bodyText": "spec\nfix: resolve TypeScript and lint errors for comment storage feature\nupdate task\nfeat: simplify comment copy format and auto-mark lock files as viewed\ntest: Add comprehensive tests for comment copy format",
+    "state": "MERGED",
+    "publishedAt": "2025-08-02T13:18:54Z",
+    "closedAt": "2025-08-03T12:17:51Z",
+    "mergedAt": "2025-08-03T12:17:51Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2737560342",
+    "id": "PR_kwDOPDzQl86jK9sW",
+    "number": 82,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/82",
+    "url": "https://github.com/yoshiko-pg/difit/pull/82",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/82/checks",
+    "additions": 2,
+    "deletions": 22,
+    "title": "feat: replace uuid package to crypto.randomUUID",
+    "bodyText": "Since the uuid package is only used to generate uuid v4, I replaced it with crypto.randomUUID() .\nThis reduces the number of packages that need to be maintained.",
+    "state": "MERGED",
+    "publishedAt": "2025-08-12T03:49:07Z",
+    "closedAt": "2025-08-20T04:23:01Z",
+    "mergedAt": "2025-08-20T04:23:01Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2749784334",
+    "id": "PR_kwDOPDzQl86j5mEO",
+    "number": 85,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/85",
+    "url": "https://github.com/yoshiko-pg/difit/pull/85",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/85/checks",
+    "additions": 1,
+    "deletions": 0,
+    "title": "add support for highlighting .svelte",
+    "bodyText": "closes #84",
+    "state": "MERGED",
+    "publishedAt": "2025-08-15T21:45:13Z",
+    "closedAt": "2025-08-20T04:39:22Z",
+    "mergedAt": "2025-08-20T04:39:22Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2768092838",
+    "id": "PR_kwDOPDzQl86k_b6m",
+    "number": 86,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/86",
+    "url": "https://github.com/yoshiko-pg/difit/pull/86",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/86/checks",
+    "additions": 15,
+    "deletions": 4,
+    "title": "fix: prevent '.' shortcut when modifier keys are pressed",
+    "bodyText": "Modify the '.' key handler to only execute moveToCenterOfViewport when no modifier keys (ctrl, alt, shift, meta) are pressed. This prevents interference with other keyboard shortcuts that use '.' in combination with modifier keys.\n<Ctrl-.> に設定しているブラウザのショートカットキー､その他拡張のショートカットキーが反応しなくなるので\nctrl, alt, shift, meta キーを押している場合は moveToCenterOfViewport が実行されないようにしました｡",
+    "state": "MERGED",
+    "publishedAt": "2025-08-23T05:02:41Z",
+    "closedAt": "2025-08-24T13:43:37Z",
+    "mergedAt": "2025-08-24T13:43:37Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2769980696",
+    "id": "PR_kwDOPDzQl86lGo0Y",
+    "number": 87,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/87",
+    "url": "https://github.com/yoshiko-pg/difit/pull/87",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/87/checks",
+    "additions": 452,
+    "deletions": 33,
+    "title": "fix comment line number on server output",
+    "bodyText": "refactor: use shared comment formatting utility for both client and server\nfix server output\n\ncloses #80",
+    "state": "MERGED",
+    "publishedAt": "2025-08-24T16:36:46Z",
+    "closedAt": "2025-08-24T16:43:29Z",
+    "mergedAt": "2025-08-24T16:43:29Z",
+    "mergedBy": {
+      "login": "yoshiko-pg",
+      "url": "https://github.com/yoshiko-pg"
+    },
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 1
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 1
+    },
+    "assignedActors": {
+      "totalCount": 1
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 1,
+      "pageCount": 1,
+      "filteredCount": 1
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  },
+  {
+    "fullDatabaseId": "2785276680",
+    "id": "PR_kwDOPDzQl86mA_MI",
+    "number": 90,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/90",
+    "url": "https://github.com/yoshiko-pg/difit/pull/90",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/90/checks",
+    "additions": 2,
+    "deletions": 2,
+    "title": "refactor: use optional chaining for key checks in localStorage",
+    "bodyText": "use optional chaining for better readability",
+    "state": "OPEN",
+    "publishedAt": "2025-08-29T15:45:09Z",
+    "closedAt": null,
+    "mergedAt": null,
+    "mergedBy": null,
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 0
+    },
+    "reviews": {
+      "totalCount": 0
+    }
+  },
+  {
+    "fullDatabaseId": "2817358297",
+    "id": "PR_kwDOPDzQl86n7XnZ",
+    "number": 92,
+    "permalink": "https://github.com/yoshiko-pg/difit/pull/92",
+    "url": "https://github.com/yoshiko-pg/difit/pull/92",
+    "checksUrl": "https://github.com/yoshiko-pg/difit/pull/92/checks",
+    "additions": 34,
+    "deletions": 8,
+    "title": "fix: make --clean flag properly reset viewed files counter",
+    "bodyText": "The --clean flag was only clearing comments but not resetting the viewed files counter. This fix addresses two issues:\n\nApp.tsx now calls clearViewedFiles() when --clean flag is detected\nscripts/dev.js now properly passes through --clean flag to CLI\n\nFixes #91\n🤖 Generated with Claude Code",
+    "state": "OPEN",
+    "publishedAt": "2025-09-11T02:43:28Z",
+    "closedAt": null,
+    "mergedAt": null,
+    "mergedBy": null,
+    "reactionGroups": [
+      {
+        "content": "THUMBS_UP",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "THUMBS_DOWN",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "LAUGH",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HOORAY",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "CONFUSED",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "HEART",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "ROCKET",
+        "reactors": {
+          "totalCount": 0
+        }
+      },
+      {
+        "content": "EYES",
+        "reactors": {
+          "totalCount": 0
+        }
+      }
+    ],
+    "reactions": {
+      "totalCount": 0
+    },
+    "assignedActors": {
+      "totalCount": 0
+    },
+    "labels": {
+      "totalCount": 0
+    },
+    "reviewRequests": {
+      "totalCount": 0
+    },
+    "timelineItems": {
+      "totalCount": 0,
+      "pageCount": 0,
+      "filteredCount": 0
+    },
+    "comments": {
+      "totalCount": 1
+    },
+    "reviews": {
+      "totalCount": 1
+    }
+  }
+]

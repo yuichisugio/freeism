@@ -1,0 +1,12 @@
+# ダウンロード数の合計
+curl -s "https://api.npmjs.org/downloads/range/2025-07-24:2025-09-25/ccusage" \
+| jq '[.downloads[].downloads] | add' >"src/oss-industry-growth/github-oss-contrib/archive/1-npm-result.json"
+
+# データ形式の出力
+curl -s "https://api.npmjs.org/downloads/range/2025-04-24:2025-09-25/ccusage" \
+| jq '.' >"src/oss-industry-growth/github-oss-contrib/archive/2-npm-result.json"
+
+curl -s "https://api.npmjs.org/downloads/range/2025-07-24:2025-09-25/ccusage" \
+| jq '[.downloads[].downloads] | add'
+
+date -v+18m -f "%y-%m-%d" -j ""

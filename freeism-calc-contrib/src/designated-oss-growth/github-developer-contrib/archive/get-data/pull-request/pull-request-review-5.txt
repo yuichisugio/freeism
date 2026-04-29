@@ -1,0 +1,509 @@
+# --------------------------------------
+# Pull Request のReview関連(+リアクション)に必要なすべてのデータをテスト的に取得する
+# --------------------------------------
+
+# Pull Requestの第一階層・第2階層のtotalCount + numberなどのデータを取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f owner="ryoppippi" \
+  -f name="ccusage" \
+  -F perPage=50 \
+  -f query='
+    query($owner: String!, $name: String!, $perPage: Int!) {
+      repository(owner:$owner, name:$name) {
+        pullRequests(first: $perPage ,orderBy: {field : CREATED_AT,direction: ASC}){
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          nodes {
+            fullDatabaseId
+            id # node_id
+            number
+            permalink # プルリクのURL
+            url # プルリクのURL
+            checksUrl # チェックのURL
+            additions # コード追加の行数
+            deletions # コード削除の行数
+            title # pull-requestもレビューする対象なのでコード行数に加算するために取得
+            bodyText # プルリクの説明
+            state # OPEN, CLOSED, MERGED
+            publishedAt # draftからOpenになった日 or 直接Openになった日
+            closedAt # REJECTEDかCLOSEDになった日
+            mergedAt # マージ日
+            mergedBy { login url } # マージ担当者
+            author {
+              __typename
+              ... on Bot { databaseId id login url }
+              ... on EnterpriseUserAccount { id login name url }
+              ... on Mannequin { databaseId id login name url }
+              ... on Organization { databaseId id login name url }
+              ... on User { databaseId id login name url }
+            }
+            reactionGroups { content reactors { totalCount } } # リアクション数
+            reactions(first: 1){
+              totalCount
+            }
+            assignedActors(first: 1){
+              totalCount
+            }
+            labels(first: 1){
+              totalCount
+            }
+            reviewRequests(first: 1){
+              totalCount
+            }
+            timelineItems(last: 1, itemTypes: [LABELED_EVENT, ASSIGNED_EVENT, REVIEW_REQUESTED_EVENT]) {
+              totalCount
+              pageCount
+              filteredCount
+            }
+            comments(first: 1){
+              totalCount
+            }
+            reviews(first: 1){
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request/pr-5/5-1-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(reactions)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          reactions(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes { databaseId id content createdAt user { databaseId id login name url } }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-2-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(assignedActors)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          assignedActors(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on User { databaseId id login name url }
+              ... on Bot { databaseId id login url }
+              ... on Mannequin { databaseId id login name url }
+              ... on Organization { databaseId id login name url }
+             }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-3-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(timelineItems.ASSIGNED_EVENT)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f since="1970-01-01T00:00:00Z" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $since: DateTime!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          timelineItems(first: $perPage, itemTypes: [ASSIGNED_EVENT], since: $since) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on AssignedEvent {
+                createdAt
+                actor { # アサインした人（実行者）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                  ... on EnterpriseUserAccount { user { databaseId id login name url } }
+                }
+                assignee { # アサインされた側（User/Mannequin 等の Union）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-4-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(labels)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOPDzQl86cqQUY" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          labels(first: $perPage) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes { 
+              id
+              url
+              name
+              description
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request/pr-5/5-5-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(timelineItems.LABELED_EVENT)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zk0o_" \
+  -F perPage=50 \
+  -f since="2025-01-20T00:00:00Z" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $since:DateTime!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          timelineItems(first: $perPage, itemTypes: [LABELED_EVENT], since: $since) {
+            totalCount
+            pageInfo{ hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on LabeledEvent {
+                id
+                createdAt
+                label { 
+                  id
+                  url
+                  name
+                  description
+                }
+                actor { # ラベル付けした人（実行者）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                  ... on EnterpriseUserAccount { user { databaseId id login name url } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request/pr-5/5-6-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(comments) + さらにネストした第4階層のtotalCountを取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          comments(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              fullDatabaseId
+              databaseId
+              id
+              url
+              author {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Organization { databaseId id login name url }
+                ... on EnterpriseUserAccount { user { databaseId id login name url } }
+              }
+              bodyText
+              publishedAt
+              reactionGroups { content reactors { totalCount } }
+              reactions(first: 1){
+                totalCount
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-7-ccusage.json"
+
+
+# nodeクエリで、第4階層のtotalCount>0の場合にデータ取得(comments.reactions)
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="IC_kwDOOyw9fc6wNbzn" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on IssueComment {
+          id
+          url
+          reactions(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes{ databaseId id content createdAt user { databaseId id login name url } }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-8-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(reviews) + さらにネストした第4階層のtotalCountを取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zk0lf" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          reviews(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              fullDatabaseId
+              id
+              url
+              author {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Organization { databaseId id login name url }
+                ... on EnterpriseUserAccount { user { databaseId id login name url } }
+              }
+              bodyText
+              state
+              publishedAt
+              reactionGroups { content reactors { totalCount } }
+              reactions(first: 1){ totalCount }
+              comments(first: 1){ totalCount }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-9-ccusage.json"
+
+
+# nodeクエリで、第5階層のtotalCount>0の場合にデータ(reviews.reactions)を取得
+# reviewsのnode_idを指定する必要があるので注意。間違うとデータなしでもdata.node{}のみになる
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -F perPage=50 \
+  -f node_id="PRR_kwDOOyw9fc6tWmXC" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequestReview {
+          id
+          url
+          reactions(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes{ databaseId id content createdAt user { databaseId id login name url } }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-10-ccusage.json"
+
+
+# nodeクエリで、第5階層のtotalCount>0の場合にデータ取得(reviews.comments)を取得
+# reviewsのnode_idを指定する必要があるので注意。間違うとデータなしでもdata.node{}のみになる
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -F perPage=50 \
+  -f node_id="PRR_kwDOPDzQl86xH7ob" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequestReview {
+          id
+          url
+          comments(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              fullDatabaseId
+              id
+              url
+              author {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Organization { databaseId id login name url }
+                ... on EnterpriseUserAccount { user { databaseId id login name url } }
+              }
+              bodyText
+              publishedAt
+              reactionGroups { content reactors { totalCount } }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request/pr-5/5-11-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(reviewRequests)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          reviewRequests(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              databaseId
+              id
+              requestedReviewer {
+                __typename
+                ... on User { databaseId id login name url }
+                ... on Bot { databaseId id login url }
+                ... on Mannequin { databaseId id login name url }
+                ... on Team { databaseId id name url }
+              } 
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-12-ccusage.json"
+
+
+# nodeクエリで、第3階層のtotalCount>0の場合にデータ(timelineItems.REVIEW_REQUESTED_EVENT)を取得
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -f node_id="PR_kwDOOyw9fc6Zs9sY" \
+  -F perPage=50 \
+  -f since="1970-01-01T00:00:00Z" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!, $since: DateTime!) {
+      node(id: $node_id) {
+        ... on PullRequest{
+          id
+          number
+          url
+          timelineItems(first: $perPage, itemTypes: [REVIEW_REQUESTED_EVENT], since: $since) {
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes {
+              __typename
+              ... on ReviewRequestedEvent {
+                id
+                createdAt
+                actor { # アサインした人（実行者）
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Organization { databaseId id login name url }
+                  ... on EnterpriseUserAccount { user { databaseId id login name url } }
+                }
+                requestedReviewer {
+                  __typename
+                  ... on User { databaseId id login name url }
+                  ... on Bot { databaseId id login url }
+                  ... on Mannequin { databaseId id login name url }
+                  ... on Team { databaseId id name url }
+                } 
+              }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-13-ccusage.json"
+
+
+# nodeクエリで、第5階層のtotalCount>0の場合にデータ取得(reviews.comments.reactions)を取得
+# reviewsのnode_idを指定する必要があるので注意。間違うとデータなしでもdata.node{}のみになる
+gh api graphql \
+  --header X-Github-Next-Global-ID:1 \
+  -F perPage=50 \
+  -f node_id="PRR_kwDOOyw9fc6tWmXC" \
+  -f query='
+    query($node_id: ID!, $perPage: Int!) {
+      node(id: $node_id) {
+        ... on PullRequestReviewComment {
+          id
+          fullDatabaseId
+          bodyText
+          url
+          reactions(first: $perPage){
+            totalCount
+            pageInfo { hasNextPage endCursor }
+            nodes{
+              databaseId
+              id
+              content
+              createdAt
+              user { databaseId id login name url }
+            }
+          }
+        }
+      }
+    }
+  ' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/pull-request-review/5-14-ccusage.json"

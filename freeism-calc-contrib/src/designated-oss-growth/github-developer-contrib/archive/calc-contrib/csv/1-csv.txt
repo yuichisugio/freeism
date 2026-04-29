@@ -1,0 +1,56 @@
+# verbose.jsonを変換するバージョン
+jq \
+  -r \
+  '
+    def nn: if . == null then "" else tostring end;
+
+    .data.user as $users
+    | (["user_id","user_login","task_id","task_name","task_date","reference_task_date_field",
+        "letter_count","lines_of_code","review_letter_count","pr_letter_count","pr_change_record_count",
+        "good_reaction","bad_reaction","task_url"] | @csv),
+      (
+        $users[]? as $u
+        | ($u.task? // [])[]?
+        | [
+            ($u.user_id    | nn),
+            ($u.user_login | nn),
+            (.task_id      | nn),
+            (.task_name    | nn),
+            (.task_date    | nn),
+            (.reference_task_date_field | nn),
+            (.letter_count            // 0),
+            (.lines_of_code         // 0),
+            (.review_letter_count     // 0),
+            (.pr_letter_count         // 0),
+            (.pr_change_record_count// 0),
+            (.good_reaction         // 0),
+            (.bad_reaction          // 0),
+            (.task_url              | nn)
+          ] | @csv
+      )
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/result-verbose.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/csv/1-1-result.csv"
+
+
+# simple.jsonを変換するバージョン
+jq \
+  -r \
+  '
+    def nn: if . == null then "" else tostring end;
+
+    .data.user as $users
+    | (["contribution_point","user_id","user_database_id","user_login","user_name","user_url","user_type","task_total_count"] | @csv),
+      ($users[]? | [
+        (.contribution_point | nn),
+        (.user_id            | nn),
+        (.user_database_id   | nn),
+        (.user_login         | nn),
+        (.user_name          | nn),
+        (.user_url           | nn),
+        (.user_type          | nn),
+        (.task_total_count   | nn)
+      ] | @csv)
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/result-simple.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/csv/1-1-result.csv"

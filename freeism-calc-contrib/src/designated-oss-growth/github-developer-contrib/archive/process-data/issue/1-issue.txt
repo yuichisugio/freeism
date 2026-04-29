@@ -1,0 +1,432 @@
+# issueの作成者を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .author as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "create-issue",
+                  task_date:                  $obj.publishedAt,
+                  reference_task_date_field:  "publishedAt",
+                  letter_count:
+                    (
+                      ($obj.title? // "" | length) + ($obj.bodyText? // "" | length)
+                    ),
+                  issue_state: $obj.state,
+                  issue_stateReason: $obj.stateReason,
+
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-node-id.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-1-processed-issue.json"
+
+
+# issueのコメントした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .author as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      $obj.databaseId,
+                  task_full_database_id: $obj.fullDatabaseId,
+                  task_url:              $obj.url,
+                  task_name:             "comment",
+                  task_date:             $obj.publishedAt,
+                  reference_task_date_field: "publishedAt",
+                  commit_letter_count:     ($obj.bodyText? // "" | length),
+
+                  # content == "THUMBS_DOWN" だけを bad、それ以外は good
+                  good_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                        if (.content // "") == "THUMBS_DOWN"
+                          then 0
+                          else (.reactors.totalCount // 0)
+                          end
+                        )
+                      | add // 0
+                    ),
+
+                  bad_reaction:
+                    (
+                      ( $obj.reactionGroups? // [] )
+                      | map(
+                          if (.content // "") == "THUMBS_DOWN"
+                          then (.reactors.totalCount // 0)
+                          else 0
+                          end
+                        )
+                      | add // 0
+                    )
+                }
+              ]
+            }
+        ]
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }   # 同一ユーザーの task を結合
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-comment.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-2-processed-issue.json"
+
+
+# issueへのコメントへリアクションした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-comment-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-3-processed-issue.json"
+
+
+# issueへリアクションした人を評価
+jq '
+  {
+    data: {
+      user: (
+        [ .[]?
+          | . as $obj
+          | .user as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "reaction",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt"
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-reaction.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-4-processed-issue.json"
+
+
+# issueのステータスを変更した人。同じnode_idの場合は最新のactorのみ採用する。
+jq '
+  {
+    data: {
+      user: (
+        [
+          (
+            # ClosedEventのみ残す
+            [ .[]? | select((.__typename? // "") == "ClosedEvent") ]
+            # group_by の前にキーでソート
+            | sort_by(.node_id)
+            # node_id ごとにグルーピング
+            | group_by(.node_id)
+            # 各グループの最新だけ残す
+            | map( max_by(.createdAt | fromdateiso8601) )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:                        $author.id,
+              user_database_id:               $author.databaseId,
+              user_login:                     $author.login,
+              user_name:                      $author.name,
+              user_url:                       $author.url,
+              task: [
+                {
+                  task_id:                    $obj.id,
+                  task_database_id:           $obj.databaseId,
+                  task_full_database_id:      $obj.fullDatabaseId,
+                  task_url:                   $obj.url,
+                  task_name:                  "issue-closed",
+                  task_date:                  $obj.createdAt,
+                  reference_task_date_field:  "createdAt",
+                  stateReason:                $obj.stateReason
+                }
+              ]
+            }
+        ]
+
+        # 同一ユーザーの task を結合
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url} )
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-timeline.json" \
+    > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-5-processed-issue.json"
+
+
+# issueヘラベル付けした人を評価。①現在のラベル一覧 & ②timelineからラベル付けした人を取得
+jq \
+  --slurpfile curr "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-now-label.json" \
+  '
+  # ②: { issue_node_id: [label_id, ...] } を作成
+  ($curr[0] // []) as $labels
+  | (
+      $labels
+      | group_by(.node_id)
+      | map({ (.[0].node_id): (map(.id) | unique) })
+      | add
+    ) as $by_issue
+
+  # ①のタイムライン配列を処理
+  |
+  {
+    data: {
+      user: (
+        [
+          (
+            # まず「オブジェクトのみ」を対象にする（配列等を除外）
+            [ .[]? | select((.__typename? // "") == "LabeledEvent") ]
+
+            # 現在ついているラベルに該当する LabeledEvent のみ残す
+            # （文脈が配列に切り替わらないよう各要素を $e に保存して参照）
+            | map(
+                . as $e
+                | select(
+                    ($e.node_id? and $e.label?.id?)
+                    and (( $by_issue[$e.node_id] // [] ) | index($e.label.id) != null)
+                  )
+              )
+
+            # issue × label ごとに「最後の設定イベント」だけ残す
+            | sort_by([.node_id, .label.id, (.createdAt | fromdateiso8601)])
+            | group_by([.node_id, .label.id])
+            | map( max_by(.createdAt | fromdateiso8601) )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      ($obj.databaseId // null),
+                  task_full_database_id: ($obj.fullDatabaseId // null),
+                  task_url:              ($obj.url // null),
+                  task_name:             "issue-labeled",
+                  task_date:             $obj.createdAt,
+                  reference_task_date_field: "createdAt",
+                  issue_node_id:         $obj.node_id,
+                  label_id:              $obj.label.id,
+                  label_name:            $obj.label.name,
+                  label_url:             ($obj.label.url // null)
+                }
+              ]
+            }
+        ]
+        # 同一ユーザーの task を結合（ラベルが複数でも配列に積まれます）
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-timeline.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-6-processed-issue-label.json"
+
+
+# issueヘアサインした人を評価。①現在のアサイン一覧 & ②timelineからアサインした人を取得
+jq \
+  --slurpfile curr "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-now-assigned-actors.json" \
+  '
+  # 現在のラベルを取得
+  ($curr[0] // []) as $assignees_array
+  | (
+      $assignees_array
+      | group_by(.node_id)
+      | map({ (.[0].node_id): (map(.id) | unique) })
+      | add
+    ) as $by_assigned
+
+  # ①のタイムライン配列を処理
+  |
+  {
+    data: {
+      user: (
+        [
+          (
+            # まず「オブジェクトのみ」を対象にする（配列等を除外）
+            [ .[]? | select((.__typename? // "") == "AssignedEvent") ]
+
+            # 現在ついているラベルに該当する AssignedEvent のみ残す
+            # （文脈が配列に切り替わらないよう各要素を $e に保存して参照）
+            | map(
+                . as $e
+                | select(
+                    ($e.node_id? and $e.assignee?.id?)
+                    and (( $by_assigned[$e.node_id] // [] ) | index($e.assignee.id) != null)
+                  )
+              )
+
+            # issue × assignee ごとに「最後の設定イベント」だけ残す
+            | sort_by([.node_id, .assignee.id, (.createdAt | fromdateiso8601)])
+            | group_by([.node_id, .assignee.id])
+            | map( max_by(.createdAt | fromdateiso8601) )
+            | .[]
+          )
+          | . as $obj
+          | .actor as $author
+          | {
+              user_id:          $author.id,
+              user_database_id: $author.databaseId,
+              user_login:       $author.login,
+              user_name:        $author.name,
+              user_url:         $author.url,
+              task: [
+                {
+                  task_id:               $obj.id,
+                  task_database_id:      ($obj.databaseId // null),
+                  task_full_database_id: ($obj.fullDatabaseId // null),
+                  task_url:              ($obj.url // null),
+                  task_name:             "issue-assigned",
+                  task_date:             $obj.createdAt,
+                  reference_task_date_field: "createdAt",
+                  issue_node_id:         $obj.node_id,
+                  assignee_id:              $obj.assignee.id,
+                  assignee_name:            $obj.assignee.name,
+                  assignee_url:             ($obj.assignee.url // null)
+                }
+              ]
+            }
+        ]
+        # 同一ユーザーの task を結合（ラベルが複数でも配列に積まれます）
+        | sort_by(.user_id)
+        | group_by(.user_id)
+        | map(
+            (.[0] | {user_id, user_database_id, user_login, user_name, user_url})
+            + { task: (map(.task) | add) }
+          )
+      )
+    }
+  }
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/result-issue-timeline.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/process-data/issue/1-7-processed-issue-assigned.json"

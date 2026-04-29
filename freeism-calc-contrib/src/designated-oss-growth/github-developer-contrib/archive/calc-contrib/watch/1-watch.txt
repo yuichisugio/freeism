@@ -1,0 +1,17 @@
+# watchによる貢献度を算出する
+jq \
+  --arg task_name "star" \
+  --slurpfile weighting "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/weighting.json" \
+  '
+    # weighting.json の 値を取得（無ければ 0）
+    ($weighting[0].task_type[$task_name] // 0) as $we
+
+    # 対象 task に2項目を追記
+    | (.data.user[]?.task[]? | select(.task_name == $task_name)) +=
+      {
+        "task_type_criterion_weight": $we,
+        "contribution_point": $we
+      }
+  ' \
+  "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/integrated-processed-data.json" \
+  > "./src/designated-oss-growth/github-developer-contrib/archive/calc-contrib/watch/1-1-result.json"

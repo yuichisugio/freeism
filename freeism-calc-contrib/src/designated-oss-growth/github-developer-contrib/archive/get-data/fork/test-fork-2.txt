@@ -1,0 +1,9 @@
+gh api graphql -f owner="ryoppippi" -f name="ccusage" -f query='
+  query($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      forks(first: 1) {
+        totalCount
+      }
+    }
+  }
+' | jq '.' >"./src/designated-oss-growth/github-developer-contrib/archive/fork/test-fork-2.json"

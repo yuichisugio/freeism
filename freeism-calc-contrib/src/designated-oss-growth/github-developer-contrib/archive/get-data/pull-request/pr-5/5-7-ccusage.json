@@ -1,0 +1,153 @@
+{
+  "data": {
+    "node": {
+      "comments": {
+        "totalCount": 2,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpHOsDW85w=="
+        },
+        "nodes": [
+          {
+            "fullDatabaseId": "2956169337",
+            "databaseId": 2956169337,
+            "id": "IC_kwDOOyw9fc6wM5B5",
+            "url": "https://github.com/ryoppippi/ccusage/pull/45#issuecomment-2956169337",
+            "author": {
+              "__typename": "User",
+              "databaseId": 1560508,
+              "id": "U_kgDOABfPvA",
+              "login": "ryoppippi",
+              "name": "ryoppippi",
+              "url": "https://github.com/ryoppippi"
+            },
+            "bodyText": "@nyatinte Thank you for reporting.\nI didn't know that object.groupBy is not available in Node 20.\nI think it is a better way to add a proper target option to tsdown config. Could you send a PR for that?\nFor the reason, I'll close this PR.\nThank you for your investigation!",
+            "publishedAt": "2025-06-09T15:40:32Z",
+            "reactionGroups": [
+              {
+                "content": "THUMBS_UP",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "THUMBS_DOWN",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "LAUGH",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HOORAY",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "CONFUSED",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HEART",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "ROCKET",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "EYES",
+                "reactors": {
+                  "totalCount": 0
+                }
+              }
+            ],
+            "reactions": {
+              "totalCount": 0
+            }
+          },
+          {
+            "fullDatabaseId": "2956311783",
+            "databaseId": 2956311783,
+            "id": "IC_kwDOOyw9fc6wNbzn",
+            "url": "https://github.com/ryoppippi/ccusage/pull/45#issuecomment-2956311783",
+            "author": {
+              "__typename": "User",
+              "databaseId": 104000239,
+              "id": "U_kgDOBjLq7w",
+              "login": "nyatinte",
+              "name": "NakamuraTakumi",
+              "url": "https://github.com/nyatinte"
+            },
+            "bodyText": "@ryoppippi\nThank you for the feedback! You're absolutely right - adding a proper target option to the tsdown config is the better approach.\nI'll prepare a new PR with the appropriate target configuration for Node 20 compatibility within the next day or two. Thanks for the guidance!",
+            "publishedAt": "2025-06-09T16:35:35Z",
+            "reactionGroups": [
+              {
+                "content": "THUMBS_UP",
+                "reactors": {
+                  "totalCount": 1
+                }
+              },
+              {
+                "content": "THUMBS_DOWN",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "LAUGH",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HOORAY",
+                "reactors": {
+                  "totalCount": 1
+                }
+              },
+              {
+                "content": "CONFUSED",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "HEART",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "ROCKET",
+                "reactors": {
+                  "totalCount": 0
+                }
+              },
+              {
+                "content": "EYES",
+                "reactors": {
+                  "totalCount": 0
+                }
+              }
+            ],
+            "reactions": {
+              "totalCount": 2
+            }
+          }
+        ]
+      }
+    }
+  }
+}

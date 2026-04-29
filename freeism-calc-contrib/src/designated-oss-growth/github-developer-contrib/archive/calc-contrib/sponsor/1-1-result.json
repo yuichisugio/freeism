@@ -1,0 +1,1149 @@
+{
+  "meta": {
+    "analytics": {
+      "createdAt": "2025-09-23T00:46:06Z"
+    },
+    "repository": {
+      "host": "github.com",
+      "owner_username": "ryoppippi",
+      "owner_user_id": "U_kgDOABfPvA",
+      "repository_name": "ccusage",
+      "repository_id": "R_kgDOOyw9fQ",
+      "repository_url": "https://github.com/ryoppippi/ccusage",
+      "created_at": "2025-05-29T16:56:50Z",
+      "default_branch": "main"
+    }
+  },
+  "data": {
+    "user_total_count": 49,
+    "user": [
+      {
+        "user_id": "O_kgDOBHgDzw",
+        "user_database_id": 74974159,
+        "user_login": "lemonshark-jp",
+        "user_name": "株式会社 レモンシャーク",
+        "user_url": "https://github.com/lemonshark-jp",
+        "user_type": "Organization",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABYW4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-15T23:54:47Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3572,
+            "contribution_point": 357200
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDNJ38",
+        "user_database_id": 10111,
+        "user_login": "mattn",
+        "user_name": "mattn",
+        "user_url": "https://github.com/mattn",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa1_",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-19T07:17:52Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3538,
+            "contribution_point": 353800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDNqa4",
+        "user_database_id": 43438,
+        "user_login": "timoxley",
+        "user_name": "Tim Kevin Oxley",
+        "user_url": "https://github.com/timoxley",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABF7Z",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2024-09-30T21:31:22Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3891,
+            "contribution_point": 389100
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOA0Vp5w",
+        "user_database_id": 54880743,
+        "user_login": "sergicalsix",
+        "user_name": "sergicalsix",
+        "user_url": "https://github.com/sergicalsix",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUdO",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T14:39:18Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOA1WWXA",
+        "user_database_id": 55940700,
+        "user_login": "thecatfix",
+        "user_name": "John Shelburne",
+        "user_url": "https://github.com/thecatfix",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUg3",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T20:17:04Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOA4AlkQ",
+        "user_database_id": 58729873,
+        "user_login": "harumeri",
+        "user_name": "harumeri",
+        "user_url": "https://github.com/harumeri",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABTcW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-02T11:30:40Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3647,
+            "contribution_point": 364700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAA91iA",
+        "user_database_id": 1013128,
+        "user_login": "GregBaugues",
+        "user_name": "Greg Baugues",
+        "user_url": "https://github.com/GregBaugues",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABVEW",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-03T20:32:48Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3615,
+            "contribution_point": 361500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAAPX0Q",
+        "user_database_id": 251857,
+        "user_login": "odiak",
+        "user_name": "Kaido Iwamoto",
+        "user_url": "https://github.com/odiak",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABY5y",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-20T03:24:05Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3568,
+            "contribution_point": 356800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAAhenA",
+        "user_database_id": 548508,
+        "user_login": "kzhrk",
+        "user_name": "Kazuhiro Kobayashi",
+        "user_url": "https://github.com/kzhrk",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABaUl",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-12T15:10:23Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3545,
+            "contribution_point": 354500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAAvbGw",
+        "user_database_id": 776987,
+        "user_login": "donjo",
+        "user_name": "John Donmoyer",
+        "user_url": "https://github.com/donjo",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABVcM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-10T18:11:42Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3608,
+            "contribution_point": 360800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAB7_wA",
+        "user_database_id": 2031552,
+        "user_login": "srvhat09",
+        "user_name": "Reiki Hattori",
+        "user_url": "https://github.com/srvhat09",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUc7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T13:36:12Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOABV8MQ",
+        "user_database_id": 1408049,
+        "user_login": "matsu7874",
+        "user_name": "Kentaro Matsumoto",
+        "user_url": "https://github.com/matsu7874",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUc4",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T13:28:26Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOACFZtw",
+        "user_database_id": 2185655,
+        "user_login": "frogggias",
+        "user_name": "Tomáš Šůstek",
+        "user_url": "https://github.com/frogggias",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABVVw",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-08T21:57:44Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3610,
+            "contribution_point": 361000
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOACgajw",
+        "user_database_id": 2628239,
+        "user_login": "tgfjt",
+        "user_name": "Takashi Fujita",
+        "user_url": "https://github.com/tgfjt",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa2P",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-19T08:05:20Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3538,
+            "contribution_point": 353800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOACz-DA",
+        "user_database_id": 2948620,
+        "user_login": "kiyono",
+        "user_name": "kiyono",
+        "user_url": "https://github.com/kiyono",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUiJ",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-24T06:32:27Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOADVzgg",
+        "user_database_id": 3502978,
+        "user_login": "ysaito8015",
+        "user_name": "Yusuke Saito",
+        "user_url": "https://github.com/ysaito8015",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUhY",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T23:39:54Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAEyVwA",
+        "user_database_id": 5019072,
+        "user_login": "yamadashy",
+        "user_name": "Kazuki Yamada",
+        "user_url": "https://github.com/yamadashy",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUJp",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-16T14:21:21Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3633,
+            "contribution_point": 363300
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAF9Tkg",
+        "user_database_id": 6247314,
+        "user_login": "vintersnow",
+        "user_name": "vintersnow",
+        "user_url": "https://github.com/vintersnow",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUh2",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-24T02:48:44Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAFJPDA",
+        "user_database_id": 5394188,
+        "user_login": "tayloramurphy",
+        "user_name": "Taylor A. Murphy",
+        "user_url": "https://github.com/tayloramurphy",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABYXF",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-16T00:47:35Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3572,
+            "contribution_point": 357200
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAGNE-A",
+        "user_database_id": 6505720,
+        "user_login": "suzuki86",
+        "user_name": "suzuki86",
+        "user_url": "https://github.com/suzuki86",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUf7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T15:20:19Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3626,
+            "contribution_point": 362600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAGlmHQ",
+        "user_database_id": 6907421,
+        "user_login": "sudame",
+        "user_name": "Mikihiro SUDA",
+        "user_url": "https://github.com/sudame",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUdT",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T15:15:32Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAHhezw",
+        "user_database_id": 7888591,
+        "user_login": "skanehira",
+        "user_name": "skanehira",
+        "user_url": "https://github.com/skanehira",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa2S",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-19T08:10:42Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3538,
+            "contribution_point": 353800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAI6ttQ",
+        "user_database_id": 9350581,
+        "user_login": "sgr-ksmt",
+        "user_name": "Suguru Kishimoto",
+        "user_url": "https://github.com/sgr-ksmt",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUca",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T08:38:53Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAKs97g",
+        "user_database_id": 11222510,
+        "user_login": "takeokunn",
+        "user_name": "take",
+        "user_url": "https://github.com/takeokunn",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABQ3W",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-04-15T15:07:48Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3695,
+            "contribution_point": 369500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAMjJNQ",
+        "user_database_id": 13158709,
+        "user_login": "samchon",
+        "user_name": "Jeongho Nam",
+        "user_url": "https://github.com/samchon",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABBMk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2024-07-05T03:18:29Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3979,
+            "contribution_point": 397900
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAP--4w",
+        "user_database_id": 16760547,
+        "user_login": "terasakisatoshi",
+        "user_name": "Satoshi Terasaki",
+        "user_url": "https://github.com/terasakisatoshi",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUPk",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-18T08:29:32Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3631,
+            "contribution_point": 363100
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOARaXHQ",
+        "user_database_id": 18257693,
+        "user_login": "motoki317",
+        "user_name": "motoki317",
+        "user_url": "https://github.com/motoki317",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUeu",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T04:17:18Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3626,
+            "contribution_point": 362600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOATkwFw",
+        "user_database_id": 20525079,
+        "user_login": "DoguD",
+        "user_name": "Doğu Deniz Uğur",
+        "user_url": "https://github.com/DoguD",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUhK",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T22:04:55Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAVBV4w",
+        "user_database_id": 22042083,
+        "user_login": "mgr-kb",
+        "user_name": "mogura",
+        "user_url": "https://github.com/mgr-kb",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUi0",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-24T12:38:04Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3625,
+            "contribution_point": 362500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAXY0UA",
+        "user_database_id": 24523856,
+        "user_login": "currypurin",
+        "user_name": "Murata Hideki",
+        "user_url": "https://github.com/currypurin",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUdD",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T13:55:04Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAZTlRQ",
+        "user_database_id": 26535237,
+        "user_login": "schroneko",
+        "user_name": "ぬこぬこ",
+        "user_url": "https://github.com/schroneko",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUc5",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T13:30:58Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOA_PvrA",
+        "user_database_id": 66318252,
+        "user_login": "mumei-xxxx",
+        "user_name": "聖永宗玄 Seiei Sōgen",
+        "user_url": "https://github.com/mumei-xxxx",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABaOD",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-11T06:59:30Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3546,
+            "contribution_point": 354600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAcJstQ",
+        "user_database_id": 29519029,
+        "user_login": "yasunogithub",
+        "user_name": "SAKAMOTO_Yasuaki",
+        "user_url": "https://github.com/yasunogithub",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa1f",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-19T04:19:01Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3538,
+            "contribution_point": 353800
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAh9OgA",
+        "user_database_id": 35606144,
+        "user_login": "tegnike",
+        "user_name": "ニケちゃん / nikechan",
+        "user_url": "https://github.com/tegnike",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUPP",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-18T05:43:21Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3631,
+            "contribution_point": 363100
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAkZyzQ",
+        "user_database_id": 38171341,
+        "user_login": "oikon48",
+        "user_name": "Oikon",
+        "user_url": "https://github.com/oikon48",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUff",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T11:54:50Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3626,
+            "contribution_point": 362600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAySzEQ",
+        "user_database_id": 52736785,
+        "user_login": "sumire0204",
+        "user_name": null,
+        "user_url": "https://github.com/sumire0204",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUb7",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-22T04:50:44Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3627,
+            "contribution_point": 362700
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOAzd4cw",
+        "user_database_id": 53966963,
+        "user_login": "Tomoki-Saito",
+        "user_name": "Tomoki Saito - 齋藤 智樹",
+        "user_url": "https://github.com/Tomoki-Saito",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUed",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T00:54:25Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3626,
+            "contribution_point": 362600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOB8_CRQ",
+        "user_database_id": 131056197,
+        "user_login": "flowernotfound",
+        "user_name": "Hiroaki Mitsuyoshi",
+        "user_url": "https://github.com/flowernotfound",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABaY6",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-13T15:05:37Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3544,
+            "contribution_point": 354400
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBBWmfg",
+        "user_database_id": 68527742,
+        "user_login": "Ikwus",
+        "user_name": "Ikwus",
+        "user_url": "https://github.com/Ikwus",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUf8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-23T15:35:23Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3626,
+            "contribution_point": 362600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBC_iYw",
+        "user_database_id": 70247011,
+        "user_login": "L4Ph",
+        "user_name": "Katsuyuki Karasawa",
+        "user_url": "https://github.com/L4Ph",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABQ3V",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-04-15T15:01:34Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3695,
+            "contribution_point": 369500
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBW5aig",
+        "user_database_id": 91118218,
+        "user_login": "rassi0429",
+        "user_name": "KOKOA",
+        "user_url": "https://github.com/rassi0429",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABVNM",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-07-06T13:00:12Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3613,
+            "contribution_point": 361300
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBYwoWA",
+        "user_database_id": 93071448,
+        "user_login": "mozumasu",
+        "user_name": null,
+        "user_url": "https://github.com/mozumasu",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUO8",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-18T02:49:32Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3631,
+            "contribution_point": 363100
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBbCWZQ",
+        "user_database_id": 95458917,
+        "user_login": "salala01",
+        "user_name": "salala",
+        "user_url": "https://github.com/salala01",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABX0B",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-09T05:58:38Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3579,
+            "contribution_point": 357900
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOBvRgOA",
+        "user_database_id": 116678712,
+        "user_login": "miyashita-code",
+        "user_name": "Takuma Miyashita",
+        "user_url": "https://github.com/miyashita-code",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUFt",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-15T08:05:28Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3634,
+            "contribution_point": 363400
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOCQfDNQ",
+        "user_database_id": 151503669,
+        "user_login": "wmoto-ai",
+        "user_name": "生ビール",
+        "user_url": "https://github.com/wmoto-ai",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABX03",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-08-09T12:11:43Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3579,
+            "contribution_point": 357900
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOCZ_QEg",
+        "user_database_id": 161468434,
+        "user_login": "tomiyamaluca",
+        "user_name": "兎耳山ルカ",
+        "user_url": "https://github.com/tomiyamaluca",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABUks",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-06-24T23:41:02Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3624,
+            "contribution_point": 362400
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDOCqGKVA",
+        "user_database_id": 178358868,
+        "user_login": "ihatenodejs",
+        "user_name": "Aidan",
+        "user_url": "https://github.com/ihatenodejs",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa8i",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-20T23:15:22Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3536,
+            "contribution_point": 353600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDODFMmjw",
+        "user_database_id": 206775951,
+        "user_login": "zazen-inu",
+        "user_name": "zazen_inu",
+        "user_url": "https://github.com/zazen-inu",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa8v",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-21T00:50:21Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3536,
+            "contribution_point": 353600
+          }
+        ]
+      },
+      {
+        "user_id": "U_kgDODJceqg",
+        "user_database_id": 211230378,
+        "user_login": "tatukuma",
+        "user_name": "たつくま",
+        "user_url": "https://github.com/tatukuma",
+        "user_type": "User",
+        "task_total_count": 1,
+        "task": [
+          {
+            "task_id": "S_kwDOABfPvM4ABa81",
+            "task_database_id": null,
+            "task_full_database_id": null,
+            "task_url": null,
+            "task_name": "sponsor",
+            "task_date": "2025-09-21T01:25:20Z",
+            "reference_task_date_field": "createdAt",
+            "criterion_weight_for_task_type": 100,
+            "criterion_weight_for_repo_creation_to_task_period": 3536,
+            "contribution_point": 353600
+          }
+        ]
+      }
+    ]
+  }
+}

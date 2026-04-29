@@ -1,0 +1,41 @@
+{
+  "data": {
+    "node": {
+      "reactions": {
+        "totalCount": 2,
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpHOEV66Aw=="
+        },
+        "nodes": [
+          {
+            "databaseId": 291420614,
+            "id": "REA_lALOOyw9fc6wNbznzhFeucY",
+            "content": "THUMBS_UP",
+            "createdAt": "2025-06-09T16:36:55Z",
+            "user": {
+              "databaseId": 1560508,
+              "id": "U_kgDOABfPvA",
+              "login": "ryoppippi",
+              "name": "ryoppippi",
+              "url": "https://github.com/ryoppippi"
+            }
+          },
+          {
+            "databaseId": 291420675,
+            "id": "REA_lALOOyw9fc6wNbznzhFeugM",
+            "content": "HOORAY",
+            "createdAt": "2025-06-09T16:37:30Z",
+            "user": {
+              "databaseId": 1560508,
+              "id": "U_kgDOABfPvA",
+              "login": "ryoppippi",
+              "name": "ryoppippi",
+              "url": "https://github.com/ryoppippi"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

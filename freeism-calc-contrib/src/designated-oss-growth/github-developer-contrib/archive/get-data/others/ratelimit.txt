@@ -1,0 +1,12 @@
+gh api graphql -f query='
+  query(){
+    rateLimit {
+      cost
+      limit
+      nodeCount
+      remaining
+      used
+      resetAt
+    }
+  }
+'

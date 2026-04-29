@@ -1,0 +1,17 @@
+{
+  "data": {
+    "repo_id": "R_kgDOPDzQlw",
+    "repo_database_id": 1010618519,
+    "repo_name": "difit",
+    "repo_description": "A lightweight command-line tool that spins up a local web server to display Git commit diffs in a GitHub-like Files changed view",
+    "repo_createdAt": "2025-06-29T13:09:26Z",
+    "repo_url": "https://github.com/yoshiko-pg/difit",
+    "repo_homepageUrl": "https://www.npmjs.com/package/difit",
+    "owner_id": "U_kgDOAGgcCw",
+    "owner_database_id": 6822923,
+    "owner_login": "yoshiko-pg",
+    "owner_name": "yoshiko",
+    "owner_url": "https://github.com/yoshiko-pg",
+    "default_branch": "main"
+  }
+}

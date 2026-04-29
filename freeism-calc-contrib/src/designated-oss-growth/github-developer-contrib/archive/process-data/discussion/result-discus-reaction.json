@@ -1,0 +1,170 @@
+[
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AgyXW",
+    "node_databaseId": 8594902,
+    "node_number": 317,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/317",
+    "node_title": "Account based?",
+    "node_bodyText": "Hi, thanks for the tool. It's really nice to have.\nI have a quick question. Is it possible to make it account based? For example, if I run the tool on my local desktop and server, they show their own usages, so I need to add them to get my actual Anthropic's ccuage. I though the results are tied to the account but I guess it's based on the machine as well.",
+    "node_publishedAt": "2025-07-17T12:39:08Z",
+    "databaseId": 2056317,
+    "id": "REA_lAXOOyw9fc4AgyXWzgAfYH0",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-04T00:34:10Z",
+    "user": {
+      "databaseId": 1961027,
+      "id": "U_kgDOAB3sQw",
+      "login": "istisiki",
+      "name": "stacey",
+      "url": "https://github.com/istisiki"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4Ahfga",
+    "node_databaseId": 8779802,
+    "node_number": 579,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/579",
+    "node_title": "Monitoring Shared Usage Limits Across Claude and Claude Code",
+    "node_bodyText": "According to Anthropic, \"Both Pro and Max plans offer rate limits that are shared across Claude and Claude Code, meaning all activity in both tools counts against the same usage limits.\" Since they share sessions, is there a way to monitor usage beyond just using ClaudeCode?",
+    "node_publishedAt": "2025-07-23T06:43:27Z",
+    "databaseId": 2087231,
+    "id": "REA_lAXOOyw9fc4AhfgazgAf2T8",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-07-24T16:39:01Z",
+    "user": {
+      "databaseId": 15910616,
+      "id": "U_kgDOAPLG2A",
+      "login": "lhall-amphibee",
+      "name": "Loïc HALL",
+      "url": "https://github.com/lhall-amphibee"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhBDH",
+    "node_databaseId": 8655047,
+    "node_number": 382,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/382",
+    "node_title": "Weekly usage?",
+    "node_bodyText": "As Anthropic recently introduced weekly limits, wouldn't it make sense to add a \"weekly\" feature to ccusage? :)",
+    "node_publishedAt": "2025-07-30T09:24:44Z",
+    "databaseId": 2052910,
+    "id": "REA_lAXOOyw9fc4AhBDHzgAfUy4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-01T10:43:01Z",
+    "user": {
+      "databaseId": 8159377,
+      "id": "U_kgDOAHyAkQ",
+      "login": "Sorbh",
+      "name": "Saurabh kumar",
+      "url": "https://github.com/Sorbh"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhBDH",
+    "node_databaseId": 8655047,
+    "node_number": 382,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/382",
+    "node_title": "Weekly usage?",
+    "node_bodyText": "As Anthropic recently introduced weekly limits, wouldn't it make sense to add a \"weekly\" feature to ccusage? :)",
+    "node_publishedAt": "2025-07-30T09:24:44Z",
+    "databaseId": 2053843,
+    "id": "REA_lAXOOyw9fc4AhBDHzgAfVtM",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-01T23:14:27Z",
+    "user": {
+      "databaseId": 13785588,
+      "id": "U_kgDOANJZ9A",
+      "login": "olup",
+      "name": "Olup",
+      "url": "https://github.com/olup"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8i",
+    "node_databaseId": 8707874,
+    "node_number": 464,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "node_title": "Wrong usage limits for PRO",
+    "node_bodyText": "Wrong usage limits for PRO.",
+    "node_publishedAt": "2025-08-08T18:17:51Z",
+    "databaseId": 2066670,
+    "id": "REA_lAXOOyw9fc4AhN8izgAfiO4",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-10T07:16:55Z",
+    "user": {
+      "databaseId": 1571956,
+      "id": "U_kgDOABf8dA",
+      "login": "joegoldin",
+      "name": "Joe Goldin",
+      "url": "https://github.com/joegoldin"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8i",
+    "node_databaseId": 8707874,
+    "node_number": 464,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "node_title": "Wrong usage limits for PRO",
+    "node_bodyText": "Wrong usage limits for PRO.",
+    "node_publishedAt": "2025-08-08T18:17:51Z",
+    "databaseId": 2066671,
+    "id": "REA_lAXOOyw9fc4AhN8izgAfiO8",
+    "content": "EYES",
+    "createdAt": "2025-08-09T11:46:12Z",
+    "user": {
+      "databaseId": 6151341,
+      "id": "U_kgDOAF3crQ",
+      "login": "thiagodebastos",
+      "name": "Thiago Lucio",
+      "url": "https://github.com/thiagodebastos"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8i",
+    "node_databaseId": 8707874,
+    "node_number": 464,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "node_title": "Wrong usage limits for PRO",
+    "node_bodyText": "Wrong usage limits for PRO.",
+    "node_publishedAt": "2025-08-08T18:17:51Z",
+    "databaseId": 2066672,
+    "id": "REA_lAXOOyw9fc4AhN8izgAfiPA",
+    "content": "EYES",
+    "createdAt": "2025-08-10T07:16:53Z",
+    "user": {
+      "databaseId": 1571956,
+      "id": "U_kgDOABf8dA",
+      "login": "joegoldin",
+      "name": "Joe Goldin",
+      "url": "https://github.com/joegoldin"
+    }
+  },
+  {
+    "node___typename": "Discussion",
+    "node_id": "D_kwDOOyw9fc4AhN8i",
+    "node_databaseId": 8707874,
+    "node_number": 464,
+    "node_url": "https://github.com/ryoppippi/ccusage/discussions/464",
+    "node_title": "Wrong usage limits for PRO",
+    "node_bodyText": "Wrong usage limits for PRO.",
+    "node_publishedAt": "2025-08-08T18:17:51Z",
+    "databaseId": 2066934,
+    "id": "REA_lAXOOyw9fc4AhN8izgAfifY",
+    "content": "THUMBS_UP",
+    "createdAt": "2025-08-10T16:49:31Z",
+    "user": {
+      "databaseId": 1542015,
+      "id": "U_kgDOABeHfw",
+      "login": "harris21",
+      "name": "Harris Raftopoulos",
+      "url": "https://github.com/harris21"
+    }
+  }
+]
