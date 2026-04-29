@@ -42,5 +42,5 @@ mise trust
 ```
 
 ```shell
-mise init
+mise run init
 ```
