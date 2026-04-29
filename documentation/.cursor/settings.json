@@ -1,0 +1,32 @@
+{
+	"cSpell.words": ["freeism"],
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.formatOnSave": false,
+	"editor.quickSuggestions": {
+		"comments": false
+	},
+	"editor.renderControlCharacters": true,
+	"editor.rulers": [200],
+	"editor.tabSize": 2,
+	"editor.wordWrap": "off",
+	"eslint.useFlatConfig": true,
+	"eslint.workingDirectories": [
+		{
+			"mode": "auto"
+		}
+	],
+	"eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+	"eslint.packageManager": "npm",
+	"eslint.execArgv": [],
+	"eslint.options": {
+		"cache": true,
+		"cacheLocation": ".eslintcache"
+	},
+	"prettier.ignorePath": ".gitignore",
+	"search.exclude": {
+		"**/node_modules": true
+	}
+}

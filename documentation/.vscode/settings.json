@@ -1,0 +1,11 @@
+{
+	// ファイルネスティングを有効化
+	"explorer.fileNesting.enabled": true,
+	"explorer.fileNesting.expand": false,
+
+	// このリポジトリ専用のファイルネスティングパターン
+	"explorer.fileNesting.patterns": {
+		// package.json関連のファイルをネスト
+		"package.json": "package-lock.json",
+	}
+}
