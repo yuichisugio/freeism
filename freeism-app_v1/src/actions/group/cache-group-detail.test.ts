@@ -1,0 +1,337 @@
+import type { Group } from "@/types/group-types";
+import { prismaMock } from "@/test/setup/prisma-orm-setup";
+import { groupFactory } from "@/test/test-utils/test-utils-prisma-orm";
+import { beforeEach, describe, expect, test } from "vitest";
+
+import { getCachedGroupById } from "./cache-group-detail";
+
+// ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+describe("getCachedGroupById", () => {
+  beforeEach(() => {
+    prismaMock.group.findUnique.mockReset();
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("正常系", () => {
+    test("should return group data when valid groupId is provided", async () => {
+      // Arrange
+      const mockGroupId = "test-group-id";
+      const mockMembers = [{ userId: "user-1" }, { userId: "user-2" }, { userId: "user-3" }];
+
+      // Given
+      const mockGroupData = {
+        id: mockGroupId,
+        name: "テストグループ",
+        goal: "テスト目標",
+        evaluationMethod: "自動評価",
+        depositPeriod: 30,
+        maxParticipants: 10,
+        members: mockMembers,
+      };
+
+      // Expected
+      const expectedGroup: Group = {
+        id: mockGroupId,
+        name: "テストグループ",
+        goal: "テスト目標",
+        evaluationMethod: "自動評価",
+        joinMemberCount: 3,
+        maxParticipants: 10,
+        depositPeriod: 30,
+        members: mockMembers,
+      };
+
+      // When
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // Act
+      const result = await getCachedGroupById(mockGroupId);
+
+      // Assert
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ情報を取得しました",
+        data: expectedGroup,
+      });
+      expect(prismaMock.group.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+        where: { id: mockGroupId },
+        select: {
+          id: true,
+          name: true,
+          goal: true,
+          evaluationMethod: true,
+          depositPeriod: true,
+          maxParticipants: true,
+          members: {
+            select: { userId: true },
+          },
+        },
+      });
+    });
+
+    test("should return group data with empty members array when group has no members", async () => {
+      // テストデータの準備（メンバーなし）
+      const mockGroupId = "test-group-no-members";
+      const mockGroupData = {
+        id: mockGroupId,
+        name: "メンバーなしグループ",
+        goal: "メンバーなしテスト",
+        evaluationMethod: "手動評価",
+        depositPeriod: 7,
+        maxParticipants: 5,
+        members: [],
+      };
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行
+      const result = await getCachedGroupById(mockGroupId);
+
+      // 期待値の定義
+      const expectedGroup: Group = {
+        id: mockGroupId,
+        name: "メンバーなしグループ",
+        goal: "メンバーなしテスト",
+        evaluationMethod: "手動評価",
+        joinMemberCount: 0,
+        maxParticipants: 5,
+        depositPeriod: 7,
+        members: [],
+      };
+
+      // 検証
+      expect(result).toStrictEqual({
+        success: true,
+        message: "グループ情報を取得しました",
+        data: expectedGroup,
+      });
+      expect(result.data.joinMemberCount).toBe(0);
+      expect(result.data.members).toHaveLength(0);
+    });
+
+    test("should return group data with maximum members when group is full", async () => {
+      // テストデータの準備（最大メンバー数）
+      const mockGroupId = "test-group-full";
+      const maxParticipants = 2;
+      const mockMembers = [{ userId: "user-1" }, { userId: "user-2" }];
+
+      const mockGroupData = {
+        id: mockGroupId,
+        name: "満員グループ",
+        goal: "満員テスト",
+        evaluationMethod: "自動評価",
+        depositPeriod: 14,
+        maxParticipants,
+        members: mockMembers,
+      };
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行
+      const result = await getCachedGroupById(mockGroupId);
+
+      // 検証
+      expect(result.data.joinMemberCount).toBe(maxParticipants);
+      expect(result.data.maxParticipants).toBe(maxParticipants);
+      expect(result.data.members).toHaveLength(maxParticipants);
+    });
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("異常系", () => {
+    test("should throw error when group is not found", async () => {
+      // テストデータの準備
+      const nonExistentGroupId = "non-existent-group-id";
+
+      // Prismaモックの設定（グループが見つからない場合）
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行と検証
+      await expect(getCachedGroupById(nonExistentGroupId)).rejects.toThrow("グループが見つかりません");
+
+      // Prismaが正しく呼ばれたことを確認
+      expect(prismaMock.group.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaMock.group.findUnique).toHaveBeenCalledWith({
+        where: { id: nonExistentGroupId },
+        select: {
+          id: true,
+          name: true,
+          goal: true,
+          evaluationMethod: true,
+          depositPeriod: true,
+          maxParticipants: true,
+          members: {
+            select: { userId: true },
+          },
+        },
+      });
+    });
+
+    test("should throw error when database error occurs", async () => {
+      // テストデータの準備
+      const mockGroupId = "test-group-db-error";
+      const dbError = new Error("Database connection failed");
+
+      // Prismaモックの設定（データベースエラー）
+      prismaMock.group.findUnique.mockRejectedValue(
+        dbError as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行と検証
+      await expect(getCachedGroupById(mockGroupId)).rejects.toThrow("Database connection failed");
+
+      // Prismaが正しく呼ばれたことを確認
+      expect(prismaMock.group.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("境界値テスト", () => {
+    test("should handle empty string groupId", async () => {
+      // テストデータの準備
+      const emptyGroupId = "";
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue(
+        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行と検証
+      await expect(getCachedGroupById(emptyGroupId)).rejects.toThrow("グループIDがありません");
+
+      // Prismaが呼び出されないことを確認（バリデーションエラーのため）
+      expect(prismaMock.group.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("データ変換テスト", () => {
+    test("should correctly map members array", async () => {
+      // テストデータの準備（複数のメンバー）
+      const mockGroupId = "test-group-members-mapping";
+      const mockMembers = [
+        { userId: "user-001" },
+        { userId: "user-002" },
+        { userId: "user-003" },
+        { userId: "user-004" },
+        { userId: "user-005" },
+      ];
+
+      const mockGroupData = {
+        id: mockGroupId,
+        name: "メンバーマッピングテストグループ",
+        goal: "メンバーマッピングテスト",
+        evaluationMethod: "自動評価",
+        depositPeriod: 21,
+        maxParticipants: 10,
+        members: mockMembers,
+      };
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行
+      const result = await getCachedGroupById(mockGroupId);
+
+      // 検証
+      expect(result.data.members).toHaveLength(5);
+      expect(result.data.joinMemberCount).toBe(5);
+      expect(result.data.members).toStrictEqual(mockMembers);
+
+      // 各メンバーの構造を確認
+      result.data.members.forEach((member, index) => {
+        expect(member).toHaveProperty("userId");
+        expect(member.userId).toBe(`user-00${index + 1}`);
+      });
+    });
+
+    test("should correctly calculate joinMemberCount from members array length", async () => {
+      // テストデータの準備（メンバー数の計算確認）
+      const mockGroupId = "test-group-member-count";
+      const mockMembers = Array.from({ length: 7 }, (_, i) => ({ userId: `user-${i + 1}` }));
+
+      const mockGroupData = {
+        id: mockGroupId,
+        name: "メンバー数計算テストグループ",
+        goal: "メンバー数計算テスト",
+        evaluationMethod: "手動評価",
+        depositPeriod: 15,
+        maxParticipants: 10,
+        members: mockMembers,
+      };
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue(
+        mockGroupData as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
+      );
+
+      // 関数実行
+      const result = await getCachedGroupById(mockGroupId);
+
+      // 検証
+      expect(result.data.joinMemberCount).toBe(7);
+      expect(result.data.members).toHaveLength(7);
+      expect(result.data.joinMemberCount).toBe(result.data.members.length);
+    });
+  });
+
+  // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+  describe("型安全性テスト", () => {
+    test("should return Group type with all required properties", async () => {
+      // テストデータの準備
+      const mockGroupId = "test-group-type-safety";
+      const mockGroupData = groupFactory.build({
+        id: mockGroupId,
+      });
+
+      // Prismaモックの設定
+      prismaMock.group.findUnique.mockResolvedValue({
+        id: mockGroupData.id,
+        name: mockGroupData.name,
+        goal: mockGroupData.goal,
+        evaluationMethod: mockGroupData.evaluationMethod,
+        depositPeriod: mockGroupData.depositPeriod,
+        maxParticipants: mockGroupData.maxParticipants,
+        members: [{ userId: "user-1" }, { userId: "user-2" }],
+      } as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>);
+
+      // 関数実行
+      const result = await getCachedGroupById(mockGroupId);
+
+      // 型安全性の検証
+      expect(typeof result.data.id).toBe("string");
+      expect(typeof result.data.name).toBe("string");
+      expect(typeof result.data.goal).toBe("string");
+      expect(typeof result.data.evaluationMethod).toBe("string");
+      expect(typeof result.data.joinMemberCount).toBe("number");
+      expect(typeof result.data.maxParticipants).toBe("number");
+      expect(typeof result.data.depositPeriod).toBe("number");
+      expect(Array.isArray(result.data.members)).toBe(true);
+
+      // メンバー配列の型確認
+      result.data.members.forEach((member) => {
+        expect(typeof member.userId).toBe("string");
+        expect(Object.keys(member)).toStrictEqual(["userId"]);
+      });
+    });
+  });
+});

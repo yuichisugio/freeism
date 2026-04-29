@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    "ms-vscode-remote.remote-wsl",
+    "denoland.vscode-deno",
+    "Prisma.prisma",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-vscode.vscode-typescript-next",
+    "usernamehw.errorlens",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-json",
+    "dbaeumer.vscode-eslint",
+    "ms-playwright.playwright",
+    "vitest.explorer"
+  ],
+  "unwantedRecommendations": []
+}

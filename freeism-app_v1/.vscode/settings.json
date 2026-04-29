@@ -1,0 +1,103 @@
+{
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.words": [
+    "aspromise",
+    "autoprefixer",
+    "browserslist",
+    "CLIENTVAR",
+    "clsx",
+    "cmdk",
+    "createhash",
+    "cuid",
+    "DCJW",
+    "dropunuseddefinitions",
+    "efnq",
+    "emnapi",
+    "esbuild",
+    "freeism",
+    "GOCSPX",
+    "googleusercontent",
+    "grouplist",
+    "ianvs",
+    "lintstagedrc",
+    "lucide",
+    "maintemplate",
+    "NEXTAUTH",
+    "nextjs",
+    "nodemailer",
+    "nuqs",
+    "nwfvlbapwguryuhstois",
+    "papaparse",
+    "pgbouncer",
+    "pooler",
+    "printwithreducedwhitespace",
+    "reduxjs",
+    "RXFDN",
+    "Shadcn",
+    "simplewebauthn",
+    "sonner",
+    "subcomponents",
+    "sugio",
+    "supabase",
+    "turbopack",
+    "vercel",
+    "yuichisugio"
+  ],
+  "css.lint.unknownAtRules": "ignore",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "editor.quickSuggestions": {
+    "comments": false
+  },
+  "editor.renderControlCharacters": true,
+  "editor.rulers": [200],
+  "editor.tabSize": 2,
+  "editor.wordWrap": "off",
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.execArgv": [],
+  "eslint.options": {
+    "cache": true,
+    "cacheLocation": ".eslintcache"
+  },
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    "*.cts": "${capture}.typegen.ts",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.mts": "${capture}.typegen.ts",
+    "*.ts": "${capture}.js, ${capture}.typegen.ts",
+    "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
+    "package.json": "AGENTS.md,.mcp.json,CLAUDE.md,vitest.config.ts,knip.json,.env.production,SECURITY.md,tsconfig.tsbuildinfo,commitlint.config.js,.nvmrc,.env.local,eslint.config.js, .cursorrules,components.json ,.cz-config.cjs,commitlint.config.cjs , LICENSE.md ,README.md , package-lock.json, yarn.lock, pnpm-lock.yaml, .eslintrc.json, next.config.mjs, postcss.config.mjs, tailwind.config.ts, tsconfig.json, next-env.d.ts, .gitignore, next.config.ts, .eslintrc.cjs, .env, .env.example, eslint.config.mjs, .lintstagedrc, .prettierrc.mjs"
+  },
+  "prettier.ignorePath": ".gitignore",
+  "redhat.telemetry.enabled": false,
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "tailwind-fold.autoFold": false,
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "vitest.enable": true,
+  "vitest.commandLine": "./node_modules/.bin/vitest",
+  "vitest.rootConfig": "./vitest.config.ts"
+}

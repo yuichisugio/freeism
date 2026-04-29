@@ -1,0 +1,113 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --color-app: var(--color-blue-600);
+  --color-app-dark: var(--color-blue-400);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+  /* 標準のクリック可能な要素に対して指カーソルに変化させる設定 */
+  button,a,label {
+    @apply cursor-pointer;
+  }
+}
+
+body.fullscreen-active {
+  overflow: hidden !important; /* フルスクリーン時に背景のスクロールを禁止 */
+}
+
+/* フルスクリーンモード時に Header (#app-header) と Sidebar (#app-sidebar) を非表示にする 
+  重要度を上げて、他のスタイルよりも優先されるようにする
+*/
+body.fullscreen-active #app-header,
+body.fullscreen-active #app-sidebar {
+  display: none !important;
+}
+
+/* フルスクリーンモード時に DashboardLayout 内のメインコンテンツエリア (<main>) と 
+  その中のコンテナ (<div class="container ...">) の余白や最大幅制限を解除し、
+  画面全体に広がるようにする。
+*/
+/* オプション: フルスクリーンモード時に MainTemplate によって表示される
+  ページタイトルや説明 (.page-title-custom, .page-description-custom) も非表示にする場合。
+  テーブルコンテンツのみを最大化したい場合は、以下のコメントアウトを解除。
+*/
+body.table-fullscreen-active .page-title-custom,
+body.table-fullscreen-active .page-description-custom {
+  display: none !important;
+}
+
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+.text-custom {
+  @apply text-app text-sm font-semibold sm:text-base dark:text-app-dark;
+}
+
+.button-outline-custom {
+  @apply border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300 dark:hover:bg-blue-900 dark:hover:text-blue-200;
+}
+
+.button-default-custom {
+  @apply bg-blue-600 text-white hover:bg-blue-700 hover:text-white dark:bg-blue-900 dark:hover:bg-blue-700 dark:hover:text-white;
+}
+
+.button-danger-custom {
+  @apply text-red-600 hover:text-red-700 dark:text-red-300 dark:hover:text-red-400;
+}
+
+.button-edit-custom {
+  @apply mr-1 text-yellow-500 hover:text-yellow-600 dark:text-yellow-300 dark:hover:text-yellow-600;
+}
+
+.button-join-custom {
+  @apply mr-1 text-app hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-600;
+}
+
+.page-description-custom {
+  @apply mt-2 mb-5 text-sm text-neutral-600 dark:text-neutral-400;
+}
+
+.page-title-custom {
+  @apply text-app text-2xl font-bold sm:text-3xl dark:text-app-dark;
+}
+
+.form-label-custom {
+  @apply text-app text-sm font-semibold sm:text-base dark:text-app-dark;
+}
+
+.form-description-custom {
+  @apply text-xs text-neutral-600 sm:text-sm dark:text-neutral-400;
+}
+
+.form-message-custom {
+  @apply text-xs text-red-500 sm:text-sm dark:text-red-400;
+}
+
+.form-control-custom {
+  @apply border-blue-200 bg-white/50 backdrop-blur-sm transition-colors focus:border-blue-300 focus:ring-blue-300 sm:min-h-[100px];
+}
+
+.alert-dialog-title-custom {
+  @apply text-app;
+}
+
+.alert-dialog-description-custom {
+  @apply text-gray-900;
+}

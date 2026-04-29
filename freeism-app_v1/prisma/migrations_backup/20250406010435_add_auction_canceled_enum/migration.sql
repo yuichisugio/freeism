@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AuctionEventType" ADD VALUE 'AUCTION_CANCELED';

@@ -1,0 +1,510 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  plugin          = "@prisma/nextjs-monorepo-workaround-plugin"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [uuid_ossp(map: "uuid-ossp", schema: "extensions")]
+}
+
+model User {
+  id                 String             @id @default(cuid())
+  name               String?
+  email              String             @unique
+  image              String?
+  createdAt          DateTime           @default(now()) @map("created_at")
+  emailVerified      DateTime?          @map("email_verified")
+  isAppOwner         Boolean            @default(false) @map("is_app_owner")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+  accounts           Account[]
+  analytics          Analytics[]
+  highestBids        Auction[]          @relation("HighestBidder")
+  wonAuctions        Auction[]          @relation("AuctionWinner")
+  sentMessages       AuctionMessage[]   @relation("MessageSender")
+  reviewsReceived    AuctionReview[]    @relation("RevieweeUser")
+  reviewsGiven       AuctionReview[]    @relation("ReviewerUser")
+  autoBids           AutoBid[]
+  bids               BidHistory[]
+  groups             Group[]
+  memberships        GroupMembership[]
+  groupPoints        GroupPoint[]
+  notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
+  sessions           Session[]
+  taskCreator        Task[]             @relation("TaskCreator")
+  fixedEvaluator     Task[]             @relation("FixedEvaluator")
+  userFixedSubmitter Task[]             @relation("UserFixedSubmitter")
+  taskExecutor       TaskExecutor[]
+  taskReporter       TaskReporter[]
+  watchLists         TaskWatchList[]
+  settings           UserSettings?
+
+  @@index([image])
+  @@index([isAppOwner])
+  @@index([createdAt])
+}
+
+model Account {
+  type              String
+  provider          String
+  refresh_token     String?  @map("refresh_token")
+  access_token      String?  @map("access_token")
+  token_type        String?  @map("token_type")
+  scope             String?
+  id_token          String?  @map("id_token")
+  session_state     String?  @map("session_state")
+  expires_at        Int?     @map("expires_at")
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now()) @map("created_at")
+  providerAccountId String   @map("provider_account_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  userId            String   @map("user_id")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  expires      DateTime
+  id           String   @id @default(cuid())
+  userId       String
+  createdAt    DateTime @default(now()) @map("created_at")
+  sessionToken String   @unique @map("session_token")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @id @unique
+  expires    DateTime
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([identifier, token])
+}
+
+model UserSettings {
+  id             String   @id @default(cuid())
+  username       String   @default("未設定")
+  createdAt      DateTime @default(now()) @map("created_at")
+  lifeGoal       String   @default("未設定") @map("life_goal")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  userId         String   @unique @map("user_id")
+  isEmailEnabled Boolean  @default(false) @map("is_email_enabled")
+  isPushEnabled  Boolean  @default(false) @map("is_push_enabled")
+  user           User     @relation(fields: [userId], references: [id])
+
+  @@index([username])
+  @@index([isEmailEnabled])
+  @@index([isPushEnabled])
+}
+
+model Group {
+  id               String            @id @default(cuid())
+  name             String            @unique
+  goal             String
+  depositPeriod    Int               @default(30) @map("deposit_period")
+  maxParticipants  Int               @default(100) @map("max_participants")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  createdBy        String            @map("created_by")
+  evaluationMethod String            @map("evaluation_method")
+  isBlackList      Json?             @map("is_black_list")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  analytics        Analytics[]
+  auctions         Auction[]
+  user             User              @relation(fields: [createdBy], references: [id])
+  members          GroupMembership[]
+  groupPoints      GroupPoint[]
+  notifications    Notification[]
+  tasks            Task[]
+
+  @@index([createdBy])
+  @@index([createdAt])
+}
+
+model GroupMembership {
+  id           String   @id @default(cuid())
+  groupId      String   @map("group_id")
+  isGroupOwner Boolean  @default(false) @map("is_group_owner")
+  joinedAt     DateTime @default(now()) @map("joined_at")
+  userId       String   @map("user_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  group        Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+  @@index([isGroupOwner])
+}
+
+model Task {
+  id                     String           @id @default(cuid())
+  task                   String
+  reference              String?
+  status                 TaskStatus       @default(PENDING)
+  info                   String?
+  detail                 String?
+  createdAt              DateTime         @default(now()) @map("created_at")
+  creatorId              String           @map("creator_id")
+  fixedContributionPoint Int?             @map("fixed_contribution_point")
+  fixedEvaluationDate    DateTime?        @map("fixed_evaluation_date")
+  fixedEvaluationLogic   String?          @map("fixed_evaluation_logic")
+  imageUrl               String?          @map("image_url")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  userFixedSubmitterId   String?          @map("user_fixed_submitter_id")
+  deliveryMethod         String?          @map("delivery_method")
+  category               String?          @default("その他")
+  groupId                String           @map("group_id")
+  fixedEvaluatorId       String?          @map("fixed_evaluator_id")
+  contributionType       ContributionType @default(NON_REWARD) @map("contribution_type")
+  analytics              Analytics[]
+  auction                Auction?
+  notifications          Notification[]
+  creator                User             @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  fixedEvaluator         User?            @relation("FixedEvaluator", fields: [fixedEvaluatorId], references: [id], onDelete: Cascade)
+  group                  Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userFixedSubmitter     User?            @relation("UserFixedSubmitter", fields: [userFixedSubmitterId], references: [id], onDelete: Cascade)
+  executors              TaskExecutor[]
+  reporters              TaskReporter[]
+
+  @@index([contributionType])
+  @@index([category])
+  @@index([creatorId])
+  @@index([groupId])
+  @@index([userFixedSubmitterId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([id, creatorId])
+  @@index([groupId, status, createdAt(sort: Desc)], map: "idx_task_groupId_status_createdAt_desc")
+  @@index([groupId, contributionType, category], map: "idx_task_groupId_contributionType_category")
+  @@index([groupId, status, createdAt(sort: Desc), contributionType], map: "idx_task_groupId_status_createdAt_contributionType_desc")
+}
+
+model Analytics {
+  id                String   @id @default(cuid())
+  evaluator         String
+  contributionPoint Int      @map("contribution_point")
+  createdAt         DateTime @default(now()) @map("created_at")
+  evaluationLogic   String   @map("evaluation_logic")
+  groupId           String   @map("group_id")
+  taskId            String   @map("task_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [evaluator], references: [id], onDelete: Cascade)
+  group             Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  task              Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([groupId])
+  @@index([evaluator])
+  @@index([groupId, taskId])
+  @@index([groupId, evaluator])
+  @@index([createdAt])
+}
+
+model Notification {
+  id                String                   @id @default(cuid())
+  title             String                   @map("title")
+  message           String                   @map("message")
+  actionUrl         String?                  @map("action_url")
+  expiresAt         DateTime?                @map("expires_at")
+  groupId           String?                  @map("group_id")
+  sentAt            DateTime?                @map("sent_at")
+  targetType        NotificationTargetType   @map("target_type")
+  taskId            String?                  @map("task_id")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @updatedAt @map("updated_at")
+  sendScheduledDate DateTime?                @map("send_scheduled_date")
+  sendTimingType    NotificationSendTiming   @map("send_timing_type")
+  auctionEventType  AuctionEventType?        @map("auction_event_type")
+  auctionId         String?                  @map("auction_id")
+  isRead            Json                     @default("{}") @map("is_read")
+  sendMethods       NotificationSendMethod[] @map("send_methods")
+  senderUserId      String?                  @map("sender_user_id")
+  auction           Auction?                 @relation(fields: [auctionId], references: [id])
+  group             Group?                   @relation(fields: [groupId], references: [id])
+  senderUser        User?                    @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  task              Task?                    @relation(fields: [taskId], references: [id])
+
+  @@index([auctionEventType])
+  @@index([senderUserId])
+  @@index([groupId])
+  @@index([taskId])
+  @@index([auctionId])
+  @@index([sendScheduledDate], map: "idx_notification_scheduled")
+  @@index([targetType, auctionEventType], map: "idx_notification_target_event")
+  @@index([isRead], map: "idx_notification_isread_gin", type: Gin)
+  @@index([sendTimingType, sentAt])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+model TaskReporter {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  userId    String?  @map("user_id")
+  name      String?
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([taskId, userId])
+}
+
+model TaskExecutor {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now()) @map("created_at")
+  taskId    String   @map("task_id")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  userId    String?  @map("user_id")
+  name      String?
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([taskId, userId])
+}
+
+model TaskWatchList {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  auctionId String   @map("auction_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@index([userId])
+  @@index([auctionId])
+}
+
+model GroupPoint {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  groupId          String   @map("group_id")
+  balance          Int      @default(0)
+  fixedTotalPoints Int      @default(0) @map("fixed_total_points")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  group            Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([balance])
+}
+
+model Auction {
+  id                        String           @id @default(cuid())
+  taskId                    String           @unique @map("task_id")
+  startTime                 DateTime         @map("start_time")
+  endTime                   DateTime         @map("end_time")
+  currentHighestBid         Int              @default(0) @map("current_highest_bid")
+  currentHighestBidderId    String?          @map("current_highest_bidder_id")
+  winnerId                  String?          @map("winner_id")
+  version                   Int              @default(1)
+  createdAt                 DateTime         @default(now()) @map("created_at")
+  updatedAt                 DateTime         @updatedAt @map("updated_at")
+  groupId                   String           @map("group_id")
+  extensionLimitCount       Int              @default(2) @map("extension_limit_count")
+  extensionTotalCount       Int              @default(0) @map("extension_total_count")
+  isExtension               Boolean          @default(false) @map("is_extension")
+  extensionTime             Int              @default(10) @map("extension_time")
+  remainingTimeForExtension Int              @default(10) @map("remaining_time_for_extension")
+  currentHighestBidder      User?            @relation("HighestBidder", fields: [currentHighestBidderId], references: [id])
+  group                     Group            @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  task                      Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  winner                    User?            @relation("AuctionWinner", fields: [winnerId], references: [id])
+  messages                  AuctionMessage[]
+  reviews                   AuctionReview[]
+  autoBids                  AutoBid[]
+  bidHistories              BidHistory[]
+  notifications             Notification[]
+  watchlists                TaskWatchList[]
+
+  @@index([currentHighestBidderId])
+  @@index([winnerId])
+  @@index([groupId])
+  @@index([version])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([groupId, endTime], map: "idx_auction_group_end")
+  @@index([groupId, startTime(sort: Desc)], map: "idx_auction_group_start_desc")
+  @@index([groupId, currentHighestBid(sort: Desc)], map: "idx_auction_group_highestBid_desc")
+  @@index([id, version])
+  @@index([winnerId, endTime(sort: Desc)])
+  @@index([taskId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model BidHistory {
+  id           String    @id @default(cuid())
+  auctionId    String    @map("auction_id")
+  userId       String    @map("user_id")
+  amount       Int
+  isAutoBid    Boolean   @default(false) @map("is_auto_bid")
+  status       BidStatus @default(BIDDING)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  depositPoint Int?      @map("deposit_point")
+  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@index([userId])
+  @@index([status])
+  @@index([auctionId, createdAt(sort: Desc)], map: "idx_bidhistory_auctionId_createdAt_desc")
+  @@index([auctionId, userId, createdAt(sort: Desc)], map: "idx_bidhistory_auctionId_userId_createdAt_desc")
+  @@index([userId, createdAt(sort: Desc)], map: "idx_bidhistory_userId_createdAt_desc")
+}
+
+model AutoBid {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  auctionId    String    @map("auction_id")
+  maxBidAmount Int       @map("max_bid_amount")
+  bidIncrement Int       @default(1) @map("bid_increment")
+  lastBidTime  DateTime? @map("last_bid_time")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  auction      Auction   @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+  @@index([maxBidAmount])
+  @@index([auctionId, isActive, maxBidAmount(sort: Desc), createdAt], map: "idx_autoBid_auction_active_maxbid_createdat")
+  @@index([auctionId, userId, isActive, maxBidAmount], map: "idx_autoBid_auction_user_active_maxbid")
+}
+
+model AuctionReview {
+  id                 String         @id @default(cuid())
+  auctionId          String         @map("auction_id")
+  reviewerId         String         @map("reviewer_id")
+  revieweeId         String         @map("reviewee_id")
+  rating             Int
+  comment            String?
+  completionProofUrl String?        @map("completion_proof_url")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  reviewPosition     ReviewPosition @map("review_position")
+  auction            Auction        @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  reviewee           User           @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
+  reviewer           User           @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([auctionId, reviewerId, revieweeId])
+  @@index([auctionId, reviewerId])
+  @@index([revieweeId])
+  @@index([reviewerId])
+  @@index([rating])
+  @@index([reviewPosition])
+}
+
+model AuctionMessage {
+  id        String   @id @default(cuid())
+  auctionId String   @map("auction_id")
+  senderId  String   @map("sender_id")
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  sender    User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId])
+  @@index([senderId])
+  @@index([auctionId, createdAt])
+  @@index([auctionId, senderId, createdAt])
+}
+
+model PushSubscription {
+  id             String    @id @default(cuid())
+  endpoint       String?   @unique
+  p256dh         String?
+  auth           String?
+  expirationTime DateTime? @map("expiration_time")
+  userId         String?   @map("user_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deviceId       String?
+  user           User?     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+enum ReviewPosition {
+  SELLER_TO_BUYER
+  BUYER_TO_SELLER
+}
+
+enum ContributionType {
+  REWARD
+  NON_REWARD
+}
+
+enum TaskStatus {
+  PENDING
+  AUCTION_ACTIVE
+  AUCTION_ENDED
+  POINTS_DEPOSITED
+  SUPPLIER_DONE
+  TASK_COMPLETED
+  FIXED_EVALUATED
+  POINTS_AWARDED
+  ARCHIVED
+  AUCTION_CANCELED
+}
+
+enum NotificationTargetType {
+  SYSTEM
+  USER
+  GROUP
+  TASK
+  AUCTION_SELLER
+  AUCTION_BIDDER
+}
+
+enum NotificationSendTiming {
+  NOW
+  SCHEDULED
+}
+
+enum NotificationSendMethod {
+  WEB_PUSH
+  APP_PUSH
+  EMAIL
+  IN_APP
+  SMS
+}
+
+enum AuctionEventType {
+  ITEM_SOLD
+  NO_WINNER
+  ENDED
+  OUTBID
+  QUESTION_RECEIVED
+  AUTO_BID_LIMIT_REACHED
+  AUCTION_WIN
+  AUCTION_LOST
+  POINT_RETURNED
+  AUCTION_CANCELED
+}
+
+enum BidStatus {
+  BIDDING
+  WON
+  LOST
+  INSUFFICIENT
+}

@@ -1,0 +1,5 @@
+{
+  "*.{ts,tsx}": ["next lint --fix --file"],
+  "*.{js,jsx,ts,tsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}": ["prettier --write"],
+  "**/*.prisma": ["prisma format"]
+}

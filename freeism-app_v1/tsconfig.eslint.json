@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "include": ["prisma", "**/*.ts", "**/*.tsx", "src", ".*.js", "*.js", "**/*.test.ts", "**/*.test.tsx"]
+}
