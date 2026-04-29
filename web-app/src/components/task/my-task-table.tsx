@@ -51,7 +51,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
   const columns: Column<MyTaskTable>[] = useMemo<Column<MyTaskTable>[]>(
     () => [
       {
-        key: "groupName" as keyof MyTaskTable,
+        key: "groupName",
         header: "GROUP名",
         sortable: false,
         statusCombobox: false,
@@ -68,7 +68,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskName" as keyof MyTaskTable,
+        key: "taskName",
         header: "タスク名",
         sortable: false,
         cell: (row) => row.taskName,
@@ -81,7 +81,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskReporterUserNames" as keyof MyTaskTable,
+        key: "taskReporterUserNames",
         header: "報告者",
         sortable: false,
         cell: (row) => row.taskReporterUserNames ?? "未設定",
@@ -94,7 +94,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskExecutorUserNames" as keyof MyTaskTable,
+        key: "taskExecutorUserNames",
         header: "実行者",
         sortable: false,
         cell: (row) => row.taskExecutorUserNames ?? "未設定",
@@ -107,7 +107,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskFixedContributionPoint" as keyof MyTaskTable,
+        key: "taskFixedContributionPoint",
         header: "貢献度",
         sortable: true,
         cell: (row) => (row.taskFixedContributionPoint ? `${row.taskFixedContributionPoint}p` : "評価待ち"),
@@ -120,7 +120,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: "text-center",
       },
       {
-        key: "taskFixedEvaluator" as keyof MyTaskTable,
+        key: "taskFixedEvaluator",
         header: "算出者",
         sortable: false,
         cell: (row) => row.taskFixedEvaluator ?? "未設定",
@@ -133,7 +133,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskFixedEvaluationLogic" as keyof MyTaskTable,
+        key: "taskFixedEvaluationLogic",
         header: "算出ロジック",
         sortable: false,
         cell: (row) => row.taskFixedEvaluationLogic ?? "-",
@@ -146,7 +146,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "taskStatus" as keyof MyTaskTable,
+        key: "taskStatus",
         header: "ステータス",
         statusCombobox: true,
         cell: () => null,
@@ -159,7 +159,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: null,
       },
       {
-        key: "auctionId" as keyof MyTaskTable,
+        key: "auctionId",
         header: "オークション",
         cell: (row: MyTaskTable) => {
           if (row.auctionId) {
@@ -185,7 +185,7 @@ export const MyTaskTableComponent = memo(function MyTaskTableComponent(): JSX.El
         cellClassName: "text-center",
       },
       {
-        key: "id" as keyof MyTaskTable,
+        key: "id",
         header: "編集",
         cell: () => null,
         sortable: false,

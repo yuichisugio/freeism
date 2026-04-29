@@ -327,7 +327,7 @@ describe("create-task-form.ts", () => {
             data: expect.objectContaining({
               reporters: { create: [{ userId: testUser.id }] },
               executors: { create: [{ userId: testUser.id }] },
-            }) as unknown as Prisma.TaskCreateInput,
+            }),
           });
         },
       );
@@ -374,7 +374,7 @@ describe("create-task-form.ts", () => {
           expect(prismaMock.auction.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
               isExtension: expectedValue,
-            }) as unknown as Prisma.AuctionCreateInput,
+            }),
           });
         },
       );
@@ -416,7 +416,7 @@ describe("create-task-form.ts", () => {
           data: expect.objectContaining({
             startTime: expect.any(Date) as unknown as Date,
             endTime: expect.any(Date) as unknown as Date,
-          }) as unknown as Prisma.AuctionCreateInput,
+          }),
         });
       });
     });
@@ -425,9 +425,7 @@ describe("create-task-form.ts", () => {
       test("should throw error when group not found", async () => {
         // Arrange
         const taskData = createTaskFuncParams();
-        prismaMock.group.findUnique.mockResolvedValue(
-          null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-        );
+        prismaMock.group.findUnique.mockResolvedValue(null);
 
         // Act & Assert
         await expect(createTask(taskData)).rejects.toThrow("指定されたグループが見つかりません");
@@ -529,7 +527,7 @@ describe("create-task-form.ts", () => {
             groupId: testGroup.id,
             contributionType: ContributionType.NON_REWARD,
             creatorId: testUser.id,
-          }) as unknown as Prisma.TaskCreateInput,
+          }),
         });
       });
 

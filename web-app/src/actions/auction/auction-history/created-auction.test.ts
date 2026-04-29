@@ -673,7 +673,7 @@ describe("created-auction", () => {
         { count: 0, description: "no auctions found" },
         { count: 15, description: "auctions exist" },
       ])("should return $count when $description", async ({ count }) => {
-        prismaMock.auction.count.mockResolvedValue(count as unknown as number);
+        prismaMock.auction.count.mockResolvedValue(count);
 
         const result = await getUserCreatedAuctionsCount(TEST_CONSTANTS.USER_ID, [], "and");
 

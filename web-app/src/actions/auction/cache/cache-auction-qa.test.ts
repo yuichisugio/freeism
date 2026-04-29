@@ -256,9 +256,7 @@ describe("cache-auction-qa", () => {
 
       test("should handle empty messages array", async () => {
         // Arrange
-        prismaMock.auctionMessage.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionMessage.findMany>>,
-        );
+        prismaMock.auctionMessage.findMany.mockResolvedValue([]);
 
         // Act
         const result = await getCachedAuctionMessageContents(VALID_AUCTION_ID, false, VALID_AUCTION_END_DATE);

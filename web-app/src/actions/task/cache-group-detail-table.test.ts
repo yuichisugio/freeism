@@ -281,7 +281,7 @@ describe("getMyTaskData", () => {
             { executors: { some: { userId: testUser.id } } },
           ],
         },
-        select: expect.any(Object) as unknown as Prisma.TaskSelect,
+        select: expect.any(Object),
         orderBy: { createdAt: "desc" },
         skip: 0,
         take: 10,

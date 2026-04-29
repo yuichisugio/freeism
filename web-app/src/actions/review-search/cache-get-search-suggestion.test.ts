@@ -176,9 +176,7 @@ describe("cache-review-search_getCachedSearchSuggestions", () => {
         },
       ];
 
-      prismaMock.auctionReview.findMany.mockResolvedValue(
-        mockReviews as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-      );
+      prismaMock.auctionReview.findMany.mockResolvedValue(mockReviews);
 
       // Act
       const result = await getCachedSearchSuggestions(query);

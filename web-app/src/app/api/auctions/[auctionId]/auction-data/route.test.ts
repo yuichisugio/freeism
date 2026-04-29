@@ -25,7 +25,7 @@ vi.mock("next/server", () => ({
           json: () => Promise.resolve(data),
           status: options?.status ?? 200,
           headers: options?.headers ?? {},
-        } as unknown as Response;
+        };
       }),
   },
 }));

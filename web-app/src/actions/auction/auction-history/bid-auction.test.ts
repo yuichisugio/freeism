@@ -159,9 +159,7 @@ describe("bid-auction", () => {
 
       test("should return empty array when no bid histories", async () => {
         // Arrange
-        prismaMock.bidHistory.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>,
-        );
+        prismaMock.bidHistory.findMany.mockResolvedValue([]);
 
         // Act
         const result = await getUserBidHistories(
@@ -196,9 +194,7 @@ describe("bid-auction", () => {
         { page: 3, itemPerPage: 1, expectedSkip: 2, description: "page 3 with itemPerPage 1" },
       ])("should handle $description correctly", async ({ page, itemPerPage, expectedSkip }) => {
         // Arrange
-        prismaMock.bidHistory.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.bidHistory.findMany>>,
-        );
+        prismaMock.bidHistory.findMany.mockResolvedValue([]);
 
         // Act
         await getUserBidHistories(page, TEST_CONSTANTS.userId, itemPerPage);

@@ -314,9 +314,7 @@ describe("SSE Server-Sent Events API Route", () => {
       const malformedParams = { params: Promise.reject(new Error("Params parsing failed")) };
 
       // Act & Assert
-      await expect(async () => {
-        await GET(request, malformedParams);
-      }).rejects.toThrow("Params parsing failed");
+      await expect(GET(request, malformedParams)).rejects.toThrow("Params parsing failed");
     });
 
     test("should handle params promise rejection", async () => {
@@ -325,9 +323,7 @@ describe("SSE Server-Sent Events API Route", () => {
       const params = { params: Promise.reject(new Error("Database connection failed")) };
 
       // Act & Assert
-      await expect(async () => {
-        await GET(request, params);
-      }).rejects.toThrow("Database connection failed");
+      await expect(GET(request, params)).rejects.toThrow("Database connection failed");
     });
   });
 

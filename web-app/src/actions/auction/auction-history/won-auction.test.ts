@@ -77,10 +77,10 @@ describe("won-auction", () => {
 
     describe("正常系", () => {
       test.each([
-        { case: "empty string", wonStatus: "" as never, statusArray: DEFAULT_STATUS_ARRAY },
+        { case: "empty string", wonStatus: "", statusArray: DEFAULT_STATUS_ARRAY },
         { case: "undefined", wonStatus: undefined as never, statusArray: DEFAULT_STATUS_ARRAY },
         { case: "null", wonStatus: null as never, statusArray: DEFAULT_STATUS_ARRAY },
-        { case: "other-status", wonStatus: "other-status" as never, statusArray: DEFAULT_STATUS_ARRAY },
+        { case: "other-status", wonStatus: "other-status", statusArray: DEFAULT_STATUS_ARRAY },
         {
           case: "completed",
           wonStatus: "completed",

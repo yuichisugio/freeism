@@ -47,21 +47,20 @@ const TEST_REVIEWEE_ID = "cmb0e9xnm0001mchbj6ler4py";
 /**
  * テストヘルパー関数
  */
-const createMockDisplayUserInfo = (overrides: Partial<DisplayUserInfo> = {}): DisplayUserInfo =>
-  ({
-    userId: "user-1",
-    appUserName: "テストユーザー",
-    userImage: "https://example.com/image.jpg",
-    creatorId: null,
-    reporterId: null,
-    executorId: null,
-    rating: 4.5,
-    ratingCount: 10,
-    hasReviewed: false,
-    auctionId: TEST_AUCTION_ID,
-    reviewComment: null,
-    ...overrides,
-  }) as DisplayUserInfo;
+const createMockDisplayUserInfo = (overrides: Partial<DisplayUserInfo> = {}): DisplayUserInfo => ({
+  userId: "user-1",
+  appUserName: "テストユーザー",
+  userImage: "https://example.com/image.jpg",
+  creatorId: null,
+  reporterId: null,
+  executorId: null,
+  rating: 4.5,
+  ratingCount: 10,
+  hasReviewed: false,
+  auctionId: TEST_AUCTION_ID,
+  reviewComment: null,
+  ...overrides,
+});
 
 const createSuccessfulReviewTest = async (
   reviewPosition: ReviewPosition,
@@ -287,9 +286,7 @@ describe("createAuctionReview", () => {
       ])(
         "should throw validation errors for invalid inputs",
         async ({ auctionId, revieweeId, rating, comment, position, error }) => {
-          await expect(
-            createAuctionReview(auctionId, revieweeId, rating, comment, position as ReviewPosition),
-          ).rejects.toThrow(error);
+          await expect(createAuctionReview(auctionId, revieweeId, rating, comment, position)).rejects.toThrow(error);
           expect(mockGetAuthenticatedSessionUserId).not.toHaveBeenCalled();
           expect(prismaMock.auctionReview.create).not.toHaveBeenCalled();
           expect(mockRevalidateTag).not.toHaveBeenCalled();

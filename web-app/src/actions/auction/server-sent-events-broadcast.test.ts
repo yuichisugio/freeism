@@ -1,5 +1,4 @@
 import type { UpdateAuctionWithDetails } from "@/types/auction-types";
-import type { TaskStatus } from "@prisma/client";
 import { sendEventToAuctionSubscribers } from "@/actions/auction/server-sent-events-broadcast";
 import { faker } from "@faker-js/faker";
 import { Factory } from "fishery";
@@ -16,7 +15,7 @@ const updateAuctionWithDetailsFactory = Factory.define<UpdateAuctionWithDetails>
   id: params.id ?? `auction-${sequence}`,
   currentHighestBid: params.currentHighestBid ?? faker.number.int({ min: 100, max: 10000 }),
   currentHighestBidderId: params.currentHighestBidderId ?? `bidder-${sequence}`,
-  status: params.status ?? ("AUCTION_ACTIVE" as TaskStatus),
+  status: params.status ?? "AUCTION_ACTIVE",
   extensionTotalCount: params.extensionTotalCount ?? 0,
   extensionLimitCount: params.extensionLimitCount ?? 3,
   extensionTime: params.extensionTime ?? 10,
@@ -73,7 +72,7 @@ beforeEach(() => {
   mockFetch.mockResolvedValue({
     ok: true,
     status: 200,
-  } as Response);
+  });
 });
 
 afterEach(() => {
@@ -406,7 +405,7 @@ describe("sendEventToAuctionSubscribers", () => {
         ok: false,
         status: 500,
         statusText: "Internal Server Error",
-      } as Response);
+      });
 
       // Act & Assert
       await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow(
@@ -422,7 +421,7 @@ describe("sendEventToAuctionSubscribers", () => {
         ok: false,
         status: 404,
         statusText: "Not Found",
-      } as Response);
+      });
 
       // Act & Assert
       await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 404 Not Found");
@@ -436,7 +435,7 @@ describe("sendEventToAuctionSubscribers", () => {
         ok: false,
         status: 401,
         statusText: "Unauthorized",
-      } as Response);
+      });
 
       // Act & Assert
       await expect(sendEventToAuctionSubscribers(auctionId, testData)).rejects.toThrow("HTTP Error: 401 Unauthorized");

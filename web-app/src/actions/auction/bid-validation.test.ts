@@ -89,9 +89,7 @@ describe("bid-common.test.ts", () => {
         test("should return error when auction is not found", async () => {
           // モックの設定
           mockGetAuthenticatedSessionUserId.mockResolvedValue(mockUserId);
-          prismaMock.auction.findUnique.mockResolvedValue(
-            null as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>,
-          );
+          prismaMock.auction.findUnique.mockResolvedValue(null);
 
           // テスト実行
           const result = await validateAuction(mockAuctionId, {

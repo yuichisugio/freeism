@@ -173,7 +173,7 @@ describe("sendInAppNotification", () => {
             isRead: isReadJsonb,
             sendMethods: [NotificationSendMethod.IN_APP],
             ...expectedData,
-          }) as unknown as object,
+          }),
         });
       });
     });
@@ -200,7 +200,7 @@ describe("sendInAppNotification", () => {
         expect(prismaMock.notification.updateMany).toHaveBeenCalledWith({
           where: { id: "notification-123" },
           data: {
-            sentAt: expect.any(Date) as unknown as Date,
+            sentAt: expect.any(Date),
           },
         });
         expect(prismaMock.notification.create).not.toHaveBeenCalled();
@@ -255,7 +255,7 @@ describe("sendInAppNotification", () => {
       expect(prismaMock.notification.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           isRead: expectedIsRead,
-        }) as unknown as object,
+        }),
       });
     });
   });
@@ -300,7 +300,7 @@ describe("sendInAppNotification", () => {
       expect(prismaMock.notification.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           senderUserId: expectedSenderUserId,
-        }) as unknown as object,
+        }),
       });
     });
   });

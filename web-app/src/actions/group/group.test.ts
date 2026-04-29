@@ -149,7 +149,7 @@ describe("group.test.ts", () => {
         mockGetAuthenticatedSessionUserId.mockResolvedValue(testUsers.user1);
 
         // Act
-        const result = await createGroup(invalidData as unknown as CreateGroupFormData);
+        const result = await createGroup(invalidData);
 
         // Assert
         expect(result).toStrictEqual({

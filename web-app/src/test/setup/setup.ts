@@ -175,7 +175,7 @@ beforeAll(() => {
   fetchMock.mockResolvedValue({
     ok: true,
     json: async () => ({ success: true }),
-  } as Response);
+  });
 });
 
 afterAll(() => {

@@ -228,8 +228,7 @@ export async function updateTaskAction(
      */
     else if (
       data.contributionType === ContributionType.NON_REWARD &&
-      existingAuction &&
-      existingAuction.task.contributionType === ContributionType.REWARD
+      existingAuction?.task.contributionType === ContributionType.REWARD
     ) {
       // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

@@ -606,7 +606,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         deliveryMethod,
         auctionStartTime,
         auctionEndTime,
-      } as TaskReportData;
+      };
     });
   }, []);
 
@@ -625,7 +625,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         taskId,
         contributionPoint,
         evaluationLogic,
-      } as ContributionEvaluationData;
+      };
     });
   }, []);
 
@@ -648,7 +648,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
         fixedEvaluatorId,
         fixedEvaluationLogic,
         fixedEvaluationDate,
-      } as FixedContributionData;
+      };
     });
   }, []);
 
@@ -665,7 +665,7 @@ export function useCsvUpload({ groupId, isOpen, onCloseAction }: UseCsvUploadOpt
       return {
         taskId,
         status,
-      } as TaskStatusData;
+      };
     });
   }, []);
 

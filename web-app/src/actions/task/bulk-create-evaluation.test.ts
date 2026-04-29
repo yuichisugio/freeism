@@ -356,7 +356,7 @@ describe("bulkCreateEvaluations", () => {
         ];
 
         for (const testCase of errorTestCases) {
-          prismaMock.$transaction.mockRejectedValue(testCase.error as Error);
+          prismaMock.$transaction.mockRejectedValue(testCase.error);
 
           await expect(bulkCreateEvaluations(validEvaluationData, testGroup.id, testUser.id)).rejects.toThrow(
             testCase.expectedError,

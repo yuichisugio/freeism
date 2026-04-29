@@ -1,4 +1,4 @@
-import type { AuctionFilterTypes, AuctionListingsConditions } from "@/types/auction-types";
+import type { AuctionListingsConditions } from "@/types/auction-types";
 import { AUCTION_CONSTANTS } from "@/lib/constants";
 import { AllTheProviders, mockUseQuery } from "@/test/setup/tanstack-query-setup";
 import { faker } from "@faker-js/faker";
@@ -285,7 +285,7 @@ describe("useAuctionFilters", () => {
 
       // Act
       act(() => {
-        result.current.handleStatusSelect("watchlist" as AuctionFilterTypes);
+        result.current.handleStatusSelect("watchlist");
       });
 
       // Assert

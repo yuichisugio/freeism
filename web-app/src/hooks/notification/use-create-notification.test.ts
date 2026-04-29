@@ -96,7 +96,7 @@ describe("useCreateNotification", () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true }),
-    } as Response);
+    });
   });
 
   // Providerラップ関数

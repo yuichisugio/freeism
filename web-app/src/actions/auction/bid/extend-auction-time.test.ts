@@ -41,7 +41,7 @@ const createProcessAuctionExtensionParams = (
 ): ProcessAuctionExtensionParams => ({
   auctionId: TEST_AUCTION_ID,
   auction: createAuctionData(),
-  tx: prismaMock as ProcessAuctionExtensionParams["tx"],
+  tx: prismaMock,
   ...overrides,
 });
 

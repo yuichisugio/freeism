@@ -649,8 +649,8 @@ describe("cachedGetNotificationsAndUnreadCount", () => {
       const userId = "user-1";
 
       prismaMock.$queryRaw
-        .mockResolvedValueOnce(null as unknown as RawNotificationFromDB[]) // 未読通知（null）
-        .mockResolvedValueOnce(undefined as unknown as RawNotificationFromDB[]) // 既読通知（undefined）
+        .mockResolvedValueOnce(null) // 未読通知（null）
+        .mockResolvedValueOnce(undefined) // 既読通知（undefined）
         .mockResolvedValueOnce([{ count: BigInt(0) }]) // 未読カウント
         .mockResolvedValueOnce([{ count: BigInt(0) }]); // 総カウント
 

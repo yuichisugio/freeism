@@ -391,6 +391,7 @@ export function usePushNotification(initialIsPushEnabled: boolean, userId: strin
    * 毎回実行したいためキャッシュしない。なのでstaleTime,gcTimeを0に設定しておく
    */
   const queryClient = useQueryClient();
+  /* eslint-disable @tanstack/query/exhaustive-deps -- queryClient / setNotificationState を queryKey に含めると不要な再フェッチになるため省略 */
   const { isPending: isUserSettingsLoading } = useQuery({
     queryKey: [
       "if-push-notification-permission-is-not-granted-and-push-notification-is-enabled-then-update-user-settings-to-false",
@@ -428,6 +429,7 @@ export function usePushNotification(initialIsPushEnabled: boolean, userId: strin
     staleTime: 0,
     gcTime: 0,
   });
+  /* eslint-enable @tanstack/query/exhaustive-deps */
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 

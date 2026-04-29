@@ -288,7 +288,7 @@ describe("usePushNotification", () => {
       // APIが呼ばれたことを確認（状態更新は正常系では想定されている）
       expect(mockServiceWorkerRegistration.pushManager.subscribe).toHaveBeenCalledWith({
         userVisibleOnly: true,
-        applicationServerKey: expect.any(Uint8Array) as unknown as Uint8Array,
+        applicationServerKey: expect.any(Uint8Array),
       });
       expect(mockSaveSubscription).toHaveBeenCalled();
       expect(mockUpdateUserSettingToggle).toHaveBeenCalledWith({

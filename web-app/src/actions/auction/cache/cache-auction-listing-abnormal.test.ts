@@ -361,7 +361,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
         name: "should handle invalid sort field",
         input: {
           listingsConditions: AuctionListingsConditionsFactory.build({
-            sort: [{ field: "invalid_field" as unknown as "newest", direction: "desc" as const }],
+            sort: [{ field: "invalid_field", direction: "desc" as const }],
           }),
           userId: TEST_CONSTANTS.USER_ID,
         },
@@ -372,7 +372,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
         name: "should handle invalid sort direction",
         input: {
           listingsConditions: AuctionListingsConditionsFactory.build({
-            sort: [{ field: "newest" as const, direction: "invalid_direction" as unknown as "desc" }],
+            sort: [{ field: "newest" as const, direction: "invalid_direction" }],
           }),
           userId: TEST_CONSTANTS.USER_ID,
         },
@@ -704,7 +704,7 @@ describe("cachedGetAuctionListingsAndCount", () => {
         name: "SQLインジェクション - カテゴリー",
         params: {
           listingsConditions: AuctionListingsConditionsFactory.build({
-            categories: ["デザイン'; DROP TABLE Task; --"] as unknown as string[],
+            categories: ["デザイン'; DROP TABLE Task; --"],
           }),
           userId: "user1",
           userGroupIds: [],

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+set -e
+
+[ "$HUSKY" = "0" ] && exit 0
+
+(cd documentation && ./.husky/pre-commit)
+(cd web-app && ./.husky/pre-commit)

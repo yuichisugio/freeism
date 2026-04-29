@@ -1,5 +1,5 @@
 {
-  "name": "freeism-app",
+  "name": "web-app",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -27,7 +27,7 @@
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
     "format:add": "git diff --cached --name-only | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs npx prettier --write",
-    "prepare": "husky",
+    "prepare": "cd .. && husky .husky",
     "commit": "pnpm lint-staged && cross-env COMMITIZEN_HOOK_SKIP=1 LINT_STAGED_SKIP=1 git-cz",
     "commit:test": "echo 'Testing commit flow...' && git add . && git commit -m 'test: commit flow test'",
     "postinstall": "prisma generate",
@@ -38,10 +38,10 @@
     "actions:update-auction-status-to-completed": "tsx scripts/update-auction-status-to-completed.ts",
     "actions:return-auction-deposit-points": "tsx scripts/return-auction-deposit-points.ts",
     "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts",
-    "prisma:dev:migrate": "pnpm dotenv -e .env -- pnpm prisma migrate dev",
+    "prisma:dev:migrate": "pnpm dotenv -e .env.local -- pnpm prisma migrate dev",
     "prisma:prod:deploy": "pnpm dotenv -e .env.production -- pnpm prisma migrate deploy",
     "knip": "knip",
-    "workspace:open": "code freeism-app.code-workspace"
+    "workspace:open": "code web-app.code-workspace"
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"

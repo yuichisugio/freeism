@@ -1,7 +1,6 @@
 "use client";
 
 import type { Column, DataTableProps, GroupDetailTask } from "@/types/group-types";
-import type { TaskStatus } from "@prisma/client";
 import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Loading } from "@/components/share/share-loading";
@@ -259,7 +258,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
         sortDirection: tableConditions.sort?.direction ?? "desc",
-        sortField: tableConditions.sort?.field ?? ("createdAt" as keyof GroupDetailTask),
+        sortField: tableConditions.sort?.field ?? "createdAt",
       },
       filter: {
         filterContents: [
@@ -285,8 +284,7 @@ export const GroupDetailTable = memo(function GroupDetailTable({
           {
             filterType: "radio",
             filterText: tableConditions.status ?? "ALL",
-            onFilterChange: (value: string) =>
-              changeTableConditions({ ...tableConditions, status: value as "ALL" | TaskStatus }),
+            onFilterChange: (value: string) => changeTableConditions({ ...tableConditions, status: value }),
             placeholder: "ステータスで絞り込み...",
             radioOptions: [
               { value: "ALL", label: "全て" },

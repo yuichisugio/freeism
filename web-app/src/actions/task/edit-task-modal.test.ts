@@ -341,9 +341,7 @@ describe("edit-task-modal.ts", () => {
               contributionType: ContributionType.REWARD,
             },
           } as unknown as Awaited<ReturnType<typeof prismaMock.auction.findUnique>>);
-          prismaMock.bidHistory.findFirst.mockResolvedValue(
-            existingBid as Awaited<ReturnType<typeof prismaMock.bidHistory.findFirst>>,
-          );
+          prismaMock.bidHistory.findFirst.mockResolvedValue(existingBid);
 
           const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {
             // 何もしない

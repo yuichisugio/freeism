@@ -81,9 +81,7 @@ describe("sendEmailNotification", () => {
 
     test("should return success with message when no email notification settings found", async () => {
       // モックの設定 - 空の配列
-      prismaMock.userSettings.findMany.mockResolvedValue(
-        [] as unknown as Awaited<ReturnType<typeof prismaMock.userSettings.findMany>>,
-      );
+      prismaMock.userSettings.findMany.mockResolvedValue([]);
 
       // 関数を実行
       const result = await sendEmailNotification(baseNotificationParams);

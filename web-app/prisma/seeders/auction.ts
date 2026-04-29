@@ -1,5 +1,4 @@
-import type { BidHistory } from "@prisma/client";
-import type { PrismaClient } from "@prisma/client";
+import type { BidHistory, PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker/locale/ja";
 import { BidStatus, ContributionType, Prisma, ReviewPosition, TaskStatus } from "@prisma/client";
 
@@ -337,7 +336,7 @@ async function processEndedAuction(auction: SeedAuction, bidRecords: BidHistory[
       where: { id: auction.taskId },
       select: { status: true },
     });
-    if (currentTask && currentTask.status === TaskStatus.PENDING) {
+    if (currentTask?.status === TaskStatus.PENDING) {
       await prisma.task.update({
         where: { id: auction.taskId },
         data: { status: TaskStatus.ARCHIVED },
@@ -394,7 +393,7 @@ async function processEndedAuction(auction: SeedAuction, bidRecords: BidHistory[
       where: { id: auction.taskId },
       select: { status: true },
     });
-    if (currentTask && currentTask.status === TaskStatus.PENDING) {
+    if (currentTask?.status === TaskStatus.PENDING) {
       await prisma.task.update({
         where: { id: auction.taskId },
         data: { status: TaskStatus.ARCHIVED },

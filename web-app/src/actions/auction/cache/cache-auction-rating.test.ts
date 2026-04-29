@@ -189,7 +189,7 @@ describe("getCachedDisplayUserInfo", () => {
       {
         name: "reviewPosition is invalid",
         auctionId: "test-auction-id",
-        reviewPosition: "INVALID_POSITION" as ReviewPosition,
+        reviewPosition: "INVALID_POSITION",
         expectedError: "Invalid auctionId or reviewPosition",
       },
     ])("should throw error when invalid input parameters", async ({ auctionId, reviewPosition, expectedError }) => {

@@ -314,7 +314,7 @@ describe("cachedGetUnreadNotificationsCount", () => {
     test("should throw error when result is null", async () => {
       // Arrange
       const userId = "user-1";
-      prismaMock.$queryRaw.mockResolvedValue(null as unknown as RawNotificationFromDB[]);
+      prismaMock.$queryRaw.mockResolvedValue(null);
 
       // Act & Assert
       // 実際の実装では null.length にアクセスしようとしてエラーが発生する
@@ -326,7 +326,7 @@ describe("cachedGetUnreadNotificationsCount", () => {
     test("should throw error when result is undefined", async () => {
       // Arrange
       const userId = "user-1";
-      prismaMock.$queryRaw.mockResolvedValue(undefined as unknown as RawNotificationFromDB[]);
+      prismaMock.$queryRaw.mockResolvedValue(undefined);
 
       // Act & Assert
       // 実際の実装では undefined.length にアクセスしようとしてエラーが発生する

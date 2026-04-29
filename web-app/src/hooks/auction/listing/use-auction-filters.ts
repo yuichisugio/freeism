@@ -1,6 +1,5 @@
 "use client";
 
-import type { GetSearchSuggestionsParams } from "@/actions/auction/cache/cache-auction-suggestion";
 import type {
   AuctionFilterTypes,
   AuctionListingsConditions,
@@ -191,7 +190,7 @@ export function useAuctionFilters({
         query: debouncedSearchQuery,
         userId,
         userGroupIds: userGroupIds?.data ?? [],
-      } as unknown as GetSearchSuggestionsParams);
+      });
     },
     enabled: !!debouncedSearchQuery?.trim() && !!userId,
     staleTime: 30 * 60 * 1000, // 30分間キャッシュ

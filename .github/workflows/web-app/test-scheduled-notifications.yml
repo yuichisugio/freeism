@@ -1,0 +1,63 @@
+name: 予約送信通知処理_テスト環境
+
+on:
+  schedule:
+    # 日本時間の毎日01:00に実行 (UTC 16:00)
+    - cron: "0 16 * * *"
+  workflow_dispatch: # 手動実行用トリガー
+
+jobs:
+  send-scheduled-notifications:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web-app
+
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.jsのセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.11.1"
+
+      - name: PNPMのセットアップ
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: PNPMキャッシュディレクトリの取得
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: キャッシュの復元
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: 依存関係のインストール
+        run: pnpm install
+
+      - name: Prismaクライアントの生成
+        run: pnpm prisma generate
+
+      - name: 予約送信通知の実行
+        run: pnpm run actions:send-scheduled-notifications
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.TEST_DIRECT_URL }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

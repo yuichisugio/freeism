@@ -618,7 +618,7 @@ describe("saveSubscription", () => {
           auth: subscription.keys.auth,
           userId: "test-user-id",
           deviceId: subscription.deviceId,
-        }) as unknown as object,
+        }),
       });
     });
 

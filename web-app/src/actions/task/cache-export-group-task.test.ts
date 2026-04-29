@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import { prismaMock } from "@/test/setup/prisma-orm-setup";
 import { ContributionType, TaskStatus } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
@@ -270,7 +269,7 @@ describe("cachedExportGroupTask", () => {
               lte: endOfDay(endDate),
             },
           },
-          select: expect.any(Object) as unknown as Prisma.TaskSelect,
+          select: expect.any(Object),
           orderBy: {
             createdAt: "desc",
           },
@@ -292,7 +291,7 @@ describe("cachedExportGroupTask", () => {
               gte: startOfDay(startDate),
             },
           },
-          select: expect.any(Object) as unknown as Prisma.TaskSelect,
+          select: expect.any(Object),
           orderBy: {
             createdAt: "desc",
           },
@@ -314,7 +313,7 @@ describe("cachedExportGroupTask", () => {
               lte: endOfDay(endDate),
             },
           },
-          select: expect.any(Object) as unknown as Prisma.TaskSelect,
+          select: expect.any(Object),
           orderBy: {
             createdAt: "desc",
           },
@@ -333,7 +332,7 @@ describe("cachedExportGroupTask", () => {
             groupId,
             status: TaskStatus.TASK_COMPLETED,
           },
-          select: expect.any(Object) as unknown as Prisma.TaskSelect,
+          select: expect.any(Object),
           orderBy: {
             createdAt: "desc",
           },

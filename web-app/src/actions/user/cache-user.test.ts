@@ -93,7 +93,7 @@ describe("cache-user.ts_getCachedAllUsers", () => {
 
     test("should return empty array when no users exist", async () => {
       // Arrange
-      prismaMock.user.findMany.mockResolvedValue([] as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>);
+      prismaMock.user.findMany.mockResolvedValue([]);
 
       // Act
       const result = await getCachedAllUsers();

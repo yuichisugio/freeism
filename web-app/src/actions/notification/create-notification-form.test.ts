@@ -110,12 +110,8 @@ describe("prepareCreateNotificationForm", () => {
         const tasksFromDb = [testTask];
 
         // モックの設定
-        prismaMock.group.findMany.mockResolvedValue(
-          groupsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
-        );
-        prismaMock.task.findMany.mockResolvedValue(
-          tasksFromDb as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
-        );
+        prismaMock.group.findMany.mockResolvedValue(groupsFromDb);
+        prismaMock.task.findMany.mockResolvedValue(tasksFromDb);
 
         // 関数を実行
         const result = await prepareCreateNotificationForm(false, true, testUserId);
@@ -198,12 +194,8 @@ describe("prepareCreateNotificationForm", () => {
         prismaMock.user.findMany.mockResolvedValue(
           usersFromDb as unknown as Awaited<ReturnType<typeof prismaMock.user.findMany>>,
         );
-        prismaMock.group.findMany.mockResolvedValue(
-          groupsFromDb as unknown as Awaited<ReturnType<typeof prismaMock.group.findMany>>,
-        );
-        prismaMock.task.findMany.mockResolvedValue(
-          tasksFromDb as unknown as Awaited<ReturnType<typeof prismaMock.task.findMany>>,
-        );
+        prismaMock.group.findMany.mockResolvedValue(groupsFromDb);
+        prismaMock.task.findMany.mockResolvedValue(tasksFromDb);
 
         // 関数を実行
         const result = await prepareCreateNotificationForm(true, true, testUserId);

@@ -1,0 +1,10 @@
+{
+  "name": "freeism",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "lint:documentation": "pnpm --filter documentation lint",
+    "lint:web-app": "pnpm --filter web-app lint"
+  }
+}

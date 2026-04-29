@@ -285,7 +285,7 @@ export const { handlers, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email!;
-        session.user.name = token.name as string | null;
+        session.user.name = token.name;
         session.user.image = token.image as string | null;
         session.expires = token.expires as Date & string;
       }

@@ -189,7 +189,7 @@ export const AllUserGroupTableComponent = memo(function AllUserGroupTableCompone
             sort: { field, direction: tableConditions.sort?.direction === "asc" ? "desc" : "asc" },
           }),
         sortDirection: tableConditions.sort?.direction ?? "desc",
-        sortField: tableConditions.sort?.field ?? ("isJoined" as keyof AllUserGroupTable),
+        sortField: tableConditions.sort?.field ?? "isJoined",
       },
       filter: {
         filterContents: [

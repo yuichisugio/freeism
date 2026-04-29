@@ -1,0 +1,6 @@
+[tasks.init]
+description = "モノレポの依存関係をインストールし、web-app の環境変数テンプレートを配置します（設定を読み込むには事前に mise trust が必要です）"
+run = """
+cp -n web-app/.env.example web-app/.env.local || true
+CI=1 pnpm install
+"""

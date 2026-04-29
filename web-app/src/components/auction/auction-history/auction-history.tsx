@@ -207,7 +207,7 @@ export const AuctionHistory = memo(function AuctionHistory() {
             return { id: f, label: "提供の完了（タスク完了含む）" };
           default: {
             const exhaustiveCheck: never = f;
-            return { id: exhaustiveCheck as AuctionCreatedTabFilter, label: String(exhaustiveCheck) };
+            return { id: exhaustiveCheck, label: String(exhaustiveCheck) };
           }
         }
       }),

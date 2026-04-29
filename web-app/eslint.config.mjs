@@ -123,6 +123,10 @@ const eslintConfig = [
     rules: {
       ...vitest.configs.recommended.rules,
       "@typescript-eslint/unbound-method": "off",
+      // 分岐やモックの都合で条件付き assert が必要になることが多い
+      "vitest/no-conditional-expect": "off",
+      // テストデータやモック由来の any が多く、本番コードとは優先度が異なる
+      "@typescript-eslint/no-unsafe-assignment": "off",
     },
     languageOptions: {
       globals: vitest.environments.env.globals,

@@ -1,0 +1,56 @@
+{
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "chatgpt.openOnStartup": false,
+  "css.lint.unknownAtRules": "ignore",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "editor.quickSuggestions": {
+    "comments": false
+  },
+  "editor.renderControlCharacters": true,
+  "editor.rulers": [200],
+  "editor.tabSize": 2,
+  "editor.wordWrap": "off",
+  "eslint.execArgv": [],
+  "eslint.options": {
+    "cache": true,
+    "cacheLocation": ".eslintcache"
+  },
+  "eslint.useFlatConfig": true,
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ],
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "*.cts": "${capture}.typegen.ts",
+    "*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
+    "*.jsx": "${capture}.js",
+    "*.mts": "${capture}.typegen.ts",
+    "*.ts": "${capture}.js, ${capture}.typegen.ts",
+    "*.tsx": "${capture}.ts, ${capture}.typegen.ts",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml"
+  },
+  "prettier.ignorePath": ".gitignore",
+  "redhat.telemetry.enabled": false,
+  "search.exclude": {
+    "**/node_modules": true
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "typescript.tsdk": "web-app/node_modules/typescript/lib",
+  "vitest.rootConfig": "./web-app/vitest.config.ts"
+}

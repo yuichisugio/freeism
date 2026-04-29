@@ -294,7 +294,7 @@ describe("BidHistory", () => {
   describe("異常系・エラーケース", () => {
     test("should handle undefined initialBids gracefully", () => {
       // Arrange & Act
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       render(<BidHistory initialBids={undefined as any} />);
 
       // Assert

@@ -156,9 +156,7 @@ describe("getCachedGroupById", () => {
       const nonExistentGroupId = "non-existent-group-id";
 
       // Prismaモックの設定（グループが見つからない場合）
-      prismaMock.group.findUnique.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
+      prismaMock.group.findUnique.mockResolvedValue(null);
 
       // 関数実行と検証
       await expect(getCachedGroupById(nonExistentGroupId)).rejects.toThrow("グループが見つかりません");
@@ -187,9 +185,7 @@ describe("getCachedGroupById", () => {
       const dbError = new Error("Database connection failed");
 
       // Prismaモックの設定（データベースエラー）
-      prismaMock.group.findUnique.mockRejectedValue(
-        dbError as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
+      prismaMock.group.findUnique.mockRejectedValue(dbError);
 
       // 関数実行と検証
       await expect(getCachedGroupById(mockGroupId)).rejects.toThrow("Database connection failed");
@@ -207,9 +203,7 @@ describe("getCachedGroupById", () => {
       const emptyGroupId = "";
 
       // Prismaモックの設定
-      prismaMock.group.findUnique.mockResolvedValue(
-        null as unknown as Awaited<ReturnType<typeof prismaMock.group.findUnique>>,
-      );
+      prismaMock.group.findUnique.mockResolvedValue(null);
 
       // 関数実行と検証
       await expect(getCachedGroupById(emptyGroupId)).rejects.toThrow("グループIDがありません");

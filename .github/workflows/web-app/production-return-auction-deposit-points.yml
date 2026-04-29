@@ -1,0 +1,69 @@
+name: ポイント返還_本番環境
+
+on:
+  # 毎日JST 00:00（UTC 15:00）に実行
+  schedule:
+    - cron: "0 15 * * *"
+
+  # 手動実行用のトリガー
+  workflow_dispatch:
+
+jobs:
+  return-auction-deposit-points:
+    name: ポイント返還_本番環境
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: web-app
+
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Restore pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
+      - name: Run auction deposit points return script
+        run: pnpm run actions:return-auction-deposit-points
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}

@@ -85,7 +85,7 @@ export function useAuctionBidSSE(initialAuction: AuctionWithDetails): UseAuction
         return;
       }
       // 初期データと入札時のデータではdataプロパティの有無で異なる場合がある
-      const auctionData = payload.data ?? (payload as AuctionWithDetails);
+      const auctionData = payload.data ?? payload;
       setLastMsg(raw);
       setAuction((prev) => {
         // 以前の bidHistories

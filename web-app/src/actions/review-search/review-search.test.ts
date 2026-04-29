@@ -178,8 +178,7 @@ describe("review-search", () => {
       const result = await getSearchSuggestions(query);
 
       expect(result).toStrictEqual(expected);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith(query);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
+      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledExactlyOnceWith(query);
     });
 
     test("should throw error when getCachedSearchSuggestions fails", async () => {
@@ -187,8 +186,7 @@ describe("review-search", () => {
       mockGetCachedSearchSuggestions.mockRejectedValue(new Error(errorMessage));
 
       await expect(getSearchSuggestions("テスト")).rejects.toThrow(errorMessage);
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledWith("テスト");
-      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledOnce();
+      expect(mockGetCachedSearchSuggestions).toHaveBeenCalledExactlyOnceWith("テスト");
     });
   });
 
@@ -206,8 +204,7 @@ describe("review-search", () => {
       const result = await getAllReviews(searchParams as ReviewSearchParams);
 
       expect(result).toStrictEqual(mockResult);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledWith(searchParams);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedAllReviews).toHaveBeenCalledExactlyOnceWith(searchParams);
     });
 
     test("should throw error when getCachedAllReviews fails", async () => {
@@ -215,8 +212,7 @@ describe("review-search", () => {
       mockGetCachedAllReviews.mockRejectedValue(new Error(errorMessage));
 
       await expect(getAllReviews(testSearchParams)).rejects.toThrow(errorMessage);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledWith(testSearchParams);
-      expect(mockGetCachedAllReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedAllReviews).toHaveBeenCalledExactlyOnceWith(testSearchParams);
     });
   });
 
@@ -236,8 +232,7 @@ describe("review-search", () => {
 
       expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedUserReviews).toHaveBeenCalledWith(searchParams, testUserId);
-      expect(mockGetCachedUserReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedUserReviews).toHaveBeenCalledExactlyOnceWith(searchParams, testUserId);
     });
 
     test("should throw error when getCachedUserReviews fails", async () => {
@@ -247,8 +242,7 @@ describe("review-search", () => {
 
       await expect(getUserReviews(testSearchParams)).rejects.toThrow(errorMessage);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedUserReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
-      expect(mockGetCachedUserReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedUserReviews).toHaveBeenCalledExactlyOnceWith(testSearchParams, testUserId);
     });
 
     test("should throw error when authentication fails", async () => {
@@ -277,8 +271,7 @@ describe("review-search", () => {
 
       expect(result).toStrictEqual(mockResult);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedMyReviews).toHaveBeenCalledWith(searchParams, testUserId);
-      expect(mockGetCachedMyReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedMyReviews).toHaveBeenCalledExactlyOnceWith(searchParams, testUserId);
     });
 
     test("should throw error when getCachedMyReviews fails", async () => {
@@ -288,8 +281,7 @@ describe("review-search", () => {
 
       await expect(getMyReviews(testSearchParams)).rejects.toThrow(errorMessage);
       expect(mockGetAuthenticatedSessionUserId).toHaveBeenCalledOnce();
-      expect(mockGetCachedMyReviews).toHaveBeenCalledWith(testSearchParams, testUserId);
-      expect(mockGetCachedMyReviews).toHaveBeenCalledOnce();
+      expect(mockGetCachedMyReviews).toHaveBeenCalledExactlyOnceWith(testSearchParams, testUserId);
     });
 
     test("should throw error when authentication fails", async () => {
@@ -328,7 +320,7 @@ describe("review-search", () => {
             data: {
               rating: newRating,
               comment,
-              updatedAt: expect.any(Date) as unknown as Date,
+              updatedAt: expect.any(Date),
             },
           });
         },
@@ -347,7 +339,7 @@ describe("review-search", () => {
             data: {
               rating,
               comment: newComment,
-              updatedAt: expect.any(Date) as unknown as Date,
+              updatedAt: expect.any(Date),
             },
           });
         },

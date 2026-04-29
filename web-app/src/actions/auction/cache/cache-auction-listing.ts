@@ -661,11 +661,11 @@ export async function cachedGetAuctionListingsAndCount({
       detail: auction.detail,
       image_url: auction.image_url,
       category: auction.category,
-      executors_json: taskExecutors as AuctionCard["executors_json"],
+      executors_json: taskExecutors,
       task_highlighted: auction.task_highlighted ?? null,
       detail_highlighted: auction.detail_highlighted ?? null,
       score: auction.score ?? null,
-    } as AuctionCard;
+    };
   });
 
   // ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー

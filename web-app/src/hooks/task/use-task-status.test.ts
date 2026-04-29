@@ -193,7 +193,7 @@ describe("useTaskStatus", () => {
           result.current.handleStatusChange({
             taskId,
             newStatus,
-            data: mockTableData as unknown as Record<string, unknown>[],
+            data: mockTableData,
           });
         });
 
@@ -243,7 +243,7 @@ describe("useTaskStatus", () => {
           result.current.handleStatusChange({
             taskId: "task-1",
             newStatus: status,
-            data: mockTableData as unknown as Record<string, unknown>[],
+            data: mockTableData,
           });
         });
 
@@ -297,7 +297,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-1",
           newStatus: TaskStatus.TASK_COMPLETED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -329,7 +329,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-1",
           newStatus: TaskStatus.TASK_COMPLETED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -407,7 +407,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: taskId as unknown as string,
           newStatus: newStatus as unknown as TaskStatus,
-          data: data as unknown as Record<string, unknown>[],
+          data: data,
         });
       });
 
@@ -534,7 +534,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-1",
           newStatus: TaskStatus.AUCTION_ACTIVE,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -542,7 +542,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-2",
           newStatus: TaskStatus.POINTS_DEPOSITED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -550,7 +550,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-3",
           newStatus: TaskStatus.ARCHIVED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -575,7 +575,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-1",
           newStatus: TaskStatus.TASK_COMPLETED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
       expect(mockToast.success).toHaveBeenCalledWith("ステータスを更新しました");
@@ -589,7 +589,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-2",
           newStatus: TaskStatus.ARCHIVED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
       expect(mockToast.error).toHaveBeenCalledWith("権限がありません");
@@ -603,7 +603,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-3",
           newStatus: TaskStatus.POINTS_AWARDED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
       expect(mockToast.error).toHaveBeenCalledWith("ステータスの更新に失敗しました");
@@ -631,7 +631,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-1",
           newStatus: TaskStatus.TASK_COMPLETED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 
@@ -653,7 +653,7 @@ describe("useTaskStatus", () => {
         result.current.handleStatusChange({
           taskId: "task-2",
           newStatus: TaskStatus.ARCHIVED,
-          data: mockTableData as unknown as Record<string, unknown>[],
+          data: mockTableData,
         });
       });
 

@@ -9,7 +9,8 @@
         "max": 5
       },
       "max-ten": {
-        "max": 5
+        "max": 5,
+        "severity": "warning"
       },
       "max-kanji-continuous-len": {
         "max": 15
@@ -18,7 +19,7 @@
       "no-mix-dearu-desumasu": {
         "preferInHeader": "",
         "preferInBody": "ですます",
-        "preferInList": "である",
+        "preferInList": "ですます",
         "strict": false
       },
       "ja-no-mixed-period": {
@@ -44,9 +45,7 @@
       },
       "ja-no-successive-word": true,
       "ja-no-abusage": true,
-      "ja-no-redundant-expression": {
-        "severity": "warning"
-      },
+      "ja-no-redundant-expression": false,
       "ja-unnatural-alphabet": {
         "allow": [
           "/[A-Z]/"

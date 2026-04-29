@@ -6,8 +6,8 @@ This repository is a documentation project for Freeism. Markdown sources live un
 
 ## Build, Test, and Development Commands
 
-- `npm install`: install the Node dependencies used by the documentation toolchain. CI currently uses Node 16.
-- `npm run lint`: run textlint with the repository's `.textlintrc` rules. The current script targets `doc/README.md`; keep this path in sync when moving the source document.
+- `pnpm install`: install dependencies for the root workspace, including this documentation package.
+- `pnpm --filter freeism-documentation lint`: run textlint with the repository's `.textlintrc` rules.
 
 There is no `npm start` command or local application server in this repository.
 
@@ -17,7 +17,7 @@ Use Markdown for content and CommonJS JavaScript for build configuration. Keep J
 
 ## Testing Guidelines
 
-No dedicated automated test framework or coverage target is defined. For documentation changes, run `npm run lint` before committing.
+No dedicated automated test framework or coverage target is defined. For documentation changes, run `pnpm --filter freeism-documentation lint` before committing.
 
 ## Commit & Pull Request Guidelines
 

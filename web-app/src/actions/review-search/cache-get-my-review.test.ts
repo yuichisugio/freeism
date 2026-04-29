@@ -59,9 +59,7 @@ describe("cache-review-search", () => {
           },
         ];
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          mockReviews as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue(mockReviews);
         prismaMock.auctionReview.count.mockResolvedValue(1);
 
         // Act
@@ -109,7 +107,7 @@ describe("cache-review-search", () => {
           prismaMock.auctionReview.findMany as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
         ).toHaveBeenCalledWith({
           where: { reviewerId: userId },
-          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
+          select: expect.any(Object),
           orderBy: { createdAt: "desc" } as unknown as Prisma.AuctionReviewOrderByWithRelationInput,
           skip: 0,
           take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
@@ -122,9 +120,7 @@ describe("cache-review-search", () => {
       test("should handle undefined searchParams", async () => {
         const userId = "test-user-id";
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         // undefinedを渡してもエラーにならないことを確認
@@ -161,9 +157,7 @@ describe("cache-review-search", () => {
           },
         ];
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          mockReviews as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue(mockReviews);
         prismaMock.auctionReview.count.mockResolvedValue(1);
 
         const result = await getCachedMyReviews(null, userId);
@@ -205,9 +199,7 @@ describe("cache-review-search", () => {
           },
         ];
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          mockReviews as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue(mockReviews);
         prismaMock.auctionReview.count.mockResolvedValue(1);
 
         const result = await getCachedMyReviews(null, userId);
@@ -224,9 +216,7 @@ describe("cache-review-search", () => {
           tab: "received",
         };
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         // Act
@@ -255,9 +245,9 @@ describe("cache-review-search", () => {
                   mode: "insensitive",
                 },
               },
-            ]) as unknown as unknown[],
+            ]),
           },
-          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
+          select: expect.any(Object),
           orderBy: { createdAt: "desc" },
           skip: 0,
           take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
@@ -273,9 +263,7 @@ describe("cache-review-search", () => {
           tab: "edit",
         };
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         // Act
@@ -286,7 +274,7 @@ describe("cache-review-search", () => {
           prismaMock.auctionReview.findMany as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
         ).toHaveBeenCalledWith({
           where: { reviewerId: userId },
-          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
+          select: expect.any(Object),
           orderBy: { createdAt: "desc" },
           skip: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE, // 1ページ分スキップ
           take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
@@ -302,9 +290,7 @@ describe("cache-review-search", () => {
           tab: "edit",
         };
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         // Act
@@ -316,7 +302,7 @@ describe("cache-review-search", () => {
           prismaMock.auctionReview.findMany as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
         ).toHaveBeenCalledWith({
           where: { reviewerId: userId },
-          select: expect.any(Object) as unknown as Prisma.AuctionReviewSelect,
+          select: expect.any(Object),
           orderBy: { createdAt: "desc" },
           skip: 0,
           take: REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE,
@@ -327,9 +313,7 @@ describe("cache-review-search", () => {
         // Arrange
         const userId = "test-user-id";
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockResolvedValue(0);
 
         const searchParams: ReviewSearchParams = {
@@ -379,9 +363,7 @@ describe("cache-review-search", () => {
           },
         ];
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          mockReviews as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue(mockReviews);
         prismaMock.auctionReview.count.mockResolvedValue(1);
 
         // Act
@@ -462,9 +444,7 @@ describe("cache-review-search", () => {
         const userId = "test-user-id";
         const countError = new Error("Count query failed");
 
-        prismaMock.auctionReview.findMany.mockResolvedValue(
-          [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-        );
+        prismaMock.auctionReview.findMany.mockResolvedValue([]);
         prismaMock.auctionReview.count.mockRejectedValue(countError);
 
         await expect(getCachedMyReviews(null, userId)).rejects.toThrow("Count query failed");
@@ -509,9 +489,7 @@ describe("cache-review-search", () => {
           const userId = "test-user-id";
 
           // テストケース：totalCount = 0の場合
-          prismaMock.auctionReview.findMany.mockResolvedValue(
-            [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-          );
+          prismaMock.auctionReview.findMany.mockResolvedValue([]);
           prismaMock.auctionReview.count.mockResolvedValue(0);
 
           // Act
@@ -524,9 +502,7 @@ describe("cache-review-search", () => {
           const userId = "test-user-id";
 
           // テストケース：totalCount = ITEMS_PER_PAGE丁度の場合
-          prismaMock.auctionReview.findMany.mockResolvedValue(
-            [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-          );
+          prismaMock.auctionReview.findMany.mockResolvedValue([]);
           prismaMock.auctionReview.count.mockResolvedValue(REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE);
 
           // Act
@@ -539,9 +515,7 @@ describe("cache-review-search", () => {
           const userId = "test-user-id";
 
           // テストケース：totalCount = ITEMS_PER_PAGE + 1の場合
-          prismaMock.auctionReview.findMany.mockResolvedValue(
-            [] as unknown as Awaited<ReturnType<typeof prismaMock.auctionReview.findMany>>,
-          );
+          prismaMock.auctionReview.findMany.mockResolvedValue([]);
           prismaMock.auctionReview.count.mockResolvedValue(REVIEW_SEARCH_CONSTANTS.ITEMS_PER_PAGE + 1);
 
           // Act
@@ -585,9 +559,7 @@ describe("cache-review-search", () => {
           },
         };
 
-        prismaMock.auctionReview.findMany.mockResolvedValue([complexMockReview] as unknown as Awaited<
-          ReturnType<typeof prismaMock.auctionReview.findMany>
-        >);
+        prismaMock.auctionReview.findMany.mockResolvedValue([complexMockReview]);
         prismaMock.auctionReview.count.mockResolvedValue(1);
 
         const result = await getCachedMyReviews(null, userId);

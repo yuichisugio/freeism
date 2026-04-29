@@ -502,7 +502,7 @@ describe("sendGeneralNotification", () => {
       },
     ])("$description", async ({ overrides, expectedCall }) => {
       // Arrange
-      const params = createValidGeneralNotificationParams(overrides as unknown as Partial<GeneralNotificationParams>);
+      const params = createValidGeneralNotificationParams(overrides);
 
       // Act
       const result = await sendGeneralNotification(params);
