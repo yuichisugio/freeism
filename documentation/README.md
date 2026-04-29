@@ -1,6 +1,6 @@
-# freeism-documentation
+# documentation
 
-- [freeism-documentation](#freeism-documentation)
+- [documentation](#documentation)
   - [Language](#language)
   - [Overview](#overview)
 

@@ -1,6 +1,6 @@
-# freeism-documentation
+# documentation
 
-- [freeism-documentation](#freeism-documentation)
+- [documentation](#documentation)
   - [言語](#言語)
   - [概要](#概要)
 
