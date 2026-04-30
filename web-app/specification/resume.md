@@ -101,7 +101,7 @@
     - なぜ使用したか
       - リポジトリ管理と PR ベースのコードレビュー、GitHub Actions による CI 連携のため
     - その他
-      - Conventional Commits を採用し、Commitizen/commitlint でコミット品質を統一
+      - Conventional Commits スタイルでメッセージを付ける運用、husky と lint-staged でコミット前に整形・静的検査を実行
   - Cursor
     - なぜ使用したか
       - 仕様ドリブンでの AI 補助とテスト駆動を促進し、設計漏れ検出やコード生成を高速化するため
@@ -716,7 +716,6 @@ erDiagram
     - その他
       - new
 - 機能以外の実装・工夫
-
   - UI
     - レスポンシブ対応
       - SNS サービスなのでスマホで利用する事を想定して開発しておりました。
@@ -778,7 +777,6 @@ erDiagram
       - 参照: `src/library-setting/tanstack-query.ts` / `src/components/provider/providers.tsx`
       - QueryKeyファクトリ（`src/library-setting/tanstack-query.ts` の `queryCacheKeys`）と URL 同期（`nuqs`）
   - PWA / Push / Service Worker
-
     - 概要
       - `public/service-worker.js` で `install`/`activate`/`push`/`notificationclick`/`pushsubscriptionchange` を実装
       - `src/hooks/notification/use-push-notification.ts` で SW 登録・VAPID 鍵処理・購読/再購読・端末識別の一連を管理
@@ -792,7 +790,6 @@ erDiagram
       - Push購読更新の API（`src/app/api/push-notification/subscription-update`）
 
   - セキュリティ/ミドルウェア
-
     - 概要
       - `/dashboard/*` を認証必須化（未認証は `auth/signin` へリダイレクト）。応答に
         `X-Frame-Options`/`X-Content-Type-Options`/`HSTS`/`Referrer-Policy` を付与
@@ -801,7 +798,6 @@ erDiagram
       - API 認証エンドポイント（`src/app/api/[...nextauth]/route.ts`）
 
   - 環境変数の型安全
-
     - 概要
       - `@t3-oss/env-nextjs` + `zod` で server/client を分離定義し、`emptyStringAsUndefined`・`skipValidation`
         を設定。VAPID/Supabase/Cloudflare R2 等を厳格検証
@@ -810,7 +806,6 @@ erDiagram
 
   - コミットフロー/自動整形
     - 概要
-      - Conventional Commits を `commitlint` で強制、`commitizen`（`pnpm commit`）で対話入力、`husky` + `lint-staged`
-        で整形/静的検査をコミット前実行
+      - husky と lint-staged で整形・静的検査をコミット前実行
     - その他
-      - 参照: `package.json` の `prepare`/`commit`/`lint-staged`/`format:*` スクリプト
+      - 参照: `package.json` の `prepare`／`lint-staged`／`format:*` スクリプト

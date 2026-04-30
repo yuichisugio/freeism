@@ -28,7 +28,6 @@
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
     "format:add": "git diff --cached --name-only | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs npx prettier --write",
     "prepare": "cd .. && husky .husky",
-    "commit": "pnpm lint-staged && cross-env COMMITIZEN_HOOK_SKIP=1 LINT_STAGED_SKIP=1 git-cz",
     "commit:test": "echo 'Testing commit flow...' && git add . && git commit -m 'test: commit flow test'",
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
@@ -45,16 +44,6 @@
   },
   "prisma": {
     "seed": "pnpm vite-node prisma/seed.ts"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
@@ -117,8 +106,6 @@
     "zod": "^3.25.28"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.7.1",
-    "@commitlint/config-conventional": "^19.7.1",
     "@eslint/eslintrc": "^3",
     "@faker-js/faker": "^9.8.0",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
@@ -143,9 +130,6 @@
     "@vitest/eslint-plugin": "^1.2.1",
     "@vitest/ui": "3.1.4",
     "autoprefixer": "^10.4.20",
-    "commitizen": "^4.3.1",
-    "cross-env": "^7.0.3",
-    "cz-conventional-changelog": "^3.3.0",
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.21.0",
     "eslint-config-next": "15.4.0-canary.51",

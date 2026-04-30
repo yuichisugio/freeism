@@ -92,9 +92,9 @@ Use `src/test` solely for shared fixtures. Maintain coverage thresholds by runni
 
 ## Commit & Pull Request Guidelines
 
-Follow Conventional Commits (`feat:`, `fix:`, etc.) and use `pnpm commit` for Commitizen prompts. Keep changes atomic
-and include Prisma migrations or seeds when schema updates occur. Pull requests should summarize impact, link the
-relevant Linear/GitHub issue, list verification commands, and attach UI previews or environment notes as needed.
+Prefer Conventional Commits-style prefixes (`feat:`, `fix:`, etc.) when feasible. Keep changes atomic and include Prisma
+migrations or seeds when schema updates occur. Pull requests should summarize impact, link the relevant Linear/GitHub
+issue, list verification commands, and attach UI previews or environment notes as needed.
 
 ## Database & Environment Notes
 
