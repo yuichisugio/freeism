@@ -101,7 +101,6 @@
         "space": "always"
       },
       "ja-space-around-code": false,
-      "ja-no-space-between-full-width": true,
       "ja-nakaguro-or-halfwidth-space-between-katakana": true,
       "ja-no-space-around-parentheses": true,
       "ja-space-after-exclamation": false,
