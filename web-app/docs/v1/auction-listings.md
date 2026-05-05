@@ -42,7 +42,6 @@ src/
 ### 2.2 コンポーネント設計方針
 
 - **UI（View）とロジックの分離**
-
   - コンポーネントは表示のみを担当
   - ビジネスロジックはカスタムフックに分離
   - データ取得とデータ操作のロジックも分離
@@ -161,7 +160,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
    ```
 
 2. **適切な依存関係の設定**
-
    - URL更新の関数を依存配列から除外
    - 複数のuseEffectを適切に分離
    - 初期化処理は一度だけ実行
@@ -184,12 +182,10 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 ### 4.2 効率的なデータ取得
 
 1. **不要なデータ取得の防止**
-
    - 状態変更時のみデータを取得
    - デバウンス処理による過剰なAPIコールの防止
 
 2. **インジケーターの表示**
-
    - データ取得中はロード状態を表示
    - エラー時は適切なメッセージを表示
 
@@ -213,12 +209,10 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 ### 4.3 状態管理の最適化
 
 1. **状態の適切な分割**
-
    - 関連する状態をグループ化
    - 不必要に細かく分割しない
 
 2. **状態更新の最適化**
-
    - バッチ更新の活用
    - 不要な状態更新の防止
 
@@ -256,7 +250,6 @@ export function useAuctionListings(): UseAuctionListingsReturn {
 ### 5.2 データ取得の最適化
 
 1. **ページサイズの最適化**
-
    - 適切なページサイズの設定
    - ページネーションによるデータ量の制限
 
@@ -353,7 +346,6 @@ try {
    ```
 
 2. **パフォーマンスチェック**
-
    - React DevTools Profilerの活用
    - レンダリング回数の監視
 

@@ -29,14 +29,12 @@ Query v5 の“楽観的更新 (optimistic update)”** と **queryClient の直
 ## 背景と課題整理
 
 1. **ローカル state (`allNotifications`) への書き込みとサーバ同期を分離**
-
    - トグル時は `allNotifications` だけ変わり、Query Cache は古いまま。
    - そのため **“未読”初期描画** では `useQuery` が返すデータとローカル state が競合し、空表示や古い一覧を残してしまう。
    - サーバへは遅延まとめ送信（`pendingUpdatesRef`）だが、送信直後に **cache を invalidation しても描画ツリーは local
      state を優先** しているのでリストが切り替わらない。
 
 2. **TanStack Query v5 のキャッシュ API が未活用**
-
    - `queryClient.setQueryData / setQueriesData` で **即時に cache を書き換え**、`onError`
      でロールバックするのが公式推奨 ([TanStack][1])。
    - `invalidateQueries({queryKey:["notifications",userId]})` は key 前方一致で全フィルタを更新できる ([TanStack][2],

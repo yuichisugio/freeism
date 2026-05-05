@@ -22,13 +22,11 @@ Worker APIとWeb Push APIを使用して実装されており、ユーザーが�
 プッシュ通知システムは以下のコンポーネントで構成されています：
 
 - **クライアントサイド**
-
   - `usePushNotification` フック: プッシュ通知の購読管理（useReducerベース）
   - `WebPushNotificationToggle`: ユーザーが通知設定を変更するためのUI
   - `service-worker.js`: バックグラウンドでの通知受信と表示処理
 
 - **サーバーサイド**
-
   - `actions/notification/push-notification.ts`: サーバーアクション（購読管理、通知送信）
   - `api/push-notification/subscription-update/route.ts`: Service Worker更新用API
 
