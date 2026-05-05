@@ -3,6 +3,11 @@
 - [「無料主義アプリ v1」の設計](#無料主義アプリ-v1の設計)
   - [v1：実装する理由](#v1実装する理由)
   - [v1：方針](#v1方針)
+  - [v1：構成](#v1構成)
+    - [ファイル構成](#ファイル構成)
+    - [ステップ1: 基本構造の設計](#ステップ1-基本構造の設計)
+    - [ステップ2: カスタムフックの基本設計](#ステップ2-カスタムフックの基本設計)
+  - [設計方針](#設計方針)
   - [v1：新しい仕様](#v1新しい仕様)
     - [v1：ログイン](#v1ログイン)
     - [v1：その他](#v1その他)
@@ -22,6 +27,127 @@
 
 1. 無料主義ドキュメントv2の内容を説明する為に必要な機能に絞って実装する
 2. 転職のときにアピールできそうな技術や機能も少し作る
+
+## v1：構成
+
+### ファイル構成
+
+```
+src/
+├── components/
+│   └── auction/
+│       └── listing/
+│           ├── auction-listings.tsx  # メインコンポーネント
+│           ├── auction-card.tsx      # 個別商品表示コンポーネント
+│           ├── auction-filters.tsx   # フィルター操作コンポーネント
+│           └── auction-pagination.tsx # ページネーションコンポーネント
+├── hooks/
+│   └── auction/
+│       └── listing/
+│           └── use-auction-listings.ts # メインロジック
+└── lib/
+    └── auction/
+        ├── action/
+        │   ├── auction-listing.ts    # データ取得処理
+        │   └── watchlist.ts          # ウォッチリスト操作
+        └── type/
+            └── types.ts              # 型定義
+```
+
+### ステップ1: 基本構造の設計
+
+```tsx
+// auction-listings.tsx
+"use client";
+
+import React, { memo } from "react";
+import { useAuctionListings } from "@/hooks/auction/listing/use-auction-listings";
+import { AuctionCard } from "./auction-card";
+import { AuctionFilters } from "./auction-filters";
+import { AuctionPagination } from "./auction-pagination";
+
+export const AuctionListings = memo(function AuctionListings() {
+  // カスタムフックからロジックと状態を取得
+  const {
+    // 状態
+    categories,
+    pageSize,
+    auctions,
+    totalCount,
+    totalPages,
+    searchQuery,
+    filters,
+    sortOption,
+    page,
+    isPending,
+
+    // アクション
+    setSearchQuery,
+    handlePageChange,
+    handleFilterChange,
+    handleSortChange,
+    handleResetFilters,
+    handleToggleWatchlist,
+  } = useAuctionListings();
+
+  // レンダリング
+  return (
+    // UIコンポーネント
+  );
+});
+```
+
+### ステップ2: カスタムフックの基本設計
+
+```tsx
+// use-auction-listings.ts
+export function useAuctionListings(): UseAuctionListingsReturn {
+  // 状態管理
+  const [categories, setCategories] = useState<string[]>([]);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [auctions, setAuctions] = useState<AuctionItem[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<AuctionFilterParams>({...});
+  const [sortOption, setSortOption] = useState<AuctionSortOption>("newest");
+  const [isPending, setIsPending] = useState(false);
+
+  // 各種アクションハンドラ
+
+  // 戻り値（コンポーネントで利用可能な状態とアクション）
+  return {
+    categories,
+    pageSize,
+    auctions,
+    totalCount,
+    totalPages,
+    searchQuery,
+    filters,
+    sortOption,
+    page,
+    isPending,
+    setSearchQuery,
+    handlePageChange,
+    handleFilterChange,
+    handleSortChange,
+    handleResetFilters,
+    handleToggleWatchlist,
+  };
+}
+```
+
+## 設計方針
+
+- **UI（View）とロジックの分離**
+  - コンポーネントは表示のみを担当
+  - ビジネスロジックはカスタムフックに分離
+  - データ取得とデータ操作のロジックも分離
+
+- **責務の明確化**
+  - 各コンポーネントは単一の責務を持つ
+  - データフェッチングはサーバーアクションで実装
+  - 状態管理はカスタムフック内でカプセル化
 
 ## v1：新しい仕様
 
