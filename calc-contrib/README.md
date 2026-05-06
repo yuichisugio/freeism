@@ -1,12 +1,17 @@
 # `freeism-contribution-calculate`の説明
 
 - [`freeism-contribution-calculate`の説明](#freeism-contribution-calculateの説明)
+  - [言語](#言語)
   - [概要](#概要)
   - [フォルダ構造の説明](#フォルダ構造の説明)
   - [使い方](#使い方)
   - [シェルスクリプトで実装した理由](#シェルスクリプトで実装した理由)
   - [設計で気を付けたこと](#設計で気を付けたこと)
   - [推奨](#推奨)
+
+## 言語
+
+[English](docs/README.en.md) | 日本語（本ページ）
 
 ## 概要
 

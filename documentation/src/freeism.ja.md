@@ -82,21 +82,10 @@
       - [参考検知の仕組み](#参考検知の仕組み)
       - [類似性の仕組み](#類似性の仕組み)
       - [クラスタリングの仕組み](#クラスタリングの仕組み)
-      - [「貢献検知の仕組み」プロトタイプ](#貢献検知の仕組みプロトタイプ)
-        - [v1](#v1)
-        - [v2](#v2)
     - [貢献報酬の仕組み](#貢献報酬の仕組み)
       - [概要](#概要-4)
       - [必要性の仕組み](#必要性の仕組み)
       - [公式パッケージの仕組み](#公式パッケージの仕組み)
-      - [「貢献報酬の仕組み」プロトタイプ](#貢献報酬の仕組みプロトタイプ)
-        - [v1](#v1-1)
-          - [プロトタイプの設計](#プロトタイプの設計)
-          - [「OSS業界全体の発展」パッケージ（GitHub API）](#oss業界全体の発展パッケージgithub-api-1)
-          - [「指定OSSの発展」パッケージ（GitHub API）](#指定ossの発展パッケージgithub-api-1)
-          - [「幸福度の向上」パッケージ](#幸福度の向上パッケージ-1)
-        - [v2](#v2-1)
-          - [プロトタイプの設計](#プロトタイプの設計-1)
     - [代替性の仕組み](#代替性の仕組み)
     - [非干渉の仕組み](#非干渉の仕組み)
     - [枠の仕組み](#枠の仕組み)
@@ -167,6 +156,7 @@
     - [「ゲーム理論・マーケットデザイン・マッチング理論」を参考](#ゲーム理論マーケットデザインマッチング理論を参考)
     - [感情のダミーデータ](#感情のダミーデータ)
     - [「感情分析」サービス](#感情分析サービス)
+    - [「類似性の仕組み」を行うツール](#類似性の仕組みを行うツール)
     - [貢献度の算出手法](#貢献度の算出手法)
       - [`Apache/kibblescanners`](#apachekibblescanners)
       - [`Aurgur`](#aurgur)
@@ -2615,7 +2605,7 @@ flowchart TB
 - 説明
   - 無料主義の基本となる方法
   - 1 つの作業ごとに全ての評価軸でそれぞれ評価して、それぞれの評価軸のポイントを付与する
-  - 資本主義では 1 つの会社で 1 つの評価指標で評価され 1 つの通貨を報酬として得るのが一般的だが、無料主義では一つの作業を複数の評価指標で評価され、評価指標ごとのポイントを報酬として得られる
+  - 資本主義では 1 つの会社で 1 つの評価指標で評価され 1 つの通貨を報酬として得るのが一般的だが、無料主義では 1 つの作業を複数の評価指標で評価され、評価指標ごとのポイントを報酬として得られる
 
 - メリット
   1. 1 つの作業を複数の価値観で評価できる
@@ -4151,92 +4141,6 @@ evaluation-criteria-s -->|"3"| contributor-u
   - 貢献度を遡って付与していくには、各貢献タスクごとに参考 or 使用した情報が必要だが、どのツールを使用したかどうか不明だったり、報告が面倒なことが多い
   - なので、何かしらの方法で、使用したツールや知識を検知・推測する仕組みが必要
 
-- 「類似性の仕組み」を行うツール
-  1.  芸術作品・デザイン・動画
-      1. GANs
-      2. 深層学習モデル（CNN）
-      3. ガウシアンミックスチャーモデル（GMM）
-      4. ビジュアルサーモン（Visual Thesaurus）
-         - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
-      5. CLIP (Contrastive Language–Image Pretraining)
-         - テキストと画像を結びつけるマルチモーダル AI
-      6. 時空間 CNN
-         - 動画のフレーム間の連続性を解析
-      7. 光フローベース解析
-         - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
-  2.  音声
-      1. Spectrogram Analysis
-         - 音声データをスペクトログラムに変換し、視覚的に比較
-      2. 3D CNN + Audio Embeddings
-         - 動画のフレームと音声のベクトルを統合
-      3. Multimodal Transformers: 映像、テキスト、音声の複数モーダルを同時に解析
-  3.  文章の盗用・剽窃
-      1. Plag.lv
-         - 大規模なデータベースと比較して複数言語での盗用を検出する
-         - [https://www.plag.jp/](https://www.plag.jp/)
-      2. chiyo-co
-         - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
-         - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
-      3. RighTect
-         - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
-         - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
-      4. Copyleaks
-         - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
-         - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
-      5. Trinka
-         - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
-         - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
-      6. 剽窃チェッカー
-         - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
-      7. Shinobi ファインダー
-         - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
-         - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
-      8. TF-IDF（Term Frequency-Inverse Document Frequency）
-         - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
-         - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
-      9. Word2Vec や Doc2Vec
-         - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
-      10. トピックモデル
-          - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
-      11. ベクトルエンベディング
-          - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
-      12. 機械学習モデル
-          - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
-  4.  コード系
-      1. SA-Plag
-         - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
-         - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
-      2. Moss
-         - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
-      3. Sider Scan
-         - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
-      4. 大阪大学の研究室が提供するコードクローン関連ツール集
-      - [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
-      6. NCDSearch
-         - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
-         - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
-      7. Codequiry
-         - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
-         - [https://codequiry.com/](https://codequiry.com/)
-      8. JPlag
-         - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
-         - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
-         - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
-      9. Code2Vec
-         - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
-         - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
-      10. Graph Neural Networks (GNNs)
-          - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
-      11. OpenAI Codex や CodeBERT
-          - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
-      12. コサイン類似度
-          - コードのベクトル表現間の角度を用いて類似性を評価
-      13. LSH (Locality-Sensitive Hashing)
-          - 大規模なコードベースにおける効率的な類似性検索
-      14. similarity
-          - ベクトルやコードの類似性があるか見る
-          - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
-
 #### クラスタリングの仕組み
 
 - 説明
@@ -4263,79 +4167,6 @@ evaluation-criteria-s -->|"3"| contributor-u
   6.  その使用ツールが属するクラスタを見つける
   7.  同じクラスタに属するツール全てにポイントを付与する
       - 付与するポイントは、ユーザー数などで重み付けする
-
-#### 「貢献検知の仕組み」プロトタイプ
-
-##### v1
-
-- 参考
-  - [https://devops-blog.virtualtech.jp/entry/20230809/1691549178](https://devops-blog.virtualtech.jp/entry/20230809/1691549178)
-  - [https://github.blog/jp/2023-04-06-introducing-self-service-sboms/](https://github.blog/jp/2023-04-06-introducing-self-service-sboms/)
-
-- v1 の要件
-  1. OSS の「貢献検知の仕組み」のプロトタイプを作ってみる
-  2. GitHub CLI(`gh`)を使用して、GitHub API から、GitHub Dependencies Graph の SBOM を取得して整形して出力するのみで OK！
-  3. GUI や複雑なロジックは実装しない
-  4. ライブラリ指定で、そのライブラリが使用しているライブラリ一覧を出力する
-  5. シェルスクリプトで実装する
-  6. GitHub のプロジェクトのみ対応
-  7. 分析は疎結合な設計にしたい
-     - 別サービスとして切り出したい。別サービスを利用しても大丈夫にしたい
-
-- v2 の要件（今後）
-  1. Web 標準 API、グローバルインストールも依存関係として取得できるよう実装したい
-     - SBOM として取得できない
-     - 難しい場合は、`GitHub CLI`・`GitHub API`を使用するより、`git clone`してローカルで解析したほうが良さそう
-
-     - グローバルインストールの使用検知が難しい場合はローカルで解析する
-
-  2. 類似性の調査コードの実装
-
-- 流れ
-  1.  シェルスクリプトのファイルの引数で、GitHub 内のプロジェクトで、依存関係を調査したいライブラリを指定する
-  2.  Json ファイルで、依存関係の一覧を配列に入れて出力する
-      - 各評価軸の名前をキーにした Json ファイルにする
-        - ライブラリの冗長性はあるけど、それ以上に評価軸を疎結合で、評価軸の組み合わせを自由で簡単に組み合わせられるようにしたいため
-      - 各評価軸内で、各ライブラリをキーにして、値を重み付けの値を記載したオブジェクトを入れる
-      - 別で、ライブラリ名のみを要素とした配列を作成して、それをイテレートして、その要素名をキーにして、それぞれの評価軸のオブジェクトの重み付けの値を取得していく処理にしたい
-      - 配列は簡単に繰り返し処理を入れられる
-      - オブジェクトは確実にデータを取り出せるが、そのキーの名前指定が必要
-      - ライブラリ名は、`"libraries-list"[0]`みたいな感じで、名前を取り出してキー名として指定して、すべての評価軸の重み付け値を取得したいので評価軸内ではオブジェクトにしたい
-      - 評価軸も配列の要素としてイテレートして、ライブラリ名をキーにして値を取り出す
-
-```json
-{
-"success":true,
-"meta":{
-	"取得日":"A",
-	"指定したライブラリ名（何のライブラリが使用した一覧が乗っているのかを明示したい）":"指定ライブラリ名A"
-}
-"data":{
-	"libraries-list":["ライブラリ名A","ライブラリ名B","ライブラリ名C"],
-	"evaluation-criteria-list":[
-		"評価軸名A":{
-			"ライブラリ名A":1,
-			"ライブラリ名B":6,
-			"ライブラリ名C":10
-		}
-		"評価軸名B":{
-			"ライブラリ名A":6,
-			"ライブラリ名B":3,
-			"ライブラリ名C":6
-		}
-		"評価軸名C":{
-			"ライブラリ名A":5,
-			"ライブラリ名B":7,
-			"ライブラリ名C":2
-		}
-	]
-}
-}
-```
-
-##### v2
-
-- 今後、実装予定
 
 ### 貢献報酬の仕組み
 
@@ -4431,7 +4262,9 @@ evaluation-criteria-s -->|"3"| contributor-u
 #### 公式パッケージの仕組み
 
 - 「公式パッケージの仕組み」の説明
-  - 各商材ごとに「公式パッケージ」を設定する。その「公式パッケージ」を使用して貢献報酬を分配する
+  - 各商材ごとに「公式パッケージ」を設定する。
+    - その「公式パッケージ」を使用して貢献報酬を分配する
+    - 「公式パッケージ」は、「パッケージの仕組み」の「パッケージ」から選択する
   - この仕組みを「公式パッケージの仕組み」と呼ぶ
   - 「公式パッケージの仕組み」は、「貢献報酬の仕組み」の一部
   - 商材ごとに公式のパッケージを設定して、その公式パッケージのそれぞれの評価軸への貢献割合によって、その商材が参考にされた際に、参考にした商材から配布されるポイントの分配金額を決める
@@ -4579,231 +4412,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 - 参考・使用された対象が複数人の場合
   - 参考・使用された対象が複数人の場合には、「公式パッケージの仕組み」で分配するだけ
     - 商材の開発者が 1 人の場合は、「必要性の仕組み」で分析して報酬を付与するのみで分配する必要がないため「公式パッケージの仕組み」は使用しない
-
-#### 「貢献報酬の仕組み」プロトタイプ
-
-##### v1
-
-###### プロトタイプの設計
-
-- 説明
-  - 指定コンテンツの作成に貢献した人を特定して、貢献度を算出するソフトウェアのプロトタイプを作る
-    - または、「貢献検知の仕組み」で特定した貢献者の貢献度を算出するソフトウェア
-
-- 設計
-  1.  疎結合
-      - 無料主義アプリに組み込まず、疎結合で実装する
-      - すぐに別ツールに移行できるようにしたい
-  2.  本質的な機能のみ実装
-      - リッチな機能にしたいわけではない
-      - シンプルで貢献度の算出方法の例としてすぐに伝わるようにしたい
-      - いったんは、CLI で実装
-  3.  無料主義アプリへ貢献度を一括登録できるフォーマットで出力する
-
-- 貢献度の評価方法
-  - 説明
-    - このプロトタイプで実装する貢献度の算出方法としては、一人ずつ、1 つのタスクごとに「タスク」×「各評価軸ごとに重みづけの値の掛け算結果」を計算して、その合計を出して、その人の貢献度とする
-
-- アウトプットで必要な内容
-  - CSV ファイルで出力する
-    - スプレッドシートにそのままコピー&ペーストして使えるし、人間が見てもわかりやすいし、システムでアップロード処理も簡単なため
-  - 無料主義アプリにアップロードする用
-    - メモ
-      - ユーザーごとに並び替えたタスクごとの貢献度の数値一覧
-      - 無料主義アプリに、タスクごとの貢献度と貢献度の分析が正しいかチェックするために算出ロジックを示す必要があるため、算出ロジックも記載する
-    - 記載するデータ一覧
-      1. データ取得元のサービス名
-      2. データ取得元のユーザ ID
-      3. タスク名
-      4. データ取得元のタスク ID
-         - 同じタスクを重複登録しないようにするため
-      5. 貢献度の数値
-      6. 貢献度の算出ロジック（各重み付けの値や掛け算などの算出ロジックを記載）
-      7. 各重み付けの値
-      8. メモ
-      9. 算出した日（今日）
-  - 貢献度の確認のみの CSV
-    - ユーザーごとの貢献度の数値一覧
-
-- CSV をスプレッドシートに変換する方法
-  - 方法
-    - CSV をスプシに、Shift + Command + V で、書式なしコピー&ペーストして、ドロップダウン「テキストを列に分割」を選択
-  - ポイント
-    - 改行されない場合は、行末の改行コードが間違っているので、一度エディタにコピー&ペーストして、`LF`にしてから、再度スプシにコピー&ペーストすれば大丈夫
-
-###### 「OSS業界全体の発展」パッケージ（GitHub API）
-
-- 説明
-  - GitHub API で取れる範囲の「OSS 業界全体の発展」パッケージの貢献度を算出するプロトタイプの CLI
-  - https://github.com/yuichisugio/freeism-calc-contrib/tree/main/src/oss-industry-growth/github-oss-contrib
-
-- 「OSS 業界全体の発展」をプロトタイプのパッケージとして設定する理由
-  1.  無料主義を説明するうえで、比較的簡単にデータを取得でき、目標への貢献を分析できる
-  2.  最初に説明する層がエンジニアをそ想定している
-
-- 要件
-  1. 「Open Source Software Scorecard」は指標として使用しない
-     - 理解促進のためのコードなので、Token やインストールなどの準備が多いと他の人たちに体験してもらえないし、ハードルが高くなるため
-
-- 使用するデータ
-  1.  スター数
-      - 計算式
-        - $x$がスターの数
-        - デフォでは、$y=2x$にする
-      - データ取得方法
-        - `gh api repos/<オーナー名>/<リポジトリ名> --jq .stargazers_count`
-        - ↑は、REST API の取得方法なので、GraphQL API で star のみ指定して、オーバーフェッチングを避ける
-  2.  ダウンロード数
-      - 計算式
-        - $x$がインストール数
-        - デフォでは、$y=1x$にする
-      - 取得方法
-        - `curl "https://api.npmjs.org/downloads/point/last-month/<リポジトリ名>"`
-          - 合計値を取得できるが 1 か月分が限界
-        - `curl "https://api.npmjs.org/downloads/range/2025-02-01:2025-07-31/<リポジトリ名>"`
-          1.  1 回のリクエストで最大 18 か月まで取得可能
-              - 次がある限り while で回す繰り返して合算する処理が必要
-          2.  日別 DL 数なので、自分で合算が必要
-      - 参考
-        - [https://github.com/npm/registry/blob/main/docs/download-counts.md](https://github.com/npm/registry/blob/main/docs/download-counts.md)
-        - [https://blog.npmjs.org/post/92574016600/numeric-precision-matters-how-npm-download-counts-work.html](https://blog.npmjs.org/post/92574016600/numeric-precision-matters-how-npm-download-counts-work.html)
-
-###### 「指定OSSの発展」パッケージ（GitHub API）
-
-- 説明
-  - GitHub API で取れる範囲の「指定 OSS の発展」パッケージの貢献度を算出するプロトタイプの CLI
-  - https://github.com/yuichisugio/freeism-calc-contrib/tree/main/src/designated-oss-growth/github-developer-contrib
-
-- 全体の計算ロジック
-  - 説明
-    - 全ての重み付けの値を掛け算する
-    - 基準値は`1`で、それに全ての重み付け値を掛け算する
-  - 計算式
-    - 全ての重み付け値を掛け算
-    - $\prod_{i=1}^{n} x_i$
-
-1. 貢献の実施期間
-   - メモ
-     - 「ライブラリ作成日」と「最後の main ブランチへのコミット日」をプロジェクト全体の期間として設定する
-     - 「ライブラリ作成日」から数えた日数を`$x$`に入れる
-     - 貢献時期が早いほど重み付けする
-     - 単位は、`day`
-     - $x$が日にち
-   - 計算式
-     - $f(a, b) =\begin{cases} y=-x + 3650 & (y \geq 1) \\1 & (y \lt 1)\end{cases}$
-   - 対応タスク
-     1. 全てのタスク
-2. 作業量
-   - メモ
-     - コード・コード行数
-     - $x$が行数
-   - 計算式
-     - $f(a, b) =  \begin{cases} 0.1x & (y \geq 1) \\  1    & (y \lt 1)\end{cases}$
-   - 対応タスク
-     1. commit
-     2. Pull Request
-     3. Issue
-     4. Comment
-     5. discussions
-3. 参加者からの評価
-   - メモ
-     - リアクション数
-     - 👎バッド`b`は、1 つにつき`-0.1`
-     - バッド以外`a`は、1 つにつき`0.1`
-     - `y`が 0 以下の場合は`0`にする
-   - 計算式
-     - $f(a, b) =\begin{cases}0.1a - 0.1b & (y \geq 1) \\1 & (y \lt 1)\end{cases}$
-   - 対応タスク
-     1. issue
-     2. pullrequest
-     3. discussions
-     4. comment
-4. 対応速度
-   - メモ
-     - 「作成日」から「実施日」までの「日数（`x`)」が短いほど評価を高める
-     - 単位は、`day`
-     - $x$が日にち
-   - 計算式
-     - $f(a, b) =\begin{cases} -x + 30 & (y \geq 1) \\1 & (y \lt 1)\end{cases}$
-   - 対応タスク
-     1. プルリクエスト作成からレビュー日
-5. タスクの種類
-   - 対応タスク
-
-```json
-	"task_type": {
-		"pr": {
-			"open_pr_created": 5, // 作成
-			"draft_pr_created": 2, // 下書き作成
-			"approved_pr_created": 10, // 承認された作成
-			"rejected_pr_created": 5, // 却下された作成
-			"pr_commented": 2, // コメント
-			"pr_merged": 3, // マージ
-			"pr_reviewed": 5 // レビュー
-		},
-		"issue": {
-			"open_issue_created": 3, // 作成
-			"not_planned_issue_created": 2, // 作成
-			"completed_issue_created": 5, // 作成
-			"issue_commented": 2, // コメント
-			"issue_status_changed": 5 // ステータス変更
-		},
-		"commit": {
-			"commits": 6 // コミット
-		},
-		"sponsor": {
-			"spot_high": 3,
-			"spot_medium": 2,
-			"spot_low": 1,
-			"monthly_high": 5,
-			"monthly_medium": 4,
-			"monthly_low": 3
-		},
-		"star": 1,
-		"fork": 1,
-		"watch": 1,
-		"install": 1
-	}
-```
-
-###### 「幸福度の向上」パッケージ
-
-- 説明
-  - 感情を分析する CLI
-
-- 使用場面
-  1. 「幸福度の向上」パッケージで、幸福度が向上しているか、何が原因かを分析する
-
-- 参考
-  1. OpenAI の API と Supabase と Next.js で感情分析アプリを作る
-     - https://zenn.dev/fr0608/books/8926012b52330e
-     - 形態素分析は、Python or Yahoo!の形態素解析 API を使用してもよさそう
-
-##### v2
-
-###### プロトタイプの設計
-
-- v2 に実装予定の機能
-  1.  他の評価軸に対応
-      - 説明
-        - GitHub API 以外のデータを取得して、「OSS 業界全体の発展」や「指定 OSS の発展」の貢献度を算出する実装の追加
-  2.  自動実行
-      - 説明
-        - GitHub Actions などで、定期的にスクリプトを実行して指定ライブラリの新規タスクの貢献度を算出する仕組み
-  3.  `main.sh`ではないコマンド名が欲しい
-      - 説明
-        - シェルスクリプトのファイル実行権限の付与やファイルの実行 PATH の指定が面倒なので、「1 コマンド」で「短文」で実行できるようにしたい
-      - メモ
-        - `npx` or `bunx` or `homebrew`では登録が面倒だったら、`mise`で設定しても良さそう
-        - 登録するならインストールして、`freeism`コマンドを作って実行したい
-  4.  出力形式を、「JSON」と「CSV」ファイルに対応
-  5.  複数トークンに対応
-      - 設定
-        - GitHub API で複数トークンを使い回せるようにしたい
-        - 1 つの PAT だと RateLimit が来たら止まるため、止まらないように複数登録したい
-      - 参考
-        1.  [https://deepwiki.com/adobe/oss-contributors/4.3-github-token-management](https://deepwiki.com/adobe/oss-contributors/4.3-github-token-management)
-        2.  [https://github.com/adobe/oss-contributors/blob/cf675dee/src/util/github_tokens.js](https://github.com/adobe/oss-contributors/blob/cf675dee/src/util/github_tokens.js)
 
 ### 代替性の仕組み
 
@@ -10217,6 +9825,93 @@ Kaggle みたいに、それぞれの人の相関関係を算出してほしい�
   10. **Cultural Audio Cues**
       - 幸福を示す音声の文化的特徴を分析（例： 言語間での笑いの違い）
 
+### 「類似性の仕組み」を行うツール
+
+1.  芸術作品・デザイン・動画
+  1. GANs
+  2. 深層学習モデル（CNN）
+  3. ガウシアンミックスチャーモデル（GMM）
+  4. ビジュアルサーモン（Visual Thesaurus）
+     - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
+  5. CLIP (Contrastive Language–Image Pretraining)
+     - テキストと画像を結びつけるマルチモーダル AI
+  6. 時空間 CNN
+     - 動画のフレーム間の連続性を解析
+  7. 光フローベース解析
+     - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
+2.  音声
+  1. Spectrogram Analysis
+     - 音声データをスペクトログラムに変換し、視覚的に比較
+  2. 3D CNN + Audio Embeddings
+     - 動画のフレームと音声のベクトルを統合
+  3. Multimodal Transformers: 映像、テキスト、音声の複数モーダルを同時に解析
+3.  文章の盗用・剽窃
+  1. Plag.lv
+     - 大規模なデータベースと比較して複数言語での盗用を検出する
+     - [https://www.plag.jp/](https://www.plag.jp/)
+  2. chiyo-co
+     - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
+     - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
+  3. RighTect
+     - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
+     - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
+  4. Copyleaks
+     - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
+     - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
+  5. Trinka
+     - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
+     - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
+  6. 剽窃チェッカー
+     - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
+  7. Shinobi ファインダー
+     - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
+     - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
+  8. TF-IDF（Term Frequency-Inverse Document Frequency）
+     - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
+     - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
+  9. Word2Vec や Doc2Vec
+     - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
+  10. トピックモデル
+      - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
+  11. ベクトルエンベディング
+      - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
+  12. 機械学習モデル
+      - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
+4.  コード系
+  1. SA-Plag
+     - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
+     - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
+  2. Moss
+     - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
+  3. Sider Scan
+     - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
+  4. 大阪大学の研究室が提供するコードクローン関連ツール集
+  - [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
+  1. NCDSearch
+     - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
+     - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
+  2. Codequiry
+     - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
+     - [https://codequiry.com/](https://codequiry.com/)
+  3. JPlag
+     - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
+     - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
+     - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
+  4. Code2Vec
+     - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
+     - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
+  5.  Graph Neural Networks (GNNs)
+      - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
+  6.  OpenAI Codex や CodeBERT
+      - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
+  7.  コサイン類似度
+      - コードのベクトル表現間の角度を用いて類似性を評価
+  8.  LSH (Locality-Sensitive Hashing)
+      - 大規模なコードベースにおける効率的な類似性検索
+  9.  similarity
+      - ベクトルやコードの類似性があるか見る
+      - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
+
 ### 貢献度の算出手法
 
 下記の方法を、「貢献度の算出手法」の参考にしたい。
@@ -14126,9 +13821,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 1. `calc-contrib`
    - `freeism`リポジトリの`calc-contrib`
    - 貢献度の算出
+   - `貢献報酬の仕組み`のプロトタイプ
 2. `depchecker`
    - `freeism`リポジトリの`depchecker`
    - 依存関係の検知
+   - `貢献検知の仕組み`のプロトタイプ
 3. `web-app`
    - `freeism`リポジトリの`web-app`
-   - Web アプリ
+   - `無料主義アプリ`のプロトタイプ
