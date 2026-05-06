@@ -74,8 +74,9 @@
         - [「指定OSSの発展」パッケージ（GitHub API）](#指定ossの発展パッケージgithub-api)
         - [「指定OSSの発展」パッケージ（GitHub API以外）](#指定ossの発展パッケージgithub-api以外)
       - [「幸福度の向上」パッケージ](#幸福度の向上パッケージ)
+      - [他のパッケージの例](#他のパッケージの例)
     - [貢献検知の仕組み](#貢献検知の仕組み)
-      - [概念](#概念)
+      - [概要](#概要-3)
       - [評価軸検知の仕組み](#評価軸検知の仕組み)
       - [中間財検知の仕組み](#中間財検知の仕組み)
       - [参考検知の仕組み](#参考検知の仕組み)
@@ -85,7 +86,7 @@
         - [v1](#v1)
         - [v2](#v2)
     - [貢献報酬の仕組み](#貢献報酬の仕組み)
-      - [概要](#概要-3)
+      - [概要](#概要-4)
       - [必要性の仕組み](#必要性の仕組み)
       - [公式パッケージの仕組み](#公式パッケージの仕組み)
       - [「貢献報酬の仕組み」プロトタイプ](#貢献報酬の仕組みプロトタイプ)
@@ -164,6 +165,8 @@
     - [「貢献度の算出」の参考](#貢献度の算出の参考)
     - [「幸福度の算出」の参考](#幸福度の算出の参考)
     - [「ゲーム理論・マーケットデザイン・マッチング理論」を参考](#ゲーム理論マーケットデザインマッチング理論を参考)
+    - [感情のダミーデータ](#感情のダミーデータ)
+    - [「感情分析」サービス](#感情分析サービス)
     - [貢献度の算出手法](#貢献度の算出手法)
       - [`Apache/kibblescanners`](#apachekibblescanners)
       - [`Aurgur`](#aurgur)
@@ -2612,7 +2615,7 @@ flowchart TB
 - 説明
   - 無料主義の基本となる方法
   - 1 つの作業ごとに全ての評価軸でそれぞれ評価して、それぞれの評価軸のポイントを付与する
-  - 資本主義では 1 つの会社で 1 つの評価指標で評価され一つの通貨を報酬として得るのが一般的だが、無料主義では一つの作業を複数の評価指標で評価され、評価指標ごとのポイントを報酬として得られる
+  - 資本主義では 1 つの会社で 1 つの評価指標で評価され 1 つの通貨を報酬として得るのが一般的だが、無料主義では一つの作業を複数の評価指標で評価され、評価指標ごとのポイントを報酬として得られる
 
 - メリット
   1. 1 つの作業を複数の価値観で評価できる
@@ -2937,17 +2940,16 @@ flowchart TB
   - この仕組みのことを「貢献度の算出の仕組み」と呼ぶ
 
 - 再帰的に評価・分配する
-  - 貢献は、人間・商材を分けず関係なく評価する
-    - 「貢献している人間・商材」に「貢献している人間・商材」のように、再帰的に評価する
-  - 再帰的に評価する際は、その保有ポイントを分配する
-    - 分配は、自分の保持率を決めて分配できる
-  - 「ポイント付与先に公式パッケージが設定されていない」or「ポイントの最小単位に到達」するまで再帰的に分配する
-    - ポイントの最小単位は、`0.0001`などを設定する
+    1. 貢献は、人間・商材を分けず関係なく評価する
+    2. 「貢献している人間・商材」に「貢献している人間・商材」のように、再帰的に評価する
+    3. 再帰的に評価する際は、その保有ポイントを分配する
+    4. 自分が得たポイントを、自分に貢献した人に対して分配する際に、分配せずに自分で保持しておく割合を決めて、その分を残して分配できる
+    5. 「ポイント付与先に公式パッケージが設定されていない」or「ポイントの最小単位に到達して、これ以上分配できない状態」まで再帰的に分配する
+    6. ポイントの最小単位は、`0.0001`など、それぞれの評価軸ごとに設定する
 
 - 「貢献度の算出の仕組み」の流れ
   1. 「貢献検知の仕組み」で、貢献を検知
      - 貢献行為は、中間財として使用・知見の参考・改善・プロジェクト参加などあらゆる行為を含む
-
   2. 「貢献報酬の仕組み」で、貢献した人間・商材に報酬を支払う
 
 - 「貢献度の算出の仕組み」の例（簡略版）
@@ -4040,329 +4042,19 @@ evaluation-criteria-s -->|"3"| contributor-u
       29. 高齢者に占める要介護等認定者の割合
       30. 要介護等認定者で居宅介護を受けている人の割合
 
-**感情のダミーデータ**
+#### 他のパッケージの例
 
-1. WRIME
+1. 家事
    - 説明
-     - 日本語の SNS 投稿を対象に、8 つの基本感情（喜び、悲しみ、期待、驚き、怒り、恐れ、嫌悪、信頼）とその強度を 4 段階でラベル付けしたデータセットです
-     - 主観的（筆者）および客観的（複数の読み手）な感情ラベルが付与されています。研究用途での利用が可能です
-   - 参考
-     - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-2. chABSA データセット
-   - 説明
-     - TIS 株式会社が無償公開しているデータセットで、上場企業の有価証券報告書を基に作成されています
-     - 各文に対して、ポジティブ・ネガティブの感情分類だけでなく、「何が」ポジティブ・ネガティブなのかという観点情報が含まれています。機械学習による高度な感情解析の研究に利用できます
-   - 参考
-     - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-3. [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
-4. [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
-5. [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
-6. [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
-7. [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
-8. [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
-9. [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
-10. [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
-11. [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-12. [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
-13. [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-14. [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
-
-**「感情分析」サービス**
-
-1. ユーザーローカル「テキスト感情認識 AI」
-   - 説明
-     - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
-     - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
-2. Amazon Comprehend
-   - 説明
-     - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
-
-3. エモスタ「エモリーダー」
-   - 説明
-     - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
-4. VITALIFY Asia「MAL FaceEmotion」
-   - 説明
-     - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
-5. Empath（エンパス）
-   - 説明
-     - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
-     - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
-       - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
-       - [https://webempath.com/](https://webempath.com/)
-       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/) (日本語サイト）
-       - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/) (英語サイト）
-6. iMotions Voice Analysis
-   - 説明
-     - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
-       - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
-7. Vokaturi
-   - 説明
-     - [https://vokaturi.com/](https://vokaturi.com/)
-     - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
-     - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
-     - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
-8. COTOHA API（感情分析）
-   - 説明
-     - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
-     - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
-     - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
-9. リッカート尺度
-   - トピックに対する感情の強さを聞く一般的な設問形式
-   - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
-10. Firebase: Sentiment Analysis 拡張
-    - 説明
-      - テキストから感情スコア
-      - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
-      - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
-11. 日本語感情表現辞書
-    - 説明
-      - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
-      - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
-      - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
-      - メモ： 夏目漱石「こころ」× [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/) で試す想定
-12. Vertex AI（GCP）
-    - 説明
-      - 感情分析の利用例
-      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
-13. 解説・ビジネス記事
-    - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309) / [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
-14. 東北大： 日本語極性辞書（公開リソース）
-    - 説明
-      - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
-15. 幸福度（感情ではない観点）
-    - 説明
-      - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
-16. 聞き取り・調査設計
-    - 説明
-      - 従業員エンゲージメント調査を参考に、感情・幸福度の自己報告を設計する
-      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
-17. Qiita（実装・製品）
-    - 説明
-      - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
-      - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
-      - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
-
-- carely
-  - 説明
-    - 「ストレスチェック」等を感情・幸福度分析の参考に
-
-**「感情分析」理論**
-
-- **テキスト**
-  1. **Sentiment Analysis** — ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現を重視し、VADER・TextBlob 等も
-  2. **Lexicon-based Analysis** — 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
-  3. **Machine Learning-based** — SVM、ランダムフォレスト等
-  4. **Deep Learning-based** — BERT、LSTM 等
-  5. **LSA** — 意味的関係から感情を推定
-  6. **Topic Modeling with Sentiment** — LDA 等でトピックごとの感情。幸福テーマ（LDA with Happiness Themes）も同系
-  7. **VAD Models** — 評価・覚醒・支配の 3 次元
-  8. **Emotion Annotated Corpus** — EmoLex、GoEmotions、LIWC 等
-  9. **Cognitive Appraisal Theory Analysis** — 認知評価に基づく構造的分析
-  10. **Pragmatic Analysis / Hedonic Tone** — 文脈・社会言語学的ニュアンス。幸福度では快楽的トーン分析も
-
-- **動画**
-  1. **Facial Expression Analysis** — OpenFace、Affectiva、Ekman。幸福では笑顔に注目
-  2. **Action Unit Analysis** — Ekman。幸福寄りでは口角上昇等
-  3. **Multimodal Analysis** — 音声・テキスト・映像の統合（Multimodal Happiness Analysis を含む）
-  4. **Body Gesture Analysis** — 例： Kinect。ポジティブなジェスチャー
-  5. **Eye Movement Analysis** — 視線トラッキング、凝視パターン
-  6. **Deep Learning for Video** — I3D、C3D 等
-  7. **Physiological Signal Integration** — 心拍・皮膚電位
-  8. **Semantic Scene Analysis** — シーン・雰囲気。明るい色・自然など
-  9. **Audio-Visual Sentiment Analysis** — 音声＋映像
-  10. **Cultural Context Analysis** — 文化・文脈
-
-- **音声**
-  1. **Prosodic Feature Analysis** — ピッチ・強度・テンポ・リズム。例： Praat
-  2. **Spectral Feature Analysis** — フォルマント、MFCC。ポジティブ感情向けのスペクトル解析も
-  3. **Speech Emotion Recognition (SER)** — EmoVoice。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
-  4. **Acoustic Modeling** — GMM、HMM 等。ポジティブ感情向けも同系
-  5. **Deep Learning in Audio** — Wavenet 等
-  6. **Pitch Contour Analysis**
-  7. **Valence-Arousal Modeling** — Russell’s Circumplex 等
-  8. **Emotion Annotation on Audio Dataset** — IEMOCAP 等
-  9. **Context-Aware Audio Analysis**
-  10. **Cross-linguistic Emotional Analysis / Cultural Audio Cues**
-
-- **文章から感情を分析する方法**
-  1. **Sentiment Analysis (感情分析)**
-     - テキストのポジティブ、ネガティブ、ニュートラルな感情を分類する手法
-     - 使用例： 自然言語処理（NLP）技術
-  2. **Lexicon-based Analysis (辞書ベース分析)**
-     - 事前に定義された感情辞書を用いて感情スコアを計算
-     - 例： SentiWordNet, AFINN
-  3. **Machine Learning-based Analysis**
-     - 機械学習モデル（例： SVM、ランダムフォレスト）を使った感情分類
-     - 大規模なトレーニングデータが必要
-  4. **Deep Learning-based Analysis**
-     - ニューラルネットワーク（例： BERT、LSTM）を利用した感情推定
-     - 文脈を深く理解できる
-  5. **Latent Semantic Analysis (LSA)**
-     - 文の意味的な関係性を解析し、感情を推定
-     - 文脈感知型の分析
-  6. **Topic Modeling with Sentiment**
-     - トピックモデリング（例： LDA）を用い、トピックごとの感情を解析
-     - 感情とテーマを同時に分析
-  7. **Valence Arousal Dominance (VAD) Models**
-     - 感情を 3 次元で分析（例： 評価、覚醒、支配）
-     - テキストの微細な感情ニュアンスを捉える
-  8. **Emotion Annotated Corpus Analysis**
-     - 人工的に感情が注釈付けされたデータセットを用いた感情予測
-     - 例： EmoLex、GoEmotions
-  9. **Cognitive Appraisal Theory Analysis**
-     - 認知評価理論を基に、文章中の感情を構造的に評価
-     - 認知心理学的視点からの分析
-  10. **Pragmatic Analysis**
-      - 文脈や社会的なニュアンスを取り入れて感情を推定
-      - 言語学的なアプローチ
-
-- 動画から感情を分析する方法
-  1. **Facial Expression Analysis**
-     - 顔の表情変化を捉え、感情を推定
-     - 使用ツール： OpenFace, Affectiva
-  2. **Action Unit Analysis**
-     - 表情筋の動き（アクションユニット）を解析
-     - Paul Ekman の表情モデルに基づく
-  3. **Multimodal Analysis**
-     - 動画内の複数データ（音声、テキスト、映像）を組み合わせて感情を推定
-  4. **Body Gesture Analysis**
-     - ジェスチャーや姿勢の変化を解析して感情を分類
-     - 使用例： Kinect データ
-  5. **Eye Movement Analysis**
-     - 瞳の動きや注視点を追跡し、感情を推定
-     - 例： 視線トラッキング技術
-  6. **Deep Learning for Video Analysis**
-     - 3D CNN や RNN を用いて動画全体の感情を解析
-     - モデル例： I3D, C3D
-  7. **Physiological Signal Integration**
-     - 動画中の心拍や皮膚電位を解析し、感情と関連付け
-     - センサーと連携
-  8. **Semantic Scene Analysis**
-     - 動画のシーンコンテキストや雰囲気を解析して感情を推定
-     - 例： 情景理解
-  9. **Audio-Visual Sentiment Analysis**
-     - 動画中の音声と映像データを組み合わせて感情を分析
-     - マルチモーダルアプローチ
-  10. **Cultural Context Analysis**
-      - 動画中の文化的背景や文脈を考慮した感情分析
-      - 例： 文化心理学
-
-- 音声から感情を分析する方法
-  1. **Prosodic Feature Analysis**
-     - 声のピッチ、強度、リズムを解析して感情を推定
-     - 使用例： Praat
-  2. **Spectral Feature Analysis**
-     - スペクトル特性（例： フォルマント、MFCC）を利用した感情推定
-  3. **Speech Emotion Recognition (SER)**
-     - 音声認識技術を感情分類に適用
-     - 例： EmoVoice
-  4. **Acoustic Modeling**
-     - 音響モデルを構築し、感情特性を分類
-     - 例： Gaussian Mixture Models (GMM)
-  5. **Deep Learning in Audio**
-     - CNN や RNN を活用して音声データを解析
-     - モデル例： Wavenet
-  6. **Pitch Contour Analysis**
-     - 声の音調変化を追跡し、感情を分類
-  7. **Valence-Arousal Modeling**
-     - 声の特性を評価と覚醒の 2 軸で解析
-     - 例： Russell’s Circumplex Model
-  8. **Emotion Annotation on Audio Dataset**
-     - 感情ラベル付けされた音声データセットを利用したモデル
-     - 例： IEMOCAP
-  9. **Context-Aware Audio Analysis**
-     - 音声中の文脈情報を利用した感情推定
-     - NLP 技術を補完
-  10. **Cross-linguistic Emotional Analysis**
-      - 複数言語間での音声感情の共通点や相違点を分析
-      - 例： 国際音声データベース
-
-- 文章から幸福度を分析する方法
-  1. **Sentiment Analysis (感情分析)**
-     - ポジティブな感情表現を重視し、幸福度を定量化
-     - 使用例： NLP ツール（例： VADER、TextBlob）
-  2. **Lexicon-based Happiness Index**
-     - 幸福関連語彙のスコア（例： Affective Norms for English Words, Hedonometer）を用いて計算
-  3. **Subjective Well-Being (SWB) Text Analysis**
-     - 主観的幸福感を示す表現（例：「満足」「楽しい」）を検出する方法
-  4. **Life Satisfaction Indicators in Text**
-     - 「生活の満足度」に関連する具体的なキーワード（例：「健康」「家族」）を解析
-  5. **Emotional Valence Measurement**
-     - テキスト内の評価軸（ポジティブ/ネガティブ）の偏りを分析
-  6. **Positive Psychology Framework**
-     - ポジティブ心理学の観点（例： PERMA モデル）に基づいて、幸福感を示す要素を抽出
-  7. **Latent Dirichlet Allocation (LDA) with Happiness Themes**
-     - トピックモデリングを用いて、幸福に関連するテーマを特定
-  8. **Emotionally Annotated Corpus Analysis**
-     - 幸福感が注釈付けされたデータセットを使用し、文章を分類
-     - 例： EmoLex、LIWC
-  9. **Cognitive Appraisal Theory in Text**
-     - 認知的評価理論を活用し、幸福に関する記述を特定
-  10. **Hedonic Tone Analysis**
-      - テキスト全体の「快楽的なトーン」を計測する手法
-
-- 動画から幸福度を分析する方法
-  1. **Facial Expression Analysis**
-     - 幸福を示す表情（例： 笑顔）を解析
-     - 使用例： Ekman の表情モデル
-  2. **Action Unit Analysis (幸福に特化)**
-     - 特定のアクションユニット（例： 口角の上昇）を通じて幸福度を評価
-  3. **Body Gesture Analysis**
-     - 幸福感に関連するポジティブなジェスチャー（例： 軽快な動き）を解析
-  4. **Eye Movement and Gaze Patterns**
-     - 瞳孔の拡張や目の輝きが幸福感を示すことを分析
-  5. **Smile Dynamics Analysis**
-     - 笑顔の持続時間や強度を解析し、幸福度を推定
-  6. **Multimodal Happiness Analysis**
-     - 映像と音声を統合して幸福度を総合的に評価
-  7. **Physiological Signal Integration**
-     - 心拍数や皮膚電位のデータを映像に同期させて幸福度を分析
-  8. **Semantic Scene Analysis**
-     - 映像の背景や設定（例： 明るい色、自然の風景）を幸福感の指標として解析
-  9. **Positive Emotion Dynamics**
-     - 動画内でのポジティブな感情の時間的変化を追跡
-  10. **Social Interaction Analysis**
-      - 動画内の社会的交流（例： 笑い声や肯定的な反応）を分析して幸福度を評価
-
-- 音声から幸福度を分析する方法
-  1. **Prosodic Feature Analysis**
-     - 音声のトーンや強調が幸福感を示す要因として分析される
-     - 使用例： ピッチ、テンポ、リズム
-  2. **Spectral Analysis for Positive Emotion**
-     - 幸福感に特化したスペクトル特徴（例： フォルマント、MFCC）を抽出
-  3. **Speech Emotion Recognition (SER) for Happiness**
-     - 音声データを感情ラベル（特に幸福感）で分類
-     - データ例： RAVDESS、IEMOCAP
-  4. **Laughter Detection**
-     - 笑いの頻度や種類を解析して幸福感を測定
-  5. **Voice Energy and Intensity Analysis**
-     - 高エネルギーの発話が幸福を示すことを利用
-  6. **Pitch Contour Analysis**
-     - 幸福感に関連する明るい音調や上昇するトーンを検出
-  7. **Valence and Arousal Modeling**
-     - 幸福感を評価軸と覚醒軸でモデル化
-     - 例： Russell’s Circumplex Model
-  8. **Acoustic Modeling for Positive Emotion**
-     - 幸福感を示す音声特徴に基づいた音響モデルを構築
-     - 例： HMM、GMM
-  9. **Deep Learning in Audio Analysis**
-     - 幸福度検出に特化したディープラーニングモデル（例： CNN、RNN）
-  10. **Cultural Audio Cues**
-      - 幸福を示す音声の文化的特徴を分析（例： 言語間での笑いの違い）
-
-- 他のパッケージの例
-  1. 家事
-  - 説明
-    - 家事・ケア等の不可視労働を評価するなら、時間利用統計（Time-Use）と無償家事の貨幣評価の国際ガイドが実務に役立つ
-    - 置換費用法／機会費用法などで算定
+     - 家事・ケア等の不可視労働を評価するなら、時間利用統計（Time-Use）と無償家事の貨幣評価の国際ガイドが実務に役立つ
+     - 置換費用法／機会費用法などで算定
 
 ### 貢献検知の仕組み
 
-#### 概念
+#### 概要
 
 - 説明
   - 貢献を検知する仕組みのこと
-    - 「評価軸」や「参考」や「中間財として使用」などの貢献
 
 - メモ
   - 「貢献報酬の仕組み」とは疎結合の実装にしたい
@@ -10214,6 +9906,316 @@ Kaggle みたいに、それぞれの人の相関関係を算出してほしい�
        - 七国同盟の場合、相互監視と、罰への恐怖によって逸脱が防がれ、「誰も戦争を始めようとしない」という均衡が生まれる
      - 使用場面
        1. 評価軸 A が他の評価軸に干渉してきた場合は、A 評価軸への交換比率を大幅に下げる
+
+### 感情のダミーデータ
+
+1. WRIME
+   - 説明
+     - 日本語の SNS 投稿を対象に、8 つの基本感情（喜び、悲しみ、期待、驚き、怒り、恐れ、嫌悪、信頼）とその強度を 4 段階でラベル付けしたデータセットです
+     - 主観的（筆者）および客観的（複数の読み手）な感情ラベルが付与されています。研究用途での利用が可能です
+   - 参考
+     - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+2. chABSA データセット
+   - 説明
+     - TIS 株式会社が無償公開しているデータセットで、上場企業の有価証券報告書を基に作成されています
+     - 各文に対して、ポジティブ・ネガティブの感情分類だけでなく、「何が」ポジティブ・ネガティブなのかという観点情報が含まれています。機械学習による高度な感情解析の研究に利用できます
+   - 参考
+     - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+3. [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
+4. [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
+5. [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
+6. [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
+7. [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
+8. [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
+9. [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
+10. [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
+11. [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+12. [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
+13. [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+14. [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
+
+### 「感情分析」サービス
+
+1. ユーザーローカル「テキスト感情認識 AI」
+   - 説明
+     - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
+     - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
+2. Amazon Comprehend
+   - 説明
+     - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
+
+3. エモスタ「エモリーダー」
+   - 説明
+     - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
+4. VITALIFY Asia「MAL FaceEmotion」
+   - 説明
+     - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
+5. Empath（エンパス）
+   - 説明
+     - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
+     - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
+       - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
+       - [https://webempath.com/](https://webempath.com/)
+       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/) (日本語サイト）
+       - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/) (英語サイト）
+6. iMotions Voice Analysis
+   - 説明
+     - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
+       - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
+7. Vokaturi
+   - 説明
+     - [https://vokaturi.com/](https://vokaturi.com/)
+     - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
+     - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
+     - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
+8. COTOHA API（感情分析）
+   - 説明
+     - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
+     - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
+     - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
+9. リッカート尺度
+   - トピックに対する感情の強さを聞く一般的な設問形式
+   - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
+10. Firebase: Sentiment Analysis 拡張
+    - 説明
+      - テキストから感情スコア
+      - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
+      - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
+11. 日本語感情表現辞書
+    - 説明
+      - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
+      - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
+      - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
+      - メモ： 夏目漱石「こころ」× [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/) で試す想定
+12. Vertex AI（GCP）
+    - 説明
+      - 感情分析の利用例
+      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
+13. 解説・ビジネス記事
+    - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309) / [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
+14. 東北大： 日本語極性辞書（公開リソース）
+    - 説明
+      - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
+15. 幸福度（感情ではない観点）
+    - 説明
+      - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
+16. 聞き取り・調査設計
+    - 説明
+      - 従業員エンゲージメント調査を参考に、感情・幸福度の自己報告を設計する
+      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
+17. Qiita（実装・製品）
+    - 説明
+      - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
+      - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
+      - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
+
+- carely
+  - 説明
+    - 「ストレスチェック」等を感情・幸福度分析の参考に
+
+**「感情分析」理論**
+
+- **テキスト**
+  1. **Sentiment Analysis** — ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現を重視し、VADER・TextBlob 等も
+  2. **Lexicon-based Analysis** — 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
+  3. **Machine Learning-based** — SVM、ランダムフォレスト等
+  4. **Deep Learning-based** — BERT、LSTM 等
+  5. **LSA** — 意味的関係から感情を推定
+  6. **Topic Modeling with Sentiment** — LDA 等でトピックごとの感情。幸福テーマ（LDA with Happiness Themes）も同系
+  7. **VAD Models** — 評価・覚醒・支配の 3 次元
+  8. **Emotion Annotated Corpus** — EmoLex、GoEmotions、LIWC 等
+  9. **Cognitive Appraisal Theory Analysis** — 認知評価に基づく構造的分析
+  10. **Pragmatic Analysis / Hedonic Tone** — 文脈・社会言語学的ニュアンス。幸福度では快楽的トーン分析も
+
+- **動画**
+  1. **Facial Expression Analysis** — OpenFace、Affectiva、Ekman。幸福では笑顔に注目
+  2. **Action Unit Analysis** — Ekman。幸福寄りでは口角上昇等
+  3. **Multimodal Analysis** — 音声・テキスト・映像の統合（Multimodal Happiness Analysis を含む）
+  4. **Body Gesture Analysis** — 例： Kinect。ポジティブなジェスチャー
+  5. **Eye Movement Analysis** — 視線トラッキング、凝視パターン
+  6. **Deep Learning for Video** — I3D、C3D 等
+  7. **Physiological Signal Integration** — 心拍・皮膚電位
+  8. **Semantic Scene Analysis** — シーン・雰囲気。明るい色・自然など
+  9. **Audio-Visual Sentiment Analysis** — 音声＋映像
+  10. **Cultural Context Analysis** — 文化・文脈
+
+- **音声**
+  1. **Prosodic Feature Analysis** — ピッチ・強度・テンポ・リズム。例： Praat
+  2. **Spectral Feature Analysis** — フォルマント、MFCC。ポジティブ感情向けのスペクトル解析も
+  3. **Speech Emotion Recognition (SER)** — EmoVoice。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
+  4. **Acoustic Modeling** — GMM、HMM 等。ポジティブ感情向けも同系
+  5. **Deep Learning in Audio** — Wavenet 等
+  6. **Pitch Contour Analysis**
+  7. **Valence-Arousal Modeling** — Russell’s Circumplex 等
+  8. **Emotion Annotation on Audio Dataset** — IEMOCAP 等
+  9. **Context-Aware Audio Analysis**
+  10. **Cross-linguistic Emotional Analysis / Cultural Audio Cues**
+
+- **文章から感情を分析する方法**
+  1. **Sentiment Analysis (感情分析)**
+     - テキストのポジティブ、ネガティブ、ニュートラルな感情を分類する手法
+     - 使用例： 自然言語処理（NLP）技術
+  2. **Lexicon-based Analysis (辞書ベース分析)**
+     - 事前に定義された感情辞書を用いて感情スコアを計算
+     - 例： SentiWordNet, AFINN
+  3. **Machine Learning-based Analysis**
+     - 機械学習モデル（例： SVM、ランダムフォレスト）を使った感情分類
+     - 大規模なトレーニングデータが必要
+  4. **Deep Learning-based Analysis**
+     - ニューラルネットワーク（例： BERT、LSTM）を利用した感情推定
+     - 文脈を深く理解できる
+  5. **Latent Semantic Analysis (LSA)**
+     - 文の意味的な関係性を解析し、感情を推定
+     - 文脈感知型の分析
+  6. **Topic Modeling with Sentiment**
+     - トピックモデリング（例： LDA）を用い、トピックごとの感情を解析
+     - 感情とテーマを同時に分析
+  7. **Valence Arousal Dominance (VAD) Models**
+     - 感情を 3 次元で分析（例： 評価、覚醒、支配）
+     - テキストの微細な感情ニュアンスを捉える
+  8. **Emotion Annotated Corpus Analysis**
+     - 人工的に感情が注釈付けされたデータセットを用いた感情予測
+     - 例： EmoLex、GoEmotions
+  9. **Cognitive Appraisal Theory Analysis**
+     - 認知評価理論を基に、文章中の感情を構造的に評価
+     - 認知心理学的視点からの分析
+  10. **Pragmatic Analysis**
+      - 文脈や社会的なニュアンスを取り入れて感情を推定
+      - 言語学的なアプローチ
+
+- 動画から感情を分析する方法
+  1. **Facial Expression Analysis**
+     - 顔の表情変化を捉え、感情を推定
+     - 使用ツール： OpenFace, Affectiva
+  2. **Action Unit Analysis**
+     - 表情筋の動き（アクションユニット）を解析
+     - Paul Ekman の表情モデルに基づく
+  3. **Multimodal Analysis**
+     - 動画内の複数データ（音声、テキスト、映像）を組み合わせて感情を推定
+  4. **Body Gesture Analysis**
+     - ジェスチャーや姿勢の変化を解析して感情を分類
+     - 使用例： Kinect データ
+  5. **Eye Movement Analysis**
+     - 瞳の動きや注視点を追跡し、感情を推定
+     - 例： 視線トラッキング技術
+  6. **Deep Learning for Video Analysis**
+     - 3D CNN や RNN を用いて動画全体の感情を解析
+     - モデル例： I3D, C3D
+  7. **Physiological Signal Integration**
+     - 動画中の心拍や皮膚電位を解析し、感情と関連付け
+     - センサーと連携
+  8. **Semantic Scene Analysis**
+     - 動画のシーンコンテキストや雰囲気を解析して感情を推定
+     - 例： 情景理解
+  9. **Audio-Visual Sentiment Analysis**
+     - 動画中の音声と映像データを組み合わせて感情を分析
+     - マルチモーダルアプローチ
+  10. **Cultural Context Analysis**
+      - 動画中の文化的背景や文脈を考慮した感情分析
+      - 例： 文化心理学
+
+- 音声から感情を分析する方法
+  1. **Prosodic Feature Analysis**
+     - 声のピッチ、強度、リズムを解析して感情を推定
+     - 使用例： Praat
+  2. **Spectral Feature Analysis**
+     - スペクトル特性（例： フォルマント、MFCC）を利用した感情推定
+  3. **Speech Emotion Recognition (SER)**
+     - 音声認識技術を感情分類に適用
+     - 例： EmoVoice
+  4. **Acoustic Modeling**
+     - 音響モデルを構築し、感情特性を分類
+     - 例： Gaussian Mixture Models (GMM)
+  5. **Deep Learning in Audio**
+     - CNN や RNN を活用して音声データを解析
+     - モデル例： Wavenet
+  6. **Pitch Contour Analysis**
+     - 声の音調変化を追跡し、感情を分類
+  7. **Valence-Arousal Modeling**
+     - 声の特性を評価と覚醒の 2 軸で解析
+     - 例： Russell’s Circumplex Model
+  8. **Emotion Annotation on Audio Dataset**
+     - 感情ラベル付けされた音声データセットを利用したモデル
+     - 例： IEMOCAP
+  9. **Context-Aware Audio Analysis**
+     - 音声中の文脈情報を利用した感情推定
+     - NLP 技術を補完
+  10. **Cross-linguistic Emotional Analysis**
+      - 複数言語間での音声感情の共通点や相違点を分析
+      - 例： 国際音声データベース
+
+- 文章から幸福度を分析する方法
+  1. **Sentiment Analysis (感情分析)**
+     - ポジティブな感情表現を重視し、幸福度を定量化
+     - 使用例： NLP ツール（例： VADER、TextBlob）
+  2. **Lexicon-based Happiness Index**
+     - 幸福関連語彙のスコア（例： Affective Norms for English Words, Hedonometer）を用いて計算
+  3. **Subjective Well-Being (SWB) Text Analysis**
+     - 主観的幸福感を示す表現（例：「満足」「楽しい」）を検出する方法
+  4. **Life Satisfaction Indicators in Text**
+     - 「生活の満足度」に関連する具体的なキーワード（例：「健康」「家族」）を解析
+  5. **Emotional Valence Measurement**
+     - テキスト内の評価軸（ポジティブ/ネガティブ）の偏りを分析
+  6. **Positive Psychology Framework**
+     - ポジティブ心理学の観点（例： PERMA モデル）に基づいて、幸福感を示す要素を抽出
+  7. **Latent Dirichlet Allocation (LDA) with Happiness Themes**
+     - トピックモデリングを用いて、幸福に関連するテーマを特定
+  8. **Emotionally Annotated Corpus Analysis**
+     - 幸福感が注釈付けされたデータセットを使用し、文章を分類
+     - 例： EmoLex、LIWC
+  9. **Cognitive Appraisal Theory in Text**
+     - 認知的評価理論を活用し、幸福に関する記述を特定
+  10. **Hedonic Tone Analysis**
+      - テキスト全体の「快楽的なトーン」を計測する手法
+
+- 動画から幸福度を分析する方法
+  1. **Facial Expression Analysis**
+     - 幸福を示す表情（例： 笑顔）を解析
+     - 使用例： Ekman の表情モデル
+  2. **Action Unit Analysis (幸福に特化)**
+     - 特定のアクションユニット（例： 口角の上昇）を通じて幸福度を評価
+  3. **Body Gesture Analysis**
+     - 幸福感に関連するポジティブなジェスチャー（例： 軽快な動き）を解析
+  4. **Eye Movement and Gaze Patterns**
+     - 瞳孔の拡張や目の輝きが幸福感を示すことを分析
+  5. **Smile Dynamics Analysis**
+     - 笑顔の持続時間や強度を解析し、幸福度を推定
+  6. **Multimodal Happiness Analysis**
+     - 映像と音声を統合して幸福度を総合的に評価
+  7. **Physiological Signal Integration**
+     - 心拍数や皮膚電位のデータを映像に同期させて幸福度を分析
+  8. **Semantic Scene Analysis**
+     - 映像の背景や設定（例： 明るい色、自然の風景）を幸福感の指標として解析
+  9. **Positive Emotion Dynamics**
+     - 動画内でのポジティブな感情の時間的変化を追跡
+  10. **Social Interaction Analysis**
+      - 動画内の社会的交流（例： 笑い声や肯定的な反応）を分析して幸福度を評価
+
+- 音声から幸福度を分析する方法
+  1. **Prosodic Feature Analysis**
+     - 音声のトーンや強調が幸福感を示す要因として分析される
+     - 使用例： ピッチ、テンポ、リズム
+  2. **Spectral Analysis for Positive Emotion**
+     - 幸福感に特化したスペクトル特徴（例： フォルマント、MFCC）を抽出
+  3. **Speech Emotion Recognition (SER) for Happiness**
+     - 音声データを感情ラベル（特に幸福感）で分類
+     - データ例： RAVDESS、IEMOCAP
+  4. **Laughter Detection**
+     - 笑いの頻度や種類を解析して幸福感を測定
+  5. **Voice Energy and Intensity Analysis**
+     - 高エネルギーの発話が幸福を示すことを利用
+  6. **Pitch Contour Analysis**
+     - 幸福感に関連する明るい音調や上昇するトーンを検出
+  7. **Valence and Arousal Modeling**
+     - 幸福感を評価軸と覚醒軸でモデル化
+     - 例： Russell’s Circumplex Model
+  8. **Acoustic Modeling for Positive Emotion**
+     - 幸福感を示す音声特徴に基づいた音響モデルを構築
+     - 例： HMM、GMM
+  9. **Deep Learning in Audio Analysis**
+     - 幸福度検出に特化したディープラーニングモデル（例： CNN、RNN）
+  10. **Cultural Audio Cues**
+      - 幸福を示す音声の文化的特徴を分析（例： 言語間での笑いの違い）
 
 ### 貢献度の算出手法
 
