@@ -10200,7 +10200,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **官民データ共有のあり方に関する調査**
 
 - 貢献検知の仕組みの参考にしたい
-- 引用 <br> 特許情報活用の論点が整理された報告書です。<br> 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります。<br> 知財需要の計測なども扱われています。<br> 調査の名称は『令和4年度特許情報に係る官民データ共有のあり方に関する調査』です。<br>[https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)<br>[https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
+- 引用 <br> 特許情報活用の論点が整理された報告書です。<br> 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります。<br> 知財需要の計測なども扱われています。<br> 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です。<br>[https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)<br>[https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
 
 - **特許情報分析・可視化**
 
