@@ -5,6 +5,8 @@
   "scripts": {
     "lint": "pnpm -r --if-present lint",
     "lint:documentation": "pnpm --filter documentation lint",
+    "lint:documentation:ja": "pnpm --filter documentation lint:ja",
+    "lint:documentation:en": "pnpm --filter documentation lint:en",
     "lint:web-app": "pnpm --filter web-app lint"
   }
 }
