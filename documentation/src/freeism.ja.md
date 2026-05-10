@@ -9605,7 +9605,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです。 <br> ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
 - 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
-- 計算社会科学と呼ばれる学問分野の流れの1つです
+- 計算社会科学と呼ばれる学問分野の流れの 1 つです
 
 - **寄与する量子を探す方法**
 
@@ -9649,7 +9649,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
 - データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
 - reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
-- ユーザは認証行為として暗黙知を要する操作をこなし、裏側では分析タスクが進む二層設計が考えられます
+- ユーザは暗黙知を要する操作で認証を済ませつつ、バックグラウンドで分析タスクへ参加する二段構成です
 - まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
 
 - **因果関係**
@@ -9688,11 +9688,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **第三者のデータ分析の参考**
 
-- 引用 <br> AI inside 株式会社（以下 AI inside 社）が、予測・判断 AI「Learning Center Forecast」と API 群「Developer’s API」の提供を開始したと報じています。<br> ユーザーはデータを収集・アップロードし、注目項目を選べば、ボタン操作で最大 14 アルゴリズムを並列実行できます。<br> 出力のうち精度の高いモデルを可視化してエクスポートできます。<br> [https://techable.jp/archives/181501](https://techable.jp/archives/181501)
+- 引用 <br> AI inside 側は「Learning Center Forecast」と「Developer’s API」を相次いで公開したとされています。<br> ユーザーはデータを読み込み、指標だけ選べば最大 14 モデルを同時評価できます。<br> 精度順に結果を並べ替えられる UI まで用意されています。<br> [https://techable.jp/archives/181501](https://techable.jp/archives/181501)
 
 - **代替経路 →「代替性の仕組み」貢献度の算出の参考**
 
-- 引用 <br> ネットワーク一部が寸断された際に物流の代替経路として効くリンクの重要度を測る指標です（1/n）。<br> Reinforcing critical links for robust network logistics（要旨）<br> [https://doi.org/10.1088/2399-6528/acb7c9](https://doi.org/10.1088/2399-6528/acb7c9) <br> 一部リンクが不通になったら最短経路へ荷物を載せ替えると想定し、通常時と異なるリンクが代替として使われる様子をモデル化しています。<br> 各リンク破壊時の betweenness centrality を求めれば需要を推定できます（2/n）。<br> [https://twitter.com/tkEzaki/status/1624005893573705729](https://twitter.com/tkEzaki/status/1624005893573705729)
+- 引用 <br> ネットワークの一部が寸断されると物流経路へ影響が出ます。<br> 代替経路として効くリンクの重要度を測る指標です（1/n）。<br> Reinforcing critical links for robust network logistics（要旨）。<br> [https://doi.org/10.1088/2399-6528/acb7c9](https://doi.org/10.1088/2399-6528/acb7c9) <br> 一部リンクが不通になった場合は荷物を最短経路へ載せ替えると想定します。<br> 通常時と異なるリンクが代替として使われる様子をモデル化しています。<br> 各リンク破壊時の betweenness centrality を求めれば需要を推定できます（2/n）。<br> [https://twitter.com/tkEzaki/status/1624005893573705729](https://twitter.com/tkEzaki/status/1624005893573705729)
 
 - **Federated Learning with PoW、Semantic Annotation**
 
@@ -9700,7 +9700,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **プライバシーを守りながら貢献度の算出**
 
-- 引用 <br> 全国規模で性接触ネットワークを再構成したとの報道です。<br> [関連タグ一覧（公衆衛生・感染症ほか）](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/) <br> 静岡大学の守田智教授らは、協力研究者とともに全国の関連産業での接触ログをモデル化したとされています。<br> レビューを書いた利用者ペアからネットワークを推定しました。<br> 論文：Exploring sexual contact networks by analyzing a nationwide commercial-sex review website （PLOS ONE）<br> [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981) <br> [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
+- 引用 <br> PLOS ONE 掲載の全国規モニタリング研究として紹介されています。<br> [関連ニュース一覧](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/) <br> 静岡大学の守田智教授らが現場協力を得ながらモデル化した、との記述があります。<br> レビュー投稿に現れたユーザー同士を辺としてネットワーク化しています。<br> 論文タイトルは Exploring sexual contact networks …（commercial-sex review website）です。<br> [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981)<br> [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
 
 - **Peer prediction method**
 
@@ -9729,15 +9729,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **LIPS**
 
-- 引用 <br> 国内最大級の美容クチコミプラットフォーム「LIPS」、レーティング方式設計の専門家とクチコミの商品評価点数のアルゴリズムを開発 <br> 本日、「LIPS」内で「商品の評価点数・ランキング」の新たなアルゴリズムに関するページを公開しました（[https://lipscosme.com/product-ratings](https://lipscosme.com/product-ratings)）。 <br> [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
+- 引用 <br>「LIPS」ではレーティング設計の専門家とともに商品評価アルゴリズムを強化しました。<br> 評価点数とランキング算出の説明ページも公開されています。<br> 詳細は [製品評価の考え方](https://lipscosme.com/product-ratings)。<br> [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
 
 - **Self-Attention**
 
-- 引用 <br> ChatGPT や Bing Chat の背景にある大規模言語モデルの多くは、Google が開発したニューラルネットワークアーキテクチャーの「Transformer」を採用しています。この Transformer の鍵になるのが「Self-Attention」というシステムです。この Self-Attention を視覚化するためのツール「Attention Viz」を、ハーバード大学と Google の共同研究チームが発表しました。 <br> AttentionViz Docs <br> [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/) <br> Self-Attention とは、ある文中のトークンが他の単語とどれだけ関連しているのかを計算するというもの。 <br> 各トークンのクエリとキーを座標に示して可視化したものが Attention Viz です。 <br> [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
+- 引用
+  - Transformer を採用する大規模言語モデルでは、入力トークン同士の相互参照を計算する Self-Attention が中核です
+  - 関係強度を 2 次元へ射影する Attention Viz が公開されています
+  - [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/)
+  - 解説記事（Gigazine）: [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
 
 - **非線形物理学**
 
-- 引用 <br> ヘイトなどネット世論が急に湧いたりするのを非線形物理学で説明 <br> [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89) <br> ネットコミュニティを液体として扱い、流体力学をそのまま適用できるというのがポイントらしい <br> [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
+- 引用 <br> ネット上のヘイト拡散を非線形モデルで説明する試みです。<br> [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89)<br> コミュニティを流体近似し、流体力学の式を流用するアイデアが紹介されています。<br> [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
 
 - **givepraise**
 
@@ -9791,7 +9795,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **組織図**
 
-- 引用 <br> 組織図を作るサービスや Twitter でどの人間がどの人間をフォローして、誰同士がお互いにフォローしているか、などの組織図やクモの巣のような人間の関係性を可視化して、どの人間が誰と知り合いで、その人がどれだけ相手に影響を与えるか、なども全て数値化できるようにして、それを貢献度の算出に利用できるようにしたい <br> [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
+- 引用 <br> 組織図 SaaS や Twitter API からフォロー双方向を取得し、クモの巣状に可視化できます。<br> 知り合い深さや影響指標を数値化し、貢献度推定へ接続するアイデアです。<br> [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
 
 - **Continuous Feedback**
 
@@ -9803,44 +9807,47 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **causal analysis**
 
-- 引用 <br> NEC のソリューション <br> 原因と結果の関係を見える化する因果分析の AI ソリューション「causal analysis」です。 <br> causal analysis はさまざまな利用用途があり、NEC 社内では社員のエンゲージメント向上に向けた取り組みを行っています。[https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
+- 引用<br> NEC の因果分析ブランド causal analysis が公共向けにも案内されています。<br> 社内向けにはエンゲージメント施策などへ展開されています。<br> [https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
 
 - **因果推論の分かりやすいテキスト**
 
-- 引用 <br> [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
+- 引用 <br> SpeakerDeck 上のスライドです
+- [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
 
 - **貢献度の算出**
 
-- 引用 <br>「コロナ禍での失業率増加と自殺増や社会的セーフティネット利用増との関連を分析　—第一波の時期の失業ショックに着目して検証—」[https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html) <br> [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
+- 引用<br>コロナ禍の失業率・自殺・セーフティネット利用を束ねた縦断的検証（第一波のとき）。<br> [https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html)<br> [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
 
 - **反実仮想シミュレーション**
 
-- 引用 <br> 反実仮想シミュレーションを使っている <br> 再販価格維持をやめて書店が自由に在庫と価格を決める制度に変化したらどうなるかを分析する論文を書きました。再販価格維持があるほうが消費者厚生も社会厚生も高いが書店の利益は低い、という結果になりました。米司法省の Jeff Qiu と科技大の学生 Yi Zhang との共著です。[https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk) <br> [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
+- 引用 <br> 書店流通の規制ゆるめ後に在庫や価格自由度が広がる状況をモデルに落としています。<br> モデル結果では、再販価格維持を続けたケースのほうが消費者厚生と社会厚生は相対的に高く、書店側利益は逆に押し下げられる、というバランスが報告されています。<br> Jeff Qiu 氏（米司法省）、Yi Zhang 氏（科技大学）との共同成果です。<br> [https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk) <br> [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
 
 - **項目反応理論**
 
-- 引用 <br> 試験データの解析（テキストからの問題の難しさ推定）とか、難しさを作問者の主観によらず決めるアルゴリズム（項目反応理論）とか、外国語の試験のデータと外国語の単語やテキスト読みやすさ（リーダービリティ）の関連性の研究 <br> [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
+- 引用 <br> 試験テキスト難易度のデータ駆動推定。<br> 作問者主観に頼らない項目反応理論モデル。<br> 多言語読解試験と語彙データの読みやすさ相関。<br> [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
 
 - **ベクトルに変換してベクトルデータベース**
 
-- 参考にしているか検知する仕組み・貢献度の算出の参考にしたい
+- 参照検知と貢献度推定の双方に流用したいメモです
 - 引用
-  - 大量の記事みたいなデータを簡単に検索できるようにするために使う
-  - まずデータを全部エンコーダーでベクトルに変換してベクトルデータベースを作る。で、検索クエリもベクトルにする。そんで似てるベクトルをベクトルデータベースから探して返せば OK。イチイチデータを全文舐めて比較する必要無し。なるほどねえ。ベクトルの似てる順にランク付けとかレコメンドもできる
+  - 記事のような非構造データを検索しやすくする前処理として有効です
+  - まずすべての記事データをベクトル化しベクトル DB を準備します
+  - 検索クエリも同次元へ写像し近似検索のみで済ませられます
+  - ランキングや推薦も同じ表現で扱えます
   - [https://www.pinecone.io/learn/vector-database/](https://www.pinecone.io/learn/vector-database/)
   - [https://twitter.com/umiyuki-ai/status/1608454509453537282](https://twitter.com/umiyuki-ai/status/1608454509453537282)
 
 - **複雑ネットワーク科学**
 
-- 引用 <br> ボストンの名門ノースイースタン大学ネットワーク科学部門教授アルバート・バラバシ博士。複雑ネットワーク科学の第一人者 <br> その論文が現在もっとも多く引用される研究者の一人であるアルバート・バラバシ博士の著書『**[ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)**』（光文社刊）<br> だが現実の社会では、テニスの世界ランキングや 100 メートル走、学力テストのように正確で一貫したパフォーマンス基準がある分野は少ない。著者によると、このようにパフォーマンスが測定できない場合に成功を促すのは「ネットワーク」だという。 <br>「ギャラリーのネットワークに乗れるかどうか」がアーティストとしての成功を決めるのだ。同博士はアート市場に特有のパターンを見つけ、あるアーティストについて、その作品が最初の五年間に展示された美術館やギャラリーのデータをインプットすれば、次に展示される美術館やギャラリーのパターンが正確に予測でき、その後の何十年にもわたって、アーティストの軌跡をマッピングできる」との仮説を立て、実際に成功した。その正確さは、まるで未来を言い当てる占い師のようだったという。 <br>「なぜ私達の予測はそれほど的中率が高かったのか。それはまさしく、美術界ではパフォーマンスが測定できないからだ。その作品がほかの作品よりも真に優れていると決定する方法がないときには、ネットワークが価値を決める」。「『成功を決めるのはあなたやあなたのパフォーマンスではなく、社会である』という成功の基本前提をそのまま反映している」。 <br> [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
+- 引用 <br> ノースイースタン大学のアルバート・バラバシ教授は複雑ネットワーク研究の代表格です。<br> 著書『**[ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)**』（光文社刊）では、テニスや学力テストのように順位付けしやすい成功は稀だと述べています。<br> 測定しづらい領域ほど、成果を押し上げるのは個人の実力よりネットワークだ、という主張へつながります。<br> アート市場ではギャラリー経由の露出がキャリアを左右する例が紹介されます。<br> 初期の展示履歴から将来の展示パターンを高精度に当てた、とされる成果も触れられています。<br> 価値判断が揺らぐ領域では社会構造が裁定役になる、という読み取りができます。<br> [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
 
 - **360 度評価**
 
-- 引用 <br> 従業員のモチベーションやエンゲージメント向上、人材育成に有効的な 360 度評価。 <br> この 360 度評価をシステム上で行ない、煩雑で手間のかかる評価フローを一元化、かつ**公平な評価運用を可能にしてくれるのが 360 度評価システム**です。360 度評価とは、「被評価者」に対して、上司だけでなく同僚や部下、他部署の関係者など、**多面的に評価を行う人事評価制度**のことを指します。[https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
+- 引用 <br> 360° フィードバックはモチベーション施策や育成プログラムへ組み込まれます。<br> システム化で運用コストを抑えつつ公平性を担保できます。<br> 上司に加えて同僚や部下からもフィードバックを集める運用が基本形です。<br> [https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
 
 - **SourceCred**
 
-- 引用 <br> どの程度『貢献』したかという指標を、譲渡不可能なポイントと譲渡可能なトークンの 2 つの指標を用いて測るツール「SourceCred」[https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
+- 引用<br>ソースとシンクの二系統ポイントで貢献度を推定できる SourceCred。<br> 譲渡不可ポイントと譲渡可トークンを併用します。<br> [https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
 
 - **NGO の質的評価手法**
 
@@ -9848,7 +9855,9 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **タスクベース**
 
-- プロジェクトごとにタスクを用意して、そのタスクを行っていけば自動的に評価軸ポイントが得られるようにして、そのタスクは誰でも見ることができ、でもタスクの難易度によってはできる人とできない人が出てくるから、需要が大きいけどできない人が多いタスクは自動的に需要と供給で貢献のポイントが増えていくようにする
+- プロジェクトごとに公開タスクを置きます
+- 進捗に応じて評価軸ポイントが自動加算されます
+- 難易度と需要からポイント倍率が変わるので、求人の多い高難度タスクへインセンティブが寄ります
 
 - **PICSY**
 
@@ -9856,7 +9865,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **GitPOAP**
 
-- GitHub 上での貢献を NFT にする「GitPOAP」というサービスがある。 <br>
+- GitHub でのコントリビューション証明を NFT で残す GitPOAP サービスです
 
 - **openfare**
 
@@ -9868,8 +9877,8 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **代替性を貢献度合いの算出に使用する**
 
-- 個人の評価軸を達成するために、どれだけ代替手段があるかどうかで、重み付けしていく
-  - 野球選手が好きだとしても、その野球の観戦を行う以外の方法でも幸福度を高める方法はいくらでもある場合は、野球選手は代替性があるとみなして獲得できる貢献のポイントは 0.9 倍などになる
+- 評価軸達成のための代替手段が多いほど係数で重みを下げます
+  - 野球が好みでも、その観戦以外に幸福を高める選択肢が多いなら「代替度が高い」とみなし、獲得ポイントへ 0.9 などの係数が掛かるイメージです
 
 - **仮想市場法(CVM)**
 
@@ -9886,11 +9895,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **計算社会科学**
 
-- 引用 <br>「計算社会科学」。世論動向の探索やウェブ上での人々の行動・言論の分析、新型コロナウィルス感染症の拡大抑止のためのシミュレーション分析など、多様な成果が発信されている <br> [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
+- 引用 <br>「計算社会科学」関連の論考では、世論モニタリングやウェブ上の言説分析、新型コロナ感染症対策シミュレーションなど多様な成果が公開されています。<br> [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
 
 - **360 度評価**
 
-- 引用 <br> **[360° 評価ツール提供の CBASE（シーベース）](https://thebridge.jp/2022/09/cbase-series-a-round-funding)** <br> 360° フィードバックツールは、上司や部下など社内外の関係者に多面的な評価アンケートを行い、フィードバックする人事評価システムだ。360° フィードバックツールは決して新しいものではなく、日本市場に初めて紹介されて半世紀以上が経つ。以前は人事研修に多用されていたが、最近では、管理職の育成や組織エンゲージメントに活用されていることが増えているという。 <br> [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
+- 引用 <br> CBASE が提供する [360° 評価 SaaS](https://thebridge.jp/2022/09/cbase-series-a-round-funding) は、社内外の関係者から多面的フィードバックを集める仕組みです。<br> 半世紀ほど前から国内でも紹介されてきた概念で、近年は管理職育成やエンゲージメント施策へ再び注目されています。<br> [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
 
 - **AttestationStation**
 
@@ -9902,9 +9911,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **貢献度の算出の参考にしたい**
 
-- 引用 <br>
-
-今は主観的指標ベースのクラスタリング自動生成系と、BrightID 的な個人にソーシャルグラフを張らせるの 2 つぐらいしかない。アイデンティティ系サービスでそこやるの綺麗やなとは感心しつつも、出来るだけ多元的であって欲しいので、まぁ自分たちはどんな解像度でできるかなぁ <br>
+- 引用<br>現在は主観指標によるクラスタ生成と BrightID 型のグラフ入力が中心です。<br> 本人確認系サービスでも同種のモデルが美しく見える一方、複数のアイデンティティ解像度を両立させる余地は残されています。<br>
 
 > このメカニズムはソーシャルグラフの隣接行列の固有ベクトル。すべての固有ベクトルの集合をグループの集合とし、各エージェントを各グループの固有ベクトルのインデックスに対応する重みで各グループに含める。この重みを用いて「グループ貢献度」を計算し、グループ貢献度に対して通常の QF を行う。 <br> > [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=4311507](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=4311507) <br> > [https://twitter.com/0xtkgshn/status/1615868443063894020](https://twitter.com/0xtkgshn/status/1615868443063894020)
 
@@ -9928,12 +9935,12 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **GitClear の「Diff Delta」**
 
 - 評価軸ポイントの算出
-- 引用 <br> SocialDog で、開発生産性の指標として、意味のある変更を定量化した GitClear の「Diff Delta」が導入された <br> [https://gitclear.com](https://gitclear.com) <br> [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
+- 引用 <br> SocialDog は開発生産性指標へ GitClear の Diff Delta を統合しました。<br> [https://gitclear.com](https://gitclear.com)<br> 導入ツイートも参照できます。<br> [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
 
 - **引用パターンで測定した科学論文と特許の「破壊力」**
 
 - 研究の生産性を測る下記の論文を評価軸ポイントの算出の参考にしたい
-- 引用 <br> マサチューセッツ工科大学（MIT）とスタンフォード大学の経済学者が 2020 年に発表した論文では、アメリカの研究生産性は低下しており、より少ない知識しか得られないにもかかわらず、より多くの努力が必要になっていると結論づけている。 <br> 今年 1 月に発表された 2 つ目の論文は、引用パターンで測定した科学論文と特許の「破壊力」が、1945 年から 2010 年の間に、論文では 90％以上、特許では 80％以上低下したと論じている（図表 1 参照）。 <br> [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
+- 引用 <br> MIT／スタンフォードの 2020 年レポートは米国研究の生産性鈍化を指摘しています。<br> 後続稿では引用ベースの破壊力指標が 1945〜2010 年に論文で 9 割超、特許で 8 割超へ減衰したとしています（図表 1）。<br> [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
 
 - **Numerai**
 
@@ -9953,7 +9960,8 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **「貢献検知の仕組み」の参考にしたい**
 
-- 特許の出願・権利化の方法や、アイデアの登録方法の参考にしたい <br> Twitter やその他の場所でアイデアを出したとしても評価するけど、 専用のプラットフォームを作る場合の参考にしたい
+- 特許出願やアイデア登録ワークフロー整備の参考として位置付けています
+- SNS だけで評価するのではなく、専用プラットフォームに誘導するときの UI にも転用できます
 - 引用
   - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
   - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
@@ -9967,19 +9975,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **OpenFare を参考にしている人を管理したり報酬の支払いの参考にしたい**
 
-- 引用 <br> OpenFare は支援者や需要者の支払い方法を定義する分散型プロトコルであり、あらゆる規模のオープンソースまたは商用ソフトウェアが資金調達するために使用可能とのこと。 <br> システムは「OpenFare ライセンス」「コードで定義された支払い計画書」「何千ものソフトウェア依存関係全体にわたる支払い管理ツール」からなっています。 <br> rndhouse 氏は、「OpenFare を使用すると支払い計画はコードで定義されます。これは商用ユーザーにとって、数千のソフトウェア依存関係における支払い義務をプログラムで管理できることを意味しており、開発者にとっては、コピー&ペーストで設定できることを意味します」「企業が年間 1 ドル（約 115 円）の使用料を支払う必要があるソフトウェアライブラリを考えてみましょう。そのライブラリは、商業プロジェクトのソフトウェアの依存関係ツリーの奥深くに埋め込まれています。OpenFare はツリー全体を解析して支払い義務を見つけ、ライブラリで定義された支払いプランに基づいて、小額の支払いができるのです」と述べています。 <br> [https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/](https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/)
+- 引用 <br> OpenFare は資金移動ルールをコードで束ねる分散プロトコルであり、OSS から商用まで規模を問わず活用できると紹介されています。<br> 仕組みはライセンス文言・支払プランファイル・依存ツリー横断の課金ガバナンスが三位一体です。<br> rndhouse 氏の説明によれば、商用利用者は複数依存の課金義務をプログラムで把握でき、開発者側はコピー&ペーストでプランを共有できるという整理です。<br> 年額 1 ドル級のライブラリーが深いツリーに埋め込まれる例でも、自動で義務箇所と支払額を洗い出せる、というデモが紹介されています。<br> [https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/](https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/)
 
 - **自分のデータを NFT 化して、参考にしているか検知する？**
 
-- IP は「[Molecule](https://discover.molecule.to/)」の開発する IP-NFT フレームワークを用いて、NFT（Non-fungible token）として保有されます。これによりライセンスや特許といった IP の所有者は、IP を NFT に添付して、新しい所有者に数秒以内に譲渡できるようになります。また機密性の高いデータは、NFT 保有者のみがアクセスできるように保護・難読化できるようです。 <br> [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+- Molecule が手掛ける IP-NFT フレームワークでは、ライセンスや特許をトークン化して保持できます。<br> メタ情報をトークンに紐付ければ、数秒単位での権利移転も視野に入ります。<br> 機微データへのアクセスは保有者のみに限定しつつ暗号化することも検討されています。<br> [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
 
-- **エコーチェンバーの可視化する仕組み**
+- **[エコーチェンバー可視化システム](https://torilab.sakura.ne.jp/twitter/echamber) に関する引用**
 
-- 「[エコーチェンバー可視化システム](https://torilab.sakura.ne.jp/twitter/echamber)」というアプリ <br> このアプリでは、ある人がどの程度エコーチェンバーの中にいるかを、タイムライン上の偏りから可視化します。もし、幅広いタイプのユーザーのツイートがタイムライン上に存在するなら、その人はエコーチェンバーの中にはいないことになります。逆に、特定のコミュニティの人のツイートばかりタイムライン上にあるようなら、エコーチェンバーの中にどっぷり浸かっていることになります。 <br> [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/) <br> [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
+- アプリではタイムラインの多様さからエコーチェンバー度を推定します。<br> 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます。<br> 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます。<br> [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/) <br> [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
 
 - **bot 検知の方法**
 
-- 例えばチェスや将棋における bot 検知は、 指し手一致率、 上位 n 手との一致率 (あえて最善手を選ばない不正者への対策）, 最善手との平均誤差などが主要指標となる。完全に自動化された bot に対しては、 CAPTCHA を置く、 マウスポインタをトラッキングする、 バックエンドプログラムの監視等が有効と考えられる
+- オンライン対局での bot は、着手一致率や上位候補との一致パターン、最善手からのずれなどを重点指標とします。<br> 完全自動化 bot への抑止として CAPTCHA のほかポインター挙動の監視やサーバ側監視が有効です
   - [https://twitter.com/gyakuse/status/1610236765255921669](https://twitter.com/gyakuse/status/1610236765255921669)
 
 - **フロントランニング**
@@ -9988,11 +9996,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **decentralized autonomous marketplace(DAM)**
 
-- 引用 <br> 開発している Draw2Earn アプリのメカニズムを汎用化した結果、クリエーターだけでなく、クラウドミントに協力してくれた人や、ジェネラティブアートを作った開発者にも売上を自動的に分配する、decentralized autonomous marketplace(DAM) の設計と実装が完了してしまった。 <br>\* [https://twitter.com/snakajima/status/1570629938344259586](https://twitter.com/snakajima/status/1570629938344259586)
+- Draw2Earn の枠組みを一般化し、参加者全員への売上自動分配まで含めた DAM プロトタイプが報告されています。<br> [https://twitter.com/snakajima/status/1570629938344259586](https://twitter.com/snakajima/status/1570629938344259586)
 
 - **Optic**
 
-- [Optic](http://optic.xyz/) <br> NFT の信憑性をチェックして、偽物があった場合それがどのようにコピーやリミックスされたかを明らかにするサービス
+- [Optic](http://optic.xyz/) <br> NFT の信憑性を検証します。<br> 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
 - そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
 
 - **MyBib**
@@ -10002,7 +10010,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **ソーシャルグラフ**
 
 - フォローしている・されている関係のソーシャルグラフを参考にしているか検知する方法の参考にしたい
-- ソーシャルグラフ。ある人物がどんな人物にどれだけ関わっているかどうかを示すグラフを作る技術を活用して、誰がどれくらい参考にしたり、誰がどの目標にどれくらい貢献しているかどうかを算出する仕組みを作る
+- ソーシャルグラフ上のリンク強度から「誰が何をどれだけ参照したか」を検知します
 
 - **SuperAudit**
 
@@ -10010,7 +10018,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **動画の最初のフレームを説明するテキスト**
 
-- Google DeepMind は、系列の YouTube の「YouTube ショート」の検索に単一視覚言語モデル（SimVLM）「Flamingo」が採用されたと発表した。動画の最初のフレームを説明するテキストを生成する。これをメタデータとすることで膨大な量のショートの検索機能が強化されたとしている。[https://www.itmedia.co.jp/news/articles/2305/26/news143.html](https://www.itmedia.co.jp/news/articles/2305/26/news143.html)
+- Google DeepMind は YouTube ショート検索への SimVLM「Flamingo」採用を公表しました。<br> 先頭フレームの説明文をメタデータ化し検索強度を高めている、と報じられています。<br> [https://www.itmedia.co.jp/news/articles/2305/26/news143.html](https://www.itmedia.co.jp/news/articles/2305/26/news143.html)
 - 動画の最初のフレームを説明するテキストのメタデータを自動的に生成する技術を使って、参考にしているか検知する方法の参考にしたい
 
 - **YouTube のコンテンツ ID の仕組み**
@@ -10023,7 +10031,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **個人情報を守りながら、誰が何を参考にしているかのソーシャルグラフを作って、 誰が何を参考にしているかを検知する仕組み**
 
-- 風俗客とキャスト「性接触の全国ネットワーク」を可視化　口コミ 9 万件分析で見えた「世界の狭さ」<br> 性風俗の口コミサイトに寄せられたレビューをもとに全国規模の「性接触ネットワーク」の構築に成功したと発表した。 <br> レビューの中から女性キャストの名前と客のハンドルネームだけを抜き出して、誰と誰がつながっているのかというのを収集しました。[https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
+- 口コミ本文から氏名だけを抽出し「誰が誰と接点を持つか」を表にしました。<br> [https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
 
 - **ベクトル的に近似**
 
@@ -10031,12 +10039,12 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **株式会社ワコム、著作権を保護する「Wacom Yuify」、AI で創作の軌跡を可視化する「KISEKI ART」**
 
-- 株式会社ワコムは、著作権を保護する「Wacom Yuify」や AI で創作の軌跡を可視化する「KISEKI ART」など、クリエイターの作品の価値を上げる技術を紹介。 <br> Wacom Yuify は、クリエイターのデジタル著作権を保護する技術。同技術では、クリエイターが制作したイラストの背後に、「マイクロマークス」と呼ばれる、人の目には見えないウォーターマークのようなマーキングが施される。 <br> このマイクロマークスの 1 つ 1 つがブロックチェインとつながっており、製作者や制作時期、制作に使われたデバイスといった情報が分散化された状態で保存される。この情報は同社独自のスキャンによって読み取ることができるという。 <br> KISEKI ART は、作家の一筆（ストローク）の特徴量を AI により抽出し、可視化するプロジェクト。作家や作品特有の筆遣いの特徴を、指紋ならぬ「絵紋」として 3D 上に可視化できる。この技術を用いることで、AI の自動生成に対して人間が書いたものだと証明できる。 <br> [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
+- ワコムが示した「Wacom Yuify」では、作品の裏面へ目立たないマイクロマークを埋め込み改ざん耐性を高めます。<br> 各マークは分散台帳へ紐付き、作者・制作時間・端末情報を後から照合できます。<br>「KISEKI ART」は筆跡特徴を 3 次元へ射影します。<br>「絵紋」として人手による執筆を裏づける実験です。<br> [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
 
 - **Twitter のコミュニティーノート**
 
 - Twitter のコミュニティーノートを、貢献度算出や参考にした人を見つける第三者を評価する仕組みの参考にしたい <br> データ分析をする人の実力やデータ分析の結果が正しいか判断する仕組みの参考にしたい
-- 作者が引用を載せていない場合、第三者がコミュニティーノートのように引用や参考にしていると思われるコンテンツのリンクを載せる
+- 作者が引用元を示さない場合でも、コミュニティノートのように「参照元と推定される URL」を添付して透明性を高める案です
 
 - **ウォーターマークとメタデータの埋め込み**
 
@@ -10044,7 +10052,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **EIP-6969、オンチェイン npm**
 
-- EIP-6969 アツいかもしれない。スマコン開発者は使われるとその利用に対して徴税できる。プロトコルレイヤーの公共財が増える。npm のファウンダーが作ってるオンチェイン npm の「@teaxyz」とかと思想は近い。 <br> [https://twitter.com/0xtkgshn/status/1655807420512468995](https://twitter.com/0xtkgshn/status/1655807420512468995)
+- EIP-6969 は仕様への注目が高まっています。<br> スマートコントラクト作者はオンチェイン利用に課税するルールを設計しやすくなり、プロトコルレイヤーの公共財評価も議論されています。<br> npm 創業者が進めるオンチェイン registry「@teaxyz」と思想が近いという指摘もあります。<br> [https://twitter.com/0xtkgshn/status/1655807420512468995](https://twitter.com/0xtkgshn/status/1655807420512468995)
 
 - **ピクシブにおける不当な目的での作品取得行為に対する対策技術**
 
@@ -10056,7 +10064,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **不正検知や検知する系のサービス**
 
-- カダールが CEO を務める SEON Technologies は、銀行や EC、ゲーム等様々なプラットフォームの偽アカウントを排除する不正の統合管理サービスを展開、この問題に立ち向かっている。 <br> 不正被害をきっかけに構築した SEON のソフトウェアは SNS や IP アドレスの動向から膨大なデータを収集し疑わしいアカウントや行為を抽出。 <br> [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
+- SEON Technologies はフェイクアカウント統合対策として銀行・EC・ゲームなどへ SaaS を提供しています。<br> SNS ログや IP 変動など広いシグナルから疑わしい行動を自動抽出します。<br> [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
 
 - **pixiv の生成 AI 検知の仕組み**
 
@@ -10065,13 +10073,12 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **市場の変化から参考にしているかを検知する**
 
 - 市場の変化から参考にしているかを検知する方法もある
-- ACROVE（アクローブ）は、効果的な不正転売対策を確立するために、サイバーセキュリティー診断やコンサルティングを行う GMO サイバーセキュリティ by イエラエ（GMO イエラエ）と業務提携しました。値崩れしている店舗や商品を発見し、それがどの店舗から始まったか、どの業者が追随しているかなどを把握できます。ACROVE は、それを活用して不正転売の動きをいちはやく察知し対応することで、「顧客貢献性の高いサービス」を提供するとしています。 <br> プレスリリース <br> [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html) <br> [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
+- ACROVE（アクローブ）は GMO サイバーセキュリティの支援で転売監視モデルを強化しました。<br> 値崩れ店舗の検知や追随業者の追跡が中心機能です。<br> 検知結果を早期アラートへ繋げ、顧客への負担を抑えるサービス提供を掲げています。<br> [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html) <br> [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
 
 - **AI が盗作しているかを判断する仕組み**
 
-- 引用 <br> 言語生成 AI は文章を“盗作”しているのか？　 21 万件の文章から米ペンシルベニア州立大学と米ミシシッピ大学に所属する研究者らが分析 <br> [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html) <br> 言語生成モデルがコピー&ペーストや言い換え、アイデアの盗用をしてるかを独自の盗用発見システムで検証。21 万件中盗用 1193 個が発覚。内約 28％に位置情報と人名が含まれてた。 <br> [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
-- 米ペンシルベニア州立大学と米ミシシッピ大学に所属する研究者らが発表した論文「Do Language Models Plagiarize？」
-- 剽窃されたコンテンツを自動的に識別するためのパイプラインを構築することにより、言語モデルがコピー&ペーストだけでなく、気が付かないうちにより高度な盗用をしていないかを検証する。 <br> 3 つの属性（すなわち、モデルサイズ、デコーディング方法、コーパスの類似性）に起因する剽窃率の変化を特徴付ける。 <br> 剽窃は、3 種類の形式を特定することに焦点を当てる。1 つ目は「コピー&ペースト」で、コンテンツを直接コピーして貼り付けることを指す。2 つ目は「言い換え」で、元のソースを引用せずにコンテンツを言い換えたり再構成したりすることを指す。3 つ目の「アイデア」で、テキストの主要アイデアを適切に帰属させずに使用することを指す。 <br> Source and Image Credits: Lee, Jooyoung, et al. “Do Language Models Plagiarize？　.” arXiv preprint arXiv:2203.07618（2022）. <br> [https://www.itmedia.co.jp/news/articles/2302/22/news073.html](https://www.itmedia.co.jp/news/articles/2302/22/news073.html)
+- 引用 <br> ITmedia の記事によれば、「Do Language Models Plagiarize？」（米ペンシルベニア州立大学・ミシシッピ大学）が 21 万件規模で言語モデルの剽窃傾向を調べました。<br> [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html)<br> コピー&ペースト・言い換え・アイデア剽窃の有無へ自動タグ付けしました。<br> 1193 件でヒットがあり、約 28％のケースに位置情報と固有名詞が混入していました。<br> [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
+- モデル構成やデコーダ種別など属性ごとの剽窃率変化にも踏み込んでいます。<br> Lee ほか、arXiv:2203.07618（2022）より
 
 - **Tabular Classification の AI**
 
@@ -10079,17 +10086,18 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **「人間の嘘」の検出**
 
-- 引用 <br> 嘘を嘘と評価できるのは、人間だけです。もちろん人間の訓練の度合いにより、嘘の判定の基準も変わります。 <br> 下記論文の研究方法が参考になるかと思います。 <br> On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models? <br> [https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models) <br> [https://twitter.com/nishio/status/1628262039834755075](https://twitter.com/nishio/status/1628262039834755075)
+- 引用 <br> 嘘を嘘と評価できるのは、人間だけです。<br> もちろん訓練の度合いによって、判定基準も変わります。<br> 下記論文のアプローチは、幻覚評価へ応用できると考えられます。<br> On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models?<br> 論文ページは deepai を、反応は nishio のポストを参照してください
+- [deepai](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models) / [nishio（X）](https://twitter.com/nishio/status/1628262039834755075)
 - 人間も嘘をつきます。例えば、下記の論文は「人間の嘘」の検出を取り上げています。 <br> [https://library.naist.jp/dspace/handle/10061/9996](https://library.naist.jp/dspace/handle/10061/9996) <br> [https://twitter.com/AkioHoshi/status/1628265037466058753](https://twitter.com/AkioHoshi/status/1628265037466058753)
 
 - **「貢献検知の仕組み」の参考にしたい**
 
 - Hypercerts Foundation、Hypercerts、Impact certificates、GitCoin、RetroactivePublicFunds、h-index や i10-index など引用指標、を参考にする
-- 公共財への資金提供に関しては、Impact certificates (以下では、インパクト証書と訳する）がインパクトの評価仕組みとして提案されています。[https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
+- インパクト証書（Impact certificates）は公共財への配分を透明化する評価レールとして提案されています。<br> [https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
 
 - **科学論文の類似度を測定するモデル**
 
-- 引用 <br>「急速に増える“非英語論文”の検索に」── 米 Google ら、多言語間でも論文同士の関連性を計算できるモデル開発 <br> OpenMSD のリポジトリ　米 Google Research と Sizzle AI に所属する研究者らが発表した論文「OpenMSD: Towards Multilingual Scientific Documents Similarity Measurement」は、多言語に対応した科学論文の類似度を測定するモデルと、多言語で書かれた論文が大量に収録されるデータセットを提案した研究報告です。 <br> 既存の手法としては、論文同士の類似性を計算するためのモデル「Scientific Documents Similarity Measurement」（SDSM）が存在する。 <br> [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
+- 引用 <br> Google Research と協力者による「OpenMSD」は、多言語科学文献の類似度推定モデルと評価データを同梱した報告です。<br> 先行の Scientific Documents Similarity Measurement（SDSM）と比較しながら多言語カバレッジを広げることが目的です。<br> [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
 
 - **類似画像推薦機能**
 
@@ -10127,7 +10135,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **芋づる式に遡る**
 
-- 芋づる式に参考にした人を遡れるようにしたい。 <br> 完全なオリジナルなど存在せず基本はコピーして付け加えたり改変したりかけあわせたりして新しいものを生み出す。 <br>\* 全ての商品やサービスやノウハウが、何を参考にしているかが一目瞭然になるようにしたい
+- 芋づる式で参考関係へ遡れるようにします。<br> 完全オリジナルはまれで、付加・改変・組み合わせから新しさが生まれる、という整理です。<br>\* 商品・サービス・ノウハウが、何を参考にしたか一覧で見える状態を目指します
 
 - **著作権管理の方法**
 
@@ -10142,21 +10150,21 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - 引用関係を可視化して、参考にしているか検知する
 - 被引用情報を素早く集めて、参考にしているか検知する。 <br>\* 特許の被引用情報（牽制情報）から用途探索する例 <br> [https://twitter.com/estoppel88/status/1544877937647706113](https://twitter.com/estoppel88/status/1544877937647706113)
 
-- **誰が書いた文章に似ているかどうか**
+- **著述者帰属と文体類似**
 
-- 誰が書いた文章に似ているかどうかを検知
-- 引用 <br> 言語モデルを使う → 単語の選択、言い回し、文章構造などの「誰が文章を書いたのか」を特定することにつながる特徴を抽出し、多言語著者の帰属表示を可能にする AI <br> アメリカ政府管轄の情報機関である ODNI の研究開発部門である IARPA が、匿名ライターのテキストの著者を明らかにし、保護するための AI の開発を目指すプログラム「The Human Interpretable Attribution of Text Using Underlying Structure(HIATUS：テキストに含まれる構造を利用した人間による解釈可能な帰属表現）」を立ち上げました。 <br> [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
+- 誰が書いた文体に近いかを検知します
+- 引用 <br> 言語モデルで単語の選択や言い回し、文章構造から著者らしさを抽出し、多言語の帰属表示を可能にする研究があります。<br> ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました。<br> 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています。<br> [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
 
 - **登録制や申告制**
 
-- 無料主義アプリに自分の開発したことを主張したい対象を登録して、その登録された対象を他の人が使用したい場合は、報告をする必要があり、報告をしなければ自動的にサービスから削除されたり、評価軸ポイントが剥奪されるようにする。 <br>\* 例えば、楽曲なら歌詞やメロディーを利用の申告して、それを並行してスクレイピングしたり、普通に登録しているか見て、登録している人だけが、その楽曲を使えるようにして、登録していない人を見つけたら、自動的に参考にしているとみなしてシステム側で登録をする。or サービスに表示させないなどを行う。 <br> 申告していない人には、そのスクレイピングをする費用がかかるため、利用する申告していない人にはスクレイピングの費用を負担させる
+- 無料主義アプリへ、自己開発物の主張対象を登録してもらいます。<br> 他者が利用する際は報告が必須とし、未報告なら自動削除や評価軸ポイントの剥奪を検討します。<br>\* 楽曲なら歌詞・メロディの利用を申告してもらいます。<br> システム側は登録状況を並行して確認し、登録者だけが利用できるようにします。<br> 未登録利用が見つかった場合は参考利用とみなして代理登録するか、表示を止める運用が考えられます。<br> 申告を怠る利用者には、確認のためのスクレイピング費用を負担してもらう案です
 - 理想は、何かを開発したら、その対象を思いつくまでに参考にした要素を全て自己申告してもらうこと
   - でも、面倒だし漏れが出る
 
 - **特許や著作権を管理の仕組み**
 
 - 特許や著作権の管理の仕組みを、無料主義の開発したノーハウを誰が使っているかを管理する仕組みに応用する
-- さらに、特許を検索しやすくなるサービスなどもあるから、無料主義では利用した商品やサービスやその人がウェブサイトで見た履歴から、どれが利用されているかも全て把握できるようにするとともに、自分から利用した事実を申告したほうが無料主義の貢献度も自分も稼げるようにするから、自分でも申請しやすいようなサービスを作るために、参考にしていきたい
+- 特許検索を支援するサービスもあります。<br> 無料主義では利用した商品・サービスと閲覧履歴から利用状況を把握しやすくします。<br> 利用事実の自己申告が貢献度や獲得ポイントへつながる設計にすれば、申請しやすい導線も作れます。<br> この方向性を参考にしていきたいです
 
 - **AI による検知**
 
@@ -10168,7 +10176,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **データ分析による検知**
 
-- アイデアを出して公開するだけで、その公開した人 A が、それを参考にした人 B の評価軸ポイントを稼ぐことに良い影響を与えたと分析によって判断したら、それだけで評価軸ポイントも得られるので、わざわざ参考にしているか探す必要はないのでは？
+- アイデアを出して公開するだけで、公開者 A が参照者 B の評価軸ポイント獲得へ良い影響を与えたと分析できれば、追加の探索なしに評価軸ポイントを付与できます。<br> わざわざ参考関係を探し回る必要はない、という整理です
   - 自分が気づいていない対象を参考にして何かを開発している場合もあるから、それをデータ分析や AI で、その人の過去の閲覧履歴や見た人物の参考にしたと登録されている内容などから見つけてくれるようにする？
   - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える。でも経験という要素で評価軸ポイントを分けるときは 3 つ以上のメインの参考にしたことよりも得られる割合は少なくなる
 
@@ -10187,12 +10195,12 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **JDream Innovation Assist**
 
 - 貢献検知の仕組みの参考にしたい
-- 引用 <br> 論文・特許・ニュースの 3 情報から技術動向・競合動向を瞬時に可視化する技術・研究戦略支援ツール「JDream Innovation Assist」に情報追加　海外特許を収録し、グローバルな技術情報分析に対応：ジー・サーチ <br> [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
+- 引用 <br> 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました。<br> 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）。<br> [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
 
 - **官民データ共有のあり方に関する調査**
 
 - 貢献検知の仕組みの参考にしたい
-- 引用 <br> この調査報告書、特許情報活用に関する課題やアイデアが詰まっていて良いですね。アイデアの発案者〜事業実施者を BC で結んでロイヤリティを還元する仕組みや、知財の需要を計測する仕組みなど、面白いです。 <br> 令和 4 年度 特許情報に係る官民データ共有のあり方に関する調査 <br> [https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf) <br> [https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
+- 引用 <br> 特許情報活用の論点が整理された報告書です。<br> 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります。<br> 知財需要の計測なども扱われています。<br> 調査の名称は『令和4年度特許情報に係る官民データ共有のあり方に関する調査』です。<br>[https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)<br>[https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
 
 - **特許情報分析・可視化**
 
