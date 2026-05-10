@@ -7804,12 +7804,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - Apple Watch の ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
     - https://twitter.com/nobi/status/1352405640501596160
 24. 人間の脳のセンシング
-    - 例として零唯一思（[https://www.emotionhelper.com/](https://www.emotionhelper.com/)）、瑞金医院脳病センター（[https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)）の 2 研究拠点は、脳センシングを AI で処理し感情をデータ化しています
+    - 例として零唯一思（[https://www.emotionhelper.com/](https://www.emotionhelper.com/)）と瑞金医院脳病センター（[https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)）の 2 研究拠点を挙げます
+    - いずれも脳センシングを AI で処理し、感情をデータ化しています
     - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
     - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
 25. Mappiness
     - スマートフォンアプリ「Mappiness」
-    - このアプリは、ランダムな時間にユーザーに通知を送り、幸福度、リラックス度、覚醒度の 3 つの側面について、その瞬間の気持ちを評価するように求めるものです
+    - このアプリは、ランダムな時刻にユーザーへ通知を送ります
+    - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
     - Are You Happy While You Work? Alex Bryson, George MacKerron
     - [https://sole-jole.org/assets/docs/13058.pdf](https://t.co/3ucKeob4zW)
 
@@ -7917,7 +7919,8 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 感情分析の利用例
       - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
 13. 解説・ビジネス記事
-    - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309) / [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
+    - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
+    - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
 14. 東北大： 日本語極性辞書（公開リソース）
     - 説明
       - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
@@ -8279,10 +8282,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - GitHub API
       - 課題、プルリクエスト、コントリビューター、リリース、リポジトリのメタデータ
     - Linux Foundation の Core Infrastructure Initiative API
-      - リポジトリのメタデータ）
+      - リポジトリのメタデータ
     - Succinct Code Counter
       - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
-    - GitHub などから取得したデータを **PostgreSQL** に正規化して保存して、外部ツールが REST API でメトリクスを取得できる状態にしている（[oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html), [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/))
+    - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
+    - 外部ツールは REST API 経由でメトリクスを取得できる状態にします（[oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html), [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)）
 
 #### GrimoireLab
 
@@ -8300,7 +8304,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 - CNCF・OpenInfra など大規模財団で **マルチリポジトリの公開ダッシュボードを運用**
 - 企業内で「貢献者の流入・定着率」を測る際、SortingHat で人材トラッキングを実施。([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/), [chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))
 
-Augur と GrimoireLab の比較
+Augur と GrimoireLab の比較。
 
 | 観点         | Augur                                | GrimoireLab                                 |
 | ------------ | ------------------------------------ | ------------------------------------------- |
@@ -8351,7 +8355,7 @@ Augur と GrimoireLab の比較
 | **Review Cycle Duration**           | `merged_at − first_reviewed_at`        | 8Knot UI で箱ひげ表示 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))    |
 | **Time to First Response**          | `first_reviewed_at − created_at`       | 新規貢献者 UX 指標 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))       |
 
-2-2. コード／コミット活動
+2-2. コード／コミット活動。
 
 | 指標                                  | 定義                               | 計算ロジック                                                                                                                                                                 |
 | ------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -8360,14 +8364,14 @@ Augur と GrimoireLab の比較
 | **Programming Language Distribution** | `各言語LOC ÷ 全言語LOC`            | GitHub Linguist API ベース ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))   |
 | **Clones**                            | GitHub Traffic API の日次 clone 数 | 時系列を Fano 係数計算に利用 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
 
-2-3. Issue / バグ管理
+2-3. Issue / バグ管理。
 
 | 指標                | 定義                            | 典型窓                                                                                                                                                                   |
 | ------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Issue Open Rate** | 新規 Issue 件数／日             | 時系列 worker                                                                                                                                                            |
 | **Time to Close**   | `closed_at − created_at` の平均 | SLA/テクニカルデット評価 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
 
-2-4. 人・組織
+2-4. 人・組織。
 
 | 指標                         | 定義                                             | データ                                                                                                                                                             |
 | ---------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -8376,7 +8380,7 @@ Augur と GrimoireLab の比較
 | **Occasional Contributors**  | 年間貢献 ≤ _n_ 回の開発者割合                    | 初心者維持率を観測 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
 | **Organizational Diversity** | `max(company_share)` の逆数                      | 1 に近いほど分散 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))   |
 
-2-5. 時系列パターン
+2-5. 時系列パターン。
 
 | 指標                               | ロジック                                               | 目的                                                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -8441,7 +8445,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 4. **`Hypercrx`**
    - 説明
      - X-lab はブラウザプラグイン Hypercrx（発音は「ハイプ CRX」）を開発しました
-     - OpenDigger メトリクススキームをベースに GitHub ページに複数の可視化コンポーネントを組み込みます
+     - OpenDigger のメトリクススキームを土台に、GitHub ページへ複数の可視化コンポーネントを組み込みます
    - 参考
      - [https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
 5. `anvaka/pm`
@@ -8751,7 +8755,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - プロジェクト内の関係性（例： Issue の議論、コードレビュー）をグラフとしてモデル化。各ノード（貢献者）に対して重要度（例： 中心性指標）を算出
 17. シャープレイ値
     - 説明
-      - 貢献度の計算対象を足した場合に、成果が増えた分が、その人の貢献度だと判定する方法
+      - 貢献度の計算対象を足した場合に、成果の増分をその人の貢献度と判定する方法
       - それをあらゆる順序や組み合わせで貢献度を算出する
 18. PageRank 系
 19. 主成分分析
@@ -8765,15 +8769,18 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 論文やプロジェクト内の役割（例： Data Curation, Software, Writing – Review & Editing）を明確に分類し、貢献度を明示
 21. グラフ理論
     - 説明
-      - EigenTrust、Hubs and Authorities、Collaborative Filtering といったグラフ理論に基づくアルゴリズムを適用することで、各ユーザーが正直に回答するインセンティブを作ったり、信頼性の高い評判スコアやコンテンツのランキングを算出する
+      - 代表的には EigenTrust、Hubs and Authorities、Collaborative Filtering があります
+      - グラフ理論に基づく枠組みで扱えます
+      - 正直な回答へのインセンティブを用意しつつ、評判とコンテンツ順位が信頼できる指標になるよう算出します
     - 参考
       - [https://www.sbbit.jp/article/cont1/138750](https://www.sbbit.jp/article/cont1/138750)
       - [https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k](https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k)
       - [https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era](https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era)
 22. OpenRank
     - 説明
-      - OpenRank を成り立たせている仮説は、関連性を多く持つライブラリほど他のライブラリから使用されていると仮定する
-      - 関連性を多く持つライブラリは、影響力が多く、そのライブラリに貢献している開発者は貢献度が高いと判断できる
+      - OpenRank を成り立たせている仮説は、関連性を多く持つライブラリほど他のライブラリから使用されていると仮定します
+      - 関連性が高いライブラリーほど影響力も大きくなります
+      - そのライブラリーへ貢献する開発者の貢献度も相対的に高いと判断できます
 23. Difference in Differences
 24. 探索的因子分析
     - 参考
@@ -8790,7 +8797,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 説明
       - 因果探索は、因果関係の原因を特定する理論全般のこと
     - 使用場面
-      - 「貢献度の算出の仕組み」で、参考・使用された対象のデータを集めた後に、本当にその対象データが原因かどうか調査するために使用する？
+      - 「貢献度の算出の仕組み」で参照・活用したデータを集めたうえで、因果要因として妥当か検証するときに使えます
 27. 因果推論
     - 説明
       - 因果推論は、因果関係の原因が、結果にどれだけ影響しているか度合いを分析する理論全般のこと
@@ -8823,10 +8830,10 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 1. 相対所得理論 (Relative Income Theory)
    - 説明
-     - 他者との比較が幸福度にどのように影響を与えるかを分析
+     - 他者との比較が幸福度へ与える影響の仕組みを分析します
 2. 行動経済学 (Behavioral Economics)
    - 説明
-     - 人々が行う意思決定が幸福度にどのように関連しているかを評価
+     - 人々の意思決定と幸福度の関連を評価します
 3. 社会的比較理論 (Social Comparison Theory)
    - 説明
      - 他者の行動や成果が、個人の幸福度に与える影響を評価
@@ -8977,14 +8984,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 説明
       - OSS 開発者やメンテナーへの報酬分配を目的とした分散型プロトコル
       - OpenFare ライセンス
-        - MIT ライセンスに類似していますが、「商用ユーザー」として定義された条件を満たすユーザーに対して支払いを求めることができます
+        - MIT ライセンスに類似しており、「商用ユーザー」として定義された条件を満たすユーザーへ支払いを請求できます
       - コードで定義された支払い計画書
         - 開発者はプロジェクト内で支払いプランをコードとして定義し、支払い方法や金額を明確に設定できます
       - 支払い管理ツール
         - ソフトウェアの依存関係全体における支払い義務を管理するツールを提供し、商用ユーザーが複雑な依存関係の中でも容易に支払いを行えます
 18. `LeaderRank`
     - 説明
-      - 対象ノードに関連するリンクに次数依存型の重みを付与することで、最近提案されたランキングアルゴリズム「LeaderRank」の改良版
+      - 対象ノードに紐づく各リンクへ次数依存型の重みを付与し、最近提案されたランキングアルゴリズム「LeaderRank」の改良版です
     - 参考
       - [https://arxiv.org/abs/1306.5042](https://arxiv.org/abs/1306.5042)
 19. SourceCred
@@ -9316,15 +9323,18 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - [https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html](https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html)
       - [https://blog.deps.dev/combining-dependencies-with-commits/](https://blog.deps.dev/combining-dependencies-with-commits/)
     - 説明
-      - 複数エコシステムの依存グラフを提供
-      - deps.dev の[API](https://docs.deps.dev/api/v3alpha/)および[BigQuery](https://docs.deps.dev/bigquery/v1/)データセットを通じて 公開されている
+      - 複数エコシステムの依存グラフを提供し、公式 API と BigQuery の公開データセットからも閲覧できます
     - BigQuery
       - [https://docs.deps.dev/bigquery/v1/](https://docs.deps.dev/bigquery/v1/)
     - 注意
       - 解決済み依存関係を返すため、devDependencies などは返さない
 20. 「GitHub API」の「Export SBOM」
     - コード例
-      - `gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/facebook/react/dependency-graph/sbom"`
+      - ```
+        gh api -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "/repos/facebook/react/dependency-graph/sbom"
+        ```
     - 参考
       - [https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28](https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28)
 21. `ecosyste.ms`
@@ -9531,7 +9541,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
        - 記事一覧 API は `topicname` クエリでトピック（= ライブラリ）を指定
        - 例：`topicname=react`
 2. Qiita
-   - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** でタグ直指定のほうがノイズが少ないです（タグ ID 例：`React`, `Vue.js` など）
+   - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** へ寄せると、タグ由来のノイズを抑えやすいです（タグ ID 例：`React`, `Vue.js` など）
    - 「ライブラリ名」をタグまたは検索クエリで特定（`/items?query=...` か `/tags/:tag_id/items`）
 3. Medium
 4. note
@@ -9573,11 +9583,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **Picaro.ai**
 
-- 引用 <br> 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」において、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました。 <br> PR TIMES：[https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html) <br> [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
+- 引用
+- 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」で、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました
+- PR TIMES：[https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html)
+- [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
 
 - **運動評価**
 
-- 引用 <br> スマホ＋ AI で簡単に運動評価　スタンフォード大が開発 <br> [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1) <br> 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定。高額な機器が必要な従来の運動評価を超えた、低コストで客観的なデジタル指標を提供できる。 <br> [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
+- 引用
+- スマホ＋ AI で簡単に運動評価　スタンフォード大が開発
+- [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1)
+- 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定します
+- 高額機器を要する従来の運動評価に比べ、低コストで客観的なデジタル指標を出せます
+- [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
 
 - **MSC（モスト・シグニフィカント・チェンジ）**
 
@@ -9586,33 +9604,61 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **社会物理学**
 
 - 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです。 <br> ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
-- 社会の動きを物理学の考えに基づく社会物理学で分析し、さらに分析対象として Blog や Twitter、インターネット上の検索データ（Google Trends)、視聴率データ、首都圏のマーケティングデータなどを活用しています。 計算社会科学と呼ばれる新しい学問分野
+- 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
+- 計算社会科学と呼ばれる学問分野の流れの1つです
 
 - **寄与する量子を探す方法**
 
-- 引用 <br>（1）入力データに含まれる情報／知識には最小単位「量子」があると仮定（※量子力学の量子とは無関係）<br>（2）データ分布内で予測に頻繁に使用される量子＝予測精度の向上に寄与する量子、予測にほとんど使われない量子＝予測精度の向上に寄与しない量子 <br>（3）予測精度の向上に寄与する量子＝使用頻度が高い量子から順番に大規模言語モデル（LLMs）内に学習されていくと仮定したトイモデルにおいて、スケーリング則と創発現象が再現されることを示した <br> ---（2）の補足：例えば、インターネット上で交わされる一般的な会話の場合、アインシュタイン方程式に関する知識（量子）よりも、基本的な文法ルールに関する知識（量子）の方が、次のトークンを予測するために役立つ（頻繁に参照される）可能性が高い <br> The Quantization Model of Neural Scaling (Michaud[http://et.al](https://t.co/IsABubOxRH), 2023) <br> [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000) <br> [https://twitter.com/ericjmichaud<br>-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664) <br> [https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)
+- 引用
+- （1）入力データに含まれる情報／知識には最小単位「量子」があると仮定します（※量子力学の量子とは無関係）
+- （2）データ分布内で予測に頻繁に使われる量子を「予測精度向上に寄与する量子」、ほとんど使われない量子を「寄与しない量子」とみなします
+- （3）寄与する量子は使用頻度の高い順に LLM へ学習されていくと仮定したトイモデルで、スケーリング則と創発現象が再現されることを示しました
+- （2）の補足：一般会話では、アインシュタイン方程式より文法ルールのほうが次トークン予測に効き、参照頻度が高いと考えられます
+- The Quantization Model of Neural Scaling (Michaud et al., 2023)（[https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)）
+- [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000)
+- [https://twitter.com/ericjmichaud-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664)
 
 - **状態空間モデルを用いた因果効果**
 
-- 引用 <br> 生態学でも有用な手法だと思います。われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データからの因果推論@生態学に挑戦しています（宣伝）<br> [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850) <br> [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960) <br> 状態空間モデルを用いた因果効果の推定方法 (CausalImpact)について紹介します。 <br> [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
+- 引用
+- 生態学でも有効な手法です
+- われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データから因果推論へ踏み込んでいます（宣伝）
+- [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850)
+- [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960)
+- 状態空間モデルを用いた因果効果の推定である CausalImpact を紹介します
+- [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
 
 - **アクター・ネットワーク理論(ANT)**
 
-- 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT) <br> 人間だけではなく、人間以外の多種多様な存在が果たしている役割を正当に評価することを目指す動的な運動体として捉える
+- 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT）です
+- 人間以外の多様な存在の役割も正当に評価し、それらを結ぶ動的なネットワークとして捉えます
 
 - **専門家の意見を集約する方法**
 
-- 誰もが知っている単語だけど、ある特定の分野の専門家の人たちにとっては、違う意味になる単語を用意する。 <br> そして、その単語の意味を答えてもらい、専門家の人たちが知っている意味を答えた人の意見のみを採用する仕組み <br>\* これは、マッチングアプリでエンジニアと名乗っている人が本物かどうかを確かめるために「nginx」を読んでもらい、エンジンエックスと読めなければ、エンジニアではないと判断できる感じ。 <br> その方法をさらに応用して、一般人でも誰でも知っているようなことだけど、特定の人にとっては違う意味になることを用意して、その違う意味のみを答えた人の意見を集約するような仕組みによって、貢献度の算出などを行ってみる。 <br> 学位を持っていないけど、賢い人たちを取りこぼさない仕組み
+- 一般語と専門界隈での意味がずれる語を用意し、意味の回答から専門家らしさをふるいにかけます
+- 専門家グループが共有する意味へ答えた人だけの意見を採用する仕組みです
+- たとえばマッチングで「nginx」の読みを確認し、「エンジンエックス」と読めない人をエンジニア候補から外すイメージです
+- 一般に通じる題材でも、特定コミュニティだけが別義を持つキーワードを増やして応用し、貢献度の算出へ接続します
+- 学位がなくても見識がある人を取りこぼしにくくします
 
 - **reCAPTCHA の仕組み**
 
-- 貢献度を算出してもらうときに、 2 つの問題を出して、1 つの問題は、あらかじめ答えがわかっている問題で、2 つ目は答えを判明してもらう問題です。 <br> 1 つ目の問題で正解した人だけに、2 つ目の回答を採用します。 <br> 2 つ目の回答のうち、採用した人の 51％以上が同じ回答だった場合は、その回答を正しいものとして登録し、その問題と解答を次の利用者には 1 つ目の既知の問題として提示します。 <br> これにより正当性や集合知を使って答えに近づけられるため、この方式で第三者に検知や貢献度の算出を依頼できます
-- 貢献度を算出するデータ分析でも、すでに答えが分かっているデータ分析の問題とまだ答えがわからない問題を用意して、すでに答えがわかっている。データ分析の問題の解答が合っている人の 2 問目のまだ答えがわからない問題の回答のみを採用していく仕組みを作る。 <br> さらに、この仕組みを応用して、reCAPTCHA みたいに、サービスを利用するためにどうしても行う必要がある仕組みみたいな感じで、データ分析も、データ分析をしようと思わずに、ユーザ認証をしようとするだけで、データ分析をしてもらえるような仕組みにもすることで、多くの人がデータ分析に参加できるようにしたい <br> 例えば、ユーザ認証を行うために、データ分析は、人間が暗黙的に知っている行動を行う必要があるから、ユーザ認証のためにデータ分析を行ってもらい、ユーザは認証を行うためにその行為を行ったのに、無料主義アプリでは、データ分析をしてもらっているような仕組みにしたい
-- まずはただ答えがわかっている問題と答えがわからない問題の 2 つを用意して、1 つ目の答えが起こっている問題の解答が合っている人のデータ分析の結果のみを採用し、その採用した結果が、全体の 50％以上などの一定以上の割合の場合のみの回答が正しいと登録する仕組みのみを行っていきたい
+- 貢献度算出で 2 問出すとき、片方は答えが既知の設問、もう片方は未確定の設問にします
+- 第 1 問を正解した人の第 2 問の回答だけを採ります
+- 第 2 問では採用回答の 51％超が一致した候補を正答として登録し、次の利用者へ第 1 問として提示します
+- 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
+- データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
+- reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
+- ユーザは認証行為として暗黙知を要する操作をこなし、裏側では分析タスクが進む二層設計が考えられます
+- まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
 
 - **因果関係**
 
-- 引用 <br> 認証サービスを提供する Onfido が機械学習モデルを使用して、データから因果関係を推測し、ビジネス上の意思決定を支援するツールを開発 <br> 因果を推論するための基本概念の説明と Onfido がそれをどう利用しているかまで示されているので、一例として参考になりそう[https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8) <br> [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
+- 引用
+- 認証サービス Onfido が機械学習で因果を推定し、意思決定を支援する事例です
+- 因果推論の入門から自社での活用法まで載っているため参考にできます
+- [https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8)
+- [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
 
 - **Federated Learning**
 
@@ -9638,23 +9684,23 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **datagusto**
 
-- 引用 <br> 誰もが高度なデータ分析を実現できる「datagusto」<br>「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるデータ分析テンプレートを利用するだけで、AI による未来の予測ができるデータ分析 AI ツールが「[datagusto（データグスト）](https://lp.datagusto.jp/#top)」だ。 <br> [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
+- 引用 <br> 誰もが高度なデータ分析を実現できる「datagusto」<br>「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるテンプレートを使えば、AI が将来予測まで担うツールです。<br> 実体は「[datagusto（データグスト）](https://lp.datagusto.jp/#top)」として提供されています。<br> [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
 
 - **第三者のデータ分析の参考**
 
-- 引用 <br> AI inside 株式会社（以下、AI inside 社）は、予測・判断 AI「Learning Center Forecast」、高精度な AI を組み込んだサービス・アプリケーションの構築が可能な AI・インテリジェンス API 群「Developer’s API」の提供を開始します。 <br> ユーザはデータを収集・アップロードし、予測したい項目を選択した後、ボタン 1 つで最大 14 のアルゴリズムを同時に実行することが可能。実行結果からもっとも精度の高い最適なものを可視化し、データを出力します。 <br> [https://techable.jp/archives/181501](https://techable.jp/archives/181501)
+- 引用 <br> AI inside 株式会社（以下 AI inside 社）が、予測・判断 AI「Learning Center Forecast」と API 群「Developer’s API」の提供を開始したと報じています。<br> ユーザーはデータを収集・アップロードし、注目項目を選べば、ボタン操作で最大 14 アルゴリズムを並列実行できます。<br> 出力のうち精度の高いモデルを可視化してエクスポートできます。<br> [https://techable.jp/archives/181501](https://techable.jp/archives/181501)
 
 - **代替経路 →「代替性の仕組み」貢献度の算出の参考**
 
-- 引用 <br> ネットワークの一部が寸断されたときに物流の代替経路として利用されるリンクの重要度を測る指標を提案しました！　1/n <br> Reinforcing critical links for robust network logistics: A centrality measure for substitutability <br> [https://doi.org/10.1088/2399-6528/acb7c9](https://doi.org/10.1088/2399-6528/acb7c9) <br> ネットワークの一部のリンクが使えないときに、その時点での最短経路で物を運ぼうとしたとします。この時に、通常時とは異なるリンクが代替経路として使われます。このときの需要は各リンクが破壊されたときの betweenness centrality を計算すれば算出可能です。(2/n) <br> [https://twitter.com/tkEzaki/status/1624005893573705729](https://twitter.com/tkEzaki/status/1624005893573705729)
+- 引用 <br> ネットワーク一部が寸断された際に物流の代替経路として効くリンクの重要度を測る指標です（1/n）。<br> Reinforcing critical links for robust network logistics（要旨）<br> [https://doi.org/10.1088/2399-6528/acb7c9](https://doi.org/10.1088/2399-6528/acb7c9) <br> 一部リンクが不通になったら最短経路へ荷物を載せ替えると想定し、通常時と異なるリンクが代替として使われる様子をモデル化しています。<br> 各リンク破壊時の betweenness centrality を求めれば需要を推定できます（2/n）。<br> [https://twitter.com/tkEzaki/status/1624005893573705729](https://twitter.com/tkEzaki/status/1624005893573705729)
 
 - **Federated Learning with PoW、Semantic Annotation**
 
-- 引用 <br> Federated Learning with PoW は、ある程度デフォルトになる（コモンセンス）とみなされるものを輸入してきて、それをファインチューニングするみたいな過程で使われるようになると思う。 <br> そこでスマホとかの機械学習モデルが入りきらなくてローカルで学習できない人たちは、Semantic Annotation として AI パワーアップに貢献する。[https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
+- 引用 <br> Federated Learning with PoW は、すでに共通認識となった知識を取り込み、ファインチューニングへ回す流れで使われていくと考えられます。<br> 端末にモデルが載り切らない参加者は、Semantic Annotation として AI 改善に貢献する、という整理もできます。[https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
 
 - **プライバシーを守りながら貢献度の算出**
 
-- 引用 <br> 口コミサイトから全国規模で性接触ネットワークを再構築 <br> [公衆衛生性感染症社会的ネットワーク長崎大学静岡大学](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/) <br> 静岡大学工学部の守田智教授は、長崎大学熱帯医学研究所の伊東啓助教、重田桂子協力研究員、山本太郎教授とともに、日本全国の性風俗産業における性接触ネットワークを抽出・分析することに成功した。 <br> 研究グループは性風俗産業のうち、全国のソープランドを利用した男性の顧客が相手をした女性セックスワーカーのことを書き込んだ性風俗商用サイトの口コミを基に、性接触ネットワークを再構築した。 <br> 論文情報：[【PLOS ONE】Exploring sexual contact networks by analyzing a nationwide commercial-sexreview website](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981) <br> [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
+- 引用 <br> 全国規模で性接触ネットワークを再構成したとの報道です。<br> [関連タグ一覧（公衆衛生・感染症ほか）](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/) <br> 静岡大学の守田智教授らは、協力研究者とともに全国の関連産業での接触ログをモデル化したとされています。<br> レビューを書いた利用者ペアからネットワークを推定しました。<br> 論文：Exploring sexual contact networks by analyzing a nationwide commercial-sex review website （PLOS ONE）<br> [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981) <br> [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
 
 - **Peer prediction method**
 
@@ -9675,11 +9721,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **pol.is**
 
-- 引用 <br> エンドユーザーはグラフを見て判断しません。単純に、「この 2 つのアドレスは似ていると思うか？」をはい・いいえで答えるだけでソーシャルグラフを生成できると思います。 <br> [http://pol.is](https://t.co/H9orfAwMBa)のアルゴリズムからインスピレーション。詳しくは WhitePaper で！ <br> [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
+- 引用 <br> エンドユーザーはグラフを直接は見ません。<br>「この 2 つのアドレスは似ていると判断できるか」をはい・いいえで答えるだけでソーシャルグラフを生成できます。<br> [http://pol.is](https://t.co/H9orfAwMBa) のアルゴリズムをもとにした発想です。詳細は WhitePaper を参照してください。<br> [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
 
 - **NeurOlympics**
 
-- 引用 <br> e スポーツチームの能力テストを体験--才能を数値化してトレーニング <br>「NeurOlympics」は一見、単純なテストだ。この 60 分間の評価テストで、受験者は 4 つの単純なビデオゲームをプレイする。消えるアイコンを記憶するゲームや、反応の速さを測定するゲームなどがある。このテストの成績は、記憶力やスピードなどの特性を評価するアルゴリズムにかけられる。[https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
+- 引用 <br> e スポーツチームの能力テストを体験し、才能を数値化してトレーニングへ接続するデモです。<br>「NeurOlympics」は一見シンプルな 60 分プログラムで、4 種のミニゲームをこなします。<br> 記憶課題や反応速度課題などを通じ、特性推定アルゴリズムへ入力されます。<br> [https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
 
 - **LIPS**
 
@@ -11025,7 +11071,9 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **コンテンツモデレーション a.k.a**
 
-- Twitter でスポットライト浴びているコンテンツモデレーション a.k.a 検閲は分散 SNS では自治に任されるという理解。 <br> Bluesky では発信そのものは NO 検閲。その後の他者表示（鯖の裁量でいわゆるモデレーションに相当）やフィードアルゴリズム（ユーザー選択式）がオプトイン型になるという設計思想かな。 <br> [https://twitter.com/<br>-tea-two/status/1599966409656000512](https://twitter.com/-tea-two/status/1599966409656000512)
+- Twitter でスポットライトを浴びているコンテンツモデレーション a.k.a 検閲は、分散 SNS では自治に任されるという理解です
+- Bluesky では発信そのものに NO 検閲、その後の他者表示やフィードアルゴリズムはユーザー側のオプトイン型です
+- [https://twitter.com/-tea-two/status/1599966409656000512](https://twitter.com/-tea-two/status/1599966409656000512)
 
 - **幸福のための分断・干渉しない社会**
 
@@ -11046,7 +11094,13 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **「Solafune」**
 
-- サービス概要：人工衛星が取得する地球の観測データを利用するアルゴリズムの開発と提供をする「Solafune」。Solafune では衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化します。その手順は以下の通り。 <br>\* ・ データセットをオンラインで公開 <br> ・ 世界中から解析結果を収集、自動評価、スコアリング <br> ・ 優秀なアルゴリズムを抽出してソースコードを買い取る <br> [https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight](https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight)
+- サービス概要：人工衛星が取得した地球観測データを使うアルゴリズムの開発・提供を行う「Solafune」です
+- 衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化しています
+- 手順の例は次のとおりです
+  - データセットをオンライン公開する
+  - 世界中から解析結果を収集し、自動評価とスコアリングを行う
+  - 優秀なアルゴリズムを抽出し、ソースコードを買い取る
+- [https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight](https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight)
 
 - **pol.is を正当性を持たせる仕組みの参考にしたい**
 
@@ -11058,7 +11112,9 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **それぞれの意思決定ごとに、専門知識が高い人ほど OO 人分の投票権を持たせれば良い？**
 
-- 引用 <br>「意思決定を行える意思決定権者が持つ専門能力によって、意思決定に対する投票割合を意思決定のカテゴリごとに変更しよう。専門能力および投票割合は定期的に見直して更新しよう」<br> [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
+- 引用
+- [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
+- ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
 
 - **これを行って、貢献度の分析結果のどれが正しいかを選んでいく？**
 
@@ -11074,7 +11130,8 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **分散型 AI**
 
-- 引用 <br> インターネットにおける集合知の役割を果たす「分散型 AI」について現状を整理しました <br> [https://mirror.xyz/indexsan.eth/4dSIWVAbmjuGa4isrwGgKxu3tlQRTcfcnW82Jyd7DjU](https://mirror.xyz/indexsan.eth/4dSIWVAbmjuGa4isrwGgKxu3tlQRTcfcnW82Jyd7DjU) <br> [https://twitter.com/masatojames/status/1605156713383895040](https://twitter.com/masatojames/status/1605156713383895040)
+- 引用
+- インターネットにおける集合知の役割を果たす「分散型 AI」の現状整理です
 
 - **「Gnosis」**
 
