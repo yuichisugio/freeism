@@ -133,8 +133,9 @@
       - [無料主義で行いたいプロジェクト](#無料主義で行いたいプロジェクト)
       - [etc](#etc)
   - [参考にしたいこと](#参考にしたいこと)
-    - [「データ共有」の参考](#データ共有の参考)
-    - [「貢献検知の仕組み」の参考](#貢献検知の仕組みの参考)
+    - [貢献度の算出の仕組み](#貢献度の算出の仕組み-1)
+      - [貢献報酬の仕組み](#貢献報酬の仕組み-1)
+      - [貢献検知の仕組み](#貢献検知の仕組み-1)
     - [「意思決定」の参考](#意思決定の参考)
     - [「貢献度の算出」の参考](#貢献度の算出の参考)
     - [「幸福度の算出」の参考](#幸福度の算出の参考)
@@ -171,7 +172,7 @@
         - [Q\&A](#qa)
         - [検索](#検索)
       - [参考](#参考)
-    - [貢献検知の仕組み](#貢献検知の仕組み-1)
+    - [貢献検知の仕組み](#貢献検知の仕組み-2)
     - [感情の測定方法](#感情の測定方法)
     - [データ取得の方法](#データ取得の方法)
     - [評価軸の指標](#評価軸の指標)
@@ -6409,61 +6410,129 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 ## 参考にしたいこと
 
-### 「データ共有」の参考
+### 貢献度の算出の仕組み
+
+#### 貢献報酬の仕組み
 
 1. マルチパーティー計算（MPC)
-   - データを断片化して複数サーバーに分けて計算する手法
-   - データの中身を保護できる
+   - 参考
+     - [https://www.mos.t.u-tokyo.ac.jp/ikeda2/ja/research/mpc/](https://www.mos.t.u-tokyo.ac.jp/ikeda2/ja/research/mpc/)
+   - 説明
+     - データを断片化して複数サーバーに分けて計算する手法
+     - データの中身を保護できる
 2. Common Crawl
-   - アーカイブを構築してきた非営利団体「Common Crawl」
+   - 参考
+     - [https://commoncrawl.org/](https://commoncrawl.org/)
+   - 説明
+     - アーカイブを構築してきた非営利団体「Common Crawl」
 3. バーナーズ＝リー - Solid
-   - [https://github.com/solid](https://github.com/solid)
-   - [https://solidproject.org/](https://solidproject.org/)
-   - [https://www.techscore.com/blog/2018/12/20/solid/](https://www.techscore.com/blog/2018/12/20/solid/)
-   - [https://japan.zdnet.com/article/35162181/](https://japan.zdnet.com/article/35162181/)
-   - [https://gigazine.net/news/20181105-solid-web-dokieli/](https://gigazine.net/news/20181105-solid-web-dokieli/)
-   - [https://gigazine.net/news/20181001-platform-solid-inrupt/](https://gigazine.net/news/20181001-platform-solid-inrupt/)
-   - ユーザーが自分のデータを自分で管理できるようにするオープンソースの標準規格「Solid」
-   - Solid ではユーザーデータを一カ所に集約してユーザー自身が管理でき、Solid 上で動作するアプリはユーザーにデータを要求し、ユーザーはそれに同意するかどうかを選択する仕組みです
-   - [https://gigazine.net/news/20250929-tim-berners-lee-www-free/](https://gigazine.net/news/20250929-tim-berners-lee-www-free/)
-4. Accessibility Compat Data(ACD)
-   - ブラウザではなく、支援技術の相互互換性を測る指標づくりの一環
+   - 参考
+     - [https://github.com/solid](https://github.com/solid)
+     - [https://solidproject.org/](https://solidproject.org/)
+     - [https://www.techscore.com/blog/2018/12/20/solid/](https://www.techscore.com/blog/2018/12/20/solid/)
+     - [https://japan.zdnet.com/article/35162181/](https://japan.zdnet.com/article/35162181/)
+     - [https://gigazine.net/news/20181105-solid-web-dokieli/](https://gigazine.net/news/20181105-solid-web-dokieli/)
+     - [https://gigazine.net/news/20181001-platform-solid-inrupt/](https://gigazine.net/news/20181001-platform-solid-inrupt/)
+     - [https://gigazine.net/news/20250929-tim-berners-lee-www-free/](https://gigazine.net/news/20250929-tim-berners-lee-www-free/)
+   - 説明
+     - ユーザーが自分のデータを自分で管理できるようにするオープンソースの標準規格「Solid」
+     - Solid ではユーザーデータを一カ所に集約してユーザー自身が管理でき、Solid 上で動作するアプリはユーザーにデータを要求し、ユーザーはそれに同意するかどうかを選択する仕組みです
 
-### 「貢献検知の仕組み」の参考
+#### 貢献検知の仕組み
 
 1. Connected papers
-   - 論文同士のネットワークをグラフ化して可視化してくれるツール
+   - 参考
+     - [https://www.connectedpapers.com/](https://www.connectedpapers.com/)
+   - 説明
+     - 論文同士のネットワークをグラフ化して可視化するツールです
 2. サプライチェインを管理システムの仕組み
+   - 参考
+     - なし
+   - 説明
+     - サプライチェイン上の構成要素や依存関係を把握し、改ざんや不正混入を検知できるよう管理するシステムの仕組みを指します
 3. Posmoni
-   - Yay!運営企業 Posmoni の投稿監視サービス
-   - コミュニティアプリにおける不適切コンテンツを AI と人力のハイブリッドシステムでスクリーニング
+   - 参考
+     - [https://posmoni.com/](https://posmoni.com/)
+   - 説明
+     - Yay! 運営企業 Posmoni の投稿監視サービスです
+     - コミュニティアプリにおける不適切コンテンツを、AI と人力のハイブリッドでスクリーニングします
 4. 偽動画防止の技術
-   - 偽動画防止の Microsoft や sony の技術
-   - 制作段階で本物性を証明するメタデータを暗号化して組み込みます
+   - 参考
+     - なし
+   - 説明
+     - Microsoft や Sony などが取り組む、偽造動画や無断利用への対抗技術を指します
+     - 制作段階で本物性を証明するメタデータを暗号化して組み込む、といったアプローチがあります
 5. 第三者の評価
-   - 査読論文リストを公開し、h-index 的な指標として r-index を作成し、false positive or false negative で加算したり、間違った結果を通したらマイナスにする
+   - 参考
+     - なし
+   - 説明
+     - 査読論文リストを公開し、h-index 的な指標として r-index を設け、false positive や false negative で加減点し、誤った結果を通した場合はマイナスにする、といった外部評価の考え方です
 6. 特許庁や著作権の管理をする仕組み
+   - 参考
+     - なし
+   - 説明
+     - 特許庁による審査・登録や、著作権の権利管理・ライセンス記録など、知的財産を公的・組織的に管理する仕組みを指します
 7. JASRAC など音楽の楽曲使用の管理方法
+   - 参考
+     - [https://www.jasrac.or.jp/](https://www.jasrac.or.jp/)
+   - 説明
+     - JASRAC をはじめとする権利処理で、楽曲の利用許諾や著作隣接権などを一元管理する方法を含みます
 8. 著作権エージェント
+   - 参考
+     - なし
+   - 説明
+     - 著作権者に代わって許諾交渉、侵害対応、使用料の徴収・分配などを行う代理人や業務モデルを指します
 9. 名前をつける
-   - 新規技術を説明するときは、既存技術の名前を使用する
-   - その登場した名前で基準技術を参考にしていると判断する
+   - 参考
+     - なし
+   - 説明
+     - 新規技術を説明するときに既存技術の名称を使うことで、その名称によって基準となる技術を参照していると判断できるようにする、という整理の仕方です
 10. 2 次公認化事業
+    - 参考
+      - なし
+    - 説明
+      - メモのみで本文は未記載です
 11. SBOM・ソフトウェアの Dependency の管理
+    - 参考
+      - [https://www.cisa.gov/sbom](https://www.cisa.gov/sbom)
+      - [https://spdx.dev/](https://spdx.dev/)
+    - 説明
+      - SBOM（Software Bill of Materials）により依存パッケージの一覧・バージョン・ライセンス等を管理し、供給網リスクへ対処する前提を整えます
 12. クラスタリング
-    - [https://m1-2024-tttc.netlify.app/%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e6%95%b020/](https://t.co/LaU81QpBGI)
+    - 参考
+      - [https://m1-2024-tttc.netlify.app/%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e6%95%b020/](https://t.co/LaU81QpBGI)
+    - 説明
+      - ネットワークやデータを類似性に基づいてまとめる手法や、関連する指標（例: クラスタ係数）を扱う文脈へのリンクです（詳細は参考先を確認してください）
 13. YouTube - 類似性検出 - Likeness Detection
-    - 米 Google 傘下の YouTube は 10 月 21 日（現地時間）、クリエイターの顔を無断で使って AI で生成した動画を特定し、削除を要求できる新ツール「Likeness Detection」（日本では「類似性検出」）を発表した
-    - YouTube が生体認証技術を使って申請者との類似性を検索することに同意する必要がある。また、申請者は写真付き ID と短い自撮り動画を用いた本人確認を行う必要もある
-    - [https://www.itmedia.co.jp/news/articles/2510/22/news065.html](https://www.itmedia.co.jp/news/articles/2510/22/news065.html)
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2510/22/news065.html](https://www.itmedia.co.jp/news/articles/2510/22/news065.html)
+    - 説明
+      - 米 Google 傘下の YouTube は、2025 年 10 月 21 日（現地時間）、新ツール「Likeness Detection」（日本語表記では「類似性検出」）を発表しました
+      - クリエイターの顔を無断で使った AI 生成動画を特定し、削除を請求できる機能です
+      - YouTube が生体認証技術で申請者との類似性を検索することへの同意や、写真付き ID と短い自撮り動画による本人確認が求められる、と報じられています
 14. ベクトルの類似度
-    - 文章をベクトル化して類似度を算出
+    - 参考
+      - なし
+    - 説明
+      - 文章などをベクトル化し、コサイン類似度などで近さを算出するアプローチです
 15. Perceptual Hash（知覚ハッシュ）
-    - ハッシュ化することで似たようなデータは近い数値、もしくは似たビットの並びになるハッシュ関数を使用して、似ているコンテンツを検出する仕組み
-    - [aHash](http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html), [pHash](https://phash.org/), [dHash](http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html), [wHash](https://fullstackml.com/wavelet-image-hash-in-python-3504fdd282b5), [NeuralHash](https://www.apple.com/child-safety/pdf/CSAM_Detection_Technical_Summary.pdf) などがあります。これらは [Perceptual Hash](https://en.wikipedia.org/wiki/Perceptual_hashing)（知覚ハッシュ）と呼ばれ、**「感覚的に似たようなデータかの確認」を目的としたタイプ**です
-    - つまり、データの破損や完全な同一性の確認よりも、データの特徴・パターンをハッシュ値にすることで似たようなデータは近い数値、もしくは似たビットの並びになります。主に画像や音楽といったマルチメディア関連の類似コンテンツの検知に使われますが、最近では「類似論文の検出」や、機械学習において「類似データの生成や推論にも使えないか」といった研究が盛んです
-    - [https://qiita.com/KEINOS/items/c92268386d265042ea16](https://qiita.com/KEINOS/items/c92268386d265042ea16)
+    - 参考
+      - [aHash](http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html)
+      - [pHash](https://phash.org/)
+      - [dHash](http://www.hackerfactor.com/blog/index.php?/archives/529-Kind-of-Like-That.html)
+      - [wHash](https://fullstackml.com/wavelet-image-hash-in-python-3504fdd282b5)
+      - [NeuralHash](https://www.apple.com/child-safety/pdf/CSAM_Detection_Technical_Summary.pdf)
+      - [Perceptual Hash（Wikipedia）](https://en.wikipedia.org/wiki/Perceptual_hashing)
+      - [https://qiita.com/KEINOS/items/c92268386d265042ea16](https://qiita.com/KEINOS/items/c92268386d265042ea16)
+    - 説明
+      - ハッシュ化により、似たデータは近い数値や似たビット列になりやすい関数で、コンテンツの類似を検出します
+      - 完全な同一性より、**「感覚的に似たデータか」を確認すること**を目的とするタイプと整理され、英語では Perceptual Hash、日本語では知覚ハッシュと呼ばれます（詳細は参考の Wikipedia などを参照してください）
+      - 破損検出よりも特徴・パターンをハッシュに写す点が特徴で、画像や音楽などマルチメディアの類似検知に使われ、類似論文検出や機械学習の研究文脈でも扱われます
 16. GitHub の SBOM
+    - 参考
+      - [Supply chain security（GitHub Docs）](https://docs.github.com/ja/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security)
+    - 説明
+      - GitHub 上で SBOM や依存関係の可視化、サプライチェインのセキュリティ機能と組み合わせて扱う前提の整理です（詳細は GitHub のドキュメントを参照してください）
 
 ### 「意思決定」の参考
 
