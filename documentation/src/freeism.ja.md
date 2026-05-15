@@ -6502,14 +6502,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 参考
       - [https://m1-2024-tttc.netlify.app/%e3%82%af%e3%83%a9%e3%82%b9%e3%82%bf%e6%95%b020/](https://t.co/LaU81QpBGI)
     - 説明
-      - ネットワークやデータを類似性に基づいてまとめる手法や、関連する指標（例: クラスタ係数）を扱う文脈へのリンクです（詳細は参考先を確認してください）
+      - ネットワークやデータを類似性に基づいてまとめる手法や、関連する指標（例: クラスタ係数）を扱う文脈へのリンクです
 13. YouTube - 類似性検出 - Likeness Detection
     - 参考
       - [https://www.itmedia.co.jp/news/articles/2510/22/news065.html](https://www.itmedia.co.jp/news/articles/2510/22/news065.html)
     - 説明
-      - 米 Google 傘下の YouTube は、2025 年 10 月 21 日（現地時間）、新ツール「Likeness Detection」（日本語表記では「類似性検出」）を発表しました
-      - クリエイターの顔を無断で使った AI 生成動画を特定し、削除を請求できる機能です
-      - YouTube が生体認証技術で申請者との類似性を検索することへの同意や、写真付き ID と短い自撮り動画による本人確認が求められる、と報じられています
+      - YouTube の新ツール「Likeness Detection」
+      - クリエイターの顔を無断で使った AI 生成動画を特定し、削除を請求できる機能
+      - YouTube が生体認証技術で申請者との類似性を検索することへの同意や、写真付き ID と短い自撮り動画による本人確認が求められる
 14. ベクトルの類似度
     - 参考
       - なし
@@ -6532,67 +6532,75 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 参考
       - [Supply chain security（GitHub Docs）](https://docs.github.com/ja/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security)
     - 説明
-      - GitHub 上で SBOM や依存関係の可視化、サプライチェインのセキュリティ機能と組み合わせて扱う前提の整理です（詳細は GitHub のドキュメントを参照してください）
+      - GitHub 上で SBOM や依存関係の可視化、サプライチェインのセキュリティ機能と組み合わせて扱う
 
 ### 「意思決定」の参考
 
 1. コンセンサス・インテリジェンス
-   - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
-   - [https://note.com/visitstech/n/n78a6e432a929](https://note.com/visitstech/n/n78a6e432a929)
+   - 説明
+     - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
+   - 参考
+     - [https://note.com/visitstech/n/n78a6e432a929](https://note.com/visitstech/n/n78a6e432a929)
 
 ### 「貢献度の算出」の参考
 
 1. OSS Insight.io
-   - [https://ossinsight.io/](https://ossinsight.io/)
-   - OSS の貢献者のダッシュボード
-2. 労働者の貢献度と賃金率の関係
-   - 日本の 2007 年の製造業を対象に、労働者が企業価値と利潤に与える影響の大きさを推定し、それら推定値と労働者が得ている賃金率を比較することで、労働者の企業業績への貢献度が賃金率にどの程度反映されているかを明らかにする
-   - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
-3. タスク消化型の評価
-   - Issue や Jira チケットの消化数に応じて貢献度を算出する
-   - スタートのタスク報酬額は、作成者が設定した難易度によって決まる
-4. 貢献度分析
+   - 参考
+     - [https://ossinsight.io/](https://ossinsight.io/)
+   - 説明
+     - OSS の貢献者のダッシュボード
+1. 労働者の貢献度と賃金率の関係
+   - 説明
+     - 日本の 2007 年の製造業を対象に、労働者が企業価値と利潤に与える影響の大きさを推定し、それら推定値と労働者が得ている賃金率を比較することで、労働者の企業業績への貢献度が賃金率にどの程度反映されているかを明らかにする
+     - この「企業価値と利潤に与える影響の大きさを推定方法」をそ参考にする
+   - 参考
+     - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
+1. タスク消化型の評価
+   - 説明
+     - Issue や Jira チケットの消化数に応じて貢献度を算出する
+     - スタートのタスク報酬額は、作成者が設定した難易度によって決まる
+1. 貢献度分析
    - 貢献度分析（Contribution Analysis）とは、主要な指標の増減に対し、どの要因（セグメント、ディメンション、キャンペーンなど）がどれだけ影響を与えたかを、統計的・機械学習的に特定・可視化する分析手法
-5. コンジョイント分析（Conjoint Analysis）
+1. コンジョイント分析（Conjoint Analysis）
    - 製品やサービスを構成する複数の要素（価格、色、機能など）が、消費者の選択や評価にそれぞれどれくらい影響しているかを定量的に明らかにするマーケティング分析手法です
    - 複数の要素を組み合わせた選択肢を提示し、回答者の好みの順位付けや選択から、各要素の重要度や「部分効用値」を算出し、新製品開発や価格設定、最適な製品コンセプトの決定に役立てられます
-6. open-source-funding-toolkit
+1. open-source-funding-toolkit
    - 研究チームは、組織の OSS 投資と実貢献の見える化ツールキットを公開しました
    - 「投資の把握や追跡に役立ててほしい」とのコメントがあります
    - GitHub 上では sboysel/open-source-funding-toolkit として OSS 組織の投資見える化資料を公開しています
    - [**https://github.com/sboysel/open-source-funding-toolkit**](https://github.com/sboysel/open-source-funding-toolkit)
-7. オープンソース CMS「[**Drupal**](https://www.drupal.org/)」の開発チームのプロジェクトの貢献度を可視化プロジェクト
+1. オープンソース CMS「[**Drupal**](https://www.drupal.org/)」の開発チームのプロジェクトの貢献度を可視化プロジェクト
    - **Solving the Maker-Taker problem | Dries Buytaert**
    - [**https://dri.es/solving-the-maker-taker-problem**](https://dri.es/solving-the-maker-taker-problem)
    - Drupal の開発コミュニティでは「コントリビューションクレジットシステム」と呼ばれる仕組みを導入しており、コードの投稿やドキュメントの修正といった貢献に応じてクレジットを付与しています
    - Drupal はコントリビューションクレジットシステムの公平性を確保するために、中立な第三者機関に監視を依頼しています。これらの施策によって、Drupal では健全な開発エコシステムを構築できているそうです
    - [https://gigazine.net/news/20241110-open-source-maker-taker-problem/](https://gigazine.net/news/20241110-open-source-maker-taker-problem/)
-8. ゲーム理論
+1. ゲーム理論
    - 例）「共有地の悲劇（The Tragedy of the Commons）」を回避するため、協力を促進するための報酬分配モデルが利用される
-9. ふれあい切符
+1. ふれあい切符
    - 家事援助などボランティアの時間や点数を貯め、家族が支援を必要とするときに引き出します
    - 団体ごとに時間銀行・タイムストックなど呼び方や運用は異なります
    - さわやか福祉財団はこれらを総称して「ふれあい切符制度」と呼んでいます
      - [https://www.sawayakazaidan.or.jp/chiikitsuka/](https://www.sawayakazaidan.or.jp/chiikitsuka/)
-10. Local Exchange Trading System(LETS)
-    - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
-    - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
-      - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
-11. TimeBanking
-    - **スキルシェアリングプラットフォーム**
-    - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
-    - [https://timebanking.org/](https://timebanking.org/)
-12. 社内ポイントシステム
-    - 例）Unipos
-      - [https://unipos.me/](https://unipos.me/)
-13. Open Source Collective
-    - OSS の財務管理ツール
-    - [https://oscollective.org/](https://oscollective.org/)
-14. GitHub Sponsors
-    - 特定の貢献者をスポンサーとして支援する仕組み
-    - プロジェクト全体ではなく個人に対して直接的な資金を提供
-15. Gnosis Safe
-    - 透明な報酬分配ツール
+1. Local Exchange Trading System(LETS)
+   - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
+   - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
+     - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
+1. TimeBanking
+   - **スキルシェアリングプラットフォーム**
+   - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
+   - [https://timebanking.org/](https://timebanking.org/)
+1. 社内ポイントシステム
+   - 例）Unipos
+     - [https://unipos.me/](https://unipos.me/)
+1. Open Source Collective
+   - OSS の財務管理ツール
+   - [https://oscollective.org/](https://oscollective.org/)
+1. GitHub Sponsors
+   - 特定の貢献者をスポンサーとして支援する仕組み
+   - プロジェクト全体ではなく個人に対して直接的な資金を提供
+1. Gnosis Safe
+   - 透明な報酬分配ツール
 
 ### 「幸福度の算出」の参考
 
@@ -8817,43 +8825,25 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - **「貢献検知の仕組み」の参考にしたい**
 
-- 特許出願やアイデア登録ワークフロー整備の参考として位置付けています
-- SNS だけで評価するのではなく、専用プラットフォームに誘導するときの UI にも転用できます
 - 引用
   - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
   - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
   - 大きなポイントは、アイデアを当事者以外一部非公開にできること。これにより、新規性の喪失を防ぐことができ、特許の出願・権利化が可能になるといいます
   - [https://techable.jp/archives/185310](https://techable.jp/archives/185310)
 
-- **「貢献検知の仕組み」でアイデアを登録する方法の参考にしたい**
-
-- 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
+- 説明
+  - アイデアを登録する方法の参考
+  - 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
+- 参考
   - [https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/](https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/)
-
-- **OpenFare を参考にしている人を管理したり報酬の支払いの参考にしたい**
-
-- 引用 <br> OpenFare は資金移動ルールをコードで束ねる分散プロトコルであり、OSS から商用まで規模を問わず活用できると紹介されています。<br> 仕組みはライセンス文言・支払プランファイル・依存ツリー横断の課金ガバナンスが三位一体です。<br> rndhouse 氏の説明によれば、商用利用者は複数依存の課金義務をプログラムで把握でき、開発者側はコピー&ペーストでプランを共有できるという整理です。<br> 年額 1 ドル級のライブラリーが深いツリーに埋め込まれる例でも、自動で義務箇所と支払額を洗い出せる、というデモが紹介されています。<br> [https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/](https://gigazine.net/news/20220114-openfare-distribute-funds-software-contributors/)
-
-- **自分のデータを NFT 化して、参考にしているか検知する？**
-
-- Molecule が手掛ける IP-NFT フレームワークでは、ライセンスや特許をトークン化して保持できます。<br> メタ情報をトークンに紐付ければ、数秒単位での権利移転も視野に入ります。<br> 機微データへのアクセスは保有者のみに限定しつつ暗号化することも検討されています。<br> [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
 
 - **[エコーチェンバー可視化システム](https://torilab.sakura.ne.jp/twitter/echamber) に関する引用**
 
 - アプリではタイムラインの多様さからエコーチェンバー度を推定します。<br> 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます。<br> 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます。<br> [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/) <br> [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
 
-- **bot 検知の方法**
-
-- オンライン対局での bot は、着手一致率や上位候補との一致パターン、最善手からのずれなどを重点指標とします。<br> 完全自動化 bot への抑止として CAPTCHA のほかポインター挙動の監視やサーバ側監視が有効です
-  - [https://twitter.com/gyakuse/status/1610236765255921669](https://twitter.com/gyakuse/status/1610236765255921669)
-
 - **フロントランニング**
 
 - フロントランニングの情報を察知する仕組みを使って、参考にしているかどうかを察知する仕組みを作る
-
-- **decentralized autonomous marketplace(DAM)**
-
-- Draw2Earn の枠組みを一般化し、参加者全員への売上自動分配まで含めた DAM プロトタイプが報告されています。<br> [https://twitter.com/snakajima/status/1570629938344259586](https://twitter.com/snakajima/status/1570629938344259586)
 
 - **Optic**
 
@@ -8872,11 +8862,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **SuperAudit**
 
 - モノハンドル株式会社の[デジタル資産の監査・認証プロバイダー事業「SuperAudit」](https://prtimes.jp/main/html/rd/p/000000024.000082733.html)を参考にしているか検知する仕組みの参考にしたい
-
-- **動画の最初のフレームを説明するテキスト**
-
-- Google DeepMind は YouTube ショート検索への SimVLM「Flamingo」採用を公表しました。<br> 先頭フレームの説明文をメタデータ化し検索強度を高めている、と報じられています。<br> [https://www.itmedia.co.jp/news/articles/2305/26/news143.html](https://www.itmedia.co.jp/news/articles/2305/26/news143.html)
-- 動画の最初のフレームを説明するテキストのメタデータを自動的に生成する技術を使って、参考にしているか検知する方法の参考にしたい
 
 - **YouTube のコンテンツ ID の仕組み**
 
@@ -8906,10 +8891,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - **ウォーターマークとメタデータの埋め込み**
 
 - Google、責任ある AI を実現するとして、画像にウォーターマークとメタデータの埋め込みを進めると発表。Google I/O 2023 <br> ウォーターマーキングは画像に直接情報を埋め込む手法です。画像編集などが行われたとしても消せないようにするとしています。 <br> メタデータは、クリエイターがオリジナルのファイルにさまざまな情報を付加することを可能にします。[https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html](https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html)
-
-- **EIP-6969、オンチェイン npm**
-
-- EIP-6969 は仕様への注目が高まっています。<br> スマートコントラクト作者はオンチェイン利用に課税するルールを設計しやすくなり、プロトコルレイヤーの公共財評価も議論されています。<br> npm 創業者が進めるオンチェイン registry「@teaxyz」と思想が近いという指摘もあります。<br> [https://twitter.com/0xtkgshn/status/1655807420512468995](https://twitter.com/0xtkgshn/status/1655807420512468995)
 
 - **ピクシブにおける不当な目的での作品取得行為に対する対策技術**
 
@@ -8960,10 +8941,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - GMO ペパボさんの EC サービス「SUZURI」の類似画像推薦機能を CLIP とベクトル検索で作った事例 <br> [https://t.co/I00L8eUH7u](https://t.co/I00L8eUH7u)
 
-- **NFT の仕組み**
-
-- NFT で不当な二次流通を検知を検知したり、二次流通次にロイヤリティを発生させる仕組みを参考にされたことを検知する仕組みと貢献した人に一部を提供する仕組みの参考にしたい
-
 - **可視化する技術**
 
 - 可視化する技術やサービスを参考にしているかどうかを検知する仕組みの参考にしたい
@@ -8973,18 +8950,9 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 - 引用 <br> アカウントの Tx の履歴からそのユーザーが人間か bot かを判別できる仕組み <br> [https://twitter.com/kuma56-munage/status/1582342565936103424](https://twitter.com/kuma56-munage/status/1582342565936103424)
 
-- **投稿監視ソリューション**
-
-- Yay!を運営している企業が提供している Posmoni、という投稿監視ソリューション <br> AI と人力を組み合わせたコンテンツモデレーション API プラットフォーム。コミュニティアプリにおける不適切コンテンツを AI と人力のハイブリッドシステムでスクリーニング
-
 - **引用の URL**
 
 - 引用の URL があれば、参考にしたとみなすようにして、さらに範囲を広げるために同じような文章構成であるかどうかを、AI のテキスト分析で、文脈や類似性などを分析して似ているならば参考にしたと考えるようにする
-
-- **クラスタ分析**
-
-- 参考にしているかどうかを、クラスタ分析を活用にして見つけていきたい
-  - その人がどの組織に属するのかを分類したいなら、クラスタリングが良い
 
 - **著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法**
 
