@@ -165,12 +165,6 @@
         - [コード系](#コード系-1)
         - [その他](#その他-1)
         - [論文系](#論文系)
-        - [課題管理](#課題管理)
-        - [チャット](#チャット)
-        - [SNS](#sns)
-        - [記事・ブログ](#記事ブログ)
-        - [Q\&A](#qa)
-        - [検索](#検索)
       - [参考](#参考)
     - [貢献検知の仕組み](#貢献検知の仕組み-2)
     - [感情の測定方法](#感情の測定方法)
@@ -8365,62 +8359,56 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - DOI を基にフルテキストを検索
       - オープンアクセスの論文を特定
 
-##### 課題管理
+-  課題管理
+   - Jira
+   - Trello
+   - Bugzilla
+   - Launchpad
+   - Phabricator Maniphest
+   - Pagure
+   - Redmine
 
-- Jira
-- Trello
-- Bugzilla
-- Launchpad
-- Phabricator Maniphest
-- Pagure
-- Redmine
+- チャット
+  - Discord
+  - Slack
+  - messenger
+  - ChatWork
+  - WeChat
 
-##### チャット
+- SNS
+  - X(Twitter)
+  - Instagram
+  - Facebook
+  - TikTok
+  - Snapchat
+  - Threads
+  - YouTube
 
-- Discord
-- Slack
-- messenger
-- ChatWork
-- WeChat
+- 記事・ブログ
+  1. Zenn
+     - 参考
+       - [https://zenn.dev/karaage0703/articles/c24072adc188a6](https://zenn.dev/karaage0703/articles/c24072adc188a6)
+       - [https://zenn.dev/aiq_dev/articles/2d0c83a26edca1](https://zenn.dev/aiq_dev/articles/2d0c83a26edca1#zenn-api%E3%81%AE%E8%A8%98%E4%BA%8B%E5%8F%96%E5%BE%97api%E3%81%AF%E3%80%81%E3%83%9A%E3%83%BC%E3%82%B8%E3%83%8D%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E5%AE%9F%E8%A3%85%E3%81%97%E3%81%A6%E3%81%84%E3%82%8B%F0%9F%8C%9F)
+     - 説明
+       - https://zenn.dev/api/articles?username=karaage0703&order=latest&page=1`
+       - 非公式の Zenn Web API
+       - `&page=1`といったようにページ数をつけてやれば取得できます（1 ページの最大の記事数が 48）
+       - 返す json が`"next_page":null`だと次のページがない
+         - 記事一覧 API は `topicname` クエリでトピック（= ライブラリ）を指定
+         - 例：`topicname=react`
+  2. Qiita
+     - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** へ寄せると、タグ由来のノイズを抑えやすいです（タグ ID 例：`React`, `Vue.js` など）
+     - 「ライブラリ名」をタグまたは検索クエリで特定（`/items?query=...` か `/tags/:tag_id/items`）
+  3. Medium
+  4. note
+  5. はてな
 
-##### SNS
+- Q&A
+  - Stackoverflow
+  - Reddit
 
-- X(Twitter)
-- Instagram
-- Facebook
-- TikTok
-- Snapchat
-- Threads
-- YouTube
-
-##### 記事・ブログ
-
-1. Zenn
-   - 参考
-     - [https://zenn.dev/karaage0703/articles/c24072adc188a6](https://zenn.dev/karaage0703/articles/c24072adc188a6)
-     - [https://zenn.dev/aiq_dev/articles/2d0c83a26edca1](https://zenn.dev/aiq_dev/articles/2d0c83a26edca1#zenn-api%E3%81%AE%E8%A8%98%E4%BA%8B%E5%8F%96%E5%BE%97api%E3%81%AF%E3%80%81%E3%83%9A%E3%83%BC%E3%82%B8%E3%83%8D%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E5%AE%9F%E8%A3%85%E3%81%97%E3%81%A6%E3%81%84%E3%82%8B%F0%9F%8C%9F)
-   - 説明
-     - https://zenn.dev/api/articles?username=karaage0703&order=latest&page=1`
-     - 非公式の Zenn Web API
-     - `&page=1`といったようにページ数をつけてやれば取得できます（1 ページの最大の記事数が 48）
-     - 返す json が`"next_page":null`だと次のページがない
-       - 記事一覧 API は `topicname` クエリでトピック（= ライブラリ）を指定
-       - 例：`topicname=react`
-2. Qiita
-   - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** へ寄せると、タグ由来のノイズを抑えやすいです（タグ ID 例：`React`, `Vue.js` など）
-   - 「ライブラリ名」をタグまたは検索クエリで特定（`/items?query=...` か `/tags/:tag_id/items`）
-3. Medium
-4. note
-5. はてな
-
-##### Q&A
-
-- Stackoverflow
-- Reddit
-
-##### 検索
-
-- Google
+- 検索
+  - Google
 
 #### 参考
 
@@ -9740,15 +9728,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 下記の方法を、「データ取得の方法」の参考にしたい。
 
-- **データコモンズ**
-
-- データをコモンズとして扱う
-
-- **行動をデータにする**
-
-- 立ち上がっているか、何処をどれだけ移動しているか、呼吸、→Apple Watch のみで可能
-- 食事、→ 食材の購入履歴から料理を推測し、それらを食べたと仮定して栄養分を自動記入。料理を推測しないといけないのは、調理方法によって栄養が変わる
-
 - **デジタル庁のオープンデータの取り組み**
 
 - [https://www.data.go.jp/](https://www.data.go.jp/)
@@ -9832,6 +9811,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - データ取得の参考にしたい
 - 引用 <br> 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す。企業がデータをサービスや商品開発に生かしたり、投資家が取引に参加して売買益を得たりできる。 <br> [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
 
+- **無料主義のデータをやり取りする場所の参考にしたい**
+
+- [Ocean Marketplace](https://market.oceanprotocol.com/)のようなデータマーケットプレイスで収益化
+  - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+
 ### 評価軸の指標
 
 下記の方法を、評価軸の指標という観点の参考にしたい。
@@ -9853,27 +9837,17 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 下記の方法を、「非干渉の社会」「非干渉の権利」の参考にしたい。
 
-- **多様性を持たせる評価軸の仕組みで参考にしたい**
-
-- FairePlay は、アルゴリズム的な人種差別バイアスを削減してくれるサービス
-- DeepMind の AI 研究。 巨大言語モデル（LLM)は多様な見解を持つ人々が合意を見出すのに役立つか？　700 億パラメータの LLM を微調整し、 多様な意見を持つ集団に対して期待される賛成を最大化する意見を生成。 最良モデルの意見は、 人が生成した最良意見より好まれた。 強化学習は不使用 <br>\* [https://arxiv.org/abs/2211.15006](https://t.co/XOU3fAiFt1) <br> [https://twitter.com/jaguring1/status/1599297387528605696](https://twitter.com/jaguring1/status/1599297387528605696)
-
 - **無料主義の SNS の参考にしたい**
 
 - 誰も傷つかない新 SNS「DYSTOPIA」<br> この SNS では誹謗中傷等の不適切な表現は AI により検閲され、自動的に適切な表現へと変換され投稿されます。 <br>\* [https://twitter.com/dystopia-sns/status/1705831398056284171](https://twitter.com/dystopia-sns/status/1705831398056284171)
 
-- **グーグル、ネット検閲を回避する VPN の SDK を提供**
-
-- グーグルのジグソー部門は、権威主義的国家などによるインターネット検閲を回避する VPN のソフトウェア開発キット（SDK）をリリースした。 <br> グーグルの「ジグソー（Jigsaw）」部門は、無料かつオープンで暗号化されたインターネットへのアクセスを提供する「アウトライン VPN（Outline VPN）」などの検閲対策ツール群を以前から提供してきた <br> [https://www.technologyreview.jp/s/317197/google-has-a-new-tool-to-outsmart-authoritarian-internet-censorship/](https://www.technologyreview.jp/s/317197/google-has-a-new-tool-to-outsmart-authoritarian-internet-censorship/)
-
-- **拡張機能**
+- **Chrome拡張機能**
 
 - 見たくない言葉を全てひよこのさえずりに置き換えてくれる Chrome 拡張機能「ひよこフィルター」
 
 - **潜在的連合テスト**
-
-- 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する？
-- 自分で考えられない速度で答えないと終わることができないテストで思想を特定する
+  - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する？
+    - 自分で考えられない速度で答えないと終わることができないテストで思想を特定する
 
 - **見たくないコンテンツを加工する機能**
 
@@ -9888,24 +9862,15 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
   - [https://technologyreview.jp/s/279706/social-media-filters-are-helping-people-explore-their-gender-identity/sbm/](https://t.co/lMJxYrPcBj)
     - [https://twitter.com/sasakitoshinao/status/1545543768513855488](https://twitter.com/sasakitoshinao/status/1545543768513855488)
 
-- **棲み分け**
-
-- 引用 <br> 大事なポイント。皆で仲良くするのでもなく、敵味方に分かれて闘争するのでもなく。「多様性の議論で大事なのは、みんな一緒ではなく、ゾーニング（＝すみわけ）のカテゴリを増やしていくこと」／日本の多様性はファッション感覚　女子専用なくしたトイレを犯罪学者が批判[https://encount.press/archives/430988/](https://encount.press/archives/430988/) <br> [https://twitter.com/sasakitoshinao/status/1637594550754525185](https://twitter.com/sasakitoshinao/status/1637594550754525185)
-
 - **見たくないコンテンツを加工する機能**
 
 - 引用 <br> 写真内の不要な顔だけ“実在しない顔”に置き替える AI 　プライバシー保護に活用　 Intel などが開発 <br> 米ビンガムトン大学と Intel Labs に所属する研究者らが発表した論文「[My Face My Choice: Privacy Enhancing Deepfakes for Social Media Anonymization](https://arxiv.org/abs/2211.01361)」は、写真内に写る指定した顔を実在しない偽の顔（ディープフェイク）に変換する深層学習モデルを提案した研究報告だ。 <br> [https://www.itmedia.co.jp/news/articles/2212/01/news060.html](https://www.itmedia.co.jp/news/articles/2212/01/news060.html)
 
-- **コンテンツモデレーション a.k.a**
+- **Bluesky**
+  - Bluesky のユーザー側のオプトイン型の選択方式
 
-- Twitter でスポットライトを浴びているコンテンツモデレーション a.k.a 検閲は、分散 SNS では自治に任されるという理解です
-- Bluesky では発信そのものに NO 検閲、その後の他者表示やフィードアルゴリズムはユーザー側のオプトイン型です
-- [https://twitter.com/-tea-two/status/1599966409656000512](https://twitter.com/-tea-two/status/1599966409656000512)
-
-- **幸福のための分断・干渉しない社会**
-
-- 幸福のための分断・干渉しない社会を作る
-- 引用 <br> 混ぜるな危険度の高い人々の組み合わせはどれか判定する。判定はプラットフォームのプログラムが自動で行い、データの変化とともに絶えず更新していく。相互ブロック・ミュートを代行すると言ってもいい。誰かを非対称に排除するのではない。両者を対称的にミュートにする。X と Y の関係は壁がデフォルトとなり、愛憎も憐憫もない、無関係による使うべきではない言葉なので修正してください幸福が機械的に成立する。 <br> [https://slowinternet.jp/article/20210201/](https://slowinternet.jp/article/20210201/)
+- 事前に分断する社会
+  - [https://slowinternet.jp/article/20210201/](https://slowinternet.jp/article/20210201/)
 
 ### 正当性
 
@@ -9937,8 +9902,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 下記の方法を、「無料主義の意思決定」の参考にしたい。
 
-- **それぞれの意思決定ごとに、専門知識が高い人ほど OO 人分の投票権を持たせれば良い？**
-
 - 引用
 - [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
 - ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
@@ -9951,53 +9914,29 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - 引用（続き）<br> 問題の予測に加え、他者の予測についての予測も併用する点が面白い
 - 引用（続き）<br> [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
 
-- **最適化問題**
+- Gnosis
+  - 分散型予測市場プラットフォーム
 
-- et
-
-- **分散型 AI**
-
-- 引用
-- インターネットにおける集合知の役割を果たす「分散型 AI」の現状整理です
-
-- **「Gnosis」**
-
-- 分散型予測市場プラットフォーム「Gnosis」
-
-- **社会的選択理論**
-
-- 「決め方の論理」<br> 社会的選択理論 <br> [https://amzn.to/3GxXj2U](https://t.co/BqzsXrOCvH)
-
-- **フターキー、コンセンサスインテリジェンス**
-
-- フターキーの仕組みを参考にしたい
-- コンセンサスインテリジェンス
-  - アルゴリズムで、優秀な意思決定をする人を見つけて、投票を行うけど、その優秀な意思決定をする人の 1 票を重み付けして投票できる仕組みがあるから、それを使う
-
-### etc の参考
-
-- **Polis を意思決定の参考にしたい**
-
-- [http://pol.is](https://t.co/mnPKxGq7RI) おもしろいね
+- **Polis**
+  - [http://pol.is](https://t.co/mnPKxGq7RI) おもしろいね
   - 返信なくして 3 値で判定してるとか
   - [https://twitter.com/<br>-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
+
+- **Conviction Voting**
+  - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
+
+- **Futarchy**
+  - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
+
+### etc の参考
 
 - **評価軸ポイントの設計の参考にしたい**
 
 - [https://github.com/xharaken/john-law-coin/tree/main/docs](https://github.com/xharaken/john-law-coin/tree/main/docs)
 
-- **無料主義のデータをやり取りする場所の参考にしたい**
-
-- [Ocean Marketplace](https://market.oceanprotocol.com/)のようなデータマーケットプレイスで収益化
-  - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
-
 - **VitaDAO などの DeSi を無料主義で研究を支援する参考にしたい**
 
 - 長寿研究の民主化を目指す「VitaDAO」- 分散型科学の先端事例 <br> [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
-
-- **「新しい贈与論」を無料主義の参考にしたい**
-
-- [https://twitter.com/new-gift-theory](https://twitter.com/new-gift-theory)
 
 - **無料主義の裁判の参考にしたい**
 
@@ -10040,14 +9979,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - DeepMind が開発した「AlphaCode」は、プログラミングコンテスト相当の問題でヒトの平均級の成績を示したとされています
 - 論文: Competition-level code generation with AlphaCode | Science（DOI は [論文へのリンク](https://doi.org/10.1126/science.abq1158)）
 - DeepMind の解説記事: [Competitive programming with AlphaCode のブログ記事](https://www.deepmind.com/blog/competitive-programming-with-alphacode)
-
-- **「Conviction Voting」を意思決定の参考にしたい**
-
-- [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
-
-- **Futarchy の仕組みを参考にしたい**
-
-- Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
 
 ## 資本主義から無料主義へ移行する方法
 
