@@ -140,12 +140,9 @@
     - [「貢献度の算出」の参考](#貢献度の算出の参考)
     - [「幸福度の算出」の参考](#幸福度の算出の参考)
     - [「ゲーム理論・マーケットデザイン・マッチング理論」を参考](#ゲーム理論マーケットデザインマッチング理論を参考)
-    - [感情のダミーデータ](#感情のダミーデータ)
     - [「感情分析」サービス](#感情分析サービス)
     - [「類似性の仕組み」を行うツール](#類似性の仕組みを行うツール)
     - [貢献度の算出手法](#貢献度の算出手法)
-      - [`Apache/kibblescanners`](#apachekibblescanners)
-      - [`Aurgur`](#aurgur)
       - [GrimoireLab](#grimoirelab)
       - [`OpenSourceContributo.rs`](#opensourcecontributors)
       - [その他](#その他)
@@ -6440,8 +6437,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - 論文同士のネットワークをグラフ化して可視化するツールです
 2. サプライチェインを管理システムの仕組み
-   - 参考
-     - なし
    - 説明
      - サプライチェイン上の構成要素や依存関係を把握し、改ざんや不正混入を検知できるよう管理するシステムの仕組みを指します
 3. Posmoni
@@ -6451,19 +6446,13 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
      - Yay! 運営企業 Posmoni の投稿監視サービスです
      - コミュニティアプリにおける不適切コンテンツを、AI と人力のハイブリッドでスクリーニングします
 4. 偽動画防止の技術
-   - 参考
-     - なし
    - 説明
      - Microsoft や Sony などが取り組む、偽造動画や無断利用への対抗技術を指します
      - 制作段階で本物性を証明するメタデータを暗号化して組み込む、といったアプローチがあります
 5. 第三者の評価
-   - 参考
-     - なし
    - 説明
      - 査読論文リストを公開し、h-index 的な指標として r-index を設け、false positive や false negative で加減点し、誤った結果を通した場合はマイナスにする、といった外部評価の考え方です
 6. 特許庁や著作権の管理をする仕組み
-   - 参考
-     - なし
    - 説明
      - 特許庁による審査・登録や、著作権の権利管理・ライセンス記録など、知的財産を公的・組織的に管理する仕組みを指します
 7. JASRAC など音楽の楽曲使用の管理方法
@@ -6472,18 +6461,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - JASRAC をはじめとする権利処理で、楽曲の利用許諾や著作隣接権などを一元管理する方法を含みます
 8. 著作権エージェント
-   - 参考
-     - なし
    - 説明
      - 著作権者に代わって許諾交渉、侵害対応、使用料の徴収・分配などを行う代理人や業務モデルを指します
 9. 名前をつける
-   - 参考
-     - なし
    - 説明
      - 新規技術を説明するときに既存技術の名称を使うことで、その名称によって基準となる技術を参照していると判断できるようにする、という整理の仕方です
 10. 2 次公認化事業
-    - 参考
-      - なし
     - 説明
       - メモのみで本文は未記載です
 11. SBOM・ソフトウェアの Dependency の管理
@@ -6505,8 +6488,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - クリエイターの顔を無断で使った AI 生成動画を特定し、削除を請求できる機能
       - YouTube が生体認証技術で申請者との類似性を検索することへの同意や、写真付き ID と短い自撮り動画による本人確認が求められる
 14. ベクトルの類似度
-    - 参考
-      - なし
     - 説明
       - 文章などをベクトル化し、コサイン類似度などで近さを算出するアプローチです
 15. Perceptual Hash（知覚ハッシュ）
@@ -6531,10 +6512,10 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 ### 「意思決定」の参考
 
 1. コンセンサス・インテリジェンス
-   - 説明
-     - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
    - 参考
      - [https://note.com/visitstech/n/n78a6e432a929](https://note.com/visitstech/n/n78a6e432a929)
+   - 説明
+     - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
 
 ### 「貢献度の算出」の参考
 
@@ -6543,200 +6524,254 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
      - [https://ossinsight.io/](https://ossinsight.io/)
    - 説明
      - OSS の貢献者のダッシュボード
-1. 労働者の貢献度と賃金率の関係
+2. 労働者の貢献度と賃金率の関係
+   - 参考
+     - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
    - 説明
      - 日本の 2007 年の製造業を対象に、労働者が企業価値と利潤に与える影響の大きさを推定し、それら推定値と労働者が得ている賃金率を比較することで、労働者の企業業績への貢献度が賃金率にどの程度反映されているかを明らかにする
      - この「企業価値と利潤に与える影響の大きさを推定方法」をそ参考にする
-   - 参考
-     - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
-1. タスク消化型の評価
+3. タスク消化型の評価
    - 説明
      - Issue や Jira チケットの消化数に応じて貢献度を算出する
      - スタートのタスク報酬額は、作成者が設定した難易度によって決まる
-1. 貢献度分析
-   - 貢献度分析（Contribution Analysis）とは、主要な指標の増減に対し、どの要因（セグメント、ディメンション、キャンペーンなど）がどれだけ影響を与えたかを、統計的・機械学習的に特定・可視化する分析手法
-1. コンジョイント分析（Conjoint Analysis）
-   - 製品やサービスを構成する複数の要素（価格、色、機能など）が、消費者の選択や評価にそれぞれどれくらい影響しているかを定量的に明らかにするマーケティング分析手法です
-   - 複数の要素を組み合わせた選択肢を提示し、回答者の好みの順位付けや選択から、各要素の重要度や「部分効用値」を算出し、新製品開発や価格設定、最適な製品コンセプトの決定に役立てられます
-1. open-source-funding-toolkit
-   - 研究チームは、組織の OSS 投資と実貢献の見える化ツールキットを公開しました
-   - 「投資の把握や追跡に役立ててほしい」とのコメントがあります
-   - GitHub 上では sboysel/open-source-funding-toolkit として OSS 組織の投資見える化資料を公開しています
-   - [**https://github.com/sboysel/open-source-funding-toolkit**](https://github.com/sboysel/open-source-funding-toolkit)
-1. オープンソース CMS「[**Drupal**](https://www.drupal.org/)」の開発チームのプロジェクトの貢献度を可視化プロジェクト
-   - **Solving the Maker-Taker problem | Dries Buytaert**
-   - [**https://dri.es/solving-the-maker-taker-problem**](https://dri.es/solving-the-maker-taker-problem)
-   - Drupal の開発コミュニティでは「コントリビューションクレジットシステム」と呼ばれる仕組みを導入しており、コードの投稿やドキュメントの修正といった貢献に応じてクレジットを付与しています
-   - Drupal はコントリビューションクレジットシステムの公平性を確保するために、中立な第三者機関に監視を依頼しています。これらの施策によって、Drupal では健全な開発エコシステムを構築できているそうです
-   - [https://gigazine.net/news/20241110-open-source-maker-taker-problem/](https://gigazine.net/news/20241110-open-source-maker-taker-problem/)
-1. ゲーム理論
-   - 例）「共有地の悲劇（The Tragedy of the Commons）」を回避するため、協力を促進するための報酬分配モデルが利用される
-1. ふれあい切符
-   - 家事援助などボランティアの時間や点数を貯め、家族が支援を必要とするときに引き出します
-   - 団体ごとに時間銀行・タイムストックなど呼び方や運用は異なります
-   - さわやか福祉財団はこれらを総称して「ふれあい切符制度」と呼んでいます
+4. 貢献度分析
+   - 説明
+     - 貢献度分析（Contribution Analysis）とは、主要な指標の増減に対し、どの要因（セグメント、ディメンション、キャンペーンなど）がどれだけ影響を与えたかを、統計的・機械学習的に特定・可視化する分析手法
+5. コンジョイント分析（Conjoint Analysis）
+   - 説明
+     - 製品やサービスを構成する複数の要素（価格、色、機能など）が、消費者の選択や評価にそれぞれどれくらい影響しているかを定量的に明らかにするマーケティング分析手法です
+     - 複数の要素を組み合わせた選択肢を提示し、回答者の好みの順位付けや選択から、各要素の重要度や「部分効用値」を算出し、新製品開発や価格設定、最適な製品コンセプトの決定に役立てられます
+6. open-source-funding-toolkit
+   - 参考
+     - [https://github.com/sboysel/open-source-funding-toolkit](https://github.com/sboysel/open-source-funding-toolkit)
+   - 説明
+     - 研究チームは、組織の OSS 投資と実貢献の見える化ツールキットを公開しました
+     - 「投資の把握や追跡に役立ててほしい」とのコメントがあります
+     - GitHub 上では sboysel/open-source-funding-toolkit として OSS 組織の投資見える化資料を公開しています
+7. オープンソース CMS「Drupal」の開発チームのプロジェクトの貢献度を可視化プロジェクト
+   - 参考
+     - [Drupal](https://www.drupal.org/)
+     - [Solving the Maker-Taker problem | Dries Buytaert](https://dri.es/solving-the-maker-taker-problem)
+     - [https://gigazine.net/news/20241110-open-source-maker-taker-problem/](https://gigazine.net/news/20241110-open-source-maker-taker-problem/)
+   - 説明
+     - Drupal の開発コミュニティでは「コントリビューションクレジットシステム」と呼ばれる仕組みを導入しており、コードの投稿やドキュメントの修正といった貢献に応じてクレジットを付与しています
+     - Drupal はコントリビューションクレジットシステムの公平性を確保するために、中立な第三者機関に監視を依頼しています。これらの施策によって、Drupal では健全な開発エコシステムを構築できているそうです
+8. ゲーム理論
+   - 説明
+     - 例）「共有地の悲劇（The Tragedy of the Commons）」を回避するため、協力を促進するための報酬分配モデルが利用される
+9. ふれあい切符
+   - 参考
      - [https://www.sawayakazaidan.or.jp/chiikitsuka/](https://www.sawayakazaidan.or.jp/chiikitsuka/)
-1. Local Exchange Trading System(LETS)
-   - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
-   - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
-     - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
-1. TimeBanking
-   - **スキルシェアリングプラットフォーム**
-   - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
-   - [https://timebanking.org/](https://timebanking.org/)
-1. 社内ポイントシステム
-   - 例）Unipos
-     - [https://unipos.me/](https://unipos.me/)
-1. Open Source Collective
-   - OSS の財務管理ツール
-   - [https://oscollective.org/](https://oscollective.org/)
-1. GitHub Sponsors
-   - 特定の貢献者をスポンサーとして支援する仕組み
-   - プロジェクト全体ではなく個人に対して直接的な資金を提供
-1. Gnosis Safe
-
-- 透明な報酬分配ツール
+   - 説明
+     - 家事援助などボランティアの時間や点数を貯め、家族が支援を必要とするときに引き出します
+     - 団体ごとに時間銀行・タイムストックなど呼び方や運用は異なります
+     - さわやか福祉財団はこれらを総称して「ふれあい切符制度」と呼んでいます
+10. Local Exchange Trading System(LETS)
+    - 参考
+      - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
+    - 説明
+      - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
+      - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
+11. TimeBanking
+    - 参考
+      - [https://timebanking.org/](https://timebanking.org/)
+    - 説明
+      - **スキルシェアリングプラットフォーム**
+      - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
+12. 社内ポイントシステム
+    - 参考
+      - [https://unipos.me/](https://unipos.me/)
+    - 説明
+      - 例）Unipos
+13. Open Source Collective
+    - 参考
+      - [https://oscollective.org/](https://oscollective.org/)
+    - 説明
+      - OSS の財務管理ツール
+14. GitHub Sponsors
+    - 説明
+      - 特定の貢献者をスポンサーとして支援する仕組み
+      - プロジェクト全体ではなく個人に対して直接的な資金を提供
+15. Gnosis Safe
+    - 説明
+      - 透明な報酬分配ツール
 
 ### 「幸福度の算出」の参考
 
 1. happiness planet
-   - [https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html](https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html)
-   - [https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/](https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/)
-   - [https://happiness-planet.org/](https://happiness-planet.org/)
-   - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」を立ち上げました
-   - 社員の幸福度を定量化し働く前向きさを後押しする狙いがあります
-   - 無意識下で起きる身体の動きをウェアラブルセンサーで記録。その身体の動きと、別途実施する被験者へのアンケート形式の心理検査を組み合わせる
+   - 参考
+     - [https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html](https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html)
+     - [https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/](https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/)
+     - [https://happiness-planet.org/](https://happiness-planet.org/)
+   - 説明
+     - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」を立ち上げました
+     - 社員の幸福度を定量化し働く前向きさを後押しする狙いがあります
+     - 無意識下で起きる身体の動きをウェアラブルセンサーで記録。その身体の動きと、別途実施する被験者へのアンケート形式の心理検査を組み合わせる
 2. 電子情報通信学会
-   - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術を開発した
-   - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F)
+   - 参考
+     - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F)
+   - 説明
+     - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術を開発した
 3. CCAPS-iQAS
-   - [https://univ-journal.jp/204656/](https://univ-journal.jp/204656/)
-   - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」を企業と共同開発した
-   - CCAPS とは Counseling Center Assessment of Psychological Symptoms の略称です
-   - 大学生の心理・精神症状へ特化した国際標準指標であり、米国では 750 超の大学で採用実績があります
-   - 信頼性と妥当性が示されており、日本語版は堀田准教授が研究代表として開発しました
+   - 参考
+     - [https://univ-journal.jp/204656/](https://univ-journal.jp/204656/)
+   - 説明
+     - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」を企業と共同開発した
+     - CCAPS とは Counseling Center Assessment of Psychological Symptoms の略称です
+     - 大学生の心理・精神症状へ特化した国際標準指標であり、米国では 750 超の大学で採用実績があります
+     - 信頼性と妥当性が示されており、日本語版は堀田准教授が研究代表として開発しました
 4. 世界幸福度報告
-   - 1 人あたり GDP、社会的支援、健康寿命、人生選択の自由度、寛容さ、腐敗の認識という 6 つの説明変数で、幸福度を定量的に表現しようという試み
-   - [https://twitter.com/monopole0001/status/1108670399993151488](https://twitter.com/monopole0001/status/1108670399993151488)
+   - 参考
+     - [https://twitter.com/monopole0001/status/1108670399993151488](https://twitter.com/monopole0001/status/1108670399993151488)
+   - 説明
+     - 1 人あたり GDP、社会的支援、健康寿命、人生選択の自由度、寛容さ、腐敗の認識という 6 つの説明変数で、幸福度を定量的に表現しようという試み
 5. 日立ハイテクが「組織活性度」
-   - [popnews.wpblog.jp/-/63746](http://t.co/tzSSD4hROW)
-   - 集団の幸福度を定量化する技術、日立ハイテクが「組織活性度」を計測する新ウェアラブルセンサーを開発 – インターネットコム
-   - [https://twitter.com/newstrendbot/status/564930790904320000](https://twitter.com/newstrendbot/status/564930790904320000)
+   - 参考
+     - [popnews.wpblog.jp/-/63746](http://t.co/tzSSD4hROW)
+     - [https://twitter.com/newstrendbot/status/564930790904320000](https://twitter.com/newstrendbot/status/564930790904320000)
+   - 説明
+     - 集団の幸福度を定量化する技術、日立ハイテクが「組織活性度」を計測する新ウェアラブルセンサーを開発 – インターネットコム
 6. 「幸福度の定量化に関する調査研究」中間報告書 (pdf)
-   - [http://www.kasseiken.jp/pdf/news/120516_press.pdf](http://www.kasseiken.jp/pdf/news/120516_press.pdf)
+   - 参考
+     - [http://www.kasseiken.jp/pdf/news/120516_press.pdf](http://www.kasseiken.jp/pdf/news/120516_press.pdf)
 7. 「幸福度の定量化に関する調査研究」中間報告書
-   - [https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf](https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf)
+   - 参考
+     - [https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf](https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf)
 8. 「幸せになる行動」を AI で幸福感と結びつけて予測する研究（PACJPA）
-   - [論文ページ（jstage）](https://www.jstage.jst.go.jp/article/pacjpa/82/0/82_3EV-009/_article/-char/ja/)
+   - 参考
+     - [論文ページ（jstage）](https://www.jstage.jst.go.jp/article/pacjpa/82/0/82_3EV-009/_article/-char/ja/)
 9. 生活満足度指数（LSI）を用いた生活満足度を計測する方法
+   - 説明
+     - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
 10. デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
+    - 説明
+      - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
 11. GNH
+    - 説明
+      - Gross National Happiness（国民総幸福量）の略で、ブータン発祥の、経済成長だけでなく文化・環境・ガバナンスなど多面的な幸福を測る指標です
 12. HDI
+    - 説明
+      - Human Development Index（人間開発指数）の略で、アマルティア・センらが開発した、所得・平均余命・教育から成る国の開発水準を示す UN 系の指標です
 13. MEW
+    - 説明
+      - Measure of Economic Welfare（経済的福祉尺度）の略で、ノードハウスとトービンが GNP を家事・余暇・環境破壊などで補正して福祉を測ろうとした指標です
 14. GPI
-15. SNS ログからの幸福度推定にも言及があります
+    - 説明
+      - GPI
+15. SNS ログからの幸福度推定
+    - 説明
+      - SNS ログからの幸福度推定にも言及があります
 16. 汗
-    - 論文では薄型の汗センサで女性ホルモン検出アイデアを示しています
-    - センサは汗成分から排卵や月経時期の推定へ使えるとの報告です
-    - [https://www.itmedia.co.jp/news/articles/2310/05/news052.html](https://www.itmedia.co.jp/news/articles/2310/05/news052.html)
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2310/05/news052.html](https://www.itmedia.co.jp/news/articles/2310/05/news052.html)
+    - 説明
+      - 論文では薄型の汗センサで女性ホルモン検出アイデアを示しています
+      - センサは汗成分から排卵や月経時期の推定へ使えるとの報告です
 17. 脳信号
-    - **AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できるようにした**
-    - [In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat](https://www.nature.com/articles/s41551-023-01095-1)
-    - スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
-    - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
-18. **空気中のミリ波・血圧**
-    - **空気中のミリ波で“血圧”を測り監視する手法　気が付かれず血圧測定　中国の研究者らが開発**
-    - [airBP: Monitor Your Blood Pressure with Millimeter-Wave in the Air](https://dl.acm.org/doi/10.1145/3614439)
-    - ミリ波（mmWave）を用いた非接触での血圧測定方法を提案した研究報告です
-    - [https://www.itmedia.co.jp/news/articles/2310/12/news042.html](https://www.itmedia.co.jp/news/articles/2310/12/news042.html)
+    - 参考
+      - [In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat](https://www.nature.com/articles/s41551-023-01095-1)
+      - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
+    - 説明
+      - **AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できるようにした**
+      - スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
+18. 空気中のミリ波・血圧
+    - 参考
+      - [airBP: Monitor Your Blood Pressure with Millimeter-Wave in the Air](https://dl.acm.org/doi/10.1145/3614439)
+      - [https://www.itmedia.co.jp/news/articles/2310/12/news042.html](https://www.itmedia.co.jp/news/articles/2310/12/news042.html)
+    - 説明
+      - **空気中のミリ波で“血圧”を測り監視する手法　気が付かれず血圧測定　中国の研究者らが開発**
+      - ミリ波（mmWave）を用いた非接触での血圧測定方法を提案した研究報告です
 19. 文章
-    - うつ病の言語があり、解析され始めている。孤独や悲しいという否定感情の語が多いことよりも、私、自分といった一人称代名詞が多く、その他の人称は極端に少ないことが特徴。絶対、常に、決してないという絶対的表現を過剰に用いる
-    - [https://wef.ch/2JOUCvW](https://t.co/RDF9FqKXIX)
-    - [https://wef.ch/2JOUCvW](https://www.weforum.org/agenda/2018/02/people-with-depression-use-language-differently-heres-how-to-spot-it/)
+    - 参考
+      - [https://wef.ch/2JOUCvW](https://t.co/RDF9FqKXIX)
+      - [https://wef.ch/2JOUCvW](https://www.weforum.org/agenda/2018/02/people-with-depression-use-language-differently-heres-how-to-spot-it/)
+    - 説明
+      - うつ病の言語があり、解析され始めている。孤独や悲しいという否定感情の語が多いことよりも、私、自分といった一人称代名詞が多く、その他の人称は極端に少ないことが特徴。絶対、常に、決してないという絶対的表現を過剰に用いる
 20. タイピング行動
-    - Google がユーザーの普段のタイピング行動を理解して感情を読み取るキーボードの特許申請を出した
-    - [https://t.co/4i7ISGv7m5](https://t.co/4i7ISGv7m5)
+    - 参考
+      - [https://t.co/4i7ISGv7m5](https://t.co/4i7ISGv7m5)
+    - 説明
+      - Google がユーザーの普段のタイピング行動を理解して感情を読み取るキーボードの特許申請を出した
 21. Amazon・感情認識
-    - Amazon が感情認識を活用して動画の予告を生成する技術の特許申請を出した
-    - [https://t.co/xPliMU0mDJ](https://t.co/xPliMU0mDJ)
-    - [https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073](https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073)
+    - 参考
+      - [https://t.co/xPliMU0mDJ](https://t.co/xPliMU0mDJ)
+      - [https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073](https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073)
+    - 説明
+      - Amazon が感情認識を活用して動画の予告を生成する技術の特許申請を出した
 22. 個人データ
-    - ウェルビーイング研究では縦断的な因果検証向けデータが不足していました
-    - 複数国・20 万人規模・5 年追跡のコーホートが公開され、初年波から利用でき今後フル無料化も予告されています
-    - [https://t.co/Vi2lbQUeDy](https://t.co/Vi2lbQUeDy)
-    - [https://www.cos.io/gfs](https://www.cos.io/gfs)
-    - [https://twitter.com/koro485/status/1757426995292454927](https://twitter.com/koro485/status/1757426995292454927)
+    - 参考
+      - [https://t.co/Vi2lbQUeDy](https://t.co/Vi2lbQUeDy)
+      - [https://www.cos.io/gfs](https://www.cos.io/gfs)
+      - [https://twitter.com/koro485/status/1757426995292454927](https://twitter.com/koro485/status/1757426995292454927)
+    - 説明
+      - ウェルビーイング研究では縦断的な因果検証向けデータが不足していました
+      - 複数国・20 万人規模・5 年追跡のコーホートが公開され、初年波から利用でき今後フル無料化も予告されています
 23. ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
-    - Apple Watch の ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
-    - https://twitter.com/nobi/status/1352405640501596160
+    - 参考
+      - [https://twitter.com/nobi/status/1352405640501596160](https://twitter.com/nobi/status/1352405640501596160)
+    - 説明
+      - Apple Watch の ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
 24. 人間の脳のセンシング
-    - 例として零唯一思（[https://www.emotionhelper.com/](https://www.emotionhelper.com/)）と瑞金医院脳病センター（[https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)）の 2 研究拠点を挙げます
-    - いずれも脳センシングを AI で処理し、感情をデータ化しています
-    - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
-    - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
+    - 参考
+      - [https://www.emotionhelper.com/](https://www.emotionhelper.com/)
+      - [https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)
+      - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
+    - 説明
+      - 例として零唯一思と瑞金医院脳病センターの 2 研究拠点を挙げます
+      - いずれも脳センシングを AI で処理し、感情をデータ化しています
+      - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
 25. Mappiness
-    - スマートフォンアプリ「Mappiness」
-    - このアプリは、ランダムな時刻にユーザーへ通知を送ります
-    - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
-    - Are You Happy While You Work? Alex Bryson, George MacKerron
-    - [https://sole-jole.org/assets/docs/13058.pdf](https://t.co/3ucKeob4zW)
+    - 参考
+      - [Are You Happy While You Work? Alex Bryson, George MacKerron](https://sole-jole.org/assets/docs/13058.pdf)
+    - 説明
+      - スマートフォンアプリ「Mappiness」
+      - このアプリは、ランダムな時刻にユーザーへ通知を送ります
+      - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
+
+26. 感情のダミーデータ
+    - 参考
+      - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+      - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+      - [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
+      - [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
+      - [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
+      - [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
+      - [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
+      - [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
+      - [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
+      - [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
+      - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+      - [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
+      - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+      - [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
 
 ### 「ゲーム理論・マーケットデザイン・マッチング理論」を参考
 
-- 説明
-  - 正直に回答する設計を、「貢献度の算出時の評価」や「貢献検知の仕組み」で参考にしたか回答してもらうときに使用できそう
-
-- 仕組み
-  1. VCG メカニズム
-     - 説明
-       - オークション参加者は、財の価値を正直に申告するインセンティブがある
-       - 高く申告しても、低く申告しても損をする
-  2. 繰り返しゲーム
-     - 説明
-       - 「同盟を破る国があったら、ほかの 6 国でその国を攻める」というルール
+1. 概要
+   - 説明
+     - 正直に回答する設計を、「貢献度の算出時の評価」や「貢献検知の仕組み」で参考にしたか回答してもらうときに使用できそう
+2. VCG メカニズム
+   - 説明
+     - オークション参加者は、財の価値を正直に申告するインセンティブがある
+     - 高く申告しても、低く申告しても損をする
+3. 繰り返しゲーム
+   - 説明
+     - 「同盟を破る国があったら、ほかの 6 国でその国を攻める」というルール
      - ゲーム理論的なインセンティブ設計によって戦争を防ぐアイデア
-       - ゲーム理論「繰り返しゲーム」は、短期的な得のために、相手を出し抜いたりルールから逸脱したりしようと考えるプレイヤーーが存在するときに、その裏切り者をほかの全員で罰を与える
-       - 七国同盟の場合、相互監視と、罰への恐怖によって逸脱が防がれ、「誰も戦争を始めようとしない」という均衡が生まれる
-     - 使用場面
-       1. 評価軸 A が他の評価軸に干渉してきた場合は、A 評価軸への交換比率を大幅に下げる
-
-### 感情のダミーデータ
-
-1. WRIME
-   - 説明
-     - 日本語の SNS 投稿を対象に、8 つの基本感情（喜び、悲しみ、期待、驚き、怒り、恐れ、嫌悪、信頼）とその強度を 4 段階でラベル付けしたデータセットです
-     - 主観的（筆者）および客観的（複数の読み手）な感情ラベルが付与されています。研究用途での利用が可能です
-   - 参考
-     - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-2. chABSA データセット
-   - 説明
-     - TIS 株式会社が無償公開しているデータセットで、上場企業の有価証券報告書を基に作成されています
-     - 各文に対して、ポジティブ・ネガティブの感情分類だけでなく、「何が」ポジティブ・ネガティブなのかという観点情報が含まれています。機械学習による高度な感情解析の研究に利用できます
-   - 参考
-     - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-3. [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
-4. [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
-5. [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
-6. [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
-7. [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
-8. [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
-9. [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
-10. [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
-11. [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-12. [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
-13. [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-14. [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
+     - ゲーム理論「繰り返しゲーム」は、短期的な得のために、相手を出し抜いたりルールから逸脱したりしようと考えるプレイヤーーが存在するときに、その裏切り者をほかの全員で罰を与える
+     - 七国同盟の場合、相互監視と、罰への恐怖によって逸脱が防がれ、「誰も戦争を始めようとしない」という均衡が生まれる
+     - 使用場面: 評価軸 A が他の評価軸に干渉してきた場合は、A 評価軸への交換比率を大幅に下げる
 
 ### 「感情分析」サービス
 
 1. ユーザーローカル「テキスト感情認識 AI」
+   - 参考
+     - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
    - 説明
      - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
-     - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
 2. Amazon Comprehend
    - 説明
      - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
-
 3. エモスタ「エモリーダー」
    - 説明
      - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
@@ -6744,68 +6779,78 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
 5. Empath（エンパス）
+   - 参考
+     - [https://webempath.com/](https://webempath.com/)
+     - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)（日本語サイト）
+     - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/)（英語サイト）
    - 説明
      - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
      - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
-       - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
-       - [https://webempath.com/](https://webempath.com/)
-       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/) (日本語サイト）
-       - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/) (英語サイト）
+     - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
 6. iMotions Voice Analysis
+   - 参考
+     - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
    - 説明
      - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
-       - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
 7. Vokaturi
-   - 説明
+   - 参考
      - [https://vokaturi.com/](https://vokaturi.com/)
+     - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
+   - 説明
      - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
      - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
-     - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
 8. COTOHA API（感情分析）
-   - 説明
+   - 参考
      - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
      - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
      - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
 9. リッカート尺度
-   - トピックに対する感情の強さを聞く一般的な設問形式
-   - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
+   - 参考
+     - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
+   - 説明
+     - トピックに対する感情の強さを聞く一般的な設問形式
 10. Firebase: Sentiment Analysis 拡張
-    - 説明
-      - テキストから感情スコア
+    - 参考
       - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
       - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
-11. 日本語感情表現辞書
     - 説明
+      - テキストから感情スコア
+11. 日本語感情表現辞書
+    - 参考
       - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
-      - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
       - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
-      - メモ： 夏目漱石「こころ」× [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/) で試す想定
+      - [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/)
+    - 説明
+      - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
+      - メモ： 夏目漱石「こころ」× 青空文庫で試す想定
 12. Vertex AI（GCP）
+    - 参考
+      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
     - 説明
       - 感情分析の利用例
-      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
 13. 解説・ビジネス記事
-    - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
-    - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
+    - 参考
+      - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
+      - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
 14. 東北大： 日本語極性辞書（公開リソース）
-    - 説明
+    - 参考
       - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
 15. 幸福度（感情ではない観点）
-    - 説明
+    - 参考
       - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
 16. 聞き取り・調査設計
+    - 参考
+      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
     - 説明
       - 従業員エンゲージメント調査を参考に、感情・幸福度の自己報告を設計する
-      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
 17. Qiita（実装・製品）
-    - 説明
+    - 参考
       - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
       - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
       - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
-
-- carely
-  - 説明
-    - 「ストレスチェック」等を感情・幸福度分析の参考に
+18. carely
+    - 説明
+      - 「ストレスチェック」等を感情・幸福度分析の参考に
 
 **「感情分析」理論**
 
@@ -7013,92 +7058,146 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 ### 「類似性の仕組み」を行うツール
 
-1.  芸術作品・デザイン・動画
-1.  GANs
-1.  深層学習モデル（CNN）
-1.  ガウシアンミックスチャーモデル（GMM）
-1.  ビジュアルサーモン（Visual Thesaurus）
-    - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
-1.  CLIP (Contrastive Language–Image Pretraining)
-    - テキストと画像を結びつけるマルチモーダル AI
-1.  時空間 CNN
-    - 動画のフレーム間の連続性を解析
-1.  光フローベース解析
-    - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
-1.  音声
-1.  Spectrogram Analysis
-    - 音声データをスペクトログラムに変換し、視覚的に比較
-1.  3D CNN + Audio Embeddings
-    - 動画のフレームと音声のベクトルを統合
-1.  Multimodal Transformers: 映像、テキスト、音声の複数モーダルを同時に解析
-1.  文章の盗用・剽窃
-1.  Plag.lv
-    - 大規模なデータベースと比較して複数言語での盗用を検出する
-    - [https://www.plag.jp/](https://www.plag.jp/)
-1.  chiyo-co
-    - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
-    - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
-1.  RighTect
-    - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
-    - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
-1.  Copyleaks
-    - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
-    - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
-1.  Trinka
-    - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
-    - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
-1.  剽窃チェッカー
-    - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
-1.  Shinobi ファインダー
-    - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
-    - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
-1.  TF-IDF（Term Frequency-Inverse Document Frequency）
-    - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
-    - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
-1.  Word2Vec や Doc2Vec
-    - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
-1.  トピックモデル
-    - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
-1.  ベクトルエンベディング
-    - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
-1.  機械学習モデル
-    - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
-1.  コード系
-1.  SA-Plag
-    - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
-    - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
-1.  Moss
-    - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
-1.  Sider Scan
-    - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
-1.  大阪大学の研究室が提供するコードクローン関連ツール集
-
-- [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
-
-1. NCDSearch
-   - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
-   - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
-2. Codequiry
-   - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
-   - [https://codequiry.com/](https://codequiry.com/)
-3. JPlag
-   - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
-   - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
-   - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
-4. Code2Vec
-   - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
-   - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
-5. Graph Neural Networks (GNNs)
-   - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
-6. OpenAI Codex や CodeBERT
-   - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
-7. コサイン類似度
-   - コードのベクトル表現間の角度を用いて類似性を評価
-8. LSH (Locality-Sensitive Hashing)
-   - 大規模なコードベースにおける効率的な類似性検索
-9. similarity
-   - ベクトルやコードの類似性があるか見る
-   - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
+1. 芸術作品・デザイン・動画
+   - 説明
+     - 芸術作品・デザイン・動画
+2. GANs
+   - 説明
+     - GANs
+3. 深層学習モデル（CNN）
+   - 説明
+     - 深層学習モデル（CNN）
+4. ガウシアンミックスチャーモデル（GMM）
+   - 説明
+     - ガウシアンミックスチャーモデル（GMM）
+5. ビジュアルサーモン（Visual Thesaurus）
+   - 説明
+     - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
+6. CLIP (Contrastive Language–Image Pretraining)
+   - 説明
+     - テキストと画像を結びつけるマルチモーダル AI
+7. 時空間 CNN
+   - 説明
+     - 動画のフレーム間の連続性を解析
+8. 光フローベース解析
+   - 説明
+     - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
+9. 音声
+   - 説明
+     - 音声
+10. Spectrogram Analysis
+    - 説明
+      - 音声データをスペクトログラムに変換し、視覚的に比較
+11. 3D CNN + Audio Embeddings
+    - 説明
+      - 動画のフレームと音声のベクトルを統合
+12. Multimodal Transformers
+    - 説明
+      - 映像、テキスト、音声の複数モーダルを同時に解析
+13. 文章の盗用・剽窃
+    - 説明
+      - 文章の盗用・剽窃
+14. Plag.lv
+    - 参考
+      - [https://www.plag.jp/](https://www.plag.jp/)
+    - 説明
+      - 大規模なデータベースと比較して複数言語での盗用を検出する
+15. chiyo-co
+    - 参考
+      - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
+    - 説明
+      - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
+16. RighTect
+    - 参考
+      - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
+    - 説明
+      - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
+17. Copyleaks
+    - 参考
+      - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
+    - 説明
+      - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
+18. Trinka
+    - 参考
+      - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
+    - 説明
+      - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
+19. 剽窃チェッカー
+    - 参考
+      - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
+20. Shinobi ファインダー
+    - 参考
+      - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
+    - 説明
+      - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
+21. TF-IDF（Term Frequency-Inverse Document Frequency）
+    - 説明
+      - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
+      - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
+22. Word2Vec や Doc2Vec
+    - 説明
+      - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
+23. トピックモデル
+    - 説明
+      - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
+24. ベクトルエンベディング
+    - 説明
+      - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
+25. 機械学習モデル
+    - 説明
+      - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
+26. コード系
+    - 説明
+      - コード系
+27. SA-Plag
+    - 参考
+      - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
+      - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
+28. Moss
+    - 説明
+      - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
+29. Sider Scan
+    - 参考
+      - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
+30. 大阪大学の研究室が提供するコードクローン関連ツール集
+    - 参考
+      - [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
+31. NCDSearch
+    - 参考
+      - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
+      - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
+32. Codequiry
+    - 参考
+      - [https://codequiry.com/](https://codequiry.com/)
+    - 説明
+      - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
+33. JPlag
+    - 参考
+      - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
+      - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
+    - 説明
+      - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
+34. Code2Vec
+    - 説明
+      - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
+      - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
+35. Graph Neural Networks (GNNs)
+    - 説明
+      - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
+36. OpenAI Codex や CodeBERT
+    - 説明
+      - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
+37. コサイン類似度
+    - 説明
+      - コードのベクトル表現間の角度を用いて類似性を評価
+38. LSH (Locality-Sensitive Hashing)
+    - 説明
+      - 大規模なコードベースにおける効率的な類似性検索
+39. similarity
+    - 参考
+      - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
+    - 説明
+      - ベクトルやコードの類似性があるか見る
 
 ### 貢献度の算出手法
 
@@ -7118,41 +7217,40 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - CNCF 全プロジェクトを対象に GitHub API からコミット・PR・Issue・レビューなどを自動集計し、時系列グラフで可視化
 3. Black Duck Open Hub
+   - 参考
+     - [https://openhub.net/p/firefox/contributors](https://openhub.net/p/firefox/contributors)
+     - [https://kyodonewsprwire.jp/release/201407112164](https://kyodonewsprwire.jp/release/201407112164)
    - 説明
      - 旧 Ohloh
      - 全部が OSS ではない
      - Web UI・API クライアント・解析ライブラリなどは自由に取得してビルドできますが、メインの解析データベースやインフラ構成は社内専用で残っているため、サイト全体を完全に自己ホストすることは現状できません
      - コミットをクロールし指標を生成するバッチ群は公開されていません。UI をローカルで動かしても統計は生成できません
-     - 参考 - [https://openhub.net/p/firefox/contributors](https://openhub.net/p/firefox/contributors) - [https://kyodonewsprwire.jp/release/201407112164](https://kyodonewsprwire.jp/release/201407112164)
-
-#### `Apache/kibblescanners`
-
-- 参考
-  - [https://deepwiki.com/apache/kibble-scanners](https://deepwiki.com/apache/kibble-scanners)
-  - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
-- 説明
-  - 各サービスごとのデータを同じ設定で取得して、Kibble シリーズ向けにデータフォーマットしてデータ出力するライブラリ
-
-#### `Aurgur`
-
-- 参考
-  - [https://github.com/chaoss/augur](https://github.com/chaoss/augur)
-- 例
-  - [https://eightknot.osci.io/contributions](https://eightknot.osci.io/contributions)
-- 説明
-  - バックエンドは Postgres データベース
-  - ソース
-    - Git コミットログ
-      - コミット、コントリビューター
-    - GitLab
-    - GitHub API
-      - 課題、プルリクエスト、コントリビューター、リリース、リポジトリのメタデータ
-    - Linux Foundation の Core Infrastructure Initiative API
-      - リポジトリのメタデータ
-    - Succinct Code Counter
-      - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
-    - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
-    - 外部ツールは REST API 経由でメトリクスを取得できる状態にします（[oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html), [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)）
+4. `Apache/kibblescanners`
+   - 参考
+     - [https://deepwiki.com/apache/kibble-scanners](https://deepwiki.com/apache/kibble-scanners)
+     - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
+   - 説明
+     - 各サービスごとのデータを同じ設定で取得して、Kibble シリーズ向けにデータフォーマットしてデータ出力するライブラリ
+5. `Aurgur`
+   - 参考
+     - [https://github.com/chaoss/augur](https://github.com/chaoss/augur)
+     - [https://eightknot.osci.io/contributions](https://eightknot.osci.io/contributions)
+     - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html)
+     - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)
+   - 説明
+     - バックエンドは Postgres データベース
+     - ソース
+       - Git コミットログ
+         - コミット、コントリビューター
+       - GitLab
+       - GitHub API
+         - 課題、プルリクエスト、コントリビューター、リリース、リポジトリのメタデータ
+       - Linux Foundation の Core Infrastructure Initiative API
+         - リポジトリのメタデータ
+       - Succinct Code Counter
+         - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
+     - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
+     - 外部ツールは REST API 経由でメトリクスを取得できる状態にします
 
 #### GrimoireLab
 
@@ -8359,14 +8457,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - DOI を基にフルテキストを検索
       - オープンアクセスの論文を特定
 
--  課題管理
-   - Jira
-   - Trello
-   - Bugzilla
-   - Launchpad
-   - Phabricator Maniphest
-   - Pagure
-   - Redmine
+- 課題管理
+  - Jira
+  - Trello
+  - Bugzilla
+  - Launchpad
+  - Phabricator Maniphest
+  - Pagure
+  - Redmine
 
 - チャット
   - Discord
@@ -8415,1570 +8513,2492 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 1. ERC-2981（NFT ロイヤリティ標準）
    - 説明
      - 二次流通売上の一定％を作者に自動送金。ただし単一アドレスしか指定できず、複数分割には拡張実装が必要
+
 2. Royalty-Friendly Token-Level Smart Contracts(RM-TLSC)
+
 3. RetroPGF（Optimism）
+
 4. Gitcoin
-   - Quadratic Funding
-
-- **貢献度の算出の参考にしたい**
-
-- Retroactive Public Goods Funding、Gitcoin、
-  - Retroactive Public Goods Funding の略が RetroPGF
-
-- **SPWN CREW**
-
-- 引用 <br> ファンの熱量・ファンの属性データを継続的に収集・活用でき、効果検証できるアプリ「SPWN CREW」
-  - また、サイトへのアクセスや購買等の行動履歴データと、ファンの性別・年齢・居住地等の属性データを分析する。ファンのアーティストへの熱量が可視化されます
-  - PR TIMES：[https://prtimes.jp/main/html/rd/p/000000055.000034713.html](https://prtimes.jp/main/html/rd/p/000000055.000034713.html) <br>\* [https://techable.jp/archives/201138](https://techable.jp/archives/201138)
-
-- **研究者の多様な業績を一元化し瞬時に評価できるデータベース**
-
-- 引用 <br> 研究者の多様な業績を一元化し瞬時に評価できるデータベース、東北大学が開発 <br> 東北大学は、学内外に散在する研究者の情報を自動的・効率的に集積し、必要なときに必要な情報を可視化できる“次世代型研究者データベース”を開発した。 <br> 参考：【東北大学】クラウドを活用した次世代型研究者データベースを構築 -AWS 上のデータレイクでエビデンスベースの業績評価を効率化 -（PDF）[https://univ-journal.jp/217773/](https://univ-journal.jp/217773/)
-
-- **Picaro.ai**
-
-- 引用
-- 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」で、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました
-- PR TIMES：[https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html)
-- [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
-
-- **運動評価**
-
-- 引用
-- スマホ＋ AI で簡単に運動評価　スタンフォード大が開発
-- [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1)
-- 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定します
-- 高額機器を要する従来の運動評価に比べ、低コストで客観的なデジタル指標を出せます
-- [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
-
-- **MSC（モスト・シグニフィカント・チェンジ）**
-
-- 引用 <br> MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法です。 <br> 1990 年代にリック・デイビース博士によって考案されました。日本では、参加型評価センターが普及に力を入れており、これまでに（NPO）日本 NPO センター様（震災復興事業）、環境省様（ESD 事業）、トヨタ財団様（地方創生事業）などの評価に採用されました。[https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/](https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/)
-
-- **社会物理学**
-
-- 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです。 <br> ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
-- 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
-- 計算社会科学と呼ばれる学問分野の流れの 1 つです
-
-- **寄与する量子を探す方法**
-
-- 引用
-- （1）入力データに含まれる情報／知識には最小単位「量子」があると仮定します（※量子力学の量子とは無関係）
-- （2）データ分布内で予測に頻繁に使われる量子を「予測精度向上に寄与する量子」、ほとんど使われない量子を「寄与しない量子」とみなします
-- （3）寄与する量子は使用頻度の高い順に LLM へ学習されていくと仮定したトイモデルで、スケーリング則と創発現象が再現されることを示しました
-- （2）の補足：一般会話では、アインシュタイン方程式より文法ルールのほうが次トークン予測に効き、参照頻度が高いと考えられます
-- The Quantization Model of Neural Scaling (Michaud et al., 2023)（[https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)）
-- [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000)
-- [https://twitter.com/ericjmichaud-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664)
-
-- **状態空間モデルを用いた因果効果**
-
-- 引用
-- 生態学でも有効な手法です
-- われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データから因果推論へ踏み込んでいます（宣伝）
-- [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850)
-- [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960)
-- 状態空間モデルを用いた因果効果の推定である CausalImpact を紹介します
-- [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
-
-- **アクター・ネットワーク理論(ANT)**
-
-- 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT）です
-- 人間以外の多様な存在の役割も正当に評価し、それらを結ぶ動的なネットワークとして捉えます
-
-- **専門家の意見を集約する方法**
-
-- 一般語と専門界隈での意味がずれる語を用意し、意味の回答から専門家らしさをふるいにかけます
-- 専門家グループが共有する意味へ答えた人だけの意見を採用する仕組みです
-- たとえばマッチングで「nginx」の読みを確認し、「エンジンエックス」と読めない人をエンジニア候補から外すイメージです
-- 一般に通じる題材でも、特定コミュニティだけが別義を持つキーワードを増やして応用し、貢献度の算出へ接続します
-- 学位がなくても見識がある人を取りこぼしにくくします
-
-- **reCAPTCHA の仕組み**
-
-- 貢献度算出で 2 問出すとき、片方は答えが既知の設問、もう片方は未確定の設問にします
-- 第 1 問を正解した人の第 2 問の回答だけを採ります
-- 第 2 問では採用回答の 51％超が一致した候補を正答として登録し、次の利用者へ第 1 問として提示します
-- 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
-- データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
-- reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
-- ユーザは暗黙知を要する操作で認証を済ませつつ、バックグラウンドで分析タスクへ参加する二段構成です
-- まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
-
-- **因果関係**
-
-- 引用
-- 認証サービス Onfido が機械学習で因果を推定し、意思決定を支援する事例です
-- 因果推論の入門から自社での活用法まで載っているため参考にできます
-- [https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8)
-- [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
-
-- **Federated Learning**
-
-- 複数のデータ所有者が、各自の持つ学習データを秘匿したまま、協力して機械学習モデルを構築する
-- 連合学習は、分散機械学習、暗号とセキュリティ、経済学とゲーム理論に基づくインセンティブメカニズムを組み合わせた新しい手法
-
-- **Causaly**
-
-- 科学者が自然言語で質問すると生命科学における新たな因果関係の発見を手助けをしてくれる Causaly というサービス
-
-- **バオバブ（Baobab）**
-
-- バオバブ（Baobab）のアノテーション事業を、無料主義でデータ分析を第三者が行うときの参考にしたい
-- 引用 <br> [https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/](https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/)
-
-- **数理最適化**
-
-- でもコストかかりそう
-
-- **Correlation discount**
-
-- 引用 <br>「Correlation discount」という相関性に応じて割り引く概念 <br> [https://twitter.com/0xtkgshn/status/1618718332856803346](https://twitter.com/0xtkgshn/status/1618718332856803346)
-
-- **datagusto**
-
-- 引用 <br> 誰もが高度なデータ分析を実現できる「datagusto」<br>「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるテンプレートを使えば、AI が将来予測まで担うツールです。<br> 実体は「[datagusto（データグスト）](https://lp.datagusto.jp/#top)」として提供されています。<br> [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
-
-- **第三者のデータ分析の参考**
-
-- 引用 <br> AI inside 側は「Learning Center Forecast」と「Developer’s API」を相次いで公開したとされています。<br> ユーザーはデータを読み込み、指標だけ選べば最大 14 モデルを同時評価できます。<br> 精度順に結果を並べ替えられる UI まで用意されています。<br> [https://techable.jp/archives/181501](https://techable.jp/archives/181501)
-
-- **代替経路 →「代替性の仕組み」貢献度の算出の参考**
-
-- 引用 <br> ネットワークの一部が寸断されると物流経路へ影響が出ます。<br> 代替経路として効くリンクの重要度を測る指標です（1/n）。<br> Reinforcing critical links for robust network logistics（要旨）。<br> [https://doi.org/10.1088/2399-6528/acb7c9](https://doi.org/10.1088/2399-6528/acb7c9) <br> 一部リンクが不通になった場合は荷物を最短経路へ載せ替えると想定します。<br> 通常時と異なるリンクが代替として使われる様子をモデル化しています。<br> 各リンク破壊時の betweenness centrality を求めれば需要を推定できます（2/n）。<br> [https://twitter.com/tkEzaki/status/1624005893573705729](https://twitter.com/tkEzaki/status/1624005893573705729)
-
-- **Federated Learning with PoW、Semantic Annotation**
-
-- 引用 <br> Federated Learning with PoW は、すでに共通認識となった知識を取り込み、ファインチューニングへ回す流れで使われていくと考えられます。<br> 端末にモデルが載り切らない参加者は、Semantic Annotation として AI 改善に貢献する、という整理もできます。[https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
-
-- **プライバシーを守りながら貢献度の算出**
-
-- 引用 <br> PLOS ONE 掲載の全国規モニタリング研究として紹介されています。<br> [関連ニュース一覧](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/) <br> 静岡大学の守田智教授らが現場協力を得ながらモデル化した、との記述があります。<br> レビュー投稿に現れたユーザー同士を辺としてネットワーク化しています。<br> 論文タイトルは Exploring sexual contact networks …（commercial-sex review website）です。<br> [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981)<br> [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
-
-- **Peer prediction method**
-
-- 引用 <br> [https://arxiv.org/abs/2211.01143](https://arxiv.org/abs/2211.01143)
-
-- **A Flexible Design for Funding Public Goods**
-
-- 引用 <br> A Flexible Design for Funding Public Goods 論文
-- [https://arxiv.org/pdf/1809.06421.pdf](https://arxiv.org/pdf/1809.06421.pdf)
-
-- **PageRank**
-
-- PageRank 参考にした NEM の PoI
-
-- **The graph**
-
-- The graph が、機械学習の代わりに人間がトークノミスクと予測市場でキュレーションをしている
-
-- **pol.is**
-
-- 引用 <br> エンドユーザーはグラフを直接は見ません。<br>「この 2 つのアドレスは似ていると判断できるか」をはい・いいえで答えるだけでソーシャルグラフを生成できます。<br> [http://pol.is](https://t.co/H9orfAwMBa) のアルゴリズムをもとにした発想です。詳細は WhitePaper を参照してください。<br> [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
-
-- **NeurOlympics**
-
-- 引用 <br> e スポーツチームの能力テストを体験し、才能を数値化してトレーニングへ接続するデモです。<br>「NeurOlympics」は一見シンプルな 60 分プログラムで、4 種のミニゲームをこなします。<br> 記憶課題や反応速度課題などを通じ、特性推定アルゴリズムへ入力されます。<br> [https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
-
-- **LIPS**
-
-- 引用 <br>「LIPS」ではレーティング設計の専門家とともに商品評価アルゴリズムを強化しました。<br> 評価点数とランキング算出の説明ページも公開されています。<br> 詳細は [製品評価の考え方](https://lipscosme.com/product-ratings)。<br> [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
-
-- **Self-Attention**
-
-- 引用
-  - Transformer を採用する大規模言語モデルでは、入力トークン同士の相互参照を計算する Self-Attention が中核です
-  - 関係強度を 2 次元へ射影する Attention Viz が公開されています
-  - [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/)
-  - 解説記事（Gigazine）: [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
-
-- **非線形物理学**
-
-- 引用 <br> ネット上のヘイト拡散を非線形モデルで説明する試みです。<br> [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89)<br> コミュニティを流体近似し、流体力学の式を流用するアイデアが紹介されています。<br> [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
-
-- **givepraise**
-
-- 引用 <br> Praise ()@givepraise <br> Unlock the full potential of your community with reputation scores, rewards and deep insights. Build your community contribution graph! <br> [https://twitter.com/givepraise](https://twitter.com/givepraise)
-
-- **Questry Protocol**
-
-- 引用 <br> 株式会社クエストリー は、貢献報酬をブロックチェインの力で可視化・価値化して、制御することで、様々な経済文化活動の効率性向上を図る「Questry Protocol」
-
-- **Gaudiy Fanlink**
-
-- 引用 <br>「Gaudiy Fanlink」は、ファンの横断的な活動データを記録・蓄積し、その貢献度や熱量が正しく評価・還元されるエコシステムを構築するためのプラットフォームだ。イベントやゲーム、漫画アプリなど、これまでばらばらのプラットフォームで IP に触れてきたファンコミュニティを集約する役割をもつ
-
-[https://wired.jp/article/the-regenerative-company-coordination-03/](https://wired.jp/article/the-regenerative-company-coordination-03/)
-
-- **IMM**
-
-- IMM/インパクト測定
-
-- **レーティング**
-
-- 引用 <br> レーティング・ランキングを通じて信頼できる情報と公正な評価を社会に届けることをミッションとした、日本レーティング協会（JRA）を立ち上げます！ <br> [https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA](https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA)
-
-- **CD という指標**
-
-- 引用 <br> CD という指標で研究がどれだけディスラプトしたかを定量化している。その指標は大雑把に言うと、ある論文が出版されることで、それに関連した過去の論文がどれだけ引用されなくなるかを示している。 <br> [https://nature.com/articles/s41586-022-05543-x](https://nature.com/articles/s41586-022-05543-x) <br> [https://twitter.com/kanair-jp/status/1702740831403385291](https://twitter.com/kanair-jp/status/1702740831403385291)
-
-- **属性の異なるユーザから支持**
-
-- 引用 <br> 多数決ではなく属性の異なるユーザから支持されることをスコアにする <br> [https://twitter.com/nishio/status/1617365061353476096](https://twitter.com/nishio/status/1617365061353476096)
-
-- **tx**
-
-- tx からユーザーの嗜好・意志を解析してデータ化するツール
-
-- **タスクベース**
-
-- DAO みたいなタスクベースの方法
-
-- **予測市場**
-
-- new
-
-- **テキストデータ**
-
-- Facebook やその他のあらゆる SNS からデータを取ることで、全体のユーザの幸福度が算出
-
-- **利益貢献度分析**
-
-- 利益貢献度分析、REM 分析、経済学の寄与率、自然実験、A/B テスト、RCT（ランダム化比較試験）、因果推論、重回帰分析、クロスカントリー成長回帰分析、反実仮想機械学習、数理最適化問題、多変量解析
-
-- **組織図**
-
-- 引用 <br> 組織図 SaaS や Twitter API からフォロー双方向を取得し、クモの巣状に可視化できます。<br> 知り合い深さや影響指標を数値化し、貢献度推定へ接続するアイデアです。<br> [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
-
-- **Continuous Feedback**
-
-- 人事評価の方法 <br> メルカリのエンジニア部門の評価の納得度を高め、個人の成長を促す目的で導入された『Continuous Feedback』<br> 会社への貢献度の可視化（アウトプットや行動など全て含む）の方法
-
-- **社会的価値の指標設定や効果測定**
-
-- 引用 <br> ソーシャルプロジェクトの社会的な効果に係る指標 <br> 社会的価値の指標設定や効果測定 <br> [https://www.fsa.go.jp/news/r3/singi/20220530.html](https://www.fsa.go.jp/news/r3/singi/20220530.html)
-
-- **causal analysis**
-
-- 引用<br> NEC の因果分析ブランド causal analysis が公共向けにも案内されています。<br> 社内向けにはエンゲージメント施策などへ展開されています。<br> [https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
-
-- **因果推論の分かりやすいテキスト**
-
-- 引用 <br> SpeakerDeck 上のスライドです
-- [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
-
-- **貢献度の算出**
-
-- 引用<br>コロナ禍の失業率・自殺・セーフティネット利用を束ねた縦断的検証（第一波のとき）。<br> [https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html)<br> [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
-
-- **反実仮想シミュレーション**
-
-- 引用 <br> 書店流通の規制ゆるめ後に在庫や価格自由度が広がる状況をモデルに落としています。<br> モデル結果では、再販価格維持を続けたケースのほうが消費者厚生と社会厚生は相対的に高く、書店側利益は逆に押し下げられる、というバランスが報告されています。<br> Jeff Qiu 氏（米司法省）、Yi Zhang 氏（科技大学）との共同成果です。<br> [https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk) <br> [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
-
-- **項目反応理論**
-
-- 引用 <br> 試験テキスト難易度のデータ駆動推定。<br> 作問者主観に頼らない項目反応理論モデル。<br> 多言語読解試験と語彙データの読みやすさ相関。<br> [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
-
-- **ベクトルに変換してベクトルデータベース**
-
-- 参照検知と貢献度推定の双方に流用したいメモです
-- 引用
-  - 記事のような非構造データを検索しやすくする前処理として有効です
-  - まずすべての記事データをベクトル化しベクトル DB を準備します
-  - 検索クエリも同次元へ写像し近似検索のみで済ませられます
-  - ランキングや推薦も同じ表現で扱えます
-  - [https://www.pinecone.io/learn/vector-database/](https://www.pinecone.io/learn/vector-database/)
-  - [https://twitter.com/umiyuki-ai/status/1608454509453537282](https://twitter.com/umiyuki-ai/status/1608454509453537282)
-
-- **複雑ネットワーク科学**
-
-- 引用 <br> ノースイースタン大学のアルバート・バラバシ教授は複雑ネットワーク研究の代表格です。<br> 著書『**[ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)**』（光文社刊）では、テニスや学力テストのように順位付けしやすい成功は稀だと述べています。<br> 測定しづらい領域ほど、成果を押し上げるのは個人の実力よりネットワークだ、という主張へつながります。<br> アート市場ではギャラリー経由の露出がキャリアを左右する例が紹介されます。<br> 初期の展示履歴から将来の展示パターンを高精度に当てた、とされる成果も触れられています。<br> 価値判断が揺らぐ領域では社会構造が裁定役になる、という読み取りができます。<br> [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
-
-- **360 度評価**
-
-- 引用 <br> 360° フィードバックはモチベーション施策や育成プログラムへ組み込まれます。<br> システム化で運用コストを抑えつつ公平性を担保できます。<br> 上司に加えて同僚や部下からもフィードバックを集める運用が基本形です。<br> [https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
-
-- **SourceCred**
-
-- 引用<br>ソースとシンクの二系統ポイントで貢献度を推定できる SourceCred。<br> 譲渡不可ポイントと譲渡可トークンを併用します。<br> [https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
-
-- **NGO の質的評価手法**
-
-- MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法
-
-- **タスクベース**
-
-- プロジェクトごとに公開タスクを置きます
-- 進捗に応じて評価軸ポイントが自動加算されます
-- 難易度と需要からポイント倍率が変わるので、求人の多い高難度タスクへインセンティブが寄ります
-
-- **PICSY**
-
-- 鈴木健さんの PICSY を人事評価に利用できる
-
-- **GitPOAP**
-
-- GitHub でのコントリビューション証明を NFT で残す GitPOAP サービスです
-
-- **openfare**
-
-- new
-
-- **DAO の貢献度を可視化するツールを参考にしたい**
-
-- Dev protocol、Nouns DAO、UNCHAIN
-
-- **代替性を貢献度合いの算出に使用する**
-
-- 評価軸達成のための代替手段が多いほど係数で重みを下げます
-  - 野球が好みでも、その観戦以外に幸福を高める選択肢が多いなら「代替度が高い」とみなし、獲得ポイントへ 0.9 などの係数が掛かるイメージです
-
-- **仮想市場法(CVM)**
-
-- 森林や公園などの評価が困難な環境財の評価に用いられる仮想市場法（CVM)
-
-- **Umami**
-
-- 引用 <br> [Umami](http://umami.is/) <br> Google Analytics に代わる、オープンソースでプライバシーに配慮した解析ツール <br> [https://note.com/headline-asia/n/n88a0a09f1678](https://note.com/headline-asia/n/n88a0a09f1678)
-
-- **TCR**
-
-- TCR という仕組みを、 フェイクニュースの検知や、貢献度の算出の参考にしたい
-- 引用 <br> 分散型メディアのフェイクニュース検知とか dao メンバーの貢献ランク付けとかにも使えそうですね <br> [https://twitter.com/aik-dao/status/1609878384590585856](https://twitter.com/aik-dao/status/1609878384590585856)
-
-- **計算社会科学**
-
-- 引用 <br>「計算社会科学」関連の論考では、世論モニタリングやウェブ上の言説分析、新型コロナ感染症対策シミュレーションなど多様な成果が公開されています。<br> [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
-
-- **360 度評価**
-
-- 引用 <br> CBASE が提供する [360° 評価 SaaS](https://thebridge.jp/2022/09/cbase-series-a-round-funding) は、社内外の関係者から多面的フィードバックを集める仕組みです。<br> 半世紀ほど前から国内でも紹介されてきた概念で、近年は管理職育成やエンゲージメント施策へ再び注目されています。<br> [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
-
-- **AttestationStation**
-
-- 引用 <br> [https://dev.optimism.io/making-blockchains-human-friendly/](https://dev.optimism.io/making-blockchains-human-friendly/) <br> [https://twitter.com/0xtkgshn/status/1603642990521729024](https://twitter.com/0xtkgshn/status/1603642990521729024)
-
-- **GiveWell.org**
-
-- 引用 <br> GiveWell.org（ギブウェル）という、慈善団体の評価に取り組んでいる団体 <br> [https://forbesjapan.com/articles/detail/48598/3/1/1](https://forbesjapan.com/articles/detail/48598/3/1/1)
-
-- **貢献度の算出の参考にしたい**
-
-- 引用<br>現在は主観指標によるクラスタ生成と BrightID 型のグラフ入力が中心です。<br> 本人確認系サービスでも同種のモデルが美しく見える一方、複数のアイデンティティ解像度を両立させる余地は残されています。<br>
-
-> このメカニズムはソーシャルグラフの隣接行列の固有ベクトル。すべての固有ベクトルの集合をグループの集合とし、各エージェントを各グループの固有ベクトルのインデックスに対応する重みで各グループに含める。この重みを用いて「グループ貢献度」を計算し、グループ貢献度に対して通常の QF を行う。 <br> > [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=4311507](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=4311507) <br> > [https://twitter.com/0xtkgshn/status/1615868443063894020](https://twitter.com/0xtkgshn/status/1615868443063894020)
-
-- **ピア予測法**
-
-- [https://twitter.com/0xtkgshn/status/1607122969087676418](https://twitter.com/0xtkgshn/status/1607122969087676418)
-- [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
-- [https://twitter.com/knskito/status/1596874651367804928](https://twitter.com/knskito/status/1596874651367804928)
-  - [https://dl.acm.org/doi/abs/10.1145/2488388.2488417?casa-token=0nmjqGhp0Q8AAAAA:92dFKu46ic7Rsn8DJG09i65HcDiG6aWpUk2280LMUEXcZGd-7INYqeYNECn0Bvijf3QHJJ8uq7JL](https://t.co/74BOBfaWlO)
-  - [https://twitter.com/knskito/status/1596875633698930689](https://twitter.com/knskito/status/1596875633698930689)
-- [https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets](https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets)
-- [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833)
-- [https://ledger.pitt.edu/ojs/ledger/article/view/182](https://ledger.pitt.edu/ojs/ledger/article/view/182)
-- [https://twitter.com/0xtkgshn/status/1610853130605928449](https://twitter.com/0xtkgshn/status/1610853130605928449)
-
-- **Wisdom of Crowds**
-
-- Wisdom of Crowds で、貢献度の算出を行う
-- 引用 <br> 群衆の知恵は、一人の専門家の意見ではなく、独立した個人からなる多様なグループの集合的な意見です。 <br> この現象の説明は、個々の決定に関連する特異なノイズが存在し、多数の応答を平均化することで、このノイズの影響を打ち消すことができるというものです。 <br> Napkin Labs のような企業は、消費者のフィードバックと顧客に対するブランドの印象を集約します。 <br> 一方、Trada のような企業は、クライアントの要件に基づいて広告をデザインするために群衆を集めます。[https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd](https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd)
-
-- **GitClear の「Diff Delta」**
-
-- 評価軸ポイントの算出
-- 引用 <br> SocialDog は開発生産性指標へ GitClear の Diff Delta を統合しました。<br> [https://gitclear.com](https://gitclear.com)<br> 導入ツイートも参照できます。<br> [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
-
-- **引用パターンで測定した科学論文と特許の「破壊力」**
-
-- 研究の生産性を測る下記の論文を評価軸ポイントの算出の参考にしたい
-- 引用 <br> MIT／スタンフォードの 2020 年レポートは米国研究の生産性鈍化を指摘しています。<br> 後続稿では引用ベースの破壊力指標が 1945〜2010 年に論文で 9 割超、特許で 8 割超へ減衰したとしています（図表 1）。<br> [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
-
-- **Numerai**
-
-- Numerai を貢献度の算出の参考にしたい <br> Kaggle みたいなものブロックチェイン版は numerai
+   - 説明
+     - Quadratic Funding
+
+5. SPWN CREW
+   - 参考
+     - [https://prtimes.jp/main/html/rd/p/000000055.000034713.html](https://prtimes.jp/main/html/rd/p/000000055.000034713.html)
+     - [https://techable.jp/archives/201138](https://techable.jp/archives/201138)
+   - 説明
+     - ファンの熱量・ファンの属性データを継続的に収集・活用でき、効果検証できるアプリ「SPWN CREW」
+     - また、サイトへのアクセスや購買等の行動履歴データと、ファンの性別・年齢・居住地等の属性データを分析する。ファンのアーティストへの熱量が可視化されます
+
+6. 研究者の多様な業績を一元化し瞬時に評価できるデータベース
+   - 参考
+     - [https://univ-journal.jp/217773/](https://univ-journal.jp/217773/)
+   - 説明
+     - 研究者の多様な業績を一元化し瞬時に評価できるデータベース、東北大学が開発
+     - 東北大学は、学内外に散在する研究者の情報を自動的・効率的に集積し、必要なときに必要な情報を可視化できる“次世代型研究者データベース”を開発した
+     - 参考：【東北大学】クラウドを活用した次世代型研究者データベースを構築 -AWS 上のデータレイクでエビデンスベースの業績評価を効率化 -（PDF）
+
+7. Picaro.ai
+   - 参考
+     - [https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html)
+     - [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
+   - 説明
+     - 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」で、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました
+     - PR TIMES：
+
+8. 運動評価
+   - 参考
+     - [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1)
+     - [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
+   - 説明
+     - スマホ＋ AI で簡単に運動評価 スタンフォード大が開発
+     - 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定します
+     - 高額機器を要する従来の運動評価に比べ、低コストで客観的なデジタル指標を出せます
+
+9. MSC（モスト・シグニフィカント・チェンジ）
+   - 参考
+     - [https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/](https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/)
+   - 説明
+     - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法です
+     - 1990 年代にリック・デイビース博士によって考案されました。日本では、参加型評価センターが普及に力を入れており、これまでに（NPO）日本 NPO センター様（震災復興事業）、環境省様（ESD 事業）、トヨタ財団様（地方創生事業）などの評価に採用されました
+
+10. 社会物理学
+    - 説明
+      - 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです
+      - ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
+      - 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
+      - 計算社会科学と呼ばれる学問分野の流れの 1 つです
+
+11. 寄与する量子を探す方法
+    - 参考
+      - [https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)
+      - [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000)
+      - [https://twitter.com/ericjmichaud-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664)
+    - 説明
+      - （1）入力データに含まれる情報／知識には最小単位「量子」があると仮定します（※量子力学の量子とは無関係）
+      - （2）データ分布内で予測に頻繁に使われる量子を「予測精度向上に寄与する量子」、ほとんど使われない量子を「寄与しない量子」とみなします
+      - （3）寄与する量子は使用頻度の高い順に LLM へ学習されていくと仮定したトイモデルで、スケーリング則と創発現象が再現されることを示しました
+      - （2）の補足：一般会話では、アインシュタイン方程式より文法ルールのほうが次トークン予測に効き、参照頻度が高いと考えられます
+      - The Quantization Model of Neural Scaling (Michaud et al., 2023)（）
+
+12. 状態空間モデルを用いた因果効果
+    - 参考
+      - [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850)
+      - [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960)
+      - [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
+    - 説明
+      - 生態学でも有効な手法です
+      - われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データから因果推論へ踏み込んでいます（宣伝）
+      - 状態空間モデルを用いた因果効果の推定である CausalImpact を紹介します
+
+13. アクター・ネットワーク理論(ANT)
+    - 説明
+      - 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT）です
+      - 人間以外の多様な存在の役割も正当に評価し、それらを結ぶ動的なネットワークとして捉えます
+
+14. 専門家の意見を集約する方法
+    - 説明
+      - 一般語と専門界隈での意味がずれる語を用意し、意味の回答から専門家らしさをふるいにかけます
+      - 専門家グループが共有する意味へ答えた人だけの意見を採用する仕組みです
+      - たとえばマッチングで「nginx」の読みを確認し、「エンジンエックス」と読めない人をエンジニア候補から外すイメージです
+      - 一般に通じる題材でも、特定コミュニティだけが別義を持つキーワードを増やして応用し、貢献度の算出へ接続します
+      - 学位がなくても見識がある人を取りこぼしにくくします
+
+15. reCAPTCHA の仕組み
+    - 説明
+      - 貢献度算出で 2 問出すとき、片方は答えが既知の設問、もう片方は未確定の設問にします
+      - 第 1 問を正解した人の第 2 問の回答だけを採ります
+      - 第 2 問では採用回答の 51％超が一致した候補を正答として登録し、次の利用者へ第 1 問として提示します
+      - 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
+      - データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
+      - reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
+      - ユーザは暗黙知を要する操作で認証を済ませつつ、バックグラウンドで分析タスクへ参加する二段構成です
+      - まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
+
+16. 因果関係
+    - 参考
+      - [https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8)
+      - [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
+    - 説明
+      - 認証サービス Onfido が機械学習で因果を推定し、意思決定を支援する事例です
+      - 因果推論の入門から自社での活用法まで載っているため参考にできます
+
+17. Federated Learning
+    - 説明
+      - 複数のデータ所有者が、各自の持つ学習データを秘匿したまま、協力して機械学習モデルを構築する
+      - 連合学習は、分散機械学習、暗号とセキュリティ、経済学とゲーム理論に基づくインセンティブメカニズムを組み合わせた新しい手法
+
+18. Causaly
+    - 説明
+      - 科学者が自然言語で質問すると生命科学における新たな因果関係の発見を手助けをしてくれる Causaly というサービス
+
+19. バオバブ（Baobab）
+    - 参考
+      - [https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/](https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/)
+    - 説明
+      - バオバブ（Baobab）のアノテーション事業を、無料主義でデータ分析を第三者が行うときの参考にしたい
+
+20. 数理最適化
+    - 説明
+      - でもコストかかりそう
+
+21. Correlation discount
+    - 参考
+      - [https://twitter.com/0xtkgshn/status/1618718332856803346](https://twitter.com/0xtkgshn/status/1618718332856803346)
+    - 説明
+      - 「Correlation discount」という相関性に応じて割り引く概念
+
+22. datagusto
+    - 参考
+      - [datagusto（データグスト）](https://lp.datagusto.jp/#top)
+      - [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
+    - 説明
+      - 誰もが高度なデータ分析を実現できる「datagusto」
+      - 「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるテンプレートを使えば、AI が将来予測まで担うツールです
+      - 実体は「」として提供されています
+
+23. Federated Learning with PoW、Semantic Annotation
+    - 参考
+      - [https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
+    - 説明
+      - Federated Learning with PoW は、すでに共通認識となった知識を取り込み、ファインチューニングへ回す流れで使われていくと考えられます
+      - 端末にモデルが載り切らない参加者は、Semantic Annotation として AI 改善に貢献する、という整理もできます
+
+24. プライバシーを守りながら貢献度の算出
+    - 参考
+      - [関連ニュース一覧](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/)
+      - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981)
+      - [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
+    - 説明
+      - PLOS ONE 掲載の全国規モニタリング研究として紹介されています
+      - 静岡大学の守田智教授らが現場協力を得ながらモデル化した、との記述があります
+      - レビュー投稿に現れたユーザー同士を辺としてネットワーク化しています
+      - 論文タイトルは Exploring sexual contact networks …（commercial-sex review website）です
+
+25. Peer prediction method
+    - 参考
+      - [https://arxiv.org/abs/2211.01143](https://arxiv.org/abs/2211.01143)
+
+26. A Flexible Design for Funding Public Goods
+    - 参考
+      - [https://arxiv.org/pdf/1809.06421.pdf](https://arxiv.org/pdf/1809.06421.pdf)
+    - 説明
+      - A Flexible Design for Funding Public Goods 論文
+
+27. PageRank
+    - 説明
+      - PageRank 参考にした NEM の PoI
+
+28. The graph
+    - 説明
+      - The graph が、機械学習の代わりに人間がトークノミスクと予測市場でキュレーションをしている
+
+29. pol.is
+    - 参考
+      - [http://pol.is](https://t.co/H9orfAwMBa)
+      - [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
+    - 説明
+      - エンドユーザーはグラフを直接は見ません
+      - 「この 2 つのアドレスは似ていると判断できるか」をはい・いいえで答えるだけでソーシャルグラフを生成できます
+      - のアルゴリズムをもとにした発想です。詳細は WhitePaper を参照してください
+
+30. NeurOlympics
+    - 参考
+      - [https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
+    - 説明
+      - e スポーツチームの能力テストを体験し、才能を数値化してトレーニングへ接続するデモです
+      - 「NeurOlympics」は一見シンプルな 60 分プログラムで、4 種のミニゲームをこなします
+      - 記憶課題や反応速度課題などを通じ、特性推定アルゴリズムへ入力されます
+
+31. LIPS
+    - 参考
+      - [製品評価の考え方](https://lipscosme.com/product-ratings)
+      - [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
+    - 説明
+      - 「LIPS」ではレーティング設計の専門家とともに商品評価アルゴリズムを強化しました
+      - 評価点数とランキング算出の説明ページも公開されています
+      - 詳細は
+
+32. Self-Attention
+    - 参考
+      - [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/)
+      - [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
+    - 説明
+      - Transformer を採用する大規模言語モデルでは、入力トークン同士の相互参照を計算する Self-Attention が中核です
+      - 関係強度を 2 次元へ射影する Attention Viz が公開されています
+      - 解説記事（Gigazine）:
+
+33. 非線形物理学
+    - 参考
+      - [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89)
+      - [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
+    - 説明
+      - ネット上のヘイト拡散を非線形モデルで説明する試みです
+      - コミュニティを流体近似し、流体力学の式を流用するアイデアが紹介されています
+
+34. givepraise
+    - 参考
+      - [https://twitter.com/givepraise](https://twitter.com/givepraise)
+    - 説明
+      - Praise ()@givepraise
+      - Unlock the full potential of your community with reputation scores, rewards and deep insights. Build your community contribution graph!
+
+35. Questry Protocol
+    - 説明
+      - 株式会社クエストリー は、貢献報酬をブロックチェインの力で可視化・価値化して、制御することで、様々な経済文化活動の効率性向上を図る「Questry Protocol」
+
+36. Gaudiy Fanlink
+    - 参考
+      - [https://wired.jp/article/the-regenerative-company-coordination-03/](https://wired.jp/article/the-regenerative-company-coordination-03/)
+    - 説明
+      - 「Gaudiy Fanlink」は、ファンの横断的な活動データを記録・蓄積し、その貢献度や熱量が正しく評価・還元されるエコシステムを構築するためのプラットフォームだ。イベントやゲーム、漫画アプリなど、これまでばらばらのプラットフォームで IP に触れてきたファンコミュニティを集約する役割をもつ
+
+37. IMM
+    - 説明
+      - IMM/インパクト測定
+
+38. レーティング
+    - 参考
+      - [https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA](https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA)
+    - 説明
+      - レーティング・ランキングを通じて信頼できる情報と公正な評価を社会に届けることをミッションとした、日本レーティング協会（JRA）を立ち上げます！
+
+39. CD という指標
+    - 参考
+      - [https://nature.com/articles/s41586-022-05543-x](https://nature.com/articles/s41586-022-05543-x)
+      - [https://twitter.com/kanair-jp/status/1702740831403385291](https://twitter.com/kanair-jp/status/1702740831403385291)
+    - 説明
+      - CD という指標で研究がどれだけディスラプトしたかを定量化している。その指標は大雑把に言うと、ある論文が出版されることで、それに関連した過去の論文がどれだけ引用されなくなるかを示している
+
+40. 属性の異なるユーザから支持
+    - 参考
+      - [https://twitter.com/nishio/status/1617365061353476096](https://twitter.com/nishio/status/1617365061353476096)
+    - 説明
+      - 多数決ではなく属性の異なるユーザから支持されることをスコアにする
+
+41. tx
+    - 説明
+      - tx からユーザーの嗜好・意志を解析してデータ化するツール
+
+42. タスクベース
+    - 説明
+      - DAO みたいなタスクベースの方法
+
+43. 予測市場
+
+44. テキストデータ
+    - 説明
+      - Facebook やその他のあらゆる SNS からデータを取ることで、全体のユーザの幸福度が算出
+
+45. 利益貢献度分析
+    - 説明
+      - 利益貢献度分析、REM 分析、経済学の寄与率、自然実験、A/B テスト、RCT（ランダム化比較試験）、因果推論、重回帰分析、クロスカントリー成長回帰分析、反実仮想機械学習、数理最適化問題、多変量解析
+
+46. 組織図
+    - 参考
+      - [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
+    - 説明
+      - 組織図 SaaS や Twitter API からフォロー双方向を取得し、クモの巣状に可視化できます
+      - 知り合い深さや影響指標を数値化し、貢献度推定へ接続するアイデアです
+
+47. Continuous Feedback
+    - 説明
+      - 人事評価の方法
+      - メルカリのエンジニア部門の評価の納得度を高め、個人の成長を促す目的で導入された『Continuous Feedback』
+      - 会社への貢献度の可視化（アウトプットや行動など全て含む）の方法
+
+48. 社会的価値の指標設定や効果測定
+    - 参考
+      - [https://www.fsa.go.jp/news/r3/singi/20220530.html](https://www.fsa.go.jp/news/r3/singi/20220530.html)
+    - 説明
+      - ソーシャルプロジェクトの社会的な効果に係る指標
+      - 社会的価値の指標設定や効果測定
+
+49. causal analysis
+    - 参考
+      - [https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
+    - 説明
+      - NEC の因果分析ブランド causal analysis が公共向けにも案内されています
+      - 社内向けにはエンゲージメント施策などへ展開されています
+
+50. 因果推論の分かりやすいテキスト
+    - 参考
+      - [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
+    - 説明
+      - SpeakerDeck 上のスライドです
+
+51. 貢献度の算出
+    - 参考
+      - [https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html)
+      - [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
+    - 説明
+      - コロナ禍の失業率・自殺・セーフティネット利用を束ねた縦断的検証（第一波のとき）
+
+52. 反実仮想シミュレーション
+    - 参考
+      - [https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk)
+      - [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
+    - 説明
+      - 書店流通の規制ゆるめ後に在庫や価格自由度が広がる状況をモデルに落としています
+      - モデル結果では、再販価格維持を続けたケースのほうが消費者厚生と社会厚生は相対的に高く、書店側利益は逆に押し下げられる、というバランスが報告されています
+      - Jeff Qiu 氏（米司法省）、Yi Zhang 氏（科技大学）との共同成果です
+
+53. 項目反応理論
+    - 参考
+      - [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
+    - 説明
+      - 試験テキスト難易度のデータ駆動推定
+      - 作問者主観に頼らない項目反応理論モデル
+      - 多言語読解試験と語彙データの読みやすさ相関
+
+54. ベクトルに変換してベクトルデータベース
+    - 参考
+      - [https://www.pinecone.io/learn/vector-database/](https://www.pinecone.io/learn/vector-database/)
+      - [https://twitter.com/umiyuki-ai/status/1608454509453537282](https://twitter.com/umiyuki-ai/status/1608454509453537282)
+    - 説明
+      - 参照検知と貢献度推定の双方に流用したいメモです
+      - 記事のような非構造データを検索しやすくする前処理として有効です
+      - まずすべての記事データをベクトル化しベクトル DB を準備します
+      - 検索クエリも同次元へ写像し近似検索のみで済ませられます
+      - ランキングや推薦も同じ表現で扱えます
+
+55. 複雑ネットワーク科学
+    - 参考
+      - [ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)
+      - [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
+    - 説明
+      - ノースイースタン大学のアルバート・バラバシ教授は複雑ネットワーク研究の代表格です
+      - 著書『\*\*\*\*』（光文社刊）では、テニスや学力テストのように順位付けしやすい成功は稀だと述べています
+      - 測定しづらい領域ほど、成果を押し上げるのは個人の実力よりネットワークだ、という主張へつながります
+      - アート市場ではギャラリー経由の露出がキャリアを左右する例が紹介されます
+      - 初期の展示履歴から将来の展示パターンを高精度に当てた、とされる成果も触れられています
+      - 価値判断が揺らぐ領域では社会構造が裁定役になる、という読み取りができます
+
+56. 360 度評価
+    - 参考
+      - [https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
+    - 説明
+      - 360° フィードバックはモチベーション施策や育成プログラムへ組み込まれます
+      - システム化で運用コストを抑えつつ公平性を担保できます
+      - 上司に加えて同僚や部下からもフィードバックを集める運用が基本形です
+
+57. SourceCred
+    - 参考
+      - [https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
+    - 説明
+      - ソースとシンクの二系統ポイントで貢献度を推定できる SourceCred
+      - 譲渡不可ポイントと譲渡可トークンを併用します
+
+58. NGO の質的評価手法
+    - 説明
+      - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法
+
+59. タスクベース
+    - 説明
+      - プロジェクトごとに公開タスクを置きます
+      - 進捗に応じて評価軸ポイントが自動加算されます
+      - 難易度と需要からポイント倍率が変わるので、求人の多い高難度タスクへインセンティブが寄ります
+
+60. PICSY
+    - 説明
+      - 鈴木健さんの PICSY を人事評価に利用できる
+
+61. GitPOAP
+    - 説明
+      - GitHub でのコントリビューション証明を NFT で残す GitPOAP サービスです
+
+62. openfare
+
+63. 代替性を貢献度合いの算出に使用する
+    - 説明
+      - 評価軸達成のための代替手段が多いほど係数で重みを下げます
+      - 野球が好みでも、その観戦以外に幸福を高める選択肢が多いなら「代替度が高い」とみなし、獲得ポイントへ 0.9 などの係数が掛かるイメージです
+
+64. 仮想市場法(CVM)
+    - 説明
+      - 森林や公園などの評価が困難な環境財の評価に用いられる仮想市場法（CVM)
+
+65. Umami
+    - 参考
+      - [Umami](http://umami.is/)
+      - [https://note.com/headline-asia/n/n88a0a09f1678](https://note.com/headline-asia/n/n88a0a09f1678)
+    - 説明
+      - Google Analytics に代わる、オープンソースでプライバシーに配慮した解析ツール
+
+66. TCR
+    - 参考
+      - [https://twitter.com/aik-dao/status/1609878384590585856](https://twitter.com/aik-dao/status/1609878384590585856)
+    - 説明
+      - TCR という仕組みを、 フェイクニュースの検知や、貢献度の算出の参考にしたい
+      - 分散型メディアのフェイクニュース検知とか dao メンバーの貢献ランク付けとかにも使えそうですね
+
+67. 計算社会科学
+    - 参考
+      - [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
+    - 説明
+      - 「計算社会科学」関連の論考では、世論モニタリングやウェブ上の言説分析、新型コロナ感染症対策シミュレーションなど多様な成果が公開されています
+
+68. 360 度評価
+    - 参考
+      - [360° 評価 SaaS](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
+      - [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
+    - 説明
+      - CBASE が提供する は、社内外の関係者から多面的フィードバックを集める仕組みです
+      - 半世紀ほど前から国内でも紹介されてきた概念で、近年は管理職育成やエンゲージメント施策へ再び注目されています
+
+69. AttestationStation
+    - 参考
+      - [https://dev.optimism.io/making-blockchains-human-friendly/](https://dev.optimism.io/making-blockchains-human-friendly/)
+      - [https://twitter.com/0xtkgshn/status/1603642990521729024](https://twitter.com/0xtkgshn/status/1603642990521729024)
+
+70. GiveWell.org
+    - 参考
+      - [https://forbesjapan.com/articles/detail/48598/3/1/1](https://forbesjapan.com/articles/detail/48598/3/1/1)
+    - 説明
+      - GiveWell.org（ギブウェル）という、慈善団体の評価に取り組んでいる団体
+
+71. ピア予測法
+    - 参考
+      - [https://twitter.com/0xtkgshn/status/1607122969087676418](https://twitter.com/0xtkgshn/status/1607122969087676418)
+      - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
+      - [https://twitter.com/knskito/status/1596874651367804928](https://twitter.com/knskito/status/1596874651367804928)
+      - [https://dl.acm.org/doi/abs/10.1145/2488388.2488417?casa-token=0nmjqGhp0Q8AAAAA:92dFKu46ic7Rsn8DJG09i65HcDiG6aWpUk2280LMUEXcZGd-7INYqeYNECn0Bvijf3QHJJ8uq7JL](https://t.co/74BOBfaWlO)
+      - [https://twitter.com/knskito/status/1596875633698930689](https://twitter.com/knskito/status/1596875633698930689)
+      - [https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets](https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets)
+      - [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833)
+      - [https://ledger.pitt.edu/ojs/ledger/article/view/182](https://ledger.pitt.edu/ojs/ledger/article/view/182)
+      - [https://twitter.com/0xtkgshn/status/1610853130605928449](https://twitter.com/0xtkgshn/status/1610853130605928449)
+
+72. Wisdom of Crowds
+    - 参考
+      - [https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd](https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd)
+    - 説明
+      - Wisdom of Crowds で、貢献度の算出を行う
+      - 群衆の知恵は、一人の専門家の意見ではなく、独立した個人からなる多様なグループの集合的な意見です
+      - この現象の説明は、個々の決定に関連する特異なノイズが存在し、多数の応答を平均化することで、このノイズの影響を打ち消すことができるというものです
+      - Napkin Labs のような企業は、消費者のフィードバックと顧客に対するブランドの印象を集約します
+      - 一方、Trada のような企業は、クライアントの要件に基づいて広告をデザインするために群衆を集めます
+
+73. GitClear の「Diff Delta」
+    - 参考
+      - [https://gitclear.com](https://gitclear.com)
+      - [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
+    - 説明
+      - 評価軸ポイントの算出
+      - SocialDog は開発生産性指標へ GitClear の Diff Delta を統合しました
+      - 導入ツイートも参照できます
+
+74. 引用パターンで測定した科学論文と特許の「破壊力」
+    - 参考
+      - [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
+    - 説明
+      - 研究の生産性を測る下記の論文を評価軸ポイントの算出の参考にしたい
+      - MIT／スタンフォードの 2020 年レポートは米国研究の生産性鈍化を指摘しています
+      - 後続稿では引用ベースの破壊力指標が 1945〜2010 年に論文で 9 割超、特許で 8 割超へ減衰したとしています（図表 1）
+
+75. Numerai
+    - 説明
+      - Numerai を貢献度の算出の参考にしたい
+      - Kaggle みたいなものブロックチェイン版は numerai
 
 ### 貢献検知の仕組み
 
 下記の方法を、「貢献検知の仕組み」の参考にしたい。
 
-- **j-platpat を、「貢献検知の仕組み」の参考にしたい**
+1. j-platpat
+   - 参考
+     - [https://www.j-platpat.inpit.go.jp/p0200](https://www.j-platpat.inpit.go.jp/p0200)
+2. 特許 JP-2017-145765
+   - 参考
+     - [https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja](https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja)
+3. アイデア取引所
+   - 参考
+     - [https://techable.jp/archives/185310](https://techable.jp/archives/185310)
+   - 説明
+     - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
+     - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
+     - 大きなポイントは、アイデアを当事者以外一部非公開にできること。これにより、新規性の喪失を防ぐことができ、特許の出願・権利化が可能になるといいます
+4. 著作権契約書のひな形（文化庁）
+   - 参考
+     - [https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/](https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/)
+   - 説明
+     - アイデアを登録する方法の参考
+     - 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
+5. note.com（strictlyes）
+   - 参考
+     - [https://note.com/strictlyes/n/ncb0dfb7cbb56](https://note.com/strictlyes/n/ncb0dfb7cbb56)
+6. Hypercerts / Impact certificates
+   - 参考
+     - [https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
+   - 説明
+     - Hypercerts Foundation、Hypercerts、Impact certificates、GitCoin、RetroactivePublicFunds、h-index や i10-index など引用指標、を参考にする
+     - インパクト証書（Impact certificates）は公共財への配分を透明化する評価レールとして提案されています
 
-- [https://www.j-platpat.inpit.go.jp/p0200](https://www.j-platpat.inpit.go.jp/p0200)
+7. エコーチェンバー可視化システム に関する引用
+   - 参考
+     - [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/)
+     - [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
+   - 説明
+     - アプリではタイムラインの多様さからエコーチェンバー度を推定します
+     - 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます
+     - 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます
 
-- **下記の特許を参考にしたい**
+8. フロントランニング
+   - 説明
+     - フロントランニングの情報を察知する仕組みを使って、参考にしているかどうかを察知する仕組みを作る
 
-- [https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja](https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja)
+9. Optic
+   - 参考
+     - [Optic](http://optic.xyz/)
+   - 説明
+     - NFT の信憑性を検証します
+     - 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
+     - そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
 
-- **「貢献検知の仕組み」の参考にしたい**
+10. MyBib
 
-- 引用
-  - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
-  - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
-  - 大きなポイントは、アイデアを当事者以外一部非公開にできること。これにより、新規性の喪失を防ぐことができ、特許の出願・権利化が可能になるといいます
-  - [https://techable.jp/archives/185310](https://techable.jp/archives/185310)
+- 参考
+  - [MyBib](https://chrome.google.com/webstore/detail/mybib-free-citation-gener/phidhnmbkbkbkbknhldmpmnacgicphkf)
+- 説明
+  - 参考文献や引用を自動生成するツール
+
+11. ソーシャルグラフ
 
 - 説明
-  - アイデアを登録する方法の参考
-  - 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
+  - フォローしている・されている関係のソーシャルグラフを参考にしているか検知する方法の参考にしたい
+  - ソーシャルグラフ上のリンク強度から「誰が何をどれだけ参照したか」を検知します
+
+12. SuperAudit
+
 - 参考
-  - [https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/](https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/)
-
-- **[エコーチェンバー可視化システム](https://torilab.sakura.ne.jp/twitter/echamber) に関する引用**
-
-- アプリではタイムラインの多様さからエコーチェンバー度を推定します。<br> 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます。<br> 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます。<br> [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/) <br> [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
-
-- **フロントランニング**
-
-- フロントランニングの情報を察知する仕組みを使って、参考にしているかどうかを察知する仕組みを作る
-
-- **Optic**
-
-- [Optic](http://optic.xyz/) <br> NFT の信憑性を検証します。<br> 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
-- そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
-
-- **MyBib**
-
-- [MyBib](https://chrome.google.com/webstore/detail/mybib-free-citation-gener/phidhnmbkbkbkbknhldmpmnacgicphkf) : 参考文献や引用を自動生成するツール
-
-- **ソーシャルグラフ**
-
-- フォローしている・されている関係のソーシャルグラフを参考にしているか検知する方法の参考にしたい
-- ソーシャルグラフ上のリンク強度から「誰が何をどれだけ参照したか」を検知します
-
-- **SuperAudit**
-
-- モノハンドル株式会社の[デジタル資産の監査・認証プロバイダー事業「SuperAudit」](https://prtimes.jp/main/html/rd/p/000000024.000082733.html)を参考にしているか検知する仕組みの参考にしたい
-
-- **YouTube のコンテンツ ID の仕組み**
-
-- YouTube の著作権のあるコンテンツを検出する仕組みを、コンテンツ ID を参考にしたい
-
-- **Adobe の「コンテンツ認証イニシアティブ」**
-
-- Adobe の「コンテンツ認証イニシアティブ」という仕組み
-
-- **個人情報を守りながら、誰が何を参考にしているかのソーシャルグラフを作って、 誰が何を参考にしているかを検知する仕組み**
-
-- 口コミ本文から氏名だけを抽出し「誰が誰と接点を持つか」を表にしました。<br> [https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
-
-- **ベクトル的に近似**
-
-- ベクトル的に近似であるなら、参考にしていると判断する仕組みで、参考にしているか検知する
-
-- **株式会社ワコム、著作権を保護する「Wacom Yuify」、AI で創作の軌跡を可視化する「KISEKI ART」**
-
-- ワコムが示した「Wacom Yuify」では、作品の裏面へ目立たないマイクロマークを埋め込み改ざん耐性を高めます。<br> 各マークは分散台帳へ紐付き、作者・制作時間・端末情報を後から照合できます。<br>「KISEKI ART」は筆跡特徴を 3 次元へ射影します。<br>「絵紋」として人手による執筆を裏づける実験です。<br> [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
-
-- **Twitter のコミュニティーノート**
-
-- Twitter のコミュニティーノートを、貢献度算出や参考にした人を見つける第三者を評価する仕組みの参考にしたい <br> データ分析をする人の実力やデータ分析の結果が正しいか判断する仕組みの参考にしたい
-- 作者が引用元を示さない場合でも、コミュニティノートのように「参照元と推定される URL」を添付して透明性を高める案です
-
-- **ウォーターマークとメタデータの埋め込み**
-
-- Google、責任ある AI を実現するとして、画像にウォーターマークとメタデータの埋め込みを進めると発表。Google I/O 2023 <br> ウォーターマーキングは画像に直接情報を埋め込む手法です。画像編集などが行われたとしても消せないようにするとしています。 <br> メタデータは、クリエイターがオリジナルのファイルにさまざまな情報を付加することを可能にします。[https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html](https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html)
-
-- **ピクシブにおける不当な目的での作品取得行為に対する対策技術**
-
-- ピクシブにおける不当な目的での作品取得行為に対する対策技術について <br> reCAPTCHA Enterprise <br> 類似画像検知 <br> [https://inside.pixiv.blog/2023/05/09/183635](https://inside.pixiv.blog/2023/05/09/183635)
-
-- **貢献検知の仕組みの参考にしたい**
-
-- [https://note.com/strictlyes/n/ncb0dfb7cbb56](https://note.com/strictlyes/n/ncb0dfb7cbb56)
-
-- **不正検知や検知する系のサービス**
-
-- SEON Technologies はフェイクアカウント統合対策として銀行・EC・ゲームなどへ SaaS を提供しています。<br> SNS ログや IP 変動など広いシグナルから疑わしい行動を自動抽出します。<br> [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
-
-- **pixiv の生成 AI 検知の仕組み**
-
-- pixiv の生成 AI などでなりすましている人を検知する方法
-
-- **市場の変化から参考にしているかを検知する**
-
-- 市場の変化から参考にしているかを検知する方法もある
-- ACROVE（アクローブ）は GMO サイバーセキュリティの支援で転売監視モデルを強化しました。<br> 値崩れ店舗の検知や追随業者の追跡が中心機能です。<br> 検知結果を早期アラートへ繋げ、顧客への負担を抑えるサービス提供を掲げています。<br> [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html) <br> [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
-
-- **AI が盗作しているかを判断する仕組み**
-
-- 引用 <br> ITmedia の記事によれば、「Do Language Models Plagiarize？」（米ペンシルベニア州立大学・ミシシッピ大学）が 21 万件規模で言語モデルの剽窃傾向を調べました。<br> [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html)<br> コピー&ペースト・言い換え・アイデア剽窃の有無へ自動タグ付けしました。<br> 1193 件でヒットがあり、約 28％のケースに位置情報と固有名詞が混入していました。<br> [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
-- モデル構成やデコーダ種別など属性ごとの剽窃率変化にも踏み込んでいます。<br> Lee ほか、arXiv:2203.07618（2022）より
-
-- **Tabular Classification の AI**
-
-- Tabular Classification 表形式データを評価し何らかの結果を返す <br> [https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742](https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742)
-
-- **「人間の嘘」の検出**
-
-- 引用 <br> 嘘を嘘と評価できるのは、人間だけです。<br> もちろん訓練の度合いによって、判定基準も変わります。<br> 下記論文のアプローチは、幻覚評価へ応用できると考えられます。<br> On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models?<br> 論文ページは deepai を、反応は nishio のポストを参照してください
-- [deepai](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models) / [nishio（X）](https://twitter.com/nishio/status/1628262039834755075)
-- 人間も嘘をつきます。例えば、下記の論文は「人間の嘘」の検出を取り上げています。 <br> [https://library.naist.jp/dspace/handle/10061/9996](https://library.naist.jp/dspace/handle/10061/9996) <br> [https://twitter.com/AkioHoshi/status/1628265037466058753](https://twitter.com/AkioHoshi/status/1628265037466058753)
-
-- **「貢献検知の仕組み」の参考にしたい**
-
-- Hypercerts Foundation、Hypercerts、Impact certificates、GitCoin、RetroactivePublicFunds、h-index や i10-index など引用指標、を参考にする
-- インパクト証書（Impact certificates）は公共財への配分を透明化する評価レールとして提案されています。<br> [https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
-
-- **科学論文の類似度を測定するモデル**
-
-- 引用 <br> Google Research と協力者による「OpenMSD」は、多言語科学文献の類似度推定モデルと評価データを同梱した報告です。<br> 先行の Scientific Documents Similarity Measurement（SDSM）と比較しながら多言語カバレッジを広げることが目的です。<br> [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
-
-- **類似画像推薦機能**
-
-- GMO ペパボさんの EC サービス「SUZURI」の類似画像推薦機能を CLIP とベクトル検索で作った事例 <br> [https://t.co/I00L8eUH7u](https://t.co/I00L8eUH7u)
-
-- **可視化する技術**
-
-- 可視化する技術やサービスを参考にしているかどうかを検知する仕組みの参考にしたい
-- 会話の数量の可視化、その他
-
-- **アカウントの Tx の履歴**
-
-- 引用 <br> アカウントの Tx の履歴からそのユーザーが人間か bot かを判別できる仕組み <br> [https://twitter.com/kuma56-munage/status/1582342565936103424](https://twitter.com/kuma56-munage/status/1582342565936103424)
-
-- **引用の URL**
-
-- 引用の URL があれば、参考にしたとみなすようにして、さらに範囲を広げるために同じような文章構成であるかどうかを、AI のテキスト分析で、文脈や類似性などを分析して似ているならば参考にしたと考えるようにする
-
-- **著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法**
-
-- 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法を検知する仕組みの参考にしたい
-
-- **著作権管理の方法**
-
-- 2 次公認化事業、JASCO の仕組みを利用して、どの人がどのようなサービスを利用したか管理できるようにする
-
-- **ツール**
-
-- デジタルデータがどのように編集されたり改ざんされたりしてきたのかを履歴データとして残すための技術仕様である「C2PA」に基づいた「コンテンツ認証情報を実装するためのオープンソースツール」を Adobe が発表
-
-- **引用関係の可視化**
-
-- 引用関係を可視化して、参考にしているか検知する
-- 被引用情報を素早く集めて、参考にしているか検知する。 <br>\* 特許の被引用情報（牽制情報）から用途探索する例 <br> [https://twitter.com/estoppel88/status/1544877937647706113](https://twitter.com/estoppel88/status/1544877937647706113)
-
-- **著述者帰属と文体類似**
-
-- 誰が書いた文体に近いかを検知します
-- 引用 <br> 言語モデルで単語の選択や言い回し、文章構造から著者らしさを抽出し、多言語の帰属表示を可能にする研究があります。<br> ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました。<br> 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています。<br> [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
-
-- **登録制や申告制**
-
-- 無料主義アプリへ、自己開発物の主張対象を登録してもらいます。<br> 他者が利用する際は報告が必須とし、未報告なら自動削除や評価軸ポイントの剥奪を検討します。<br>\* 楽曲なら歌詞・メロディの利用を申告してもらいます。<br> システム側は登録状況を並行して確認し、登録者だけが利用できるようにします。<br> 未登録利用が見つかった場合は参考利用とみなして代理登録するか、表示を止める運用が考えられます。<br> 申告を怠る利用者には、確認のためのスクレイピング費用を負担してもらう案です
-- 理想は、何かを開発したら、その対象を思いつくまでに参考にした要素を全て自己申告してもらうこと
-  - でも、面倒だし漏れが出る
-
-- **特許や著作権を管理の仕組み**
-
-- 特許や著作権の管理の仕組みを、無料主義の開発したノーハウを誰が使っているかを管理する仕組みに応用する
-- 特許検索を支援するサービスもあります。<br> 無料主義では利用した商品・サービスと閲覧履歴から利用状況を把握しやすくします。<br> 利用事実の自己申告が貢献度や獲得ポイントへつながる設計にすれば、申請しやすい導線も作れます。<br> この方向性を参考にしていきたいです
-
-- **AI による検知**
-
-- 自分が持っているアイデアを積極的に書き込み、解説文も書くことで、それに似たサービスがあれば、そのアイデアを出した人もそのサービスが貢献度を獲得するほど、そのアイデアを出した人も評価軸ポイントを獲得できるようにする
-
-- **URL だけでも引用元を載せる**
-
-- Twitter で解説するときに引用していたら URL も最後に載せて、載せなければ批判される流れを、検知する方法で利用する
-
-- **データ分析による検知**
-
-- アイデアを出して公開するだけで、公開者 A が参照者 B の評価軸ポイント獲得へ良い影響を与えたと分析できれば、追加の探索なしに評価軸ポイントを付与できます。<br> わざわざ参考関係を探し回る必要はない、という整理です
-  - 自分が気づいていない対象を参考にして何かを開発している場合もあるから、それをデータ分析や AI で、その人の過去の閲覧履歴や見た人物の参考にしたと登録されている内容などから見つけてくれるようにする？
-  - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える。でも経験という要素で評価軸ポイントを分けるときは 3 つ以上のメインの参考にしたことよりも得られる割合は少なくなる
-
-- **SHA256**
-
-- 引用 <br> tsumuri がこの記事を書いたという証明 <br> 私しか使うべきではない言葉なので修正してください言葉の SHA256 です。この元を知っていれば私です。 <br> これは私が記事をパクられた際に使えるものであり、私がコピーしていない証拠にはなりません。 <br> 私がコピーしていないかどうかに関しては、皆様の信頼におまかせします。 <br> 少なくとも参考文献も書かずに資料をコピーするようなことはしません。 <br> [https://tsumuri.moe/note/article/000156](https://tsumuri.moe/note/article/000156)
-
-- **ハッシュ関数**
-
-- 参考にしているかどうかは、ハッシュ関数からハッシュ値を算出している。 <br> ハッシュ値を算出して、参考にしているかどうかを判断する。 <br> ブロックチェインみたいに連なるように、参考にしている人たちが連なるようにすれば、参考にしているかがすぐに分かる？
-
-- **勝手にアイデアを盗まれない仕組み**
-
-- [https://twitter.com/rottenegg0115/status/1626078699375464448](https://twitter.com/rottenegg0115/status/1626078699375464448)
-
-- **JDream Innovation Assist**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました。<br> 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）。<br> [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
-
-- **官民データ共有のあり方に関する調査**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> 特許情報活用の論点が整理された報告書です。<br> 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります。<br> 知財需要の計測なども扱われています。<br> 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です。<br>[https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)<br>[https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
-
-- **特許情報分析・可視化**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> 旭化成の統合報告書で公開している特許情報分析・可視化の事例。他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています。 <br> [https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf](https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf) <br> [https://twitter.com/hayataka88/status/1716288794683744368](https://twitter.com/hayataka88/status/1716288794683744368)
-
-- **データの可視化**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> データの可視化のデータベース <br> [https://www.data-to-viz.com/](https://www.data-to-viz.com/) <br> [https://note.com/d-v-osorezan/n/ne5a6b0dad97b](https://note.com/d-v-osorezan/n/ne5a6b0dad97b)
-
-- **近似最近傍探索**
-
-- 引用 <br> Spotify が新たな近似最近傍探索ライブラリ「Voyager」を OSS として出したらしい。 <br> 最近隣検索の技術は、商品の推薦や地図上の場所の検索など、様々なアイテムの間の類似性を高速に見つけ出すために非常に有用であると広く認識されています。 <br> Voyager のもっとも魅力的な部分は、その基盤となる「H&SW（Hierarchical Navigable Small Worlds）」という新しい技術です。 <br> Repository: [https://github.com/spotify/voyager](https://github.com/spotify/voyager) <br> [https://twitter.com/MLBear2/status/1715937638950277122](https://twitter.com/MLBear2/status/1715937638950277122)
-
-- **特許情報可視化**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> 三菱電機・統合報告書 2023 における特許情報可視化 <br> [https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf](https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf) <br> [https://twitter.com/hayataka88/status/1712612049463947355](https://twitter.com/hayataka88/status/1712612049463947355)
-
-- **Semantic Scholar API**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> あと、SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず。 <br> SPECTER: Document-level Representation Learning using Citation-informed Transformers <br> [https://arxiv.org/abs/2004.07180](https://arxiv.org/abs/2004.07180) <br> [https://twitter.com/hayataka88/status/1715335234676461753](https://twitter.com/hayataka88/status/1715335234676461753)
-
-- **AI detector**
-
-- AI detector・AI 検出器を貢献検知の仕組みの参考にしたい
-- [https://gigazine.net/news/20231105-ai-detector/](https://gigazine.net/news/20231105-ai-detector/)
-
-- **デジタル著作権マネージャー (DRM)**
-
-- デジタル著作権マネージャー (DRM) を「貢献検知の仕組み」で収益分配したり検知する方法の参考にしたい
-
-- **分布仮説（distributional hypothesis）**
-
-- 分布仮説を「貢献検知の仕組み」の参考にしたい
-- 「単語の意味は、その周辺の単語によって形成される」という考え方です。つまり、単語自体には意味がなく、その単語の「コンテキスト（文脈）」によって単語の意味が形成されるということです。﻿[https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82](https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82)
-
-<br>
-**類似性・関連性を見抜く AI**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> [https://lifescience.fronteo.com/products/amanogawa/](https://lifescience.fronteo.com/products/amanogawa/)
-- 論文検索を AI で革新 – 類似性、関連性を見抜く AI <br> FRONTEO の「発見型概念検索」AI システム「KIBIT Amanogawa」が、類似性・関連性のある論文を高い精度で発見できる特長を解説します。 <br>「分布仮説」という考え方、「単語のベクトル化」による意味の埋め込み。 <br> その「KIBIT」を搭載した論文検索 AI「KIBIT Amanogawa」は、PubMed の全論文を学習させ、独自の自然言語処理 AI の技術を論文探索に活用した「発見型概念検索」システムです。 <br> KIBIT Amanogawa が関連性・類似性の高い論文を見つける精度に優れているのは、他の検索手法のアルゴリズムとは異なるユニークなベクトル化の手法を持っているからです。 <br> ポイントの 1 つが、単語と文の双方から解析する点、もう 1 つが、分布仮説に忠実にアルゴリズムを構築している点です。さらに、希少な言葉でも適切に検索できる重み付けと、単語の意味どうしの足し引きによる解析も強みです。 <br> 類似文書を探し出すタスクにおいて、Google の BERT をはじめ生成 AI で広く使われる Transformer などよりも KIBIT Amanogawa の精度が高いことが検証済みです。 <br> なお、分布仮説に由来する Word2Vec（Google 開発のアルゴリズム）は Transformer よりベクトル化の結果が良いことが報告されていますが、同じく分布仮説に基づく KIBIT Amanogawa はさらに、Word2Vec と比較して 15％高い精度を達成しています。〈Yamada et al.(2020)〉[https://www.fronteo.com/ai-learning/article-search-ai](https://www.fronteo.com/ai-learning/article-search-ai)
-- FRONTEO の Amanogawa のアルゴリズムに関する記事。PubMed から類似論文を検索できるシステム。[https://twitter.com/hayataka88/status/1723253034757886336](https://twitter.com/hayataka88/status/1723253034757886336)
-
-- **ボイス・ライト・プロテクション**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> AI 音声プラットフォームの「CoeFont」を運営する株式会社 CoeFont は、声優や俳優、著名人の「声の権利」を守るための新しい取組み「ボイス・ライト・プロテクション」を開始した。 <br> 不正利用を防止、権利者に収益還元 <br>「ボイス・ライト・プロテクション」は、「CoeFont」で、声の提供者と利用者の間に契約関係を確立するもの。「CoeFont」に声を登録した声優や俳優は、自身の音声の利用について一般公開か許可制かを選択可能になる。 <br>「AI 音声プラットフォーム「CoeFont」、“過去の音声”から AI 音声の生成に成功 ─ デジタルハリウッド大学と共同で」（ニュース記事）[https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB](https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB)
-
-- **TrackerIQ**
-
-- 貢献検知の仕組みの参考にしたい
-- 従業員による企業情報の持ち出しを防止！　イスラエル発“SaaS 特化”の内部不正検知プラットフォーム <br> 今回、企業で導入が進むクラウドアプリケーション内で“ユーザーが行う不審な振る舞い”を検知するアプリケーションディレクション＆レスポンス（ADR）製品である「TrackerIQ（トラッカー・アイキュー）」シリーズの販売を開始した。 <br> 同シリーズは Microsoft 365、Salesforce、AWS などを中心とした SaaS アプリケーションをモニタリングし、不正を検出することが可能だ。 <br> RevealSecurity はアプリケーションに特化した内部不正対策ソリューション「TrackerIQ」シリーズを展開しているイスラエル企業。 <br> 同シリーズは、社内で導入されているサードパーティー製クラウドアプリケーションを利用するユーザーの振る舞いを学習・モニタリングし、不正利用のパターンを検知・通知。これにより、社内不正利用の防止をするソリューションだ。 <br> 独自開発のクラスタリングエンジンにより、膨大な「ユーザー・ジャーニー」と呼ばれるアプリケーション内でユーザーが行う一連の行動を類似性に基づいて自動的にグルーピングし、検知モデルを作成することが可能。このグループから外れたユーザー・ジャーニーを不審な振る舞いとして検知する。 <br> 参考元：[https://prtimes.jp/main/html/rd/p/000000068.000017278.html](https://prtimes.jp/main/html/rd/p/000000068.000017278.html) <br> [https://techable.jp/archives/221155](https://techable.jp/archives/221155)
-
-- **深層学習特許類似度マップ**
-
-- 貢献検知の仕組みの参考にしたい
-- 引用 <br> 引用・被引用分析 <br> 深層学習特許類似度マップによる技術探索手法 <br> [https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html](https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html) <br> [https://twitter.com/hayataka88/status/1714057488767525066](https://twitter.com/hayataka88/status/1714057488767525066) <br> デロイト トーマツ ファイナンシャルアドバイザリーの AI を活用した IP ランドスケープ分析[https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html](https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html) <br> [https://twitter.com/e-patent/status/1714038804238217309](https://twitter.com/e-patent/status/1714038804238217309)
-
-- **スパム検知**
-
-- スパムを検知する仕組みを貢献検知の仕組みの参考にしたい
+  - [デジタル資産の監査・認証プロバイダー事業「SuperAudit」](https://prtimes.jp/main/html/rd/p/000000024.000082733.html)
+- 説明
+  - モノハンドル株式会社の SuperAudit を参考にしているか検知する仕組みの参考にしたい
+
+13. YouTube のコンテンツ ID の仕組み
+
+- 説明
+  - YouTube の著作権のあるコンテンツを検出する仕組みを、コンテンツ ID を参考にしたい
+
+14. Adobe の「コンテンツ認証イニシアティブ」
+
+- 説明
+  - Adobe の「コンテンツ認証イニシアティブ」という仕組み
+
+15. 個人情報を守りながら、誰が何を参考にしているかのソーシャルグラフを作って、 誰が何を参考にしているかを検知する仕組み
+
+- 参考
+  - [https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
+- 説明
+  - 口コミ本文から氏名だけを抽出し「誰が誰と接点を持つか」を表にしました
+
+16. ベクトル的に近似
+    - 説明
+      - ベクトル的に近似であるなら、参考にしていると判断する仕組みで、参考にしているか検知する
+
+17. 株式会社ワコム、著作権を保護する「Wacom Yuify」、AI で創作の軌跡を可視化する「KISEKI ART」
+    - 参考
+      - [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
+    - 説明
+      - ワコムが示した「Wacom Yuify」では、作品の裏面へ目立たないマイクロマークを埋め込み改ざん耐性を高めます
+      - 各マークは分散台帳へ紐付き、作者・制作時間・端末情報を後から照合できます
+      - 「KISEKI ART」は筆跡特徴を 3 次元へ射影します
+      - 「絵紋」として人手による執筆を裏づける実験です
+
+18. Twitter のコミュニティーノート
+    - 説明
+      - Twitter のコミュニティーノートを、貢献度算出や参考にした人を見つける第三者を評価する仕組みの参考にしたい
+      - データ分析をする人の実力やデータ分析の結果が正しいか判断する仕組みの参考にしたい
+      - 作者が引用元を示さない場合でも、コミュニティノートのように「参照元と推定される URL」を添付して透明性を高める案です
+
+19. ウォーターマークとメタデータの埋め込み
+    - 参考
+      - [https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html](https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html)
+    - 説明
+      - Google、責任ある AI を実現するとして、画像にウォーターマークとメタデータの埋め込みを進めると発表。Google I/O 2023
+      - ウォーターマーキングは画像に直接情報を埋め込む手法です。画像編集などが行われたとしても消せないようにするとしています
+      - メタデータは、クリエイターがオリジナルのファイルにさまざまな情報を付加することを可能にします
+
+20. ピクシブにおける不当な目的での作品取得行為に対する対策技術
+    - 参考
+      - [https://inside.pixiv.blog/2023/05/09/183635](https://inside.pixiv.blog/2023/05/09/183635)
+    - 説明
+      - ピクシブにおける不当な目的での作品取得行為に対する対策技術について
+      - reCAPTCHA Enterprise
+      - 類似画像検知
+
+21. 不正検知や検知する系のサービス
+    - 参考
+      - [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
+    - 説明
+      - SEON Technologies はフェイクアカウント統合対策として銀行・EC・ゲームなどへ SaaS を提供しています
+      - SNS ログや IP 変動など広いシグナルから疑わしい行動を自動抽出します
+
+22. pixiv の生成 AI 検知の仕組み
+    - 説明
+      - pixiv の生成 AI などでなりすましている人を検知する方法
+
+23. 市場の変化から参考にしているかを検知する
+    - 参考
+      - [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html)
+      - [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
+    - 説明
+      - 市場の変化から参考にしているかを検知する方法もある
+      - ACROVE（アクローブ）は GMO サイバーセキュリティの支援で転売監視モデルを強化しました
+      - 値崩れ店舗の検知や追随業者の追跡が中心機能です
+      - 検知結果を早期アラートへ繋げ、顧客への負担を抑えるサービス提供を掲げています
+
+24. AI が盗作しているかを判断する仕組み
+    - 参考
+      - [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html)
+      - [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
+    - 説明
+      - ITmedia の記事によれば、「Do Language Models Plagiarize？」（米ペンシルベニア州立大学・ミシシッピ大学）が 21 万件規模で言語モデルの剽窃傾向を調べました
+      - コピー&ペースト・言い換え・アイデア剽窃の有無へ自動タグ付けしました
+      - 1193 件でヒットがあり、約 28％のケースに位置情報と固有名詞が混入していました
+      - モデル構成やデコーダ種別など属性ごとの剽窃率変化にも踏み込んでいます
+      - Lee ほか、arXiv:2203.07618（2022）より
+
+25. Tabular Classification の AI
+    - 参考
+      - [https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742](https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742)
+    - 説明
+      - Tabular Classification 表形式データを評価し何らかの結果を返す
+
+26. 「人間の嘘」の検出
+    - 参考
+      - [deepai](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models)
+      - [nishio（X）](https://twitter.com/nishio/status/1628262039834755075)
+      - [https://library.naist.jp/dspace/handle/10061/9996](https://library.naist.jp/dspace/handle/10061/9996)
+      - [https://twitter.com/AkioHoshi/status/1628265037466058753](https://twitter.com/AkioHoshi/status/1628265037466058753)
+    - 説明
+      - 嘘を嘘と評価できるのは、人間だけです
+      - もちろん訓練の度合いによって、判定基準も変わります
+      - 下記論文のアプローチは、幻覚評価へ応用できると考えられます
+      - On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models?
+      - 論文ページは deepai を、反応は nishio のポストを参照してください
+      - /
+      - 人間も嘘をつきます。例えば、下記の論文は「人間の嘘」の検出を取り上げています
+
+27. 科学論文の類似度を測定するモデル
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
+    - 説明
+      - Google Research と協力者による「OpenMSD」は、多言語科学文献の類似度推定モデルと評価データを同梱した報告です
+      - 先行の Scientific Documents Similarity Measurement（SDSM）と比較しながら多言語カバレッジを広げることが目的です
+
+28. 類似画像推薦機能
+    - 参考
+      - [https://t.co/I00L8eUH7u](https://t.co/I00L8eUH7u)
+    - 説明
+      - GMO ペパボさんの EC サービス「SUZURI」の類似画像推薦機能を CLIP とベクトル検索で作った事例
+
+29. 可視化する技術
+    - 説明
+      - 可視化する技術やサービスを参考にしているかどうかを検知する仕組みの参考にしたい
+      - 会話の数量の可視化、その他
+
+30. アカウントの Tx の履歴
+    - 参考
+      - [https://twitter.com/kuma56-munage/status/1582342565936103424](https://twitter.com/kuma56-munage/status/1582342565936103424)
+    - 説明
+      - アカウントの Tx の履歴からそのユーザーが人間か bot かを判別できる仕組み
+
+31. 引用の URL
+    - 説明
+      - の URL があれば、参考にしたとみなすようにして、さらに範囲を広げるために同じような文章構成であるかどうかを、AI のテキスト分析で、文脈や類似性などを分析して似ているならば参考にしたと考えるようにする
+
+32. 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法
+    - 説明
+      - 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法を検知する仕組みの参考にしたい
+
+33. 著作権管理の方法
+    - 説明
+      - 2 次公認化事業、JASCO の仕組みを利用して、どの人がどのようなサービスを利用したか管理できるようにする
+
+34. ツール
+    - 説明
+      - デジタルデータがどのように編集されたり改ざんされたりしてきたのかを履歴データとして残すための技術仕様である「C2PA」に基づいた「コンテンツ認証情報を実装するためのオープンソースツール」を Adobe が発表
+
+35. 引用関係の可視化
+    - 参考
+      - [https://twitter.com/estoppel88/status/1544877937647706113](https://twitter.com/estoppel88/status/1544877937647706113)
+    - 説明
+      - 関係を可視化して、参考にしているか検知する
+      - 被引用情報を素早く集めて、参考にしているか検知する
+      - \* 特許の被引用情報（牽制情報）から用途探索する例
+
+36. 著述者帰属と文体類似
+    - 参考
+      - [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
+    - 説明
+      - 誰が書いた文体に近いかを検知します
+      - 言語モデルで単語の選択や言い回し、文章構造から著者らしさを抽出し、多言語の帰属表示を可能にする研究があります
+      - ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました
+      - 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています
+
+37. 登録制や申告制
+    - 説明
+      - 無料主義アプリへ、自己開発物の主張対象を登録してもらいます
+      - 他者が利用する際は報告が必須とし、未報告なら自動削除や評価軸ポイントの剥奪を検討します
+      - \* 楽曲なら歌詞・メロディの利用を申告してもらいます
+      - システム側は登録状況を並行して確認し、登録者だけが利用できるようにします
+      - 未登録利用が見つかった場合は参考利用とみなして代理登録するか、表示を止める運用が考えられます
+      - 申告を怠る利用者には、確認のためのスクレイピング費用を負担してもらう案です
+      - 理想は、何かを開発したら、その対象を思いつくまでに参考にした要素を全て自己申告してもらうこと
+      - でも、面倒だし漏れが出る
+
+38. 特許や著作権を管理の仕組み
+    - 説明
+      - 特許や著作権の管理の仕組みを、無料主義の開発したノーハウを誰が使っているかを管理する仕組みに応用する
+      - 特許検索を支援するサービスもあります
+      - 無料主義では利用した商品・サービスと閲覧履歴から利用状況を把握しやすくします
+      - 利用事実の自己申告が貢献度や獲得ポイントへつながる設計にすれば、申請しやすい導線も作れます
+      - この方向性を参考にしていきたいです
+
+39. AI による検知
+    - 説明
+      - 自分が持っているアイデアを積極的に書き込み、解説文も書くことで、それに似たサービスがあれば、そのアイデアを出した人もそのサービスが貢献度を獲得するほど、そのアイデアを出した人も評価軸ポイントを獲得できるようにする
+
+40. URL だけでも引用元を載せる
+    - 説明
+      - Twitter で解説するときに引用していたら URL も最後に載せて、載せなければ批判される流れを、検知する方法で利用する
+
+41. データ分析による検知
+    - 説明
+      - アイデアを出して公開するだけで、公開者 A が参照者 B の評価軸ポイント獲得へ良い影響を与えたと分析できれば、追加の探索なしに評価軸ポイントを付与できます
+      - わざわざ参考関係を探し回る必要はない、という整理です
+      - 自分が気づいていない対象を参考にして何かを開発している場合もあるから、それをデータ分析や AI で、その人の過去の閲覧履歴や見た人物の参考にしたと登録されている内容などから見つけてくれるようにする？
+      - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える。でも経験という要素で評価軸ポイントを分けるときは 3 つ以上のメインの参考にしたことよりも得られる割合は少なくなる
+
+42. SHA256
+    - 参考
+      - [https://tsumuri.moe/note/article/000156](https://tsumuri.moe/note/article/000156)
+    - 説明
+      - tsumuri がこの記事を書いたという証明
+      - 私しか使うべきではない言葉なので修正してください言葉の SHA256 です。この元を知っていれば私です
+      - これは私が記事をパクられた際に使えるものであり、私がコピーしていない証拠にはなりません
+      - 私がコピーしていないかどうかに関しては、皆様の信頼におまかせします
+      - 少なくとも参考文献も書かずに資料をコピーするようなことはしません
+
+43. ハッシュ関数
+    - 説明
+      - 参考にしているかどうかは、ハッシュ関数からハッシュ値を算出している
+      - ハッシュ値を算出して、参考にしているかどうかを判断する
+      - ブロックチェインみたいに連なるように、参考にしている人たちが連なるようにすれば、参考にしているかがすぐに分かる？
+
+44. 勝手にアイデアを盗まれない仕組み
+    - 参考
+      - [https://twitter.com/rottenegg0115/status/1626078699375464448](https://twitter.com/rottenegg0115/status/1626078699375464448)
+
+45. JDream Innovation Assist
+    - 参考
+      - [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました
+      - 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）
+
+46. 官民データ共有のあり方に関する調査
+    - 参考
+      - [https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)
+      - [https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - 特許情報活用の論点が整理された報告書です
+      - 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります
+      - 知財需要の計測なども扱われています
+      - 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です
+
+47. 特許情報分析・可視化
+    - 参考
+      - [https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf](https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf)
+      - [https://twitter.com/hayataka88/status/1716288794683744368](https://twitter.com/hayataka88/status/1716288794683744368)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - 旭化成の統合報告書で公開している特許情報分析・可視化の事例。他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています
+
+48. データの可視化
+    - 参考
+      - [https://www.data-to-viz.com/](https://www.data-to-viz.com/)
+      - [https://note.com/d-v-osorezan/n/ne5a6b0dad97b](https://note.com/d-v-osorezan/n/ne5a6b0dad97b)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - データの可視化のデータベース
+
+49. 近似最近傍探索
+    - 参考
+      - [https://github.com/spotify/voyager](https://github.com/spotify/voyager)
+      - [https://twitter.com/MLBear2/status/1715937638950277122](https://twitter.com/MLBear2/status/1715937638950277122)
+    - 説明
+      - Spotify が新たな近似最近傍探索ライブラリ「Voyager」を OSS として出したらしい
+      - 最近隣検索の技術は、商品の推薦や地図上の場所の検索など、様々なアイテムの間の類似性を高速に見つけ出すために非常に有用であると広く認識されています
+      - Voyager のもっとも魅力的な部分は、その基盤となる「H&SW（Hierarchical Navigable Small Worlds）」という新しい技術です
+      - Repository:
+
+50. 特許情報可視化
+    - 参考
+      - [https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf](https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf)
+      - [https://twitter.com/hayataka88/status/1712612049463947355](https://twitter.com/hayataka88/status/1712612049463947355)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - 三菱電機・統合報告書 2023 における特許情報可視化
+
+51. Semantic Scholar API
+    - 参考
+      - [https://arxiv.org/abs/2004.07180](https://arxiv.org/abs/2004.07180)
+      - [https://twitter.com/hayataka88/status/1715335234676461753](https://twitter.com/hayataka88/status/1715335234676461753)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - あと、SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず
+      - SPECTER: Document-level Representation Learning using Citation-informed Transformers
+
+52. AI detector
+    - 参考
+      - [https://gigazine.net/news/20231105-ai-detector/](https://gigazine.net/news/20231105-ai-detector/)
+    - 説明
+      - AI detector・AI 検出器を貢献検知の仕組みの参考にしたい
+
+53. デジタル著作権マネージャー (DRM)
+    - 説明
+      - デジタル著作権マネージャー (DRM) を「貢献検知の仕組み」で収益分配したり検知する方法の参考にしたい
+
+54. 分布仮説（distributional hypothesis）
+    - 参考
+      - [https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82](https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82)
+      - [https://lifescience.fronteo.com/products/amanogawa/](https://lifescience.fronteo.com/products/amanogawa/)
+      - [https://www.fronteo.com/ai-learning/article-search-ai](https://www.fronteo.com/ai-learning/article-search-ai)
+      - [https://twitter.com/hayataka88/status/1723253034757886336](https://twitter.com/hayataka88/status/1723253034757886336)
+    - 説明
+      - 分布仮説を「貢献検知の仕組み」の参考にしたい
+      - 「単語の意味は、その周辺の単語によって形成される」という考え方です。つまり、単語自体には意味がなく、その単語の「コンテキスト（文脈）」によって単語の意味が形成されるということです。﻿
+      - **類似性・関連性を見抜く AI**
+      - 貢献検知の仕組みの参考にしたい
+      - 論文検索を AI で革新 – 類似性、関連性を見抜く AI
+      - FRONTEO の「発見型概念検索」AI システム「KIBIT Amanogawa」が、類似性・関連性のある論文を高い精度で発見できる特長を解説します
+      - 「分布仮説」という考え方、「単語のベクトル化」による意味の埋め込み
+      - その「KIBIT」を搭載した論文検索 AI「KIBIT Amanogawa」は、PubMed の全論文を学習させ、独自の自然言語処理 AI の技術を論文探索に活用した「発見型概念検索」システムです
+      - KIBIT Amanogawa が関連性・類似性の高い論文を見つける精度に優れているのは、他の検索手法のアルゴリズムとは異なるユニークなベクトル化の手法を持っているからです
+      - ポイントの 1 つが、単語と文の双方から解析する点、もう 1 つが、分布仮説に忠実にアルゴリズムを構築している点です。さらに、希少な言葉でも適切に検索できる重み付けと、単語の意味どうしの足し引きによる解析も強みです
+      - 類似文書を探し出すタスクにおいて、Google の BERT をはじめ生成 AI で広く使われる Transformer などよりも KIBIT Amanogawa の精度が高いことが検証済みです
+      - なお、分布仮説に由来する Word2Vec（Google 開発のアルゴリズム）は Transformer よりベクトル化の結果が良いことが報告されていますが、同じく分布仮説に基づく KIBIT Amanogawa はさらに、Word2Vec と比較して 15％高い精度を達成しています。〈Yamada et al.(2020)〉
+      - FRONTEO の Amanogawa のアルゴリズムに関する記事。PubMed から類似論文を検索できるシステム
+
+55. ボイス・ライト・プロテクション
+    - 参考
+      - [https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB](https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - AI 音声プラットフォームの「CoeFont」を運営する株式会社 CoeFont は、声優や俳優、著名人の「声の権利」を守るための新しい取組み「ボイス・ライト・プロテクション」を開始した
+      - 不正利用を防止、権利者に収益還元
+      - 「ボイス・ライト・プロテクション」は、「CoeFont」で、声の提供者と利用者の間に契約関係を確立するもの。「CoeFont」に声を登録した声優や俳優は、自身の音声の利用について一般公開か許可制かを選択可能になる
+      - 「AI 音声プラットフォーム「CoeFont」、“過去の音声”から AI 音声の生成に成功 ─ デジタルハリウッド大学と共同で」（ニュース記事）
+
+56. TrackerIQ
+    - 参考
+      - [https://prtimes.jp/main/html/rd/p/000000068.000017278.html](https://prtimes.jp/main/html/rd/p/000000068.000017278.html)
+      - [https://techable.jp/archives/221155](https://techable.jp/archives/221155)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - 従業員による企業情報の持ち出しを防止！ イスラエル発“SaaS 特化”の内部不正検知プラットフォーム
+      - 今回、企業で導入が進むクラウドアプリケーション内で“ユーザーが行う不審な振る舞い”を検知するアプリケーションディレクション＆レスポンス（ADR）製品である「TrackerIQ（トラッカー・アイキュー）」シリーズの販売を開始した
+      - 同シリーズは Microsoft 365、Salesforce、AWS などを中心とした SaaS アプリケーションをモニタリングし、不正を検出することが可能だ
+      - RevealSecurity はアプリケーションに特化した内部不正対策ソリューション「TrackerIQ」シリーズを展開しているイスラエル企業
+      - 同シリーズは、社内で導入されているサードパーティー製クラウドアプリケーションを利用するユーザーの振る舞いを学習・モニタリングし、不正利用のパターンを検知・通知。これにより、社内不正利用の防止をするソリューションだ
+      - 独自開発のクラスタリングエンジンにより、膨大な「ユーザー・ジャーニー」と呼ばれるアプリケーション内でユーザーが行う一連の行動を類似性に基づいて自動的にグルーピングし、検知モデルを作成することが可能。このグループから外れたユーザー・ジャーニーを不審な振る舞いとして検知する
+      - 参考元：
+
+57. 深層学習特許類似度マップ
+    - 参考
+      - [https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html](https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html)
+      - [https://twitter.com/hayataka88/status/1714057488767525066](https://twitter.com/hayataka88/status/1714057488767525066)
+      - [https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html](https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html)
+      - [https://twitter.com/e-patent/status/1714038804238217309](https://twitter.com/e-patent/status/1714038804238217309)
+    - 説明
+      - 貢献検知の仕組みの参考にしたい
+      - ・被引用分析
+      - 深層学習特許類似度マップによる技術探索手法
+      - デロイト トーマツ ファイナンシャルアドバイザリーの AI を活用した IP ランドスケープ分析
+
+58. スパム検知
+    - 説明
+      - スパムを検知する仕組みを貢献検知の仕組みの参考にしたい
 
 ### 感情の測定方法
 
 下記の方法を、「感情や幸福度を定量的に評価する仕組み」の参考にしたい。
 
-- **潜在的連合テスト**
-
-- 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
-
-- **幸福度の推奨アンケート（SWLS、幸せの 4 因子など）**
-
-- [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
-
-- **幸福度を測る方法の参考にしたい対象**
-
-- ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
-
-- **センサー「エモコアイ」**
-
-- 引用 <br> センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する。 <br> 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する。 <br> [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
-
-- **Thymia**
-
-- 引用 <br> イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービスだ。 <br> まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられるという。 <br> [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
-
-- **毎日の幸福度アンケートの参考**
-
-- 児童や生徒同士の関係性を可視化するとのこと。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握するんだとか。 <br> また、タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもあるとのこと。SOS を早期発見し、問題が深刻化する前に対処するのが狙いだ。 <br> Reference: [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html), [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる 「先端技術を活用した教育・学習環境の充実に向けた連携協力に関する協 定」の締結について](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf) <br> [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
-
-- **Web カメラだけで心拍数と心拍変動**
-
-- 引用 <br> Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい。 <br> [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136) <br> [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
-
-- **GPT-4 が性格診断・感情分析**
-
-- 引用 <br> 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した。 <br> その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた。[https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend) <br> [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
-
-- **iOS 17 の「心の健康状態」**
-
-- iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」<br> あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す。 <br> GPS に従って街の中をさまよい、気になる瞬間を写真に残していくと、ジャーナルアプリがあなたの 1 日の物語を綴ってくれる。 <br> あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す。 <br> ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった。 <br>「自動感情日誌」になる。 <br> [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
-- PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
-- iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する。 <br> そのアプリ API から気分の記録とか取ってこれないかな <br> ヘルスケアのデータ取得ができる API があるらしい。HealthKit。 <br> Amazon やその他の何かの購入履歴やサービス利用履歴などで突合 <br> 上記のヘルスケアのようなデータが「結果」のデータ（y 軸）、購入履歴や使用履歴が「手段」のデータ（x 軸）この 2 つが必要
-- HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています。 <br> [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d) <br> [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
-
-- **TherapeiaVR**
-
-- VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
-
-- **感情認識 AI**
-
-- 感情認識 AI を感情の算出の参考にしたい
-- 感情認識 AI。人の感情を認識しようとする AI
-
-- **感性アナライザ**
-
-- 引用 <br> 電通サイエンスジャムの技術である「感性アナライザ」によって体験中の脳波を測定し、ハグ時の幸福度に関連する感情変化を計測・可視化する取り組みも行われており、ハグによって脳の働きが変化していく様子を視覚的にとらえることも可能だ。 <br> [https://realsound.jp/tech/2023/05/post-1337515.html](https://realsound.jp/tech/2023/05/post-1337515.html)
-
-- **脈拍の変動**
-
-- スマートウォッチが脈拍の変動からストレスを推定する仕組み
-
-- **スケジュールと現在の気分の記録＆報告**
-
-- 無料主義アプリで、毎日の気分と今日の大体のスケジュールを記載して提出すれば報酬が得られるようにして、「幸福度の向上」の評価軸ベース評価の参考にしたら良い
-
-- **wellday**
-
-- 引用 <br> 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない。 <br> ウェルデイは 2019 年に設立した。独自の人工知能（AI）を活用し、業務で普段利用するコミュニケーションツールを利用して、従業員のストレスを予測するサービスを手掛けている。 <br> [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
-
-- **皮膚電気活動（EDA）**
-
-- 引用 <br> Google Pixel Watch 2 は Fitbit のストレス管理や皮膚温センサ追加、緊急 SOS 機能も強化のうわさ <br> 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです。 <br> Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです。 <br> [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
-
-- **テキストから病気を見つける技術**
-
-- 文章を数値解析して、感情を算出
-- 引用 <br> アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう[https://togetter.com/li/2226111](https://togetter.com/li/2226111) <br> [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155) <br> アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と。 <br> [https://academic.oup.com/dsh/article/26/4/435/1052059?login=false](https://academic.oup.com/dsh/article/26/4/435/1052059?login=false)
-
-- **Apple Mood Tracking**
-
-- Apple Mood Tracking は良い。これでいいじゃんってなってる。 <br> Apple watch から通知 <br> ↓ <br> Watch から直で感情ログ <br> ↓ <br> そのまま音声入力で状況記録 <br> ↓ <br> アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる <br> ジャーナルアプリが出たら写真と感情の紐付けも。 <br> [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
-
-- **「非侵襲型」の血糖値計測**
-
-- 「非侵襲型」の血糖値計測で健康の測定や感情の算出 <br> [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
-
-- **感情の算出の参考にしたい**
-
-- リストバンド端末で脈拍を計測して集中を測定
-- カメラで頬の血管の血流を測定
-- 心の中の意思決定を眼球運動から可視化できる可能性を発見　東北大学 <br> 論文情報：【Communications Biology】Perceptual decisions interfere more with eye movements than withreach movements <br> [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
-
-- **Google 音声アシスタント**
-
-- 引用 <br> Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した[http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ) <br> [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
-
-- **Empath**
-
-- 引用 <br> 音声感情解析 AI を提供する株式会社 Empath。「DeepEmo」は、同社の音声感情解析 AI「Empath」でセリフ音声を解析し、0.32 秒ごとに変化する感情値を生成する技術。Empath が保有する感情表出音声をもとに、ディープラーニングを使用して 9 つの感情（平常・怒り・恐怖・嫌悪・喜び・悲嘆・信頼・興味・驚き）を推定するアルゴリズムだ。 <br> [https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/) <br> 株式会社 Empath <br> 商願 2014-35949：「Empath」<br> 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）<br> 商願 2014-35949：「Empath」<br> 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）<br> [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/) <br> [https://chizaizukan.com/property/005](https://chizaizukan.com/property/005)
-
-- **Hugtics**
-
-- 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する。 <br> [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
-
-- **アイトラッキング**
-
-- 引用 <br> Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許。 <br> 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる。[https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
-
-- **非接触型の脈拍測定**
-
-- カメラを使った非接触型の脈拍測定ができるらしい <br> この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
-
-- **可食ワイヤレス生体情報センサ**
-
-- 引用 <br>「可食ワイヤレス生体情報センサ」がもたらす未来とは？ <br> 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」<br> 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した。 <br> [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
-
-- **感情認識技術**
-
-- 感情認識技術 <br> 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
-
-- **失言検出課題、チーズケーキ課題**
-
-- 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
-
-- **脳活動解読**
-
-- 引用 <br> ブラックボックスな脳活動解読器の動作が深層学習の応用で説明可能に <br> [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/) <br> 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる。 <br> 論文情報：[【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full) <br> [https://univ-journal.jp/159335/](https://univ-journal.jp/159335/)
-
-- **ストレスチェックと生活習慣等の分析**
-
-- 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている[https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
-
-- **ANBAI**
-
-- 引用 <br> 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」<br> [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/) <br> [https://anbai.team/](https://anbai.team/) <br> [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
-
-- **Mappiness**
-
-- 引用 <br> [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html) <br> “[Mappiness](https://www.mappinessapp.com/)” というスマートフォンアプリを用いて、32,000 人からデータを抽出。 <br> “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ。 <br> 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました。 <br> [https://www.sussex.ac.uk/research/full-news-list?id=44576](https://www.sussex.ac.uk/research/full-news-list?id=44576) <br> [https://nazology.net/archives/8656](https://nazology.net/archives/8656)
-
-- **汗からストレスレベル**
-
-- 引用 <br> 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表。 <br> 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました。 <br> [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
-
-- **動きから感情**
-
-- スマホで使えるモーションキャプチャー、ソニー「mocopi」<br> [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
-
-- **ChatGPT に聞いた幸福度を測定する方法**
-
-- アンケート調査以外で幸福度を測定する方法として、次のようなものがあります。 <br> 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法 <br> ネットワーク分析を用いた社会的支援や支援受けの多さを計測する方法 <br> 生活満足度指数（LSI）を用いた生活満足度を計測する方法 <br> デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法 <br> ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です。 <br> ChatGPT
-
-- **赤ちゃんの泣き声を分析**
-
-- 引用 <br> 赤ちゃんの泣き声を分析し、「不快指数」から 4 つのニーズ (空腹、汚れたおむつ、眠気、眠気）のいずれかを判断する AI プロダクト[https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)**<br> CES 2023: The device that tells you why your baby is crying <br> **[https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying) <br> [https://twitter.com/christianna-j/status/1610735317262139416](https://twitter.com/christianna-j/status/1610735317262139416)
-
-- **うつ病を定量化して分析**
-
-- 引用 <br>「新型うつ」とは何だったのか <br> [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
-
-- **VR の視線の動きで ADHD 診断**
-
-- 引用 <br>「VR ゲーム」の視線の動きで ADHD 診断する！ <br> フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました。 <br> 研究の詳細は、2022 年 11 月 24 日付の科学誌『[Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)』に掲載されました。 <br> [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
-
-- **中国で共産党員の忠誠心を判定する AI**
-
-- 引用 <br> 中国で共産党員の忠誠心を判定する AI を開発。表情や脳波から「思想教育」の程度を読み取る <br> AI は合肥総合国家科学センターで開発されたもので、対象者の表情や脳波から共産党の「思想教育」がどの程度浸透しているのか判断するのだという。 <br> 人民の監視を強める中国　なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、[サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている。 <br> それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった。[https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
-
-- **SOXAI Ring**
-
-- 引用 <br>「ヘルスケアをライフスタイルに」をビジョンに掲げる日本のヘルステック企業「株式会社 SOXAI」が開発・販売を進める日本発のスマートリング「SOXAI Ring（ソクサイリング）」に注目が集まっている。 <br> 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス。 <br> 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという。 <br> [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring) <br> [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
-
-- **非接触型睡眠トラッカー「Halo Rise」**
-
-- 引用 <br> Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです。 <br> 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する[https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
-
-- **感情の算出にアンケート調査を使う場合の懸念点**
-
-- アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
-  - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
-
-- **心理学や行動経済学から幸福度を算出する方法、無料主義で、感情や幸福度を算出する方法の参考にしたい**
-
-- 引用 <br> 幸福に関する使うべきではない言葉なので修正してください研究は、経験サンプリング・プロジェクトです。このプロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか？　誰と一緒にいるのか？　何をしているのか？　など）。この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は「**自然の中、特に湖の近くにいるほうが幸せです**」ことがわかった。[https://yuchrszk.blogspot.com/2022/07/google.html?fbclid=IwAR2LMv6-serkRAXH0VTWOXk4-wSe0cMTlIEkA7kAZsw8vStXnWZmBEEXY8Q](https://yuchrszk.blogspot.com/2022/07/google.html?fbclid=IwAR2LMv6-serkRAXH0VTWOXk4-wSe0cMTlIEkA7kAZsw8vStXnWZmBEEXY8Q)
-
-- **光学式センサ、3 軸加速度センサ**
-
-- 引用 <br> スマートウォッチは何をもとにユーザーの睡眠状態を判定するのか？ <br> 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる。 <br> 光学式センサで心拍数を計測できるデバイスもある。 <br> [https://36kr.jp/9669/](https://36kr.jp/9669/)
-
-- **うつ病治療 VR 製品**
-
-- 引用 <br> 株式会社 BiPSEE（以下、BiPSEE）と Meiji Seika ファルマ株式会社（以下、Meiji Seika ファルマ）は、BiPSEE が開発する「うつ病治療 VR 製品」の事業化へ向け業務提携契約を締結しました。 <br>「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です。 <br> [https://techable.jp/archives/177646](https://techable.jp/archives/177646) <br> [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html) <br> [BiPSEE ホームページはこちら](https://bipsee.co.jp/) <br> [Meiji Seika ファルマ ホームページはこちら](https://www.meiji-seika-pharma.co.jp/) <br> [https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/](https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/) <br> 引用 <br>「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている。 <br>
-
-- **ミキワメウェルビーイング**
-
-- 引用**<span style="text-decoration:underline;"> <br> [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)</span>** <br> 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる。 <br> 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している。 <br> [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
-
-- **機能的近赤外分光分析法（fNIRS）**
-
-- 引用 <br> 英国の神経科学者ソフィー・スコットは、機能的近赤外分光分析法（fNIRS）を使うことで、会話中に脳でいったい何が起こっているのかを解明できると言う。 <br> 頭皮に光を当てて反射光を分析する「オプトード」と呼ばれる光検出型化学センサーを通じて fMRI と同じ神経活動指標を測定する機能的近赤外分光分析法（fNIRS）は、人の自然な動きを妨げることなく使用できる。 <br> 実際、ロンドンの中心部にある屋外で被験者たちに事前に定めたタスクをこなしてもらい、その様子を fNIRS で測定したところ、動作データや音声データと並行して神経データもこの方法で収集できることが証明された。 <br> 神経反応や生理反応を捉えることができる最新の測定技術を使う**<br> **[https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
-- NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
-
-- **アンケート調査による幸福度の算出**
-
-- 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
-
-- **KDDI 総研の人間心理理解 AI の共同研究プロジェクト**
-
-- 引用 <br> KDDI 総研は、カーネギーメロン大学の Peter Spirtes 教授および Kun Zhang 准教授とともに、人の心を深く理解し共感できる人間心理理解 AI の共同研究プロジェクトを開始した。 <br> カーネギーメロン大学の 2 名の教員は、因果推論分野の世界的な権威だ。因果推論とは、インプットとアウトプットから、その因果関係を統計的に推定していく考え方のこと。KDDI 総研は、この因果推論技術を活用することで、人の心を深く理解し共感する AI の実現を目指しているのだ。 <br> KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ。 <br> KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ。 <br> [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
-
-- **直近 1 か月のひきこもり傾向を簡便に把握できる質問票**
-
-- 引用 <br> 直近 1 か月のひきこもり傾向を簡便に把握できる質問票、九大などが開発 <br> 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した。 <br> 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの。[詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
-
-- **下記のデータ**
-
-- 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
-
-- **産後うつを身体症状を基に早期発見する調査尺度**
-
-- 引用 <br> 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した。 <br> 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は、[精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
-
-- **うつ尺度「BDI-II」**
-
-- 引用 <br> 世界的に広く使われているうつ尺度「BDI-II」<br> [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
-
-- **使える API**
-
-- Microsoft Face API
-  - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
-  - 人間の顔認識に特化している顔認識の AI を活用し、顔の識別や特徴・感情の分析などを取得できる
-  - 顔認識をアプリケーションに組み込める
-- Facebook Graph API
-  - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
-  - Facebook のユーザや Facebook の情報の読み取り・更新など、Facebook を使った様々な処理を実装できる
-  - [アクセス許可](https://developers.facebook.com/docs/permissions/reference)が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
-  - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
-- [https://zenn.dev/nameless-sn/articles/recommended-api-for-development](https://zenn.dev/nameless-sn/articles/recommended-api-for-development)
-
-- **モニター調査・アンケート調査**
-
-- モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る。 <br> そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる。 <br> 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る。 <br> でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
-
-- **文脈依存型推薦エンジン(Context based recommendation system)**
-
-- 引用 <br> 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています。 <br> [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
-
-- **ギャラップ社・Glassdoor の調査**
-
-- 引用 <br> ギャラップ社が 250 万人のアメリカ人を対象に行った調査 <br> [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
-
-- **多属性評価**
-
-- アンケート調査、心拍数や皮膚抵抗や発汗量などのデータ、アンケート調査の中でも複数の設問内容の種類
-- 多属性評価とは、購買や消費に際して、複数の属性を同時に考慮して、評価を行うこと
-
-統計的指標
-
-- 様々な指標・指数で使われている要素（統計的指標）を、 網羅的に統計的指標を書き出すときの参考にしたい
-- The Global Gender Gap Index（世界男女格差指数）<br> Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）<br> A simplified approach to measuring national gender inequality <br> [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
-
-- **毎日簡単なアンケートに答える方法**
-
-- アンケートの設問内容は何？
-- 引用 <br> 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました。[https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html) <br> [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
-
-- **オンライン測定**
-
-- 引用 <br> オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた。[https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
-
-- **尿検査できるセンサー Withings の「U-Scan」**
-
-- 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
-
-- **心拍変動（HRV）**
-
-- 引用 <br> 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する。 <br> iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる <br> [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
-
-- **ツイート分析**
-
-- ツイートなどの文章から、マクロの幸福度を算出したい。それを評価軸に貢献しているかどうかの判断基準にしたい。 <br> 心理的苦痛や不安の兆候を表現する際に用いられる用語があるらしいから、それから幸福度を算出してみたい
-- 引用 <br> 東北大学災害科学国際研究所の藤井進准教授らの研究チームは、ウクライナ語で発信された約 9,850 万件のツイートを分析することで、戦禍にみまわれたウクライナの医療ニーズやメンタルヘルスに関する状況を把握する研究を実施した。 <br> [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/) <br> メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された。 <br> 論文情報：[【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en) <br> [https://univ-journal.jp/203351/](https://univ-journal.jp/203351/)
-
-- **脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）**
-
-- 引用 <br>「VIE ZONE（ヴィーゾーン）」とは、イヤーチップが電極となり、耳から脳波を取得できるウェアラブルデバイス。これまで、脳波の計測には装着のための手順が多く煩雑なつくりのデバイスが多かったが、VIE ZONE は通常のイヤホンと同様に耳に装着するだけで簡易に脳波を測ることができる。 <br> VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ。 <br> VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している。[https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
-
-- **思想教育の効果を可視化**
-
-- 引用 <br>「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した。 <br> 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた。 <br> [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
-
-- **アンケート調査以外の要素**
-
-- 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている。 <br> 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
-
-- **ツイート分析**
-
-- 引用 <br> 現在、男女共同参画でツイートしているアカウントを調べると、なんと海乱鬼がもっとも拡散に関与している。 <br> このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの。 <br> Hoaxy: How claims spread online[https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7) <br> [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
-
-- **SNS の文章を解析**
-
-- 引用 <br> 1 億超の Twitter のつぶやきから新型コロナワクチンに関する話題の変遷を分析 <br> [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/) <br> [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/) <br> 今回、東京大学、国立情報学研究所、千葉商科大学、ゲント大学（ベルギー）らの共同研究グループは、ワクチン接種期間（2021 年 1 月から 10 月）に Twitter でつぶやかれた「ワクチン」を含む日本語の全ツイートを時系列的に分析することで、ワクチンに関する人々の興味・関心の変化を調べた。 <br> 論文情報：[【Journal of Medical Internet Research】Evolution of the public opinion on COVID-19 vaccination in Japan: Large-scale Twitter data analysis](https://www.jmir.org/2022/12/e41928) <br> [https://univ-journal.jp/203044/](https://univ-journal.jp/203044/)
-- 引用 <br> なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな[https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s](https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s) <br> [https://twitter.com/Kyukimasa/status/1184325145550188544](https://twitter.com/Kyukimasa/status/1184325145550188544)
-
-- **ワークサンプルテスト**
-
-- 引用**<span style="text-decoration:underline;"> <br> [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)</span>** <br> サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です。 <br> [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
-
-- **Omegawave**
-
-- 引用 <br> フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している <br> Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる <br> [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
-
-- **FaiCE（フェイス）**
-
-- 引用 <br> 脳内にイメージする「魅力的な顔」を可視化できるアプリ『FaiCE（フェイス）』<br>「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。**<br> **[https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
-
-- **ひきこもり度を簡単に評価できるテスト**
-
-- 引用 <br> 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました。 <br> 研究の詳細は、2022 年 11 月 30 日付の科学誌『[Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)』に掲載されています。 <br> [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
-
-- **パルスアイ**
-
-- 引用 <br> 最短 1 クリックで厚労省準拠のストレスチェックを開始。組織診断サービス「パルスアイ」に新機能 <br> 株式会社ジャンプスタートパートナーズが提供する「PULSE AI（パルスアイ）」は、従業員の本音を把握し退職リスクを可視化する組織診断サービス。 <br> 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました。 <br> PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです。[https://techable.jp/archives/185582](https://techable.jp/archives/185582)
-
-- **[Classroom Technologies](https://www.class.com/)が[Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)と提携して開発しているシステム**
-
-- 引用 <br> 仮想空間上で行う授業のソフトを販売する企業の**[Classroom Technologies](https://www.class.com/)**が**[Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)**と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる <br> [https://gigazine.net/news/20220418-intel-edutech-ai/](https://gigazine.net/news/20220418-intel-edutech-ai/)
-
-- **Face2Brain**
-
-- 引用 <br>「顔画像」から脳波を推定するアルゴリズム Face2Brain <br>「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム。 <br> [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya) <br> [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/) <br> [https://chizaizukan.com/property/704/](https://chizaizukan.com/property/704/)
-
-- **CBT-I**
-
-- 引用 <br> 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した。 <br> 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという。[https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
-
-- **Face++や Microsoft AI などの顔認識技術**
-
-- 引用 <br> 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった。 <br> でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた <br> [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
-
-- **「充実した人生」を測る指標**
-
-- 「充実した人生」を測る指標をこの研究論文で参考にして、「人生の満足度」を測ることができる方法を作りたい
-- 引用 <br> スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました。 <br> 研究の詳細は、2022 年 9 月 30 日付で学術誌[『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)に掲載されています。 <br> [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
-
-- **Dot Mind Unlocked**
-
-- 引用 <br> **[ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)** <br> ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」<br> [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
-
-- **Oura**
-
-- 引用 <br> 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング <br> 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている。 <br> [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
-
-- **瞳孔反応解析技術**
-
-- 引用 <br> 夏目綜合研究所の人の本当の感情を可視化する眼の瞳孔反応解析技術**<br> **「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ。 <br> 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている。 <br> [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
-
-- **ESHA（イーエスエイチエー）・KIBI 理論**
-
-- 引用 <br> 株式会社エモテック・ラボは、感情 AI とオンライン面談によって社員のココロを可視化する心理的安全性組織診断「ESHA（イーエスエイチエー）」<br>「ESHA」は、社員ひとりひとりのマインドを“機微力（人の気持ちを察する力）”に基づいてタイプ別に診断し、現在のココロの在り方を心理的安全性と不快指数の両面から測る診断ツールです。 <br> ここで活用される感情 AI「Kansei Driven Engine（KDE）」は、20 年にわたる数値解析・感性工学・可視化技術に関する研究・開発で培われた独自アルゴリズムと AI をかけ合わせたもの。 <br> 10 年にわたり東京大学と研究開発してきた、国際学会にて実証済の“KIBI 理論”に基づく感情解析によって、解析結果のフィット感を革新的に向上させています。 <br> **[株式会社エモテック・ラボ <br> https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)** <br> [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
-
-- **幸福度の指標**
-
-- 引用 <br> ウェルビーイングに関する学問、「幸福学」の国内第一人者である慶應義塾大学の前野隆司教授と共同研究を実施しました。前野教授は、幸せとはどんな状態か、どんな状態にある人が幸せを感じているかを調査して、「幸せの 4 因子」を定めています[4] 。幸せの 4 因子は幸せの心的特性に焦点を当てた指標 <br> 各因子をどの程度満たしているかはアンケート調査によって測ることができます
-  - 1 つ目の「見える化：利用者の負担を軽減しつつ個人の特性を収集すること」には AI チャットボットを利用します
-  - 一般的に、個人の特性データを収集するにはアンケート調査を実施します。しかしアンケート調査では一度に全ての設問に回答する必要があり、所要時間が膨大になることも少なくありません
-  - 利用者側の視点では、AI チャットボットを利用し数日掛けてアンケートに回答することで、大量の設問に回答する心理的負荷の軽減が期待されます。実際、今回の実証では幸福度に関する設問だけでも計 16 問ありましたが、チャットボットで毎日 1 問ずつ配信することで、1 回あたりの回答所要時間を大幅に削減しています（印象評価の結果については後編で詳述）
-  - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
-  - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
-  - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
-
-- **幸福度の指標**
-
-- 引用 <br> **[「幸せ」を追求するのはいいことなのか？──『ハッピークラシー――「幸せ」願望に支配される日常』](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)** <br> 心理科学はすでに「幸福」であるとはどのような状態なのかを定義し、人がより幸せな人生を贈るために役立ついくつかの要素も発見している。ポジティブ心理学創設以降、幸せは曖昧な概念ではなく、誰もが追求し測定可能な目標となった。 <br> そもそも幸福は客観的に評価可能なのか、がある。アンケート調査や尺度には数多くの種類がある。オックスフォード幸せ調査、人生満足感尺度、経験サンプリング法、一日再現法など。これらを用いて心理学者と経済学者は幸せには客観的な基軸があるとを主張したが[<br>\*1](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989)、これにはいまだに疑問が残る。 <br> [https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
-
-- **幸福度を測る 11 の要素**
-
-- 引用 <br> 過去の幸福研究などをベースに、人間に幸福をもたらす要素を 11 パターンに分類しております。[https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0](https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0)
-
-- **音声**
-
-- 引用 <br> スマートフォンと機械学習でうつ病を検知、30 秒の音声から <br> [https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full)
-
-- **マイク**
-
-- 引用 <br> 特別な機器を必要とせず、マイクのあるスマホだけで検査できるってのが可能性を感じる。精度が高まれば応用いろいろできそう。／話し方で「飲みすぎ」か分かる AI 　 12 秒の会話で酩酊状態を特定 <br> [https://www.itmedia.co.jp/news/articles/2301/25/news068.html](https://www.itmedia.co.jp/news/articles/2301/25/news068.html)
-
-- **うつ病予測**
-
-- 引用 <br> 北京大学とヘルスケア企業による共同研究の報告。ディープラーニングベースの手法を用いて、およそ 8 割の精度で高齢者のうつ病を検知できるとのこと。[https://twitter.com/AIBoom-net/status/1618865899628560391](https://twitter.com/AIBoom-net/status/1618865899628560391)
-
-- **EEG**
-
-- 引用 <br> EEG で行うっぽい <br> 音楽聴いてる状態を特定するのに、イヤホンに脳波センサーと音波センサー取り付けるの考えてたけど、これあればセンサー 1 種類で済むんよな。 <br> [https://twitter.com/masatojames/status/1618502175021486080](https://twitter.com/masatojames/status/1618502175021486080)
-
-- **脳内の磁場変化を察知できるセンサー**
-
-- 引用 <br> Google が AR/VR ヘッドセットに脳内の磁場変化を察知できるセンサーを導入する特許申請を行った。 <br> ユースケースとしてはユーザーの感情を読み取って、それに対してアクションを行える仕組みが考えられる。 <br> 考えるだけでバーチャルの世界をコントロール出来るようになる。 <br> [https://twitter.com/tmiyatake1/status/1620241970928181250](https://twitter.com/tmiyatake1/status/1620241970928181250)
-
-- **Canary**
-
-- 引用 <br> Canary Speech という企業の声から人の精神状態・感情を評価するアプリ「Canary」を参考にしたい[https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/)
-
-- **fMRI と EEG**
-
-- 引用 <br> 脳全体の血流や代謝を測定する fMRI と脳内の電気的活動に伴う電磁気信号を捉える脳波（EEG)を組み合わせ（非侵襲的）深層学習で音声合成による曲の復元と識別を行う。 <br> [https://twitter.com/shiropen2/status/1620573717507219456](https://twitter.com/shiropen2/status/1620573717507219456)
-
-- **スマホで血管老化を予測**
-
-- 引用 <br> スマホで血管老化を予測　機械学習により高精度に <br> [https://www.nature.com/articles/s41598-020-76816-6](https://www.nature.com/articles/s41598-020-76816-6)
-- スマートフォンで取得できる PRG※と、4 つの変数（性別、身長、体重、喫煙有無）を機械学習で分析し、血管老化を AUC 95％で予測できるとの報告。※RPG：フォトプレチスモグラフィ。血中酸素飽和度などの測定に使用。 <br> [https://twitter.com/AIBoom-net/status/1623595459506995202](https://twitter.com/AIBoom-net/status/1623595459506995202)
-
-- **表情**
-
-- 引用 <br> 声が出せない状況下でもマスク＋ AI で会話 <br> [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
-
-- **唇の筋肉の動きを分析**
-
-- 引用 <br> 清華大学の研究グループが開発。口唇言語（リップランゲージ）をニューラルネットワークで解読できる。唇の筋肉の動きを分析する仕組みとのこと。障がい者支援やヒューマンマシンインタフェースなどに応用が見込める。 <br>「マスクの下にある唇の動きを読み取る」という課題は、複数の研究グループにより取り組まれています。 <br> 下記は、レーダー信号と Wi-Fi 信号を深層学習で分析して読み取るアプローチ。上記 ツイート で紹介した研究とは別角度からの解決となります。[https://nature.com/articles/s41467-022-32231-1](https://nature.com/articles/s41467-022-32231-1) <br> [https://twitter.com/AIBoom-net/status/1623657972781154304](https://twitter.com/AIBoom-net/status/1623657972781154304)
-
-- **心臓のエコー図**
-
-- 引用 <br> 心臓のエコー図が撮れる皮膚パッチ　切手サイズで激しい運動でも 1 日中計測　米国チームが開発 [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html) <br> 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など。 <br> [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
-
-- **リストバンド型加速度計**
-
-- 引用 <br> リストバンド型加速度計でデータを取得&感情の算出の参考にしたい <br> 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」[https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html) <br> [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
-
-- **AiGROW**
-
-- AiGROW で Big-5 モデルを使って性格検査 <br> 木村充、福原正大、田代琴音「潜在的連合の測定による 5 因子性格検査ツール GROW-IAT の開発と評価」
-
-- **汗の成分を検出できる生地**
-
-- 引用 <br> 東北大学の研究チームは、汗の成分を検出できる生地を開発した。肌着用に使えるもので、人間が常時着用することで、汗の成分から健康状態をモニタリングできるようになる可能性がある。 <br> 研究チームが今回開発した生地は、独自の手法で製造した多機能繊維を織り込むことで、汗の成分の検出が可能になった。研究成果は 1 月 9 日、アナリティカル・アンド・バイオアナリティカル・ケミストリー（Analytical and Bioanalytical Chemistry）誌に掲載された。研究チームは今後、脳波や心拍、体温などを計測できる繊維の開発を進めるという。 <br> [https://www.technologyreview.jp/n/](https://www.technologyreview.jp/n/)
-
-- **MetaMe**
-
-- 引用 <br> ドコモのメタバースの新サービス MetaMe は 2 月 21 日に β 版の提供が開始される。 <br> ドコモでは NTT グループの技術を活用しながら「超多人数接続技術」「価値観理解技術」「行動変容技術」という 3 つの技術の開発を進めている。 <br> 価値観理解技術は「発話した内容や他人との関係性、表情などから読み取った感情を元に、人の内面に焦点を当てて理解する技術」、行動変容技術は「価値観理解技術で解析した情報を基に、高精度マッチング・レコメンドを提供する技術」だという。 <br> MetaMe には、NTT が開発した技術も盛り込まれる。取得した脳波を、アバターがまとうオーラとして可視化し、コミュニケーションを活性化させる技術も、MetaMe には試験実装された。 <br> 見ているものでオーラが変化することで、相手や自分の感情の変化が可視化されるという。 <br>\* [https://www.itmedia.co.jp/news/articles/2302/20/news103.html](https://www.itmedia.co.jp/news/articles/2302/20/news103.html)
-
-- **ホルモン分泌量**
-
-- 表情・リアクション、 ドーパミンやオキシトシンやセロトニンなどのホルモン分泌量などから感情の算出
-
-- **肥満測定法**
-
-- 引用 <br> BMI に代わる新しい肥満測定法　 3D スキャン＋ AI で <br> [https://nature.com/articles/s41598-023-30434-0](https://nature.com/articles/s41598-023-30434-0) <br> Nature Scientific Reports より。人体を 3 次元測定し、機械学習で肥満カテゴリー分類を行う技術が発表された。体重と身長のみで肥満度を測定する BMI よりも優れた手法とのこと。 <br> [https://twitter.com/AIBoom-net/status/1630433286907629568](https://twitter.com/AIBoom-net/status/1630433286907629568)
-
-- **スリープマスク**
-
-- 引用 <br> 近年、ヘルスケア関連の機能を強化するアップルが、「スリープマスク（sleep mask）」と呼ばれるデバイス向けの特許を取得したことが明るみに出た。タッチセンサーやオーディオセンサー、近接センサー、光学センサーなどの複数のセンサーが搭載され、目の筋肉の収縮を測定する筋肉活動センサーや、心電図センサー、脳波計センサーなどを用いて、健康状態を確認することが想定されている。 <br> また、睡眠中のユーザーの側頭部にかかる圧力を検出するセンサーや、湿度や温度を検出するセンサーを通じて、ベッドルームの状況を把握できる。 <br> アップルは将来の AirPods に心拍数や体温の測定機能を盛り込むと予想されている <br> [https://forbesjapan.com/articles/detail/49483](https://forbesjapan.com/articles/detail/49483)
-
-- **痛みの指標**
-
-- 引用 <br> ウェルビーイングを測定する際には痛みの指標も取り入れなさいねという意見論文
-  - Governments should measure pain when assessing societal wellbeing
-  - [https://www.nature.com/articles/s41562-023-01539-3](https://www.nature.com/articles/s41562-023-01539-3)
-
-- **BHQ**
-
-- 引用 <br> 主観的幸福度は私もおおむねこの理解で、評価する方法として最近は、イェール大の PERMA はじめ、大阪大学の特許技術レジリエンス指標、MRI を活用した BHQ。BHQ は脳のサイズを測る技術。コロナ禍など慢性ストレスのかかる状況だと縮むということなので環境因子、経済因子（こちらは限界ある）も関連する（文字数）<br> [https://twitter.com/Neron-Ngsk32/status/1624916875686862850](https://twitter.com/Neron-Ngsk32/status/1624916875686862850)
-
-- **心電図アプリ**
-
-- アップルウオッチの心電図アプリ
-
-- **心の理論**
-
-- 引用 <br>「GPT-3」などの最新言語モデルが自然に他者の心を推察する能力である「心の理論」を獲得していたという研究論文 <br> [2302.02083] Theory of Mind May Have Spontaneously Emerged in Large Language Models <br> [https://arxiv.org/abs/2302.02083](https://arxiv.org/abs/2302.02083) <br> Theory of Mind May Have Spontaneously Emerged in Large Language Models(PDF ファイル）<br> [https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf](https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf) <br> ヒトが他者の心の状態、目的、意図、知識、信念、志向、疑念などを推測する心の機能を「心の理論」と呼ぶ。 <br> OSF | Theory of Mind May Have Spontaneously Emerged in Large Language Models <br> [https://osf.io/csdhb/](https://osf.io/csdhb/) <br> [https://gigazine.net/news/20230210-theory-of-mind-spontaneously-language-models/](https://gigazine.net/news/20230210-theory-of-mind-spontaneously-language-models/) <br> [https://twitter.com/Yamkaz/status/1624891194840068096](https://twitter.com/Yamkaz/status/1624891194840068096) <br> 心の理論を獲得している AI に感情を推測してもらう
-
-- **COI 拠点**
-
-- 引用 <br> ヘルスケア領域の産学連携の成功事例として注目される弘前大学医学部を中心とする COI（センター・オブ・イノベーション）拠点。拠点長である村下公一氏に、イノベーション創出の要諦と COI 拠点としての進化の道筋を聞いた。 <br> 1000 人 ×3000 項目の超多項目健康ビッグデータ <br> 弘前市岩木地区の住民を対象に大規模な合同健康診断（岩木健診）を定期的に行い、蓄積された膨大なデータをもとに病気の予兆把握、予防法の開発、社会実装、行動変容までトータルに取り組んでいます。 <br> 血液や唾液、尿などから取る一般的な生理・生化学データに加え、ゲノムデータ、体力や運動機能、社会環境に至るまで現在は 3000 項目に及ぶ幅広いデータを蓄積しており、世界的にも類例のない健康ビッグデータとなっています。 <br> 岩木ビッグデータは 4 層構造になっていて、分子生物学的データと生理・生化学データという 2 層の下に、個人生活活動データ、社会経済環境的データの 2 層があり、このすべてのデータがつながった 3000 項目になっているのが最大の特徴です。つまり、1 つの項目と他の項目を関連付けた網羅的な解析ができるわけです。 <br> 実は、我々は超多項目の岩木健診に加えて、「QOL（クオリティ・オブ・ライフ）健診」を実施しています。2 時間程度で終わるコンパクトな健診で、「メタボ」（メタボリックシンドローム）、「口腔保健」「ロコモ」（ロコモティブシンドローム）、「うつ病・認知症」の 4 つのテーマで、検査項目を約 40 に絞っています。 <br> 現在、QOL 健診をリモートで行える「セルフモニタリング式 QOL 健診」の開発に取り組んでいます。セルフモニタリングで日々の健康データを収集・蓄積し、健康未来予測 AI がオンラインで一人ひとりに適したアドバイスを行うといった世界観を目指しています。 <br> [https://dhbr.diamond.jp/articles/-/9243](https://dhbr.diamond.jp/articles/-/9243)
-
-- **性格を予測**
-
-- 引用 <br> 20 秒の音声から AI が「性格」を予測 <br> [https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554](https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554) <br> [https://doi.org/10.1016/j.actpsy.2022.103740](https://doi.org/10.1016/j.actpsy.2022.103740) <br> 機械学習モデルに音声を分析させることで、性格特性ビッグ 5（外向性・協調性・誠実性・開放性・神経症的傾向）を予測できることを示唆した。とくに「外向性」は他の特性より予測精度が高いとのこと。 <br> [https://twitter.com/AIBoom-net/status/1625748146247847941](https://twitter.com/AIBoom-net/status/1625748146247847941)
-
-- **Google の API とかでも文章から感情分析**
-
-- 引用 <br> google の API とかでも文章から感情分析出来るらしいので今後はそっちも試す予定ですが、今は GPT3 を使って会話内容の感情分析をしてます
-  - 「次の会話から感情を喜 0.7 悲 0.1 怒 0.2 等のように数値として表せ」みたいな感じのプロンプトを使って分析してます
-  - [https://twitter.com/cumulo-autumn/status/1626129783892643841](https://twitter.com/cumulo-autumn/status/1626129783892643841)
-
-- **Intellect**
-
-- 引用 <br> アプリで提供しているメンタルマネジメント・ソリューション「Intellect」に「ウェルビーイング診断」結果を 13 領域で数値化し、個々の従業員が抱えるメンタル課題の抽出と解決策を通して従業員を「ウェルビーイング」な状態に導く <br>「Intellect」にて出題される 26 設問に利用者が回答することで、「心理的ウェルビーイング」「レジリエンス」「対人関係の構築」「成長マインドセット」「自己認識」「自己効力感」「目標志向」「目的と意義」「楽観主義」「感情コントロール」「ストレスマネジメント」「関与の促進」「ワークライフバランス」の 13 領域における個々のメンタル状況が数値化されると共に、どの領域がウェルビーイングな状態であるか否かを瞬時に把握することが可能となる <br> Intellect では、利用者が日々変化するメンタルコンディションを利用者自身が把握できるよう、アプリ起動時に表示される「気分」ボタンから利用者の「気分」を記録する「デイリーチェックイン」を提供しております。 <br> [https://prtimes.jp/main/html/rd/p/000000007.000102702.html](https://prtimes.jp/main/html/rd/p/000000007.000102702.html)
-
-- **感情の円環モデル**
-
-- ビッグファイブ、感情の円環モデル（の次元）、システム 1・2
-
-- **セルフモニタリング**
-
-- 引用 <br>「NEC ヘルスケア・ライフサイエンス有識者会議」の「Lifestyle Support WG（ワーキング・グループ）」の、人々が自らの健康状態を常にセルフモニタリングする技術 <br> 体重計、体温計、血圧計、血糖値測定器、腸内細菌、ホルモンの分泌状況、細胞代謝の状態、体調の良し悪しや免疫力、認知能力、幸福度の指標となるドーパミンやオキシトシンの分泌量 <br> 遺伝子や酵素、抗体、核酸、微生物などのバイオマーカーを検出するバイオセンサー技術です。スマートウォッチに搭載されている接触型センサーの多くは、血管などから発する光により生体反応を読み取るものです。微妙な光の変化から脈拍や血中酸素飽和度を計測する技術はすでに確立され、現在はさらに多くの生体情報を読み取るための技術開発が進められている。 <br> 少量の血液で約 7,000 種のタンパク質を一度に測定することで、現在の体の状態と予測される将来の疾患リスクを把握できる検査サービス「フォーネスビジュアス」はその一例です。検査を受けた人が医療機関を通じて提供される専用アプリでは生活習慣を改善するための多彩なメニューを利用でき、歩数や消費カロリーなど毎日の健康データの記録や、健康づくりのための目標設定とその取り組みの管理も行える。 <br>「歩行センシング・ウェルネスソリューション」は、約 13g の歩行分析センサーを搭載した専用インソールを靴に入れるだけで、歩行速度、歩幅、接地角度など 20 項目以上のデータを収集する。足の健康状態を推定する独自の歩容分析 AI 技術によって、歩行を通じた健康増進を支援。[https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html](https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html)
-
-- **発話から「疲労」を検出**
-
-- 引用 <br> 発話から「疲労」を検出　深層学習で最大 92％ <br> [https://doi.org/10.1088/1742-6596/2224/1/012023](https://doi.org/10.1088/1742-6596/2224/1/012023) <br> [https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023](https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023) <br> 声に含まれる周波数や速度などの特徴から、人の疲れを予測できることが示唆された。深層学習アプローチを用いることにより、高精度で検出できるとのこと。中国の南通⼤学研究者らによる報告。 <br> [https://twitter.com/AIBoom-net/status/1631489834283061251](https://twitter.com/AIBoom-net/status/1631489834283061251)
-
-- **主観的 QOL 計測**
-
-- 引用 <br> 人工知能は人間の幸福度を測ることができるか？　～主観的 QoL 計測におけるパターン認識・メディア理解技術の可能性を探る～ <br>\* [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F)
-
-- **ウェアラブルデバイスでうつ病の診断**
-
-- 引用 <br>「ウェアラブルデバイスでうつ病の診断に取り組む」という論文（2020 年）。 <br> 精神疾患を客観的データに基づいて診断・治療するという「計算論的精神医学」<br> [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5>) <br> [https://twitter.com/<br>-daichikonno/status/1634757593821507590](https://twitter.com/-daichikonno/status/1634757593821507590)
-
-- **血糖値測定**
-
-- 引用 <br> アップルウオッチで血糖値測定する技術、開発が飛躍的進展－関係者 <br> [https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01](https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01) <br> [https://twitter.com/g7z5e/status/1628567288738897920](https://twitter.com/g7z5e/status/1628567288738897920) <br> 穿刺せずに血液中のグルコースを継続的に測定できる技術を開発中 <br> [https://twitter.com/tk596350/status/1628565072464474112](https://twitter.com/tk596350/status/1628565072464474112) <br> 血糖値を測って、感情の算出の参考にしたい
-
-- **筋肉の動きから感情を算出する**
-
-- 引用 <br> 筋肉の動きから感情を算出する <br> 喉に薄いパッチを貼るだけで音声認識を行う研究が進んでいます。パッチに組み込まれたセンサーが皮膚表面に伝わる筋肉の動きと音の振動を感知し、AI の学習モデルを通して認識可能な音声に変換してくれます。 <br> 騒音の大きい場所での利用だけでなく、声帯を切除した人たちにも有用な技術です。 <br> [https://www.nature.com/articles/s42256-023-00616-6#Sec14](https://www.nature.com/articles/s42256-023-00616-6#Sec14) <br> [https://twitter.com/namchan-koushi/status/1633241319123599360](https://twitter.com/namchan-koushi/status/1633241319123599360)
-
-- **ChatGPT が人の「性格」を分析**
-
-- 引用 <br> ChatGPT が人の「性格」を分析できる可能性が示唆された <br> [https://doi.org/10.48550/arXiv.2303.01248](https://doi.org/10.48550/arXiv.2303.01248) <br> [https://arxiv.org/abs/2303.01248](https://arxiv.org/abs/2303.01248) <br> [https://twitter.com/AIBoom-net/status/1632953350827429888](https://twitter.com/AIBoom-net/status/1632953350827429888)
-
-- **Divergent Association Task/拡散連想課題（DAT）**
-
-- 引用 <br> まったく関連のない単語を思い浮かべるのが鍵。科学者が開発した創造性判定テスト <br> ハーバード大学は、新たに「Divergent Association Task/拡散連想課題（DAT）」というテストを開発した。 <br> 2 ～ 4 分でできるテスト（英文）なのだが、できるだけ意味の離れた、関連性のない言葉（名詞）を入力することで、創造性を客観的に判定できるという。 <br> 創造力判定テスト「Divergent Association Task/拡散連想課題（DAT）」のルールは簡単だ。10 個の入力欄があるので、そこにできるだけ意味の離れた名詞を入力していくだけだ。 <br> たとえば、「猫」と「犬」よりも、「猫」と「本」の方がより意味がかけ離れている名詞となる。そうしたできるだけ関係のないものを挙げていくのだ。 <br> 人の創造性を測定する主な方法としては、あるものの用途をできるだけ多く考案する「代替用途課題（Alternative Uses Task）」と、2 つの単語を 3 つ目の単語でつなぐ「連想ギャップ補完課題（Bridge-the-Associative Gap Task）」の 2 つがある。 <br> References:Measuring creativity, one word at a time | Newsroom - McGill University / written by hiroching / edited by / parumo <br> [https://karapaia.com/archives/52317371.html](https://karapaia.com/archives/52317371.html)
-
-- **困難マインドセット尺度**
-
-- 引用 <br> 困難に対するマインドセットには不可能、重要のほかに自己改善という側面がある。困難マインドセット尺度を複数文化圏で使用し、自己改善の機会と捉える程度には文化差があることを示した。さらに勤勉性、徳、人生の意味、楽観性との関連も示した（Yan et al., 2023, PSPB）<br> [https://buff.ly/3ZLaF45](https://buff.ly/3ZLaF45) <br> [https://journals.sagepub.com/doi/abs/10.1177/01461672231153680](https://journals.sagepub.com/doi/abs/10.1177/01461672231153680) <br> [https://twitter.com/psychama/status/1632400582261587969](https://twitter.com/psychama/status/1632400582261587969)
-
-- **筋肉から作られる微かな表情**
-
-- アマゾンの顔認証システムでは、多くの筋肉から作られる微かな表情から、喜び、悲しみ、怒り、嫌悪、驚き、恐れを識別できる
-
-- **感情分析**
-
-- 引用 <br> [https://github.com/rondinellimorais](https://github.com/rondinellimorais)
-- 引用 <br> Real-time detection of your feelings using AI <br> It truly captures the complexity of Anger, Sadness, Joy.AI may be able to understand humans more than humans in future.The tool reads faces from a video and detects feelings based on something like an emotion wheel.Build by - [@rondmorais](https://twitter.com/rondmorais) <br> [https://github.com/rondinellimorais/facial-expression-recognition](https://github.com/rondinellimorais/facial-expression-recognition) <br> [https://twitter.com/heyBarsee/status/1640257391760474112](https://twitter.com/heyBarsee/status/1640257391760474112) <br> リアルタイムに人間の感情を推測する技術。表情から恐怖、興奮、幸福、怒りなどを読み取る… <br> [https://twitter.com/eiji24g/status/1640263967401541632](https://twitter.com/eiji24g/status/1640263967401541632) <br> [https://twitter.com/shota7180/status/1636547385718603776](https://twitter.com/shota7180/status/1636547385718603776)
-
-計算論的精神医学
-
-- 引用 <br> 精神疾患を客観的データに基づいて診断・治療する「計算論的精神医学」<br>「ウェアラブルデバイスを用いてうつ病を診断する」という研究を深掘りしました。 <br> [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5>) <br> [https://twitter.com/<br>-daichikonno/status/1636923475251298304](https://twitter.com/-daichikonno/status/1636923475251298304)
-
-- **I'mbesideyou**
-
-- 引用 <br> 日系スタートアップ、I'mbesideyou <br> 人間の表情や顔の向きから視線や音声といった状態を基に、AI 統合解析によって、有効と判断したコミュニケーションをサポートする。[https://forbesjapan.com/articles/detail/61733](https://forbesjapan.com/articles/detail/61733)
-
-- **CyberneX**
-
-- 引用 <br> イヤホン型脳波計でリラックス度を可視化 <br> 株式会社 CyberneX（以下、CyberneX）はリラックス度を脳波から定量的に可視化し、比較できる「α Relax Analyzer」<br> CyberneX が提供する「XHOLOS Ear Brain Interface」というイヤホン型脳波計や、脳波データを保存し解釈するためのアルゴリズムを搭載した「α Relax Analyzer」などの脳情報活用基盤を利用します。 <br> また、「α Relax Analyzer」におけるリラックス度を可視化するための指標である「リラックススコア」は、取得した脳波データの各スペクトルの強度などをもとに CyberneX が独自開発したアルゴリズムで算出されます。 <br> [https://prtimes.jp/main/html/rd/p/000000012.000086789.html](https://prtimes.jp/main/html/rd/p/000000012.000086789.html) <br> [https://techable.jp/archives/200126](https://techable.jp/archives/200126)
-
-- **腸内細菌**
-
-- 引用 <br> ファンケルが、腸内細菌が心理社会的ストレスに対する脆弱性と関連している可能性があり、腸内環境を整えることがストレス対策につながるという結果を公表しました。 <br> また、今回の研究成果は、うつ病などの精神疾患を含むストレス関連疾患の早期発見や、腸内環境へのアプローチによる日常的なストレスの緩和、さらにはストレス関連疾患予防の貢献につながると考えられるといいます。 <br> ストレスについては、脳活動、心拍数、主観的ストレスについて、3 種類のストレスに関する実験条件（<br>\*）を設定し、それらを行っている間の脳活動と心拍数を計測。脳活動については、oXy-Hb（酸化ヘモグロビン）の濃度を測定しました。さらに、実験条件を設定した後に「どのくらいストレスを感じたか」といった主観的ストレスも測定しました。 <br> ＊3 種類の実験条件とは、以下の通り <br>（1）レスト条件：PC の画面を見ているだけ <br>（2）非ストレス条件：心理社会的ストレスをかけずに暗算を行う <br>（3）ストレス条件：　心理社会的ストレス（時間制限などを含む）をかけられた状態で暗算を行う <br> PR TIMES：**[https://prtimes.jp/main/html/rd/p/000001021.000017666.html](https://prtimes.jp/main/html/rd/p/000001021.000017666.html)** <br> [https://techable.jp/archives/200166](https://techable.jp/archives/200166)
-
-- **メンタルヘルス状態の推定に ChatGPT**
-
-- 引用 <br> メンタルヘルス状態の推定に ChatGPT が有用 <br> [https://doi.org/10.48550/arXiv.2303.15727](https://t.co/L624cROCbM) <br> [https://arxiv.org/abs/2303.15727](https://arxiv.org/abs/2303.15727) <br> 米ライス大学の心理学 AI 研究者による報告。SNS 投稿からのストレス検出、うつ病検出において高い精度が確認されたとのこと。 <br> [https://twitter.com/AIBoom-net/status/1640905756911480834](https://twitter.com/AIBoom-net/status/1640905756911480834)
-
-- **AI との対話**
-
-- 引用 <br> AI との対話でウェルビーイングを計測し、改善を促す <br> 映像解析 AI を使えば、顔の表情から幸福な状態かそうでないかを把握できます。 <br> 会話の内容からその人の心理状態や健康を把握し、さまざまなアドバイスを行うこともできます。 <br> まず AI チャットボットとの対話によって、その人のウェルビーイングを計測します。状態やタイプをグループ化したうえで、NEC 版行動変容提案モデルをもとにアドバイスを行いました。 <br> 因果関係を可視化する「要因分析型 AI」です。NEC 社内で実施した従業員エンゲージメントに関するアンケート結果からは、働く気分を天気で表現していたのですが、それに影響する因果構造を分析・可視化。要因を把握することで、具体的な改善アクションにつなげています。[https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html](https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html)
-
-- **hume**
-
-- 引用 <br> 人間のあらゆる感情を分析する『hume』がやばい感じ。.. <br> ・30 以上の人間の感情を可視化するデータプラットフォーム <br> ・顔の表情や声紋などからデータ化 <br> [https://hume.ai/products/](https://hume.ai/products/) <br> [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
-
-- **脳活動を計測**
-
-- 引用 <br> アラヤ、事故予防技術のための運転手の脳活動を計測、運転時の認知処理を支援するインタフェースの有用性を発表 <br> 株式会社アラヤは、本田技術研究所と共同で、運転中の脳活動から安全運転に関わる部位を特定し、AI を活用して先んじて危険因子を運転手に知らせるシステムの実証実験などの一連の結果をまとめ、第 27 回 ESV 国際会議（ESV2023）で本成果を発表しました。[https://prtimes.jp/main/html/rd/p/000000013.000049573.html](https://prtimes.jp/main/html/rd/p/000000013.000049573.html)
-
-- **耳の中の細かい振動から呼吸や心拍を測定**
-
-- 引用 <br> Apple が耳の中の細かい振動から呼吸や心拍を測定できる技術と聴力を長期モニタリングが出来る技術の特許申請を出した。 <br> [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790) <br> [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953) <br> [https://twitter.com/tmiyatake1/status/1645215735780888576](https://twitter.com/tmiyatake1/status/1645215735780888576)
-
-- **Image Decoder**
-
-- 感情の算出
-- 引用 <br> Meta Platforms の研究者は 2023 年 10 月 18 日、脳活動から人の“心“を読むアプリケーション「Image Decoder」を発表した。 <br>「Image Decoder」は、同社が提供する自己教師付きのオープンソース基盤モデル「DINOv2」をベースとしたアプリケーション。脳から出てくる磁気を記録する MEG（脳磁図検査）で脳活動を把握することで、隔たったところにいる被験者が何を見ているか、何を想像しているかを把握できる。[https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/](https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/)
-
-- **心拍数モニタ機能**
-
-- 感情の算出
-- 引用 <br> Google が同社の research blog のエントリにおいて、“APG: Audioplethysmography for Cardiac Monitoring in Hearables,”と呼ばれる新たな技術を発表しました。これは ANC（アクティブノイズキャンセリング）イヤホンに、追加のセンサーを必要とせず、ソフトウェアアップデートだけで心拍数モニタ機能を付与できるというすごい技術です。 <br> 心拍数と心拍変動の両方を高い精度で計測できるとのこと。 <br> 追加センサーなしでどうやってこんなことを行うのかというと、ANC イヤホンのスピーカーと内蔵マイクを利用します。「プローピング信号」という超音波をスピーカーから流し、その反射をマイクで測定します。外耳道は血管に囲まれているため、心臓の鼓動によって内部の容積と圧力が微妙に変化し、この変動をマイクによって測定することで心拍数が分かるというもの。 <br> 超音波を使用するため、音楽が流れていても聞こえないように測定が可能。 <br> [https://daily-gadget.net/2023/11/02/post-63765/](https://daily-gadget.net/2023/11/02/post-63765/)
-
-- **情動変容メカニズム**
-
-- 感情の算出の参考にしたい
-- 引用 <br> PwC コンサルティング合同会社（東京都千代田区、代表執行役 CEO:大竹 伸明、以下「PwC コンサルティング」）と、国立大学法人広島大学 脳・こころ・感性科学研究センター（広島県広島市、センター長： 山脇 成人 、以下「広島大学 脳・こころ・感性科学研究センター」）は 11 月 1 日から、「コンテンツ視聴時における情動変容と余韻形成メカニズムの解明と定量化系構築」に関する共同研究（以下「本研究」）を開始します。 <br> 感性工学（<br>\*1）と脳科学を融合した感性脳科学の観点から、そのメカニズムや相関関係の解明に取り組むことを目的としたものです。 <br> 情動変容の定量計測や感動状態の新たな定義、余韻形成との相関関係を紐解くことを目指す研究を開始します。[https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf](https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf) <br> [https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/](https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/)
-
-- **光学式心拍センサー**
-
-- 感情の算出の参考にしたい
-- 引用 <br> Polar Electro（本社：フィンランド、設立：1977 年、以下「ポラール」）は、1982 年に世界初とされるワイヤレス式心拍計モニター装置を開発した、心拍計測・分析のスペシャリストだ。 <br> 今回、同社の光学式心拍センサー「Polar Verity Sense」と、株式会社 obniz（以下、obniz）の IoT プラットフォームが連携した[https://techable.jp/archives/220874](https://techable.jp/archives/220874)
-
-- **UK Biobank**
-
-- UK Biobank を幸福度の算出の学習データに
-
-- **感情の算出の参考にしたい**
-
-- 引用 <br> マイルズ・キンボールの幸福に関する NBER 論文をもう一丁。以下は、Miles S. Kimball（コロラド大学ボルダー校）と Robert J. Willis（ミシガン大学）による表題の論文（原題は「Utility and Happiness」、2006 年時点の WP）の要旨。 <br>（拙訳）心理学者は、ある時点で人々がどれだけ幸福と感じているかを測定する効果的な調査法を開発してきた。 <br> 幸福は次の 2 つの要素の和である、と我々は論じる。(1) 生涯効用に関する最近のニュースに依存する高揚感ないし短期的幸福、(2) 健康、娯楽、もしくは栄養と同様の副効用関数である基調的気分ないし長期的幸福。 <br> [https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness](https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness)
-- 引用 <br> 自己申告の厚生におけるスケール使用の不均一性の調整という NBER 論文をマイルズ・キンボールらが上げている（ungated(SSRN)版）。原題は「Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being」で、著者は Daniel J. Benjamin（UCLA）、Kristen Cooper（ゴードン大学）、Ori Heffetz（コーネル大学）、Miles S. Kimball（コロラド大学ボルダー校）、Jiannan Zhou（山東大学）。 <br>（拙訳）自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない。我々は、回答者が同じ客観的な回答を行うように設計されたカリブレーション用の質問を用いて、次元的（即ち、自己申告の厚生という次元に特有な）および一般的な（即ち、質問に共通した）スケール使用の不均一性を測定した。 <br> [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
-- 引用 <br> 自己申告の厚生（SWB）調査に関する表題の NBER 論文が上がっている。原題は「From Happiness Data to Economic Conclusions」で、著者は Daniel J. Benjamin（UCLA）、Kristen Cooper（ゴードン大学）、Ori Heffetz（コーネル大学）、Miles S. Kimball（コロラド大学ボルダー校）。 <br>（拙訳）幸福データ -サーベイ回答者の自己申告の厚生 -は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている。研究者は自己申告の厚生データを新たな形で利用しており、例えば、選択データが利用できない、もしくは解釈が困難な場合の厚生や選好を知るために用いている。 <br> 自己申告の厚生データを作成する機関や組織に実務的なアドバイスを提示する。 <br> [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions?utm-source=subscription-mail&utm-medium=email&utm-campaign=subscription)
-
-- **AirPods で脳信号を記録**
-
-- 引用 <br> AirPods で脳信号を記録 ── イヤフォンに貼るセンサーを米研究者らが開発　ストレスや集中度を監視 <br> 米カリフォルニア大学サンディエゴ校に所属する研究者らが発表した論文「In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat」は、脳活動と運動レベルをイヤフォンで連続的に記録するための柔軟なスクリーン印刷センサーに関する研究報告です。スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です。 <br> 耳の中から非侵襲的に EEG 信号を取得するアプローチ。 <br> この柔軟なセンサーは、EEG 信号を収集するだけでなく、汗からの乳酸も感知できる。[https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
-
-- **AI による感情推測**
-
-- 引用 <br> 1 つ目は、音の変化による判別です。 <br> 2 つ目は、テキスト情報からの推測です。 <br> 3 つ目は、話している内容を AI が正確に認識できているかどうかです。 <br> [https://seleck.cc/1616](https://seleck.cc/1616)
-
-- **感情可視化技術**
-
-- 引用 <br> Olive は、ヒトの感情を可視化する技術基盤「La Cause（ラクーズ）」を提供するスタートアップです。 <br> 心拍情報、体動、呼吸等の生体データをさまざまなセンサーから収集・蓄積し、これらのデータを独自アルゴリズムと AI により感情や状態に向けた解析を行います。 <br> 感情推定技術 <br> ライブでの実証実験では、客席に観客の感情を計測するためのセンサーが取り付けられた。映画館で観客の感情データをリアルタイムで取得し、それをイベントで使用するような取り組みも実施されていましたね。 <br> 我々のもっとも強力で特徴的な点は、計測対象者がデバイスを装着せずに、通常通りの行動をしてもらいながらデータを収集できることです。つまり、計測が行われていることを意識させずにデータを取得することを重要視しています。例えば映画の場合、座席の後ろに赤外線カメラを配置し、観客の生体データを測定しました。 <br> さらに、生体データの取得により、人々が意識的にコントロールできない要素が反映され、面白くない状況でも笑顔を作り出したり、怖くないのに怖い表情をしたりするなどのノイズを排除できます。事前に映画を拝見して、感情を具体的にどのように見える化できるか、松竹さんにとって何が意義があるのか、観客にとって楽しい体験となるかを考えました。 <br> [https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine](https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine)
-
-- **血圧と睡眠障害をモニタリング**
-
-- 感情の算出の参考にしたい
-- 引用 <br> 睡眠時無呼吸症候群と血圧上昇を検知するセンサーを次期 Apple Watch に搭載するつもりだという。 <br> Apple Watch シリーズの将来的な機能として、近赤外線分光法を用いた血圧測定の可能性が以前から議論されてきた。 <br> 一方、睡眠時無呼吸症候群は血中酸素濃度、運動量、呼吸数、いびき、心拍数などの要素を分析することで特定できる[https://forbesjapan.com/articles/detail/67114](https://forbesjapan.com/articles/detail/67114)
-
-- **社会的文脈と感情**
-
-- 感情の算出の参考にしたい
-- Sixteen facial expressions occur in similar contexts worldwide <br> [https://t.co/RBGkg9QxQ8](https://t.co/RBGkg9QxQ8)
-
-- **Tesla がドライバーの顔認識**
-
-- 感情の算出の参考にしたい
-- 引用 <br> Tesla がドライバーの顔認識をしてパーソナライズされた体験を提供する技術の特許申請を行なった。 <br> 車に乗った際に名前で呼んでくれたり、エアコンや席の調整、そして意識が無かったり反応が無ければ救急車を呼ぶと同時に自動運転で近くの病院に移動する。 <br> [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721) <br> [https://twitter.com/tmiyatake1/status/1728202847513420100](https://twitter.com/tmiyatake1/status/1728202847513420100)
-
-- **e-skin ECG**
-
-- 感情の算出の参考にしたい
-- 引用 <br> 慶應義塾大学病院にホルター心電図の郵送検査サービス「e-skin ECG」が導入 ─ 人間ドックでホルター心電図検査可能に[https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/](https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/)
-
-- **明確に自覚していない情動に対する顔色**
-
-- 感情の算出の参考にしたい
-- 引用 <br> 豊橋技術科学大学の研究チームは、顔色は情動の認知に対して無意識に影響を与え、この現象は観察者自身が自覚していない場合でも起こりうることを明らかにした。 <br> “ハイブリッド表情”という特殊な表情画像を使用して、心理物理実験を実施。ハイブリッド表情は、幸せ表情と無表情、あるいは怒り表情と無表情の顔を異なる空間周波数で混在させた表情（順にハイブリッド幸せ表情、ハイブリッド怒り表情）で、情動研究でよく使われる実験刺激の 1 つだ。 <br> 論文情報：【Cognition and Emotion】The effect of facial colour on implicit facial expressions <br> [https://univ-journal.jp/235496/](https://univ-journal.jp/235496/)
-
-- **Oura Ring の「Daytime Stress」**
-
-- 引用 <br> Oura Ring の「Daytime Stress」<br> 心拍数や体温などの生体データから、ストレスの変化を測る機能。測定は 15 分ごとに行われ、どのような体験がストレスの原因になっているかを判定できる。 <br>「Reflections」<br> AI を活用した日記機能。音声認識と AI による自動タグづけにより、1 日の振り返りを話して記録できるほか、気分や精神状態もジェスチャーひとつで記録できる。「Stress Resilience」（今冬から提供予定）<br> 日中のストレス負荷や、日中および睡眠中の回復の追跡により、利用者のストレス耐性を評価する機能。「Daytime Stress」により取得した情報を使用しており、健康を改善するための情報も提供される。 <br> [https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/](https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/)
-
-- **Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能**
-
-- Oura Ring の 日中のストレスと回復をリアルタイムで追跡する新機能で、リングの 心拍変動や 心拍数や動きや体温を測定して、生理的なストレスをリアルタイムで測定する 新機能を幸福度の測定等の参考にしたい
+1. 毎日の幸福度アンケート・いじめ早期発見
+   - 参考
+     - [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html)
+     - [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる連携協力に関する協定](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf)
+     - [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
+   - 説明
+     - 毎日の幸福度アンケートの参考
+     - 児童や生徒同士の関係性を可視化する。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握する
+     - タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもある。SOS を早期発見し、問題が深刻化する前に対処するのが狙い
+
+2. リストバンド・カメラ・眼球運動
+   - 参考
+     - [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
+   - 説明
+     - 感情の算出の参考にしたい
+     - リストバンド端末で脈拍を計測して集中を測定
+     - カメラで頬の血管の血流を測定
+     - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
+     - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
+
+3. 心理学・行動経済学
+   - 説明
+     - 心理学や行動経済学から幸福度を算出する方法、無料主義で、感情や幸福度を算出する方法の参考にしたい
+
+4. 経験サンプリング研究
+   - 参考
+     - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
+   - 説明
+     - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
+     - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
+
+5. 取得データの種類
+   - 説明
+     - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
+     - 感情の算出の参考にしたい
+
+6. Utility and Happiness（Kimball & Willis）
+   - 参考
+     - [https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness](https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness)
+   - 説明
+     - 幸福は次の 2 つの要素の和である。(1) 生涯効用に関する最近のニュースに依存する高揚感ないし短期的幸福、(2) 健康、娯楽、もしくは栄養と同様の副効用関数である基調的気分ないし長期的幸福
+
+7. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
+   - 参考
+     - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
+   - 説明
+     - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
+
+8. From Happiness Data to Economic Conclusions
+   - 参考
+     - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
+   - 説明
+     - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
+
+9. 潜在的連合テスト
+   - 説明
+     - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
+
+10. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
+
+- 参考
+  - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
+
+11. 幸福度を測る方法の参考にしたい対象
+
+- 説明
+  - ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
+
+12. センサー「エモコアイ」
+
+- 参考
+  - [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
+- 説明
+  - センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する
+  - 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する
+
+13. Thymia
+
+- 参考
+  - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
+- 説明
+  - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービスだ
+  - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられるという
+
+14. Web カメラだけで心拍数と心拍変動
+
+- 参考
+  - [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136)
+  - [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
+- 説明
+  - Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい
+
+15. GPT-4 が性格診断・感情分析
+
+- 参考
+  - [https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend)
+  - [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
+- 説明
+  - 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した
+  - その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた
+
+16. iOS 17 の「心の健康状態」
+
+- 参考
+  - [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
+  - [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d)
+  - [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
+- 説明
+  - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
+  - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
+  - GPS に従って街の中をさまよい、気になる瞬間を写真に残していくと、ジャーナルアプリがあなたの 1 日の物語を綴ってくれる
+  - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
+  - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
+  - 「自動感情日誌」になる
+  - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
+  - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
+  - そのアプリ API から気分の記録とか取ってこれないかな
+  - ヘルスケアのデータ取得ができる API があるらしい。HealthKit
+  - Amazon やその他の何かの購入履歴やサービス利用履歴などで突合
+  - 上記のヘルスケアのようなデータが「結果」のデータ（y 軸）、購入履歴や使用履歴が「手段」のデータ（x 軸）この 2 つが必要
+  - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
+
+17. TherapeiaVR
+
+- 説明
+  - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
+
+18. 感情認識 AI
+    - 説明
+      - 感情認識 AI を感情の算出の参考にしたい
+      - 感情認識 AI。人の感情を認識しようとする AI
+
+19. 感性アナライザ
+    - 参考
+      - [https://realsound.jp/tech/2023/05/post-1337515.html](https://realsound.jp/tech/2023/05/post-1337515.html)
+    - 説明
+      - 電通サイエンスジャムの技術である「感性アナライザ」によって体験中の脳波を測定し、ハグ時の幸福度に関連する感情変化を計測・可視化する取り組みも行われており、ハグによって脳の働きが変化していく様子を視覚的にとらえることも可能だ
+
+20. 脈拍の変動
+    - 説明
+      - スマートウォッチが脈拍の変動からストレスを推定する仕組み
+
+21. スケジュールと現在の気分の記録＆報告
+    - 説明
+      - 無料主義アプリで、毎日の気分と今日の大体のスケジュールを記載して提出すれば報酬が得られるようにして、「幸福度の向上」の評価軸ベース評価の参考にしたら良い
+
+22. wellday
+    - 参考
+      - [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
+    - 説明
+      - 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない
+      - ウェルデイは 2019 年に設立した。独自の人工知能（AI）を活用し、業務で普段利用するコミュニケーションツールを利用して、従業員のストレスを予測するサービスを手掛けている
+
+23. 皮膚電気活動（EDA）
+    - 参考
+      - [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
+    - 説明
+      - Google Pixel Watch 2 は Fitbit のストレス管理や皮膚温センサ追加、緊急 SOS 機能も強化のうわさ
+      - 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです
+      - Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです
+
+24. テキストから病気を見つける技術
+    - 参考
+      - [https://togetter.com/li/2226111](https://togetter.com/li/2226111)
+      - [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155)
+      - [https://academic.oup.com/dsh/article/26/4/435/1052059?login=false](https://academic.oup.com/dsh/article/26/4/435/1052059?login=false)
+    - 説明
+      - 文章を数値解析して、感情を算出
+      - アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう
+      - アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と
+
+25. Apple Mood Tracking
+    - 参考
+      - [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
+    - 説明
+      - Apple Mood Tracking は良い。これでいいじゃんってなってる
+      - Apple watch から通知
+      - ↓
+      - Watch から直で感情ログ
+      - そのまま音声入力で状況記録
+      - アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる
+      - ジャーナルアプリが出たら写真と感情の紐付けも
+
+26. 「非侵襲型」の血糖値計測
+    - 参考
+      - [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
+    - 説明
+      - 「非侵襲型」の血糖値計測で健康の測定や感情の算出
+
+27. Google 音声アシスタント
+    - 参考
+      - [http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ)
+      - [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
+    - 説明
+      - Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した
+
+28. Empath
+    - 参考
+      - [https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/)
+      - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)
+      - [https://chizaizukan.com/property/005](https://chizaizukan.com/property/005)
+    - 説明
+      - 音声感情解析 AI を提供する株式会社 Empath。「DeepEmo」は、同社の音声感情解析 AI「Empath」でセリフ音声を解析し、0.32 秒ごとに変化する感情値を生成する技術。Empath が保有する感情表出音声をもとに、ディープラーニングを使用して 9 つの感情（平常・怒り・恐怖・嫌悪・喜び・悲嘆・信頼・興味・驚き）を推定するアルゴリズムだ
+      - 株式会社 Empath
+      - 商願 2014-35949：「Empath」
+      - 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）
+
+29. Hugtics
+    - 参考
+      - [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
+    - 説明
+      - 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する
+
+30. アイトラッキング
+    - 参考
+      - [https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
+    - 説明
+      - Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許
+      - 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる
+
+31. 非接触型の脈拍測定
+    - 説明
+      - カメラを使った非接触型の脈拍測定ができるらしい
+      - この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
+
+32. 可食ワイヤレス生体情報センサ
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
+    - 説明
+      - 「可食ワイヤレス生体情報センサ」がもたらす未来とは？
+      - 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」
+      - 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した
+
+33. 感情認識技術
+    - 説明
+      - 感情認識技術
+      - 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
+
+34. 失言検出課題、チーズケーキ課題
+    - 説明
+      - 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
+
+35. 脳活動解読
+    - 参考
+      - [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/)
+      - [【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full)
+      - [https://univ-journal.jp/159335/](https://univ-journal.jp/159335/)
+    - 説明
+      - ブラックボックスな脳活動解読器の動作が深層学習の応用で説明可能に
+      - 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる
+      - 論文情報：
+
+36. ストレスチェックと生活習慣等の分析
+    - 参考
+      - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
+    - 説明
+      - 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている
+
+37. ANBAI
+    - 参考
+      - [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/)
+      - [https://anbai.team/](https://anbai.team/)
+      - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
+    - 説明
+      - 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」
+
+38. Mappiness
+    - 参考
+      - [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html)
+      - [Mappiness](https://www.mappinessapp.com/)
+      - [https://www.sussex.ac.uk/research/full-news-list?id=44576](https://www.sussex.ac.uk/research/full-news-list?id=44576)
+      - [https://nazology.net/archives/8656](https://nazology.net/archives/8656)
+    - 説明
+      - “” というスマートフォンアプリを用いて、32,000 人からデータを抽出
+      - “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ
+      - 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました
+
+39. 汗からストレスレベル
+    - 参考
+      - [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
+    - 説明
+      - 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表
+      - 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました
+
+40. 動きから感情
+    - 参考
+      - [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
+    - 説明
+      - スマホで使えるモーションキャプチャー、ソニー「mocopi」
+
+41. ChatGPT に聞いた幸福度を測定する方法
+    - 説明
+      - アンケート調査以外で幸福度を測定する方法として、次のようなものがあります
+      - 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法
+      - ネットワーク分析を用いた社会的支援や支援受けの多さを計測する方法
+      - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
+      - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
+      - ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です
+      - ChatGPT
+
+42. 赤ちゃんの泣き声を分析
+    - 参考
+      - [https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)
+      - [https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying)
+      - [https://twitter.com/christianna-j/status/1610735317262139416](https://twitter.com/christianna-j/status/1610735317262139416)
+    - 説明
+      - 赤ちゃんの泣き声を分析し、「不快指数」から 4 つのニーズ (空腹、汚れたおむつ、眠気、眠気）のいずれかを判断する AI プロダクト\*\*
+      - CES 2023: The device that tells you why your baby is crying
+      - \*\*
+
+43. うつ病を定量化して分析
+    - 参考
+      - [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
+    - 説明
+      - 「新型うつ」とは何だったのか
+
+44. VR の視線の動きで ADHD 診断
+    - 参考
+      - [Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)
+      - [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
+    - 説明
+      - 「VR ゲーム」の視線の動きで ADHD 診断する！
+      - フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました
+      - 研究の詳細は、2022 年 11 月 24 日付の科学誌『』に掲載されました
+
+45. 中国で共産党員の忠誠心を判定する AI
+    - 参考
+      - [サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)
+      - [https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
+    - 説明
+      - 中国で共産党員の忠誠心を判定する AI を開発。表情や脳波から「思想教育」の程度を読み取る
+      - AI は合肥総合国家科学センターで開発されたもので、対象者の表情や脳波から共産党の「思想教育」がどの程度浸透しているのか判断するのだという
+      - 人民の監視を強める中国 なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている
+      - それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった
+
+46. SOXAI Ring
+    - 参考
+      - [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring)
+      - [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
+    - 説明
+      - 「ヘルスケアをライフスタイルに」をビジョンに掲げる日本のヘルステック企業「株式会社 SOXAI」が開発・販売を進める日本発のスマートリング「SOXAI Ring（ソクサイリング）」に注目が集まっている
+      - 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス
+      - 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという
+
+47. 非接触型睡眠トラッカー「Halo Rise」
+    - 参考
+      - [https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
+    - 説明
+      - Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです
+      - 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する
+
+48. 感情の算出にアンケート調査を使う場合の懸念点
+    - 説明
+      - アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
+      - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
+
+49. 光学式センサ、3 軸加速度センサ
+    - 参考
+      - [https://36kr.jp/9669/](https://36kr.jp/9669/)
+    - 説明
+      - スマートウォッチは何をもとにユーザーの睡眠状態を判定するのか？
+      - 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる
+      - 光学式センサで心拍数を計測できるデバイスもある
+
+50. うつ病治療 VR 製品
+    - 参考
+      - [https://techable.jp/archives/177646](https://techable.jp/archives/177646)
+      - [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html)
+      - [BiPSEE ホームページはこちら](https://bipsee.co.jp/)
+      - [Meiji Seika ファルマ ホームページはこちら](https://www.meiji-seika-pharma.co.jp/)
+      - [https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/](https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/)
+    - 説明
+      - 株式会社 BiPSEE（以下、BiPSEE）と Meiji Seika ファルマ株式会社（以下、Meiji Seika ファルマ）は、BiPSEE が開発する「うつ病治療 VR 製品」の事業化へ向け業務提携契約を締結しました
+      - 「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です
+      - 「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている
+
+51. ミキワメウェルビーイング
+    - 参考
+      - [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
+      - [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
+    - 説明
+      - \*\*<span style="text-decoration:underline;">
+      - </span>\*\*
+      - 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる
+      - 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している
+
+52. 機能的近赤外分光分析法（fNIRS）
+    - 参考
+      - [https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
+    - 説明
+      - 英国の神経科学者ソフィー・スコットは、機能的近赤外分光分析法（fNIRS）を使うことで、会話中に脳でいったい何が起こっているのかを解明できると言う
+      - 頭皮に光を当てて反射光を分析する「オプトード」と呼ばれる光検出型化学センサーを通じて fMRI と同じ神経活動指標を測定する機能的近赤外分光分析法（fNIRS）は、人の自然な動きを妨げることなく使用できる
+      - 実際、ロンドンの中心部にある屋外で被験者たちに事前に定めたタスクをこなしてもらい、その様子を fNIRS で測定したところ、動作データや音声データと並行して神経データもこの方法で収集できることが証明された
+      - 神経反応や生理反応を捉えることができる最新の測定技術を使う\*\*
+      - \*\*
+      - NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
+
+53. アンケート調査による幸福度の算出
+    - 説明
+      - 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
+
+54. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
+    - 説明
+      - KDDI 総研は、カーネギーメロン大学の Peter Spirtes 教授および Kun Zhang 准教授とともに、人の心を深く理解し共感できる人間心理理解 AI の共同研究プロジェクトを開始した
+      - カーネギーメロン大学の 2 名の教員は、因果推論分野の世界的な権威だ。因果推論とは、インプットとアウトプットから、その因果関係を統計的に推定していく考え方のこと。KDDI 総研は、この因果推論技術を活用することで、人の心を深く理解し共感する AI の実現を目指しているのだ
+      - KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ
+      - KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ
+
+55. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
+    - 参考
+      - [詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
+    - 説明
+      - 直近 1 か月のひきこもり傾向を簡便に把握できる質問票、九大などが開発
+      - 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した
+      - 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの
+
+56. 産後うつを身体症状を基に早期発見する調査尺度
+    - 参考
+      - [精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
+    - 説明
+      - 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した
+      - 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は
+
+57. うつ尺度「BDI-II」
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
+    - 説明
+      - 世界的に広く使われているうつ尺度「BDI-II」
+
+58. 使える API
+    - 参考
+      - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
+      - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
+      - [アクセス許可](https://developers.facebook.com/docs/permissions/reference)
+      - [https://zenn.dev/nameless-sn/articles/recommended-api-for-development](https://zenn.dev/nameless-sn/articles/recommended-api-for-development)
+    - 説明
+      - Microsoft Face API
+      - 人間の顔認識に特化している顔認識の AI を活用し、顔の識別や特徴・感情の分析などを取得できる
+      - 顔認識をアプリケーションに組み込める
+      - Facebook Graph API
+      - Facebook のユーザや Facebook の情報の読み取り・更新など、Facebook を使った様々な処理を実装できる
+      - が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
+      - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
+
+59. モニター調査・アンケート調査
+    - 説明
+      - モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る
+      - そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる
+      - 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る
+      - でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
+
+60. 文脈依存型推薦エンジン(Context based recommendation system)
+    - 参考
+      - [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
+    - 説明
+      - 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています
+
+61. ギャラップ社・Glassdoor の調査
+    - 参考
+      - [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
+    - 説明
+      - ギャラップ社が 250 万人のアメリカ人を対象に行った調査
+
+62. 多属性評価
+    - 参考
+      - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
+    - 説明
+      - アンケート調査、心拍数や皮膚抵抗や発汗量などのデータ、アンケート調査の中でも複数の設問内容の種類
+      - 多属性評価とは、購買や消費に際して、複数の属性を同時に考慮して、評価を行うこと
+      - 統計的指標
+      - 様々な指標・指数で使われている要素（統計的指標）を、 網羅的に統計的指標を書き出すときの参考にしたい
+      - The Global Gender Gap Index（世界男女格差指数）
+      - Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）
+      - A simplified approach to measuring national gender inequality
+
+63. 毎日簡単なアンケートに答える方法
+    - 参考
+      - [https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html)
+      - [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
+    - 説明
+      - アンケートの設問内容は何？
+      - 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました
+
+64. オンライン測定
+    - 参考
+      - [https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
+    - 説明
+      - オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた
+
+65. 尿検査できるセンサー Withings の「U-Scan」
+    - 説明
+      - 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
+
+66. 心拍変動（HRV）
+    - 参考
+      - [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
+    - 説明
+      - 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する
+      - iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる
+
+67. ツイート分析
+    - 参考
+      - [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/)
+      - [【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en)
+      - [https://univ-journal.jp/203351/](https://univ-journal.jp/203351/)
+    - 説明
+      - ツイートなどの文章から、マクロの幸福度を算出したい。それを評価軸に貢献しているかどうかの判断基準にしたい
+      - 心理的苦痛や不安の兆候を表現する際に用いられる用語があるらしいから、それから幸福度を算出してみたい
+      - 東北大学災害科学国際研究所の藤井進准教授らの研究チームは、ウクライナ語で発信された約 9,850 万件のツイートを分析することで、戦禍にみまわれたウクライナの医療ニーズやメンタルヘルスに関する状況を把握する研究を実施した
+      - メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された
+      - 論文情報：
+
+68. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
+    - 参考
+      - [https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
+    - 説明
+      - 「VIE ZONE（ヴィーゾーン）」とは、イヤーチップが電極となり、耳から脳波を取得できるウェアラブルデバイス。これまで、脳波の計測には装着のための手順が多く煩雑なつくりのデバイスが多かったが、VIE ZONE は通常のイヤホンと同様に耳に装着するだけで簡易に脳波を測ることができる
+      - VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ
+      - VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している
+
+69. 思想教育の効果を可視化
+    - 参考
+      - [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
+    - 説明
+      - 「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した
+      - 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた
+
+70. アンケート調査以外の要素
+    - 説明
+      - 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている
+      - 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
+
+71. ツイート分析
+    - 参考
+      - [https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7)
+      - [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
+    - 説明
+      - 現在、男女共同参画でツイートしているアカウントを調べると、なんと海乱鬼がもっとも拡散に関与している
+      - このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの
+      - Hoaxy: How claims spread online
+
+72. SNS の文章を解析
+    - 参考
+      - [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/)
+      - [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/)
+      - [【Journal of Medical Internet Research】Evolution of the public opinion on COVID-19 vaccination in Japan: Large-scale Twitter data analysis](https://www.jmir.org/2022/12/e41928)
+      - [https://univ-journal.jp/203044/](https://univ-journal.jp/203044/)
+      - [https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s](https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s)
+      - [https://twitter.com/Kyukimasa/status/1184325145550188544](https://twitter.com/Kyukimasa/status/1184325145550188544)
+    - 説明
+      - 1 億超の Twitter のつぶやきから新型コロナワクチンに関する話題の変遷を分析
+      - 今回、東京大学、国立情報学研究所、千葉商科大学、ゲント大学（ベルギー）らの共同研究グループは、ワクチン接種期間（2021 年 1 月から 10 月）に Twitter でつぶやかれた「ワクチン」を含む日本語の全ツイートを時系列的に分析することで、ワクチンに関する人々の興味・関心の変化を調べた
+      - 論文情報：
+      - なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな
+
+73. ワークサンプルテスト
+    - 参考
+      - [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
+      - [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
+    - 説明
+      - \*\*<span style="text-decoration:underline;">
+      - </span>\*\*
+      - サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です
+
+74. Omegawave
+    - 参考
+      - [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
+    - 説明
+      - フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している
+      - Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる
+
+75. FaiCE（フェイス）
+    - 参考
+      - [https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
+    - 説明
+      - 脳内にイメージする「魅力的な顔」を可視化できるアプリ『FaiCE（フェイス）』
+      - 「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。\*\*
+      - \*\*
+
+76. ひきこもり度を簡単に評価できるテスト
+    - 参考
+      - [Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
+      - [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
+    - 説明
+      - 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました
+      - 研究の詳細は、2022 年 11 月 30 日付の科学誌『』に掲載されています
+
+77. パルスアイ
+    - 参考
+      - [https://techable.jp/archives/185582](https://techable.jp/archives/185582)
+    - 説明
+      - 最短 1 クリックで厚労省準拠のストレスチェックを開始。組織診断サービス「パルスアイ」に新機能
+      - 株式会社ジャンプスタートパートナーズが提供する「PULSE AI（パルスアイ）」は、従業員の本音を把握し退職リスクを可視化する組織診断サービス
+      - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
+      - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
+
+78. Classroom TechnologiesがIntelと提携して開発しているシステム
+    - 参考
+      - [Classroom Technologies](https://www.class.com/)
+      - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
+      - [https://gigazine.net/news/20220418-intel-edutech-ai/](https://gigazine.net/news/20220418-intel-edutech-ai/)
+    - 説明
+      - 仮想空間上で行う授業のソフトを販売する企業の\***\*が\*\***と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる
+
+79. Face2Brain
+    - 参考
+      - [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya)
+      - [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/)
+      - [https://chizaizukan.com/property/704/](https://chizaizukan.com/property/704/)
+    - 説明
+      - 「顔画像」から脳波を推定するアルゴリズム Face2Brain
+      - 「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム
+
+80. CBT-I
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
+    - 説明
+      - 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した
+      - 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという
+
+81. Face++や Microsoft AI などの顔認識技術
+    - 参考
+      - [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
+    - 説明
+      - 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった
+      - でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた
+
+82. 「充実した人生」を測る指標
+    - 参考
+      - [『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)
+      - [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
+    - 説明
+      - 「充実した人生」を測る指標をこの研究論文で参考にして、「人生の満足度」を測ることができる方法を作りたい
+      - スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました
+      - 研究の詳細は、2022 年 9 月 30 日付で学術誌に掲載されています
+
+83. Dot Mind Unlocked
+    - 参考
+      - [ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)
+      - [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
+    - 説明
+      - ***
+      - ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」
+
+84. Oura
+    - 参考
+      - [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
+    - 説明
+      - 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング
+      - 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている
+
+85. 瞳孔反応解析技術
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
+    - 説明
+      - 夏目綜合研究所の人の本当の感情を可視化する眼の瞳孔反応解析技術\*\*
+      - \*\*「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ
+      - 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている
+
+86. ESHA（イーエスエイチエー）・KIBI 理論
+    - 参考
+      - [https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)
+      - [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
+    - 説明
+      - 株式会社エモテック・ラボは、感情 AI とオンライン面談によって社員のココロを可視化する心理的安全性組織診断「ESHA（イーエスエイチエー）」
+      - 「ESHA」は、社員ひとりひとりのマインドを“機微力（人の気持ちを察する力）”に基づいてタイプ別に診断し、現在のココロの在り方を心理的安全性と不快指数の両面から測る診断ツールです
+      - ここで活用される感情 AI「Kansei Driven Engine（KDE）」は、20 年にわたる数値解析・感性工学・可視化技術に関する研究・開発で培われた独自アルゴリズムと AI をかけ合わせたもの
+      - 10 年にわたり東京大学と研究開発してきた、国際学会にて実証済の“KIBI 理論”に基づく感情解析によって、解析結果のフィット感を革新的に向上させています
+      - \*\*[株式会社エモテック・ラボ
+      - ]()\*\*
+
+87. 幸福度の指標
+    - 参考
+      - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
+    - 説明
+      - ウェルビーイングに関する学問、「幸福学」の国内第一人者である慶應義塾大学の前野隆司教授と共同研究を実施しました。前野教授は、幸せとはどんな状態か、どんな状態にある人が幸せを感じているかを調査して、「幸せの 4 因子」を定めています[4] 。幸せの 4 因子は幸せの心的特性に焦点を当てた指標
+      - 各因子をどの程度満たしているかはアンケート調査によって測ることができます
+      - 1 つ目の「見える化：利用者の負担を軽減しつつ個人の特性を収集すること」には AI チャットボットを利用します
+      - 一般的に、個人の特性データを収集するにはアンケート調査を実施します。しかしアンケート調査では一度に全ての設問に回答する必要があり、所要時間が膨大になることも少なくありません
+      - 利用者側の視点では、AI チャットボットを利用し数日掛けてアンケートに回答することで、大量の設問に回答する心理的負荷の軽減が期待されます。実際、今回の実証では幸福度に関する設問だけでも計 16 問ありましたが、チャットボットで毎日 1 問ずつ配信することで、1 回あたりの回答所要時間を大幅に削減しています（印象評価の結果については後編で詳述）
+      - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
+      - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
+
+88. 幸福度の指標
+    - 参考
+      - [「幸せ」を追求するのはいいことなのか？──『ハッピークラシー――「幸せ」願望に支配される日常』](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
+      - [https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989)
+      - [https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
+    - 説明
+      - ***
+      - 心理科学はすでに「幸福」であるとはどのような状態なのかを定義し、人がより幸せな人生を贈るために役立ついくつかの要素も発見している。ポジティブ心理学創設以降、幸せは曖昧な概念ではなく、誰もが追求し測定可能な目標となった
+      - そもそも幸福は客観的に評価可能なのか、がある。アンケート調査や尺度には数多くの種類がある。オックスフォード幸せ調査、人生満足感尺度、経験サンプリング法、一日再現法など。これらを用いて心理学者と経済学者は幸せには客観的な基軸があるとを主張したが[
+      - \*1]()、これにはいまだに疑問が残る
+
+89. 幸福度を測る 11 の要素
+    - 参考
+      - [https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0](https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0)
+    - 説明
+      - 過去の幸福研究などをベースに、人間に幸福をもたらす要素を 11 パターンに分類しております
+
+90. 音声
+    - 参考
+      - [https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full)
+    - 説明
+      - スマートフォンと機械学習でうつ病を検知、30 秒の音声から
+
+91. マイク
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2301/25/news068.html](https://www.itmedia.co.jp/news/articles/2301/25/news068.html)
+    - 説明
+      - 特別な機器を必要とせず、マイクのあるスマホだけで検査できるってのが可能性を感じる。精度が高まれば応用いろいろできそう。／話し方で「飲みすぎ」か分かる AI 12 秒の会話で酩酊状態を特定
+
+92. うつ病予測
+    - 参考
+      - [https://twitter.com/AIBoom-net/status/1618865899628560391](https://twitter.com/AIBoom-net/status/1618865899628560391)
+    - 説明
+      - 北京大学とヘルスケア企業による共同研究の報告。ディープラーニングベースの手法を用いて、およそ 8 割の精度で高齢者のうつ病を検知できるとのこと
+
+93. EEG
+    - 参考
+      - [https://twitter.com/masatojames/status/1618502175021486080](https://twitter.com/masatojames/status/1618502175021486080)
+    - 説明
+      - EEG で行うっぽい
+      - 音楽聴いてる状態を特定するのに、イヤホンに脳波センサーと音波センサー取り付けるの考えてたけど、これあればセンサー 1 種類で済むんよな
+
+94. 脳内の磁場変化を察知できるセンサー
+    - 参考
+      - [https://twitter.com/tmiyatake1/status/1620241970928181250](https://twitter.com/tmiyatake1/status/1620241970928181250)
+    - 説明
+      - Google が AR/VR ヘッドセットに脳内の磁場変化を察知できるセンサーを導入する特許申請を行った
+      - ユースケースとしてはユーザーの感情を読み取って、それに対してアクションを行える仕組みが考えられる
+      - 考えるだけでバーチャルの世界をコントロール出来るようになる
+
+95. Canary
+    - 参考
+      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/)
+    - 説明
+      - Canary Speech という企業の声から人の精神状態・感情を評価するアプリ「Canary」を参考にしたい
+
+96. fMRI と EEG
+    - 参考
+      - [https://twitter.com/shiropen2/status/1620573717507219456](https://twitter.com/shiropen2/status/1620573717507219456)
+    - 説明
+      - 脳全体の血流や代謝を測定する fMRI と脳内の電気的活動に伴う電磁気信号を捉える脳波（EEG)を組み合わせ（非侵襲的）深層学習で音声合成による曲の復元と識別を行う
+
+97. スマホで血管老化を予測
+    - 参考
+      - [https://www.nature.com/articles/s41598-020-76816-6](https://www.nature.com/articles/s41598-020-76816-6)
+      - [https://twitter.com/AIBoom-net/status/1623595459506995202](https://twitter.com/AIBoom-net/status/1623595459506995202)
+    - 説明
+      - スマホで血管老化を予測 機械学習により高精度に
+      - スマートフォンで取得できる PRG※と、4 つの変数（性別、身長、体重、喫煙有無）を機械学習で分析し、血管老化を AUC 95％で予測できるとの報告。※RPG：フォトプレチスモグラフィ。血中酸素飽和度などの測定に使用
+
+98. 表情
+    - 参考
+      - [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
+    - 説明
+      - 声が出せない状況下でもマスク＋ AI で会話
+
+99. 唇の筋肉の動きを分析
+    - 参考
+      - [https://nature.com/articles/s41467-022-32231-1](https://nature.com/articles/s41467-022-32231-1)
+      - [https://twitter.com/AIBoom-net/status/1623657972781154304](https://twitter.com/AIBoom-net/status/1623657972781154304)
+    - 説明
+      - 清華大学の研究グループが開発。口唇言語（リップランゲージ）をニューラルネットワークで解読できる。唇の筋肉の動きを分析する仕組みとのこと。障がい者支援やヒューマンマシンインタフェースなどに応用が見込める
+      - 「マスクの下にある唇の動きを読み取る」という課題は、複数の研究グループにより取り組まれています
+      - 下記は、レーダー信号と Wi-Fi 信号を深層学習で分析して読み取るアプローチ。上記 ツイート で紹介した研究とは別角度からの解決となります
+
+100.  心臓のエコー図
+      - 参考
+        - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
+        - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
+      - 説明
+        - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
+        - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
+
+101.  リストバンド型加速度計
+      - 参考
+        - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
+        - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
+      - 説明
+        - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
+        - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
+
+102.  AiGROW
+      - 説明
+      - AiGROW で Big-5 モデルを使って性格検査
+      - 木村充、福原正大、田代琴音「潜在的連合の測定による 5 因子性格検査ツール GROW-IAT の開発と評価」
+
+103.  汗の成分を検出できる生地
+      - 参考
+        - [https://www.technologyreview.jp/n/](https://www.technologyreview.jp/n/)
+      - 説明
+        - 東北大学の研究チームは、汗の成分を検出できる生地を開発した。肌着用に使えるもので、人間が常時着用することで、汗の成分から健康状態をモニタリングできるようになる可能性がある
+        - 研究チームが今回開発した生地は、独自の手法で製造した多機能繊維を織り込むことで、汗の成分の検出が可能になった。研究成果は 1 月 9 日、アナリティカル・アンド・バイオアナリティカル・ケミストリー（Analytical and Bioanalytical Chemistry）誌に掲載された。研究チームは今後、脳波や心拍、体温などを計測できる繊維の開発を進めるという
+
+104.  MetaMe
+      - 参考
+        - [https://www.itmedia.co.jp/news/articles/2302/20/news103.html](https://www.itmedia.co.jp/news/articles/2302/20/news103.html)
+      - 説明
+        - ドコモのメタバースの新サービス MetaMe は 2 月 21 日に β 版の提供が開始される
+        - ドコモでは NTT グループの技術を活用しながら「超多人数接続技術」「価値観理解技術」「行動変容技術」という 3 つの技術の開発を進めている
+        - 価値観理解技術は「発話した内容や他人との関係性、表情などから読み取った感情を元に、人の内面に焦点を当てて理解する技術」、行動変容技術は「価値観理解技術で解析した情報を基に、高精度マッチング・レコメンドを提供する技術」だという
+        - MetaMe には、NTT が開発した技術も盛り込まれる。取得した脳波を、アバターがまとうオーラとして可視化し、コミュニケーションを活性化させる技術も、MetaMe には試験実装された
+        - 見ているものでオーラが変化することで、相手や自分の感情の変化が可視化されるという
+
+105.  ホルモン分泌量
+      - 説明
+        - 表情・リアクション、 ドーパミンやオキシトシンやセロトニンなどのホルモン分泌量などから感情の算出
+
+106.  肥満測定法
+      - 参考
+        - [https://nature.com/articles/s41598-023-30434-0](https://nature.com/articles/s41598-023-30434-0)
+        - [https://twitter.com/AIBoom-net/status/1630433286907629568](https://twitter.com/AIBoom-net/status/1630433286907629568)
+      - 説明
+        - BMI に代わる新しい肥満測定法 3D スキャン＋ AI で
+        - Nature Scientific Reports より。人体を 3 次元測定し、機械学習で肥満カテゴリー分類を行う技術が発表された。体重と身長のみで肥満度を測定する BMI よりも優れた手法とのこと
+
+107.  スリープマスク
+      - 参考
+        - [https://forbesjapan.com/articles/detail/49483](https://forbesjapan.com/articles/detail/49483)
+      - 説明
+        - 近年、ヘルスケア関連の機能を強化するアップルが、「スリープマスク（sleep mask）」と呼ばれるデバイス向けの特許を取得したことが明るみに出た。タッチセンサーやオーディオセンサー、近接センサー、光学センサーなどの複数のセンサーが搭載され、目の筋肉の収縮を測定する筋肉活動センサーや、心電図センサー、脳波計センサーなどを用いて、健康状態を確認することが想定されている
+        - また、睡眠中のユーザーの側頭部にかかる圧力を検出するセンサーや、湿度や温度を検出するセンサーを通じて、ベッドルームの状況を把握できる
+        - アップルは将来の AirPods に心拍数や体温の測定機能を盛り込むと予想されている
+
+108.  痛みの指標
+      - 参考
+        - [https://www.nature.com/articles/s41562-023-01539-3](https://www.nature.com/articles/s41562-023-01539-3)
+      - 説明
+        - ウェルビーイングを測定する際には痛みの指標も取り入れなさいねという意見論文
+        - Governments should measure pain when assessing societal wellbeing
+
+109.  BHQ
+      - 参考
+        - [https://twitter.com/Neron-Ngsk32/status/1624916875686862850](https://twitter.com/Neron-Ngsk32/status/1624916875686862850)
+      - 説明
+        - 主観的幸福度は私もおおむねこの理解で、評価する方法として最近は、イェール大の PERMA はじめ、大阪大学の特許技術レジリエンス指標、MRI を活用した BHQ。BHQ は脳のサイズを測る技術。コロナ禍など慢性ストレスのかかる状況だと縮むということなので環境因子、経済因子（こちらは限界ある）も関連する（文字数）
+
+110.  心電図アプリ
+      - 説明
+        - アップルウオッチの心電図アプリ
+
+111.  心の理論
+      - 参考
+        - [https://arxiv.org/abs/2302.02083](https://arxiv.org/abs/2302.02083)
+        - [https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf](https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf)
+        - [https://osf.io/csdhb/](https://osf.io/csdhb/)
+        - [https://gigazine.net/news/20230210-theory-of-mind-spontaneously-language-models/](https://gigazine.net/news/20230210-theory-of-mind-spontaneously-language-models/)
+        - [https://twitter.com/Yamkaz/status/1624891194840068096](https://twitter.com/Yamkaz/status/1624891194840068096)
+      - 説明
+        - 「GPT-3」などの最新言語モデルが自然に他者の心を推察する能力である「心の理論」を獲得していたという研究論文
+        - [2302.02083] Theory of Mind May Have Spontaneously Emerged in Large Language Models
+        - Theory of Mind May Have Spontaneously Emerged in Large Language Models(PDF ファイル）
+        - ヒトが他者の心の状態、目的、意図、知識、信念、志向、疑念などを推測する心の機能を「心の理論」と呼ぶ
+        - OSF | Theory of Mind May Have Spontaneously Emerged in Large Language Models
+        - 心の理論を獲得している AI に感情を推測してもらう
+
+112.  COI 拠点
+      - 参考
+        - [https://dhbr.diamond.jp/articles/-/9243](https://dhbr.diamond.jp/articles/-/9243)
+      - 説明
+        - ヘルスケア領域の産学連携の成功事例として注目される弘前大学医学部を中心とする COI（センター・オブ・イノベーション）拠点。拠点長である村下公一氏に、イノベーション創出の要諦と COI 拠点としての進化の道筋を聞いた
+        - 1000 人 ×3000 項目の超多項目健康ビッグデータ
+        - 弘前市岩木地区の住民を対象に大規模な合同健康診断（岩木健診）を定期的に行い、蓄積された膨大なデータをもとに病気の予兆把握、予防法の開発、社会実装、行動変容までトータルに取り組んでいます
+        - 血液や唾液、尿などから取る一般的な生理・生化学データに加え、ゲノムデータ、体力や運動機能、社会環境に至るまで現在は 3000 項目に及ぶ幅広いデータを蓄積しており、世界的にも類例のない健康ビッグデータとなっています
+        - 岩木ビッグデータは 4 層構造になっていて、分子生物学的データと生理・生化学データという 2 層の下に、個人生活活動データ、社会経済環境的データの 2 層があり、このすべてのデータがつながった 3000 項目になっているのが最大の特徴です。つまり、1 つの項目と他の項目を関連付けた網羅的な解析ができるわけです
+        - 実は、我々は超多項目の岩木健診に加えて、「QOL（クオリティ・オブ・ライフ）健診」を実施しています。2 時間程度で終わるコンパクトな健診で、「メタボ」（メタボリックシンドローム）、「口腔保健」「ロコモ」（ロコモティブシンドローム）、「うつ病・認知症」の 4 つのテーマで、検査項目を約 40 に絞っています
+        - 現在、QOL 健診をリモートで行える「セルフモニタリング式 QOL 健診」の開発に取り組んでいます。セルフモニタリングで日々の健康データを収集・蓄積し、健康未来予測 AI がオンラインで一人ひとりに適したアドバイスを行うといった世界観を目指しています
+
+113.  性格を予測
+      - 参考
+        - [https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554](https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554)
+        - [https://doi.org/10.1016/j.actpsy.2022.103740](https://doi.org/10.1016/j.actpsy.2022.103740)
+        - [https://twitter.com/AIBoom-net/status/1625748146247847941](https://twitter.com/AIBoom-net/status/1625748146247847941)
+      - 説明
+        - 20 秒の音声から AI が「性格」を予測
+        - 機械学習モデルに音声を分析させることで、性格特性ビッグ 5（外向性・協調性・誠実性・開放性・神経症的傾向）を予測できることを示唆した。とくに「外向性」は他の特性より予測精度が高いとのこと
+
+114.  Google の API とかでも文章から感情分析
+      - 参考
+        - [https://twitter.com/cumulo-autumn/status/1626129783892643841](https://twitter.com/cumulo-autumn/status/1626129783892643841)
+      - 説明
+        - google の API とかでも文章から感情分析出来るらしいので今後はそっちも試す予定ですが、今は GPT3 を使って会話内容の感情分析をしてます
+        - 「次の会話から感情を喜 0.7 悲 0.1 怒 0.2 等のように数値として表せ」みたいな感じのプロンプトを使って分析してます
+
+115.  Intellect
+      - 参考
+        - [https://prtimes.jp/main/html/rd/p/000000007.000102702.html](https://prtimes.jp/main/html/rd/p/000000007.000102702.html)
+      - 説明
+        - アプリで提供しているメンタルマネジメント・ソリューション「Intellect」に「ウェルビーイング診断」結果を 13 領域で数値化し、個々の従業員が抱えるメンタル課題の抽出と解決策を通して従業員を「ウェルビーイング」な状態に導く
+        - 「Intellect」にて出題される 26 設問に利用者が回答することで、「心理的ウェルビーイング」「レジリエンス」「対人関係の構築」「成長マインドセット」「自己認識」「自己効力感」「目標志向」「目的と意義」「楽観主義」「感情コントロール」「ストレスマネジメント」「関与の促進」「ワークライフバランス」の 13 領域における個々のメンタル状況が数値化されると共に、どの領域がウェルビーイングな状態であるか否かを瞬時に把握することが可能となる
+        - Intellect では、利用者が日々変化するメンタルコンディションを利用者自身が把握できるよう、アプリ起動時に表示される「気分」ボタンから利用者の「気分」を記録する「デイリーチェックイン」を提供しております
+
+116.  感情の円環モデル
+      - 説明
+        - ビッグファイブ、感情の円環モデル（の次元）、システム 1・2
+
+117.  セルフモニタリング
+      - 参考
+        - [https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html](https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html)
+      - 説明
+        - 「NEC ヘルスケア・ライフサイエンス有識者会議」の「Lifestyle Support WG（ワーキング・グループ）」の、人々が自らの健康状態を常にセルフモニタリングする技術
+        - 体重計、体温計、血圧計、血糖値測定器、腸内細菌、ホルモンの分泌状況、細胞代謝の状態、体調の良し悪しや免疫力、認知能力、幸福度の指標となるドーパミンやオキシトシンの分泌量
+        - 遺伝子や酵素、抗体、核酸、微生物などのバイオマーカーを検出するバイオセンサー技術です。スマートウォッチに搭載されている接触型センサーの多くは、血管などから発する光により生体反応を読み取るものです。微妙な光の変化から脈拍や血中酸素飽和度を計測する技術はすでに確立され、現在はさらに多くの生体情報を読み取るための技術開発が進められている
+        - 少量の血液で約 7,000 種のタンパク質を一度に測定することで、現在の体の状態と予測される将来の疾患リスクを把握できる検査サービス「フォーネスビジュアス」はその一例です。検査を受けた人が医療機関を通じて提供される専用アプリでは生活習慣を改善するための多彩なメニューを利用でき、歩数や消費カロリーなど毎日の健康データの記録や、健康づくりのための目標設定とその取り組みの管理も行える
+        - 「歩行センシング・ウェルネスソリューション」は、約 13g の歩行分析センサーを搭載した専用インソールを靴に入れるだけで、歩行速度、歩幅、接地角度など 20 項目以上のデータを収集する。足の健康状態を推定する独自の歩容分析 AI 技術によって、歩行を通じた健康増進を支援
+
+118.  発話から「疲労」を検出
+      - 参考
+        - [https://doi.org/10.1088/1742-6596/2224/1/012023](https://doi.org/10.1088/1742-6596/2224/1/012023)
+        - [https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023](https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023)
+        - [https://twitter.com/AIBoom-net/status/1631489834283061251](https://twitter.com/AIBoom-net/status/1631489834283061251)
+      - 説明
+        - 発話から「疲労」を検出 深層学習で最大 92％
+        - 声に含まれる周波数や速度などの特徴から、人の疲れを予測できることが示唆された。深層学習アプローチを用いることにより、高精度で検出できるとのこと。中国の南通⼤学研究者らによる報告
+
+119.  主観的 QOL 計測
+      - 参考
+        - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F)
+      - 説明
+        - 人工知能は人間の幸福度を測ることができるか？ ～主観的 QoL 計測におけるパターン認識・メディア理解技術の可能性を探る～
+        - \*
+
+120.  ウェアラブルデバイスでうつ病の診断
+      - 参考
+        - [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)
+        - [https://twitter.com/](https://twitter.com/)
+        - [https://twitter.com/-daichikonno/status/1634757593821507590](https://twitter.com/-daichikonno/status/1634757593821507590)
+      - 説明
+        - 「ウェアラブルデバイスでうつ病の診断に取り組む」という論文（2020 年）
+        - 精神疾患を客観的データに基づいて診断・治療するという「計算論的精神医学」
+        - 30119-5>)
+        - [
+        - -daichikonno/status/1634757593821507590]()
+
+121.  血糖値測定
+      - 参考
+        - [https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01](https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01)
+        - [https://twitter.com/g7z5e/status/1628567288738897920](https://twitter.com/g7z5e/status/1628567288738897920)
+        - [https://twitter.com/tk596350/status/1628565072464474112](https://twitter.com/tk596350/status/1628565072464474112)
+      - 説明
+        - アップルウオッチで血糖値測定する技術、開発が飛躍的進展－関係者
+        - 穿刺せずに血液中のグルコースを継続的に測定できる技術を開発中
+        - 血糖値を測って、感情の算出の参考にしたい
+
+122.  筋肉の動きから感情を算出する
+      - 参考
+        - [https://www.nature.com/articles/s42256-023-00616-6#Sec14](https://www.nature.com/articles/s42256-023-00616-6#Sec14)
+        - [https://twitter.com/namchan-koushi/status/1633241319123599360](https://twitter.com/namchan-koushi/status/1633241319123599360)
+      - 説明
+        - 筋肉の動きから感情を算出する
+        - 喉に薄いパッチを貼るだけで音声認識を行う研究が進んでいます。パッチに組み込まれたセンサーが皮膚表面に伝わる筋肉の動きと音の振動を感知し、AI の学習モデルを通して認識可能な音声に変換してくれます
+        - 騒音の大きい場所での利用だけでなく、声帯を切除した人たちにも有用な技術です
+
+123.  ChatGPT が人の「性格」を分析
+      - 参考
+        - [https://doi.org/10.48550/arXiv.2303.01248](https://doi.org/10.48550/arXiv.2303.01248)
+        - [https://arxiv.org/abs/2303.01248](https://arxiv.org/abs/2303.01248)
+        - [https://twitter.com/AIBoom-net/status/1632953350827429888](https://twitter.com/AIBoom-net/status/1632953350827429888)
+      - 説明
+        - ChatGPT が人の「性格」を分析できる可能性が示唆された
+
+124.  Divergent Association Task/拡散連想課題（DAT）
+      - 参考
+        - [https://karapaia.com/archives/52317371.html](https://karapaia.com/archives/52317371.html)
+      - 説明
+        - まったく関連のない単語を思い浮かべるのが鍵。科学者が開発した創造性判定テスト
+        - ハーバード大学は、新たに「Divergent Association Task/拡散連想課題（DAT）」というテストを開発した
+        - 2 ～ 4 分でできるテスト（英文）なのだが、できるだけ意味の離れた、関連性のない言葉（名詞）を入力することで、創造性を客観的に判定できるという
+        - 創造力判定テスト「Divergent Association Task/拡散連想課題（DAT）」のルールは簡単だ。10 個の入力欄があるので、そこにできるだけ意味の離れた名詞を入力していくだけだ
+        - たとえば、「猫」と「犬」よりも、「猫」と「本」の方がより意味がかけ離れている名詞となる。そうしたできるだけ関係のないものを挙げていくのだ
+        - 人の創造性を測定する主な方法としては、あるものの用途をできるだけ多く考案する「代替用途課題（Alternative Uses Task）」と、2 つの単語を 3 つ目の単語でつなぐ「連想ギャップ補完課題（Bridge-the-Associative Gap Task）」の 2 つがある
+        - References:Measuring creativity, one word at a time | Newsroom - McGill University / written by hiroching / edited by / parumo
+
+125.  困難マインドセット尺度
+      - 参考
+        - [https://buff.ly/3ZLaF45](https://buff.ly/3ZLaF45)
+        - [https://journals.sagepub.com/doi/abs/10.1177/01461672231153680](https://journals.sagepub.com/doi/abs/10.1177/01461672231153680)
+        - [https://twitter.com/psychama/status/1632400582261587969](https://twitter.com/psychama/status/1632400582261587969)
+      - 説明
+        - 困難に対するマインドセットには不可能、重要のほかに自己改善という側面がある。困難マインドセット尺度を複数文化圏で使用し、自己改善の機会と捉える程度には文化差があることを示した。さらに勤勉性、徳、人生の意味、楽観性との関連も示した（Yan et al., 2023, PSPB）
+
+126.  筋肉から作られる微かな表情
+      - 説明
+        - アマゾンの顔認証システムでは、多くの筋肉から作られる微かな表情から、喜び、悲しみ、怒り、嫌悪、驚き、恐れを識別できる
+
+127.  感情分析
+      - 参考
+        - [https://github.com/rondinellimorais](https://github.com/rondinellimorais)
+        - [@rondmorais](https://twitter.com/rondmorais)
+        - [https://github.com/rondinellimorais/facial-expression-recognition](https://github.com/rondinellimorais/facial-expression-recognition)
+        - [https://twitter.com/heyBarsee/status/1640257391760474112](https://twitter.com/heyBarsee/status/1640257391760474112)
+        - [https://twitter.com/eiji24g/status/1640263967401541632](https://twitter.com/eiji24g/status/1640263967401541632)
+        - [https://twitter.com/shota7180/status/1636547385718603776](https://twitter.com/shota7180/status/1636547385718603776)
+        - [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)
+        - [https://twitter.com/](https://twitter.com/)
+        - [https://twitter.com/-daichikonno/status/1636923475251298304](https://twitter.com/-daichikonno/status/1636923475251298304)
+      - 説明
+        - Real-time detection of your feelings using AI
+        - It truly captures the complexity of Anger, Sadness, Joy.AI may be able to understand humans more than humans in future.The tool reads faces from a video and detects feelings based on something like an emotion wheel.Build by -
+        - リアルタイムに人間の感情を推測する技術。表情から恐怖、興奮、幸福、怒りなどを読み取る…
+        - 計算論的精神医学
+        - 精神疾患を客観的データに基づいて診断・治療する「計算論的精神医学」
+        - 「ウェアラブルデバイスを用いてうつ病を診断する」という研究を深掘りしました
+        - 30119-5>)
+        - [
+        - -daichikonno/status/1636923475251298304]()
+
+128.  I'mbesideyou
+      - 参考
+        - [https://forbesjapan.com/articles/detail/61733](https://forbesjapan.com/articles/detail/61733)
+      - 説明
+        - 日系スタートアップ、I'mbesideyou
+        - 人間の表情や顔の向きから視線や音声といった状態を基に、AI 統合解析によって、有効と判断したコミュニケーションをサポートする
+
+129.  CyberneX
+      - 参考
+        - [https://prtimes.jp/main/html/rd/p/000000012.000086789.html](https://prtimes.jp/main/html/rd/p/000000012.000086789.html)
+        - [https://techable.jp/archives/200126](https://techable.jp/archives/200126)
+      - 説明
+        - イヤホン型脳波計でリラックス度を可視化
+        - 株式会社 CyberneX（以下、CyberneX）はリラックス度を脳波から定量的に可視化し、比較できる「α Relax Analyzer」
+        - CyberneX が提供する「XHOLOS Ear Brain Interface」というイヤホン型脳波計や、脳波データを保存し解釈するためのアルゴリズムを搭載した「α Relax Analyzer」などの脳情報活用基盤を利用します
+        - また、「α Relax Analyzer」におけるリラックス度を可視化するための指標である「リラックススコア」は、取得した脳波データの各スペクトルの強度などをもとに CyberneX が独自開発したアルゴリズムで算出されます
+
+130.  腸内細菌
+      - 参考
+        - [https://prtimes.jp/main/html/rd/p/000001021.000017666.html](https://prtimes.jp/main/html/rd/p/000001021.000017666.html)
+        - [https://techable.jp/archives/200166](https://techable.jp/archives/200166)
+      - 説明
+        - ファンケルが、腸内細菌が心理社会的ストレスに対する脆弱性と関連している可能性があり、腸内環境を整えることがストレス対策につながるという結果を公表しました
+        - また、今回の研究成果は、うつ病などの精神疾患を含むストレス関連疾患の早期発見や、腸内環境へのアプローチによる日常的なストレスの緩和、さらにはストレス関連疾患予防の貢献につながると考えられるといいます
+        - ストレスについては、脳活動、心拍数、主観的ストレスについて、3 種類のストレスに関する実験条件（
+        - \*）を設定し、それらを行っている間の脳活動と心拍数を計測。脳活動については、oXy-Hb（酸化ヘモグロビン）の濃度を測定しました。さらに、実験条件を設定した後に「どのくらいストレスを感じたか」といった主観的ストレスも測定しました
+        - ＊3 種類の実験条件とは、以下の通り
+        - （1）レスト条件：PC の画面を見ているだけ
+        - （2）非ストレス条件：心理社会的ストレスをかけずに暗算を行う
+        - （3）ストレス条件： 心理社会的ストレス（時間制限などを含む）をかけられた状態で暗算を行う
+        - PR TIMES：\*\*\*\*
+
+131.  メンタルヘルス状態の推定に ChatGPT
+      - 参考
+        - [https://doi.org/10.48550/arXiv.2303.15727](https://t.co/L624cROCbM)
+        - [https://arxiv.org/abs/2303.15727](https://arxiv.org/abs/2303.15727)
+        - [https://twitter.com/AIBoom-net/status/1640905756911480834](https://twitter.com/AIBoom-net/status/1640905756911480834)
+      - 説明
+        - メンタルヘルス状態の推定に ChatGPT が有用
+        - 米ライス大学の心理学 AI 研究者による報告。SNS 投稿からのストレス検出、うつ病検出において高い精度が確認されたとのこと
+
+132.  AI との対話
+      - 参考
+        - [https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html](https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html)
+      - 説明
+        - AI との対話でウェルビーイングを計測し、改善を促す
+        - 映像解析 AI を使えば、顔の表情から幸福な状態かそうでないかを把握できます
+        - 会話の内容からその人の心理状態や健康を把握し、さまざまなアドバイスを行うこともできます
+        - まず AI チャットボットとの対話によって、その人のウェルビーイングを計測します。状態やタイプをグループ化したうえで、NEC 版行動変容提案モデルをもとにアドバイスを行いました
+        - 因果関係を可視化する「要因分析型 AI」です。NEC 社内で実施した従業員エンゲージメントに関するアンケート結果からは、働く気分を天気で表現していたのですが、それに影響する因果構造を分析・可視化。要因を把握することで、具体的な改善アクションにつなげています
+
+133.  hume
+      - 参考
+        - [https://hume.ai/products/](https://hume.ai/products/)
+        - [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
+      - 説明
+        - 人間のあらゆる感情を分析する『hume』がやばい感じ。..
+        - ・30 以上の人間の感情を可視化するデータプラットフォーム
+        - ・顔の表情や声紋などからデータ化
+
+134.  脳活動を計測
+      - 参考
+        - [https://prtimes.jp/main/html/rd/p/000000013.000049573.html](https://prtimes.jp/main/html/rd/p/000000013.000049573.html)
+      - 説明
+        - アラヤ、事故予防技術のための運転手の脳活動を計測、運転時の認知処理を支援するインタフェースの有用性を発表
+        - 株式会社アラヤは、本田技術研究所と共同で、運転中の脳活動から安全運転に関わる部位を特定し、AI を活用して先んじて危険因子を運転手に知らせるシステムの実証実験などの一連の結果をまとめ、第 27 回 ESV 国際会議（ESV2023）で本成果を発表しました
+
+135.  耳の中の細かい振動から呼吸や心拍を測定
+      - 参考
+        - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790)
+        - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953)
+        - [https://twitter.com/tmiyatake1/status/1645215735780888576](https://twitter.com/tmiyatake1/status/1645215735780888576)
+      - 説明
+        - Apple が耳の中の細かい振動から呼吸や心拍を測定できる技術と聴力を長期モニタリングが出来る技術の特許申請を出した
+
+136.  Image Decoder
+      - 参考
+        - [https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/](https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/)
+      - 説明
+        - 感情の算出
+        - Meta Platforms の研究者は 2023 年 10 月 18 日、脳活動から人の“心“を読むアプリケーション「Image Decoder」を発表した
+        - 「Image Decoder」は、同社が提供する自己教師付きのオープンソース基盤モデル「DINOv2」をベースとしたアプリケーション。脳から出てくる磁気を記録する MEG（脳磁図検査）で脳活動を把握することで、隔たったところにいる被験者が何を見ているか、何を想像しているかを把握できる
+
+137.  心拍数モニタ機能
+      - 参考
+        - [https://daily-gadget.net/2023/11/02/post-63765/](https://daily-gadget.net/2023/11/02/post-63765/)
+      - 説明
+        - 感情の算出
+        - Google が同社の research blog のエントリにおいて、“APG: Audioplethysmography for Cardiac Monitoring in Hearables,”と呼ばれる新たな技術を発表しました。これは ANC（アクティブノイズキャンセリング）イヤホンに、追加のセンサーを必要とせず、ソフトウェアアップデートだけで心拍数モニタ機能を付与できるというすごい技術です
+        - 心拍数と心拍変動の両方を高い精度で計測できるとのこと
+        - 追加センサーなしでどうやってこんなことを行うのかというと、ANC イヤホンのスピーカーと内蔵マイクを利用します。「プローピング信号」という超音波をスピーカーから流し、その反射をマイクで測定します。外耳道は血管に囲まれているため、心臓の鼓動によって内部の容積と圧力が微妙に変化し、この変動をマイクによって測定することで心拍数が分かるというもの
+        - 超音波を使用するため、音楽が流れていても聞こえないように測定が可能
+
+138.  情動変容メカニズム
+      - 参考
+        - [https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf](https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf)
+        - [https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/](https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/)
+      - 説明
+        - 感情の算出の参考にしたい
+        - PwC コンサルティング合同会社（東京都千代田区、代表執行役 CEO:大竹 伸明、以下「PwC コンサルティング」）と、国立大学法人広島大学 脳・こころ・感性科学研究センター（広島県広島市、センター長： 山脇 成人 、以下「広島大学 脳・こころ・感性科学研究センター」）は 11 月 1 日から、「コンテンツ視聴時における情動変容と余韻形成メカニズムの解明と定量化系構築」に関する共同研究（以下「本研究」）を開始します
+        - 感性工学（
+        - \*1）と脳科学を融合した感性脳科学の観点から、そのメカニズムや相関関係の解明に取り組むことを目的としたものです
+        - 情動変容の定量計測や感動状態の新たな定義、余韻形成との相関関係を紐解くことを目指す研究を開始します
+
+139.  光学式心拍センサー
+      - 参考
+        - [https://techable.jp/archives/220874](https://techable.jp/archives/220874)
+      - 説明
+        - 感情の算出の参考にしたい
+        - Polar Electro（本社：フィンランド、設立：1977 年、以下「ポラール」）は、1982 年に世界初とされるワイヤレス式心拍計モニター装置を開発した、心拍計測・分析のスペシャリストだ
+        - 今回、同社の光学式心拍センサー「Polar Verity Sense」と、株式会社 obniz（以下、obniz）の IoT プラットフォームが連携した
+
+140.  UK Biobank
+      - 説明
+        - UK Biobank を幸福度の算出の学習データに
+
+141.  AirPods で脳信号を記録
+      - 参考
+        - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
+      - 説明
+        - AirPods で脳信号を記録 ── イヤフォンに貼るセンサーを米研究者らが開発 ストレスや集中度を監視
+        - 米カリフォルニア大学サンディエゴ校に所属する研究者らが発表した論文「In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat」は、脳活動と運動レベルをイヤフォンで連続的に記録するための柔軟なスクリーン印刷センサーに関する研究報告です。スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
+        - 耳の中から非侵襲的に EEG 信号を取得するアプローチ
+        - この柔軟なセンサーは、EEG 信号を収集するだけでなく、汗からの乳酸も感知できる
+
+142.  AI による感情推測
+      - 参考
+        - [https://seleck.cc/1616](https://seleck.cc/1616)
+      - 説明
+        - 1 つ目は、音の変化による判別です
+        - 2 つ目は、テキスト情報からの推測です
+        - 3 つ目は、話している内容を AI が正確に認識できているかどうかです
+
+143.  感情可視化技術
+      - 参考
+        - [https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine](https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine)
+      - 説明
+        - Olive は、ヒトの感情を可視化する技術基盤「La Cause（ラクーズ）」を提供するスタートアップです
+        - 心拍情報、体動、呼吸等の生体データをさまざまなセンサーから収集・蓄積し、これらのデータを独自アルゴリズムと AI により感情や状態に向けた解析を行います
+        - 感情推定技術
+        - ライブでの実証実験では、客席に観客の感情を計測するためのセンサーが取り付けられた。映画館で観客の感情データをリアルタイムで取得し、それをイベントで使用するような取り組みも実施されていましたね
+        - 我々のもっとも強力で特徴的な点は、計測対象者がデバイスを装着せずに、通常通りの行動をしてもらいながらデータを収集できることです。つまり、計測が行われていることを意識させずにデータを取得することを重要視しています。例えば映画の場合、座席の後ろに赤外線カメラを配置し、観客の生体データを測定しました
+        - さらに、生体データの取得により、人々が意識的にコントロールできない要素が反映され、面白くない状況でも笑顔を作り出したり、怖くないのに怖い表情をしたりするなどのノイズを排除できます。事前に映画を拝見して、感情を具体的にどのように見える化できるか、松竹さんにとって何が意義があるのか、観客にとって楽しい体験となるかを考えました
+
+144.  血圧と睡眠障害をモニタリング
+      - 参考
+        - [https://forbesjapan.com/articles/detail/67114](https://forbesjapan.com/articles/detail/67114)
+      - 説明
+        - 感情の算出の参考にしたい
+        - 睡眠時無呼吸症候群と血圧上昇を検知するセンサーを次期 Apple Watch に搭載するつもりだという
+        - Apple Watch シリーズの将来的な機能として、近赤外線分光法を用いた血圧測定の可能性が以前から議論されてきた
+        - 一方、睡眠時無呼吸症候群は血中酸素濃度、運動量、呼吸数、いびき、心拍数などの要素を分析することで特定できる
+
+145.  社会的文脈と感情
+      - 参考
+        - [https://t.co/RBGkg9QxQ8](https://t.co/RBGkg9QxQ8)
+      - 説明
+        - 感情の算出の参考にしたい
+        - Sixteen facial expressions occur in similar contexts worldwide
+
+146.  Tesla がドライバーの顔認識
+      - 参考
+        - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721)
+        - [https://twitter.com/tmiyatake1/status/1728202847513420100](https://twitter.com/tmiyatake1/status/1728202847513420100)
+      - 説明
+        - 感情の算出の参考にしたい
+        - Tesla がドライバーの顔認識をしてパーソナライズされた体験を提供する技術の特許申請を行なった
+        - 車に乗った際に名前で呼んでくれたり、エアコンや席の調整、そして意識が無かったり反応が無ければ救急車を呼ぶと同時に自動運転で近くの病院に移動する
+
+147.  e-skin ECG
+      - 参考
+        - [https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/](https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/)
+      - 説明
+        - 感情の算出の参考にしたい
+        - 慶應義塾大学病院にホルター心電図の郵送検査サービス「e-skin ECG」が導入 ─ 人間ドックでホルター心電図検査可能に
+
+148.  明確に自覚していない情動に対する顔色
+      - 参考
+        - [https://univ-journal.jp/235496/](https://univ-journal.jp/235496/)
+      - 説明
+        - 感情の算出の参考にしたい
+        - 豊橋技術科学大学の研究チームは、顔色は情動の認知に対して無意識に影響を与え、この現象は観察者自身が自覚していない場合でも起こりうることを明らかにした
+        - “ハイブリッド表情”という特殊な表情画像を使用して、心理物理実験を実施。ハイブリッド表情は、幸せ表情と無表情、あるいは怒り表情と無表情の顔を異なる空間周波数で混在させた表情（順にハイブリッド幸せ表情、ハイブリッド怒り表情）で、情動研究でよく使われる実験刺激の 1 つだ
+        - 論文情報：【Cognition and Emotion】The effect of facial colour on implicit facial expressions
+
+149.  Oura Ring の「Daytime Stress」
+      - 参考
+        - [https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/](https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/)
+      - 説明
+        - Oura Ring の「Daytime Stress」
+        - 心拍数や体温などの生体データから、ストレスの変化を測る機能。測定は 15 分ごとに行われ、どのような体験がストレスの原因になっているかを判定できる
+        - 「Reflections」
+        - AI を活用した日記機能。音声認識と AI による自動タグづけにより、1 日の振り返りを話して記録できるほか、気分や精神状態もジェスチャーひとつで記録できる。「Stress Resilience」（今冬から提供予定）
+        - 日中のストレス負荷や、日中および睡眠中の回復の追跡により、利用者のストレス耐性を評価する機能。「Daytime Stress」により取得した情報を使用しており、健康を改善するための情報も提供される
+
+150.  Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能
+      - 説明
+        - Oura Ring の 日中のストレスと回復をリアルタイムで追跡する新機能で、リングの 心拍変動や 心拍数や動きや体温を測定して、生理的なストレスをリアルタイムで測定する 新機能を幸福度の測定等の参考にしたい
 
 ### データ取得の方法
 
 下記の方法を、「データ取得の方法」の参考にしたい。
 
-- **デジタル庁のオープンデータの取り組み**
+1. Ocean Marketplace（データマーケットプレイス）
+   - 参考
+     - [Ocean Marketplace](https://market.oceanprotocol.com/)
+     - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+   - 説明
+     - 無料主義のデータをやり取りする場所の参考にしたい
+     - データマーケットプレイスで収益化
 
-- [https://www.data.go.jp/](https://www.data.go.jp/)
-- [https://www.digital.go.jp/](https://www.digital.go.jp/)
+2. デジタル庁のオープンデータの取り組み
+   - 参考
+     - [https://www.data.go.jp/](https://www.data.go.jp/)
+     - [https://www.digital.go.jp/](https://www.digital.go.jp/)
 
-- **データを提出するインセンティブ**
+3. データを提出するインセンティブ
+   - 参考
+     - [https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU](https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU)
+     - [https://twitter.com/extreme-stretch/status/1608610308079390722](https://twitter.com/extreme-stretch/status/1608610308079390722)
+   - 説明
+     - "公共圏（公共 AI）を維持するためのお世話の方法として、データを収めましょう" は発想の展開かも。よいデータをおさめないと自分たちが将来的に苦しむことになる、というインセンティブも働くかも
 
-- 引用 <br> "公共圏（公共 AI）を維持するためのお世話の方法として、データを収めましょう" は発想の展開かも。よいデータをおさめないと自分たちが将来的に苦しむことになる、というインセンティブも働くかも。 <br> [https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU](https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU) <br> [https://twitter.com/extreme-stretch/status/1608610308079390722](https://twitter.com/extreme-stretch/status/1608610308079390722)
+4. データ収集ツール ISeeChange
+   - 参考
+     - [https://ssir.org/articles/entry/sharing-to-save-the-planet](https://ssir.org/articles/entry/sharing-to-save-the-planet)
+   - 説明
+     - NASA も注目する市民のための気候変動データ収集アプリ
+     - データ収集ツール ISeeChange
+     - ISeeChange は、一般市民が自分の暮らす地域で起こっている気候変動の影響を写真や記事で投稿できる無料のデジタルプラットフォーム
 
-- **データ収集ツール ISeeChange**
+5. ウェアラブル端末
+   - 説明
+     - ストレスなどを常時計測できる技術などもすでにあるからそれを評価軸の算出に使用する
 
-- NASA も注目する市民のための気候変動データ収集アプリ <br> データ収集ツール ISeeChange <br> ISeeChange は、一般市民が自分の暮らす地域で起こっている気候変動の影響を写真や記事で投稿できる無料のデジタルプラットフォーム <br> [https://ssir.org/articles/entry/sharing-to-save-the-planet](https://ssir.org/articles/entry/sharing-to-save-the-planet)
+6. 持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)
+   - 参考
+     - [https://globe.asahi.com/article/14635630](https://globe.asahi.com/article/14635630)
+   - 説明
+     - デバイスを利用して自分の体と心の健康状態や活動を数値で管理する考え方を「Quantified Self (クオンティファイド・セルフ）」といいます
+     - 持続血糖測定（Continuous Glucose Monitoring）は、糖尿病治療や予防のために、皮膚の直下に挿入された細い小さな針を通じて持続的に血糖値を測ります。自分の血糖値の状況をアプリを通じて視覚的に管理でき、アメリカでは医師の処方のもと、小児患者も使用しています
 
-- **ウェアラブル端末**
+7. odp
+   - 参考
+     - [https://odp.jig.jp/](https://odp.jig.jp/)
+   - 説明
+     - odp を利用することで、あなたの自治体のデータを、オープンデータ評価指標で最高水準とされている 5 つ星オープンデータとして公開できます
 
-- ストレスなどを常時計測できる技術などもすでにあるからそれを評価軸の算出に使用する
+8. 感情を算出するための生体情報のデータを取得する参考
+   - 参考
+     - [https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/](https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/)
+     - [https://twitter.com/maru56/status/1631649589605588992](https://twitter.com/maru56/status/1631649589605588992)
+   - 説明
+     - 「個人が特定されない形で体重や身長、血圧や脂質などの検査値を企業や研究機関に提供する。治療法や医薬品の開発に役立てる」医療情報、個人特定せず検査値提供 研究開発後押し
 
-- **持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)**
+9. MilCount（ミルカウント）
+   - 参考
+     - [AI](https://chizaizukan.com/tag/ai/property)
+     - [ニュースリリースはこちら（東急エージェンシー）](https://www.tokyu-agc.co.jp/assets/img/page/news/2023/release20230221.pdf)
+     - [ニュースリリースはこちら（パナソニック）](https://news.panasonic.com/jp/press/jn230221-3)
+     - [https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi](https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi)
+   - 説明
+     - 東急エージェンシーとパナソニック、デジタルメディアの広告効果を可視化するサービス「MilCount（ミルカウント）」を東急線駅 5 か所に導入
+     - 交通広告メジャメント（計測方法）としてカメラ 1 台の画像センシングで広告効果を可視化するサービス「MilCount（ミルカウント）」を導入した
+     - 「MilCount」は、広告媒体接触者のデータを“速く、見やすく、簡単に”可視化するクラウドサービス。デジタルサイネージ用ディスプレイが複数あるエリアでも、カメラ 1 台で 10m 先・視野角 120 度以内の媒体接触者の属性（年齢・性別など）を 1 時間ごとに測定し、独自の推計ロジックにより媒体設置エリア全体のデータを算出する
 
-- デバイスを利用して自分の体と心の健康状態や活動を数値で管理する考え方を「Quantified Self (クオンティファイド・セルフ）」といいます。 <br> 持続血糖測定（Continuous Glucose Monitoring）は、糖尿病治療や予防のために、皮膚の直下に挿入された細い小さな針を通じて持続的に血糖値を測ります。自分の血糖値の状況をアプリを通じて視覚的に管理でき、アメリカでは医師の処方のもと、小児患者も使用しています[https://globe.asahi.com/article/14635630](https://globe.asahi.com/article/14635630)
+10. NeoFace Monitor
 
-- **odp**
-
-- odp を利用することで、あなたの自治体のデータを、オープンデータ評価指標で最高水準とされている 5 つ星オープンデータとして公開できます
-- [https://odp.jig.jp/](https://odp.jig.jp/)
-
-- **感情を算出するための生体情報のデータを取得する参考**
-
-- 「個人が特定されない形で体重や身長、血圧や脂質などの検査値を企業や研究機関に提供する。治療法や医薬品の開発に役立てる」医療情報、個人特定せず検査値提供　研究開発後押し <br> [https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/](https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/) <br> [https://twitter.com/maru56/status/1631649589605588992](https://twitter.com/maru56/status/1631649589605588992)
-
-- **MilCount（ミルカウント）**
-
-- 東急エージェンシーとパナソニック、デジタルメディアの広告効果を可視化するサービス「MilCount（ミルカウント）」を東急線駅 5 か所に導入 <br> 交通広告メジャメント（計測方法）としてカメラ 1 台の画像センシングで広告効果を可視化するサービス「MilCount（ミルカウント）」を導入した。 <br>「MilCount」は、広告媒体接触者のデータを“速く、見やすく、簡単に”可視化するクラウドサービス。デジタルサイネージ用ディスプレイが複数あるエリアでも、カメラ 1 台で 10m 先・視野角 120 度以内の媒体接触者の属性（年齢・性別など）を 1 時間ごとに測定し、独自の[AI](https://chizaizukan.com/tag/ai/property)推計ロジックにより媒体設置エリア全体のデータを算出する。 <br> [ニュースリリースはこちら（東急エージェンシー）](https://www.tokyu-agc.co.jp/assets/img/page/news/2023/release20230221.pdf) <br> [ニュースリリースはこちら（パナソニック）](https://news.panasonic.com/jp/press/jn230221-3) <br> [https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi](https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi)
-
-- **NeoFace Monitor**
-
-- NEC は 3 月 29 日、パッケージソフトウェアとクラウドサービスで提供する PC の顔認証製品「NeoFace Monitor」の最新版を発表した
+- 参考
   - [https://japan.zdnet.com/article/35201639/](https://japan.zdnet.com/article/35201639/)
+- 説明
+  - NEC は 3 月 29 日、パッケージソフトウェアとクラウドサービスで提供する PC の顔認証製品「NeoFace Monitor」の最新版を発表した
 
-- **CO－ODE（コ・オード）**
+11. CO－ODE（コ・オード）
+    - 参考
+      - [https://japan.zdnet.com/article/35197605/](https://japan.zdnet.com/article/35197605/)
+    - 説明
+      - ジールのオープンデータ提供サービス「CO－ODE（コ・オード）」
+      - 国や自治体が公開するオープンデータを使いやすく加工し、配信・提供しているコ・オード
 
-- ジールのオープンデータ提供サービス「CO－ODE（コ・オード）」
-  - 国や自治体が公開するオープンデータを使いやすく加工し、配信・提供しているコ・オード
-  - [https://japan.zdnet.com/article/35197605/](https://japan.zdnet.com/article/35197605/)
+12. データ版 Kaggle
+    - 参考
+      - [https://https-deeplearning-ai.github.io/data-centric-comp/](https://t.co/9Z8LEt888O)
 
-- **データ版 Kaggle**
+13. マーケティング調査会社
+    - 説明
+      - マーケティングやデータ分析の調査、会社が収集しているユーザの行動ログを利用してデータ分析をする手法やデータを取得する方法を、貢献度の算出の行うときのデータの収集に参考にしたい
+      - マーケティング調査会社・データ分析会社「ヴァリューズ」が集計した無印良品ユーザーの行動ログ
 
-- 引用 <br> [https://https-deeplearning-ai.github.io/data-centric-comp/](https://t.co/9Z8LEt888O)
+14. iNaturalist、eBird、ResearchKit
+    - 参考
+      - [https://ssir-j.org/the-looming-fight-over-how-we-give-our-data](https://ssir-j.org/the-looming-fight-over-how-we-give-our-data/)
+    - 説明
+      - VHC やワクチンハンターの仕組みを参考にしてデータ取得をしていきたい
+      - iNaturalist は、図鑑のようなアプリで、植物の写真をアップロードできる
+      - 写真がアップロードされると、オンラインのユーザーコミュニティがそれをチェックし、植物種の目星をつけます。十分な人数が同意すれば、写真は同定済みのタグ付けがされます。さらに、高画質の写真で、正確に同定されていれば、『研究ランク』のマークが付きます。これらの写真は iNaturalist のデータベースに登録され、科学者らが利用できる
+      - iNaturalist によく似た eBird というアプリのコミュニティも、何百もの査読付き科学論文に貢献したデータベースを構築している。データの寄付においては、小さな貢献が大きなインパクトをもたらすのです
+      - いま、データ保管先としての信頼性が高く、データの使用法に関する選択権を提供者が持つような、新しい組織を生み出そうとする動きがあちこちで現れている。たとえば、提供されたデータを活用する協同組合、シビックトラスト、オープンコレクティブといった新形態の組織だ
+      - 2015 年にアップルは、任意でスマートフォンのデータを医療研究者に共有することを可能にするソフトウェアフレームワーク「ResearchKit」を発表した
+      - 非営利団体のモジラ財団は最近、Rally という名の新たなウェブサイトツールを発表したが、これを使えば Firefox のブラウザから直接、関心のある調査研究にデータを提供できる。つまり、提供者自身の選択権とコントロール権が中心に据えられているのです
 
-- **マーケティング調査会社**
+15. Pint
+    - 参考
+      - [マインディア](https://corporate.minedia.com/)
+      - [https://signal.diamond.jp/articles/-/1227](https://signal.diamond.jp/articles/-/1227)
+    - 説明
+      - データを差し出さないと過小評価されてしまう場合もあるし、データを差し出さないことによって、過剰評価されている人たちは、周りからの批判を浴びることになる
+      - 個人のデータの扱いに対する規制が厳しくなってきている中で、Pint のユーザーから事前に承諾を得て直接取得した「ゼロパーティーデータ（個人が明示的な同意を持って提供するデータ）」である点が大きな特徴だ
+      - 「『自らデータを提供するからこそのメリット』にかなりフォーカスしたアプリになっています。データ連携によって実際に購買したのかどうかをトラッキングできるから、（キャッシュバックなど）お得に買い物ができる。購買データがあるから、自分にあった商品やお得な情報が見つかる。今後は企業から消費者に対して魅力的なオファーを提示できるような仕組みも取り入れていく予定です。こうしたメリットを充実させていくことで、多くの人が長く活用するプラットフォームを目指していきます」（鈴木氏）
+      - C 向けには 5 月よりモバイルアプリ「Pint」の提供を始めた（現時点では Android 版のみ）
+      - ユーザー自ら購買データを提供することで、EC サイトの買い物がお得になる ──。ユーザーに明確なメリットを提示することで多様なデータを収集し、そのデータを企業の課題解決につなげていくことを目指しているスタートアップがある。2018 年創業のだ
 
-- マーケティングやデータ分析の調査、会社が収集しているユーザの行動ログを利用してデータ分析をする手法やデータを取得する方法を、貢献度の算出の行うときのデータの収集に参考にしたい
-- マーケティング調査会社・データ分析会社「ヴァリューズ」が集計した無印良品ユーザーの行動ログ
+16. The Graph
+    - 説明
+      - The Graph をオープンデータの参考にしたい
 
-- **iNaturalist、eBird、ResearchKit**
+17. openfuture
+    - 参考
+      - [https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1](https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1)
+    - 説明
+      - openfuture をオープンにする参考にしたい
 
-- VHC やワクチンハンターの仕組みを参考にしてデータ取得をしていきたい
-- 引用 <br> iNaturalist は、図鑑のようなアプリで、植物の写真をアップロードできる。 <br> 写真がアップロードされると、オンラインのユーザーコミュニティがそれをチェックし、植物種の目星をつけます。十分な人数が同意すれば、写真は同定済みのタグ付けがされます。さらに、高画質の写真で、正確に同定されていれば、『研究ランク』のマークが付きます。これらの写真は iNaturalist のデータベースに登録され、科学者らが利用できる。 <br> iNaturalist によく似た eBird というアプリのコミュニティも、何百もの査読付き科学論文に貢献したデータベースを構築している。データの寄付においては、小さな貢献が大きなインパクトをもたらすのです。 <br> いま、データ保管先としての信頼性が高く、データの使用法に関する選択権を提供者が持つような、新しい組織を生み出そうとする動きがあちこちで現れている。たとえば、提供されたデータを活用する協同組合、シビックトラスト、オープンコレクティブといった新形態の組織だ。 <br> 2015 年にアップルは、任意でスマートフォンのデータを医療研究者に共有することを可能にするソフトウェアフレームワーク「ResearchKit」を発表した。 <br> 非営利団体のモジラ財団は最近、Rally という名の新たなウェブサイトツールを発表したが、これを使えば Firefox のブラウザから直接、関心のある調査研究にデータを提供できる。つまり、提供者自身の選択権とコントロール権が中心に据えられているのです。[https://ssir-j.org/the-looming-fight-over-how-we-give-our-data](https://ssir-j.org/the-looming-fight-over-how-we-give-our-data/)
+18. TytoCare
+    - 参考
+      - [https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/](https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/)
+    - 説明
+      - データ取得の参考にしたい
+      - 「タイトケア社が開発・販売するキット「TytoCare」を国内で発売した。カメラやセンサーが付いた本体に 3 種類の付属の部品を組み合わせることで聴診音や体温、咽頭や鼓膜、皮膚の画像など 8 項目のデータが得られる
+      - DeNA 系のアルム、オンライン診療の支援キット：日本経済新聞
 
-- **Pint**
-
-- データを差し出さないと過小評価されてしまう場合もあるし、データを差し出さないことによって、過剰評価されている人たちは、周りからの批判を浴びることになる
-- 引用 <br> 個人のデータの扱いに対する規制が厳しくなってきている中で、Pint のユーザーから事前に承諾を得て直接取得した「ゼロパーティーデータ（個人が明示的な同意を持って提供するデータ）」である点が大きな特徴だ。 <br>「『自らデータを提供するからこそのメリット』にかなりフォーカスしたアプリになっています。データ連携によって実際に購買したのかどうかをトラッキングできるから、（キャッシュバックなど）お得に買い物ができる。購買データがあるから、自分にあった商品やお得な情報が見つかる。今後は企業から消費者に対して魅力的なオファーを提示できるような仕組みも取り入れていく予定です。こうしたメリットを充実させていくことで、多くの人が長く活用するプラットフォームを目指していきます」（鈴木氏）<br> C 向けには 5 月よりモバイルアプリ「Pint」の提供を始めた（現時点では Android 版のみ）<br> ユーザー自ら購買データを提供することで、EC サイトの買い物がお得になる ──。ユーザーに明確なメリットを提示することで多様なデータを収集し、そのデータを企業の課題解決につなげていくことを目指しているスタートアップがある。2018 年創業の[マインディア](https://corporate.minedia.com/)だ。 <br> [https://signal.diamond.jp/articles/-/1227](https://signal.diamond.jp/articles/-/1227)
-
-- **The Graph**
-
-- The Graph をオープンデータの参考にしたい
-
-- **openfuture**
-
-- openfuture をオープンにする参考にしたい <br> [https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1](https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1)
-
-- **TytoCare**
-
-- データ取得の参考にしたい
-- 引用 <br>「タイトケア社が開発・販売するキット「TytoCare」を国内で発売した。カメラやセンサーが付いた本体に 3 種類の付属の部品を組み合わせることで聴診音や体温、咽頭や鼓膜、皮膚の画像など 8 項目のデータが得られる
-- DeNA 系のアルム、オンライン診療の支援キット：日本経済新聞 <br> [https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/](https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/)
-
-- **企業の顧客データ取引所**
-
-- データ取得の参考にしたい
-- 引用 <br> 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す。企業がデータをサービスや商品開発に生かしたり、投資家が取引に参加して売買益を得たりできる。 <br> [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
-
-- **無料主義のデータをやり取りする場所の参考にしたい**
-
-- [Ocean Marketplace](https://market.oceanprotocol.com/)のようなデータマーケットプレイスで収益化
-  - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+19. 企業の顧客データ取引所
+    - 参考
+      - [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
+    - 説明
+      - データ取得の参考にしたい
+      - 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す。企業がデータをサービスや商品開発に生かしたり、投資家が取引に参加して売買益を得たりできる
 
 ### 評価軸の指標
 
 下記の方法を、評価軸の指標という観点の参考にしたい。
 
-- **Genuine Progress Indicator ＝真の進歩指標」（GPI）**
+1. Genuine Progress Indicator ＝真の進歩指標」（GPI）
+   - 説明
+     - 個人消費をベースに、所得分配、家事・ボランティア、などの無料だけど良いことや犯罪や公害といったマイナスなことも含めた指標
+     - 脱成長派の経済学者ハーマン・デイリー
 
-- 個人消費をベースに、所得分配、家事・ボランティア、などの無料だけど良いことや犯罪や公害といったマイナスなことも含めた指標
-  - 脱成長派の経済学者ハーマン・デイリー
+2. 経済効果、経済損失を図る方法
+   - 説明
+     - 経済効果を図るときに何がどれだけ経済効果を生み出しているかどうかを図る仕組みを評価軸への貢献度の算出の参考にしたい
 
-- **経済効果、経済損失を図る方法**
-
-- 経済効果を図るときに何がどれだけ経済効果を生み出しているかどうかを図る仕組みを評価軸への貢献度の算出の参考にしたい
-
-- **SDGs の認証方法や評価方法や S&P などの株式の格付けの方法**
-
-- B-Corp 認証、製品、店舗の内装材料、アウトソースする企業の Sedex (Supply Ethical Data Exchange)、衛星写真の活用
+3. SDGs の認証方法や評価方法や S&P などの株式の格付けの方法
+   - 説明
+     - B-Corp 認証、製品、店舗の内装材料、アウトソースする企業の Sedex (Supply Ethical Data Exchange)、衛星写真の活用
 
 ### 非干渉の権利
 
 下記の方法を、「非干渉の社会」「非干渉の権利」の参考にしたい。
 
-- **無料主義の SNS の参考にしたい**
+1. 無料主義の SNS（DYSTOPIA）
+   - 参考
+     - [https://twitter.com/dystopia-sns/status/1705831398056284171](https://twitter.com/dystopia-sns/status/1705831398056284171)
+   - 説明
+     - 誰も傷つかない新 SNS「DYSTOPIA」
+     - この SNS では誹謗中傷等の不適切な表現は AI により検閲され、自動的に適切な表現へと変換され投稿されます
 
-- 誰も傷つかない新 SNS「DYSTOPIA」<br> この SNS では誹謗中傷等の不適切な表現は AI により検閲され、自動的に適切な表現へと変換され投稿されます。 <br>\* [https://twitter.com/dystopia-sns/status/1705831398056284171](https://twitter.com/dystopia-sns/status/1705831398056284171)
+2. Chrome拡張機能
+   - 説明
+     - 見たくない言葉を全てひよこのさえずりに置き換えてくれる Chrome 拡張機能「ひよこフィルター」
 
-- **Chrome拡張機能**
+3. 潜在的連合テスト
+   - 説明
+     - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する？
+     - 自分で考えられない速度で答えないと終わることができないテストで思想を特定する
 
-- 見たくない言葉を全てひよこのさえずりに置き換えてくれる Chrome 拡張機能「ひよこフィルター」
+4. 見たくないコンテンツを加工する機能
+   - 参考
+     - [https://itmedia.co.jp/news/articles/2208/29/news048.html](https://t.co/abCJnidtdQ)
+     - [https://twitter.com/shiropen2/status/1566571533522411522](https://twitter.com/shiropen2/status/1566571533522411522)
+   - 説明
+     - 漫画で見たくない“地雷シーン”を事前に警告する技術 明治大が開発
+     - 見たくないシーンを登録しながら漫画を読む。次に出てくる見たくないシーンのページ前に警告される（出てくる位置と嫌な内容が表示）読者はページ送り目をつむる等で回避。見たくないシーンは次の読者と共有も
 
-- **潜在的連合テスト**
-  - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する？
-    - 自分で考えられない速度で答えないと終わることができないテストで思想を特定する
+5. 見たいように加工する事例
+   - 参考
+     - [https://technologyreview.jp/s/279706/social-media-filters-are-helping-people-explore-their-gender-identity/sbm/](https://t.co/lMJxYrPcBj)
+     - [https://twitter.com/sasakitoshinao/status/1545543768513855488](https://twitter.com/sasakitoshinao/status/1545543768513855488)
+   - 説明
+     - すでに、自分の見たい世界を見れるようにするために加工する人たちや文化が生まれてきているから、それを無料主義で加速させる
+     - トランスジェンダーの人にとっては「切望している、外見と自認している性のアイデンティティとが一致する多幸感も与えてくれる。肉体的な性別移行を考える際に、フィルターを役立てる人もいる」と。MITTR。／「盛り」だけじゃない、顔加工アプリがもたらす新しい価値
 
-- **見たくないコンテンツを加工する機能**
+6. 見たくないコンテンツを加工する機能
+   - 参考
+     - [My Face My Choice: Privacy Enhancing Deepfakes for Social Media Anonymization](https://arxiv.org/abs/2211.01361)
+     - [https://www.itmedia.co.jp/news/articles/2212/01/news060.html](https://www.itmedia.co.jp/news/articles/2212/01/news060.html)
+   - 説明
+     - 写真内の不要な顔だけ“実在しない顔”に置き替える AI プライバシー保護に活用 Intel などが開発
+     - 米ビンガムトン大学と Intel Labs に所属する研究者らが発表した論文「」は、写真内に写る指定した顔を実在しない偽の顔（ディープフェイク）に変換する深層学習モデルを提案した研究報告だ
 
-- 引用 <br> 漫画で見たくない“地雷シーン”を事前に警告する技術　明治大が開発[https://itmedia.co.jp/news/articles/2208/29/news048.html](https://t.co/abCJnidtdQ)
-  - 見たくないシーンを登録しながら漫画を読む。次に出てくる見たくないシーンのページ前に警告される（出てくる位置と嫌な内容が表示）読者はページ送り目をつむる等で回避。見たくないシーンは次の読者と共有も
-  - [https://twitter.com/shiropen2/status/1566571533522411522](https://twitter.com/shiropen2/status/1566571533522411522)
-
-- **見たいように加工する事例**
-
-- すでに、自分の見たい世界を見れるようにするために加工する人たちや文化が生まれてきているから、それを無料主義で加速させる
-  - トランスジェンダーの人にとっては「切望している、外見と自認している性のアイデンティティとが一致する多幸感も与えてくれる。肉体的な性別移行を考える際に、フィルターを役立てる人もいる」と。MITTR。／「盛り」だけじゃない、顔加工アプリがもたらす新しい価値
-  - [https://technologyreview.jp/s/279706/social-media-filters-are-helping-people-explore-their-gender-identity/sbm/](https://t.co/lMJxYrPcBj)
-    - [https://twitter.com/sasakitoshinao/status/1545543768513855488](https://twitter.com/sasakitoshinao/status/1545543768513855488)
-
-- **見たくないコンテンツを加工する機能**
-
-- 引用 <br> 写真内の不要な顔だけ“実在しない顔”に置き替える AI 　プライバシー保護に活用　 Intel などが開発 <br> 米ビンガムトン大学と Intel Labs に所属する研究者らが発表した論文「[My Face My Choice: Privacy Enhancing Deepfakes for Social Media Anonymization](https://arxiv.org/abs/2211.01361)」は、写真内に写る指定した顔を実在しない偽の顔（ディープフェイク）に変換する深層学習モデルを提案した研究報告だ。 <br> [https://www.itmedia.co.jp/news/articles/2212/01/news060.html](https://www.itmedia.co.jp/news/articles/2212/01/news060.html)
-
-- **Bluesky**
-  - Bluesky のユーザー側のオプトイン型の選択方式
-
-- 事前に分断する社会
-  - [https://slowinternet.jp/article/20210201/](https://slowinternet.jp/article/20210201/)
+7. Bluesky
+   - 参考
+     - [https://slowinternet.jp/article/20210201/](https://slowinternet.jp/article/20210201/)
+   - 説明
+     - Bluesky のユーザー側のオプトイン型の選択方式
+     - 事前に分断する社会
 
 ### 正当性
 
 下記の方法を、「貢献度の算出結果に正当性を持たせる仕組み」の参考にしたい。
 
-- **Augur など入力情報の妥当性に関してネットワーク全体で合意形成を試みる分散型オラクル。**
+1. pol.is
+   - 参考
+     - [http://pol.is](http://pol.is)
 
-- [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
+2. Augur など入力情報の妥当性に関してネットワーク全体で合意形成を試みる分散型オラクル。
+   - 参考
+     - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
 
-- **分散型オラクルの妥当性を得る方法**
+3. 分散型オラクルの妥当性を得る方法
+   - 説明
+     - 分散型オラクルの妥当性を得る方法を、貢献度の算出のためのデータ分析の結果の妥当性を判断する仕組みの参考にしたい
 
-- 分散型オラクルの妥当性を得る方法を、貢献度の算出のためのデータ分析の結果の妥当性を判断する仕組みの参考にしたい
-
-- **「Solafune」**
-
-- サービス概要：人工衛星が取得した地球観測データを使うアルゴリズムの開発・提供を行う「Solafune」です
-- 衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化しています
-- 手順の例は次のとおりです
-  - データセットをオンライン公開する
-  - 世界中から解析結果を収集し、自動評価とスコアリングを行う
-  - 優秀なアルゴリズムを抽出し、ソースコードを買い取る
-- [https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight](https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight)
-
-- **pol.is を正当性を持たせる仕組みの参考にしたい**
-
-- [http://pol.is](https://t.co/H9orfAwMBa)
+4. 「Solafune」
+   - 参考
+     - [https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight](https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight)
+   - 説明
+     - サービス概要：人工衛星が取得した地球観測データを使うアルゴリズムの開発・提供を行う「Solafune」です
+     - 衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化しています
+     - 手順の例は次のとおりです
+     - データセットをオンライン公開する
+     - 世界中から解析結果を収集し、自動評価とスコアリングを行う
+     - 優秀なアルゴリズムを抽出し、ソースコードを買い取る
 
 ### 意思決定
 
 下記の方法を、「無料主義の意思決定」の参考にしたい。
 
-- 引用
-- [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
-- ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
+1. 専門能力に応じた投票重み（引用）
+   - 参考
+     - [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
+   - 説明
+     - ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
 
-- **これを行って、貢献度の分析結果のどれが正しいかを選んでいく？**
+2. これを行って、貢献度の分析結果のどれが正しいかを選んでいく？
+   - 参考
+     - [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
+   - 説明
+     - 割合を低く見積もる人たちの本来聞きたい質問の回答を集めると集合知にできる
+     - 「他の参加者のうち何％が、その質問へ yes で答えると見積もるか？」という質問を追加する
+     - （続き）
+     - 正解を知る少数派が割合を低めに見積もる性質を利用して集合知を集約する
+     - 問題の予測に加え、他者の予測についての予測も併用する点が面白い
+     - Gnosis
+     - 分散型予測市場プラットフォーム
 
-- 割合を低く見積もる人たちの本来聞きたい質問の回答を集めると集合知にできる
-- 引用 <br>「他の参加者のうち何％が、その質問へ yes で答えると見積もるか？」という質問を追加する
-- 引用（続き）<br> 正解を知る少数派が割合を低めに見積もる性質を利用して集合知を集約する
-- 引用（続き）<br> 問題の予測に加え、他者の予測についての予測も併用する点が面白い
-- 引用（続き）<br> [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
+3. Polis
+   - 参考
+     - [http://pol.is](https://t.co/mnPKxGq7RI)
+     - [https://twitter.com/-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
+   - 説明
+     - 返信なくして 3 値で判定してる
 
-- Gnosis
-  - 分散型予測市場プラットフォーム
+4. Conviction Voting
+   - 参考
+     - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
 
-- **Polis**
-  - [http://pol.is](https://t.co/mnPKxGq7RI) おもしろいね
-  - 返信なくして 3 値で判定してるとか
-  - [https://twitter.com/<br>-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
-
-- **Conviction Voting**
-  - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
-
-- **Futarchy**
-  - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
+5. Futarchy
+   - 説明
+     - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
 
 ### etc の参考
 
-- **評価軸ポイントの設計の参考にしたい**
+1. john-law-coin（評価軸ポイントの設計）
+   - 参考
+     - [https://github.com/xharaken/john-law-coin/tree/main/docs](https://github.com/xharaken/john-law-coin/tree/main/docs)
+   - 説明
+     - 評価軸ポイントの設計の参考にしたい
 
-- [https://github.com/xharaken/john-law-coin/tree/main/docs](https://github.com/xharaken/john-law-coin/tree/main/docs)
+2. VitaDAO
+   - 参考
+     - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+   - 説明
+     - VitaDAO などの DeSi を無料主義で研究を支援する参考にしたい
+     - 長寿研究の民主化を目指す「VitaDAO」- 分散型科学の先端事例
 
-- **VitaDAO などの DeSi を無料主義で研究を支援する参考にしたい**
+3. kleros / Plurality Conference（無料主義の裁判）
+   - 参考
+     - [UC Berkeley で開催された Plurality Conference 参加記の Scrapbox メモ](https://scrapbox.io/tkgshn/UC-Berkeley%E3%81%A7%E8%A1%8C%E3%82%8F%E3%82%8C%E3%81%9FPlurality-Conference%E3%81%AB%E5%8F%82%E5%8A%A0%E3%81%97%E3%81%9F)
+   - 説明
+     - 無料主義の裁判の参考にしたい
+     - kleros は分散型裁判所
 
-- 長寿研究の民主化を目指す「VitaDAO」- 分散型科学の先端事例 <br> [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+4. The Network State
+   - 参考
+     - [https://thenetworkstate.com/](https://thenetworkstate.com/)
+   - 説明
+     - 国づくりにおける評価軸の仕組みを参考にしたい
+     - Coinbase の元 CTO/a16z のパートナーでもある [@balajis](https://twitter.com/balajis) の「The Network State」を参考にして、国を作っていきたい
 
-- **無料主義の裁判の参考にしたい**
+5. CityDAO
+   - 説明
+     - CityDAO、balaji の「network state」を、国の役割を作るときの参考にしたい
 
-- 引用です。kleros は分散型裁判所です
-- [UC Berkeley で開催された Plurality Conference 参加記の Scrapbox メモ](https://scrapbox.io/tkgshn/UC-Berkeley%E3%81%A7%E8%A1%8C%E3%82%8F%E3%82%8C%E3%81%9FPlurality-Conference%E3%81%AB%E5%8F%82%E5%8A%A0%E3%81%97%E3%81%9F)
+6. Sanctum
+   - 参考
+     - [https://twitter.com/sanctumnation](https://twitter.com/sanctumnation)
+   - 説明
+     - ニューヨークにあるニュースクール大学の准教授で警察力の自動化について研究しているピーター・アサロ
+     - 「Sanctum」
 
-- **シビルアタック耐性を参考にする**
+7. 海上自治都市・公海を漂う新国家
+   - 参考
+     - [https://www.rieti.go.jp/jp/papers/contribution/narita-yusuke/04.html](https://www.rieti.go.jp/jp/papers/contribution/narita-yusuke/04.html)
+     - [http://seasteading.org](http://seasteading.org)
+     - [https://twitter.com/narita-yusuke/status/1395719837624590337](https://twitter.com/narita-yusuke/status/1395719837624590337)
+   - 説明
+     - どの国も支配していない地球最後のフロンティアである公海を漂う新国家群を作ろうという企てがある。「海上自治都市建設協会」と呼ばれるもの
+     - 地球最後のフロンティアは、世界の海の半分を占める公海。どの国も支配していない公海の特性を逆手にとって「公海を漂う新国家」を作ろうという試みが進んでる。巨大船を作る費用が下がっていて、海上生活が現実的になりつつあるのが背景。海上社会実験の時代
 
-- 貢献度算出へ関わる担当者による乱暴な運用を抑える目的で、ログインに加えマイナンバーや DID による本人確認を行い、BAN をすり抜けて再登録したうえでの悪用を繰り返しにくくしたいです
-  - シビルアタックを防ぐ方法が参考になる
+8. プロジェクト管理（Pol.is / Loomio / CommunityRule）
+   - 参考
+     - [Pol.is](https://pol.is/home)
+     - [Loomio](https://www.loomio.com/)
+   - 説明
+     - プロジェクト管理の参考にしたい
+     - Pol.is や Loomio などの民主的協議ツール
+     - コミュニティや組織の運営を自律させるのに役立つルールをモジュール化して簡単に組み合わせて作成できる「CommunityRule」
 
-- **国づくりにおける評価軸の仕組みを参考にしたい**
+9. Dataiku
+   - 参考
+     - [Dataiku](https://www.dataiku.com/ja/)
+     - [Dataiku に関する紹介記事へのリンク](https://techblitz.com/dataiku/)
+   - 説明
+     - 誰でもデータ分析できる方法の参考にしたい
+     - AI と機械学習を身近にする DX プラットフォーム。ローコード・ノーコードで運用できる（米ニューヨーク州本社）は企業向けオールインワン製品
+     - 「Everyday AI」を標榜し、専門家の知見を形式知へ落とし込む。統計的背景が薄いユーザーでもグラフィカルな操作で分析できる点が強み
 
-- 「The Network State」を参考にして、国を作っていきたい。 <br> Coinbase の元 CTO/a16z のパートナーでもある [@balajis](https://twitter.com/balajis)の「The Network State」<br> [https://thenetworkstate.com/](https://thenetworkstate.com/)
-- CityDAO、balaji の「network state」を、国の役割を作るときの参考にしたい <br> CityDAO→
-- ニューヨークにあるニュースクール大学の准教授で警察力の自動化について研究しているピーター・アサロ
-- 「Sanctum( [@sanctumnation](https://twitter.com/sanctumnation) )」
-- どの国も支配していない地球最後のフロンティアである公海を漂う新国家群を作ろうという企てがある。「海上自治都市建設協会」と呼ばれるもの
-  - [https://www.rieti.go.jp/jp/papers/contribution/narita-yusuke/04.html](https://www.rieti.go.jp/jp/papers/contribution/narita-yusuke/04.html)
-- 地球最後のフロンティアは、世界の海の半分を占める公海。どの国も支配していない公海の特性を逆手にとって「公海を漂う新国家」を作ろうという試みが進んでる。巨大船を作る費用が下がっていて、海上生活が現実的になりつつあるのが背景。海上社会実験の時代
-  - [http://seasteading.org](https://t.co/5KM8a6Mpn1)
-  - [https://twitter.com/narita-yusuke/status/1395719837624590337](https://twitter.com/narita-yusuke/status/1395719837624590337)
+10. Alteryx
+    - 説明
+      - データ分析を簡単にできるツール
 
-- **プロジェクト管理の参考にしたい**
+11. AlphaCode
+    - 参考
+      - [論文へのリンク](https://doi.org/10.1126/science.abq1158)
+      - [Competitive programming with AlphaCode のブログ記事](https://www.deepmind.com/blog/competitive-programming-with-alphacode)
+    - 説明
+      - DeepMind が開発した「AlphaCode」は、プログラミングコンテスト相当の問題でヒトの平均級の成績を示したとされている
+      - 論文: Competition-level code generation with AlphaCode | Science
 
-- [Pol.is](https://pol.is/home)や[Loomio](https://www.loomio.com/)などの民主的協議ツール
-- コミュニティや組織の運営を自律させるのに役立つルールをモジュール化して簡単に組み合わせて作成できる「CommunityRule」
+12. シビルアタック耐性を参考にする
+    - 説明
+      - 貢献度算出へ関わる担当者による乱暴な運用を抑える目的で、ログインに加えマイナンバーや DID による本人確認を行い、BAN をすり抜けて再登録したうえでの悪用を繰り返しにくくしたいです
+      - シビルアタックを防ぐ方法が参考になる
 
-- **データ取得できる機器を身につけたり、そのデータを提供するほど評価軸ポイントがもらえるようにしたい**
-
-- イヤホンで脳波を測り生産性を高める関連で、凸版印刷は 30 社を超える顧客へ装置を販売しているとされています（日本経済新聞の報じるところです）
-- 参考リンク: [Braintech ガイドブック PDF](https://brains.link/wp/wp-content/uploads/2022/10/Braintech-guidebook-ver1.1.pdf) ほか、[関連ニュースへのショートリンク](https://t.co/2IaBDNhQJX)
-
-- **誰でもデータ分析できる方法の参考にしたい**
-
-- AI と機械学習を身近にする DX プラットフォームです。ローコード・ノーコードで運用できる [Dataiku](https://www.dataiku.com/ja/)（米ニューヨーク州本社）は企業向けオールインワン製品です
-- 「Everyday AI」を標榜し、専門家の知見を形式知へ落とし込みます。統計的背景が薄いユーザーでもグラフィカルな操作で分析できる点が強みです
-- [Dataiku に関する紹介記事へのリンク](https://techblitz.com/dataiku/)
-- 「Alteryx」というデータ分析を簡単にできるツール
-- DeepMind が開発した「AlphaCode」は、プログラミングコンテスト相当の問題でヒトの平均級の成績を示したとされています
-- 論文: Competition-level code generation with AlphaCode | Science（DOI は [論文へのリンク](https://doi.org/10.1126/science.abq1158)）
-- DeepMind の解説記事: [Competitive programming with AlphaCode のブログ記事](https://www.deepmind.com/blog/competitive-programming-with-alphacode)
+13. データ取得できる機器を身につけたり、そのデータを提供するほど評価軸ポイントがもらえるようにしたい
+    - 参考
+      - [Braintech ガイドブック PDF](https://brains.link/wp/wp-content/uploads/2022/10/Braintech-guidebook-ver1.1.pdf)
+      - [関連ニュースへのショートリンク](https://t.co/2IaBDNhQJX)
+    - 説明
+      - イヤホンで脳波を測り生産性を高める関連で、凸版印刷は 30 社を超える顧客へ装置を販売しているとされています（日本経済新聞の報じるところです）
+      - 参考リンク: ほか
 
 ## 資本主義から無料主義へ移行する方法
 
@@ -10012,146 +11032,146 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 ### 資本主義と無料主義を併用
 
-- **資本主義で価格をつけて販売しながら、その販売による評価軸を算出して評価軸ポイントを付与する**
+1. 資本主義で価格をつけて販売しながら、その販売による評価軸を算出して評価軸ポイントを付与する
+   - 説明
+     - 資本主義で抽選をしているような場面でも、無料主義の評価軸スコアで順番を並べ替えれば倫理的な説明がつきやすいです
+     - 資本主義の抽選で配る場面では、評価軸ポイント順位が高い順に渡します
+     - この場面が増えるほど評価軸ポイントを稼ぐ動機も強まります
+     - 資本主義で稼ぎながら無料主義の評価軸ポイントが多い人から抽選などで特典が得られる方法
+     - 資本主義から無料主義へ移行するために、資本主義と無料主義の両方で提供できるようにして、資本主義で価格をつけて販売したとしても評価軸ポイントはもらえるようにする
+     - でも、無料で販売したほうが評価軸ポイントを稼げるようにしたい
+     - 資本主義をメインとして無料主義アプリにも登録し、評価軸ポイントをためます
+     - 十分な所持者は資本主義側の値引きや、抽選枠での優先案内などを享受しやすくなります
 
-- 資本主義で抽選をしているような場面でも、無料主義の評価軸スコアで順番を並べ替えれば倫理的な説明がつきやすいです
-- 資本主義の抽選で配る場面では、評価軸ポイント順位が高い順に渡します
-- この場面が増えるほど評価軸ポイントを稼ぐ動機も強まります
-- 資本主義で稼ぎながら無料主義の評価軸ポイントが多い人から抽選などで特典が得られる方法
-  - 資本主義から無料主義へ移行するために、資本主義と無料主義の両方で提供できるようにして、資本主義で価格をつけて販売したとしても評価軸ポイントはもらえるようにする
-  - でも、無料で販売したほうが評価軸ポイントを稼げるようにしたい
-- 資本主義をメインとして無料主義アプリにも登録し、評価軸ポイントをためます
-- 十分な所持者は資本主義側の値引きや、抽選枠での優先案内などを享受しやすくなります
+2. 心地よさや利便性の高さゆえに、無料主義へ対応したサービスを選ぶようになる
+   - 説明
+     - 「倫理的な運営」「満足度の向上」などの評価軸を設定した無料主義対応サービスは快適なので利用者は増えます
+     - そのうえで評価軸ポイントを稼ぐ利用動機も出てきます
+     - 経済圏内で需要が高いサービスを提供する人は、資本主義より高い報酬を得やすくなります
 
-- **心地よさや利便性の高さゆえに、無料主義へ対応したサービスを選ぶようになる**
+3. 「無料主義を普及させる」という評価軸を設定
+   - 説明
+     - 「無料主義を普及させる」という評価軸を設定し、貢献に応じて評価軸ポイントを付与する方法もあります
+     - 需要側は無料で得られるため無料主義を好みます。利用が広がると、欲しい品は評価軸ポイントでも得やすくなります
+     - 手に入るコストが下がるほど、希少特典は無料主義へリソースを寄せたほうが合理的になりやすいです
+     - その結果、無料主義へ寄る流れが強まります
+     - 無料主義に移行するときは、無理に国を新設せず、資本主義や現行の国家の枠内で抵触しない範囲のルールから始めます
+     - 少しずつ資本主義の仕組みを形骸化させ、無料主義のルールが効く範囲を広げます
+     - 皆が望み、徐々に移行し、現在の資本主義の仕組みを形骸化させる流れを作らないと進みません
 
-- 「倫理的な運営」「満足度の向上」などの評価軸を設定した無料主義対応サービスは快適なので利用者は増えます
-- そのうえで評価軸ポイントを稼ぐ利用動機も出てきます
-- 経済圏内で需要が高いサービスを提供する人は、資本主義より高い報酬を得やすくなります
-
-- **「無料主義を普及させる」という評価軸を設定**
-
-- 「無料主義を普及させる」という評価軸を設定し、貢献に応じて評価軸ポイントを付与する方法もあります
-  - 需要側は無料で得られるため無料主義を好みます。利用が広がると、欲しい品は評価軸ポイントでも得やすくなります
-  - 手に入るコストが下がるほど、希少特典は無料主義へリソースを寄せたほうが合理的になりやすいです
-  - その結果、無料主義へ寄る流れが強まります
-- 無料主義に移行するときは、無理に国を新設せず、資本主義や現行の国家の枠内で抵触しない範囲のルールから始めます
-  - 少しずつ資本主義の仕組みを形骸化させ、無料主義のルールが効く範囲を広げます
-  - 皆が望み、徐々に移行し、現在の資本主義の仕組みを形骸化させる流れを作らないと進みません
-
-- **市場の失敗を解決することで移行のインセンティブを作る**
-
-- 資本主義では市場の失敗があり、報酬は伸びにくいことがあります
-- 無料主義の報酬がそのすき間を埋めます
-  - 歪み続きの市場ほど評価軸ポイントを前提へ組み込み、提供者と利用者が同じ基準へ寄っていく流れになります
-  - 移行の動機になります
-    - 保育士、児童相談所の人たちの給料、その他
-- 資本主義で「市場の失敗」が起こっている部分に、無料主義を導入することから始める
-  - 例えば保育士の給与は行政が決めて市場の原理が働きにくいので、無料主義側では無償提供の有無にかかわらず貢献度を市場原理で評価し、その評価を供給の指針にできます
-- 生活必需品を受け取れるセーフティーネットと、資本主義では手に入りにくい限定品の提供に使う段階が最初のフェーズです
-  - 「市場の失敗」分野では、対価が障壁で利用できていないが実需要がある品目を優先的に扱います
+4. 市場の失敗を解決することで移行のインセンティブを作る
+   - 説明
+     - 資本主義では市場の失敗があり、報酬は伸びにくいことがあります
+     - 無料主義の報酬がそのすき間を埋めます
+     - 歪み続きの市場ほど評価軸ポイントを前提へ組み込み、提供者と利用者が同じ基準へ寄っていく流れになります
+     - 移行の動機になります
+     - 保育士、児童相談所の人たちの給料、その他
+     - 資本主義で「市場の失敗」が起こっている部分に、無料主義を導入することから始める
+     - 例えば保育士の給与は行政が決めて市場の原理が働きにくいので、無料主義側では無償提供の有無にかかわらず貢献度を市場原理で評価し、その評価を供給の指針にできます
+     - 生活必需品を受け取れるセーフティーネットと、資本主義では手に入りにくい限定品の提供に使う段階が最初のフェーズです
+     - 「市場の失敗」分野では、対価が障壁で利用できていないが実需要がある品目を優先的に扱います
 
 ### 全員が損する事態を防ぐために移行
 
 本当は有料で提供できるのに、ダンピングや無料提供の抜け駆けで全員が損する事態を防ぐため、無料主義へ移行しやすい流れになり得ます。
-
 今後は、より有料で提供できるのに無料で提供する人が出てきやすくなる。
 
-- **さまざまな抜け駆けの種類**
+1. さまざまな抜け駆けの種類
+   - 説明
+     - オープンソースにするなどの抜け駆け
+     - 抜け駆けを行う人や、AI モデルをオープンソースにする人は、学習費を自腹で負担しつつ利益を得にくいです
+     - 有料でクローズド提供していた企業も、無償の抜け駆けで収益を奪われ、結果として誰も得しない状態になりやすいです
+     - 資本主義のまま抜け駆けが進む社会は危険です
+     - 人間の知能を超える汎用 AI が普及する局面では、資本主義を抱えたまま突き進むと全員が損しやすいです
+     - 賃金の抜け駆け
+     - 賃金を安くてよいという合意が広がると、全体の賃金水準は下がりやすく、損失も膨らみやすいです
+     - 無料主義では価格決定をシステムへ寄せ、人為的な値下げ競争で全体が損する事態を抑えたいです
+     - 値下げによる抜け駆け
+     - 経済成長が続く限りインフレもあり、株価の平均は上がりやすいです
+     - 一方、抜け駆けで無料提供が広がり GDP やインフレが止まれば株価は下がり、資本主義は苦境に陥りやすいです
+     - その結果、無料主義へ移らざるを得なくなる局面もあります
+     - 評価経済学的な抜け駆け
+     - フォロワー獲得のための無料提供が広がると、有料の企業は対応しにくくなります
+     - 結果、実質的に無料提供を強いられる社会になり得ます
+     - 生活コストが下がれば、フォロワー欲しさに無料提供する人や、純粋な貢献で動く人が増えます
+     - 本来は有料でもよい商品やサービスを、対価なく出す人が出てきやすくなります
+     - 抜け駆けの拡大で、利益を狙う側の取り分も削られ、景気は冷え込みやすい
+     - 無料主義では無償提供でも評価軸ポイントとして報酬を設計できるため、この種の詰みを和らげられる
+     - 土地を無料で貸したり原価で出すことを慈善とみなし、格安販売する飲食店はすでに存在します
+     - その影響で周辺店は集客が難しくなります
+     - そして、誰もが付加価値をつけられる戦略を取りにくくなりジリ貧化しつつ撤退が進まない
+     - 価格競争が続き、利益志向の事業者まで無料や原価提供へ引きずられ、経済全体の活力が下がる
+     - 価格競争の激化で利益は枯れやすく、生活コストの低下は抜け駆けを増やしやすいです
+     - この組み合わせで資本主義は機能しづらくなり、無料主義の必要性が高まります
+     - 評価に乏しいと動かない層まで動けなくなり、社会全体の活力低下が懸念されます
 
-- オープンソースにするなどの抜け駆け
-  - 抜け駆けを行う人や、AI モデルをオープンソースにする人は、学習費を自腹で負担しつつ利益を得にくいです
-  - 有料でクローズド提供していた企業も、無償の抜け駆けで収益を奪われ、結果として誰も得しない状態になりやすいです
-  - 資本主義のまま抜け駆けが進む社会は危険です
-  - 人間の知能を超える汎用 AI が普及する局面では、資本主義を抱えたまま突き進むと全員が損しやすいです
-- 賃金の抜け駆け
-  - 賃金を安くてよいという合意が広がると、全体の賃金水準は下がりやすく、損失も膨らみやすいです
-  - 無料主義では価格決定をシステムへ寄せ、人為的な値下げ競争で全体が損する事態を抑えたいです
-- 値下げによる抜け駆け
-  - 経済成長が続く限りインフレもあり、株価の平均は上がりやすいです
-  - 一方、抜け駆けで無料提供が広がり GDP やインフレが止まれば株価は下がり、資本主義は苦境に陥りやすいです
-  - その結果、無料主義へ移らざるを得なくなる局面もあります
-- 評価経済学的な抜け駆け
-  - フォロワー獲得のための無料提供が広がると、有料の企業は対応しにくくなります
-  - 結果、実質的に無料提供を強いられる社会になり得ます
-  - 生活コストが下がれば、フォロワー欲しさに無料提供する人や、純粋な貢献で動く人が増えます
-  - 本来は有料でもよい商品やサービスを、対価なく出す人が出てきやすくなります
-    - 抜け駆けの拡大で、利益を狙う側の取り分も削られ、景気は冷え込みやすい
-    - 無料主義では無償提供でも評価軸ポイントとして報酬を設計できるため、この種の詰みを和らげられる
-  - 土地を無料で貸したり原価で出すことを慈善とみなし、格安販売する飲食店はすでに存在します
-  - その影響で周辺店は集客が難しくなります
-    - そして、誰もが付加価値をつけられる戦略を取りにくくなりジリ貧化しつつ撤退が進まない
-    - 価格競争が続き、利益志向の事業者まで無料や原価提供へ引きずられ、経済全体の活力が下がる
-- 価格競争の激化で利益は枯れやすく、生活コストの低下は抜け駆けを増やしやすいです
-- この組み合わせで資本主義は機能しづらくなり、無料主義の必要性が高まります
-  - 評価に乏しいと動かない層まで動けなくなり、社会全体の活力低下が懸念されます
-
-- **移行させる必要がある仕組み**
-
-- 全てを無料にすればみんなが使うから、自分も無料で提供して対価を得るしかなくなって、無料主義に移行させる
-- 抜け駆けして得をするインセンティブを与える
-- みんなが無料に食いつくから、価格競争をするためには、無料にせざるを得ない状況を作る
-- 無料で提供する抜け駆けさせて、無料主義に移行させる
-- ソフトウェアとか限界費用ゼロのサービスから提供したら良い
-- 資本主義から無料主義への移行期間では、多くの人が資本主義に残ろうとするけど、無料主義では無料で提供されてしまうので、みんながその無料主義の商品やサービスを利用することによって、移行せざるを得ないような流れにしていきたい
+2. 移行させる必要がある仕組み
+   - 説明
+     - 全てを無料にすればみんなが使うから、自分も無料で提供して対価を得るしかなくなって、無料主義に移行させる
+     - 抜け駆けして得をするインセンティブを与える
+     - みんなが無料に食いつくから、価格競争をするためには、無料にせざるを得ない状況を作る
+     - 無料で提供する抜け駆けさせて、無料主義に移行させる
+     - ソフトウェアとか限界費用ゼロのサービスから提供したら良い
+     - 資本主義から無料主義への移行期間では、多くの人が資本主義に残ろうとするけど、無料主義では無料で提供されてしまうので、みんながその無料主義の商品やサービスを利用することによって、移行せざるを得ないような流れにしていきたい
 
 ### 格差、借金、インフレに対処しきれなくなり移行
 
-- **残る道は無料主義のみパターン**
-
-- 通貨安が止まらなくなったり、ハイパーインフレや借金の返済破綻などが重なった場合、無料主義へ移行せざるを得なくなる可能性がある
+1. 残る道は無料主義のみパターン
+   - 説明
+     - 通貨安が止まらなくなったり、ハイパーインフレや借金の返済破綻などが重なった場合、無料主義へ移行せざるを得なくなる可能性がある
 
 ### etc の方法
 
-- **競争激化や市場化による質の高いサービス提供による移行**
-  - 報酬設計の柔軟さによる競争激化や市場化によってていき無料主義を活用したサービスが人気になることで、無料主義へ移行する人が増えるのでは？
+1. 競争激化や市場化による質の高いサービス提供による移行
+   - 説明
+     - 報酬設計の柔軟さによる競争激化や市場化によってていき無料主義を活用したサービスが人気になることで、無料主義へ移行する人が増えるのでは？
 
-- **分配がうまく進まず無料主義で提供するのが民意になる？**
+2. 分配がうまく進まず無料主義で提供するのが民意になる？
+   - 説明
+     - 貧富の格差で二極化が進んだとき、資本主義では分配がうまくできない場合、無料主義によって再分配をせずに 2 極化が起こったときの苦しむ層の人たちを救える仕組みが必要になる
 
-- 貧富の格差で二極化が進んだとき、資本主義では分配がうまくできない場合、無料主義によって再分配をせずに 2 極化が起こったときの苦しむ層の人たちを救える仕組みが必要になる
-
-- **基金を運用し、原価で提供から始める**
-
-- 無料主義へ移行する方法の例として、次のステップを想定する
-- 多額の資金で基金を設け、運用益を回す
-- 共感する人へは、商品の原価譲渡や市場価格での購入を通じて支援する
-- オープンソースエンジニア、介護士、研究者など、市場の失敗や制度のすきまで不当に低報酬となっている人を主な支援対象にする
-- 基金を運用しつつ、誰がどれだけ貢献したかを測る算出方法のプロトタイプを作り、改善を重ねる
-- 医者、看護師、オープンソースソフトウェアエンジニアなどの需要と供給を示し、需給が逼迫している職種ほど貢献度を高めに設定する
-- 運営する基金を通じ、協力企業から原価・無償提供を受けた商品やサービスを届ける
-- 無料で良いことをしている人にベーシックサービスを提供するところから始める
-  - OSS のエンジニア、NPO の職員、ボランティア参加者、看護師・研究者・保育士など、価値は高いのに報酬が抑えられがちな人へ、働きぶりに応じて評価軸ポイントを付与し、企業の協力で割引や無料提供を組み合わせる
-  - 徐々に無料主義アプリでサービスを提供するようになり、評価軸ポイントをもらえる人を増やして、エコシステムを回していく
-    - 最初は仕事を働いた対価としてお金と評価軸ポイントの両方をもらう人を許可していくけど、途中からはお金をもらっている人は評価軸ポイントを与えないようにして、無料で社会が回るようにして、移行していく
+3. 基金を運用し、原価で提供から始める
+   - 説明
+     - 無料主義へ移行する方法の例として、次のステップを想定する
+     - 多額の資金で基金を設け、運用益を回す
+     - 共感する人へは、商品の原価譲渡や市場価格での購入を通じて支援する
+     - オープンソースエンジニア、介護士、研究者など、市場の失敗や制度のすきまで不当に低報酬となっている人を主な支援対象にする
+     - 基金を運用しつつ、誰がどれだけ貢献したかを測る算出方法のプロトタイプを作り、改善を重ねる
+     - 医者、看護師、オープンソースソフトウェアエンジニアなどの需要と供給を示し、需給が逼迫している職種ほど貢献度を高めに設定する
+     - 運営する基金を通じ、協力企業から原価・無償提供を受けた商品やサービスを届ける
+     - 無料で良いことをしている人にベーシックサービスを提供するところから始める
+     - OSS のエンジニア、NPO の職員、ボランティア参加者、看護師・研究者・保育士など、価値は高いのに報酬が抑えられがちな人へ、働きぶりに応じて評価軸ポイントを付与し、企業の協力で割引や無料提供を組み合わせる
+     - 徐々に無料主義アプリでサービスを提供するようになり、評価軸ポイントをもらえる人を増やして、エコシステムを回していく
+     - 最初は仕事を働いた対価としてお金と評価軸ポイントの両方をもらう人を許可していくけど、途中からはお金をもらっている人は評価軸ポイントを与えないようにして、無料で社会が回るようにして、移行していく
 
 ### etc の移行関連の情報
 
-- **無料主義に移行するときは、まずはセーフティーネット、慈善事業、オープンソース開発、の３つから？**
+1. 無料主義に移行するときは、まずはセーフティーネット、慈善事業、オープンソース開発、の３つから？
+   - 説明
+     - 保育園、医師、介護士、保育士、病院関係者
+     - NPO や財団が行なっている事業
+     - オープンソースソフトウェア開発
 
-- 保育園、医師、介護士、保育士、病院関係者
-- NPO や財団が行なっている事業
-- オープンソースソフトウェア開発
+2. 転換点
+   - 説明
+     - 無料主義へ移行しやすくなるのは、主に次の認識が広がったときです
+     - 同じ商品やサービスを得る労働時間は、無料主義の方が短い
+     - セーフティーネットの安心感は、無料主義の方が大きい
+     - ただし資本主義先進国では社会保障やセーフティーネットがすでに厚いので、労働時間の差だけでは安易には切り替えない
+     - そのため安易には移行せず、副業から試す人は増えやすい
+     - それまでは、全くメリットは無いけど好奇心につき動かされた人たちによって整備される。または将来的に貢献していると判断されたい投資の視点から取り組む
 
-- **転換点**
-
-- 無料主義へ移行しやすくなるのは、主に次の認識が広がったときです
-  - 同じ商品やサービスを得る労働時間は、無料主義の方が短い
-  - セーフティーネットの安心感は、無料主義の方が大きい
-- ただし資本主義先進国では社会保障やセーフティーネットがすでに厚いので、労働時間の差だけでは安易には切り替えない
-- そのため安易には移行せず、副業から試す人は増えやすい
-- それまでは、全くメリットは無いけど好奇心につき動かされた人たちによって整備される。または将来的に貢献していると判断されたい投資の視点から取り組む
-
-- **価格競争のジリ貧から脱する**
-
-- 資本主義で、ジリ貧の価格競争の商品やサービスも、利益が出ず対価も少ない問題を少しは解決できる
-  - 価格競争で利益が薄くなっても、無料主義では致命的な問題になりにくい
-  - 枠を占める量を少なくする競争が働きながら、対価はちゃんと「需給 × 評価軸への貢献度」で算出できる
-    - その「評価軸への貢献度」に、どれだけ提供者が代替可能な存在かどうかの要素を入れて算出していく
-    - 代替が不可能なら、通常より得られる貢献度を高めておくのが妥当です
-  - 代替が不可能かどうかは、幸福度の向上などの評価軸への貢献度合いに含めるべきです
-    - 取り替え不能なら、その人にとって重要な商品やサービスであるため、代替可能なものだけが不当に低評価になる事態は起きにくいはずです。とはいえ恣意性を避けたいなら、自分で「代替可能度合い」の指標を作り重み付けする手もあります
-      - 恣意性が生まれてしまうからダメ？
-      - 理想は、データ分析をしたら、自動的に「代替可能度合い」の要素も含めて評価軸への貢献度を算出してくれること
+3. 価格競争のジリ貧から脱する
+   - 説明
+     - 資本主義で、ジリ貧の価格競争の商品やサービスも、利益が出ず対価も少ない問題を少しは解決できる
+     - 価格競争で利益が薄くなっても、無料主義では致命的な問題になりにくい
+     - 枠を占める量を少なくする競争が働きながら、対価はちゃんと「需給 × 評価軸への貢献度」で算出できる
+     - その「評価軸への貢献度」に、どれだけ提供者が代替可能な存在かどうかの要素を入れて算出していく
+     - 代替が不可能なら、通常より得られる貢献度を高めておくのが妥当です
+     - 代替が不可能かどうかは、幸福度の向上などの評価軸への貢献度合いに含めるべきです
+     - 取り替え不能なら、その人にとって重要な商品やサービスであるため、代替可能なものだけが不当に低評価になる事態は起きにくいはずです。とはいえ恣意性を避けたいなら、自分で「代替可能度合い」の指標を作り重み付けする手もあります
+     - 恣意性が生まれてしまうからダメ？
+     - 理想は、データ分析をしたら、自動的に「代替可能度合い」の要素も含めて評価軸への貢献度を算出してくれること
 
 ## 関連ツール
 
