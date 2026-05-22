@@ -10026,7 +10026,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
       - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
 
-78. Classroom TechnologiesがIntelと提携して開発しているシステム
+78. Classroom Technologies が Intel と提携して開発しているシステム
     - 参考
       - [Classroom Technologies](https://www.class.com/)
       - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
@@ -10495,7 +10495,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - [https://hume.ai/products/](https://hume.ai/products/)
         - [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
       - 説明
-        - 人間のあらゆる感情を分析する『hume』がやばい感じ。..
+        - 人間のあらゆる感情を分析する『hume』がやばい感じ。.
         - ・30 以上の人間の感情を可視化するデータプラットフォーム
         - ・顔の表情や声紋などからデータ化
 
@@ -10804,7 +10804,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 誰も傷つかない新 SNS「DYSTOPIA」
      - この SNS では誹謗中傷等の不適切な表現は AI により検閲され、自動的に適切な表現へと変換され投稿されます
 
-2. Chrome拡張機能
+2. Chrome 拡張機能
    - 説明
      - 見たくない言葉を全てひよこのさえずりに置き換えてくれる Chrome 拡張機能「ひよこフィルター」
 
@@ -10852,7 +10852,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
    - 参考
      - [http://pol.is](http://pol.is)
 
-2. Augur など入力情報の妥当性に関してネットワーク全体で合意形成を試みる分散型オラクル。
+2. Augur など入力情報の妥当性に関してネットワーク全体で合意形成を試みる分散型オラクル
    - 参考
      - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
 
