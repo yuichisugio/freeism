@@ -10495,7 +10495,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - [https://hume.ai/products/](https://hume.ai/products/)
         - [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
       - 説明
-        - 人間のあらゆる感情を分析する『hume』がやばい感じ。.
+        - 人間のあらゆる感情を分析する『hume』がやばい感じ。
         - ・30 以上の人間の感情を可視化するデータプラットフォーム
         - ・顔の表情や声紋などからデータ化
 
