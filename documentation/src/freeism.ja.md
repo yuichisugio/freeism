@@ -136,17 +136,15 @@
     - [貢献度の算出の仕組み](#貢献度の算出の仕組み-1)
       - [貢献報酬の仕組み](#貢献報酬の仕組み-1)
       - [貢献検知の仕組み](#貢献検知の仕組み-1)
-    - [「意思決定」の参考](#意思決定の参考)
-    - [「幸福度の算出」の参考](#幸福度の算出の参考)
-    - [「ゲーム理論・マーケットデザイン・マッチング理論」を参考](#ゲーム理論マーケットデザインマッチング理論を参考)
-    - [「感情分析」サービス](#感情分析サービス)
-    - [「類似性の仕組み」を行うツール](#類似性の仕組みを行うツール)
-    - [貢献度の算出手法](#貢献度の算出手法)
-    - [データ可視化サービス](#データ可視化サービス)
+    - [意思決定](#意思決定)
+    - [感情分析](#感情分析)
+    - [ゲーム理論・マーケットデザイン・マッチング理論](#ゲーム理論マーケットデザインマッチング理論)
+    - [類似性の仕組み](#類似性の仕組み-1)
     - [指標](#指標)
       - [コード系](#コード系)
       - [論文・ブログ系](#論文ブログ系)
       - [イノベーション系](#イノベーション系)
+      - [その他](#その他)
     - [貢献度の算出理論](#貢献度の算出理論)
       - [統計学的・データ分析手法](#統計学的データ分析手法)
       - [心理学的理論](#心理学的理論)
@@ -156,16 +154,10 @@
     - [既存サービス](#既存サービス)
       - [データ取得元](#データ取得元)
         - [コード系](#コード系-1)
-        - [その他](#その他)
+        - [その他](#その他-1)
         - [論文系](#論文系)
-      - [参考](#参考)
-    - [貢献検知の仕組み](#貢献検知の仕組み-2)
-    - [感情の測定方法](#感情の測定方法)
-    - [データ取得の方法](#データ取得の方法)
-    - [評価軸の指標](#評価軸の指標)
     - [非干渉の権利](#非干渉の権利-1)
     - [正当性](#正当性)
-    - [意思決定](#意思決定)
     - [etc の参考](#etc-の参考)
   - [資本主義から無料主義へ移行する方法](#資本主義から無料主義へ移行する方法)
     - [まとめ](#まとめ)
@@ -6578,7 +6570,1083 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 説明
       - GitHub 上で SBOM や依存関係の可視化、サプライチェインのセキュリティ機能と組み合わせて扱う
 
-### 「意思決定」の参考
+17. Ocean Marketplace（データマーケットプレイス）
+    - 参考
+      - [Ocean Marketplace](https://market.oceanprotocol.com/)
+      - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+    - 説明
+      - データマーケットプレイスで収益化
+
+18. デジタル庁のオープンデータの取り組み
+    - 参考
+      - [https://www.data.go.jp/](https://www.data.go.jp/)
+      - [https://www.digital.go.jp/](https://www.digital.go.jp/)
+
+19. データを提出するインセンティブ
+    - 参考
+      - [https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU](https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU)
+      - [https://twitter.com/extreme-stretch/status/1608610308079390722](https://twitter.com/extreme-stretch/status/1608610308079390722)
+
+20. データ収集ツール ISeeChange
+    - 参考
+      - [https://ssir.org/articles/entry/sharing-to-save-the-planet](https://ssir.org/articles/entry/sharing-to-save-the-planet)
+    - 説明
+      - NASA も注目する市民のための気候変動データ収集アプリ
+      - データ収集ツール ISeeChange
+      - ISeeChange は、一般市民が自分の暮らす地域で起こっている気候変動の影響を写真や記事で投稿できる無料のデジタルプラットフォーム
+
+21. 持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)
+    - 参考
+      - [https://globe.asahi.com/article/14635630](https://globe.asahi.com/article/14635630)
+    - 説明
+      - デバイスを利用して自分の体と心の健康状態や活動を数値で管理する考え方を「Quantified Self (クオンティファイド・セルフ）」といいます
+      - 持続血糖測定（Continuous Glucose Monitoring）は、糖尿病治療や予防のために、皮膚の直下に挿入された細い小さな針を通じて持続的に血糖値を測ります。自分の血糖値の状況をアプリを通じて視覚的に管理でき、アメリカでは医師の処方のもと、小児患者も使用しています
+
+22. odp
+    - 参考
+      - [https://odp.jig.jp/](https://odp.jig.jp/)
+    - 説明
+      - odp を利用することで、あなたの自治体のデータを、オープンデータ評価指標で最高水準とされている 5 つ星オープンデータとして公開できます
+
+23. MilCount（ミルカウント）
+    - 参考
+      - [AI](https://chizaizukan.com/tag/ai/property)
+      - [ニュースリリースはこちら（東急エージェンシー）](https://www.tokyu-agc.co.jp/assets/img/page/news/2023/release20230221.pdf)
+      - [ニュースリリースはこちら（パナソニック）](https://news.panasonic.com/jp/press/jn230221-3)
+      - [https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi](https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi)
+    - 説明
+      - 東急エージェンシーとパナソニック、デジタルメディアの広告効果を可視化するサービス「MilCount（ミルカウント）」を東急線駅 5 か所に導入
+      - 交通広告メジャメント（計測方法）としてカメラ 1 台の画像センシングで広告効果を可視化するサービス「MilCount（ミルカウント）」を導入した
+      - 「MilCount」は、広告媒体接触者のデータを“速く、見やすく、簡単に”可視化するクラウドサービス。デジタルサイネージ用ディスプレイが複数あるエリアでも、カメラ 1 台で 10m 先・視野角 120 度以内の媒体接触者の属性（年齢・性別など）を 1 時間ごとに測定し、独自の推計ロジックにより媒体設置エリア全体のデータを算出する
+
+24. NeoFace Monitor
+    - 参考
+      - [https://japan.zdnet.com/article/35201639/](https://japan.zdnet.com/article/35201639/)
+    - 説明
+      - NEC は 3 月 29 日、パッケージソフトウェアとクラウドサービスで提供する PC の顔認証製品「NeoFace Monitor」の最新版を発表した
+
+25. CO－ODE（コ・オード）
+    - 参考
+      - [https://japan.zdnet.com/article/35197605/](https://japan.zdnet.com/article/35197605/)
+    - 説明
+      - ジールのオープンデータ提供サービス
+      - 国や自治体が公開するオープンデータを使いやすく加工し、配信・提供しているコ・オード
+
+26. データ版 Kaggle
+    - 参考
+      - [https://https-deeplearning-ai.github.io/data-centric-comp/](https://t.co/9Z8LEt888O)
+
+27. iNaturalist、eBird、ResearchKit
+    - 参考
+      - [https://ssir-j.org/the-looming-fight-over-how-we-give-our-data](https://ssir-j.org/the-looming-fight-over-how-we-give-our-data/)
+    - 説明
+      - VHC やワクチンハンターの仕組みを参考にしてデータ取得をしていきたい
+      - iNaturalist は、図鑑のようなアプリで、植物の写真をアップロードできる
+      - 写真がアップロードされると、オンラインのユーザーコミュニティがそれをチェックし、植物種の目星をつけます。十分な人数が同意すれば、写真は同定済みのタグ付けがされます。さらに、高画質の写真で、正確に同定されていれば、『研究ランク』のマークが付きます。これらの写真は iNaturalist のデータベースに登録され、科学者らが利用できる
+      - iNaturalist によく似た eBird というアプリのコミュニティも、何百もの査読付き科学論文に貢献したデータベースを構築している。データの寄付においては、小さな貢献が大きなインパクトをもたらすのです
+      - いま、データ保管先としての信頼性が高く、データの使用法に関する選択権を提供者が持つような、新しい組織を生み出そうとする動きがあちこちで現れている。たとえば、提供されたデータを活用する協同組合、シビックトラスト、オープンコレクティブといった新形態の組織だ
+      - 2015 年にアップルは、任意でスマートフォンのデータを医療研究者に共有することを可能にするソフトウェアフレームワーク「ResearchKit」を発表した
+      - 非営利団体のモジラ財団は最近、Rally という名の新たなウェブサイトツールを発表したが、これを使えば Firefox のブラウザから直接、関心のある調査研究にデータを提供できる。つまり、提供者自身の選択権とコントロール権が中心に据えられているのです
+
+28. The Graph
+
+29. openfuture
+    - 参考
+      - [https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1](https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1)
+
+30. TytoCare
+    - 参考
+      - [https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/](https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/)
+    - 説明
+      - 「タイトケア社が開発・販売するキット「TytoCare」を国内で発売した。カメラやセンサーが付いた本体に 3 種類の付属の部品を組み合わせることで聴診音や体温、咽頭や鼓膜、皮膚の画像など 8 項目のデータが得られる
+      - DeNA 系のアルム、オンライン診療の支援キット：日本経済新聞
+
+31. 企業の顧客データ取引所
+    - 参考
+      - [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
+    - 説明
+      - 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す
+
+32. `GrimoreLab`の`Perceval`
+    - 参考
+      - [https://perceval.readthedocs.io/en/latest/index.html](https://perceval.readthedocs.io/en/latest/index.html)
+      - [https://jsmanrique.es/analyzing-open-source-development-part-1/](https://jsmanrique.es/analyzing-open-source-development-part-1/)
+      - [https://www.researchgate.net/publication/325334393_Perceval_Software_Project_Data_at_Your_Will](https://www.researchgate.net/publication/325334393_Perceval_Software_Project_Data_at_Your_Will)
+      - [https://github.com/chaoss/grimoirelab-perceval](https://github.com/chaoss/grimoirelab-perceval)
+    - 説明
+      - `Perceval`は、`GrimoreLab`で使用されている様々なデータソースから CLI or バックエンドでデータ取得できるライブラリ
+      - GrimoireLab と蜜結合になっていない。Perceval CLI 単体で使用できる
+      - データソースは、GitHub、Git、Jira、Slack
+
+33. CNCF DevStats
+    - 説明
+      - CNCF 全プロジェクトを対象に GitHub API からコミット・PR・Issue・レビューなどを自動集計し、時系列グラフで可視化
+
+34. Black Duck Open Hub
+    - 参考
+      - [https://openhub.net/p/firefox/contributors](https://openhub.net/p/firefox/contributors)
+      - [https://kyodonewsprwire.jp/release/201407112164](https://kyodonewsprwire.jp/release/201407112164)
+    - 説明
+      - 旧 Ohloh
+      - 全部が OSS ではない
+      - Web UI・API クライアント・解析ライブラリなどは自由に取得してビルドできますが、メインの解析データベースやインフラ構成は社内専用で残っているため、サイト全体を完全に自己ホストすることは現状できません
+      - コミットをクロールし指標を生成するバッチ群は公開されていません。UI をローカルで動かしても統計は生成できません
+
+35. `Apache/kibblescanners`
+    - 参考
+      - [https://deepwiki.com/apache/kibble-scanners](https://deepwiki.com/apache/kibble-scanners)
+      - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
+    - 説明
+      - 各サービスごとのデータを同じ設定で取得して、Kibble シリーズ向けにデータフォーマットしてデータ出力するライブラリ
+
+36. `Aurgur`
+    - 参考
+      - [https://github.com/chaoss/augur](https://github.com/chaoss/augur)
+      - [https://eightknot.osci.io/contributions](https://eightknot.osci.io/contributions)
+      - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html)
+      - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)
+    - 説明
+      - バックエンドは Postgres データベース
+      - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
+      - 外部ツールは REST API 経由でメトリクスを取得できる状態にします
+      - ソース
+        - Git コミットログ
+          - コミット、コントリビューター
+        - GitLab
+        - GitHub API
+          - 課題、プルリクエスト、コントリビューター、リリース、リポジトリのメタデータ
+        - Linux Foundation の Core Infrastructure Initiative API
+          - リポジトリのメタデータ
+        - Succinct Code Counter
+          - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
+
+37. GrimoireLab
+    - 参考
+      - [https://chaoss.github.io/grimoirelab-tutorial/](https://chaoss.github.io/grimoirelab-tutorial/)
+    - 説明
+      - Bitergia／LibreSoft の Metric-Grimoire 系ツールを継承し、2017 年に CHAOSS 初期ソフトウェアとして採択
+      - **30 種類超のデータソース＆150 以上の指標・可視化**を提供する総合基盤
+      - Git、GitHub、Jira、Slack、Mailing List など「開発・コミュニティ全域」を一元分析できる点が強み
+
+38. `OpenSourceContributo.rs`
+    - 説明
+      - ユーザーごとの GitHub への貢献を検索する検索エンジン
+      - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）
+
+39. `apache/kibble`
+    - 参考
+      - [https://github.com/apache/kibble](https://github.com/apache/kibble)
+      - [https://deepwiki.com/apache/kibble](https://deepwiki.com/apache/kibble)
+      - [https://whimsy.apache.org/board/minutes/Kibble.html](https://whimsy.apache.org/board/minutes/Kibble.html)
+    - 説明
+      - あらゆるソフトウェアプロジェクトに関するデータを収集・集計・可視化するためのツール
+
+40. `apache/incubator-devlake`
+    - 参考
+      - [https://deepwiki.com/apache/incubator-devlake](https://deepwiki.com/apache/incubator-devlake)
+    - 説明
+      - Apache DevLake は、さまざまな DevOps ツールから分散しているデータを取り込み、分析・可視化する
+
+41. `hypertrons/hypertrons`
+    - 参考
+      - [https://github.com/hypertrons/hypertrons](https://github.com/hypertrons/hypertrons)
+      - [https://blog.frankzhao.cn/hypertrons_overview/](https://blog.frankzhao.cn/hypertrons_overview/)
+    - 説明
+      - メモのみで本文は未記載です
+
+42. **`Hypercrx`**
+    - 参考
+      - [https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
+    - 説明
+      - X-lab はブラウザプラグイン Hypercrx（発音は「ハイプ CRX」）を開発しました
+      - OpenDigger のメトリクススキームを土台に、GitHub ページへ複数の可視化コンポーネントを組み込みます
+
+43. `anvaka/pm`
+    - 参考
+      - [https://github.com/anvaka/pm](https://github.com/anvaka/pm)
+    - 説明
+      - 主要なソフトウェアパッケージ管理システムの可視化機能
+
+44. **Gephi**
+    - 説明
+      - ネットワーク分析と可視化
+
+45. `8knot`
+    - 参考
+      - [https://github.com/oss-aspen/8knot](https://github.com/oss-aspen/8knot)
+    - 説明
+      - Augur が取得したデータをダッシュボードとして表示するソフトウェア
+
+46. `DevStats`
+    - 参考
+      - [https://github.com/cncf/devstats](https://github.com/cncf/devstats)
+    - 説明
+      - `DevStats`ダッシュボードは、Kubernetes プロジェクトの Contributor Experience Special Interest Group (SIG) のサブプロジェクトとして維持されています
+
+47. `Tableau alysonla`
+    - 参考
+      - [https://public.tableau.com/app/profile/alysonla/viz/OpenSourceMonthlyNovember2015/OrgDashboard](https://public.tableau.com/app/profile/alysonla/viz/OpenSourceMonthlyNovember2015/OrgDashboard)
+
+48. **`Grafana`**
+    - 参考
+      - [https://qiita.com/Chanmoro/items/a23f0408f0e64658a775](https://qiita.com/Chanmoro/items/a23f0408f0e64658a775)
+
+49. Kibana
+    - 説明
+      - メモのみで本文は未記載です
+
+50. j-platpat
+    - 参考
+      - [https://www.j-platpat.inpit.go.jp/p0200](https://www.j-platpat.inpit.go.jp/p0200)
+51. 特許 JP-2017-145765
+    - 参考
+      - [https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja](https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja)
+52. アイデア取引所
+    - 参考
+      - [https://techable.jp/archives/185310](https://techable.jp/archives/185310)
+    - 説明
+      - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
+      - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
+      - 大きなポイントは、アイデアを当事者以外一部非公開にできること。これにより、新規性の喪失を防ぐことができ、特許の出願・権利化が可能になるといいます
+53. 著作権契約書のひな形（文化庁）
+    - 参考
+      - [https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/](https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/)
+    - 説明
+      - アイデアを登録する方法の参考
+      - 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
+54. note.com（strictlyes）
+    - 参考
+      - [https://note.com/strictlyes/n/ncb0dfb7cbb56](https://note.com/strictlyes/n/ncb0dfb7cbb56)
+55. Hypercerts / Impact certificates
+    - 参考
+      - [https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
+    - 説明
+      - Hypercerts Foundation、Hypercerts、Impact certificates、GitCoin、RetroactivePublicFunds、h-index や i10-index など引用指標、を参考にする
+      - インパクト証書（Impact certificates）は公共財への配分を透明化する評価レールとして提案されています
+
+56. エコーチェンバー可視化システム に関する引用
+    - 参考
+      - [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/)
+      - [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
+    - 説明
+      - アプリではタイムラインの多様さからエコーチェンバー度を推定します
+      - 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます
+      - 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます
+
+57. Optic
+    - 参考
+      - [Optic](http://optic.xyz/)
+    - 説明
+      - NFT の信憑性を検証します
+      - 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
+      - そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
+
+58. MyBib
+    - 参考
+      - [MyBib](https://chrome.google.com/webstore/detail/mybib-free-citation-gener/phidhnmbkbkbkbknhldmpmnacgicphkf)
+    - 説明
+      - 参考文献や引用を自動生成するツール
+
+59. ソーシャルグラフ
+    - 説明
+      - フォローしている・されている関係のソーシャルグラフを参考にしているか検知する方法の参考にしたい
+      - ソーシャルグラフ上のリンク強度から「誰が何をどれだけ参照したか」を検知します
+
+60. SuperAudit
+    - 参考
+      - [デジタル資産の監査・認証プロバイダー事業「SuperAudit」](https://prtimes.jp/main/html/rd/p/000000024.000082733.html)
+    - 説明
+      - モノハンドル株式会社の SuperAudit を参考にしているか検知する仕組みの参考にしたい
+
+61. YouTube のコンテンツ ID の仕組み
+    - 説明
+      - YouTube の著作権のあるコンテンツを検出する仕組みを、コンテンツ ID を参考にしたい
+
+62. Adobe の「コンテンツ認証イニシアティブ」
+    - 説明
+      - Adobe の「コンテンツ認証イニシアティブ」という仕組み
+
+63. 個人情報を守りながら、誰が何を参考にしているかのソーシャルグラフを作って、 誰が何を参考にしているかを検知する仕組み
+    - 参考
+      - [https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
+    - 説明
+      - 口コミ本文から氏名だけを抽出し「誰が誰と接点を持つか」を表にしました
+
+64. ベクトル的に近似
+    - 説明
+      - ベクトル的に近似であるなら、参考にしていると判断する仕組みで、参考にしているか検知する
+
+65. 株式会社ワコム、著作権を保護する「Wacom Yuify」、AI で創作の軌跡を可視化する「KISEKI ART」
+    - 参考
+      - [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
+    - 説明
+      - ワコムが示した「Wacom Yuify」では、作品の裏面へ目立たないマイクロマークを埋め込み改ざん耐性を高めます
+      - 各マークは分散台帳へ紐付き、作者・制作時間・端末情報を後から照合できます
+      - 「KISEKI ART」は筆跡特徴を 3 次元へ射影します
+      - 「絵紋」として人手による執筆を裏づける実験です
+
+66. Twitter のコミュニティーノート
+    - 説明
+      - Twitter のコミュニティーノートを、貢献度算出や参考にした人を見つける第三者を評価する仕組みの参考にしたい
+      - データ分析をする人の実力やデータ分析の結果が正しいか判断する仕組みの参考にしたい
+      - 作者が引用元を示さない場合でも、コミュニティノートのように「参照元と推定される URL」を添付して透明性を高める案です
+
+67. ウォーターマークとメタデータの埋め込み
+    - 参考
+      - [https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html](https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html)
+    - 説明
+      - Google、責任ある AI を実現するとして、画像にウォーターマークとメタデータの埋め込みを進めると発表。Google I/O 2023
+      - ウォーターマーキングは画像に直接情報を埋め込む手法です。画像編集などが行われたとしても消せないようにするとしています
+      - メタデータは、クリエイターがオリジナルのファイルにさまざまな情報を付加することを可能にします
+
+68. ピクシブにおける不当な目的での作品取得行為に対する対策技術
+    - 参考
+      - [https://inside.pixiv.blog/2023/05/09/183635](https://inside.pixiv.blog/2023/05/09/183635)
+    - 説明
+      - ピクシブにおける不当な目的での作品取得行為に対する対策技術について
+      - reCAPTCHA Enterprise
+      - 類似画像検知
+
+69. 不正検知や検知する系のサービス
+    - 参考
+      - [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
+    - 説明
+      - SEON Technologies はフェイクアカウント統合対策として銀行・EC・ゲームなどへ SaaS を提供しています
+      - SNS ログや IP 変動など広いシグナルから疑わしい行動を自動抽出します
+
+70. pixiv の生成 AI 検知の仕組み
+    - 説明
+      - pixiv の生成 AI などでなりすましている人を検知する方法
+
+71. 市場の変化から参考にしているかを検知する
+    - 参考
+      - [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html)
+      - [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
+    - 説明
+      - 市場の変化から参考にしているかを検知する方法もある
+      - ACROVE（アクローブ）は GMO サイバーセキュリティの支援で転売監視モデルを強化しました
+      - 値崩れ店舗の検知や追随業者の追跡が中心機能です
+      - 検知結果を早期アラートへ繋げ、顧客への負担を抑えるサービス提供を掲げています
+
+72. AI が盗作しているかを判断する仕組み
+    - 参考
+      - [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html)
+      - [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
+    - 説明
+      - ITmedia の記事によれば、「Do Language Models Plagiarize？」（米ペンシルベニア州立大学・ミシシッピ大学）が 21 万件規模で言語モデルの剽窃傾向を調べました
+      - コピー&ペースト・言い換え・アイデア剽窃の有無へ自動タグ付けしました
+      - 1193 件でヒットがあり、約 28％のケースに位置情報と固有名詞が混入していました
+      - モデル構成やデコーダ種別など属性ごとの剽窃率変化にも踏み込んでいます
+      - Lee ほか、arXiv:2203.07618（2022）より
+
+73. Tabular Classification の AI
+    - 参考
+      - [https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742](https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742)
+    - 説明
+      - Tabular Classification 表形式データを評価し何らかの結果を返す
+
+74. 「人間の嘘」の検出
+    - 参考
+      - [deepai](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models)
+      - [nishio（X）](https://twitter.com/nishio/status/1628262039834755075)
+      - [https://library.naist.jp/dspace/handle/10061/9996](https://library.naist.jp/dspace/handle/10061/9996)
+      - [https://twitter.com/AkioHoshi/status/1628265037466058753](https://twitter.com/AkioHoshi/status/1628265037466058753)
+    - 説明
+      - 嘘を嘘と評価できるのは、人間だけです
+      - もちろん訓練の度合いによって、判定基準も変わります
+      - 下記論文のアプローチは、幻覚評価へ応用できると考えられます
+      - On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models?
+      - 論文ページは deepai を、反応は nishio のポストを参照してください
+      - /
+      - 人間も嘘をつきます。例えば、下記の論文は「人間の嘘」の検出を取り上げています
+
+75. 科学論文の類似度を測定するモデル
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
+    - 説明
+      - Google Research と協力者による「OpenMSD」は、多言語科学文献の類似度推定モデルと評価データを同梱した報告です
+      - 先行の Scientific Documents Similarity Measurement（SDSM）と比較しながら多言語カバレッジを広げることが目的です
+
+76. 類似画像推薦機能
+    - 参考
+      - [https://t.co/I00L8eUH7u](https://t.co/I00L8eUH7u)
+    - 説明
+      - GMO ペパボさんの EC サービス「SUZURI」の類似画像推薦機能を CLIP とベクトル検索で作った事例
+
+77. 可視化する技術
+    - 説明
+      - 可視化する技術やサービスを参考にしているかどうかを検知する仕組みの参考にしたい
+      - 会話の数量の可視化、その他
+
+78. アカウントの Tx の履歴
+    - 参考
+      - [https://twitter.com/kuma56-munage/status/1582342565936103424](https://twitter.com/kuma56-munage/status/1582342565936103424)
+    - 説明
+      - アカウントの Tx の履歴からそのユーザーが人間か bot かを判別できる仕組み
+
+79. 引用の URL
+    - 説明
+      - の URL があれば、参考にしたとみなすようにして、さらに範囲を広げるために同じような文章構成であるかどうかを、AI のテキスト分析で、文脈や類似性などを分析して似ているならば参考にしたと考えるようにする
+
+80. 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法
+    - 説明
+      - 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法を検知する仕組みの参考にしたい
+
+81. 著作権管理の方法
+    - 説明
+      - 2 次公認化事業、JASCO の仕組みを利用して、どの人がどのようなサービスを利用したか管理できるようにする
+
+82. ツール
+    - 説明
+      - デジタルデータがどのように編集されたり改ざんされたりしてきたのかを履歴データとして残すための技術仕様である「C2PA」に基づいた「コンテンツ認証情報を実装するためのオープンソースツール」を Adobe が発表
+
+83. 引用関係の可視化
+    - 参考
+      - [https://twitter.com/estoppel88/status/1544877937647706113](https://twitter.com/estoppel88/status/1544877937647706113)
+    - 説明
+      - 関係を可視化して、参考にしているか検知する
+      - 被引用情報を素早く集めて、参考にしているか検知する
+      - \* 特許の被引用情報（牽制情報）から用途探索する例
+
+84. 著述者帰属と文体類似
+    - 参考
+      - [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
+    - 説明
+      - 誰が書いた文体に近いかを検知します
+      - 言語モデルで単語の選択や言い回し、文章構造から著者らしさを抽出し、多言語の帰属表示を可能にする研究があります
+      - ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました
+      - 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています
+
+85. 特許や著作権を管理の仕組み
+    - 説明
+      - 特許や著作権の管理の仕組み
+
+86. AI による検知
+    - 説明
+      - 自分が持っているアイデアを積極的に書き込み、解説文も書くことで、それに似たサービスがあれば、そのアイデアを出した人もそのサービスが貢献度を獲得するほど、そのアイデアを出した人も評価軸ポイントを獲得できるようにする
+
+87. URL だけでも引用元を載せる
+    - 説明
+      - Twitter で解説するときに引用していたら URL も最後に載せて、載せなければ批判される流れを、検知する方法で利用する
+
+88. 3 つ提示する方法
+    - 説明
+      - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える
+
+89. SHA256 で作者の証明
+    - 参考
+      - [https://tsumuri.moe/note/article/000156](https://tsumuri.moe/note/article/000156)
+    - 説明
+      - これは私が記事をパクられた際に使えるものであり、私がコピーしていない証拠にはなりません
+
+90. 勝手にアイデアを盗まれない仕組み
+    - 参考
+      - [https://twitter.com/rottenegg0115/status/1626078699375464448](https://twitter.com/rottenegg0115/status/1626078699375464448)
+
+91. JDream Innovation Assist
+    - 参考
+      - [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
+    - 説明
+      - 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました
+      - 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）
+
+92. 官民データ共有のあり方に関する調査
+    - 参考
+      - [https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)
+      - [https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
+    - 説明
+      - 特許情報活用の論点が整理された報告書
+      - 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります
+      - 知財需要の計測なども扱われています
+      - 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です
+
+93. 特許情報分析・可視化
+    - 参考
+      - [https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf](https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf)
+      - [https://twitter.com/hayataka88/status/1716288794683744368](https://twitter.com/hayataka88/status/1716288794683744368)
+    - 説明
+      - 旭化成の統合報告書で公開している特許情報分析・可視化の事例
+      - 他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています
+
+94. データの可視化
+    - 参考
+      - [https://www.data-to-viz.com/](https://www.data-to-viz.com/)
+      - [https://note.com/d-v-osorezan/n/ne5a6b0dad97b](https://note.com/d-v-osorezan/n/ne5a6b0dad97b)
+    - 説明
+      - データの可視化のデータベース
+
+95. 近似最近傍探索
+    - 参考
+      - [https://github.com/spotify/voyager](https://github.com/spotify/voyager)
+      - [https://twitter.com/MLBear2/status/1715937638950277122](https://twitter.com/MLBear2/status/1715937638950277122)
+    - 説明
+      - Spotify が新たな近似最近傍探索ライブラリ「Voyager」を OSS として出したらしい
+      - 最近隣検索の技術は、商品の推薦や地図上の場所の検索など、様々なアイテムの間の類似性を高速に見つけ出すために非常に有用であると広く認識されています
+      - Voyager のもっとも魅力的な部分は、その基盤となる「H&SW（Hierarchical Navigable Small Worlds）」という新しい技術です
+
+96. 特許情報可視化
+    - 参考
+      - [https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf](https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf)
+      - [https://twitter.com/hayataka88/status/1712612049463947355](https://twitter.com/hayataka88/status/1712612049463947355)
+    - 説明
+      - 三菱電機・統合報告書 2023 における特許情報可視化
+
+97. Semantic Scholar API
+    - 参考
+      - [https://arxiv.org/abs/2004.07180](https://arxiv.org/abs/2004.07180)
+      - [https://twitter.com/hayataka88/status/1715335234676461753](https://twitter.com/hayataka88/status/1715335234676461753)
+    - 説明
+      - SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず
+      - SPECTER: Document-level Representation Learning using Citation-informed Transformers
+
+98. AI detector
+    - 参考
+      - [https://gigazine.net/news/20231105-ai-detector/](https://gigazine.net/news/20231105-ai-detector/)
+    - 説明
+      - AI detector・AI 検出器
+
+99. デジタル著作権マネージャー (DRM)
+    - 説明
+      - デジタル著作権マネージャー (DRM) を「貢献検知の仕組み」で収益分配したり検知する方法の参考にしたい
+
+100. 分布仮説（distributional hypothesis）
+     - 参考
+       - [https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82](https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82)
+       - [https://lifescience.fronteo.com/products/amanogawa/](https://lifescience.fronteo.com/products/amanogawa/)
+       - [https://www.fronteo.com/ai-learning/article-search-ai](https://www.fronteo.com/ai-learning/article-search-ai)
+       - [https://twitter.com/hayataka88/status/1723253034757886336](https://twitter.com/hayataka88/status/1723253034757886336)
+     - 説明
+       - 「単語の意味は、その周辺の単語によって形成される」という考え方です。つまり、単語自体には意味がなく、その単語の「コンテキスト（文脈）」によって単語の意味が形成されるということです。﻿
+
+101. ボイス・ライト・プロテクション
+     - 参考
+       - [https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB](https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB)
+     - 説明
+       - AI 音声プラットフォームの「CoeFont」を運営する株式会社 CoeFont は、声優や俳優、著名人の「声の権利」を守るための新しい取組み「ボイス・ライト・プロテクション」を開始した
+       - 不正利用を防止、権利者に収益還元
+       - 「ボイス・ライト・プロテクション」は、「CoeFont」で、声の提供者と利用者の間に契約関係を確立するもの。「CoeFont」に声を登録した声優や俳優は、自身の音声の利用について一般公開か許可制かを選択可能になる
+       - 「AI 音声プラットフォーム「CoeFont」、“過去の音声”から AI 音声の生成に成功 ─ デジタルハリウッド大学と共同で」（ニュース記事）
+
+102. TrackerIQ
+     - 参考
+       - [https://prtimes.jp/main/html/rd/p/000000068.000017278.html](https://prtimes.jp/main/html/rd/p/000000068.000017278.html)
+       - [https://techable.jp/archives/221155](https://techable.jp/archives/221155)
+     - 説明
+       - 従業員による企業情報の持ち出しを防止！ イスラエル発“SaaS 特化”の内部不正検知プラットフォーム
+       - 今回、企業で導入が進むクラウドアプリケーション内で“ユーザーが行う不審な振る舞い”を検知するアプリケーションディレクション＆レスポンス（ADR）製品である「TrackerIQ（トラッカー・アイキュー）」シリーズの販売を開始した
+       - 同シリーズは Microsoft 365、Salesforce、AWS などを中心とした SaaS アプリケーションをモニタリングし、不正を検出することが可能だ
+       - RevealSecurity はアプリケーションに特化した内部不正対策ソリューション「TrackerIQ」シリーズを展開しているイスラエル企業
+       - 同シリーズは、社内で導入されているサードパーティー製クラウドアプリケーションを利用するユーザーの振る舞いを学習・モニタリングし、不正利用のパターンを検知・通知。これにより、社内不正利用の防止をするソリューションだ
+       - 独自開発のクラスタリングエンジンにより、膨大な「ユーザー・ジャーニー」と呼ばれるアプリケーション内でユーザーが行う一連の行動を類似性に基づいて自動的にグルーピングし、検知モデルを作成することが可能。このグループから外れたユーザー・ジャーニーを不審な振る舞いとして検知する
+       - 参考元：
+
+103. 深層学習特許類似度マップ
+     - 参考
+       - [https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html](https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html)
+       - [https://twitter.com/hayataka88/status/1714057488767525066](https://twitter.com/hayataka88/status/1714057488767525066)
+       - [https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html](https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html)
+       - [https://twitter.com/e-patent/status/1714038804238217309](https://twitter.com/e-patent/status/1714038804238217309)
+     - 説明
+       - 被引用分析
+       - 深層学習特許類似度マップによる技術探索手法
+       - デロイト トーマツ ファイナンシャルアドバイザリーの AI を活用した IP ランドスケープ分析
+
+104. スパム検知
+     - 説明
+       - スパムを検知する仕組みを
+
+105. ERC-2981（NFT ロイヤリティ標準）
+     - 説明
+       - 二次流通売上の一定％を作者に自動送金。ただし単一アドレスしか指定できず、複数分割には拡張実装が必要
+
+106. Royalty-Friendly Token-Level Smart Contracts(RM-TLSC)
+
+107. RetroPGF（Optimism）
+
+108. Gitcoin
+     - 説明
+       - Quadratic Funding
+
+109. SPWN CREW
+     - 参考
+       - [https://prtimes.jp/main/html/rd/p/000000055.000034713.html](https://prtimes.jp/main/html/rd/p/000000055.000034713.html)
+       - [https://techable.jp/archives/201138](https://techable.jp/archives/201138)
+     - 説明
+       - ファンの熱量・ファンの属性データを継続的に収集・活用でき、効果検証できるアプリ「SPWN CREW」
+       - また、サイトへのアクセスや購買等の行動履歴データと、ファンの性別・年齢・居住地等の属性データを分析する。ファンのアーティストへの熱量が可視化されます
+
+110. 研究者の多様な業績を一元化し瞬時に評価できるデータベース
+     - 参考
+       - [https://univ-journal.jp/217773/](https://univ-journal.jp/217773/)
+     - 説明
+       - 研究者の多様な業績を一元化し瞬時に評価できるデータベース、東北大学が開発
+       - 東北大学は、学内外に散在する研究者の情報を自動的・効率的に集積し、必要なときに必要な情報を可視化できる“次世代型研究者データベース”を開発した
+       - 参考：【東北大学】クラウドを活用した次世代型研究者データベースを構築 -AWS 上のデータレイクでエビデンスベースの業績評価を効率化 -（PDF）
+
+111. Picaro.ai
+     - 参考
+       - [https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html)
+       - [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
+     - 説明
+       - 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」で、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました
+       - PR TIMES：
+
+112. 運動評価
+     - 参考
+       - [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1)
+       - [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
+     - 説明
+       - スマホ＋ AI で簡単に運動評価 スタンフォード大が開発
+       - 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定します
+       - 高額機器を要する従来の運動評価に比べ、低コストで客観的なデジタル指標を出せます
+
+113. MSC（モスト・シグニフィカント・チェンジ）
+     - 参考
+       - [https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/](https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/)
+     - 説明
+       - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法です
+       - 1990 年代にリック・デイビース博士によって考案されました。日本では、参加型評価センターが普及に力を入れており、これまでに（NPO）日本 NPO センター様（震災復興事業）、環境省様（ESD 事業）、トヨタ財団様（地方創生事業）などの評価に採用されました
+
+114. 社会物理学
+     - 説明
+       - 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです
+       - ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
+       - 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
+       - 計算社会科学と呼ばれる学問分野の流れの 1 つです
+
+115. 寄与する量子を探す方法
+     - 参考
+       - [https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)
+       - [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000)
+       - [https://twitter.com/ericjmichaud-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664)
+     - 説明
+       - （1）入力データに含まれる情報／知識には最小単位「量子」があると仮定します（※量子力学の量子とは無関係）
+       - （2）データ分布内で予測に頻繁に使われる量子を「予測精度向上に寄与する量子」、ほとんど使われない量子を「寄与しない量子」とみなします
+       - （3）寄与する量子は使用頻度の高い順に LLM へ学習されていくと仮定したトイモデルで、スケーリング則と創発現象が再現されることを示しました
+       - （2）の補足：一般会話では、アインシュタイン方程式より文法ルールのほうが次トークン予測に効き、参照頻度が高いと考えられます
+       - The Quantization Model of Neural Scaling (Michaud et al., 2023)（）
+
+116. 状態空間モデルを用いた因果効果
+     - 参考
+       - [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850)
+       - [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960)
+       - [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
+     - 説明
+       - 生態学でも有効な手法です
+       - われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データから因果推論へ踏み込んでいます（宣伝）
+       - 状態空間モデルを用いた因果効果の推定である CausalImpact を紹介します
+
+117. アクター・ネットワーク理論(ANT)
+     - 説明
+       - 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT）です
+       - 人間以外の多様な存在の役割も正当に評価し、それらを結ぶ動的なネットワークとして捉えます
+
+118. 専門家の意見を集約する方法
+     - 説明
+       - 一般語と専門界隈での意味がずれる語を用意し、意味の回答から専門家らしさをふるいにかけます
+       - 専門家グループが共有する意味へ答えた人だけの意見を採用する仕組みです
+       - たとえばマッチングで「nginx」の読みを確認し、「エンジンエックス」と読めない人をエンジニア候補から外すイメージです
+       - 一般に通じる題材でも、特定コミュニティだけが別義を持つキーワードを増やして応用し、貢献度の算出へ接続します
+       - 学位がなくても見識がある人を取りこぼしにくくします
+
+119. reCAPTCHA の仕組み
+     - 説明
+       - 貢献度算出で 2 問出すとき、片方は答えが既知の設問、もう片方は未確定の設問にします
+       - 第 1 問を正解した人の第 2 問の回答だけを採ります
+       - 第 2 問では採用回答の 51％超が一致した候補を正答として登録し、次の利用者へ第 1 問として提示します
+       - 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
+       - データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
+       - reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
+       - ユーザは暗黙知を要する操作で認証を済ませつつ、バックグラウンドで分析タスクへ参加する二段構成です
+       - まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
+
+120. 因果関係
+     - 参考
+       - [https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8)
+       - [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
+     - 説明
+       - 認証サービス Onfido が機械学習で因果を推定し、意思決定を支援する事例です
+       - 因果推論の入門から自社での活用法まで載っているため参考にできます
+
+121. Federated Learning
+     - 説明
+       - 複数のデータ所有者が、各自の持つ学習データを秘匿したまま、協力して機械学習モデルを構築する
+       - 連合学習は、分散機械学習、暗号とセキュリティ、経済学とゲーム理論に基づくインセンティブメカニズムを組み合わせた新しい手法
+
+122. Causaly
+     - 説明
+       - 科学者が自然言語で質問すると生命科学における新たな因果関係の発見を手助けをしてくれる Causaly というサービス
+
+123. バオバブ（Baobab）
+     - 参考
+       - [https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/](https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/)
+     - 説明
+       - バオバブ（Baobab）のアノテーション事業を、無料主義でデータ分析を第三者が行うときの参考にしたい
+
+124. 数理最適化
+     - 説明
+       - でもコストかかりそう
+
+125. Correlation discount
+     - 参考
+       - [https://twitter.com/0xtkgshn/status/1618718332856803346](https://twitter.com/0xtkgshn/status/1618718332856803346)
+     - 説明
+       - 「Correlation discount」という相関性に応じて割り引く概念
+
+126. datagusto
+     - 参考
+       - [datagusto（データグスト）](https://lp.datagusto.jp/#top)
+       - [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
+     - 説明
+       - 誰もが高度なデータ分析を実現できる「datagusto」
+       - 「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるテンプレートを使えば、AI が将来予測まで担うツールです
+       - 実体は「」として提供されています
+
+127. Federated Learning with PoW、Semantic Annotation
+     - 参考
+       - [https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
+     - 説明
+       - Federated Learning with PoW は、すでに共通認識となった知識を取り込み、ファインチューニングへ回す流れで使われていくと考えられます
+       - 端末にモデルが載り切らない参加者は、Semantic Annotation として AI 改善に貢献する、という整理もできます
+
+128. プライバシーを守りながら貢献度の算出
+     - 参考
+       - [関連ニュース一覧](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/)
+       - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981)
+       - [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
+     - 説明
+       - PLOS ONE 掲載の全国規モニタリング研究として紹介されています
+       - 静岡大学の守田智教授らが現場協力を得ながらモデル化した、との記述があります
+       - レビュー投稿に現れたユーザー同士を辺としてネットワーク化しています
+       - 論文タイトルは Exploring sexual contact networks …（commercial-sex review website）です
+
+129. Peer prediction method
+     - 参考
+       - [https://arxiv.org/abs/2211.01143](https://arxiv.org/abs/2211.01143)
+
+130. A Flexible Design for Funding Public Goods
+     - 参考
+       - [https://arxiv.org/pdf/1809.06421.pdf](https://arxiv.org/pdf/1809.06421.pdf)
+     - 説明
+       - A Flexible Design for Funding Public Goods 論文
+
+131. PageRank
+     - 説明
+       - PageRank 参考にした NEM の PoI
+
+132. The graph
+     - 説明
+       - The graph が、機械学習の代わりに人間がトークノミスクと予測市場でキュレーションをしている
+
+133. pol.is
+     - 参考
+       - [http://pol.is](https://t.co/H9orfAwMBa)
+       - [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
+     - 説明
+       - エンドユーザーはグラフを直接は見ません
+       - 「この 2 つのアドレスは似ていると判断できるか」をはい・いいえで答えるだけでソーシャルグラフを生成できます
+       - のアルゴリズムをもとにした発想です。詳細は WhitePaper を参照してください
+
+134. NeurOlympics
+     - 参考
+       - [https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
+     - 説明
+       - e スポーツチームの能力テストを体験し、才能を数値化してトレーニングへ接続するデモです
+       - 「NeurOlympics」は一見シンプルな 60 分プログラムで、4 種のミニゲームをこなします
+       - 記憶課題や反応速度課題などを通じ、特性推定アルゴリズムへ入力されます
+
+135. LIPS
+     - 参考
+       - [製品評価の考え方](https://lipscosme.com/product-ratings)
+       - [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
+     - 説明
+       - 「LIPS」ではレーティング設計の専門家とともに商品評価アルゴリズムを強化しました
+       - 評価点数とランキング算出の説明ページも公開されています
+       - 詳細は
+
+136. Self-Attention
+     - 参考
+       - [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/)
+       - [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
+     - 説明
+       - Transformer を採用する大規模言語モデルでは、入力トークン同士の相互参照を計算する Self-Attention が中核です
+       - 関係強度を 2 次元へ射影する Attention Viz が公開されています
+       - 解説記事（Gigazine）:
+
+137. 非線形物理学
+     - 参考
+       - [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89)
+       - [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
+     - 説明
+       - ネット上のヘイト拡散を非線形モデルで説明する試みです
+       - コミュニティを流体近似し、流体力学の式を流用するアイデアが紹介されています
+
+138. givepraise
+     - 参考
+       - [https://twitter.com/givepraise](https://twitter.com/givepraise)
+     - 説明
+       - Praise ()@givepraise
+       - Unlock the full potential of your community with reputation scores, rewards and deep insights. Build your community contribution graph!
+
+139. Questry Protocol
+     - 説明
+       - 株式会社クエストリー は、貢献報酬をブロックチェインの力で可視化・価値化して、制御することで、様々な経済文化活動の効率性向上を図る「Questry Protocol」
+
+140. Gaudiy Fanlink
+     - 参考
+       - [https://wired.jp/article/the-regenerative-company-coordination-03/](https://wired.jp/article/the-regenerative-company-coordination-03/)
+     - 説明
+       - 「Gaudiy Fanlink」は、ファンの横断的な活動データを記録・蓄積し、その貢献度や熱量が正しく評価・還元されるエコシステムを構築するためのプラットフォームだ。イベントやゲーム、漫画アプリなど、これまでばらばらのプラットフォームで IP に触れてきたファンコミュニティを集約する役割をもつ
+
+141. IMM
+     - 説明
+       - IMM/インパクト測定
+
+142. レーティング
+     - 参考
+       - [https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA](https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA)
+     - 説明
+       - レーティング・ランキングを通じて信頼できる情報と公正な評価を社会に届けることをミッションとした、日本レーティング協会（JRA）を立ち上げます！
+
+143. CD という指標
+     - 参考
+       - [https://nature.com/articles/s41586-022-05543-x](https://nature.com/articles/s41586-022-05543-x)
+       - [https://twitter.com/kanair-jp/status/1702740831403385291](https://twitter.com/kanair-jp/status/1702740831403385291)
+     - 説明
+       - CD という指標で研究がどれだけディスラプトしたかを定量化している。その指標は大雑把に言うと、ある論文が出版されることで、それに関連した過去の論文がどれだけ引用されなくなるかを示している
+
+144. 属性の異なるユーザから支持
+     - 参考
+       - [https://twitter.com/nishio/status/1617365061353476096](https://twitter.com/nishio/status/1617365061353476096)
+     - 説明
+       - 多数決ではなく属性の異なるユーザから支持されることをスコアにする
+
+145. tx
+     - 説明
+       - tx からユーザーの嗜好・意志を解析してデータ化するツール
+
+146. タスクベース
+     - 説明
+       - DAO みたいなタスクベースの方法
+
+147. 予測市場
+
+148. テキストデータ
+     - 説明
+       - Facebook やその他のあらゆる SNS からデータを取ることで、全体のユーザの幸福度が算出
+
+149. 利益貢献度分析
+     - 説明
+       - 利益貢献度分析、REM 分析、経済学の寄与率、自然実験、A/B テスト、RCT（ランダム化比較試験）、因果推論、重回帰分析、クロスカントリー成長回帰分析、反実仮想機械学習、数理最適化問題、多変量解析
+
+150. 組織図
+     - 参考
+       - [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
+     - 説明
+       - 組織図 SaaS や Twitter API からフォロー双方向を取得し、クモの巣状に可視化できます
+       - 知り合い深さや影響指標を数値化し、貢献度推定へ接続するアイデアです
+
+151. Continuous Feedback
+     - 説明
+       - 人事評価の方法
+       - メルカリのエンジニア部門の評価の納得度を高め、個人の成長を促す目的で導入された『Continuous Feedback』
+       - 会社への貢献度の可視化（アウトプットや行動など全て含む）の方法
+
+152. 社会的価値の指標設定や効果測定
+     - 参考
+       - [https://www.fsa.go.jp/news/r3/singi/20220530.html](https://www.fsa.go.jp/news/r3/singi/20220530.html)
+     - 説明
+       - ソーシャルプロジェクトの社会的な効果に係る指標
+       - 社会的価値の指標設定や効果測定
+
+153. causal analysis
+     - 参考
+       - [https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
+     - 説明
+       - NEC の因果分析ブランド causal analysis が公共向けにも案内されています
+       - 社内向けにはエンゲージメント施策などへ展開されています
+
+154. 因果推論の分かりやすいテキスト
+     - 参考
+       - [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
+     - 説明
+       - SpeakerDeck 上のスライドです
+
+155. 貢献度の算出
+     - 参考
+       - [https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html)
+       - [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
+     - 説明
+       - コロナ禍の失業率・自殺・セーフティネット利用を束ねた縦断的検証（第一波のとき）
+
+156. 反実仮想シミュレーション
+     - 参考
+       - [https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk)
+       - [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
+     - 説明
+       - 書店流通の規制ゆるめ後に在庫や価格自由度が広がる状況をモデルに落としています
+       - モデル結果では、再販価格維持を続けたケースのほうが消費者厚生と社会厚生は相対的に高く、書店側利益は逆に押し下げられる、というバランスが報告されています
+       - Jeff Qiu 氏（米司法省）、Yi Zhang 氏（科技大学）との共同成果です
+
+157. 項目反応理論
+     - 参考
+       - [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
+     - 説明
+       - 試験テキスト難易度のデータ駆動推定
+       - 作問者主観に頼らない項目反応理論モデル
+       - 多言語読解試験と語彙データの読みやすさ相関
+
+158. ベクトルに変換してベクトルデータベース
+     - 参考
+       - [https://www.pinecone.io/learn/vector-database/](https://www.pinecone.io/learn/vector-database/)
+       - [https://twitter.com/umiyuki-ai/status/1608454509453537282](https://twitter.com/umiyuki-ai/status/1608454509453537282)
+     - 説明
+       - 参照検知と貢献度推定の双方に流用したいメモです
+       - 記事のような非構造データを検索しやすくする前処理として有効です
+       - まずすべての記事データをベクトル化しベクトル DB を準備します
+       - 検索クエリも同次元へ写像し近似検索のみで済ませられます
+       - ランキングや推薦も同じ表現で扱えます
+
+159. 複雑ネットワーク科学
+     - 参考
+       - [ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)
+       - [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
+     - 説明
+       - ノースイースタン大学のアルバート・バラバシ教授は複雑ネットワーク研究の代表格です
+       - 著書『\*\*\*\*』（光文社刊）では、テニスや学力テストのように順位付けしやすい成功は稀だと述べています
+       - 測定しづらい領域ほど、成果を押し上げるのは個人の実力よりネットワークだ、という主張へつながります
+       - アート市場ではギャラリー経由の露出がキャリアを左右する例が紹介されます
+       - 初期の展示履歴から将来の展示パターンを高精度に当てた、とされる成果も触れられています
+       - 価値判断が揺らぐ領域では社会構造が裁定役になる、という読み取りができます
+
+160. 360 度評価
+     - 参考
+       - [https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
+     - 説明
+       - 360° フィードバックはモチベーション施策や育成プログラムへ組み込まれます
+       - システム化で運用コストを抑えつつ公平性を担保できます
+       - 上司に加えて同僚や部下からもフィードバックを集める運用が基本形です
+
+161. SourceCred
+     - 参考
+       - [https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
+     - 説明
+       - ソースとシンクの二系統ポイントで貢献度を推定できる SourceCred
+       - 譲渡不可ポイントと譲渡可トークンを併用します
+
+162. NGO の質的評価手法
+     - 説明
+       - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法
+
+163. タスクベース
+     - 説明
+       - プロジェクトごとに公開タスクを置きます
+       - 進捗に応じて評価軸ポイントが自動加算されます
+       - 難易度と需要からポイント倍率が変わるので、求人の多い高難度タスクへインセンティブが寄ります
+
+164. PICSY
+     - 説明
+       - 鈴木健さんの PICSY を人事評価に利用できる
+
+165. GitPOAP
+     - 説明
+       - GitHub でのコントリビューション証明を NFT で残す GitPOAP サービスです
+
+166. openfare
+
+167. 代替性を貢献度合いの算出に使用する
+     - 説明
+       - 評価軸達成のための代替手段が多いほど係数で重みを下げます
+       - 野球が好みでも、その観戦以外に幸福を高める選択肢が多いなら「代替度が高い」とみなし、獲得ポイントへ 0.9 などの係数が掛かるイメージです
+
+168. 仮想市場法(CVM)
+     - 説明
+       - 森林や公園などの評価が困難な環境財の評価に用いられる仮想市場法（CVM)
+
+169. Umami
+     - 参考
+       - [Umami](http://umami.is/)
+       - [https://note.com/headline-asia/n/n88a0a09f1678](https://note.com/headline-asia/n/n88a0a09f1678)
+     - 説明
+       - Google Analytics に代わる、オープンソースでプライバシーに配慮した解析ツール
+
+170. TCR
+     - 参考
+       - [https://twitter.com/aik-dao/status/1609878384590585856](https://twitter.com/aik-dao/status/1609878384590585856)
+     - 説明
+       - TCR という仕組みを、 フェイクニュースの検知や、貢献度の算出の参考にしたい
+       - 分散型メディアのフェイクニュース検知とか dao メンバーの貢献ランク付けとかにも使えそうですね
+
+171. 計算社会科学
+     - 参考
+       - [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
+     - 説明
+       - 「計算社会科学」関連の論考では、世論モニタリングやウェブ上の言説分析、新型コロナ感染症対策シミュレーションなど多様な成果が公開されています
+
+172. 360 度評価
+     - 参考
+       - [360° 評価 SaaS](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
+       - [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
+     - 説明
+       - CBASE が提供する は、社内外の関係者から多面的フィードバックを集める仕組みです
+       - 半世紀ほど前から国内でも紹介されてきた概念で、近年は管理職育成やエンゲージメント施策へ再び注目されています
+
+173. AttestationStation
+     - 参考
+       - [https://dev.optimism.io/making-blockchains-human-friendly/](https://dev.optimism.io/making-blockchains-human-friendly/)
+       - [https://twitter.com/0xtkgshn/status/1603642990521729024](https://twitter.com/0xtkgshn/status/1603642990521729024)
+
+174. GiveWell.org
+     - 参考
+       - [https://forbesjapan.com/articles/detail/48598/3/1/1](https://forbesjapan.com/articles/detail/48598/3/1/1)
+     - 説明
+       - GiveWell.org（ギブウェル）という、慈善団体の評価に取り組んでいる団体
+
+175. ピア予測法
+     - 参考
+       - [https://twitter.com/0xtkgshn/status/1607122969087676418](https://twitter.com/0xtkgshn/status/1607122969087676418)
+       - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
+       - [https://twitter.com/knskito/status/1596874651367804928](https://twitter.com/knskito/status/1596874651367804928)
+       - [https://dl.acm.org/doi/abs/10.1145/2488388.2488417?casa-token=0nmjqGhp0Q8AAAAA:92dFKu46ic7Rsn8DJG09i65HcDiG6aWpUk2280LMUEXcZGd-7INYqeYNECn0Bvijf3QHJJ8uq7JL](https://t.co/74BOBfaWlO)
+       - [https://twitter.com/knskito/status/1596875633698930689](https://twitter.com/knskito/status/1596875633698930689)
+       - [https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets](https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets)
+       - [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833)
+       - [https://ledger.pitt.edu/ojs/ledger/article/view/182](https://ledger.pitt.edu/ojs/ledger/article/view/182)
+       - [https://twitter.com/0xtkgshn/status/1610853130605928449](https://twitter.com/0xtkgshn/status/1610853130605928449)
+
+176. Wisdom of Crowds
+     - 参考
+       - [https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd](https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd)
+     - 説明
+       - Wisdom of Crowds で、貢献度の算出を行う
+       - 群衆の知恵は、一人の専門家の意見ではなく、独立した個人からなる多様なグループの集合的な意見です
+       - この現象の説明は、個々の決定に関連する特異なノイズが存在し、多数の応答を平均化することで、このノイズの影響を打ち消すことができるというものです
+       - Napkin Labs のような企業は、消費者のフィードバックと顧客に対するブランドの印象を集約します
+       - 一方、Trada のような企業は、クライアントの要件に基づいて広告をデザインするために群衆を集めます
+
+177. GitClear の「Diff Delta」
+     - 参考
+       - [https://gitclear.com](https://gitclear.com)
+       - [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
+     - 説明
+       - 評価軸ポイントの算出
+       - SocialDog は開発生産性指標へ GitClear の Diff Delta を統合しました
+       - 導入ツイートも参照できます
+
+178. 引用パターンで測定した科学論文と特許の「破壊力」
+     - 参考
+       - [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
+     - 説明
+       - 研究の生産性を測る下記の論文を評価軸ポイントの算出の参考にしたい
+       - MIT／スタンフォードの 2020 年レポートは米国研究の生産性鈍化を指摘しています
+       - 後続稿では引用ベースの破壊力指標が 1945〜2010 年に論文で 9 割超、特許で 8 割超へ減衰したとしています（図表 1）
+
+179. Numerai
+     - 説明
+       - Numerai を貢献度の算出の参考にしたい
+       - Kaggle みたいなものブロックチェイン版は numerai
+
+### 意思決定
 
 1. コンセンサス・インテリジェンス
    - 参考
@@ -6586,7 +7654,37 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
 
-### 「幸福度の算出」の参考
+2. 専門能力に応じた投票重み
+   - 参考
+     - [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
+   - 説明
+     - ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
+
+3. 正解を知る少数派が割合を低めに見積もる性質を利用
+   - 参考
+     - [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
+   - 説明
+     - 割合を低く見積もる人たちの本来聞きたい質問の回答を集めると集合知にできる
+     - 「他の参加者のうち何％が、その質問へ yes で答えると見積もるか？」という質問を追加する
+     - 正解を知る少数派が割合を低めに見積もる性質を利用して集合知を集約する
+     - 問題の予測に加え、他者の予測についての予測も併用する点が面白い
+
+4. Polis
+   - 参考
+     - [http://pol.is](https://t.co/mnPKxGq7RI)
+     - [https://twitter.com/-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
+   - 説明
+     - 返信なくして 3 値で判定してる
+
+5. Conviction Voting
+   - 参考
+     - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
+
+6. Futarchy
+   - 説明
+     - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
+
+### 感情分析
 
 1. happiness planet
    - 参考
@@ -6717,7 +7815,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - このアプリは、ランダムな時刻にユーザーへ通知を送ります
       - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
 
-26. 感情のダミーデータ
+26. 感情分析
     - 参考
       - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
       - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
@@ -6733,78 +7831,77 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
       - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
       - [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
+      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
+      - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
+      - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
+      - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
+      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
+      - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
+      - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
+      - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
 
-### 「ゲーム理論・マーケットデザイン・マッチング理論」を参考
+27. ユーザーローカル「テキスト感情認識 AI」
+    - 参考
+      - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
+    - 説明
+      - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
 
-1. 概要
-   - 説明
-     - 正直に回答する設計を、「貢献度の算出時の評価」や「貢献検知の仕組み」で参考にしたか回答してもらうときに使用できそう
-2. VCG メカニズム
-   - 説明
-     - オークション参加者は、財の価値を正直に申告するインセンティブがある
-     - 高く申告しても、低く申告しても損をする
-3. 繰り返しゲーム
-   - 説明
-     - 「同盟を破る国があったら、ほかの 6 国でその国を攻める」というルール
-     - ゲーム理論的なインセンティブ設計によって戦争を防ぐアイデア
-     - ゲーム理論「繰り返しゲーム」は、短期的な得のために、相手を出し抜いたりルールから逸脱したりしようと考えるプレイヤーーが存在するときに、その裏切り者をほかの全員で罰を与える
-     - 七国同盟の場合、相互監視と、罰への恐怖によって逸脱が防がれ、「誰も戦争を始めようとしない」という均衡が生まれる
-     - 使用場面: 評価軸 A が他の評価軸に干渉してきた場合は、A 評価軸への交換比率を大幅に下げる
+28. Amazon Comprehend
+    - 説明
+      - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
 
-### 「感情分析」サービス
+29. エモスタ「エモリーダー」
+    - 説明
+      - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
 
-1. ユーザーローカル「テキスト感情認識 AI」
-   - 参考
-     - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
-   - 説明
-     - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
-2. Amazon Comprehend
-   - 説明
-     - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
-3. エモスタ「エモリーダー」
-   - 説明
-     - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
-4. VITALIFY Asia「MAL FaceEmotion」
-   - 説明
-     - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
-5. Empath（エンパス）
-   - 参考
-     - [https://webempath.com/](https://webempath.com/)
-     - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)（日本語サイト）
-     - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/)（英語サイト）
-   - 説明
-     - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
-     - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
-     - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
-6. iMotions Voice Analysis
-   - 参考
-     - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
-   - 説明
-     - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
-7. Vokaturi
-   - 参考
-     - [https://vokaturi.com/](https://vokaturi.com/)
-     - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
-   - 説明
-     - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
-     - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
-8. COTOHA API（感情分析）
-   - 参考
-     - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
-     - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
-     - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
-9. リッカート尺度
-   - 参考
-     - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
-   - 説明
-     - トピックに対する感情の強さを聞く一般的な設問形式
-10. Firebase: Sentiment Analysis 拡張
+30. VITALIFY Asia「MAL FaceEmotion」
+    - 説明
+      - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
+
+31. Empath（エンパス）
+    - 参考
+      - [https://webempath.com/](https://webempath.com/)
+      - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)（日本語サイト）
+      - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/)（英語サイト）
+    - 説明
+      - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
+      - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
+      - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
+
+32. iMotions Voice Analysis
+    - 参考
+      - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
+    - 説明
+      - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
+
+33. Vokaturi
+    - 参考
+      - [https://vokaturi.com/](https://vokaturi.com/)
+      - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
+    - 説明
+      - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
+      - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
+
+34. COTOHA API（感情分析）
+    - 参考
+      - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
+      - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
+      - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
+
+35. リッカート尺度
+    - 参考
+      - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
+    - 説明
+      - トピックに対する感情の強さを聞く一般的な設問形式
+
+36. Firebase: Sentiment Analysis 拡張
     - 参考
       - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
       - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
     - 説明
       - テキストから感情スコア
-11. 日本語感情表現辞書
+
+37. 日本語感情表現辞書
     - 参考
       - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
       - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
@@ -6812,2477 +7909,129 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 説明
       - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
       - メモ： 夏目漱石「こころ」× 青空文庫で試す想定
-12. Vertex AI（GCP）
-    - 参考
-      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
-    - 説明
-      - 感情分析の利用例
-13. 解説・ビジネス記事
-    - 参考
-      - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
-      - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
-14. 東北大： 日本語極性辞書（公開リソース）
+
+38. 東北大： 日本語極性辞書（公開リソース）
     - 参考
       - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
-15. 幸福度（感情ではない観点）
-    - 参考
-      - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
-16. 聞き取り・調査設計
-    - 参考
-      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
-    - 説明
-      - 従業員エンゲージメント調査を参考に、感情・幸福度の自己報告を設計する
-17. Qiita（実装・製品）
-    - 参考
-      - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
-      - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
-      - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
-18. carely
+
+39. carely
     - 説明
       - 「ストレスチェック」等を感情・幸福度分析の参考に
 
-**「感情分析」理論**
+40. 理論
+    - テキスト
+      1. Sentiment Analysis
+         - ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現・主観的幸福感（SWB）・生活満足度キーワードを重視し、VADER・TextBlob 等も
+      2. Lexicon-based Analysis
+         - 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
+      3. Machine Learning-based Analysis
+         - SVM、ランダムフォレスト等の機械学習による感情分類。大規模なトレーニングデータが必要
+      4. Deep Learning-based Analysis
+         - BERT、LSTM 等のニューラルネットワークによる感情推定。文脈を深く理解できる
+      5. Latent Semantic Analysis (LSA)
+         - 文の意味的な関係性を解析し感情を推定する文脈感知型の分析
+      6. Topic Modeling with Sentiment
+         - LDA 等でトピックごとの感情を解析し、感情とテーマを同時に分析。幸福テーマ（LDA with Happiness Themes）も同系
+      7. Valence Arousal Dominance (VAD) Models
+         - 評価・覚醒・支配の 3 次元で感情を分析し、テキストの微細な感情ニュアンスを捉える
+      8. Emotion Annotated Corpus Analysis
+         - EmoLex、GoEmotions、LIWC 等の感情注釈コーパスによる感情予測。幸福感の注釈データセットでの分類にも
+      9. Cognitive Appraisal Theory Analysis
+         - 認知評価理論に基づき文章中の感情を構造的に評価。幸福に関する記述の特定にも
+      10. Pragmatic Analysis / Hedonic Tone
+          - 文脈や社会的ニュアンスを取り入れた言語学的アプローチ。幸福度では快楽的トーンや PERMA 等のポジティブ心理学フレームワークも
+    - 動画
+      1. Facial Expression Analysis
+         - 顔の表情変化を捉え感情を推定（OpenFace、Affectiva、Ekman）。幸福では笑顔の持続時間・強度（Smile Dynamics）にも注目
+      2. Action Unit Analysis
+         - Paul Ekman の表情モデルに基づきアクションユニットを解析。幸福寄りでは口角上昇等
+      3. Multimodal Analysis
+         - 音声・テキスト・映像を統合して感情を推定（Multimodal Happiness Analysis を含む）。動画内のポジティブ感情の時間変化の追跡も
+      4. Body Gesture Analysis
+         - Kinect 等でジェスチャーや姿勢の変化を解析。幸福感に関連するポジティブなジェスチャー（軽快な動き等）も
+      5. Eye Movement Analysis
+         - 視線トラッキングや凝視パターンで感情を推定。瞳孔の拡張や目の輝きが幸福感を示す分析も
+      6. Deep Learning for Video Analysis
+         - 3D CNN や RNN（I3D、C3D 等）で動画全体の感情を解析
+      7. Physiological Signal Integration
+         - 心拍・皮膚電位をセンサーと連携し、映像に同期させて感情・幸福度と関連付け
+      8. Semantic Scene Analysis
+         - シーン・雰囲気・情景理解で感情を推定。明るい色・自然の風景等を幸福感の指標としても
+      9. Audio-Visual Sentiment Analysis
+         - 音声と映像を組み合わせたマルチモーダルな感情分析
+      10. Cultural Context Analysis
+          - 文化的背景・文脈を考慮した感情分析。社会的交流（笑い声や肯定的反応）による幸福度評価も
+    - 音声
+      1. Prosodic Feature Analysis
+         - ピッチ・強度・テンポ・リズムで感情を推定（Praat 等）。幸福感ではトーンや強調が要因になる分析も
+      2. Spectral Feature Analysis
+         - フォルマント、MFCC 等のスペクトル特性による感情推定。ポジティブ感情・幸福感向けのスペクトル解析も
+      3. Speech Emotion Recognition (SER)
+         - EmoVoice 等で音声を感情分類。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
+      4. Acoustic Modeling
+         - GMM、HMM 等の音響モデルで感情特性を分類。幸福感を示す音声特徴に基づくモデル構築も
+      5. Deep Learning in Audio
+         - Wavenet や CNN・RNN 等で音声データを解析。幸福度検出に特化したモデルも
+      6. Pitch Contour Analysis
+         - 声の音調変化を追跡して感情を分類。幸福感では明るい音調や上昇トーンを検出
+      7. Valence-Arousal Modeling
+         - Russell’s Circumplex 等で評価軸と覚醒軸による感情・幸福感のモデル化
+      8. Emotion Annotation on Audio Dataset
+         - IEMOCAP 等の感情ラベル付き音声データセットを利用したモデル学習
+      9. Context-Aware Audio Analysis
+         - 音声中の文脈情報を利用した感情推定。NLP 技術を補完
+      10. Cross-linguistic Emotional Analysis / Cultural Audio Cues
+          - 複数言語間の音声感情の共通点・相違点を分析。笑い検出・高エネルギー発話・言語間の笑いの違い等の文化的音声手がかりも
+
+41. 毎日の幸福度アンケート・いじめ早期発見
+    - 参考
+      - [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html)
+      - [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる連携協力に関する協定](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf)
+      - [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
+    - 説明
+      - 毎日の幸福度アンケートの参考
+      - 児童や生徒同士の関係性を可視化する。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握する
+      - タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもある。SOS を早期発見し、問題が深刻化する前に対処するのが狙い
+
+42. リストバンド・カメラ・眼球運動
+    - 参考
+      - [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
+    - 説明
+      - 感情の算出の参考にしたい
+      - リストバンド端末で脈拍を計測して集中を測定
+      - カメラで頬の血管の血流を測定
+      - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
+      - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
+
+43. 経験サンプリング研究
+    - 参考
+      - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
+    - 説明
+      - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
+      - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
+
+44. 取得データの種類
+    - 説明
+      - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
+      - 感情の算出の参考にしたい
+
+45. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
+    - 参考
+      - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
+    - 説明
+      - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
 
-- **テキスト**
-  1. **Sentiment Analysis** — ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現を重視し、VADER・TextBlob 等も
-  2. **Lexicon-based Analysis** — 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
-  3. **Machine Learning-based** — SVM、ランダムフォレスト等
-  4. **Deep Learning-based** — BERT、LSTM 等
-  5. **LSA** — 意味的関係から感情を推定
-  6. **Topic Modeling with Sentiment** — LDA 等でトピックごとの感情。幸福テーマ（LDA with Happiness Themes）も同系
-  7. **VAD Models** — 評価・覚醒・支配の 3 次元
-  8. **Emotion Annotated Corpus** — EmoLex、GoEmotions、LIWC 等
-  9. **Cognitive Appraisal Theory Analysis** — 認知評価に基づく構造的分析
-  10. **Pragmatic Analysis / Hedonic Tone** — 文脈・社会言語学的ニュアンス。幸福度では快楽的トーン分析も
-
-- **動画**
-  1. **Facial Expression Analysis** — OpenFace、Affectiva、Ekman。幸福では笑顔に注目
-  2. **Action Unit Analysis** — Ekman。幸福寄りでは口角上昇等
-  3. **Multimodal Analysis** — 音声・テキスト・映像の統合（Multimodal Happiness Analysis を含む）
-  4. **Body Gesture Analysis** — 例： Kinect。ポジティブなジェスチャー
-  5. **Eye Movement Analysis** — 視線トラッキング、凝視パターン
-  6. **Deep Learning for Video** — I3D、C3D 等
-  7. **Physiological Signal Integration** — 心拍・皮膚電位
-  8. **Semantic Scene Analysis** — シーン・雰囲気。明るい色・自然など
-  9. **Audio-Visual Sentiment Analysis** — 音声＋映像
-  10. **Cultural Context Analysis** — 文化・文脈
-
-- **音声**
-  1. **Prosodic Feature Analysis** — ピッチ・強度・テンポ・リズム。例： Praat
-  2. **Spectral Feature Analysis** — フォルマント、MFCC。ポジティブ感情向けのスペクトル解析も
-  3. **Speech Emotion Recognition (SER)** — EmoVoice。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
-  4. **Acoustic Modeling** — GMM、HMM 等。ポジティブ感情向けも同系
-  5. **Deep Learning in Audio** — Wavenet 等
-  6. **Pitch Contour Analysis**
-  7. **Valence-Arousal Modeling** — Russell’s Circumplex 等
-  8. **Emotion Annotation on Audio Dataset** — IEMOCAP 等
-  9. **Context-Aware Audio Analysis**
-  10. **Cross-linguistic Emotional Analysis / Cultural Audio Cues**
-
-- **文章から感情を分析する方法**
-  1. **Sentiment Analysis (感情分析)**
-     - テキストのポジティブ、ネガティブ、ニュートラルな感情を分類する手法
-     - 使用例： 自然言語処理（NLP）技術
-  2. **Lexicon-based Analysis (辞書ベース分析)**
-     - 事前に定義された感情辞書を用いて感情スコアを計算
-     - 例： SentiWordNet, AFINN
-  3. **Machine Learning-based Analysis**
-     - 機械学習モデル（例： SVM、ランダムフォレスト）を使った感情分類
-     - 大規模なトレーニングデータが必要
-  4. **Deep Learning-based Analysis**
-     - ニューラルネットワーク（例： BERT、LSTM）を利用した感情推定
-     - 文脈を深く理解できる
-  5. **Latent Semantic Analysis (LSA)**
-     - 文の意味的な関係性を解析し、感情を推定
-     - 文脈感知型の分析
-  6. **Topic Modeling with Sentiment**
-     - トピックモデリング（例： LDA）を用い、トピックごとの感情を解析
-     - 感情とテーマを同時に分析
-  7. **Valence Arousal Dominance (VAD) Models**
-     - 感情を 3 次元で分析（例： 評価、覚醒、支配）
-     - テキストの微細な感情ニュアンスを捉える
-  8. **Emotion Annotated Corpus Analysis**
-     - 人工的に感情が注釈付けされたデータセットを用いた感情予測
-     - 例： EmoLex、GoEmotions
-  9. **Cognitive Appraisal Theory Analysis**
-     - 認知評価理論を基に、文章中の感情を構造的に評価
-     - 認知心理学的視点からの分析
-  10. **Pragmatic Analysis**
-      - 文脈や社会的なニュアンスを取り入れて感情を推定
-      - 言語学的なアプローチ
-
-- 動画から感情を分析する方法
-  1. **Facial Expression Analysis**
-     - 顔の表情変化を捉え、感情を推定
-     - 使用ツール： OpenFace, Affectiva
-  2. **Action Unit Analysis**
-     - 表情筋の動き（アクションユニット）を解析
-     - Paul Ekman の表情モデルに基づく
-  3. **Multimodal Analysis**
-     - 動画内の複数データ（音声、テキスト、映像）を組み合わせて感情を推定
-  4. **Body Gesture Analysis**
-     - ジェスチャーや姿勢の変化を解析して感情を分類
-     - 使用例： Kinect データ
-  5. **Eye Movement Analysis**
-     - 瞳の動きや注視点を追跡し、感情を推定
-     - 例： 視線トラッキング技術
-  6. **Deep Learning for Video Analysis**
-     - 3D CNN や RNN を用いて動画全体の感情を解析
-     - モデル例： I3D, C3D
-  7. **Physiological Signal Integration**
-     - 動画中の心拍や皮膚電位を解析し、感情と関連付け
-     - センサーと連携
-  8. **Semantic Scene Analysis**
-     - 動画のシーンコンテキストや雰囲気を解析して感情を推定
-     - 例： 情景理解
-  9. **Audio-Visual Sentiment Analysis**
-     - 動画中の音声と映像データを組み合わせて感情を分析
-     - マルチモーダルアプローチ
-  10. **Cultural Context Analysis**
-      - 動画中の文化的背景や文脈を考慮した感情分析
-      - 例： 文化心理学
-
-- 音声から感情を分析する方法
-  1. **Prosodic Feature Analysis**
-     - 声のピッチ、強度、リズムを解析して感情を推定
-     - 使用例： Praat
-  2. **Spectral Feature Analysis**
-     - スペクトル特性（例： フォルマント、MFCC）を利用した感情推定
-  3. **Speech Emotion Recognition (SER)**
-     - 音声認識技術を感情分類に適用
-     - 例： EmoVoice
-  4. **Acoustic Modeling**
-     - 音響モデルを構築し、感情特性を分類
-     - 例： Gaussian Mixture Models (GMM)
-  5. **Deep Learning in Audio**
-     - CNN や RNN を活用して音声データを解析
-     - モデル例： Wavenet
-  6. **Pitch Contour Analysis**
-     - 声の音調変化を追跡し、感情を分類
-  7. **Valence-Arousal Modeling**
-     - 声の特性を評価と覚醒の 2 軸で解析
-     - 例： Russell’s Circumplex Model
-  8. **Emotion Annotation on Audio Dataset**
-     - 感情ラベル付けされた音声データセットを利用したモデル
-     - 例： IEMOCAP
-  9. **Context-Aware Audio Analysis**
-     - 音声中の文脈情報を利用した感情推定
-     - NLP 技術を補完
-  10. **Cross-linguistic Emotional Analysis**
-      - 複数言語間での音声感情の共通点や相違点を分析
-      - 例： 国際音声データベース
-
-- 文章から幸福度を分析する方法
-  1. **Sentiment Analysis (感情分析)**
-     - ポジティブな感情表現を重視し、幸福度を定量化
-     - 使用例： NLP ツール（例： VADER、TextBlob）
-  2. **Lexicon-based Happiness Index**
-     - 幸福関連語彙のスコア（例： Affective Norms for English Words, Hedonometer）を用いて計算
-  3. **Subjective Well-Being (SWB) Text Analysis**
-     - 主観的幸福感を示す表現（例：「満足」「楽しい」）を検出する方法
-  4. **Life Satisfaction Indicators in Text**
-     - 「生活の満足度」に関連する具体的なキーワード（例：「健康」「家族」）を解析
-  5. **Emotional Valence Measurement**
-     - テキスト内の評価軸（ポジティブ/ネガティブ）の偏りを分析
-  6. **Positive Psychology Framework**
-     - ポジティブ心理学の観点（例： PERMA モデル）に基づいて、幸福感を示す要素を抽出
-  7. **Latent Dirichlet Allocation (LDA) with Happiness Themes**
-     - トピックモデリングを用いて、幸福に関連するテーマを特定
-  8. **Emotionally Annotated Corpus Analysis**
-     - 幸福感が注釈付けされたデータセットを使用し、文章を分類
-     - 例： EmoLex、LIWC
-  9. **Cognitive Appraisal Theory in Text**
-     - 認知的評価理論を活用し、幸福に関する記述を特定
-  10. **Hedonic Tone Analysis**
-      - テキスト全体の「快楽的なトーン」を計測する手法
-
-- 動画から幸福度を分析する方法
-  1. **Facial Expression Analysis**
-     - 幸福を示す表情（例： 笑顔）を解析
-     - 使用例： Ekman の表情モデル
-  2. **Action Unit Analysis (幸福に特化)**
-     - 特定のアクションユニット（例： 口角の上昇）を通じて幸福度を評価
-  3. **Body Gesture Analysis**
-     - 幸福感に関連するポジティブなジェスチャー（例： 軽快な動き）を解析
-  4. **Eye Movement and Gaze Patterns**
-     - 瞳孔の拡張や目の輝きが幸福感を示すことを分析
-  5. **Smile Dynamics Analysis**
-     - 笑顔の持続時間や強度を解析し、幸福度を推定
-  6. **Multimodal Happiness Analysis**
-     - 映像と音声を統合して幸福度を総合的に評価
-  7. **Physiological Signal Integration**
-     - 心拍数や皮膚電位のデータを映像に同期させて幸福度を分析
-  8. **Semantic Scene Analysis**
-     - 映像の背景や設定（例： 明るい色、自然の風景）を幸福感の指標として解析
-  9. **Positive Emotion Dynamics**
-     - 動画内でのポジティブな感情の時間的変化を追跡
-  10. **Social Interaction Analysis**
-      - 動画内の社会的交流（例： 笑い声や肯定的な反応）を分析して幸福度を評価
-
-- 音声から幸福度を分析する方法
-  1. **Prosodic Feature Analysis**
-     - 音声のトーンや強調が幸福感を示す要因として分析される
-     - 使用例： ピッチ、テンポ、リズム
-  2. **Spectral Analysis for Positive Emotion**
-     - 幸福感に特化したスペクトル特徴（例： フォルマント、MFCC）を抽出
-  3. **Speech Emotion Recognition (SER) for Happiness**
-     - 音声データを感情ラベル（特に幸福感）で分類
-     - データ例： RAVDESS、IEMOCAP
-  4. **Laughter Detection**
-     - 笑いの頻度や種類を解析して幸福感を測定
-  5. **Voice Energy and Intensity Analysis**
-     - 高エネルギーの発話が幸福を示すことを利用
-  6. **Pitch Contour Analysis**
-     - 幸福感に関連する明るい音調や上昇するトーンを検出
-  7. **Valence and Arousal Modeling**
-     - 幸福感を評価軸と覚醒軸でモデル化
-     - 例： Russell’s Circumplex Model
-  8. **Acoustic Modeling for Positive Emotion**
-     - 幸福感を示す音声特徴に基づいた音響モデルを構築
-     - 例： HMM、GMM
-  9. **Deep Learning in Audio Analysis**
-     - 幸福度検出に特化したディープラーニングモデル（例： CNN、RNN）
-  10. **Cultural Audio Cues**
-      - 幸福を示す音声の文化的特徴を分析（例： 言語間での笑いの違い）
-
-### 「類似性の仕組み」を行うツール
-
-1. 芸術作品・デザイン・動画
-   - 説明
-     - 芸術作品・デザイン・動画
-2. GANs
-   - 説明
-     - GANs
-3. 深層学習モデル（CNN）
-   - 説明
-     - 深層学習モデル（CNN）
-4. ガウシアンミックスチャーモデル（GMM）
-   - 説明
-     - ガウシアンミックスチャーモデル（GMM）
-5. ビジュアルサーモン（Visual Thesaurus）
-   - 説明
-     - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
-6. CLIP (Contrastive Language–Image Pretraining)
-   - 説明
-     - テキストと画像を結びつけるマルチモーダル AI
-7. 時空間 CNN
-   - 説明
-     - 動画のフレーム間の連続性を解析
-8. 光フローベース解析
-   - 説明
-     - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
-9. 音声
-   - 説明
-     - 音声
-10. Spectrogram Analysis
-    - 説明
-      - 音声データをスペクトログラムに変換し、視覚的に比較
-11. 3D CNN + Audio Embeddings
-    - 説明
-      - 動画のフレームと音声のベクトルを統合
-12. Multimodal Transformers
-    - 説明
-      - 映像、テキスト、音声の複数モーダルを同時に解析
-13. 文章の盗用・剽窃
-    - 説明
-      - 文章の盗用・剽窃
-14. Plag.lv
-    - 参考
-      - [https://www.plag.jp/](https://www.plag.jp/)
-    - 説明
-      - 大規模なデータベースと比較して複数言語での盗用を検出する
-15. chiyo-co
-    - 参考
-      - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
-    - 説明
-      - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
-16. RighTect
-    - 参考
-      - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
-    - 説明
-      - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
-17. Copyleaks
-    - 参考
-      - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
-    - 説明
-      - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
-18. Trinka
-    - 参考
-      - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
-    - 説明
-      - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
-19. 剽窃チェッカー
-    - 参考
-      - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
-20. Shinobi ファインダー
-    - 参考
-      - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
-    - 説明
-      - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
-21. TF-IDF（Term Frequency-Inverse Document Frequency）
-    - 説明
-      - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
-      - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
-22. Word2Vec や Doc2Vec
-    - 説明
-      - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
-23. トピックモデル
-    - 説明
-      - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
-24. ベクトルエンベディング
-    - 説明
-      - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
-25. 機械学習モデル
-    - 説明
-      - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
-26. コード系
-    - 説明
-      - コード系
-27. SA-Plag
-    - 参考
-      - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
-      - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
-28. Moss
-    - 説明
-      - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
-29. Sider Scan
-    - 参考
-      - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
-30. 大阪大学の研究室が提供するコードクローン関連ツール集
-    - 参考
-      - [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
-31. NCDSearch
-    - 参考
-      - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
-      - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
-32. Codequiry
-    - 参考
-      - [https://codequiry.com/](https://codequiry.com/)
-    - 説明
-      - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
-33. JPlag
-    - 参考
-      - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
-      - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
-    - 説明
-      - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
-34. Code2Vec
-    - 説明
-      - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
-      - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
-35. Graph Neural Networks (GNNs)
-    - 説明
-      - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
-36. OpenAI Codex や CodeBERT
-    - 説明
-      - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
-37. コサイン類似度
-    - 説明
-      - コードのベクトル表現間の角度を用いて類似性を評価
-38. LSH (Locality-Sensitive Hashing)
-    - 説明
-      - 大規模なコードベースにおける効率的な類似性検索
-39. similarity
-    - 参考
-      - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
-    - 説明
-      - ベクトルやコードの類似性があるか見る
-
-### 貢献度の算出手法
-
-下記の方法を、「貢献度の算出手法」の参考にしたい。
-
-1. `GrimoreLab`の`Perceval`
-   - 参考
-     - [https://perceval.readthedocs.io/en/latest/index.html](https://perceval.readthedocs.io/en/latest/index.html)
-     - [https://jsmanrique.es/analyzing-open-source-development-part-1/](https://jsmanrique.es/analyzing-open-source-development-part-1/)
-     - [https://www.researchgate.net/publication/325334393_Perceval_Software_Project_Data_at_Your_Will](https://www.researchgate.net/publication/325334393_Perceval_Software_Project_Data_at_Your_Will)
-     - [https://github.com/chaoss/grimoirelab-perceval](https://github.com/chaoss/grimoirelab-perceval)
-   - 説明
-     - `Perceval`は、`GrimoreLab`で使用されている様々なデータソースから CLI or バックエンドでデータ取得できるライブラリ
-     - GrimoireLab と蜜結合になっていない。Perceval CLI 単体で使用できる
-     - データソースは、GitHub、Git、Jira、Slack
-2. CNCF DevStats
-   - 説明
-     - CNCF 全プロジェクトを対象に GitHub API からコミット・PR・Issue・レビューなどを自動集計し、時系列グラフで可視化
-3. Black Duck Open Hub
-   - 参考
-     - [https://openhub.net/p/firefox/contributors](https://openhub.net/p/firefox/contributors)
-     - [https://kyodonewsprwire.jp/release/201407112164](https://kyodonewsprwire.jp/release/201407112164)
-   - 説明
-     - 旧 Ohloh
-     - 全部が OSS ではない
-     - Web UI・API クライアント・解析ライブラリなどは自由に取得してビルドできますが、メインの解析データベースやインフラ構成は社内専用で残っているため、サイト全体を完全に自己ホストすることは現状できません
-     - コミットをクロールし指標を生成するバッチ群は公開されていません。UI をローカルで動かしても統計は生成できません
-4. `Apache/kibblescanners`
-   - 参考
-     - [https://deepwiki.com/apache/kibble-scanners](https://deepwiki.com/apache/kibble-scanners)
-     - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
-   - 説明
-     - 各サービスごとのデータを同じ設定で取得して、Kibble シリーズ向けにデータフォーマットしてデータ出力するライブラリ
-5. `Aurgur`
-   - 参考
-     - [https://github.com/chaoss/augur](https://github.com/chaoss/augur)
-     - [https://eightknot.osci.io/contributions](https://eightknot.osci.io/contributions)
-     - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/getting-started/database.html)
-     - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)
-   - 説明
-     - バックエンドは Postgres データベース
-     - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
-     - 外部ツールは REST API 経由でメトリクスを取得できる状態にします
-     - ソース
-       - Git コミットログ
-         - コミット、コントリビューター
-       - GitLab
-       - GitHub API
-         - 課題、プルリクエスト、コントリビューター、リリース、リポジトリのメタデータ
-       - Linux Foundation の Core Infrastructure Initiative API
-         - リポジトリのメタデータ
-       - Succinct Code Counter
-         - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
-6. GrimoireLab
-   - 参考
-     - [https://chaoss.github.io/grimoirelab-tutorial/](https://chaoss.github.io/grimoirelab-tutorial/)
-   - 説明
-     - Bitergia／LibreSoft の Metric-Grimoire 系ツールを継承し、2017 年に CHAOSS 初期ソフトウェアとして採択
-     - **30 種類超のデータソース＆150 以上の指標・可視化**を提供する総合基盤
-     - Git、GitHub、Jira、Slack、Mailing List など「開発・コミュニティ全域」を一元分析できる点が強み
-7. `OpenSourceContributo.rs`
-   - 説明
-     - ユーザーごとの GitHub への貢献を検索する検索エンジン
-     - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）
-8. `apache/kibble`
-   - 参考
-     - [https://github.com/apache/kibble](https://github.com/apache/kibble)
-     - [https://deepwiki.com/apache/kibble](https://deepwiki.com/apache/kibble)
-     - [https://whimsy.apache.org/board/minutes/Kibble.html](https://whimsy.apache.org/board/minutes/Kibble.html)
-   - 説明
-     - あらゆるソフトウェアプロジェクトに関するデータを収集・集計・可視化するためのツール
-9. `apache/incubator-devlake`
-   - 参考
-     - [https://deepwiki.com/apache/incubator-devlake](https://deepwiki.com/apache/incubator-devlake)
-   - 説明
-     - Apache DevLake は、さまざまな DevOps ツールから分散しているデータを取り込み、分析・可視化する
-10. `hypertrons/hypertrons`
-    - 参考
-      1. [https://github.com/hypertrons/hypertrons](https://github.com/hypertrons/hypertrons)
-    - 説明
-      1. c
-11. **`Hypercrx`**
-    - 説明
-      - X-lab はブラウザプラグイン Hypercrx（発音は「ハイプ CRX」）を開発しました
-      - OpenDigger のメトリクススキームを土台に、GitHub ページへ複数の可視化コンポーネントを組み込みます
-    - 参考
-      - [https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
-12. `anvaka/pm`
-    - 説明
-      - 主要なソフトウェアパッケージ管理システムの可視化機能
-    - 参考
-      - [https://github.com/anvaka/pm](https://github.com/anvaka/pm)
-
-13. **Gephi**
-    - 説明
-      - ネットワーク分析と可視化
-
-### データ可視化サービス
-
-1. `8knot`
-   - 説明
-     - Augur が取得したデータをダッシュボードとして表示するソフトウェア
-   - 参考
-     - [https://github.com/oss-aspen/8knot](https://github.com/oss-aspen/8knot)
-2. `DevStats`
-   - 説明
-     - `DevStats`ダッシュボードは、Kubernetes プロジェクトの Contributor Experience Special Interest Group (SIG) のサブプロジェクトとして維持されています
-   - 参考
-     - [https://github.com/cncf/devstats](https://github.com/cncf/devstats)
-3. `Tableau alysonla`
-   - 参考
-     - [https://public.tableau.com/app/profile/alysonla/viz/OpenSourceMonthlyNovember2015/OrgDashboard](https://public.tableau.com/app/profile/alysonla/viz/OpenSourceMonthlyNovember2015/OrgDashboard)
-
-- **`Grafana`**
-  - 参考
-    - [https://qiita.com/Chanmoro/items/a23f0408f0e64658a775](https://qiita.com/Chanmoro/items/a23f0408f0e64658a775)
-- Kibana
-
-### 指標
-
-#### コード系
-
-1. CHAOSS
-   - 説明
-     - Community Health Analytics for OSS
-     - Linux Foundation が維持する OSS コミュニティ健全性指標群
-   - 参考
-     - [https://chaoss.community/ja/kbtopic/all-metrics/](https://chaoss.community/ja/kbtopic/all-metrics/)
-       - 指標一覧
-     - [https://chaoss.community/kbtopic/all-metrics-models/](https://chaoss.community/kbtopic/all-metrics-models/)
-       - 指標の組み合わせ方の一覧
-2. GitHub Community Profile & Insights
-   - 説明
-     - README／LICENSE／CODE_OF_CONDUCT などの有無をチェックリスト化し、外部からの貢献準備度を示す
-3. `GitHub Octoverse`
-   - 説明
-     - GitHub Octoverse のタスクごとの重み付け値は非公開
-     - Octoverse で使われる別指標「Mona Rank」- Octoverse 2023 以降で、人気プロジェクトなどの評価に使われる「Mona Rank」という指標がある
-4. Health of Open Source Software
-5. Source-o-grapher
-6. CNCF
-   - 参考
-     - [https://www.cncf.io/](https://www.cncf.io/)
-     - [https://devstats.cncf.io/](https://devstats.cncf.io/)
-   - 説明
-     - Cloud Native Computing Foundation（CNCF）が“OSS そのもの”を評価・可視化するために公開している主な指標
-
-7. Dev Rank
-   - 参考
-     - [https://arxiv.org/pdf/1710.10427](https://arxiv.org/pdf/1710.10427)
-
-8. Magnet/Sticky
-   - 参考
-     - [https://api.lib.kyushu-u.ac.jp/opac_download_md/1807066/isee0609_abstract.pdf](https://api.lib.kyushu-u.ac.jp/opac_download_md/1807066/isee0609_abstract.pdf)
-
-9. Depsy
-   - 参考
-     - [https://blog.ourresearch.org/introducing-depsy/](https://blog.ourresearch.org/introducing-depsy/)
-     - [https://github.com/ourresearch/depsy-research](https://github.com/ourresearch/depsy-research)
-     - [https://github.com/ourresearch/depsy](https://github.com/ourresearch/depsy)
-     - [http://depsy.org/](http://depsy.org/)
-     - [https://deepwiki.com/ourresearch/depsy](https://deepwiki.com/ourresearch/depsy)
-   - 説明
-     - 「研究ソフトウェアの影響力」を算出するソフトウェア
-     - 論文の被引用だけでなく、論文本文中でのソフト名の言及や他ソフトからの再利用（依存関係）、ダウンロード数などを集めて、パッケージと貢献者（人）にクレジットを割り振る仕組み
-10. Gitee Index
-    - 説明
-      - Gitee は、コードアクティビティとコミュニティアクティビティに基づいてプロジェクトを評価する「Gitee Index」
-    - 参考
-      - [https://gitee.com/explore?utm_source=oschina&utm_medium=link-index&utm_campaign=home](https://gitee.com/explore?utm_source=oschina&utm_medium=link-index&utm_campaign=home)
-
-11. Open Source Contributor Index
-    - 説明
-      - OSCI は、営利組織（株式会社）による GitHub 上でのオープンソースの活動を追跡・測定することを目的としたオープンソースプロジェクト
-    - 参考
-      - [https://github.com/epam/OSCI](https://github.com/epam/OSCI)
-      - [https://opensourceindex.io/](https://opensourceindex.io/)
-    - 算出ロジック
-      1. Active Contributors 指標
-         - 一日 or 1 か月の期間で、それぞれ 10 回以上のコミットを作成した人の数
-      2. Total Community 指標
-         - 一日 or 1 か月の期間に少なくとも 1 つのコミットを作成した人の数
-    - 会社所属の人を見つける方法
-      - コミット作成者のメールドメインを使って組織を特定します
-    - 注意
-      1. OSCI は、大学、研究機関、個人起業家が貢献したオープンソース活動をランキングしていません
-12. 論文
-    - 参考
-      - [https://www.sciencedirect.com/science/article/abs/pii/S0950584914000871](https://www.sciencedirect.com/science/article/abs/pii/S0950584914000871)
-
-13. OpenSSF Scorecard
-    - 説明
-      - データ取得元は、GitHub API
-      - データ取得ロジックも実装されている
-      - セキュリティ指標に基づいてスコアを算出するソフトウェア
-      - 各チェック項目には 0～10 のスコアが付与される
-    - 参考
-      - [https://openssf.org/](https://openssf.org/)
-      - [https://github.com/ossf](https://github.com/ossf)
-      - [https://github.com/ossf/scorecard](https://github.com/ossf/scorecard)
-14. セキュリティのリスク分析手法
-    1. 共通脆弱性評価システム（CVSS）
-    2. エクスプロイト予測
-
-15. scc
-    - 説明
-      - scc は、純粋な Go 言語で記述された非常に高速で高精度なコード行数カウンタです
-      - 複雑度計算や COCOMO モデルに基づく開発工数推定機能を備えています
-    - 参考
-      - [https://github.com/boyter/scc](https://github.com/boyter/scc)
-16. GrimoireLab Cocom
-    - 説明
-      - GrimoireLab の Graal を使用した、コード複雑度の解析をしている
-    - 参考
-      - [https://github.com/chaoss/grimoirelab-graal/blob/main/graal/backends/core/cocom.py](https://github.com/chaoss/grimoirelab-graal/blob/main/graal/backends/core/cocom.py)
-      - [https://chaoss.github.io/grimoirelab-tutorial/docs/components/graal/cocom/](https://chaoss.github.io/grimoirelab-tutorial/docs/components/graal/cocom/)
-
-17. Lizard
-    - 説明
-      - 主要なプログラミング言語のほとんどに対応したシンプルなコード複雑度解析ツール
-    - 以下をチェックする
-      - コメントを除いた実コード行数 (nloc)
-      - CCN（循環的複雑度）
-      - 関数のトークン数
-      - 関数のパラメータ数をカウント
-    - 参考
-      - [https://github.com/terryyin/lizard](https://github.com/terryyin/lizard)
-
-18. Function Point method
-    - 説明
-      - ソフトウェアがもつ機能数や複雑さによって重みづけした点数を付け、そのソフトウェアにおける合計点数から開発工数を見積もる
-    - 参考
-      - [https://e-words.jp/w/FP法.html](https://e-words.jp/w/FP%E6%B3%95.html)
-      - [https://qiita.com/okikusan-public/items/ee86340e60cfa4856a6c](https://qiita.com/okikusan-public/items/ee86340e60cfa4856a6c)
-
-19. https://arxiv.org/html/2411.05087v2
-20. SonarQube
-21. VS Code の Analyze メニューにある Calculate Code Metrics 機能
-22. GitHub Insights / Code QL
-23. Code Climate Velocity
-24. Cyclomatic Complexity
-25. Cognitive Complexity
-26. Halstead Difficulty
-27. SLOC（行数）
-28. PR サイズ
-29. DifficultyScore
-30. Change Entropy
-31. Maintainability Index（MI）
-32. WMC / DIT / NOC / CBO / RFC / LCOM
-33. Co-Change Graph Entropy
-34. Weighted Code Churn
-35. EA-Z(Effort-Aware ranking)
-36. Effort-Aware Defect Prediction
-37. Martin のパッケージ指標
-    - 説明
-      - Afferent（Ca）/ Efferent（Ce）/ Instability I = Ce/(Ca+Ce)、Abstractness など
-38. JaCoCo
-    - 説明
-      - Instruction（C0）/ Branch（C1）/ Line 等を計測
-      - ブランチは if/switch の分岐網羅
-39. PIT（ピット）
-    - 説明
-      - ミューテーションテストでテストの強さを測る
-40. CRAP メトリクス
-    - 説明
-      - 複雑度と未カバー率を組み合わせた変更リスク指標
-      - （CRAP(m)=CC²×U³+CC）
-41. SonarCloud
-42. 静的解析
-    - 説明
-      - ESLint / Pylint / Checkstyle / PMD / Detekt / RuboCop / SpotBugs など
-43. Quality Gate（新規コード）
-    - 説明
-      - Sonar の Maintainability Rating A、新規 Code Smell ゼロを原則に
-44. テストの強さ
-    - 説明
-      - Branch Coverage 基準＋重点箇所は PIT を定期実行
-      - CRAP 高スコアは優先的に手当
-45. 設計健全性
-    - 説明
-      - CK（CBO/LCOM 等）と ADP（循環依存の解消）を監視
-
-#### 論文・ブログ系
-
-1. `Altmetrics`
-   - 説明
-     - SNS などの反応から影響度を算出する指標
-     - 著者ごとの引用数
-     - 共著ネットワーク分析
-     - 特定のポリシー（例： ICMJE や Contributor Roles Taxonomy (CRediT)）に基づいて役割を評価
-   - ツール
-     1. `PyAltmetric`
-        - `Altmetrics`のデータを取得する Python ライブラリ
-2. 被引用数
-   - 説明
-     - 被引用数から貢献度を算出
-3. CRediT
-   - 説明
-     - Contributor Roles Taxonomy
-     - 各参加者がどのような役割を果たしたのかを明確に定義するための国際的な基準
-     - 以下が CRediT で定義される 14 の役割です：
-       1. **Conceptualization**: 研究やプロジェクトのアイデアの出発点、方法論設計
-       2. **Data Curation**: データの収集、整理、メンテナンス
-       3. **Formal Analysis**: データ解析、統計手法の適用
-       4. **Funding Acquisition**: 資金調達、研究資金の確保
-       5. **Investigation**: 実験や研究プロセスの実行
-       6. **Methodology**: 方法論の設計または進化
-       7. **Project Administration**: プロジェクトの計画、管理、監督
-       8. **Resources**: 資源提供（データ、素材、インフラなど）
-       9. **Software**: ソフトウェアの作成、プログラミング、シミュレーション
-       10. **Supervision**: チームやプロジェクトの監督
-       11. **Validation**: 分析結果の検証、再現性確認
-       12. **Visualization**: 図表、グラフ、データ可視化の作成
-       13. **Writing – Review & Editing**: 論文のレビュー、修正
-     - 論文末尾の「著者貢献」セクションに、CRediT を用いた役割記載が行われる
-       - 例：
-         - A 氏： Conceptualization, Writing – Original Draft
-         - B 氏： Data Curation, Software
-
-#### イノベーション系
-
-1. M. Dziallas and K. Blind, “Innovation indicators throughout the innovation process: An extensive literature analysis,” Technovation, vol. 80, pp. 3–29, 2019
-2. https://arxiv.org/html/2411.05087v2
-   - https://arxiv.org/html/2411.05087v2#bib.bib75
-   - https://arxiv.org/html/2411.05087v2#bib.bib56
-   - https://arxiv.org/html/2411.05087v2#bib.bib36
-   - https://arxiv.org/html/2411.05087v2#bib.bib37
-   - https://arxiv.org/html/2411.05087v2#bib.bib38
-   - https://arxiv.org/html/2411.05087v2#bib.bib39
-
-### 貢献度の算出理論
-
-#### 統計学的・データ分析手法
-
-1. PageRank
-2. Shapley Value
-   - 説明
-     - 各参加者の周 marginal 貢献を全順序平均で計算し、高次相互作用を含む公平配分を保証
-     - グラフ上のノード（制作者）ごとに限界効果を評価し、報酬プールを比例配分
-3. Impact Certificates
-4. 相関分析 (Correlation Analysis)
-   - 説明
-     - 2 つの変数間の相関の強さと方向を測定
-     - ピアソン相関係数、スピアマン順位相関
-5. 回帰分析 (Regression Analysis)
-   - 説明
-     - ある行動（独立変数）が幸福度（従属変数）に与える影響を定量化
-6. 重回帰分析 (Multiple Regression Analysis)
-   - 説明
-     - 複数の行動が幸福度に与える影響を同時に評価
-7. 因子分析 (Factor Analysis)
-   - 説明
-     - 幸福度や行動の背後にある潜在的な構造を特定
-     - 使用例： 幸福度を構成する要因の特定
-8. 主成分分析 (Principal Component Analysis, PCA)
-   - 説明
-     - 行動データを次元削減し、幸福度に関係する主要な構成要素を抽出
-9. 構造方程式モデリング (Structural Equation Modeling, SEM)
-   - 説明
-     - 行動と幸福度の間の因果関係を視覚的にモデル化
-     - 例： パス解析
-10. 共分散構造分析 (Covariance Structure Analysis)
-    - 説明
-      - 幸福度に影響を与える複数の行動間の関係を評価
-11. 階層線形モデル (Hierarchical Linear Modeling, HLM)
-    - 説明
-      - 階層構造のデータ（例： 個人内および個人間の行動）を分析し、幸福度への影響を評価
-12. 時間軸データ解析 (Time Series Analysis)
-    - 説明
-      - 時系列で行動データと幸福度の変化を関連付け
-13. クラスタリング分析 (Clustering Analysis)
-    - 説明
-      - 幸福度に似たパターンを持つ行動グループを特定
-14. 因果推論 (Causal Inference)
-    - 説明
-      - 幸福度に影響を与える特定の行動を識別
-      - 例： 傾向スコアマッチング（Propensity Score Matching）
-15. 決定木分析 (Decision Tree Analysis)
-    - 説明
-      - 特定の行動が幸福度に与える影響を視覚的にモデル化
-16. 社会ネットワーク
-    - 説明
-      - 特定の業界や分野における貢献者の特定や影響力の分析
-      - 組織内での情報伝達の中心人物やキーパーソンを特定したり、企業間のネットワークにおける中心性を分析し業界内での影響力の大きい企業や個人を明らかにする研究も行われています。中心性指標を用いて業界内の貢献者や影響力のある人物を特定する際の理論的基盤を提供しています
-    - 1. 共著ネットワーク分析
-    - 2. Gephi: ネットワークの作成と分析
-    - 3. Cytoscape: バイオインフォマティクスや複雑ネットワークの可視化
-    - 4. Python ライブラリ（NetworkX, igraph, Graph-tool）: コードベースでのネットワーク構築
-    - Contributor Network Analysis
-      - 説明
-        - プロジェクト内の関係性（例： Issue の議論、コードレビュー）をグラフとしてモデル化。各ノード（貢献者）に対して重要度（例： 中心性指標）を算出
-17. シャープレイ値
-    - 説明
-      - 貢献度の計算対象を足した場合に、成果の増分をその人の貢献度と判定する方法
-      - それをあらゆる順序や組み合わせで貢献度を算出する
-18. PageRank 系
-19. 主成分分析
-    - 説明
-      - 貢献度分析
-20. 専門家評価とアンケート
-    - 説明
-      - **Delphi法**
-        - 複数の専門家による匿名評価を収集し、貢献度を合意形成
-      - **CRediT（Contributor Roles Taxonomy）フレームワーク**
-        - 論文やプロジェクト内の役割（例： Data Curation, Software, Writing – Review & Editing）を明確に分類し、貢献度を明示
-21. グラフ理論
-    - 説明
-      - 代表的には EigenTrust、Hubs and Authorities、Collaborative Filtering があります
-      - グラフ理論に基づく枠組みで扱えます
-      - 正直な回答へのインセンティブを用意しつつ、評判とコンテンツ順位が信頼できる指標になるよう算出します
-    - 参考
-      - [https://www.sbbit.jp/article/cont1/138750](https://www.sbbit.jp/article/cont1/138750)
-      - [https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k](https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k)
-      - [https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era](https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era)
-22. OpenRank
-    - 説明
-      - OpenRank を成り立たせている仮説は、関連性を多く持つライブラリほど他のライブラリから使用されていると仮定します
-      - 関連性が高いライブラリーほど影響力も大きくなります
-      - そのライブラリーへ貢献する開発者の貢献度も相対的に高いと判断できます
-23. Difference in Differences
-24. 探索的因子分析
-    - 参考
-      - [https://knowledge-bridge.info/technology/statistics/2450/](https://knowledge-bridge.info/technology/statistics/2450/)
-    - 説明
-      - どのような因子が得られるか分からずに行う因子分析
-    - 使用場面
-      - 何が貢献しているか特定したい場合は、探索的因子分析を使用できそう
-25. 反実仮想
-    - 説明
-      - 「反実仮想」は、変数の有無で結果が変わる場合の、変数の影響度合いを分析する理論全般のこと
-      - 反実仮想を分析するための理論は、RCT などがある
-26. 因果探索
-    - 説明
-      - 因果探索は、因果関係の原因を特定する理論全般のこと
-    - 使用場面
-      - 「貢献度の算出の仕組み」で参照・活用したデータを集めたうえで、因果要因として妥当か検証するときに使えます
-27. 因果推論
-    - 説明
-      - 因果推論は、因果関係の原因が、結果にどれだけ影響しているか度合いを分析する理論全般のこと
-28. 使わなかった場合の獲得できない損失を計算して、それを貢献度とする
-    - 説明
-      - 使わなかった場合の獲得できない損失を計算して、それを貢献度とする
-
-#### 心理学的理論
-
-1. **行動主義理論 (Behaviorism)**
-   - 説明
-     - 幸福度が、観察可能な行動の変化とどのように関連しているかを分析
-2. **認知行動理論 (Cognitive Behavioral Theory)**
-   - 説明
-     - 幸福度が、行動だけでなく認知的要因ともどのように関連しているかを評価
-3. **主観的幸福感理論 (Subjective Well-Being Theory)**
-   - 説明
-     - 幸福度の主観的要因を測定し、行動との関連性を解析
-4. **ポジティブ心理学 (Positive Psychology)**
-   - 説明
-     - 幸福感を増進させる行動や習慣のパターンを特定
-5. **自己決定理論 (Self-Determination Theory)**
-   - 説明
-     - 幸福度と行動が、自律性、有能感、関係性という基本的な心理的欲求によってどう関連するかを評価
-6. **ライフイベント理論 (Life Events Theory)**
-   - 説明
-     - 幸福度に大きな影響を与える特定の行動や出来事を特定
-
-#### 社会学的・経済学的理論
-
-1. 相対所得理論 (Relative Income Theory)
-   - 説明
-     - 他者との比較が幸福度へ与える影響の仕組みを分析します
-2. 行動経済学 (Behavioral Economics)
-   - 説明
-     - 人々の意思決定と幸福度の関連を評価します
-3. 社会的比較理論 (Social Comparison Theory)
-   - 説明
-     - 他者の行動や成果が、個人の幸福度に与える影響を評価
-4. 文化的影響理論 (Cultural Influence Theory)
-   - 説明
-     - 行動と幸福度の関連性が、文化や社会的要因にどのように影響されるかを評価
-5. ウェルビーイング経済学 (Economics of Well-Being)
-   - 説明
-     - 幸福度を経済的行動や条件と関連付ける
-
-#### 神経科学的理論
-
-1. **報酬系理論 (Reward System Theory)**
-   - 説明
-     - 特定の行動が脳内報酬システムを活性化し、幸福感に与える影響を評価
-2. **感情ネットワーク理論 (Emotion Network Theory)**
-   - 説明
-     - 幸福感を脳の感情ネットワークとの関連で分析
-3. **ニューロマーケティング (Neuromarketing)**
-   - 説明
-     - 消費行動が幸福感に与える影響を脳活動から分析
-
-#### 重み付け
-
-- 説明
-  - 指定タスク × 指定タスク重み付け値 × 各タスクごとの実行回数の掛け算結果の合計で貢献度を算出する方法
-  - プルリクの作成や PR レビューなど、それぞれのタスクの重み付け値を掛け算してから貢献度を算出
-
-### 既存サービス
-
-- 一覧
-
-```markdown
-    - https://github.com/X-lab2017/open-digger
-    - https://github.com/a-p-z/gitstats
-    - https://github.com/acaudwell/Gource
-    - https://github.com/adamtornhill/code-maat
-    - https://github.com/adobe/oss-contributors
-    - https://github.com/amzn/oss-contribution-tracker
-    - https://github.com/anuraghazra/github-readme-stats
-    - https://github.com/apache/incubator-devlake
-    - https://github.com/apache/kibble
-    - https://github.com/apache/kibble-scanners
-    - https://github.com/bloombar/gitlogstats
-    - https://github.com/brianwarner/facade
-    - https://github.com/chaoss/augur
-    - https://github.com/chaoss/grimoirelab
-    - https://github.com/cncf/gitdm
-    - https://github.com/coreinfrastructure/best-practices-badge
-    - https://github.com/devactivity-app
-    - https://github.com/dmitryn/GitStats
-    - https://github.com/ejwa/gitinspector
-    - https://github.com/erikbern/git-of-theseus
-    - https://github.com/flaviostutz/gitwho
-    - https://github.com/git-quick-stats/git-quick-stats
-    - https://github.com/github/gh-skyline
-    - https://github.com/git-truck/git-truck
-    - https://github.com/gotec/git2net
-    - https://github.com/hypertrons/hypertrons-crx
-    - https://github.com/ishepard/pydriller
-    - https://github.com/knbr13/gitcs
-    - https://github.com/mauricioaniche/repodriller
-    - https://github.com/mntnr/name-your-contributors
-    - https://github.com/mona-actions/gh-repo-stats
-    - https://github.com/nice-registry/sourceranks
-    - https://github.com/nokamoto/print-github-contrib
-    - https://github.com/oleander/git-fame-rb
-    - https://github.com/ourresearch/depsy
-    - https://github.com/pingcap/ossinsight
-    - https://github.com/reposense/RepoSense
-    - https://github.com/sallar/github-contributions-chart
-    - https://github.com/shufo/gh-issue-stats
-    - https://github.com/src-d/hercules
-    - https://github.com/sourcecred/sourcecred
-    - https://github.com/tarao/oss-contributions
-    - https://github.com/tenex/opensourcecontributors
-```
-
-1. `tarao/oss-contributions`
-   - 説明
-     - 指定ユーザーが貢献した OSS 一覧を取得するスクリプト
-     - プロジェクトを横断的に貢献したタスクの一覧を表示する
-   - 参考
-     - [https://github.com/tarao/oss-contributions](https://github.com/tarao/oss-contributions)
-     - [https://tarao.hatenablog.com/entry/2021/06/14/160248](https://tarao.hatenablog.com/entry/2021/06/14/160248)
-     - [https://deepwiki.com/tarao/oss-contributions/1-overview](https://deepwiki.com/tarao/oss-contributions/1-overview)
-2. Mozilla Observatory
-   - 説明
-     - Web サービスの HTTP ヘッダーや TLS 設定を A+〜F で格付けし、クリック 1 つでバッジ発行
-3. Snyk Advisor
-   - 説明
-     - パッケージ名を入力すると “Security / Community / Maintenance” の 3 タブで健康度を可視化し、既知 CVE 数やコミット頻度を加味した総合指標を返す
-     - 2025 年 7 月公開の **Risk Score** は脆弱性の重大度・公開後経過日数・既知エクスプロイト情報を重み付けし 0-100 で優先度を示します
-   - 参考
-     - [https://snyk.io/advisor/](https://snyk.io/advisor/)
-     - [https://docs.snyk.io/manage-risk/prioritize-issues-for-fixing/risk-score](https://docs.snyk.io/manage-risk/prioritize-issues-for-fixing/risk-score)
-4. Sonatype OSS Index（Safety Rating）
-   - 説明
-     - 無料の脆弱性カタログで、**Safety Rating** は「将来脆弱性が見つかる確率」を 1-10 段階で推定。低リスクほど高得点となり、メーリングリストモデルで毎晩再計算されます
-   - 参考
-     - [https://ossindex.sonatype.org/doc/sonatype-safety-rating](https://ossindex.sonatype.org/doc/sonatype-safety-rating)
-     - [https://ossindex.sonatype.org/](https://ossindex.sonatype.org/)
-5. OSEHO
-   - 説明
-     - Open Source Ecosystem Health Operationalization
-     - “成長傾向 & 長寿命” を核心に、コミット頻度・リリース間隔・バグ修正速度・フォーラム応答時間など複数メトリクスを束ねてエコシステム全体の健全度を算出する
-   - 参考
-     - [https://www.researchgate.net/publication/261715766_Measuring_the_Health_of_Open_Source_Software_Ecosystems_Beyond_the_Scope_of_Project_Health](https://www.researchgate.net/publication/261715766_Measuring_the_Health_of_Open_Source_Software_Ecosystems_Beyond_the_Scope_of_Project_Health)
-6. CLOMonitor
-   - 説明
-     - CNCF の OSPO が提供する自動チェックツール
-     - リポジトリを定期スキャンし、**Documentation／License／Best practices／Security／Community**といった観点で合否・スコアを出します
-7. CII Best Practices Badge（Linux Foundation）
-   - 説明
-     - 140 項目超のチェックリストをクリアすると **Passing / Silver / Gold** の 3 段階バッジを取得でき、署名付きリリースや脆弱性報告プロセスの有無が審査対象です
-   - 参考
-     - [https://github.com/coreinfrastructure/best-practices-badge](https://github.com/coreinfrastructure/best-practices-badge)
-     - [https://www.linuxfoundation.org/blog/blog/why-cii-best-practices-gold-badges-are-important](https://www.linuxfoundation.org/blog/blog/why-cii-best-practices-gold-badges-are-important)
-8. LFX Insights
-   - 説明
-     - 横断分析：貢献者数・組織数・“ソフトウェア価値”など
-9. OWASP Dependency-Check
-   - 説明
-     - 依存ライブラリの既知 CVE
-10. OWASP Dependency-Track
-    - 説明
-      - SBOM 中の CVE, ライセンス
-
-11. OWASP dep-scan
-    - 説明
-      - CVE＋ライセンス違反
-12. FOSSA
-    - 説明
-      - CVE × EPSS 確率
-13. GitHub Dependabot
-    - 説明
-      - 互換性スコア
-14. Anchore Grype
-    - 説明
-      - Syft で生成した SBOM をもとに脆弱性を解析
-15. Aqua Trivy
-    - 説明
-      - 単一バイナリでコンテナイメージ、ファイルシステム、リポジトリ、IaC をスキャンし、CVE・設定不備・Secrets を横断検出
-16. SourceRank
-    - 参考
-      - [https://github.com/nice-registry/sourceranks?tab=readme-ov-file](https://github.com/nice-registry/sourceranks?tab=readme-ov-file)
-17. OpeFare
-    - 説明
-      - OSS 開発者やメンテナーへの報酬分配を目的とした分散型プロトコル
-      - OpenFare ライセンス
-        - MIT ライセンスに類似しており、「商用ユーザー」として定義された条件を満たすユーザーへ支払いを請求できます
-      - コードで定義された支払い計画書
-        - 開発者はプロジェクト内で支払いプランをコードとして定義し、支払い方法や金額を明確に設定できます
-      - 支払い管理ツール
-        - ソフトウェアの依存関係全体における支払い義務を管理するツールを提供し、商用ユーザーが複雑な依存関係の中でも容易に支払いを行えます
-18. `LeaderRank`
-    - 説明
-      - 対象ノードに紐づく各リンクへ次数依存型の重みを付与し、最近提案されたランキングアルゴリズム「LeaderRank」の改良版です
-    - 参考
-      - [https://arxiv.org/abs/1306.5042](https://arxiv.org/abs/1306.5042)
-19. SourceCred
-20. Gitcoin
-    - 説明
-      - Gitcoin は、オープンソースソフトウェアの開発者や貢献者を資金的に支援するためのプラットフォーム
-      - クワドラティックファンディングの仕組みがある
-      - バウンティ制度
-        - 特定のタスクに報酬が設定され、開発者がそれを解決することで報酬を獲得
-21. Coordinape
-    - 説明
-      - DAO やコミュニティが貢献者を評価し、資金を分配するためのピアベースの仕組みを提供します
-      - ピア・レビュー
-        - メンバー同士が互いの貢献を評価し、「Give」と呼ばれるポイントを配分
-22. **Rabbithole**
-    - 説明
-      - 分散型アプリケーション（dApp）やプロトコルへの貢献を奨励し、ユーザーにトークンや報酬を提供する仕組み
-23. **Clarity**
-    - 説明
-      - Clarity は、特に DAO やコミュニティでの作業や活動ログを追跡し、貢献に基づいた報酬を可能にするプラットフォームです
-
-24. **Colony**
-    - 説明
-      - Colony は、DAO が貢献を管理し、プロジェクト内の活動に基づいてトークン報酬を提供するためのフレームワークを提供します
-      - タスクの完了や成果物に対してメンバーが評価を行う
-      - 報酬は Colony トークン（CLNY）などの形式で分配
-25. **Dework**
-    - 説明
-      - Dework は、DAO や分散型プロジェクトでのタスク管理を行い、貢献に基づく報酬を提供するプラットフォームです
-      - Trello のようなタスク管理インタフェースで、タスクを公開
-      - 各タスクに設定された報酬が貢献者に支払われる
-26. Karma
-    - 説明
-      - Karma は、DAO メンバーの活動や貢献を記録し、報酬や役職の評価に活用する仕組みです
-
-27. **GitInspector**
-    - 説明
-      - 作者別のコミット数・追加/削除行数・活力度タイムラインなどを HTML/テキストで一括出力
-    - 参考
-      - [https://github.com/ejwa/gitinspector](https://github.com/ejwa/gitinspector)
-      - [https://manpages.ubuntu.com/manpages/focal/man1/gitinspector.1.html](https://manpages.ubuntu.com/manpages/focal/man1/gitinspector.1.html)
-28. **Git-fame 系**（`git-fame`／**Git-fame-rb** ほか Node/Go 版）
-    - 説明
-      - リポジトリ内の**作者別：行数・ファイル数・コミット数**を一発で算出し、チームの“誰がどのくらいコードを書いたか”を素早く可視化
-      - `git blame` ベースで「最後に触った行（生存 LOC）」を著者別に集計する使い方もあり、作者の`.mailmap`で別名マージも可能。Ruby 版は Windows でも手軽
-    - 参考
-      - [https://github.com/oleander/git-fame-rb](https://github.com/oleander/git-fame-rb)
-29. **Git-quick-stats（Bash/TUI）**
-    - 説明
-      - 端末 UI で**作者別の貢献統計**、時間帯別コミット、CSV/JSON 出力など。推奨レビュア・曜日/時間帯の活動もひと通り対話的に。著者除外やブランチ指定も簡単
-    - 参考
-      - [https://git-quick-stats.sh/](https://git-quick-stats.sh/)
-      - [https://github.com/git-quick-stats/git-quick-stats](https://github.com/git-quick-stats/git-quick-stats)
-      - [https://fig.io/manual/git-quick-stats](https://fig.io/manual/git-quick-stats)
-30. **GitStats / gitstats**（HTML レポート系）
-    - 説明
-      - 作者一覧（コミット数/初回・最終コミット日）や時系列の活動量など、“作者”まわりが充実した静的 HTML を生成する軽量ツール
-      - 実装例として dmitryn/GitStats、a-p-z/gitstats、複数レポ横断の期間比較に強い bloombar/gitlogstats など
-    - 参考
-      - [https://github.com/dmitryn/GitStats](https://github.com/dmitryn/GitStats)
-      - [https://github.com/a-p-z/gitstats](https://github.com/a-p-z/gitstats)
-      - [https://github.com/bloombar/gitlogstats](https://github.com/bloombar/gitlogstats)
-      - [https://gitstats.sourceforge.net/](https://gitstats.sourceforge.net/)
-31. PyDriller（Python）／**RepoDriller（Java）**
-    - 説明
-      - **コミット/作者/変更差分/ファイル**などを API で抽出し、独自の“貢献度”を自作しやすい
-    - 参考
-      - [https://github.com/ishepard/pydriller](https://github.com/ishepard/pydriller)
-      - [https://pydriller.readthedocs.io/en/1.10/reference.html](https://pydriller.readthedocs.io/en/1.10/reference.html)
-      - [https://pydriller.readthedocs.io/en/latest/tutorial.html](https://pydriller.readthedocs.io/en/latest/tutorial.html)
-      - [https://research.tudelft.nl/files/46282428/main.pdf](https://research.tudelft.nl/files/46282428/main.pdf)
-      - [https://github.com/mauricioaniche/repodriller](https://github.com/mauricioaniche/repodriller)
-      - [https://www.dmi.unict.it/fornaia/lectures/LISD/2019-20/L5b_MSR.pdf](https://www.dmi.unict.it/fornaia/lectures/LISD/2019-20/L5b_MSR.pdf)
-32. **Hercules（Go）**
-    - 説明
-      - 高速な Git 履歴解析エンジン
-      - パイプラインで開発者メトリクスを多段分析（コミット、コード所有、知識マップなど）できる。大規模レポに強い
-    - 参考
-      - [https://github.com/src-d/hercules](https://github.com/src-d/hercules)
-      - [https://bobheadxi.dev/open-source/hercules](https://bobheadxi.dev/open-source/hercules)
-33. **git2net（Python）**
-    - 説明
-      - 共同編集（co-editing）ネットワークを抽出し、“誰が誰のコードをどれだけ改変したか”を**共同編集ネットワーク**として表現
-      - 開発者間の協働関係と貢献の流れを分析し、研究用途にも。作者別影響度・協調関係の数理分析向け
-    - 参考
-      - [https://github.com/gotec/git2net](https://github.com/gotec/git2net)
-      - [https://link.springer.com/article/10.1007/s10664-020-09928-2](https://link.springer.com/article/10.1007/s10664-020-09928-2)
-      - [https://www.sg.ethz.ch/publications/2019/gote2019git2net---an/gote2019git2net.pdf](https://www.sg.ethz.ch/publications/2019/gote2019git2net---an/gote2019git2net.pdf)
-      - [https://pubmed.ncbi.nlm.nih.gov/34720670/](https://pubmed.ncbi.nlm.nih.gov/34720670/)
-34. gitdm（Git Data Miner）／**Git Development Metrics**（CNCF スクリプト群）
-    - 説明
-      - **開発者と所属企業の紐付け**まで行い、作者別/企業別の貢献を算出
-      - CNCF では期間指定で著者・組織別統計に使うスクリプト群としても利用
-    - 参考
-      - [https://github.com/cncf/gitdm](https://github.com/cncf/gitdm)
-      - [https://www.linux.com/news/measuring-value-corporate-open-source-contributions/](https://www.linux.com/news/measuring-value-corporate-open-source-contributions/)
-      - [https://www.kernel.org/doc/ols/2007/ols2007v1-pages-239-244.pdf](https://www.kernel.org/doc/ols/2007/ols2007v1-pages-239-244.pdf)
-35. **Stackalytics**
-    - 説明
-      - コミット/変更ファイル/変更行数/レビュー/バグ等、複数ソースの“貢献”を集約
-    - 参考
-      - [https://wiki.openstack.org/wiki/Stackalytics](https://wiki.openstack.org/wiki/Stackalytics)
-      - [https://stackalytics.io/](https://stackalytics.io/)
-36. **Facade（“FOSS Anomaly Detector”）**
-    - 説明
-      - 複数リポをクロールして**作者別の行追加/削除、パッチ数、ユニーク貢献者**などを集計・レポート化
-    - 参考
-      - [https://github.com/brianwarner/facade](https://github.com/brianwarner/facade)
-      - [https://www.linux.com/training-tutorials/introducing-facade-easy-way-track-git-repo-contributions/](https://www.linux.com/training-tutorials/introducing-facade-easy-way-track-git-repo-contributions/)
-      - [https://project.linuxfoundation.org/hubfs/LF%20Research/Harvard%20Census%20II%20of%20Free%20and%20Open%20Source%20Software%20-%20Report.pdf](https://project.linuxfoundation.org/hubfs/LF%20Research/Harvard%20Census%20II%20of%20Free%20and%20Open%20Source%20Software%20-%20Report.pdf)
-37. **Git-of-theseus（Python）**
-    - 説明
-      - `authors.json`から**作者別のコード残存率/占有率**を可視化
-      - 「誰のコードが今もどれだけ残っているか」を定量化でき、“実効的な寄与”の参考に
-    - 参考
-      - [https://github.com/erikbern/git-of-theseus](https://github.com/erikbern/git-of-theseus)
-      - [https://www.linuxlinks.com/git-of-theseus-analyze-git-repo-grows-time/](https://www.linuxlinks.com/git-of-theseus-analyze-git-repo-grows-time/)
-38. **Code Maat（Clojure/CLI）**
-    - 説明
-      - VCS 履歴解析（Clojure 製）
-      - VCS ログから**作者数×モジュール/変更の同時発生（変更カップリング）/ホットスポット**などを抽出
-      - **作者×ファイルの関与度**を構造面から評価し、共同変更や所有権/カップリングの分析で“誰がどの領域を主に触っているか”を把握しやすい
-    - 参考
-      - [https://github.com/adamtornhill/code-maat](https://github.com/adamtornhill/code-maat)
-      - [https://www.adamtornhill.com/code/codemaat.htm](https://www.adamtornhill.com/code/codemaat.htm)
-      - [https://sourceforge.net/projects/code-maat.mirror/](https://sourceforge.net/projects/code-maat.mirror/)
-39. OSS Insight / OSS Insight Lite（PingCAP / TiDB 上の GitHub イベント分析）
-    - 説明
-      - 開発者別・リポジトリ別に PR、レビュー、Issue など多面的なアクティビティを SQL または NLQ で分析します。GH Archive と TiDB で構成する大規模イベントデータベースに対して、自然言語から SQL を生成したり、リポジトリ単位・開発者単位のクエリを発行したりできます。GUI では時系列・地理・企業分布も取得できます
-      - Lite はセルフホストで手元ダッシュボードを作れます
-    - 参考
-      - [https://ossinsight.io/](https://ossinsight.io/)
-      - [https://ossinsight.io/docs/about](https://ossinsight.io/docs/about)
-      - [https://github.com/pingcap/ossinsight](https://github.com/pingcap/ossinsight)
-40. **OpenSauced（SaaS/OSS）**
-    - 説明
-      - “Contributor Insights / Repository Insights”で**個人ごとの活動量や貢献傾向**を見える化。チーム単位の**貢献者リスト**運用にも向く
-      - Git-who / gitwho / git-authorship — ツリー単位の**作者別オーナーシップ**、変更行の所有者、作者レポート生成などを TUI/HTML で手早く確認。運用に組み込みやすい軽量ツール
-    - 参考
-      - [https://opensauced.pizza/docs/features/contributor-insights/](https://opensauced.pizza/docs/features/contributor-insights/)
-      - [https://terminaltrove.com/git-who/](https://terminaltrove.com/git-who/)
-      - [https://github.com/flaviostutz/gitwho](https://github.com/flaviostutz/gitwho)
-
-41. `mntnr/name-your-contributors`
-    - 説明
-      - GitHub の指定ライブラリのコミット履歴、issue、コメントの貢献者をリストアップしてくれる
-    - 参考
-      - [https://github.com/mntnr/name-your-contributors](https://github.com/mntnr/name-your-contributors)
-
-42. DevStats (CNCF)
-    - 説明
-      - GH Archive を Postgres に取り込み、Grafana テンプレートで **貢献者・企業・タイムレンジ** を自由にフィルタ
-43. GitCompare
-44. Hubble
-45. Sourced
-46. AskGit
-47. Gitana
-48. Microsoft GHCrawler
-49. Kibble
-50. MergeStat-lite
-51. gitqlite
-52. **RepoSense**
-    - 説明
-      - Vue ダッシュボードで学生チームの個人貢献を可視化。Git リポジトリを分析し、1 つ以上のリポジトリにわたるコードの著者情報、貢献パターン、開発活動を可視化するインタラクティブな Web ベースレポートを生成する
-    - 参考
-      - [https://github.com/reposense/RepoSense](https://github.com/reposense/RepoSense)
-      - [https://deepwiki.com/reposense/RepoSense](https://deepwiki.com/reposense/RepoSense)
-53. Git-statistic 
-    - 説明
-      - Rust 製で数十万コミットを秒単位処理
-    - 参考
-      - [https://www.reddit.com/r/rust/comments/1g49n8h/introducing_gitstatistic_a_simple_fast_git/](https://www.reddit.com/r/rust/comments/1g49n8h/introducing_gitstatistic_a_simple_fast_git/)
-54. GitClear Gallery
-    - 説明
-      - 40 以上の無償ツールのスクリーンショット＆比較表
-    - 参考
-      - [https://www.gitclear.com/gallery_of_free_git_stats_screenshots_examples](https://www.gitclear.com/gallery_of_free_git_stats_screenshots_examples)
-55. GrimoireLab
-    - 説明
-      - 開発・コミュニティデータの収集→正規化・拡張→可視化までを担うツールセット
-      - 主要コンポーネント
-        - **Perceval**
-          - 各種プラットフォームからデータ収集
-            - **SortingHat**
-              - ID と所属の統合管理
-            - **SirMordred**
-              - 全体オーケストレーション
-            - **Kibiter/Sigils/Kidash/Manuscripts**
-              - ダッシュボードとレポーティング
-
-56. `tenex/opensourcecontributors`
-    - 説明
-      - 旧：githubcontributions.io
-      - 指定した GitHub ユーザーの全“貢献イベント”を横断検索できるようにするためのソフトウェア
-      - データは **GH Archive** と（2015 年以前は）**BigQuery** の公開データを使い、**2011-01-01〜「昨日」まで**のイベントを対象
-      - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）
-    - 参考
-      - [https://github.com/tenex/opensourcecontributors](https://github.com/tenex/opensourcecontributors)
-57. **Apache DevLake**
-    - 説明
-      - GitHub/GitLab/Bitbucket などからデータを取り込み、Grafana などで貢献メトリクスを可視化
-      - たとえば「Commit Count（期間内コミット数）」は開発者別に出せます。GitHub 連携の手順とメトリクス仕様が明確で、複数リポを一括分析したいときに便利
-    - 参考
-      - [https://github.com/apache/incubator-devlake](https://github.com/apache/incubator-devlake)
-      - [https://devlake.apache.org/docs/Configuration/GitHub/](https://devlake.apache.org/docs/Configuration/GitHub/)
-58. **CHAOSS Augur**
-    - 説明
-      - GrimoireLab とは別プロダクト
-      - リポ群のトレースデータを収集・正規化し、コントリビュータ別の各種メトリクスや API を提供。CHAOSS 公式が GrimoireLab と並ぶ実装として位置づけ
-59. **OpenDigger（X-lab2017）**
-    - 説明
-      - GitHub/Gitee のデータからプロジェクト健全性や“開発者影響度”などを算出。開発者・リポのランキング／OpenRank 系の指標で貢献度を俯瞰したいときに。CHAOSS メトリクスやその他 KPI の実装はリポ内の chaoss.ts / metrics.ts を参照
-    - 参考
-      - [https://github.com/X-lab2017/open-digger](https://github.com/X-lab2017/open-digger)
-      - [https://github.com/X-lab2017/open-digger/blob/master/src/metrics/chaoss.ts](https://github.com/X-lab2017/open-digger/blob/master/src/metrics/chaoss.ts)
-      - [https://github.com/X-lab2017/open-digger/blob/master/src/metrics/metrics.ts](https://github.com/X-lab2017/open-digger/blob/master/src/metrics/metrics.ts)
-      - [https://deepwiki.com/X-lab2017/open-digger](https://deepwiki.com/X-lab2017/open-digger)
-60. **Apache Kibble**
-    - 説明
-      - Git／Issue／メーリングリスト等のスキャナで収集しダッシュボード化するアグリゲータ。直近は“低活動”の旨が公式議事録にありますが、仕組みとしては複数ソースの統合に強いです
-    - 参考
-      - [https://github.com/apache/kibble](https://github.com/apache/kibble)
-      - [https://whimsy.apache.org/board/minutes/Kibble.html](https://whimsy.apache.org/board/minutes/Kibble.html)
-      - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
-61. Gource
-    - 説明
-      - “開発者がファイルの樹に現れて編集していく”様子を動画で可視化。誰がどこを触っているかの直感的デモに最適
-    - 参考
-      - [https://gource.io/](https://gource.io/)
-      - [https://github.com/acaudwell/Gource](https://github.com/acaudwell/Gource)
-62. Git Truck / Truck-Factor 系
-    - 説明
-      - ファイル所有権から Bus/Truck Factor を可視化し、単独保守領域や知識集中を発見。“貢献の偏り”を見るのに役立ちます
-    - 参考
-      - [https://github.com/git-truck/git-truck](https://github.com/git-truck/git-truck)
-      - [https://www.npmjs.com/package/git-truck/v/1.8.2](https://www.npmjs.com/package/git-truck/v/1.8.2)
-      - [https://mircealungu.com/docs/assets/papers/22-Git-Truck.pdf](https://mircealungu.com/docs/assets/papers/22-Git-Truck.pdf)
-63. `devActivity`
-    - 参考
-      - [https://github.com/devactivity-app](https://github.com/devactivity-app)
-64. `Gitee`
-    - 説明
-      - Gitee は、中国版 GitHub
-    - 参考
-      - [https://qiita.com/Afo_guard_enthusiast/items/8cb3bb716cb83d614ac8](https://qiita.com/Afo_guard_enthusiast/items/8cb3bb716cb83d614ac8)
-65. `x-lab/HyperCRX`
-    - 説明
-      - OpenDigger が育成したダウンストリームプロジェクトであるブラウザ拡張機能「HyperCRX」
-    - 参考[https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
-66. `hypertrons`
-    - [https://blog.frankzhao.cn/open_source_lighten_the_future/](https://blog.frankzhao.cn/open_source_lighten_the_future/)
-      - [https://blog.frankzhao.cn/hypertrons_overview/](https://blog.frankzhao.cn/hypertrons_overview/)
-67. `amzn/oss-contribution-tracker`
-    - 説明
-      - 指定したメンバーの OSS 横断的に貢献したデータを収集して dashboard に表示するソフトウェア
-    - 参考
-      - [https://github.com/amzn/oss-contribution-tracker](https://github.com/amzn/oss-contribution-tracker)
-68. `adobe/oss-contributors`
-    - 説明
-      - 企業間の、GitHub.com における活動量を比較できるソフトウェア
-    - 参考
-      - [https://github.com/adobe/oss-contributors/tree/master](https://github.com/adobe/oss-contributors/tree/master)
-69. `nokamoto/print-github-contrib`
-    - 説明
-      - 特定の単一または複数のリポジトリを対象とし、ユーザーごとのプロジェクト横断的に貢献した件数をカウントする
-      - プロジェクトにかかわった全ユーザーが、各ユーザーごとのコメント数・プルリク作成数・プルリクのアプルーブド数を CSV で表示
-      - 上記に追加で、リポジトリのメタデータや所有者情報も表示しています
-      - 組織を指定して、その指定組織のリポジトリや貢献件数を表示している
-    - 参考
-      - [https://github.com/nokamoto/print-github-contrib](https://github.com/nokamoto/print-github-contrib)
-
-#### データ取得元
-
-##### コード系
-
-1. GitHub
-   - GitHub API
-2. Gerrit
-3. GH Archive
-   - 参考
-     - [https://github.com/igrigorik/gharchive.org](https://github.com/igrigorik/gharchive.org)
-     - [https://www.gharchive.org/](https://www.gharchive.org/)
-   - 説明
-     - GitHub API の 1 時間ごとにアーカイブしたデータを取得できる
-     - これで RateLimit を回避して、GitHub API のデータを取得できる
-       - GitHub API との違いは、削除されたリポジトリの内容も取得できる
-
-- GitLab
-- Docker Hub
-- Git
-- npm
-
-1. Git
-2. Bugzilla
-3. Launchpad
-4. Jira
-5. Confluence
-6. Discourse
-7. Slack
-8. Jenkins
-9. Meetup
-10. Mediawiki
-11. Phabricator
-12. Redmine
-13. StackOverflow
-14. Telegram
-15. 依存ファイル
-    - `package.json`など
-16. SPDX
-    - Software Package Data Exchange
-    - Linux Foundation の傘下で開発された、ソフトウェアパッケージのライセンス情報や Bill of Materials（BOM）に関するメタデータのオープンスタンダード
-17. Web 標準 API
-    1. 以下を実行して取得した Web 標準 API の一覧から Git clone したリポジトリをチェックする
-       - [`https://unpkg.com/@mdn/browser-compat-data@6.1.1/data.json`](https://unpkg.com/@mdn/browser-compat-data@6.1.1/data.json)
-       - [https://github.com/mdn/browser-compat-data](https://github.com/mdn/browser-compat-data)
-    2. ESLint の plugin-compat を使用する
-       - CLI で、シェルスクリプト内で Git clone したプロジェクトに対して実行
-18. Libraries.io
-    - 参考
-      - [https://pure.itu.dk/ws/portalfiles/portal/86173865/msr2021*pfeiffer_1*.pdf](https://pure.itu.dk/ws/portalfiles/portal/86173865/msr2021_pfeiffer_1_.pdf)
-    - 説明
-      - 90+のパッケージエコシステムを横断してメタデータを提供
-      - `GET https://libraries.io/api/{platform}/{name}/{version}/dependencies`（`version=latest`も可）
-
-19. Open Source Insights（`deps.dev`, Google）
-    - 参考
-      - [https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html](https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html)
-      - [https://blog.deps.dev/combining-dependencies-with-commits/](https://blog.deps.dev/combining-dependencies-with-commits/)
-    - 説明
-      - 複数エコシステムの依存グラフを提供し、公式 API と BigQuery の公開データセットからも閲覧できます
-    - BigQuery
-      - [https://docs.deps.dev/bigquery/v1/](https://docs.deps.dev/bigquery/v1/)
-    - 注意
-      - 解決済み依存関係を返すため、devDependencies などは返さない
-20. 「GitHub API」の「Export SBOM」
-    - コード例
-      - `gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/facebook/react/dependency-graph/sbom"`
-    - 参考
-      - [https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28](https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28)
-21. `ecosyste.ms`
-    - 説明
-      - 複数エコシステムのパッケージ情報を集約するオープンプラットフォーム。REST/OpenAPI のドキュメントを公開
-22. 各エコシステム公式レジストリ系
-    1. JavaScript（npm）
-       - `GET https://registry.npmjs.org/<package>`
-    2. Python（PyPI JSON API）
-       - `GET https://pypi.org/pypi/<project>/json`
-    3. Ruby（RubyGems）
-       - `GET https://rubygems.org/api/v1/gems/<gem>.json` → `dependencies` キーに `runtime` / `development` が入る
-    4. その他も多くある
-23. グローバルインストールしているライブラリを見つける方法
-    1. JavaScript/TypeScript（Node＋ブラウザ）
-       - `npx depcheck`
-       - 不足分は「import/require はあるのに package.json にない」ケースの発見
-    2. ESLint の`import/no-extraneous-dependencies`
-    3. “未宣言のグローバル”検出
-       - ESLint `no-undef`：未宣言変数・暗黙のグローバルを検出。`.eslintrc`で`env: { browser: true, node: true }`を設定し、誤検知を防止。必要なグローバルは`globals`で明示
-    4. `eslint-plugin-compat`
-       - コード中で呼んでいるブラウザ API（例：`Notification`や`IntersectionObserver`）を解析し、対象ブラウザでの対応可否を Lint
-    5. 文字列・AST での検出
-       - 代表的なエントリポイント（`window.fetch`、`AbortController`、`navigator.serviceWorker`、`caches` など）を **grep/リポジトリ内検索**で洗い出す
-    6. Semgrep
-       - AST 相当のパターンマッチで `fetch(...)`、`new URL(...)`、`document.querySelector(...)` 等の**Web API使用箇所を静的検出**。公式やコミュニティの JavaScript ルールセットも豊富で、DOM 操作やクライアントサイド特有のパターン検出に強いです。CI/CD への組み込みも容易
-       - 「使っている API 名の一覧化」「特定 API の使用禁止チェック」「危険な DOM API の利用検出」など、用途別に素早くルールを足したいとき
-
-24. パッケージマネージャーから取得
-    - Python
-      - `pydeps`
-        - https://pydeps.readthedocs.io/en/latest/
-    - JavaScript
-      - `dependency-cruiser`
-        - https://www.npmjs.com/package/dependency-cruiser
-      - `madge`
-        - https://github.com/pahen/madge
-    - `depsy`
-      - [https://deepwiki.com/ourresearch/depsy](https://deepwiki.com/ourresearch/depsy)
-
-25. シェルスクリプトの依存関係
-    - 実行トレースで拾う
-      - スクリプト先頭に`set -x`（または`#!/bin/bash -x`）を入れて実行し、標準エラーを保存
-      - `./your.sh 2> _trace.txt`
-    - システムコールレベルで拾う
-      - `strace`で`execve()`系のみを追跡すると、起動した実行ファイルを確実に抽出できます
-      - `strace -f -e trace=execve -o _strace.txt ./your.sh`
-
-26. グローバルインストールしているライブラリを取得
-    - `brew list`
-    - `brew bundle dump --describe --file Brewfile`
-    - `brew leaves -r`
-    - `brew install mas`
-    - `mas list   # MAS由来のインストール済みアプリ一覧`
-    - `winget list`
-    - `winget export -o winget-packages.json`
-    - `apt list --installed`
-    - `apt-mark showmanual`
-    - `dnf list installed`
-    - `zypper search -i` または `zypper search --installed-only`
-
-##### その他
-
-1. 各サービスの API
-2. Chrome history API
-   - [Google データ エクスポート](https://takeout.google.com/settings/takeout?hl=ja)を使ってダウンロードしたファイルや、Google Chrome が端末に保存した History ファイルを扱うような方法がある
-   - [https://takeout.google.com/settings/takeout?hl=ja](https://takeout.google.com/settings/takeout?hl=ja)
-   - `chrome.history`API で、履歴の取得
-   - [https://developer.chrome.com/docs/extensions/reference/api/history?hl=ja](https://developer.chrome.com/docs/extensions/reference/api/history?hl=ja)
-     - `chrome.history` API を使用して、アクセスしたページのブラウザの記録を操作します。ブラウザの履歴では、URL の追加、削除、照会を行うことができます。- Google Chrome の閲覧履歴を直接取得するための公式な API は、セキュリティとプライバシーの観点から一般には提供されていません。- ただし、Chrome 拡張機能（Chrome Extensions）として、ユーザーの許可を得たうえで閲覧履歴を取得するための API が存在します。それが Chrome History API です
-       - 拡張機能のマニフェストに権限を追加
-         - マニフェストファイル（`manifest.json`）で以下のように`"permissions"`フィールドに`"history"`を指定します
-
-##### 論文系
-
-1. `Crossref`API
-   - 学術出版物（論文、データセット等）にデジタルオブジェクト識別子（DOI）を付与・管理する国際的な非営利組織の API
-2. 論文の中で言及されている名前
-3. CRediT
-   - CRediT API
-   - 著者の貢献分類に活用
-4. PubMed
-5. Google Scholar
-6. Scopus
-   - Scopus API
-7. arXiv
-   - arXiv API
-   - プレプリント論文
-8. CrossRef
-   - CrossRef API
-   - DOI (Digital Object Identifier)を持つ論文データベース
-   - https://www.crossref.org/documentation/retrieve-metadata/rest-api/
-9. - Semantic Scholar API
-   - AI ベースの論文検索エンジンからのデータ
-   - **公式URL**: [Semantic Scholar API](https://www.semanticscholar.org/product/api)
-   - **特徴**:
-     - 論文の要約、引用、引用数、著者情報
-     - 論文間の関係性を分析
-10. **PubMed API (E-utilities)**
-    - **提供内容**: 医学・生命科学系の論文情報
-    - **公式URL**: [PubMed API](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
-    - **特徴**:
-      - 米国国立医学図書館（NLM）のデータベースから提供
-      - メタデータと全文情報
-11. **OpenCitations API**
-    - **提供内容**: オープンな引用データベース
-    - **公式URL**: [OpenCitations API](https://opencitations.net/)
-    - **特徴**:
-      - 論文間の引用関係
-      - オープンデータ形式で提供
-12. **CORE API**
-    - **提供内容**: オープンアクセスの研究論文データベース
-    - **公式URL**: [CORE API](https://core.ac.uk/services#api)
-    - **特徴**:
-      - 世界中のリポジトリから収集
-      - オープンアクセスで利用可能な論文データ
-13. **Springer Nature Metadata API**
-    - **提供内容**: Springer の学術出版物
-    - **公式URL**: [Springer API](https://dev.springernature.com/)
-    - **特徴**:
-      - Springer の論文・書籍データ
-      - メタデータ検索や全文取得（条件付き）
-14. **Elsevier APIs (Scopus and ScienceDirect APIs)**
-    - **提供内容**: Elsevier が提供する学術情報
-    - **公式URL**: [Elsevier API](https://dev.elsevier.com/)
-    - **特徴**:
-      - Scopus API: 引用情報や分析
-      - ScienceDirect API: 論文のフルテキスト情報（アクセス制限あり）
-15. **OpenAlex API**
-    - **提供内容**: 論文、著者、ジャーナル、機関のデータ
-    - **公式URL**: [OpenAlex API](https://docs.openalex.org/)
-    - **特徴**:
-      - Microsoft Academic Graph の後継
-      - 豊富な学術情報をオープンに提供
-16. **DOAJ API (Directory of Open Access Journals)**
-    - **提供内容**: オープンアクセスのジャーナルと記事
-    - **公式URL**: [DOAJ API](https://doaj.org/api/v2/docs)
-    - **特徴**:
-      - 高品質のオープンアクセスジャーナルを対象
-17. **Dimensions API**
-    - **提供内容**: 論文、引用、助成金、特許、臨床試験情報
-    - **公式URL**: [Dimensions API](https://www.dimensions.ai/)
-    - **特徴**:
-      - 幅広い研究データ
-      - 商用利用は有料
-18. **Lens.org API**
-    - **提供内容**: 論文、特許情報、引用データ
-    - **公式URL**: [Lens API](https://www.lens.org/)
-    - **特徴**:
-      - オープンアクセスのデータベース
-      - 特許と学術論文を統合
-19. **ERIC API**
-    - **提供内容**: 教育研究データ
-    - **公式URL**: [ERIC API](https://eric.ed.gov/)
-    - **特徴**:
-      - 教育分野の論文やレポート
-      - 米国教育省提供
-20. **Unpaywall API**
-    - **提供内容**: オープンアクセスのフルテキストへのリンク
-    - **公式URL**: [Unpaywall API](https://unpaywall.org/products/api)
-    - **特徴**:
-      - DOI を基にフルテキストを検索
-      - オープンアクセスの論文を特定
-
-- 課題管理
-  - Jira
-  - Trello
-  - Bugzilla
-  - Launchpad
-  - Phabricator Maniphest
-  - Pagure
-  - Redmine
-
-- チャット
-  - Discord
-  - Slack
-  - messenger
-  - ChatWork
-  - WeChat
-
-- SNS
-  - X(Twitter)
-  - Instagram
-  - Facebook
-  - TikTok
-  - Snapchat
-  - Threads
-  - YouTube
-
-- 記事・ブログ
-  1. Zenn
-     - 参考
-       - [https://zenn.dev/karaage0703/articles/c24072adc188a6](https://zenn.dev/karaage0703/articles/c24072adc188a6)
-       - [https://zenn.dev/aiq_dev/articles/2d0c83a26edca1](https://zenn.dev/aiq_dev/articles/2d0c83a26edca1#zenn-api%E3%81%AE%E8%A8%98%E4%BA%8B%E5%8F%96%E5%BE%97api%E3%81%AF%E3%80%81%E3%83%9A%E3%83%BC%E3%82%B8%E3%83%8D%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E5%AE%9F%E8%A3%85%E3%81%97%E3%81%A6%E3%81%84%E3%82%8B%F0%9F%8C%9F)
-     - 説明
-       - https://zenn.dev/api/articles?username=karaage0703&order=latest&page=1`
-       - 非公式の Zenn Web API
-       - `&page=1`といったようにページ数をつけてやれば取得できます（1 ページの最大の記事数が 48）
-       - 返す json が`"next_page":null`だと次のページがない
-         - 記事一覧 API は `topicname` クエリでトピック（= ライブラリ）を指定
-         - 例：`topicname=react`
-  2. Qiita
-     - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** へ寄せると、タグ由来のノイズを抑えやすいです（タグ ID 例：`React`, `Vue.js` など）
-     - 「ライブラリ名」をタグまたは検索クエリで特定（`/items?query=...` か `/tags/:tag_id/items`）
-  3. Medium
-  4. note
-  5. はてな
-
-- Q&A
-  - Stackoverflow
-  - Reddit
-
-- 検索
-  - Google
-
-#### 参考
-
-1. ERC-2981（NFT ロイヤリティ標準）
-   - 説明
-     - 二次流通売上の一定％を作者に自動送金。ただし単一アドレスしか指定できず、複数分割には拡張実装が必要
-
-2. Royalty-Friendly Token-Level Smart Contracts(RM-TLSC)
-
-3. RetroPGF（Optimism）
-
-4. Gitcoin
-   - 説明
-     - Quadratic Funding
-
-5. SPWN CREW
-   - 参考
-     - [https://prtimes.jp/main/html/rd/p/000000055.000034713.html](https://prtimes.jp/main/html/rd/p/000000055.000034713.html)
-     - [https://techable.jp/archives/201138](https://techable.jp/archives/201138)
-   - 説明
-     - ファンの熱量・ファンの属性データを継続的に収集・活用でき、効果検証できるアプリ「SPWN CREW」
-     - また、サイトへのアクセスや購買等の行動履歴データと、ファンの性別・年齢・居住地等の属性データを分析する。ファンのアーティストへの熱量が可視化されます
-
-6. 研究者の多様な業績を一元化し瞬時に評価できるデータベース
-   - 参考
-     - [https://univ-journal.jp/217773/](https://univ-journal.jp/217773/)
-   - 説明
-     - 研究者の多様な業績を一元化し瞬時に評価できるデータベース、東北大学が開発
-     - 東北大学は、学内外に散在する研究者の情報を自動的・効率的に集積し、必要なときに必要な情報を可視化できる“次世代型研究者データベース”を開発した
-     - 参考：【東北大学】クラウドを活用した次世代型研究者データベースを構築 -AWS 上のデータレイクでエビデンスベースの業績評価を効率化 -（PDF）
-
-7. Picaro.ai
-   - 参考
-     - [https://prtimes.jp/main/html/rd/p/000000001.000116959.html](https://prtimes.jp/main/html/rd/p/000000001.000116959.html)
-     - [https://techable.jp/archives/199432](https://techable.jp/archives/199432)
-   - 説明
-     - 株式会社 Picaro.ai は、アマゾン上での売上拡大を支援するツール「Picaro.ai（ピカロドットエーアイ）β 版」で、商品貢献度を分析しデータを正確に可視化する機能アップデートをリリースしました
-     - PR TIMES：
-
-8. 運動評価
-   - 参考
-     - [https://nature.com/articles/s41746-023-00775-1](https://nature.com/articles/s41746-023-00775-1)
-     - [https://twitter.com/AIBoom-net/status/1633301518484123648](https://twitter.com/AIBoom-net/status/1633301518484123648)
-   - 説明
-     - スマホ＋ AI で簡単に運動評価 スタンフォード大が開発
-     - 自宅で実施する 5 回の立ち上がり・座り下ろしテストの動画を分析し、骨関節炎、身体・精神の健康状態などを推定します
-     - 高額機器を要する従来の運動評価に比べ、低コストで客観的なデジタル指標を出せます
-
-9. MSC（モスト・シグニフィカント・チェンジ）
-   - 参考
-     - [https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/](https://pecenter.jimdofree.com/%E5%8F%82%E5%8A%A0%E5%9E%8B%E8%A9%95%E4%BE%A1%E3%81%A8%E3%81%AF/most-significant-change/)
-   - 説明
-     - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法です
-     - 1990 年代にリック・デイビース博士によって考案されました。日本では、参加型評価センターが普及に力を入れており、これまでに（NPO）日本 NPO センター様（震災復興事業）、環境省様（ESD 事業）、トヨタ財団様（地方創生事業）などの評価に採用されました
-
-10. 社会物理学
-    - 説明
-      - 人は原子、世界は物理法則で動く、という発想で社会物理学として人間行動を読み解く試みです
-      - ブキャナン、マーク【著】〈Buchanan,Mark〉/阪本 芳久【訳】
-      - 社会の動きを物理学の発想でモデル化する社会物理学では、Blog や Twitter、インターネット上の検索データ（Google Trends）、視聴率、首都圏のマーケティングデータなども扱います
-      - 計算社会科学と呼ばれる学問分野の流れの 1 つです
-
-11. 寄与する量子を探す方法
-    - 参考
-      - [https://arxiv.org/abs/2303.13506](https://arxiv.org/abs/2303.13506)
-      - [https://twitter.com/hayashiyus/status/1641774047859200000](https://twitter.com/hayashiyus/status/1641774047859200000)
-      - [https://twitter.com/ericjmichaud-/status/1639316371388657664](https://twitter.com/ericjmichaud-/status/1639316371388657664)
-    - 説明
-      - （1）入力データに含まれる情報／知識には最小単位「量子」があると仮定します（※量子力学の量子とは無関係）
-      - （2）データ分布内で予測に頻繁に使われる量子を「予測精度向上に寄与する量子」、ほとんど使われない量子を「寄与しない量子」とみなします
-      - （3）寄与する量子は使用頻度の高い順に LLM へ学習されていくと仮定したトイモデルで、スケーリング則と創発現象が再現されることを示しました
-      - （2）の補足：一般会話では、アインシュタイン方程式より文法ルールのほうが次トークン予測に効き、参照頻度が高いと考えられます
-      - The Quantization Model of Neural Scaling (Michaud et al., 2023)（）
-
-12. 状態空間モデルを用いた因果効果
-    - 参考
-      - [https://sciencedirect.com/science/article/pii/S0048969722031850](https://sciencedirect.com/science/article/pii/S0048969722031850)
-      - [https://twitter.com/takehikohayashi/status/1626751404709928960](https://twitter.com/takehikohayashi/status/1626751404709928960)
-      - [https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d](https://qiita.com/ssugasawa/items/d42fac583a15d8cd6c7d)
-    - 説明
-      - 生態学でも有効な手法です
-      - われわれのチームの論文（Nakanishi et al. 2022）でも、CausalImpact を用いて琵琶湖の時系列データから因果推論へ踏み込んでいます（宣伝）
-      - 状態空間モデルを用いた因果効果の推定である CausalImpact を紹介します
-
-13. アクター・ネットワーク理論(ANT)
-    - 説明
-      - 人類学者ラトゥールらが創始したアクター・ネットワーク理論（ANT）です
-      - 人間以外の多様な存在の役割も正当に評価し、それらを結ぶ動的なネットワークとして捉えます
-
-14. 専門家の意見を集約する方法
-    - 説明
-      - 一般語と専門界隈での意味がずれる語を用意し、意味の回答から専門家らしさをふるいにかけます
-      - 専門家グループが共有する意味へ答えた人だけの意見を採用する仕組みです
-      - たとえばマッチングで「nginx」の読みを確認し、「エンジンエックス」と読めない人をエンジニア候補から外すイメージです
-      - 一般に通じる題材でも、特定コミュニティだけが別義を持つキーワードを増やして応用し、貢献度の算出へ接続します
-      - 学位がなくても見識がある人を取りこぼしにくくします
-
-15. reCAPTCHA の仕組み
-    - 説明
-      - 貢献度算出で 2 問出すとき、片方は答えが既知の設問、もう片方は未確定の設問にします
-      - 第 1 問を正解した人の第 2 問の回答だけを採ります
-      - 第 2 問では採用回答の 51％超が一致した候補を正答として登録し、次の利用者へ第 1 問として提示します
-      - 集合知で答えへ寄せられるため、第三者の検知や貢献度算出へ転用できます
-      - データ分析版でも、既知の検証問題と未確定問題をペアにし、第 1 問で正解した人の第 2 問の出力だけを積み上げます
-      - reCAPTCHA 型の必須タスクに擬装すると、認証のついでに分析へ参加させやすくなります
-      - ユーザは暗黙知を要する操作で認証を済ませつつ、バックグラウンドで分析タスクへ参加する二段構成です
-      - まずは既知／未知の 2 問だけを置き、第 1 問正解者の第 2 問出力だけを採用し、過半数一致で正答登録する骨格に絞ります
-
-16. 因果関係
-    - 参考
-      - [https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8](https://medium.com/onfido-tech/causal-inference-at-onfido-16fb5357bac8)
-      - [https://twitter.com/aaiaaoaa/status/1627154507959525377](https://twitter.com/aaiaaoaa/status/1627154507959525377)
-    - 説明
-      - 認証サービス Onfido が機械学習で因果を推定し、意思決定を支援する事例です
-      - 因果推論の入門から自社での活用法まで載っているため参考にできます
-
-17. Federated Learning
-    - 説明
-      - 複数のデータ所有者が、各自の持つ学習データを秘匿したまま、協力して機械学習モデルを構築する
-      - 連合学習は、分散機械学習、暗号とセキュリティ、経済学とゲーム理論に基づくインセンティブメカニズムを組み合わせた新しい手法
-
-18. Causaly
-    - 説明
-      - 科学者が自然言語で質問すると生命科学における新たな因果関係の発見を手助けをしてくれる Causaly というサービス
-
-19. バオバブ（Baobab）
-    - 参考
-      - [https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/](https://ssir-j.org/what-is-the-social-value-of-an-enterprise-environment-for-everyone-to-work-their-way/)
-    - 説明
-      - バオバブ（Baobab）のアノテーション事業を、無料主義でデータ分析を第三者が行うときの参考にしたい
-
-20. 数理最適化
-    - 説明
-      - でもコストかかりそう
-
-21. Correlation discount
-    - 参考
-      - [https://twitter.com/0xtkgshn/status/1618718332856803346](https://twitter.com/0xtkgshn/status/1618718332856803346)
-    - 説明
-      - 「Correlation discount」という相関性に応じて割り引く概念
-
-22. datagusto
-    - 参考
-      - [datagusto（データグスト）](https://lp.datagusto.jp/#top)
-      - [https://signal.diamond.jp/articles/-/1324](https://signal.diamond.jp/articles/-/1324)
-    - 説明
-      - 誰もが高度なデータ分析を実現できる「datagusto」
-      - 「何時に架電すれば担当者につながるのか」「どのユーザーが解約しそうなのか」──“レシピ”と呼ばれるテンプレートを使えば、AI が将来予測まで担うツールです
-      - 実体は「」として提供されています
-
-23. Federated Learning with PoW、Semantic Annotation
-    - 参考
-      - [https://twitter.com/0xtkgshn/status/1608575122494849025](https://twitter.com/0xtkgshn/status/1608575122494849025)
-    - 説明
-      - Federated Learning with PoW は、すでに共通認識となった知識を取り込み、ファインチューニングへ回す流れで使われていくと考えられます
-      - 端末にモデルが載り切らない参加者は、Semantic Annotation として AI 改善に貢献する、という整理もできます
-
-24. プライバシーを守りながら貢献度の算出
-    - 参考
-      - [関連ニュース一覧](https://univ-journal.jp/tag/%e5%85%ac%e8%a1%86%e8%a1%9b%e7%94%9f/)
-      - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0276981)
-      - [https://univ-journal.jp/193575/](https://univ-journal.jp/193575/)
-    - 説明
-      - PLOS ONE 掲載の全国規モニタリング研究として紹介されています
-      - 静岡大学の守田智教授らが現場協力を得ながらモデル化した、との記述があります
-      - レビュー投稿に現れたユーザー同士を辺としてネットワーク化しています
-      - 論文タイトルは Exploring sexual contact networks …（commercial-sex review website）です
-
-25. Peer prediction method
+46. From Happiness Data to Economic Conclusions
     - 参考
-      - [https://arxiv.org/abs/2211.01143](https://arxiv.org/abs/2211.01143)
-
-26. A Flexible Design for Funding Public Goods
-    - 参考
-      - [https://arxiv.org/pdf/1809.06421.pdf](https://arxiv.org/pdf/1809.06421.pdf)
-    - 説明
-      - A Flexible Design for Funding Public Goods 論文
-
-27. PageRank
-    - 説明
-      - PageRank 参考にした NEM の PoI
-
-28. The graph
-    - 説明
-      - The graph が、機械学習の代わりに人間がトークノミスクと予測市場でキュレーションをしている
-
-29. pol.is
-    - 参考
-      - [http://pol.is](https://t.co/H9orfAwMBa)
-      - [https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit](https://docs.google.com/document/d/1i4rPj1qlvV9RhfP9jwaI-ESEMZ-7tvBLbftDdOmEWWk/edit)
-    - 説明
-      - エンドユーザーはグラフを直接は見ません
-      - 「この 2 つのアドレスは似ていると判断できるか」をはい・いいえで答えるだけでソーシャルグラフを生成できます
-      - のアルゴリズムをもとにした発想です。詳細は WhitePaper を参照してください
-
-30. NeurOlympics
-    - 参考
-      - [https://japan.cnet.com/article/35188995/](https://japan.cnet.com/article/35188995/)
-    - 説明
-      - e スポーツチームの能力テストを体験し、才能を数値化してトレーニングへ接続するデモです
-      - 「NeurOlympics」は一見シンプルな 60 分プログラムで、4 種のミニゲームをこなします
-      - 記憶課題や反応速度課題などを通じ、特性推定アルゴリズムへ入力されます
-
-31. LIPS
-    - 参考
-      - [製品評価の考え方](https://lipscosme.com/product-ratings)
-      - [https://prtimes.jp/main/html/rd/p/000000076.000018721.html](https://prtimes.jp/main/html/rd/p/000000076.000018721.html)
-    - 説明
-      - 「LIPS」ではレーティング設計の専門家とともに商品評価アルゴリズムを強化しました
-      - 評価点数とランキング算出の説明ページも公開されています
-      - 詳細は
-
-32. Self-Attention
-    - 参考
-      - [https://catherinesyeh.github.io/attn-docs/](https://catherinesyeh.github.io/attn-docs/)
-      - [https://gigazine.net/news/20230520-attention-viz/](https://gigazine.net/news/20230520-attention-viz/)
-    - 説明
-      - Transformer を採用する大規模言語モデルでは、入力トークン同士の相互参照を計算する Self-Attention が中核です
-      - 関係強度を 2 次元へ射影する Attention Viz が公開されています
-      - 解説記事（Gigazine）:
-
-33. 非線形物理学
-    - 参考
-      - [https://physics.aps.org/articles/v16/89](https://physics.aps.org/articles/v16/89)
-      - [https://twitter.com/Kyukimasa/status/1665925588354482187](https://twitter.com/Kyukimasa/status/1665925588354482187)
-    - 説明
-      - ネット上のヘイト拡散を非線形モデルで説明する試みです
-      - コミュニティを流体近似し、流体力学の式を流用するアイデアが紹介されています
-
-34. givepraise
-    - 参考
-      - [https://twitter.com/givepraise](https://twitter.com/givepraise)
-    - 説明
-      - Praise ()@givepraise
-      - Unlock the full potential of your community with reputation scores, rewards and deep insights. Build your community contribution graph!
-
-35. Questry Protocol
-    - 説明
-      - 株式会社クエストリー は、貢献報酬をブロックチェインの力で可視化・価値化して、制御することで、様々な経済文化活動の効率性向上を図る「Questry Protocol」
-
-36. Gaudiy Fanlink
-    - 参考
-      - [https://wired.jp/article/the-regenerative-company-coordination-03/](https://wired.jp/article/the-regenerative-company-coordination-03/)
-    - 説明
-      - 「Gaudiy Fanlink」は、ファンの横断的な活動データを記録・蓄積し、その貢献度や熱量が正しく評価・還元されるエコシステムを構築するためのプラットフォームだ。イベントやゲーム、漫画アプリなど、これまでばらばらのプラットフォームで IP に触れてきたファンコミュニティを集約する役割をもつ
-
-37. IMM
-    - 説明
-      - IMM/インパクト測定
-
-38. レーティング
-    - 参考
-      - [https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA](https://x.com/spinute/status/1704374415214166099?s=61&t=MHtnHDM5Xd6Eut1JtCeHCA)
-    - 説明
-      - レーティング・ランキングを通じて信頼できる情報と公正な評価を社会に届けることをミッションとした、日本レーティング協会（JRA）を立ち上げます！
-
-39. CD という指標
-    - 参考
-      - [https://nature.com/articles/s41586-022-05543-x](https://nature.com/articles/s41586-022-05543-x)
-      - [https://twitter.com/kanair-jp/status/1702740831403385291](https://twitter.com/kanair-jp/status/1702740831403385291)
-    - 説明
-      - CD という指標で研究がどれだけディスラプトしたかを定量化している。その指標は大雑把に言うと、ある論文が出版されることで、それに関連した過去の論文がどれだけ引用されなくなるかを示している
-
-40. 属性の異なるユーザから支持
-    - 参考
-      - [https://twitter.com/nishio/status/1617365061353476096](https://twitter.com/nishio/status/1617365061353476096)
-    - 説明
-      - 多数決ではなく属性の異なるユーザから支持されることをスコアにする
-
-41. tx
-    - 説明
-      - tx からユーザーの嗜好・意志を解析してデータ化するツール
-
-42. タスクベース
-    - 説明
-      - DAO みたいなタスクベースの方法
-
-43. 予測市場
-
-44. テキストデータ
-    - 説明
-      - Facebook やその他のあらゆる SNS からデータを取ることで、全体のユーザの幸福度が算出
-
-45. 利益貢献度分析
-    - 説明
-      - 利益貢献度分析、REM 分析、経済学の寄与率、自然実験、A/B テスト、RCT（ランダム化比較試験）、因果推論、重回帰分析、クロスカントリー成長回帰分析、反実仮想機械学習、数理最適化問題、多変量解析
-
-46. 組織図
-    - 参考
-      - [会えていない営業先のキーマンを見える化！ moja、組織図自動作成ツールの先行予約開始 | Techable(テッカブル)](https://techable.jp/archives/178450)
-    - 説明
-      - 組織図 SaaS や Twitter API からフォロー双方向を取得し、クモの巣状に可視化できます
-      - 知り合い深さや影響指標を数値化し、貢献度推定へ接続するアイデアです
-
-47. Continuous Feedback
-    - 説明
-      - 人事評価の方法
-      - メルカリのエンジニア部門の評価の納得度を高め、個人の成長を促す目的で導入された『Continuous Feedback』
-      - 会社への貢献度の可視化（アウトプットや行動など全て含む）の方法
-
-48. 社会的価値の指標設定や効果測定
-    - 参考
-      - [https://www.fsa.go.jp/news/r3/singi/20220530.html](https://www.fsa.go.jp/news/r3/singi/20220530.html)
-    - 説明
-      - ソーシャルプロジェクトの社会的な効果に係る指標
-      - 社会的価値の指標設定や効果測定
-
-49. causal analysis
-    - 参考
-      - [https://wisdom.nec.com/ja/feature/government/2022102401/index.html](https://wisdom.nec.com/ja/feature/government/2022102401/index.html)
-    - 説明
-      - NEC の因果分析ブランド causal analysis が公共向けにも案内されています
-      - 社内向けにはエンゲージメント施策などへ展開されています
-
-50. 因果推論の分かりやすいテキスト
-    - 参考
-      - [https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5](https://speakerdeck.com/s1ok69oo/tong-ji-de-yin-guo-tui-lun-noli-lun-toshi-zhuang-qian-zai-de-jie-guo-bian-shu-nowaku-zu-mi?slide=5)
-    - 説明
-      - SpeakerDeck 上のスライドです
-
-51. 貢献度の算出
-    - 参考
-      - [https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html](https://www.rikkyo.ac.jp/news/2022/03/mknpps000001wik4.html)
-      - [https://twitter.com/dojin-tw/status/1507271623799635969](https://twitter.com/dojin-tw/status/1507271623799635969)
-    - 説明
-      - コロナ禍の失業率・自殺・セーフティネット利用を束ねた縦断的検証（第一波のとき）
-
-52. 反実仮想シミュレーション
-    - 参考
-      - [https://osf.io/preprints/socarxiv/wma6p/](https://t.co/6l9mfHAosk)
-      - [https://twitter.com/mixingale/status/1597911590334234625](https://twitter.com/mixingale/status/1597911590334234625)
-    - 説明
-      - 書店流通の規制ゆるめ後に在庫や価格自由度が広がる状況をモデルに落としています
-      - モデル結果では、再販価格維持を続けたケースのほうが消費者厚生と社会厚生は相対的に高く、書店側利益は逆に押し下げられる、というバランスが報告されています
-      - Jeff Qiu 氏（米司法省）、Yi Zhang 氏（科技大学）との共同成果です
-
-53. 項目反応理論
-    - 参考
-      - [https://twitter.com/yo-ehara/status/1608103834240548865](https://twitter.com/yo-ehara/status/1608103834240548865)
-    - 説明
-      - 試験テキスト難易度のデータ駆動推定
-      - 作問者主観に頼らない項目反応理論モデル
-      - 多言語読解試験と語彙データの読みやすさ相関
-
-54. ベクトルに変換してベクトルデータベース
-    - 参考
-      - [https://www.pinecone.io/learn/vector-database/](https://www.pinecone.io/learn/vector-database/)
-      - [https://twitter.com/umiyuki-ai/status/1608454509453537282](https://twitter.com/umiyuki-ai/status/1608454509453537282)
-    - 説明
-      - 参照検知と貢献度推定の双方に流用したいメモです
-      - 記事のような非構造データを検索しやすくする前処理として有効です
-      - まずすべての記事データをベクトル化しベクトル DB を準備します
-      - 検索クエリも同次元へ写像し近似検索のみで済ませられます
-      - ランキングや推薦も同じ表現で扱えます
-
-55. 複雑ネットワーク科学
-    - 参考
-      - [ザ・フォーミュラ](https://www.kobunsha.com/shelf/book/isbn/9784334962296)
-      - [https://forbesjapan.com/articles/detail/45375](https://forbesjapan.com/articles/detail/45375)
-    - 説明
-      - ノースイースタン大学のアルバート・バラバシ教授は複雑ネットワーク研究の代表格です
-      - 著書『\*\*\*\*』（光文社刊）では、テニスや学力テストのように順位付けしやすい成功は稀だと述べています
-      - 測定しづらい領域ほど、成果を押し上げるのは個人の実力よりネットワークだ、という主張へつながります
-      - アート市場ではギャラリー経由の露出がキャリアを左右する例が紹介されます
-      - 初期の展示履歴から将来の展示パターンを高精度に当てた、とされる成果も触れられています
-      - 価値判断が揺らぐ領域では社会構造が裁定役になる、という読み取りができます
-
-56. 360 度評価
-    - 参考
-      - [https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html](https://www.tv-tokyo.co.jp/plus/business/entry/2022/026187.html)
-    - 説明
-      - 360° フィードバックはモチベーション施策や育成プログラムへ組み込まれます
-      - システム化で運用コストを抑えつつ公平性を担保できます
-      - 上司に加えて同僚や部下からもフィードバックを集める運用が基本形です
-
-57. SourceCred
-    - 参考
-      - [https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution](https://hashhub-research.com/articles/2021-12-26-how-to-measure-contribution)
-    - 説明
-      - ソースとシンクの二系統ポイントで貢献度を推定できる SourceCred
-      - 譲渡不可ポイントと譲渡可トークンを併用します
-
-58. NGO の質的評価手法
-    - 説明
-      - MSC（モスト・シグニフィカント・チェンジ）は、欧米の NGO が使っている参加型・質的評価手法
-
-59. タスクベース
-    - 説明
-      - プロジェクトごとに公開タスクを置きます
-      - 進捗に応じて評価軸ポイントが自動加算されます
-      - 難易度と需要からポイント倍率が変わるので、求人の多い高難度タスクへインセンティブが寄ります
-
-60. PICSY
-    - 説明
-      - 鈴木健さんの PICSY を人事評価に利用できる
-
-61. GitPOAP
-    - 説明
-      - GitHub でのコントリビューション証明を NFT で残す GitPOAP サービスです
-
-62. openfare
-
-63. 代替性を貢献度合いの算出に使用する
-    - 説明
-      - 評価軸達成のための代替手段が多いほど係数で重みを下げます
-      - 野球が好みでも、その観戦以外に幸福を高める選択肢が多いなら「代替度が高い」とみなし、獲得ポイントへ 0.9 などの係数が掛かるイメージです
-
-64. 仮想市場法(CVM)
-    - 説明
-      - 森林や公園などの評価が困難な環境財の評価に用いられる仮想市場法（CVM)
-
-65. Umami
-    - 参考
-      - [Umami](http://umami.is/)
-      - [https://note.com/headline-asia/n/n88a0a09f1678](https://note.com/headline-asia/n/n88a0a09f1678)
-    - 説明
-      - Google Analytics に代わる、オープンソースでプライバシーに配慮した解析ツール
-
-66. TCR
-    - 参考
-      - [https://twitter.com/aik-dao/status/1609878384590585856](https://twitter.com/aik-dao/status/1609878384590585856)
-    - 説明
-      - TCR という仕組みを、 フェイクニュースの検知や、貢献度の算出の参考にしたい
-      - 分散型メディアのフェイクニュース検知とか dao メンバーの貢献ランク付けとかにも使えそうですね
-
-67. 計算社会科学
-    - 参考
-      - [https://www.web-nippyo.jp/29972/](https://www.web-nippyo.jp/29972/)
-    - 説明
-      - 「計算社会科学」関連の論考では、世論モニタリングやウェブ上の言説分析、新型コロナ感染症対策シミュレーションなど多様な成果が公開されています
-
-68. 360 度評価
-    - 参考
-      - [360° 評価 SaaS](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
-      - [https://thebridge.jp/2022/09/cbase-series-a-round-funding](https://thebridge.jp/2022/09/cbase-series-a-round-funding)
-    - 説明
-      - CBASE が提供する は、社内外の関係者から多面的フィードバックを集める仕組みです
-      - 半世紀ほど前から国内でも紹介されてきた概念で、近年は管理職育成やエンゲージメント施策へ再び注目されています
-
-69. AttestationStation
-    - 参考
-      - [https://dev.optimism.io/making-blockchains-human-friendly/](https://dev.optimism.io/making-blockchains-human-friendly/)
-      - [https://twitter.com/0xtkgshn/status/1603642990521729024](https://twitter.com/0xtkgshn/status/1603642990521729024)
-
-70. GiveWell.org
-    - 参考
-      - [https://forbesjapan.com/articles/detail/48598/3/1/1](https://forbesjapan.com/articles/detail/48598/3/1/1)
-    - 説明
-      - GiveWell.org（ギブウェル）という、慈善団体の評価に取り組んでいる団体
-
-71. ピア予測法
-    - 参考
-      - [https://twitter.com/0xtkgshn/status/1607122969087676418](https://twitter.com/0xtkgshn/status/1607122969087676418)
-      - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
-      - [https://twitter.com/knskito/status/1596874651367804928](https://twitter.com/knskito/status/1596874651367804928)
-      - [https://dl.acm.org/doi/abs/10.1145/2488388.2488417?casa-token=0nmjqGhp0Q8AAAAA:92dFKu46ic7Rsn8DJG09i65HcDiG6aWpUk2280LMUEXcZGd-7INYqeYNECn0Bvijf3QHJJ8uq7JL](https://t.co/74BOBfaWlO)
-      - [https://twitter.com/knskito/status/1596875633698930689](https://twitter.com/knskito/status/1596875633698930689)
-      - [https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets](https://www.gsb.stanford.edu/faculty-research/publications/modeling-idea-markets-between-beauty-contests-prediction-markets)
-      - [https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833](https://papers.ssrn.com/sol3/papers.cfm?abstract-id=3936833)
-      - [https://ledger.pitt.edu/ojs/ledger/article/view/182](https://ledger.pitt.edu/ojs/ledger/article/view/182)
-      - [https://twitter.com/0xtkgshn/status/1610853130605928449](https://twitter.com/0xtkgshn/status/1610853130605928449)
-
-72. Wisdom of Crowds
-    - 参考
-      - [https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd](https://academic-accelerator.com/encyclopedia/jp/wisdom-of-the-crowd)
-    - 説明
-      - Wisdom of Crowds で、貢献度の算出を行う
-      - 群衆の知恵は、一人の専門家の意見ではなく、独立した個人からなる多様なグループの集合的な意見です
-      - この現象の説明は、個々の決定に関連する特異なノイズが存在し、多数の応答を平均化することで、このノイズの影響を打ち消すことができるというものです
-      - Napkin Labs のような企業は、消費者のフィードバックと顧客に対するブランドの印象を集約します
-      - 一方、Trada のような企業は、クライアントの要件に基づいて広告をデザインするために群衆を集めます
-
-73. GitClear の「Diff Delta」
-    - 参考
-      - [https://gitclear.com](https://gitclear.com)
-      - [https://twitter.com/koni/status/1714421799709290516](https://twitter.com/koni/status/1714421799709290516)
-    - 説明
-      - 評価軸ポイントの算出
-      - SocialDog は開発生産性指標へ GitClear の Diff Delta を統合しました
-      - 導入ツイートも参照できます
-
-74. 引用パターンで測定した科学論文と特許の「破壊力」
-    - 参考
-      - [https://www.axion.zone/9768078965/](https://www.axion.zone/9768078965/)
-    - 説明
-      - 研究の生産性を測る下記の論文を評価軸ポイントの算出の参考にしたい
-      - MIT／スタンフォードの 2020 年レポートは米国研究の生産性鈍化を指摘しています
-      - 後続稿では引用ベースの破壊力指標が 1945〜2010 年に論文で 9 割超、特許で 8 割超へ減衰したとしています（図表 1）
-
-75. Numerai
-    - 説明
-      - Numerai を貢献度の算出の参考にしたい
-      - Kaggle みたいなものブロックチェイン版は numerai
-
-### 貢献検知の仕組み
-
-1. j-platpat
-   - 参考
-     - [https://www.j-platpat.inpit.go.jp/p0200](https://www.j-platpat.inpit.go.jp/p0200)
-2. 特許 JP-2017-145765
-   - 参考
-     - [https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja](https://www.j-platpat.inpit.go.jp/c1800/PU/JP-2017-145765/BA957F94F1B09A16B4D67D90E3F1B2B985DED316FE45ED106FE19E07F9473CA2/19/ja)
-3. アイデア取引所
-   - 参考
-     - [https://techable.jp/archives/185310](https://techable.jp/archives/185310)
-   - 説明
-     - アイデアを売買できる「アイデア取引所」オープン。Web 版と RPG のようなメタバース版を提供
-     - 株式会社ワッピンギルドは、さまざまなアイデアを売買できる「アイデア取引所」β 版をブラウザおよびメタバースにてリリースしました
-     - 大きなポイントは、アイデアを当事者以外一部非公開にできること。これにより、新規性の喪失を防ぐことができ、特許の出願・権利化が可能になるといいます
-4. 著作権契約書のひな形（文化庁）
-   - 参考
-     - [https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/](https://chizaizukan.com/news/5jRcLpgDrYSRlyisalzHx8/)
-   - 説明
-     - アイデアを登録する方法の参考
-     - 質問に答えるだけで「著作権契約書」のひな形がつくれるシステムを文化庁が開発
-5. note.com（strictlyes）
-   - 参考
-     - [https://note.com/strictlyes/n/ncb0dfb7cbb56](https://note.com/strictlyes/n/ncb0dfb7cbb56)
-6. Hypercerts / Impact certificates
-   - 参考
-     - [https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc](https://mirror.xyz/0xFD7eE4906BDA909a240fc56d6b854c738bf7Aa7E/Lf-yfG4MwTHdwAz2t6PoifQyOrguuZoSGW7PYPegqPc)
-   - 説明
-     - Hypercerts Foundation、Hypercerts、Impact certificates、GitCoin、RetroactivePublicFunds、h-index や i10-index など引用指標、を参考にする
-     - インパクト証書（Impact certificates）は公共財への配分を透明化する評価レールとして提案されています
-
-7. エコーチェンバー可視化システム に関する引用
-   - 参考
-     - [https://torilab.sakura.ne.jp/twitter/echamber/](https://torilab.sakura.ne.jp/twitter/echamber/)
-     - [https://president.jp/articles/-/61897](https://president.jp/articles/-/61897)
-   - 説明
-     - アプリではタイムラインの多様さからエコーチェンバー度を推定します
-     - 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます
-     - 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます
-
-8. Optic
-   - 参考
-     - [Optic](http://optic.xyz/)
-   - 説明
-     - NFT の信憑性を検証します
-     - 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
-     - そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
-
-9. MyBib
-
-- 参考
-  - [MyBib](https://chrome.google.com/webstore/detail/mybib-free-citation-gener/phidhnmbkbkbkbknhldmpmnacgicphkf)
-- 説明
-  - 参考文献や引用を自動生成するツール
-
-11. ソーシャルグラフ
-
-- 説明
-  - フォローしている・されている関係のソーシャルグラフを参考にしているか検知する方法の参考にしたい
-  - ソーシャルグラフ上のリンク強度から「誰が何をどれだけ参照したか」を検知します
-
-12. SuperAudit
-
-- 参考
-  - [デジタル資産の監査・認証プロバイダー事業「SuperAudit」](https://prtimes.jp/main/html/rd/p/000000024.000082733.html)
-- 説明
-  - モノハンドル株式会社の SuperAudit を参考にしているか検知する仕組みの参考にしたい
-
-13. YouTube のコンテンツ ID の仕組み
-
-- 説明
-  - YouTube の著作権のあるコンテンツを検出する仕組みを、コンテンツ ID を参考にしたい
-
-14. Adobe の「コンテンツ認証イニシアティブ」
-
-- 説明
-  - Adobe の「コンテンツ認証イニシアティブ」という仕組み
-
-15. 個人情報を守りながら、誰が何を参考にしているかのソーシャルグラフを作って、 誰が何を参考にしているかを検知する仕組み
-
-- 参考
-  - [https://www.bengo4.com/c-18/n-15716/](https://www.bengo4.com/c-18/n-15716/)
-- 説明
-  - 口コミ本文から氏名だけを抽出し「誰が誰と接点を持つか」を表にしました
-
-16. ベクトル的に近似
-    - 説明
-      - ベクトル的に近似であるなら、参考にしていると判断する仕組みで、参考にしているか検知する
-
-17. 株式会社ワコム、著作権を保護する「Wacom Yuify」、AI で創作の軌跡を可視化する「KISEKI ART」
-    - 参考
-      - [https://pc.watch.impress.co.jp/docs/news/1515347.html](https://pc.watch.impress.co.jp/docs/news/1515347.html)
-    - 説明
-      - ワコムが示した「Wacom Yuify」では、作品の裏面へ目立たないマイクロマークを埋め込み改ざん耐性を高めます
-      - 各マークは分散台帳へ紐付き、作者・制作時間・端末情報を後から照合できます
-      - 「KISEKI ART」は筆跡特徴を 3 次元へ射影します
-      - 「絵紋」として人手による執筆を裏づける実験です
-
-18. Twitter のコミュニティーノート
-    - 説明
-      - Twitter のコミュニティーノートを、貢献度算出や参考にした人を見つける第三者を評価する仕組みの参考にしたい
-      - データ分析をする人の実力やデータ分析の結果が正しいか判断する仕組みの参考にしたい
-      - 作者が引用元を示さない場合でも、コミュニティノートのように「参照元と推定される URL」を添付して透明性を高める案です
-
-19. ウォーターマークとメタデータの埋め込み
-    - 参考
-      - [https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html](https://www.publickey1.jp/blog/23/googleaigoogle-io-2023.html)
-    - 説明
-      - Google、責任ある AI を実現するとして、画像にウォーターマークとメタデータの埋め込みを進めると発表。Google I/O 2023
-      - ウォーターマーキングは画像に直接情報を埋め込む手法です。画像編集などが行われたとしても消せないようにするとしています
-      - メタデータは、クリエイターがオリジナルのファイルにさまざまな情報を付加することを可能にします
-
-20. ピクシブにおける不当な目的での作品取得行為に対する対策技術
-    - 参考
-      - [https://inside.pixiv.blog/2023/05/09/183635](https://inside.pixiv.blog/2023/05/09/183635)
-    - 説明
-      - ピクシブにおける不当な目的での作品取得行為に対する対策技術について
-      - reCAPTCHA Enterprise
-      - 類似画像検知
-
-21. 不正検知や検知する系のサービス
-    - 参考
-      - [https://forbesjapan.com/articles/detail/66450](https://forbesjapan.com/articles/detail/66450)
-    - 説明
-      - SEON Technologies はフェイクアカウント統合対策として銀行・EC・ゲームなどへ SaaS を提供しています
-      - SNS ログや IP 変動など広いシグナルから疑わしい行動を自動抽出します
-
-22. pixiv の生成 AI 検知の仕組み
-    - 説明
-      - pixiv の生成 AI などでなりすましている人を検知する方法
-
-23. 市場の変化から参考にしているかを検知する
-    - 参考
-      - [https://prtimes.jp/main/html/rd/p/000000114.000040239.html](https://prtimes.jp/main/html/rd/p/000000114.000040239.html)
-      - [https://forbesjapan.com/articles/detail/64240](https://forbesjapan.com/articles/detail/64240)
-    - 説明
-      - 市場の変化から参考にしているかを検知する方法もある
-      - ACROVE（アクローブ）は GMO サイバーセキュリティの支援で転売監視モデルを強化しました
-      - 値崩れ店舗の検知や追随業者の追跡が中心機能です
-      - 検知結果を早期アラートへ繋げ、顧客への負担を抑えるサービス提供を掲げています
-
-24. AI が盗作しているかを判断する仕組み
-    - 参考
-      - [https://itmedia.co.jp/news/articles/2302/22/news073.html](https://itmedia.co.jp/news/articles/2302/22/news073.html)
-      - [https://twitter.com/shiropen2/status/1628188362543865857](https://twitter.com/shiropen2/status/1628188362543865857)
-    - 説明
-      - ITmedia の記事によれば、「Do Language Models Plagiarize？」（米ペンシルベニア州立大学・ミシシッピ大学）が 21 万件規模で言語モデルの剽窃傾向を調べました
-      - コピー&ペースト・言い換え・アイデア剽窃の有無へ自動タグ付けしました
-      - 1193 件でヒットがあり、約 28％のケースに位置情報と固有名詞が混入していました
-      - モデル構成やデコーダ種別など属性ごとの剽窃率変化にも踏み込んでいます
-      - Lee ほか、arXiv:2203.07618（2022）より
-
-25. Tabular Classification の AI
-    - 参考
-      - [https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742](https://hidekatsu-izuno.hatenablog.com/entry/2022/11/17/065742)
-    - 説明
-      - Tabular Classification 表形式データを評価し何らかの結果を返す
-
-26. 「人間の嘘」の検出
-    - 参考
-      - [deepai](https://deepai.org/publication/on-the-origin-of-hallucinations-in-conversational-models-is-it-the-datasets-or-the-models)
-      - [nishio（X）](https://twitter.com/nishio/status/1628262039834755075)
-      - [https://library.naist.jp/dspace/handle/10061/9996](https://library.naist.jp/dspace/handle/10061/9996)
-      - [https://twitter.com/AkioHoshi/status/1628265037466058753](https://twitter.com/AkioHoshi/status/1628265037466058753)
-    - 説明
-      - 嘘を嘘と評価できるのは、人間だけです
-      - もちろん訓練の度合いによって、判定基準も変わります
-      - 下記論文のアプローチは、幻覚評価へ応用できると考えられます
-      - On the Origin of Hallucinations in Conversational Models: Is it the Datasets or the Models?
-      - 論文ページは deepai を、反応は nishio のポストを参照してください
-      - /
-      - 人間も嘘をつきます。例えば、下記の論文は「人間の嘘」の検出を取り上げています
-
-27. 科学論文の類似度を測定するモデル
-    - 参考
-      - [https://www.itmedia.co.jp/news/articles/2309/29/news074.html](https://www.itmedia.co.jp/news/articles/2309/29/news074.html)
-    - 説明
-      - Google Research と協力者による「OpenMSD」は、多言語科学文献の類似度推定モデルと評価データを同梱した報告です
-      - 先行の Scientific Documents Similarity Measurement（SDSM）と比較しながら多言語カバレッジを広げることが目的です
-
-28. 類似画像推薦機能
-    - 参考
-      - [https://t.co/I00L8eUH7u](https://t.co/I00L8eUH7u)
-    - 説明
-      - GMO ペパボさんの EC サービス「SUZURI」の類似画像推薦機能を CLIP とベクトル検索で作った事例
-
-29. 可視化する技術
-    - 説明
-      - 可視化する技術やサービスを参考にしているかどうかを検知する仕組みの参考にしたい
-      - 会話の数量の可視化、その他
-
-30. アカウントの Tx の履歴
-    - 参考
-      - [https://twitter.com/kuma56-munage/status/1582342565936103424](https://twitter.com/kuma56-munage/status/1582342565936103424)
-    - 説明
-      - アカウントの Tx の履歴からそのユーザーが人間か bot かを判別できる仕組み
-
-31. 引用の URL
-    - 説明
-      - の URL があれば、参考にしたとみなすようにして、さらに範囲を広げるために同じような文章構成であるかどうかを、AI のテキスト分析で、文脈や類似性などを分析して似ているならば参考にしたと考えるようにする
-
-32. 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法
-    - 説明
-      - 著作権エージェント、特許管理する方法、著作権を侵害している人を見つける方法を検知する仕組みの参考にしたい
-
-33. 著作権管理の方法
-    - 説明
-      - 2 次公認化事業、JASCO の仕組みを利用して、どの人がどのようなサービスを利用したか管理できるようにする
-
-34. ツール
+      - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
     - 説明
-      - デジタルデータがどのように編集されたり改ざんされたりしてきたのかを履歴データとして残すための技術仕様である「C2PA」に基づいた「コンテンツ認証情報を実装するためのオープンソースツール」を Adobe が発表
+      - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
 
-35. 引用関係の可視化
-    - 参考
-      - [https://twitter.com/estoppel88/status/1544877937647706113](https://twitter.com/estoppel88/status/1544877937647706113)
-    - 説明
-      - 関係を可視化して、参考にしているか検知する
-      - 被引用情報を素早く集めて、参考にしているか検知する
-      - \* 特許の被引用情報（牽制情報）から用途探索する例
-
-36. 著述者帰属と文体類似
-    - 参考
-      - [https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/](https://gigazine.net/news/20221003-develop-ai-unmask-anonymous-writers/)
-    - 説明
-      - 誰が書いた文体に近いかを検知します
-      - 言語モデルで単語の選択や言い回し、文章構造から著者らしさを抽出し、多言語の帰属表示を可能にする研究があります
-      - ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました
-      - 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています
-
-37. 特許や著作権を管理の仕組み
-    - 説明
-      - 特許や著作権の管理の仕組み
-
-38. AI による検知
-    - 説明
-      - 自分が持っているアイデアを積極的に書き込み、解説文も書くことで、それに似たサービスがあれば、そのアイデアを出した人もそのサービスが貢献度を獲得するほど、そのアイデアを出した人も評価軸ポイントを獲得できるようにする
-
-39. URL だけでも引用元を載せる
-    - 説明
-      - Twitter で解説するときに引用していたら URL も最後に載せて、載せなければ批判される流れを、検知する方法で利用する
-
-40. 3つ提示する方法
-    - 説明
-      - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える
-
-41. SHA256で作者の証明
-    - 参考
-      - [https://tsumuri.moe/note/article/000156](https://tsumuri.moe/note/article/000156)
-    - 説明
-      - これは私が記事をパクられた際に使えるものであり、私がコピーしていない証拠にはなりません
-
-42. 勝手にアイデアを盗まれない仕組み
-    - 参考
-      - [https://twitter.com/rottenegg0115/status/1626078699375464448](https://twitter.com/rottenegg0115/status/1626078699375464448)
-
-43. JDream Innovation Assist
-    - 参考
-      - [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
-    - ## 説明
-      - 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました
-      - 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）
-
-44. 官民データ共有のあり方に関する調査
-    - 参考
-      - [https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)
-      - [https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
-    - 説明
-      - 特許情報活用の論点が整理された報告書
-      - 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります
-      - 知財需要の計測なども扱われています
-      - 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です
-
-45. 特許情報分析・可視化
-    - 参考
-      - [https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf](https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf)
-      - [https://twitter.com/hayataka88/status/1716288794683744368](https://twitter.com/hayataka88/status/1716288794683744368)
-    - 説明
-      - 旭化成の統合報告書で公開している特許情報分析・可視化の事例
-      - 他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています
-
-46. データの可視化
-    - 参考
-      - [https://www.data-to-viz.com/](https://www.data-to-viz.com/)
-      - [https://note.com/d-v-osorezan/n/ne5a6b0dad97b](https://note.com/d-v-osorezan/n/ne5a6b0dad97b)
-    - 説明
-      - データの可視化のデータベース
-
-47. 近似最近傍探索
-    - 参考
-      - [https://github.com/spotify/voyager](https://github.com/spotify/voyager)
-      - [https://twitter.com/MLBear2/status/1715937638950277122](https://twitter.com/MLBear2/status/1715937638950277122)
-    - 説明
-      - Spotify が新たな近似最近傍探索ライブラリ「Voyager」を OSS として出したらしい
-      - 最近隣検索の技術は、商品の推薦や地図上の場所の検索など、様々なアイテムの間の類似性を高速に見つけ出すために非常に有用であると広く認識されています
-      - Voyager のもっとも魅力的な部分は、その基盤となる「H&SW（Hierarchical Navigable Small Worlds）」という新しい技術です
-
-48. 特許情報可視化
-    - 参考
-      - [https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf](https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf)
-      - [https://twitter.com/hayataka88/status/1712612049463947355](https://twitter.com/hayataka88/status/1712612049463947355)
-    - 説明
-      - 三菱電機・統合報告書 2023 における特許情報可視化
-
-49. Semantic Scholar API
-    - 参考
-      - [https://arxiv.org/abs/2004.07180](https://arxiv.org/abs/2004.07180)
-      - [https://twitter.com/hayataka88/status/1715335234676461753](https://twitter.com/hayataka88/status/1715335234676461753)
-    - 説明
-      - SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず
-      - SPECTER: Document-level Representation Learning using Citation-informed Transformers
-
-50. AI detector
-    - 参考
-      - [https://gigazine.net/news/20231105-ai-detector/](https://gigazine.net/news/20231105-ai-detector/)
-    - 説明
-      - AI detector・AI 検出器
-
-51. デジタル著作権マネージャー (DRM)
-    - 説明
-      - デジタル著作権マネージャー (DRM) を「貢献検知の仕組み」で収益分配したり検知する方法の参考にしたい
-
-52. 分布仮説（distributional hypothesis）
-    - 参考
-      - [https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82](https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82)
-      - [https://lifescience.fronteo.com/products/amanogawa/](https://lifescience.fronteo.com/products/amanogawa/)
-      - [https://www.fronteo.com/ai-learning/article-search-ai](https://www.fronteo.com/ai-learning/article-search-ai)
-      - [https://twitter.com/hayataka88/status/1723253034757886336](https://twitter.com/hayataka88/status/1723253034757886336)
-    - 説明
-      - 「単語の意味は、その周辺の単語によって形成される」という考え方です。つまり、単語自体には意味がなく、その単語の「コンテキスト（文脈）」によって単語の意味が形成されるということです。﻿
-
-53. ボイス・ライト・プロテクション
-    - 参考
-      - [https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB](https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB)
+47. 潜在的連合テスト
     - 説明
-      - AI 音声プラットフォームの「CoeFont」を運営する株式会社 CoeFont は、声優や俳優、著名人の「声の権利」を守るための新しい取組み「ボイス・ライト・プロテクション」を開始した
-      - 不正利用を防止、権利者に収益還元
-      - 「ボイス・ライト・プロテクション」は、「CoeFont」で、声の提供者と利用者の間に契約関係を確立するもの。「CoeFont」に声を登録した声優や俳優は、自身の音声の利用について一般公開か許可制かを選択可能になる
-      - 「AI 音声プラットフォーム「CoeFont」、“過去の音声”から AI 音声の生成に成功 ─ デジタルハリウッド大学と共同で」（ニュース記事）
-
-54. TrackerIQ
-    - 参考
-      - [https://prtimes.jp/main/html/rd/p/000000068.000017278.html](https://prtimes.jp/main/html/rd/p/000000068.000017278.html)
-      - [https://techable.jp/archives/221155](https://techable.jp/archives/221155)
-    - 説明
-      - 従業員による企業情報の持ち出しを防止！ イスラエル発“SaaS 特化”の内部不正検知プラットフォーム
-      - 今回、企業で導入が進むクラウドアプリケーション内で“ユーザーが行う不審な振る舞い”を検知するアプリケーションディレクション＆レスポンス（ADR）製品である「TrackerIQ（トラッカー・アイキュー）」シリーズの販売を開始した
-      - 同シリーズは Microsoft 365、Salesforce、AWS などを中心とした SaaS アプリケーションをモニタリングし、不正を検出することが可能だ
-      - RevealSecurity はアプリケーションに特化した内部不正対策ソリューション「TrackerIQ」シリーズを展開しているイスラエル企業
-      - 同シリーズは、社内で導入されているサードパーティー製クラウドアプリケーションを利用するユーザーの振る舞いを学習・モニタリングし、不正利用のパターンを検知・通知。これにより、社内不正利用の防止をするソリューションだ
-      - 独自開発のクラスタリングエンジンにより、膨大な「ユーザー・ジャーニー」と呼ばれるアプリケーション内でユーザーが行う一連の行動を類似性に基づいて自動的にグルーピングし、検知モデルを作成することが可能。このグループから外れたユーザー・ジャーニーを不審な振る舞いとして検知する
-      - 参考元：
-
-55. 深層学習特許類似度マップ
-    - 参考
-      - [https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html](https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html)
-      - [https://twitter.com/hayataka88/status/1714057488767525066](https://twitter.com/hayataka88/status/1714057488767525066)
-      - [https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html](https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html)
-      - [https://twitter.com/e-patent/status/1714038804238217309](https://twitter.com/e-patent/status/1714038804238217309)
-    - 説明
-      - 被引用分析
-      - 深層学習特許類似度マップによる技術探索手法
-      - デロイト トーマツ ファイナンシャルアドバイザリーの AI を活用した IP ランドスケープ分析
-
-56. スパム検知
-    - 説明
-      - スパムを検知する仕組みを
-
-### 感情の測定方法
-
-下記の方法を、「感情や幸福度を定量的に評価する仕組み」の参考にしたい。
-
-1. 毎日の幸福度アンケート・いじめ早期発見
-   - 参考
-     - [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html)
-     - [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる連携協力に関する協定](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf)
-     - [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
-   - 説明
-     - 毎日の幸福度アンケートの参考
-     - 児童や生徒同士の関係性を可視化する。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握する
-     - タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもある。SOS を早期発見し、問題が深刻化する前に対処するのが狙い
-
-2. リストバンド・カメラ・眼球運動
-   - 参考
-     - [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
-   - 説明
-     - 感情の算出の参考にしたい
-     - リストバンド端末で脈拍を計測して集中を測定
-     - カメラで頬の血管の血流を測定
-     - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
-     - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
-
-3. 経験サンプリング研究
-   - 参考
-     - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
-   - 説明
-     - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
-     - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
-
-4. 取得データの種類
-   - 説明
-     - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
-     - 感情の算出の参考にしたい
-
-5. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
-   - 参考
-     - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
-   - 説明
-     - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
-
-6. From Happiness Data to Economic Conclusions
-   - 参考
-     - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
-   - 説明
-     - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
-
-7. 潜在的連合テスト
-   - 説明
-     - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
+      - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
 
-8. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
+48. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
 
 - 参考
   - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
@@ -10418,116 +9167,1237 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 説明
         - Oura Ring の 日中のストレスと回復をリアルタイムで追跡する新機能で、リングの 心拍変動や 心拍数や動きや体温を測定して、生理的なストレスをリアルタイムで測定する 新機能を幸福度の測定等の参考にしたい
 
-### データ取得の方法
+### ゲーム理論・マーケットデザイン・マッチング理論
 
-下記の方法を、「データ取得の方法」の参考にしたい。
-
-1. Ocean Marketplace（データマーケットプレイス）
-   - 参考
-     - [Ocean Marketplace](https://market.oceanprotocol.com/)
-     - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
+1. 概要
    - 説明
-     - データマーケットプレイスで収益化
-
-2. デジタル庁のオープンデータの取り組み
-   - 参考
-     - [https://www.data.go.jp/](https://www.data.go.jp/)
-     - [https://www.digital.go.jp/](https://www.digital.go.jp/)
-
-3. データを提出するインセンティブ
-   - 参考
-     - [https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU](https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU)
-     - [https://twitter.com/extreme-stretch/status/1608610308079390722](https://twitter.com/extreme-stretch/status/1608610308079390722)
-
-4. データ収集ツール ISeeChange
-   - 参考
-     - [https://ssir.org/articles/entry/sharing-to-save-the-planet](https://ssir.org/articles/entry/sharing-to-save-the-planet)
+     - 正直に回答する設計を、「貢献度の算出時の評価」や「貢献検知の仕組み」で参考にしたか回答してもらうときに使用できそう
+2. VCG メカニズム
    - 説明
-     - NASA も注目する市民のための気候変動データ収集アプリ
-     - データ収集ツール ISeeChange
-     - ISeeChange は、一般市民が自分の暮らす地域で起こっている気候変動の影響を写真や記事で投稿できる無料のデジタルプラットフォーム
-
-5. 持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)
-   - 参考
-     - [https://globe.asahi.com/article/14635630](https://globe.asahi.com/article/14635630)
+     - オークション参加者は、財の価値を正直に申告するインセンティブがある
+     - 高く申告しても、低く申告しても損をする
+3. 繰り返しゲーム
    - 説明
-     - デバイスを利用して自分の体と心の健康状態や活動を数値で管理する考え方を「Quantified Self (クオンティファイド・セルフ）」といいます
-     - 持続血糖測定（Continuous Glucose Monitoring）は、糖尿病治療や予防のために、皮膚の直下に挿入された細い小さな針を通じて持続的に血糖値を測ります。自分の血糖値の状況をアプリを通じて視覚的に管理でき、アメリカでは医師の処方のもと、小児患者も使用しています
+     - 「同盟を破る国があったら、ほかの 6 国でその国を攻める」というルール
+     - ゲーム理論的なインセンティブ設計によって戦争を防ぐアイデア
+     - ゲーム理論「繰り返しゲーム」は、短期的な得のために、相手を出し抜いたりルールから逸脱したりしようと考えるプレイヤーーが存在するときに、その裏切り者をほかの全員で罰を与える
+     - 七国同盟の場合、相互監視と、罰への恐怖によって逸脱が防がれ、「誰も戦争を始めようとしない」という均衡が生まれる
+     - 使用場面: 評価軸 A が他の評価軸に干渉してきた場合は、A 評価軸への交換比率を大幅に下げる
 
-6. odp
-   - 参考
-     - [https://odp.jig.jp/](https://odp.jig.jp/)
+### 類似性の仕組み
+
+1. 芸術作品・デザイン・動画
    - 説明
-     - odp を利用することで、あなたの自治体のデータを、オープンデータ評価指標で最高水準とされている 5 つ星オープンデータとして公開できます
-
-7. MilCount（ミルカウント）
-   - 参考
-     - [AI](https://chizaizukan.com/tag/ai/property)
-     - [ニュースリリースはこちら（東急エージェンシー）](https://www.tokyu-agc.co.jp/assets/img/page/news/2023/release20230221.pdf)
-     - [ニュースリリースはこちら（パナソニック）](https://news.panasonic.com/jp/press/jn230221-3)
-     - [https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi](https://chizaizukan.com/news/24f0zqlhzqzszoSpGvfLqi)
+     - 芸術作品・デザイン・動画
+2. GANs
    - 説明
-     - 東急エージェンシーとパナソニック、デジタルメディアの広告効果を可視化するサービス「MilCount（ミルカウント）」を東急線駅 5 か所に導入
-     - 交通広告メジャメント（計測方法）としてカメラ 1 台の画像センシングで広告効果を可視化するサービス「MilCount（ミルカウント）」を導入した
-     - 「MilCount」は、広告媒体接触者のデータを“速く、見やすく、簡単に”可視化するクラウドサービス。デジタルサイネージ用ディスプレイが複数あるエリアでも、カメラ 1 台で 10m 先・視野角 120 度以内の媒体接触者の属性（年齢・性別など）を 1 時間ごとに測定し、独自の推計ロジックにより媒体設置エリア全体のデータを算出する
-
-8. NeoFace Monitor
-
-- 参考
-  - [https://japan.zdnet.com/article/35201639/](https://japan.zdnet.com/article/35201639/)
-- 説明
-  - NEC は 3 月 29 日、パッケージソフトウェアとクラウドサービスで提供する PC の顔認証製品「NeoFace Monitor」の最新版を発表した
-
-11. CO－ODE（コ・オード）
-    - 参考
-      - [https://japan.zdnet.com/article/35197605/](https://japan.zdnet.com/article/35197605/)
+     - GANs
+3. 深層学習モデル（CNN）
+   - 説明
+     - 深層学習モデル（CNN）
+4. ガウシアンミックスチャーモデル（GMM）
+   - 説明
+     - ガウシアンミックスチャーモデル（GMM）
+5. ビジュアルサーモン（Visual Thesaurus）
+   - 説明
+     - 画像や動画の視覚的な類似性を辞書のようにマッピングし、参照元を特定する技術。動画のフレームごとの特徴量をベクトル化し、参照元動画との距離を計算
+6. CLIP (Contrastive Language–Image Pretraining)
+   - 説明
+     - テキストと画像を結びつけるマルチモーダル AI
+7. 時空間 CNN
+   - 説明
+     - 動画のフレーム間の連続性を解析
+8. 光フローベース解析
+   - 説明
+     - 動画内の動き（オブジェクトの移動、カメラワーク）を数値化し、類似性を評価
+9. 音声
+   - 説明
+     - 音声
+10. Spectrogram Analysis
     - 説明
-      - ジールのオープンデータ提供サービス
-      - 国や自治体が公開するオープンデータを使いやすく加工し、配信・提供しているコ・オード
-
-12. データ版 Kaggle
-    - 参考
-      - [https://https-deeplearning-ai.github.io/data-centric-comp/](https://t.co/9Z8LEt888O)
-
-13. iNaturalist、eBird、ResearchKit
-    - 参考
-      - [https://ssir-j.org/the-looming-fight-over-how-we-give-our-data](https://ssir-j.org/the-looming-fight-over-how-we-give-our-data/)
+      - 音声データをスペクトログラムに変換し、視覚的に比較
+11. 3D CNN + Audio Embeddings
     - 説明
-      - VHC やワクチンハンターの仕組みを参考にしてデータ取得をしていきたい
-      - iNaturalist は、図鑑のようなアプリで、植物の写真をアップロードできる
-      - 写真がアップロードされると、オンラインのユーザーコミュニティがそれをチェックし、植物種の目星をつけます。十分な人数が同意すれば、写真は同定済みのタグ付けがされます。さらに、高画質の写真で、正確に同定されていれば、『研究ランク』のマークが付きます。これらの写真は iNaturalist のデータベースに登録され、科学者らが利用できる
-      - iNaturalist によく似た eBird というアプリのコミュニティも、何百もの査読付き科学論文に貢献したデータベースを構築している。データの寄付においては、小さな貢献が大きなインパクトをもたらすのです
-      - いま、データ保管先としての信頼性が高く、データの使用法に関する選択権を提供者が持つような、新しい組織を生み出そうとする動きがあちこちで現れている。たとえば、提供されたデータを活用する協同組合、シビックトラスト、オープンコレクティブといった新形態の組織だ
-      - 2015 年にアップルは、任意でスマートフォンのデータを医療研究者に共有することを可能にするソフトウェアフレームワーク「ResearchKit」を発表した
-      - 非営利団体のモジラ財団は最近、Rally という名の新たなウェブサイトツールを発表したが、これを使えば Firefox のブラウザから直接、関心のある調査研究にデータを提供できる。つまり、提供者自身の選択権とコントロール権が中心に据えられているのです
-
-14. The Graph
-
-15. openfuture
-    - 参考
-      - [https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1](https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1)
-
-16. TytoCare
-    - 参考
-      - [https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/](https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/)
+      - 動画のフレームと音声のベクトルを統合
+12. Multimodal Transformers
     - 説明
-      - 「タイトケア社が開発・販売するキット「TytoCare」を国内で発売した。カメラやセンサーが付いた本体に 3 種類の付属の部品を組み合わせることで聴診音や体温、咽頭や鼓膜、皮膚の画像など 8 項目のデータが得られる
-      - DeNA 系のアルム、オンライン診療の支援キット：日本経済新聞
-
-17. 企業の顧客データ取引所
-    - 参考
-      - [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
+      - 映像、テキスト、音声の複数モーダルを同時に解析
+13. 文章の盗用・剽窃
     - 説明
-      - 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す
+      - 文章の盗用・剽窃
+14. Plag.lv
+    - 参考
+      - [https://www.plag.jp/](https://www.plag.jp/)
+    - 説明
+      - 大規模なデータベースと比較して複数言語での盗用を検出する
+15. chiyo-co
+    - 参考
+      - [https://kagemusya.biz-samurai.com/](https://kagemusya.biz-samurai.com/)
+    - 説明
+      - 文章全体、センテンス、キーフレーズのベクトル比較により、運営サイトや納品記事の類似度を判定するツール
+16. RighTect
+    - 参考
+      - [https://www.tensor.co.jp/rightect](https://www.tensor.co.jp/rightect)
+    - 説明
+      - AI が自動で写真、マンガ、動画、記事などの無断転載を検知し、削除申請までサポートするサービス
+17. Copyleaks
+    - 参考
+      - [https://copyleaks.com/ja/](https://copyleaks.com/ja/)
+    - 説明
+      - 教育機関・企業向けに、AI 技術で文章やコードのオリジナリティを保護し、盗用や AI 生成コンテンツを検出するプラットフォームです
+18. Trinka
+    - 参考
+      - [https://www.trinka.ai/jp/](https://www.trinka.ai/jp/)
+    - 説明
+      - 盗用・剽窃チェック： 学術論文とテクニカルライティング向けの文章校正ツールで、盗用検出機能を備えています
+19. 剽窃チェッカー
+    - 参考
+      - [https://plagiarism.strud.net/](https://plagiarism.strud.net/)
+20. Shinobi ファインダー
+    - 参考
+      - [https://finder.biz-samurai.com/](https://finder.biz-samurai.com/)
+    - 説明
+      - サイト内の全テキストを対象に、高精度な盗用検知を定期的に行います
+21. TF-IDF（Term Frequency-Inverse Document Frequency）
+    - 説明
+      - 単語の出現頻度と逆文書頻度を組み合わせて、各単語の重要度を計算する手法
+      - 各単語の重要度を計算し、文書をベクトル化する手法です。これにより、文書間のコサイン類似度を計算して類似性を評価します
+22. Word2Vec や Doc2Vec
+    - 説明
+      - 単語や文書を高次元のベクトルに変換し、意味的な類似性を捉える手法です。これにより、単語や文書間の類似度を計算できます
+23. トピックモデル
+    - 説明
+      - Latent Dirichlet Allocation（LDA）などの手法を用いて、文書のトピック分布を推定し、類似したトピックを持つ文書間の関連性を評価します
+24. ベクトルエンベディング
+    - 説明
+      - 文章や単語を高次元の数値ベクトルに変換し、意味的な類似性を数値的に評価します
+25. 機械学習モデル
+    - 説明
+      - 自然言語処理（NLP）技術を用いて、文章の意味や構造を解析し、類似性や盗用の検出を行います
+26. コード系
+    - 説明
+      - コード系
+27. SA-Plag
+    - 参考
+      - [https://github.com/xryuseix/SA-Plag](https://github.com/xryuseix/SA-Plag)
+      - [https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf](https://sechack365.nict.go.jp/achievement/2020/pdf/2020_28.pdf)
+28. Moss
+    - 説明
+      - Moss (ソフトウェア類似性の尺度）は、プログラミング課題における不正行為や盗作を検出するために使用されます。学生が提出したソースコードを他のソースのデータベースと比較し、わずか数秒で有用なレポートを作成できます
+29. Sider Scan
+    - 参考
+      - [https://qiita.com/official-columns/interview/202206-sider/](https://qiita.com/official-columns/interview/202206-sider/)
+30. 大阪大学の研究室が提供するコードクローン関連ツール集
+    - 参考
+      - [https://sel.ist.osaka-u.ac.jp/cdtools/](https://sel.ist.osaka-u.ac.jp/cdtools/)
+31. NCDSearch
+    - 参考
+      - [https://ishiotks.hatenablog.com/entry/2019/02/05/162417](https://ishiotks.hatenablog.com/entry/2019/02/05/162417)
+      - [https://github.com/takashi-ishio/NCDSearch/](https://github.com/takashi-ishio/NCDSearch/)
+32. Codequiry
+    - 参考
+      - [https://codequiry.com/](https://codequiry.com/)
+    - 説明
+      - Codequiry は、潜在的なコード違反を迅速に特定するために使用される自動コード盗用検出ツールです
+33. JPlag
+    - 参考
+      - [https://helmholtz.software/software/jplag](https://helmholtz.software/software/jplag)
+      - [https://github.com/jplag/jplag](https://github.com/jplag/jplag)
+    - 説明
+      - JPlag は、ソース コード間の類似性を検出するために設計されたオープンソース ツールです
+34. Code2Vec
+    - 説明
+      - コードスニペットの意味的特徴をベクトル化し、関連するコードを検索
+      - Word2Vec や Doc2Vec の応用： コード内のトークン（変数名、関数名など）をベクトル化
+35. Graph Neural Networks (GNNs)
+    - 説明
+      - AST や PDG をグラフとして表現し、それをニューラルネットワークで解析
+36. OpenAI Codex や CodeBERT
+    - 説明
+      - 自然言語とソースコードのマルチモーダル埋め込みを行い、コードとテキスト間の類似性を評価
+37. コサイン類似度
+    - 説明
+      - コードのベクトル表現間の角度を用いて類似性を評価
+38. LSH (Locality-Sensitive Hashing)
+    - 説明
+      - 大規模なコードベースにおける効率的な類似性検索
+39. similarity
+    - 参考
+      - [https://github.com/mizchi/similarity](https://github.com/mizchi/similarity)
+    - 説明
+      - ベクトルやコードの類似性があるか見る
 
-### 評価軸の指標
+### 指標
 
-下記の方法を、評価軸の指標という観点の参考にしたい。
+#### コード系
+
+1. CHAOSS
+   - 説明
+     - Community Health Analytics for OSS
+     - Linux Foundation が維持する OSS コミュニティ健全性指標群
+   - 参考
+     - [https://chaoss.community/ja/kbtopic/all-metrics/](https://chaoss.community/ja/kbtopic/all-metrics/)
+       - 指標一覧
+     - [https://chaoss.community/kbtopic/all-metrics-models/](https://chaoss.community/kbtopic/all-metrics-models/)
+       - 指標の組み合わせ方の一覧
+2. GitHub Community Profile & Insights
+   - 説明
+     - README／LICENSE／CODE_OF_CONDUCT などの有無をチェックリスト化し、外部からの貢献準備度を示す
+3. `GitHub Octoverse`
+   - 説明
+     - GitHub Octoverse のタスクごとの重み付け値は非公開
+     - Octoverse で使われる別指標「Mona Rank」- Octoverse 2023 以降で、人気プロジェクトなどの評価に使われる「Mona Rank」という指標がある
+4. Health of Open Source Software
+5. Source-o-grapher
+6. CNCF
+   - 参考
+     - [https://www.cncf.io/](https://www.cncf.io/)
+     - [https://devstats.cncf.io/](https://devstats.cncf.io/)
+   - 説明
+     - Cloud Native Computing Foundation（CNCF）が“OSS そのもの”を評価・可視化するために公開している主な指標
+
+7. Dev Rank
+   - 参考
+     - [https://arxiv.org/pdf/1710.10427](https://arxiv.org/pdf/1710.10427)
+
+8. Magnet/Sticky
+   - 参考
+     - [https://api.lib.kyushu-u.ac.jp/opac_download_md/1807066/isee0609_abstract.pdf](https://api.lib.kyushu-u.ac.jp/opac_download_md/1807066/isee0609_abstract.pdf)
+
+9. Depsy
+   - 参考
+     - [https://blog.ourresearch.org/introducing-depsy/](https://blog.ourresearch.org/introducing-depsy/)
+     - [https://github.com/ourresearch/depsy-research](https://github.com/ourresearch/depsy-research)
+     - [https://github.com/ourresearch/depsy](https://github.com/ourresearch/depsy)
+     - [http://depsy.org/](http://depsy.org/)
+     - [https://deepwiki.com/ourresearch/depsy](https://deepwiki.com/ourresearch/depsy)
+   - 説明
+     - 「研究ソフトウェアの影響力」を算出するソフトウェア
+     - 論文の被引用だけでなく、論文本文中でのソフト名の言及や他ソフトからの再利用（依存関係）、ダウンロード数などを集めて、パッケージと貢献者（人）にクレジットを割り振る仕組み
+10. Gitee Index
+    - 説明
+      - Gitee は、コードアクティビティとコミュニティアクティビティに基づいてプロジェクトを評価する「Gitee Index」
+    - 参考
+      - [https://gitee.com/explore?utm_source=oschina&utm_medium=link-index&utm_campaign=home](https://gitee.com/explore?utm_source=oschina&utm_medium=link-index&utm_campaign=home)
+
+11. Open Source Contributor Index
+    - 説明
+      - OSCI は、営利組織（株式会社）による GitHub 上でのオープンソースの活動を追跡・測定することを目的としたオープンソースプロジェクト
+    - 参考
+      - [https://github.com/epam/OSCI](https://github.com/epam/OSCI)
+      - [https://opensourceindex.io/](https://opensourceindex.io/)
+    - 算出ロジック
+      1. Active Contributors 指標
+         - 一日 or 1 か月の期間で、それぞれ 10 回以上のコミットを作成した人の数
+      2. Total Community 指標
+         - 一日 or 1 か月の期間に少なくとも 1 つのコミットを作成した人の数
+    - 会社所属の人を見つける方法
+      - コミット作成者のメールドメインを使って組織を特定します
+    - 注意
+      1. OSCI は、大学、研究機関、個人起業家が貢献したオープンソース活動をランキングしていません
+12. 論文
+    - 参考
+      - [https://www.sciencedirect.com/science/article/abs/pii/S0950584914000871](https://www.sciencedirect.com/science/article/abs/pii/S0950584914000871)
+
+13. OpenSSF Scorecard
+    - 説明
+      - データ取得元は、GitHub API
+      - データ取得ロジックも実装されている
+      - セキュリティ指標に基づいてスコアを算出するソフトウェア
+      - 各チェック項目には 0～10 のスコアが付与される
+    - 参考
+      - [https://openssf.org/](https://openssf.org/)
+      - [https://github.com/ossf](https://github.com/ossf)
+      - [https://github.com/ossf/scorecard](https://github.com/ossf/scorecard)
+14. セキュリティのリスク分析手法
+    1. 共通脆弱性評価システム（CVSS）
+    2. エクスプロイト予測
+
+15. scc
+    - 説明
+      - scc は、純粋な Go 言語で記述された非常に高速で高精度なコード行数カウンタです
+      - 複雑度計算や COCOMO モデルに基づく開発工数推定機能を備えています
+    - 参考
+      - [https://github.com/boyter/scc](https://github.com/boyter/scc)
+16. GrimoireLab Cocom
+    - 説明
+      - GrimoireLab の Graal を使用した、コード複雑度の解析をしている
+    - 参考
+      - [https://github.com/chaoss/grimoirelab-graal/blob/main/graal/backends/core/cocom.py](https://github.com/chaoss/grimoirelab-graal/blob/main/graal/backends/core/cocom.py)
+      - [https://chaoss.github.io/grimoirelab-tutorial/docs/components/graal/cocom/](https://chaoss.github.io/grimoirelab-tutorial/docs/components/graal/cocom/)
+
+17. Lizard
+    - 説明
+      - 主要なプログラミング言語のほとんどに対応したシンプルなコード複雑度解析ツール
+    - 以下をチェックする
+      - コメントを除いた実コード行数 (nloc)
+      - CCN（循環的複雑度）
+      - 関数のトークン数
+      - 関数のパラメータ数をカウント
+    - 参考
+      - [https://github.com/terryyin/lizard](https://github.com/terryyin/lizard)
+
+18. Function Point method
+    - 説明
+      - ソフトウェアがもつ機能数や複雑さによって重みづけした点数を付け、そのソフトウェアにおける合計点数から開発工数を見積もる
+    - 参考
+      - [https://e-words.jp/w/FP法.html](https://e-words.jp/w/FP%E6%B3%95.html)
+      - [https://qiita.com/okikusan-public/items/ee86340e60cfa4856a6c](https://qiita.com/okikusan-public/items/ee86340e60cfa4856a6c)
+
+19. 参考
+    - [https://arxiv.org/html/2411.05087v2](https://arxiv.org/html/2411.05087v2)
+20. SonarQube
+21. VS Code の Analyze メニューにある Calculate Code Metrics 機能
+22. GitHub Insights / Code QL
+23. Code Climate Velocity
+24. Cyclomatic Complexity
+25. Cognitive Complexity
+26. Halstead Difficulty
+27. SLOC（行数）
+28. PR サイズ
+29. DifficultyScore
+30. Change Entropy
+31. Maintainability Index（MI）
+32. WMC / DIT / NOC / CBO / RFC / LCOM
+33. Co-Change Graph Entropy
+34. Weighted Code Churn
+35. EA-Z(Effort-Aware ranking)
+36. Effort-Aware Defect Prediction
+37. Martin のパッケージ指標
+    - 説明
+      - Afferent（Ca）/ Efferent（Ce）/ Instability I = Ce/(Ca+Ce)、Abstractness など
+38. JaCoCo
+    - 説明
+      - Instruction（C0）/ Branch（C1）/ Line 等を計測
+      - ブランチは if/switch の分岐網羅
+39. PIT（ピット）
+    - 説明
+      - ミューテーションテストでテストの強さを測る
+40. CRAP メトリクス
+    - 説明
+      - 複雑度と未カバー率を組み合わせた変更リスク指標
+      - （CRAP(m)=CC²×U³+CC）
+41. SonarCloud
+42. 静的解析
+    - 説明
+      - ESLint / Pylint / Checkstyle / PMD / Detekt / RuboCop / SpotBugs など
+43. Quality Gate（新規コード）
+    - 説明
+      - Sonar の Maintainability Rating A、新規 Code Smell ゼロを原則に
+44. テストの強さ
+    - 説明
+      - Branch Coverage 基準＋重点箇所は PIT を定期実行
+      - CRAP 高スコアは優先的に手当
+45. 設計健全性
+    - 説明
+      - CK（CBO/LCOM 等）と ADP（循環依存の解消）を監視
+
+#### 論文・ブログ系
+
+1. `Altmetrics`
+   - 説明
+     - SNS などの反応から影響度を算出する指標
+     - 著者ごとの引用数
+     - 共著ネットワーク分析
+     - 特定のポリシー（例： ICMJE や Contributor Roles Taxonomy (CRediT)）に基づいて役割を評価
+   - ツール
+     1. `PyAltmetric`
+        - `Altmetrics`のデータを取得する Python ライブラリ
+2. 被引用数
+   - 説明
+     - 被引用数から貢献度を算出
+3. CRediT
+   - 説明
+     - Contributor Roles Taxonomy
+     - 各参加者がどのような役割を果たしたのかを明確に定義するための国際的な基準
+     - 以下が CRediT で定義される 14 の役割です：
+       1. **Conceptualization**: 研究やプロジェクトのアイデアの出発点、方法論設計
+       2. **Data Curation**: データの収集、整理、メンテナンス
+       3. **Formal Analysis**: データ解析、統計手法の適用
+       4. **Funding Acquisition**: 資金調達、研究資金の確保
+       5. **Investigation**: 実験や研究プロセスの実行
+       6. **Methodology**: 方法論の設計または進化
+       7. **Project Administration**: プロジェクトの計画、管理、監督
+       8. **Resources**: 資源提供（データ、素材、インフラなど）
+       9. **Software**: ソフトウェアの作成、プログラミング、シミュレーション
+       10. **Supervision**: チームやプロジェクトの監督
+       11. **Validation**: 分析結果の検証、再現性確認
+       12. **Visualization**: 図表、グラフ、データ可視化の作成
+       13. **Writing – Review & Editing**: 論文のレビュー、修正
+     - 論文末尾の「著者貢献」セクションに、CRediT を用いた役割記載が行われる
+       - 例：
+         - A 氏： Conceptualization, Writing – Original Draft
+         - B 氏： Data Curation, Software
+
+#### イノベーション系
+
+1. M. Dziallas and K. Blind, “Innovation indicators throughout the innovation process: An extensive literature analysis,” Technovation, vol. 80, pp. 3–29, 2019
+2. https://arxiv.org/html/2411.05087v2
+   - https://arxiv.org/html/2411.05087v2#bib.bib75
+   - https://arxiv.org/html/2411.05087v2#bib.bib56
+   - https://arxiv.org/html/2411.05087v2#bib.bib36
+   - https://arxiv.org/html/2411.05087v2#bib.bib37
+   - https://arxiv.org/html/2411.05087v2#bib.bib38
+   - https://arxiv.org/html/2411.05087v2#bib.bib39
+
+#### その他
 
 1. Genuine Progress Indicator ＝真の進歩指標」（GPI）
    - 説明
      - 個人消費をベースに、所得分配、家事・ボランティア、などの無料だけど良いことや犯罪や公害といったマイナスなことも含めた指標
      - 脱成長派の経済学者ハーマン・デイリー
+
+### 貢献度の算出理論
+
+#### 統計学的・データ分析手法
+
+1. PageRank
+2. Shapley Value
+   - 説明
+     - 各参加者の周 marginal 貢献を全順序平均で計算し、高次相互作用を含む公平配分を保証
+     - グラフ上のノード（制作者）ごとに限界効果を評価し、報酬プールを比例配分
+3. Impact Certificates
+4. 相関分析 (Correlation Analysis)
+   - 説明
+     - 2 つの変数間の相関の強さと方向を測定
+     - ピアソン相関係数、スピアマン順位相関
+5. 回帰分析 (Regression Analysis)
+   - 説明
+     - ある行動（独立変数）が幸福度（従属変数）に与える影響を定量化
+6. 重回帰分析 (Multiple Regression Analysis)
+   - 説明
+     - 複数の行動が幸福度に与える影響を同時に評価
+7. 因子分析 (Factor Analysis)
+   - 説明
+     - 幸福度や行動の背後にある潜在的な構造を特定
+     - 使用例： 幸福度を構成する要因の特定
+8. 主成分分析 (Principal Component Analysis, PCA)
+   - 説明
+     - 行動データを次元削減し、幸福度に関係する主要な構成要素を抽出
+9. 構造方程式モデリング (Structural Equation Modeling, SEM)
+   - 説明
+     - 行動と幸福度の間の因果関係を視覚的にモデル化
+     - 例： パス解析
+10. 共分散構造分析 (Covariance Structure Analysis)
+    - 説明
+      - 幸福度に影響を与える複数の行動間の関係を評価
+11. 階層線形モデル (Hierarchical Linear Modeling, HLM)
+    - 説明
+      - 階層構造のデータ（例： 個人内および個人間の行動）を分析し、幸福度への影響を評価
+12. 時間軸データ解析 (Time Series Analysis)
+    - 説明
+      - 時系列で行動データと幸福度の変化を関連付け
+13. クラスタリング分析 (Clustering Analysis)
+    - 説明
+      - 幸福度に似たパターンを持つ行動グループを特定
+14. 因果推論 (Causal Inference)
+    - 説明
+      - 幸福度に影響を与える特定の行動を識別
+      - 例： 傾向スコアマッチング（Propensity Score Matching）
+15. 決定木分析 (Decision Tree Analysis)
+    - 説明
+      - 特定の行動が幸福度に与える影響を視覚的にモデル化
+16. 社会ネットワーク
+    - 説明
+      - 特定の業界や分野における貢献者の特定や影響力の分析
+      - 組織内での情報伝達の中心人物やキーパーソンを特定したり、企業間のネットワークにおける中心性を分析し業界内での影響力の大きい企業や個人を明らかにする研究も行われています。中心性指標を用いて業界内の貢献者や影響力のある人物を特定する際の理論的基盤を提供しています
+    - 1. 共著ネットワーク分析
+    - 2. Gephi: ネットワークの作成と分析
+    - 3. Cytoscape: バイオインフォマティクスや複雑ネットワークの可視化
+    - 4. Python ライブラリ（NetworkX, igraph, Graph-tool）: コードベースでのネットワーク構築
+    - Contributor Network Analysis
+      - 説明
+        - プロジェクト内の関係性（例： Issue の議論、コードレビュー）をグラフとしてモデル化。各ノード（貢献者）に対して重要度（例： 中心性指標）を算出
+17. シャープレイ値
+    - 説明
+      - 貢献度の計算対象を足した場合に、成果の増分をその人の貢献度と判定する方法
+      - それをあらゆる順序や組み合わせで貢献度を算出する
+18. PageRank 系
+19. 主成分分析
+    - 説明
+      - 貢献度分析
+20. 専門家評価とアンケート
+    - 説明
+      - **Delphi法**
+        - 複数の専門家による匿名評価を収集し、貢献度を合意形成
+      - **CRediT（Contributor Roles Taxonomy）フレームワーク**
+        - 論文やプロジェクト内の役割（例： Data Curation, Software, Writing – Review & Editing）を明確に分類し、貢献度を明示
+21. グラフ理論
+    - 説明
+      - 代表的には EigenTrust、Hubs and Authorities、Collaborative Filtering があります
+      - グラフ理論に基づく枠組みで扱えます
+      - 正直な回答へのインセンティブを用意しつつ、評判とコンテンツ順位が信頼できる指標になるよう算出します
+    - 参考
+      - [https://www.sbbit.jp/article/cont1/138750](https://www.sbbit.jp/article/cont1/138750)
+      - [https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k](https://mirror.xyz/0x6BE454113A58861A09Fc2A57940a344357B3859a/aMJOjJlG7-tntj_4gVy2ZX5axA9q2Qj5K7D2vIvyc7k)
+      - [https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era](https://universe.globalbrains.com/posts/how-to-evaluate-karma3-to-spot-scammers-in-the-web3-era)
+22. OpenRank
+    - 説明
+      - OpenRank を成り立たせている仮説は、関連性を多く持つライブラリほど他のライブラリから使用されていると仮定します
+      - 関連性が高いライブラリーほど影響力も大きくなります
+      - そのライブラリーへ貢献する開発者の貢献度も相対的に高いと判断できます
+23. Difference in Differences
+24. 探索的因子分析
+    - 参考
+      - [https://knowledge-bridge.info/technology/statistics/2450/](https://knowledge-bridge.info/technology/statistics/2450/)
+    - 説明
+      - どのような因子が得られるか分からずに行う因子分析
+    - 使用場面
+      - 何が貢献しているか特定したい場合は、探索的因子分析を使用できそう
+25. 反実仮想
+    - 説明
+      - 「反実仮想」は、変数の有無で結果が変わる場合の、変数の影響度合いを分析する理論全般のこと
+      - 反実仮想を分析するための理論は、RCT などがある
+26. 因果探索
+    - 説明
+      - 因果探索は、因果関係の原因を特定する理論全般のこと
+    - 使用場面
+      - 「貢献度の算出の仕組み」で参照・活用したデータを集めたうえで、因果要因として妥当か検証するときに使えます
+27. 因果推論
+    - 説明
+      - 因果推論は、因果関係の原因が、結果にどれだけ影響しているか度合いを分析する理論全般のこと
+28. 使わなかった場合の獲得できない損失を計算して、それを貢献度とする
+    - 説明
+      - 使わなかった場合の獲得できない損失を計算して、それを貢献度とする
+
+#### 心理学的理論
+
+1. **行動主義理論 (Behaviorism)**
+   - 説明
+     - 幸福度が、観察可能な行動の変化とどのように関連しているかを分析
+2. **認知行動理論 (Cognitive Behavioral Theory)**
+   - 説明
+     - 幸福度が、行動だけでなく認知的要因ともどのように関連しているかを評価
+3. **主観的幸福感理論 (Subjective Well-Being Theory)**
+   - 説明
+     - 幸福度の主観的要因を測定し、行動との関連性を解析
+4. **ポジティブ心理学 (Positive Psychology)**
+   - 説明
+     - 幸福感を増進させる行動や習慣のパターンを特定
+5. **自己決定理論 (Self-Determination Theory)**
+   - 説明
+     - 幸福度と行動が、自律性、有能感、関係性という基本的な心理的欲求によってどう関連するかを評価
+6. **ライフイベント理論 (Life Events Theory)**
+   - 説明
+     - 幸福度に大きな影響を与える特定の行動や出来事を特定
+
+#### 社会学的・経済学的理論
+
+1. 相対所得理論 (Relative Income Theory)
+   - 説明
+     - 他者との比較が幸福度へ与える影響の仕組みを分析します
+2. 行動経済学 (Behavioral Economics)
+   - 説明
+     - 人々の意思決定と幸福度の関連を評価します
+3. 社会的比較理論 (Social Comparison Theory)
+   - 説明
+     - 他者の行動や成果が、個人の幸福度に与える影響を評価
+4. 文化的影響理論 (Cultural Influence Theory)
+   - 説明
+     - 行動と幸福度の関連性が、文化や社会的要因にどのように影響されるかを評価
+5. ウェルビーイング経済学 (Economics of Well-Being)
+   - 説明
+     - 幸福度を経済的行動や条件と関連付ける
+
+#### 神経科学的理論
+
+1. **報酬系理論 (Reward System Theory)**
+   - 説明
+     - 特定の行動が脳内報酬システムを活性化し、幸福感に与える影響を評価
+2. **感情ネットワーク理論 (Emotion Network Theory)**
+   - 説明
+     - 幸福感を脳の感情ネットワークとの関連で分析
+3. **ニューロマーケティング (Neuromarketing)**
+   - 説明
+     - 消費行動が幸福感に与える影響を脳活動から分析
+
+#### 重み付け
+
+- 説明
+  - 指定タスク × 指定タスク重み付け値 × 各タスクごとの実行回数の掛け算結果の合計で貢献度を算出する方法
+  - プルリクの作成や PR レビューなど、それぞれのタスクの重み付け値を掛け算してから貢献度を算出
+
+### 既存サービス
+
+- 一覧
+
+```markdown
+    - https://github.com/X-lab2017/open-digger
+    - https://github.com/a-p-z/gitstats
+    - https://github.com/acaudwell/Gource
+    - https://github.com/adamtornhill/code-maat
+    - https://github.com/adobe/oss-contributors
+    - https://github.com/amzn/oss-contribution-tracker
+    - https://github.com/anuraghazra/github-readme-stats
+    - https://github.com/apache/incubator-devlake
+    - https://github.com/apache/kibble
+    - https://github.com/apache/kibble-scanners
+    - https://github.com/bloombar/gitlogstats
+    - https://github.com/brianwarner/facade
+    - https://github.com/chaoss/augur
+    - https://github.com/chaoss/grimoirelab
+    - https://github.com/cncf/gitdm
+    - https://github.com/coreinfrastructure/best-practices-badge
+    - https://github.com/devactivity-app
+    - https://github.com/dmitryn/GitStats
+    - https://github.com/ejwa/gitinspector
+    - https://github.com/erikbern/git-of-theseus
+    - https://github.com/flaviostutz/gitwho
+    - https://github.com/git-quick-stats/git-quick-stats
+    - https://github.com/github/gh-skyline
+    - https://github.com/git-truck/git-truck
+    - https://github.com/gotec/git2net
+    - https://github.com/hypertrons/hypertrons-crx
+    - https://github.com/ishepard/pydriller
+    - https://github.com/knbr13/gitcs
+    - https://github.com/mauricioaniche/repodriller
+    - https://github.com/mntnr/name-your-contributors
+    - https://github.com/mona-actions/gh-repo-stats
+    - https://github.com/nice-registry/sourceranks
+    - https://github.com/nokamoto/print-github-contrib
+    - https://github.com/oleander/git-fame-rb
+    - https://github.com/ourresearch/depsy
+    - https://github.com/pingcap/ossinsight
+    - https://github.com/reposense/RepoSense
+    - https://github.com/sallar/github-contributions-chart
+    - https://github.com/shufo/gh-issue-stats
+    - https://github.com/src-d/hercules
+    - https://github.com/sourcecred/sourcecred
+    - https://github.com/tarao/oss-contributions
+    - https://github.com/tenex/opensourcecontributors
+```
+
+1. `tarao/oss-contributions`
+   - 説明
+     - 指定ユーザーが貢献した OSS 一覧を取得するスクリプト
+     - プロジェクトを横断的に貢献したタスクの一覧を表示する
+   - 参考
+     - [https://github.com/tarao/oss-contributions](https://github.com/tarao/oss-contributions)
+     - [https://tarao.hatenablog.com/entry/2021/06/14/160248](https://tarao.hatenablog.com/entry/2021/06/14/160248)
+     - [https://deepwiki.com/tarao/oss-contributions/1-overview](https://deepwiki.com/tarao/oss-contributions/1-overview)
+2. Mozilla Observatory
+   - 説明
+     - Web サービスの HTTP ヘッダーや TLS 設定を A+〜F で格付けし、クリック 1 つでバッジ発行
+3. Snyk Advisor
+   - 説明
+     - パッケージ名を入力すると “Security / Community / Maintenance” の 3 タブで健康度を可視化し、既知 CVE 数やコミット頻度を加味した総合指標を返す
+     - 2025 年 7 月公開の **Risk Score** は脆弱性の重大度・公開後経過日数・既知エクスプロイト情報を重み付けし 0-100 で優先度を示します
+   - 参考
+     - [https://snyk.io/advisor/](https://snyk.io/advisor/)
+     - [https://docs.snyk.io/manage-risk/prioritize-issues-for-fixing/risk-score](https://docs.snyk.io/manage-risk/prioritize-issues-for-fixing/risk-score)
+4. Sonatype OSS Index（Safety Rating）
+   - 説明
+     - 無料の脆弱性カタログで、**Safety Rating** は「将来脆弱性が見つかる確率」を 1-10 段階で推定。低リスクほど高得点となり、メーリングリストモデルで毎晩再計算されます
+   - 参考
+     - [https://ossindex.sonatype.org/doc/sonatype-safety-rating](https://ossindex.sonatype.org/doc/sonatype-safety-rating)
+     - [https://ossindex.sonatype.org/](https://ossindex.sonatype.org/)
+5. OSEHO
+   - 説明
+     - Open Source Ecosystem Health Operationalization
+     - “成長傾向 & 長寿命” を核心に、コミット頻度・リリース間隔・バグ修正速度・フォーラム応答時間など複数メトリクスを束ねてエコシステム全体の健全度を算出する
+   - 参考
+     - [https://www.researchgate.net/publication/261715766_Measuring_the_Health_of_Open_Source_Software_Ecosystems_Beyond_the_Scope_of_Project_Health](https://www.researchgate.net/publication/261715766_Measuring_the_Health_of_Open_Source_Software_Ecosystems_Beyond_the_Scope_of_Project_Health)
+6. CLOMonitor
+   - 説明
+     - CNCF の OSPO が提供する自動チェックツール
+     - リポジトリを定期スキャンし、**Documentation／License／Best practices／Security／Community**といった観点で合否・スコアを出します
+7. CII Best Practices Badge（Linux Foundation）
+   - 説明
+     - 140 項目超のチェックリストをクリアすると **Passing / Silver / Gold** の 3 段階バッジを取得でき、署名付きリリースや脆弱性報告プロセスの有無が審査対象です
+   - 参考
+     - [https://github.com/coreinfrastructure/best-practices-badge](https://github.com/coreinfrastructure/best-practices-badge)
+     - [https://www.linuxfoundation.org/blog/blog/why-cii-best-practices-gold-badges-are-important](https://www.linuxfoundation.org/blog/blog/why-cii-best-practices-gold-badges-are-important)
+8. LFX Insights
+   - 説明
+     - 横断分析：貢献者数・組織数・“ソフトウェア価値”など
+9. OWASP Dependency-Check
+   - 説明
+     - 依存ライブラリの既知 CVE
+10. OWASP Dependency-Track
+    - 説明
+      - SBOM 中の CVE, ライセンス
+
+11. OWASP dep-scan
+    - 説明
+      - CVE＋ライセンス違反
+12. FOSSA
+    - 説明
+      - CVE × EPSS 確率
+13. GitHub Dependabot
+    - 説明
+      - 互換性スコア
+14. Anchore Grype
+    - 説明
+      - Syft で生成した SBOM をもとに脆弱性を解析
+15. Aqua Trivy
+    - 説明
+      - 単一バイナリでコンテナイメージ、ファイルシステム、リポジトリ、IaC をスキャンし、CVE・設定不備・Secrets を横断検出
+16. SourceRank
+    - 参考
+      - [https://github.com/nice-registry/sourceranks?tab=readme-ov-file](https://github.com/nice-registry/sourceranks?tab=readme-ov-file)
+17. OpeFare
+    - 説明
+      - OSS 開発者やメンテナーへの報酬分配を目的とした分散型プロトコル
+      - OpenFare ライセンス
+        - MIT ライセンスに類似しており、「商用ユーザー」として定義された条件を満たすユーザーへ支払いを請求できます
+      - コードで定義された支払い計画書
+        - 開発者はプロジェクト内で支払いプランをコードとして定義し、支払い方法や金額を明確に設定できます
+      - 支払い管理ツール
+        - ソフトウェアの依存関係全体における支払い義務を管理するツールを提供し、商用ユーザーが複雑な依存関係の中でも容易に支払いを行えます
+18. `LeaderRank`
+    - 説明
+      - 対象ノードに紐づく各リンクへ次数依存型の重みを付与し、最近提案されたランキングアルゴリズム「LeaderRank」の改良版です
+    - 参考
+      - [https://arxiv.org/abs/1306.5042](https://arxiv.org/abs/1306.5042)
+19. SourceCred
+20. Gitcoin
+    - 説明
+      - Gitcoin は、オープンソースソフトウェアの開発者や貢献者を資金的に支援するためのプラットフォーム
+      - クワドラティックファンディングの仕組みがある
+      - バウンティ制度
+        - 特定のタスクに報酬が設定され、開発者がそれを解決することで報酬を獲得
+21. Coordinape
+    - 説明
+      - DAO やコミュニティが貢献者を評価し、資金を分配するためのピアベースの仕組みを提供します
+      - ピア・レビュー
+        - メンバー同士が互いの貢献を評価し、「Give」と呼ばれるポイントを配分
+22. **Rabbithole**
+    - 説明
+      - 分散型アプリケーション（dApp）やプロトコルへの貢献を奨励し、ユーザーにトークンや報酬を提供する仕組み
+23. **Clarity**
+    - 説明
+      - Clarity は、特に DAO やコミュニティでの作業や活動ログを追跡し、貢献に基づいた報酬を可能にするプラットフォームです
+
+24. **Colony**
+    - 説明
+      - Colony は、DAO が貢献を管理し、プロジェクト内の活動に基づいてトークン報酬を提供するためのフレームワークを提供します
+      - タスクの完了や成果物に対してメンバーが評価を行う
+      - 報酬は Colony トークン（CLNY）などの形式で分配
+25. **Dework**
+    - 説明
+      - Dework は、DAO や分散型プロジェクトでのタスク管理を行い、貢献に基づく報酬を提供するプラットフォームです
+      - Trello のようなタスク管理インタフェースで、タスクを公開
+      - 各タスクに設定された報酬が貢献者に支払われる
+26. Karma
+    - 説明
+      - Karma は、DAO メンバーの活動や貢献を記録し、報酬や役職の評価に活用する仕組みです
+
+27. **GitInspector**
+    - 説明
+      - 作者別のコミット数・追加/削除行数・活力度タイムラインなどを HTML/テキストで一括出力
+    - 参考
+      - [https://github.com/ejwa/gitinspector](https://github.com/ejwa/gitinspector)
+      - [https://manpages.ubuntu.com/manpages/focal/man1/gitinspector.1.html](https://manpages.ubuntu.com/manpages/focal/man1/gitinspector.1.html)
+28. **Git-fame 系**（`git-fame`／**Git-fame-rb** ほか Node/Go 版）
+    - 説明
+      - リポジトリ内の**作者別：行数・ファイル数・コミット数**を一発で算出し、チームの“誰がどのくらいコードを書いたか”を素早く可視化
+      - `git blame` ベースで「最後に触った行（生存 LOC）」を著者別に集計する使い方もあり、作者の`.mailmap`で別名マージも可能。Ruby 版は Windows でも手軽
+    - 参考
+      - [https://github.com/oleander/git-fame-rb](https://github.com/oleander/git-fame-rb)
+29. **Git-quick-stats（Bash/TUI）**
+    - 説明
+      - 端末 UI で**作者別の貢献統計**、時間帯別コミット、CSV/JSON 出力など。推奨レビュア・曜日/時間帯の活動もひと通り対話的に。著者除外やブランチ指定も簡単
+    - 参考
+      - [https://git-quick-stats.sh/](https://git-quick-stats.sh/)
+      - [https://github.com/git-quick-stats/git-quick-stats](https://github.com/git-quick-stats/git-quick-stats)
+      - [https://fig.io/manual/git-quick-stats](https://fig.io/manual/git-quick-stats)
+30. **GitStats / gitstats**（HTML レポート系）
+    - 説明
+      - 作者一覧（コミット数/初回・最終コミット日）や時系列の活動量など、“作者”まわりが充実した静的 HTML を生成する軽量ツール
+      - 実装例として dmitryn/GitStats、a-p-z/gitstats、複数レポ横断の期間比較に強い bloombar/gitlogstats など
+    - 参考
+      - [https://github.com/dmitryn/GitStats](https://github.com/dmitryn/GitStats)
+      - [https://github.com/a-p-z/gitstats](https://github.com/a-p-z/gitstats)
+      - [https://github.com/bloombar/gitlogstats](https://github.com/bloombar/gitlogstats)
+      - [https://gitstats.sourceforge.net/](https://gitstats.sourceforge.net/)
+31. PyDriller（Python）／**RepoDriller（Java）**
+    - 説明
+      - **コミット/作者/変更差分/ファイル**などを API で抽出し、独自の“貢献度”を自作しやすい
+    - 参考
+      - [https://github.com/ishepard/pydriller](https://github.com/ishepard/pydriller)
+      - [https://pydriller.readthedocs.io/en/1.10/reference.html](https://pydriller.readthedocs.io/en/1.10/reference.html)
+      - [https://pydriller.readthedocs.io/en/latest/tutorial.html](https://pydriller.readthedocs.io/en/latest/tutorial.html)
+      - [https://research.tudelft.nl/files/46282428/main.pdf](https://research.tudelft.nl/files/46282428/main.pdf)
+      - [https://github.com/mauricioaniche/repodriller](https://github.com/mauricioaniche/repodriller)
+      - [https://www.dmi.unict.it/fornaia/lectures/LISD/2019-20/L5b_MSR.pdf](https://www.dmi.unict.it/fornaia/lectures/LISD/2019-20/L5b_MSR.pdf)
+32. **Hercules（Go）**
+    - 説明
+      - 高速な Git 履歴解析エンジン
+      - パイプラインで開発者メトリクスを多段分析（コミット、コード所有、知識マップなど）できる。大規模レポに強い
+    - 参考
+      - [https://github.com/src-d/hercules](https://github.com/src-d/hercules)
+      - [https://bobheadxi.dev/open-source/hercules](https://bobheadxi.dev/open-source/hercules)
+33. **git2net（Python）**
+    - 説明
+      - 共同編集（co-editing）ネットワークを抽出し、“誰が誰のコードをどれだけ改変したか”を**共同編集ネットワーク**として表現
+      - 開発者間の協働関係と貢献の流れを分析し、研究用途にも。作者別影響度・協調関係の数理分析向け
+    - 参考
+      - [https://github.com/gotec/git2net](https://github.com/gotec/git2net)
+      - [https://link.springer.com/article/10.1007/s10664-020-09928-2](https://link.springer.com/article/10.1007/s10664-020-09928-2)
+      - [https://www.sg.ethz.ch/publications/2019/gote2019git2net---an/gote2019git2net.pdf](https://www.sg.ethz.ch/publications/2019/gote2019git2net---an/gote2019git2net.pdf)
+      - [https://pubmed.ncbi.nlm.nih.gov/34720670/](https://pubmed.ncbi.nlm.nih.gov/34720670/)
+34. gitdm（Git Data Miner）／**Git Development Metrics**（CNCF スクリプト群）
+    - 説明
+      - **開発者と所属企業の紐付け**まで行い、作者別/企業別の貢献を算出
+      - CNCF では期間指定で著者・組織別統計に使うスクリプト群としても利用
+    - 参考
+      - [https://github.com/cncf/gitdm](https://github.com/cncf/gitdm)
+      - [https://www.linux.com/news/measuring-value-corporate-open-source-contributions/](https://www.linux.com/news/measuring-value-corporate-open-source-contributions/)
+      - [https://www.kernel.org/doc/ols/2007/ols2007v1-pages-239-244.pdf](https://www.kernel.org/doc/ols/2007/ols2007v1-pages-239-244.pdf)
+35. **Stackalytics**
+    - 説明
+      - コミット/変更ファイル/変更行数/レビュー/バグ等、複数ソースの“貢献”を集約
+    - 参考
+      - [https://wiki.openstack.org/wiki/Stackalytics](https://wiki.openstack.org/wiki/Stackalytics)
+      - [https://stackalytics.io/](https://stackalytics.io/)
+36. **Facade（“FOSS Anomaly Detector”）**
+    - 説明
+      - 複数リポをクロールして**作者別の行追加/削除、パッチ数、ユニーク貢献者**などを集計・レポート化
+    - 参考
+      - [https://github.com/brianwarner/facade](https://github.com/brianwarner/facade)
+      - [https://www.linux.com/training-tutorials/introducing-facade-easy-way-track-git-repo-contributions/](https://www.linux.com/training-tutorials/introducing-facade-easy-way-track-git-repo-contributions/)
+      - [https://project.linuxfoundation.org/hubfs/LF%20Research/Harvard%20Census%20II%20of%20Free%20and%20Open%20Source%20Software%20-%20Report.pdf](https://project.linuxfoundation.org/hubfs/LF%20Research/Harvard%20Census%20II%20of%20Free%20and%20Open%20Source%20Software%20-%20Report.pdf)
+37. **Git-of-theseus（Python）**
+    - 説明
+      - `authors.json`から**作者別のコード残存率/占有率**を可視化
+      - 「誰のコードが今もどれだけ残っているか」を定量化でき、“実効的な寄与”の参考に
+    - 参考
+      - [https://github.com/erikbern/git-of-theseus](https://github.com/erikbern/git-of-theseus)
+      - [https://www.linuxlinks.com/git-of-theseus-analyze-git-repo-grows-time/](https://www.linuxlinks.com/git-of-theseus-analyze-git-repo-grows-time/)
+38. **Code Maat（Clojure/CLI）**
+    - 説明
+      - VCS 履歴解析（Clojure 製）
+      - VCS ログから**作者数×モジュール/変更の同時発生（変更カップリング）/ホットスポット**などを抽出
+      - **作者×ファイルの関与度**を構造面から評価し、共同変更や所有権/カップリングの分析で“誰がどの領域を主に触っているか”を把握しやすい
+    - 参考
+      - [https://github.com/adamtornhill/code-maat](https://github.com/adamtornhill/code-maat)
+      - [https://www.adamtornhill.com/code/codemaat.htm](https://www.adamtornhill.com/code/codemaat.htm)
+      - [https://sourceforge.net/projects/code-maat.mirror/](https://sourceforge.net/projects/code-maat.mirror/)
+39. OSS Insight / OSS Insight Lite（PingCAP / TiDB 上の GitHub イベント分析）
+    - 説明
+      - 開発者別・リポジトリ別に PR、レビュー、Issue など多面的なアクティビティを SQL または NLQ で分析します。GH Archive と TiDB で構成する大規模イベントデータベースに対して、自然言語から SQL を生成したり、リポジトリ単位・開発者単位のクエリを発行したりできます。GUI では時系列・地理・企業分布も取得できます
+      - Lite はセルフホストで手元ダッシュボードを作れます
+    - 参考
+      - [https://ossinsight.io/](https://ossinsight.io/)
+      - [https://ossinsight.io/docs/about](https://ossinsight.io/docs/about)
+      - [https://github.com/pingcap/ossinsight](https://github.com/pingcap/ossinsight)
+40. **OpenSauced（SaaS/OSS）**
+    - 説明
+      - “Contributor Insights / Repository Insights”で**個人ごとの活動量や貢献傾向**を見える化。チーム単位の**貢献者リスト**運用にも向く
+      - Git-who / gitwho / git-authorship — ツリー単位の**作者別オーナーシップ**、変更行の所有者、作者レポート生成などを TUI/HTML で手早く確認。運用に組み込みやすい軽量ツール
+    - 参考
+      - [https://opensauced.pizza/docs/features/contributor-insights/](https://opensauced.pizza/docs/features/contributor-insights/)
+      - [https://terminaltrove.com/git-who/](https://terminaltrove.com/git-who/)
+      - [https://github.com/flaviostutz/gitwho](https://github.com/flaviostutz/gitwho)
+
+41. `mntnr/name-your-contributors`
+    - 説明
+      - GitHub の指定ライブラリのコミット履歴、issue、コメントの貢献者をリストアップしてくれる
+    - 参考
+      - [https://github.com/mntnr/name-your-contributors](https://github.com/mntnr/name-your-contributors)
+
+42. DevStats (CNCF)
+    - 説明
+      - GH Archive を Postgres に取り込み、Grafana テンプレートで **貢献者・企業・タイムレンジ** を自由にフィルタ
+43. GitCompare
+44. Hubble
+45. Sourced
+46. AskGit
+47. Gitana
+48. Microsoft GHCrawler
+49. Kibble
+50. MergeStat-lite
+51. gitqlite
+52. **RepoSense**
+    - 説明
+      - Vue ダッシュボードで学生チームの個人貢献を可視化。Git リポジトリを分析し、1 つ以上のリポジトリにわたるコードの著者情報、貢献パターン、開発活動を可視化するインタラクティブな Web ベースレポートを生成する
+    - 参考
+      - [https://github.com/reposense/RepoSense](https://github.com/reposense/RepoSense)
+      - [https://deepwiki.com/reposense/RepoSense](https://deepwiki.com/reposense/RepoSense)
+53. Git-statistic 
+    - 説明
+      - Rust 製で数十万コミットを秒単位処理
+    - 参考
+      - [https://www.reddit.com/r/rust/comments/1g49n8h/introducing_gitstatistic_a_simple_fast_git/](https://www.reddit.com/r/rust/comments/1g49n8h/introducing_gitstatistic_a_simple_fast_git/)
+54. GitClear Gallery
+    - 説明
+      - 40 以上の無償ツールのスクリーンショット＆比較表
+    - 参考
+      - [https://www.gitclear.com/gallery_of_free_git_stats_screenshots_examples](https://www.gitclear.com/gallery_of_free_git_stats_screenshots_examples)
+55. GrimoireLab
+    - 説明
+      - 開発・コミュニティデータの収集→正規化・拡張→可視化までを担うツールセット
+      - 主要コンポーネント
+        - **Perceval**
+          - 各種プラットフォームからデータ収集
+            - **SortingHat**
+              - ID と所属の統合管理
+            - **SirMordred**
+              - 全体オーケストレーション
+            - **Kibiter/Sigils/Kidash/Manuscripts**
+              - ダッシュボードとレポーティング
+
+56. `tenex/opensourcecontributors`
+    - 説明
+      - 旧：githubcontributions.io
+      - 指定した GitHub ユーザーの全“貢献イベント”を横断検索できるようにするためのソフトウェア
+      - データは **GH Archive** と（2015 年以前は）**BigQuery** の公開データを使い、**2011-01-01〜「昨日」まで**のイベントを対象
+      - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）
+    - 参考
+      - [https://github.com/tenex/opensourcecontributors](https://github.com/tenex/opensourcecontributors)
+57. **Apache DevLake**
+    - 説明
+      - GitHub/GitLab/Bitbucket などからデータを取り込み、Grafana などで貢献メトリクスを可視化
+      - たとえば「Commit Count（期間内コミット数）」は開発者別に出せます。GitHub 連携の手順とメトリクス仕様が明確で、複数リポを一括分析したいときに便利
+    - 参考
+      - [https://github.com/apache/incubator-devlake](https://github.com/apache/incubator-devlake)
+      - [https://devlake.apache.org/docs/Configuration/GitHub/](https://devlake.apache.org/docs/Configuration/GitHub/)
+58. **CHAOSS Augur**
+    - 説明
+      - GrimoireLab とは別プロダクト
+      - リポ群のトレースデータを収集・正規化し、コントリビュータ別の各種メトリクスや API を提供。CHAOSS 公式が GrimoireLab と並ぶ実装として位置づけ
+59. **OpenDigger（X-lab2017）**
+    - 説明
+      - GitHub/Gitee のデータからプロジェクト健全性や“開発者影響度”などを算出。開発者・リポのランキング／OpenRank 系の指標で貢献度を俯瞰したいときに。CHAOSS メトリクスやその他 KPI の実装はリポ内の chaoss.ts / metrics.ts を参照
+    - 参考
+      - [https://github.com/X-lab2017/open-digger](https://github.com/X-lab2017/open-digger)
+      - [https://github.com/X-lab2017/open-digger/blob/master/src/metrics/chaoss.ts](https://github.com/X-lab2017/open-digger/blob/master/src/metrics/chaoss.ts)
+      - [https://github.com/X-lab2017/open-digger/blob/master/src/metrics/metrics.ts](https://github.com/X-lab2017/open-digger/blob/master/src/metrics/metrics.ts)
+      - [https://deepwiki.com/X-lab2017/open-digger](https://deepwiki.com/X-lab2017/open-digger)
+60. **Apache Kibble**
+    - 説明
+      - Git／Issue／メーリングリスト等のスキャナで収集しダッシュボード化するアグリゲータ。直近は“低活動”の旨が公式議事録にありますが、仕組みとしては複数ソースの統合に強いです
+    - 参考
+      - [https://github.com/apache/kibble](https://github.com/apache/kibble)
+      - [https://whimsy.apache.org/board/minutes/Kibble.html](https://whimsy.apache.org/board/minutes/Kibble.html)
+      - [https://github.com/apache/kibble-scanners](https://github.com/apache/kibble-scanners)
+61. Gource
+    - 説明
+      - “開発者がファイルの樹に現れて編集していく”様子を動画で可視化。誰がどこを触っているかの直感的デモに最適
+    - 参考
+      - [https://gource.io/](https://gource.io/)
+      - [https://github.com/acaudwell/Gource](https://github.com/acaudwell/Gource)
+62. Git Truck / Truck-Factor 系
+    - 説明
+      - ファイル所有権から Bus/Truck Factor を可視化し、単独保守領域や知識集中を発見。“貢献の偏り”を見るのに役立ちます
+    - 参考
+      - [https://github.com/git-truck/git-truck](https://github.com/git-truck/git-truck)
+      - [https://www.npmjs.com/package/git-truck/v/1.8.2](https://www.npmjs.com/package/git-truck/v/1.8.2)
+      - [https://mircealungu.com/docs/assets/papers/22-Git-Truck.pdf](https://mircealungu.com/docs/assets/papers/22-Git-Truck.pdf)
+63. `devActivity`
+    - 参考
+      - [https://github.com/devactivity-app](https://github.com/devactivity-app)
+64. `Gitee`
+    - 説明
+      - Gitee は、中国版 GitHub
+    - 参考
+      - [https://qiita.com/Afo_guard_enthusiast/items/8cb3bb716cb83d614ac8](https://qiita.com/Afo_guard_enthusiast/items/8cb3bb716cb83d614ac8)
+65. `x-lab/HyperCRX`
+    - 説明
+      - OpenDigger が育成したダウンストリームプロジェクトであるブラウザ拡張機能「HyperCRX」
+    - 参考[https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
+66. `hypertrons`
+    - [https://blog.frankzhao.cn/open_source_lighten_the_future/](https://blog.frankzhao.cn/open_source_lighten_the_future/)
+      - [https://blog.frankzhao.cn/hypertrons_overview/](https://blog.frankzhao.cn/hypertrons_overview/)
+67. `amzn/oss-contribution-tracker`
+    - 説明
+      - 指定したメンバーの OSS 横断的に貢献したデータを収集して dashboard に表示するソフトウェア
+    - 参考
+      - [https://github.com/amzn/oss-contribution-tracker](https://github.com/amzn/oss-contribution-tracker)
+68. `adobe/oss-contributors`
+    - 説明
+      - 企業間の、GitHub.com における活動量を比較できるソフトウェア
+    - 参考
+      - [https://github.com/adobe/oss-contributors/tree/master](https://github.com/adobe/oss-contributors/tree/master)
+69. `nokamoto/print-github-contrib`
+    - 説明
+      - 特定の単一または複数のリポジトリを対象とし、ユーザーごとのプロジェクト横断的に貢献した件数をカウントする
+      - プロジェクトにかかわった全ユーザーが、各ユーザーごとのコメント数・プルリク作成数・プルリクのアプルーブド数を CSV で表示
+      - 上記に追加で、リポジトリのメタデータや所有者情報も表示しています
+      - 組織を指定して、その指定組織のリポジトリや貢献件数を表示している
+    - 参考
+      - [https://github.com/nokamoto/print-github-contrib](https://github.com/nokamoto/print-github-contrib)
+
+#### データ取得元
+
+##### コード系
+
+1. GitHub
+   - GitHub API
+2. Gerrit
+3. GH Archive
+   - 参考
+     - [https://github.com/igrigorik/gharchive.org](https://github.com/igrigorik/gharchive.org)
+     - [https://www.gharchive.org/](https://www.gharchive.org/)
+   - 説明
+     - GitHub API の 1 時間ごとにアーカイブしたデータを取得できる
+     - これで RateLimit を回避して、GitHub API のデータを取得できる
+       - GitHub API との違いは、削除されたリポジトリの内容も取得できる
+
+- GitLab
+- Docker Hub
+- Git
+- npm
+
+1. Git
+2. Bugzilla
+3. Launchpad
+4. Jira
+5. Confluence
+6. Discourse
+7. Slack
+8. Jenkins
+9. Meetup
+10. Mediawiki
+11. Phabricator
+12. Redmine
+13. StackOverflow
+14. Telegram
+15. 依存ファイル
+    - `package.json`など
+16. SPDX
+    - Software Package Data Exchange
+    - Linux Foundation の傘下で開発された、ソフトウェアパッケージのライセンス情報や Bill of Materials（BOM）に関するメタデータのオープンスタンダード
+17. Web 標準 API
+    1. 以下を実行して取得した Web 標準 API の一覧から Git clone したリポジトリをチェックする
+       - [`https://unpkg.com/@mdn/browser-compat-data@6.1.1/data.json`](https://unpkg.com/@mdn/browser-compat-data@6.1.1/data.json)
+       - [https://github.com/mdn/browser-compat-data](https://github.com/mdn/browser-compat-data)
+    2. ESLint の plugin-compat を使用する
+       - CLI で、シェルスクリプト内で Git clone したプロジェクトに対して実行
+18. Libraries.io
+    - 参考
+      - [https://pure.itu.dk/ws/portalfiles/portal/86173865/msr2021*pfeiffer_1*.pdf](https://pure.itu.dk/ws/portalfiles/portal/86173865/msr2021_pfeiffer_1_.pdf)
+    - 説明
+      - 90+のパッケージエコシステムを横断してメタデータを提供
+      - `GET https://libraries.io/api/{platform}/{name}/{version}/dependencies`（`version=latest`も可）
+
+19. Open Source Insights（`deps.dev`, Google）
+    - 参考
+      - [https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html](https://security.googleblog.com/2023/04/announcing-depsdev-api-critical.html)
+      - [https://blog.deps.dev/combining-dependencies-with-commits/](https://blog.deps.dev/combining-dependencies-with-commits/)
+    - 説明
+      - 複数エコシステムの依存グラフを提供し、公式 API と BigQuery の公開データセットからも閲覧できます
+    - BigQuery
+      - [https://docs.deps.dev/bigquery/v1/](https://docs.deps.dev/bigquery/v1/)
+    - 注意
+      - 解決済み依存関係を返すため、devDependencies などは返さない
+20. 「GitHub API」の「Export SBOM」
+    - コード例
+      - `gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/facebook/react/dependency-graph/sbom"`
+    - 参考
+      - [https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28](https://docs.github.com/ja/rest/dependency-graph/sboms?apiVersion=2022-11-28)
+21. `ecosyste.ms`
+    - 説明
+      - 複数エコシステムのパッケージ情報を集約するオープンプラットフォーム。REST/OpenAPI のドキュメントを公開
+22. 各エコシステム公式レジストリ系
+    1. JavaScript（npm）
+       - `GET https://registry.npmjs.org/<package>`
+    2. Python（PyPI JSON API）
+       - `GET https://pypi.org/pypi/<project>/json`
+    3. Ruby（RubyGems）
+       - `GET https://rubygems.org/api/v1/gems/<gem>.json` → `dependencies` キーに `runtime` / `development` が入る
+    4. その他も多くある
+23. グローバルインストールしているライブラリを見つける方法
+    1. JavaScript/TypeScript（Node＋ブラウザ）
+       - `npx depcheck`
+       - 不足分は「import/require はあるのに package.json にない」ケースの発見
+    2. ESLint の`import/no-extraneous-dependencies`
+    3. “未宣言のグローバル”検出
+       - ESLint `no-undef`：未宣言変数・暗黙のグローバルを検出。`.eslintrc`で`env: { browser: true, node: true }`を設定し、誤検知を防止。必要なグローバルは`globals`で明示
+    4. `eslint-plugin-compat`
+       - コード中で呼んでいるブラウザ API（例：`Notification`や`IntersectionObserver`）を解析し、対象ブラウザでの対応可否を Lint
+    5. 文字列・AST での検出
+       - 代表的なエントリポイント（`window.fetch`、`AbortController`、`navigator.serviceWorker`、`caches` など）を **grep/リポジトリ内検索**で洗い出す
+    6. Semgrep
+       - AST 相当のパターンマッチで `fetch(...)`、`new URL(...)`、`document.querySelector(...)` 等の**Web API使用箇所を静的検出**。公式やコミュニティの JavaScript ルールセットも豊富で、DOM 操作やクライアントサイド特有のパターン検出に強いです。CI/CD への組み込みも容易
+       - 「使っている API 名の一覧化」「特定 API の使用禁止チェック」「危険な DOM API の利用検出」など、用途別に素早くルールを足したいとき
+
+24. パッケージマネージャーから取得
+    - Python
+      - `pydeps`
+        - https://pydeps.readthedocs.io/en/latest/
+    - JavaScript
+      - `dependency-cruiser`
+        - https://www.npmjs.com/package/dependency-cruiser
+      - `madge`
+        - https://github.com/pahen/madge
+    - `depsy`
+      - [https://deepwiki.com/ourresearch/depsy](https://deepwiki.com/ourresearch/depsy)
+
+25. シェルスクリプトの依存関係
+    - 実行トレースで拾う
+      - スクリプト先頭に`set -x`（または`#!/bin/bash -x`）を入れて実行し、標準エラーを保存
+      - `./your.sh 2> _trace.txt`
+    - システムコールレベルで拾う
+      - `strace`で`execve()`系のみを追跡すると、起動した実行ファイルを確実に抽出できます
+      - `strace -f -e trace=execve -o _strace.txt ./your.sh`
+
+26. グローバルインストールしているライブラリを取得
+    - `brew list`
+    - `brew bundle dump --describe --file Brewfile`
+    - `brew leaves -r`
+    - `brew install mas`
+    - `mas list   # MAS由来のインストール済みアプリ一覧`
+    - `winget list`
+    - `winget export -o winget-packages.json`
+    - `apt list --installed`
+    - `apt-mark showmanual`
+    - `dnf list installed`
+    - `zypper search -i` または `zypper search --installed-only`
+
+##### その他
+
+1. 各サービスの API
+2. Chrome history API
+   - [Google データ エクスポート](https://takeout.google.com/settings/takeout?hl=ja)を使ってダウンロードしたファイルや、Google Chrome が端末に保存した History ファイルを扱うような方法がある
+   - [https://takeout.google.com/settings/takeout?hl=ja](https://takeout.google.com/settings/takeout?hl=ja)
+   - `chrome.history`API で、履歴の取得
+   - [https://developer.chrome.com/docs/extensions/reference/api/history?hl=ja](https://developer.chrome.com/docs/extensions/reference/api/history?hl=ja)
+     - `chrome.history` API を使用して、アクセスしたページのブラウザの記録を操作します。ブラウザの履歴では、URL の追加、削除、照会を行うことができます。- Google Chrome の閲覧履歴を直接取得するための公式な API は、セキュリティとプライバシーの観点から一般には提供されていません。- ただし、Chrome 拡張機能（Chrome Extensions）として、ユーザーの許可を得たうえで閲覧履歴を取得するための API が存在します。それが Chrome History API です
+       - 拡張機能のマニフェストに権限を追加
+         - マニフェストファイル（`manifest.json`）で以下のように`"permissions"`フィールドに`"history"`を指定します
+
+##### 論文系
+
+1. `Crossref`API
+   - 学術出版物（論文、データセット等）にデジタルオブジェクト識別子（DOI）を付与・管理する国際的な非営利組織の API
+2. 論文の中で言及されている名前
+3. CRediT
+   - CRediT API
+   - 著者の貢献分類に活用
+4. PubMed
+5. Google Scholar
+6. Scopus
+   - Scopus API
+7. arXiv
+   - arXiv API
+   - プレプリント論文
+8. CrossRef
+   - CrossRef API
+   - DOI (Digital Object Identifier)を持つ論文データベース
+   - https://www.crossref.org/documentation/retrieve-metadata/rest-api/
+9. - Semantic Scholar API
+   - AI ベースの論文検索エンジンからのデータ
+   - **公式URL**: [Semantic Scholar API](https://www.semanticscholar.org/product/api)
+   - **特徴**:
+     - 論文の要約、引用、引用数、著者情報
+     - 論文間の関係性を分析
+10. **PubMed API (E-utilities)**
+    - **提供内容**: 医学・生命科学系の論文情報
+    - **公式URL**: [PubMed API](https://www.ncbi.nlm.nih.gov/books/NBK25501/)
+    - **特徴**:
+      - 米国国立医学図書館（NLM）のデータベースから提供
+      - メタデータと全文情報
+11. **OpenCitations API**
+    - **提供内容**: オープンな引用データベース
+    - **公式URL**: [OpenCitations API](https://opencitations.net/)
+    - **特徴**:
+      - 論文間の引用関係
+      - オープンデータ形式で提供
+12. **CORE API**
+    - **提供内容**: オープンアクセスの研究論文データベース
+    - **公式URL**: [CORE API](https://core.ac.uk/services#api)
+    - **特徴**:
+      - 世界中のリポジトリから収集
+      - オープンアクセスで利用可能な論文データ
+13. **Springer Nature Metadata API**
+    - **提供内容**: Springer の学術出版物
+    - **公式URL**: [Springer API](https://dev.springernature.com/)
+    - **特徴**:
+      - Springer の論文・書籍データ
+      - メタデータ検索や全文取得（条件付き）
+14. **Elsevier APIs (Scopus and ScienceDirect APIs)**
+    - **提供内容**: Elsevier が提供する学術情報
+    - **公式URL**: [Elsevier API](https://dev.elsevier.com/)
+    - **特徴**:
+      - Scopus API: 引用情報や分析
+      - ScienceDirect API: 論文のフルテキスト情報（アクセス制限あり）
+15. **OpenAlex API**
+    - **提供内容**: 論文、著者、ジャーナル、機関のデータ
+    - **公式URL**: [OpenAlex API](https://docs.openalex.org/)
+    - **特徴**:
+      - Microsoft Academic Graph の後継
+      - 豊富な学術情報をオープンに提供
+16. **DOAJ API (Directory of Open Access Journals)**
+    - **提供内容**: オープンアクセスのジャーナルと記事
+    - **公式URL**: [DOAJ API](https://doaj.org/api/v2/docs)
+    - **特徴**:
+      - 高品質のオープンアクセスジャーナルを対象
+17. **Dimensions API**
+    - **提供内容**: 論文、引用、助成金、特許、臨床試験情報
+    - **公式URL**: [Dimensions API](https://www.dimensions.ai/)
+    - **特徴**:
+      - 幅広い研究データ
+      - 商用利用は有料
+18. **Lens.org API**
+    - **提供内容**: 論文、特許情報、引用データ
+    - **公式URL**: [Lens API](https://www.lens.org/)
+    - **特徴**:
+      - オープンアクセスのデータベース
+      - 特許と学術論文を統合
+19. **ERIC API**
+    - **提供内容**: 教育研究データ
+    - **公式URL**: [ERIC API](https://eric.ed.gov/)
+    - **特徴**:
+      - 教育分野の論文やレポート
+      - 米国教育省提供
+20. **Unpaywall API**
+    - **提供内容**: オープンアクセスのフルテキストへのリンク
+    - **公式URL**: [Unpaywall API](https://unpaywall.org/products/api)
+    - **特徴**:
+      - DOI を基にフルテキストを検索
+      - オープンアクセスの論文を特定
+
+- 課題管理
+  - Jira
+  - Trello
+  - Bugzilla
+  - Launchpad
+  - Phabricator Maniphest
+  - Pagure
+  - Redmine
+
+- チャット
+  - Discord
+  - Slack
+  - messenger
+  - ChatWork
+  - WeChat
+
+- SNS
+  - X(Twitter)
+  - Instagram
+  - Facebook
+  - TikTok
+  - Snapchat
+  - Threads
+  - YouTube
+
+- 記事・ブログ
+  1. Zenn
+     - 参考
+       - [https://zenn.dev/karaage0703/articles/c24072adc188a6](https://zenn.dev/karaage0703/articles/c24072adc188a6)
+       - [https://zenn.dev/aiq_dev/articles/2d0c83a26edca1](https://zenn.dev/aiq_dev/articles/2d0c83a26edca1#zenn-api%E3%81%AE%E8%A8%98%E4%BA%8B%E5%8F%96%E5%BE%97api%E3%81%AF%E3%80%81%E3%83%9A%E3%83%BC%E3%82%B8%E3%83%8D%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%92%E5%AE%9F%E8%A3%85%E3%81%97%E3%81%A6%E3%81%84%E3%82%8B%F0%9F%8C%9F)
+     - 説明
+       - https://zenn.dev/api/articles?username=karaage0703&order=latest&page=1`
+       - 非公式の Zenn Web API
+       - `&page=1`といったようにページ数をつけてやれば取得できます（1 ページの最大の記事数が 48）
+       - 返す json が`"next_page":null`だと次のページがない
+         - 記事一覧 API は `topicname` クエリでトピック（= ライブラリ）を指定
+         - 例：`topicname=react`
+  2. Qiita
+     - ライブラリに公式タグがあるなら **GET `/api/v2/tags/:tag_id/items`** へ寄せると、タグ由来のノイズを抑えやすいです（タグ ID 例：`React`, `Vue.js` など）
+     - 「ライブラリ名」をタグまたは検索クエリで特定（`/items?query=...` か `/tags/:tag_id/items`）
+  3. Medium
+  4. note
+  5. はてな
+
+- Q&A
+  - Stackoverflow
+  - Reddit
+
+- 検索
+  - Google
 
 ### 非干渉の権利
 
@@ -10596,38 +10466,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
      - サービス概要：人工衛星が取得した地球観測データを使うアルゴリズムの開発・提供を行う「Solafune」です
      - 衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化しています
      - データセットをオンライン公開し、世界中から解析結果を収集し、自動評価とスコアリングを行い、優秀なアルゴリズムを抽出し、ソースコードを買い取る
-
-### 意思決定
-
-1. 専門能力に応じた投票重み
-   - 参考
-     - [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
-   - 説明
-     - ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
-
-1. 正解を知る少数派が割合を低めに見積もる性質を利用
-   - 参考
-     - [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
-   - 説明
-     - 割合を低く見積もる人たちの本来聞きたい質問の回答を集めると集合知にできる
-     - 「他の参加者のうち何％が、その質問へ yes で答えると見積もるか？」という質問を追加する
-     - 正解を知る少数派が割合を低めに見積もる性質を利用して集合知を集約する
-     - 問題の予測に加え、他者の予測についての予測も併用する点が面白い
-
-1. Polis
-   - 参考
-     - [http://pol.is](https://t.co/mnPKxGq7RI)
-     - [https://twitter.com/-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
-   - 説明
-     - 返信なくして 3 値で判定してる
-
-1. Conviction Voting
-   - 参考
-     - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
-
-1. Futarchy
-   - 説明
-     - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
 
 ### etc の参考
 
