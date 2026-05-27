@@ -137,15 +137,11 @@
       - [貢献報酬の仕組み](#貢献報酬の仕組み-1)
       - [貢献検知の仕組み](#貢献検知の仕組み-1)
     - [「意思決定」の参考](#意思決定の参考)
-    - [「貢献度の算出」の参考](#貢献度の算出の参考)
     - [「幸福度の算出」の参考](#幸福度の算出の参考)
     - [「ゲーム理論・マーケットデザイン・マッチング理論」を参考](#ゲーム理論マーケットデザインマッチング理論を参考)
     - [「感情分析」サービス](#感情分析サービス)
     - [「類似性の仕組み」を行うツール](#類似性の仕組みを行うツール)
     - [貢献度の算出手法](#貢献度の算出手法)
-      - [GrimoireLab](#grimoirelab)
-      - [`OpenSourceContributo.rs`](#opensourcecontributors)
-      - [その他](#その他)
     - [データ可視化サービス](#データ可視化サービス)
     - [指標](#指標)
       - [コード系](#コード系)
@@ -160,7 +156,7 @@
     - [既存サービス](#既存サービス)
       - [データ取得元](#データ取得元)
         - [コード系](#コード系-1)
-        - [その他](#その他-1)
+        - [その他](#その他)
         - [論文系](#論文系)
       - [参考](#参考)
     - [貢献検知の仕組み](#貢献検知の仕組み-2)
@@ -6428,6 +6424,79 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - ユーザーが自分のデータを自分で管理できるようにするオープンソースの標準規格「Solid」
      - Solid ではユーザーデータを一カ所に集約してユーザー自身が管理でき、Solid 上で動作するアプリはユーザーにデータを要求し、ユーザーはそれに同意するかどうかを選択する仕組みです
+4. OSS Insight.io
+   - 参考
+     - [https://ossinsight.io/](https://ossinsight.io/)
+   - 説明
+     - OSS の貢献者のダッシュボード
+5. 労働者の貢献度と賃金率の関係
+   - 参考
+     - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
+   - 説明
+     - 日本の 2007 年の製造業を対象に、労働者が企業価値と利潤に与える影響の大きさを推定し、それら推定値と労働者が得ている賃金率を比較することで、労働者の企業業績への貢献度が賃金率にどの程度反映されているかを明らかにする
+     - この「企業価値と利潤に与える影響の大きさを推定方法」をそ参考にする
+6. タスク消化型の評価
+   - 説明
+     - Issue や Jira チケットの消化数に応じて貢献度を算出する
+7. 貢献度分析
+   - 説明
+     - 貢献度分析（Contribution Analysis）とは、主要な指標の増減に対し、どの要因（セグメント、ディメンション、キャンペーンなど）がどれだけ影響を与えたかを、統計的・機械学習的に特定・可視化する分析手法
+8. コンジョイント分析（Conjoint Analysis）
+   - 説明
+     - 製品やサービスを構成する複数の要素（価格、色、機能など）が、消費者の選択や評価にそれぞれどれくらい影響しているかを定量的に明らかにするマーケティング分析手法
+     - 複数の要素を組み合わせた選択肢を提示し、回答者の好みの順位付けや選択から、各要素の重要度や「部分効用値」を算出し、新製品開発や価格設定、最適な製品コンセプトの決定に役立てられます
+9. open-source-funding-toolkit
+   - 参考
+     - [https://github.com/sboysel/open-source-funding-toolkit](https://github.com/sboysel/open-source-funding-toolkit)
+   - 説明
+     - 研究チームは、組織の OSS 投資と実貢献の見える化ツールキット
+10. オープンソース CMS「Drupal」の開発チームのプロジェクトの貢献度を可視化プロジェクト
+    - 参考
+      - [Drupal](https://www.drupal.org/)
+      - [Solving the Maker-Taker problem | Dries Buytaert](https://dri.es/solving-the-maker-taker-problem)
+      - [https://gigazine.net/news/20241110-open-source-maker-taker-problem/](https://gigazine.net/news/20241110-open-source-maker-taker-problem/)
+    - 説明
+      - Drupal の開発コミュニティでは「コントリビューションクレジットシステム」と呼ばれる仕組みを導入しており、コードの投稿やドキュメントの修正といった貢献に応じてクレジットを付与しています
+      - Drupal はコントリビューションクレジットシステムの公平性を確保するために、中立な第三者機関に監視を依頼しています。これらの施策によって、Drupal では健全な開発エコシステムを構築できているそうです
+11. ゲーム理論
+    - 説明
+      - 例）「共有地の悲劇（The Tragedy of the Commons）」を回避するため、協力を促進するための報酬分配モデルが利用される
+12. ふれあい切符
+    - 参考
+      - [https://www.sawayakazaidan.or.jp/chiikitsuka/](https://www.sawayakazaidan.or.jp/chiikitsuka/)
+    - 説明
+      - 家事援助などボランティアの時間や点数を貯め、家族が支援を必要とするときに引き出します
+      - 団体ごとに時間銀行・タイムストックなど呼び方や運用は異なります
+      - さわやか福祉財団はこれらを総称して「ふれあい切符制度」と呼んでいます
+13. Local Exchange Trading System(LETS)
+    - 参考
+      - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
+    - 説明
+      - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
+      - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
+14. TimeBanking
+    - 参考
+      - [https://timebanking.org/](https://timebanking.org/)
+    - 説明
+      - **スキルシェアリングプラットフォーム**
+      - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
+15. 社内ポイントシステム
+    - 参考
+      - [https://unipos.me/](https://unipos.me/)
+    - 説明
+      - 例）Unipos
+16. Open Source Collective
+    - 参考
+      - [https://oscollective.org/](https://oscollective.org/)
+    - 説明
+      - OSS の財務管理ツール
+17. GitHub Sponsors
+    - 説明
+      - 特定の貢献者をスポンサーとして支援する仕組み
+      - プロジェクト全体ではなく個人に対して直接的な資金を提供
+18. Gnosis Safe
+    - 説明
+      - 透明な報酬分配ツール
 
 #### 貢献検知の仕組み
 
@@ -6517,85 +6586,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - 説明
      - CI は投票結果から投票者の目利き力を数学的に算出し、その目利き力の高低に応じて投票に重み付けを行うことで、最善の選択肢を見つけることをアルゴリズム的に確度を高めているもの
 
-### 「貢献度の算出」の参考
-
-1. OSS Insight.io
-   - 参考
-     - [https://ossinsight.io/](https://ossinsight.io/)
-   - 説明
-     - OSS の貢献者のダッシュボード
-2. 労働者の貢献度と賃金率の関係
-   - 参考
-     - [https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf](https://www.econ.doshisha.ac.jp/econ/attach/page/ECONOMICS-PAGE-JA-146/27411/file/workingpaper051.pdf)
-   - 説明
-     - 日本の 2007 年の製造業を対象に、労働者が企業価値と利潤に与える影響の大きさを推定し、それら推定値と労働者が得ている賃金率を比較することで、労働者の企業業績への貢献度が賃金率にどの程度反映されているかを明らかにする
-     - この「企業価値と利潤に与える影響の大きさを推定方法」をそ参考にする
-3. タスク消化型の評価
-   - 説明
-     - Issue や Jira チケットの消化数に応じて貢献度を算出する
-     - スタートのタスク報酬額は、作成者が設定した難易度によって決まる
-4. 貢献度分析
-   - 説明
-     - 貢献度分析（Contribution Analysis）とは、主要な指標の増減に対し、どの要因（セグメント、ディメンション、キャンペーンなど）がどれだけ影響を与えたかを、統計的・機械学習的に特定・可視化する分析手法
-5. コンジョイント分析（Conjoint Analysis）
-   - 説明
-     - 製品やサービスを構成する複数の要素（価格、色、機能など）が、消費者の選択や評価にそれぞれどれくらい影響しているかを定量的に明らかにするマーケティング分析手法です
-     - 複数の要素を組み合わせた選択肢を提示し、回答者の好みの順位付けや選択から、各要素の重要度や「部分効用値」を算出し、新製品開発や価格設定、最適な製品コンセプトの決定に役立てられます
-6. open-source-funding-toolkit
-   - 参考
-     - [https://github.com/sboysel/open-source-funding-toolkit](https://github.com/sboysel/open-source-funding-toolkit)
-   - 説明
-     - 研究チームは、組織の OSS 投資と実貢献の見える化ツールキットを公開しました
-     - 「投資の把握や追跡に役立ててほしい」とのコメントがあります
-     - GitHub 上では sboysel/open-source-funding-toolkit として OSS 組織の投資見える化資料を公開しています
-7. オープンソース CMS「Drupal」の開発チームのプロジェクトの貢献度を可視化プロジェクト
-   - 参考
-     - [Drupal](https://www.drupal.org/)
-     - [Solving the Maker-Taker problem | Dries Buytaert](https://dri.es/solving-the-maker-taker-problem)
-     - [https://gigazine.net/news/20241110-open-source-maker-taker-problem/](https://gigazine.net/news/20241110-open-source-maker-taker-problem/)
-   - 説明
-     - Drupal の開発コミュニティでは「コントリビューションクレジットシステム」と呼ばれる仕組みを導入しており、コードの投稿やドキュメントの修正といった貢献に応じてクレジットを付与しています
-     - Drupal はコントリビューションクレジットシステムの公平性を確保するために、中立な第三者機関に監視を依頼しています。これらの施策によって、Drupal では健全な開発エコシステムを構築できているそうです
-8. ゲーム理論
-   - 説明
-     - 例）「共有地の悲劇（The Tragedy of the Commons）」を回避するため、協力を促進するための報酬分配モデルが利用される
-9. ふれあい切符
-   - 参考
-     - [https://www.sawayakazaidan.or.jp/chiikitsuka/](https://www.sawayakazaidan.or.jp/chiikitsuka/)
-   - 説明
-     - 家事援助などボランティアの時間や点数を貯め、家族が支援を必要とするときに引き出します
-     - 団体ごとに時間銀行・タイムストックなど呼び方や運用は異なります
-     - さわやか福祉財団はこれらを総称して「ふれあい切符制度」と呼んでいます
-10. Local Exchange Trading System(LETS)
-    - 参考
-      - [https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/](https://project.nikkeibp.co.jp/jpgciof/atcl/19/00003/00019/)
-    - 説明
-      - 会員間の信頼関係によって取引が成立する自律的な仕組みで、紙幣は用いません
-      - 会員は口座を開設し、「提供できること・モノ」と「提供してほしいこと・モノ」をディレクトリに記載して交換します。「こと・モノ」を提供した際に受け取る「クレジット（＋）」と、購入した際に発生する「コミットメント（－）」が口座に記録されるとともに、通貨のように、ほかの「こと・モノ」に交換されていく仕組みです
-11. TimeBanking
-    - 参考
-      - [https://timebanking.org/](https://timebanking.org/)
-    - 説明
-      - **スキルシェアリングプラットフォーム**
-      - 参加者が他者を支援することでポイントを獲得し、他の支援と交換できるシステム
-12. 社内ポイントシステム
-    - 参考
-      - [https://unipos.me/](https://unipos.me/)
-    - 説明
-      - 例）Unipos
-13. Open Source Collective
-    - 参考
-      - [https://oscollective.org/](https://oscollective.org/)
-    - 説明
-      - OSS の財務管理ツール
-14. GitHub Sponsors
-    - 説明
-      - 特定の貢献者をスポンサーとして支援する仕組み
-      - プロジェクト全体ではなく個人に対して直接的な資金を提供
-15. Gnosis Safe
-    - 説明
-      - 透明な報酬分配ツール
-
 ### 「幸福度の算出」の参考
 
 1. happiness planet
@@ -6604,19 +6594,19 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
      - [https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/](https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/)
      - [https://happiness-planet.org/](https://happiness-planet.org/)
    - 説明
-     - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」を立ち上げました
-     - 社員の幸福度を定量化し働く前向きさを後押しする狙いがあります
+     - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」
+     - 社員の幸福度を定量化し働く前向きさを後押しする狙い
      - 無意識下で起きる身体の動きをウェアラブルセンサーで記録。その身体の動きと、別途実施する被験者へのアンケート形式の心理検査を組み合わせる
 2. 電子情報通信学会
    - 参考
      - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F)
    - 説明
-     - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術を開発した
+     - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術
 3. CCAPS-iQAS
    - 参考
      - [https://univ-journal.jp/204656/](https://univ-journal.jp/204656/)
    - 説明
-     - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」を企業と共同開発した
+     - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」
      - CCAPS とは Counseling Center Assessment of Psychological Symptoms の略称です
      - 大学生の心理・精神症状へ特化した国際標準指標であり、米国では 750 超の大学で採用実績があります
      - 信頼性と妥当性が示されており、日本語版は堀田准教授が研究代表として開発しました
@@ -6672,7 +6662,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - [In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat](https://www.nature.com/articles/s41551-023-01095-1)
       - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
     - 説明
-      - **AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できるようにした**
+      - \*\*AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できる
       - スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
 18. 空気中のミリ波・血圧
     - 参考
@@ -6717,8 +6707,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - [https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)
       - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
     - 説明
-      - 例として零唯一思と瑞金医院脳病センターの 2 研究拠点を挙げます
-      - いずれも脳センシングを AI で処理し、感情をデータ化しています
+      - 脳センシングを AI で処理し、感情をデータ化
       - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
 25. Mappiness
     - 参考
@@ -7239,6 +7228,8 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
      - [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/)
    - 説明
      - バックエンドは Postgres データベース
+     - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
+     - 外部ツールは REST API 経由でメトリクスを取得できる状態にします
      - ソース
        - Git コミットログ
          - コミット、コントリビューター
@@ -7249,178 +7240,49 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
          - リポジトリのメタデータ
        - Succinct Code Counter
          - COCOMO 計算も実行可能な、超高速な Sloc、Cloc、コードツール
-     - GitHub などから取得したデータを **PostgreSQL** に正規化して保存します
-     - 外部ツールは REST API 経由でメトリクスを取得できる状態にします
-
-#### GrimoireLab
-
-- Bitergia／LibreSoft の Metric-Grimoire 系ツールを継承し、2017 年に CHAOSS 初期ソフトウェアとして採択
-- **30 種類超のデータソース＆150 以上の指標・可視化**を提供する総合基盤です。([CHAOSS](https://chaoss.community/grimoirelab-1-0/), [Bitergia](https://bitergia.com/blog/grimoirelab-and-chaoss-part-of-google-summer-of-code/))
-- Git、GitHub、Jira、Slack、Mailing List など「開発・コミュニティ全域」を一元分析できる点が強み。([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))
-
-| 層           | 主要コンポーネント                             | 役割                                                                                                                                                                                               |
-| ------------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 取得         | **Perceval**                                   | API/スクレイピングで生データを収集 ([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))                                                                                            |
-| 格納         | ElasticSearch Raw/Enriched Index               | JSON をそのまま保存／メタ情報付与して保存 ([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))                                                                                     |
-| 同一人物解決 | **SortingHat**                                 | メールや SNS アカウントを統合し、所属企業も付与 ([GitHub](https://github.com/chaoss/grimoirelab-sortinghat), [chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))                   |
-| 可視化       | **GrimoireELK + Kibana/Opensearch Dashboards** | 標準 Sigils ダッシュボードを Kidash で管理 ([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/docs/components/gelk/intro/), [GitHub](https://github.com/chaoss/grimoirelab-kidash)) |
-
-- CNCF・OpenInfra など大規模財団で **マルチリポジトリの公開ダッシュボードを運用**
-- 企業内で「貢献者の流入・定着率」を測る際、SortingHat で人材トラッキングを実施。([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/), [chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/))
-
-Augur と GrimoireLab の比較。
-
-| 観点         | Augur                                | GrimoireLab                                 |
-| ------------ | ------------------------------------ | ------------------------------------------- |
-| 重点領域     | リポジトリ活動（コミット/PR/Issue）  | 開発 + コミュニティ全域                     |
-| データベース | PostgreSQL（正規化）                 | ElasticSearch（ドキュメント指向）           |
-| 可視化       | 内蔵 React UI / 任意 BI 連携         | Kibana/Opensearch Dashboards                |
-| 導入容易性   | Docker Compose 1 ノードで完結        | Elastic + Kibana 構築が前提                 |
-| 拡張         | 新規メトリクスは SQL & Python で実装 | Perceval プラグイン + Sigils ダッシュボード |
-| 運用規模     | 中小〜研究用途向けで軽量             | 大規模財団・企業横串分析向け                |
-
-> - 小規模プロジェクトや「まずは PR 応答速度を追いたい」場合は **Augur** が手軽
-> - 多数リポジトリ・多様なチャネルを横断して深掘りしたい場合は **GrimoireLab** が適任
-> - 両者とも CHAOSS WG のメトリクス定義に追随しているため、**結果を横比較**することも可能です。([Intel](https://www.intel.com/content/www/us/en/developer/articles/community/charting-chaoss-open-source-health-and-viability.html))
-
-| 目的               | 推奨手順                                                                                                                                                                                                                     |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Augur を試す       | （1） Docker Compose 取得 → （2） `augur config` で GitHub Token 設定 → （3） ブラウザで `localhost:5000` を表示 ([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/))                                             |
-| GrimoireLab を試す | （1） `pip install grimoirelab` → （2） `projects.json` を作成 → （3） `mordred projects.json` でデータ収集 → （4） `kidash` でダッシュボードインポート ([chaoss.github.io](https://chaoss.github.io/grimoirelab-tutorial/)) |
-
-**Augur が「どのようなデータ源を収集し」「どんな指標をどのロジックで計算しているか」**を網羅的に整理しました。
-
-> Augur は“ワーカー(Worker)”と呼ぶマイクロサービス群で Git／GitHub／GitLab など複数 API をクロールし、正規化した PostgreSQL スキーマに格納。
-> そこから CHAOSS メトリクス実装を SQL／Python で生成し、REST API と 8Knot などのダッシュボードへ提供します。
-> 全指標は大きく「活動量」「変更リクエスト」「課題管理」「人・組織」「時系列パターン」「多様性・リスク」の 6 領域 40 種類超で、各々の数式（分子・分母・時間窓など）が Git／Issue／PR のタイムスタンプや diff 行数などから導かれます。
-
-1. 取得データソースと収集方法
-
-| 種別                        | 説明                                                                           | 主要 Worker／テーブル                                                                                                                                                                                                                                                                        |
-| --------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Git Trace**               | `git clone --mirror` で取得したコミット、タグ、ブランチ、diff 行数             | Commits DataMart（`commits*` 系）([augurlabs.io](https://www.augurlabs.io/augurs-full-physical-data-model/))                                                                                                                                                                                 |
-| **GitHub REST/GraphQL API** | Issues／PR／Review／Release／Stars／Forks／Clones などをページネーションで取得 | GitHub Issues / Pull-Request Worker ([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/workers/toc.html), [Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-| **GitLab REST API**         | Merge Request・Issue・Job 等を GitLab*Merge-Request*／_Issues_ Worker が取得   | GitLab MR Worker（API call → `pull_requests*`）([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/workers/toc.html))                                                                                                                                     |
-| **Discourse / Forum**       | スレッド、投稿、リアクション                                                   | _Discourse-Analysis Worker_ ([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/workers/toc.html))                                                                                                                                                        |
-| **Messaging / Chat**        | Slack・Matrix 等のメッセージログ（任意）                                       | _Message-Insights Worker_ ([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/workers/toc.html))                                                                                                                                                          |
-| **依存関係 & ライセンス**   | Libraries.io・SPDX で Package 依存 & ライセンスメタを取得                      | SPDX サブスキーマ（緑枠）([augurlabs.io](https://www.augurlabs.io/augurs-full-physical-data-model/))                                                                                                                                                                                         |
-| **セキュリティ**            | OpenSSF Scorecard・GitHub Advisory 等で脆弱性指標を算出（2025 強化版）         | _Security Worker_（v0.90.0 以降）([augurlabs.io](https://www.augurlabs.io/augurs-full-physical-data-model/))                                                                                                                                                                                 |
-
-収集は RabbitMQ キューに投入 → 並列 Worker が API を叩き Postgres へ upsert、状態は Redis で監視\* ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/), [oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/workers/creating_a_new_worker.html)) 。
-
-2. 指標一覧と計算ロジック
-   2-1. 変更リクエスト（Pull/Merge Request）系
-
-| 指標                                | 定義・数式                             | 補足                                                                                                                                                                     |
-| ----------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Change Request Acceptance Ratio** | `merged PR 数 ÷ (merged + declined)`   | リポジトリの受け入れ度 ([GitHub](https://raw.githubusercontent.com/chaoss/wg-evolution/main/focus-areas/code-development-efficiency/change-request-acceptance-ratio.md)) |
-| **Change Request Closure Ratio**    | `期間内に close された PR ÷ 未解決 PR` | 処理スピード把握 ([CHAOSS](https://chaoss.community/kb/metric-change-request-closure-ratio/))                                                                            |
-| **Change Request Commits**          | `各 PR に紐づく commit 件数`           | 大規模改修の検知 ([CHAOSS](https://chaoss.community/kb/metric-change-request-commits/))                                                                                  |
-| **Review Cycle Duration**           | `merged_at − first_reviewed_at`        | 8Knot UI で箱ひげ表示 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))    |
-| **Time to First Response**          | `first_reviewed_at − created_at`       | 新規貢献者 UX 指標 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))       |
-
-2-2. コード／コミット活動。
-
-| 指標                                  | 定義                               | 計算ロジック                                                                                                                                                                 |
-| ------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Commit Counts**                     | 期間内コミット総数                 | `SELECT COUNT(*) FROM commits WHERE author_date BETWEEN …`                                                                                                                   |
-| **Code Changes Lines**                | 追加＋削除行数                     | `SUM(additions), SUM(deletions)` を日次集計                                                                                                                                  |
-| **Programming Language Distribution** | `各言語LOC ÷ 全言語LOC`            | GitHub Linguist API ベース ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))   |
-| **Clones**                            | GitHub Traffic API の日次 clone 数 | 時系列を Fano 係数計算に利用 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-
-2-3. Issue / バグ管理。
-
-| 指標                | 定義                            | 典型窓                                                                                                                                                                   |
-| ------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Issue Open Rate** | 新規 Issue 件数／日             | 時系列 worker                                                                                                                                                            |
-| **Time to Close**   | `closed_at − created_at` の平均 | SLA/テクニカルデット評価 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-
-2-4. 人・組織。
-
-| 指標                         | 定義                                             | データ                                                                                                                                                             |
-| ---------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Committers**               | 生存期間内に 1+ コミットした開発者数             | `DISTINCT author_email` ([CHAOSS](https://chaoss.community/kb/metric-committers/))                                                                                 |
-| **Contributors**             | Issue, PR, Review など全チャネルのユニーク参加者 | SortingHat で同一人物統合 ([CHAOSS](https://chaoss.community/kb/metric-contributors/))                                                                             |
-| **Occasional Contributors**  | 年間貢献 ≤ _n_ 回の開発者割合                    | 初心者維持率を観測 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-| **Organizational Diversity** | `max(company_share)` の逆数                      | 1 に近いほど分散 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))   |
-
-2-5. 時系列パターン。
-
-| 指標                               | ロジック                                               | 目的                                                                                                                                                                   |
-| ---------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Burstiness**                     | Fano factor=`var(activity) / mean(activity)`（週単位） | “急増急減”の検知 ([GitHub](https://raw.githubusercontent.com/chaoss/wg-metrics-development/main/focus-areas/time/burstiness.md))                                       |
-| **アクティビティ Dates and Times** | 曜日・時刻ヒートマップ                                 | タイムゾーン多様性評価 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-
-6. 多様性・リスク
-
-| 指標                   | 算出                           | 補足                                                                                                                                                                     |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Bus Factor**         | `主要貢献上位 x% を占める人数` | Postgres 窓関数で計算                                                                                                                                                    |
-| **Technical Forks**    | 公式 repo を fork した派生の数 | GitHub API `forks_count` ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/)) |
-| **SPDX Document 有無** | SPDX JSON の presence flag     | ライセンス健全性 ([Superuser](https://superuser.openinfra.org/articles/what-is-the-health-of-your-oss-project-find-out-with-chaoss-metrics-and-software-augur/))         |
-
-3. エンドポイントと活用イメージ
-
-- **REST 形式**
-- `/api/unstable/repos/{repo_id}/{metric}?period=quarter&begin_date=2024-01-01`
-  で JSON を返却。8Knot や Superset へ接続して可視化可能。([oss-augur.readthedocs.io](https://oss-augur.readthedocs.io/en/main/development-guide/create-a-metric/api-development.html))
-- **分析サイクル**
-  1. `augur backend start` でデータ収集
-  2. Metrics API で CSV 出力 → Jupyter で相関分析
-  3. 改善目標（例として Acceptance Ratio が 0.9 を超えること）を設定し CI とレビューのプロセスへフィードバックする
-
-_Augur は Git 系プラットフォームの全履歴＋コミュニケーションチャネルを機械収集し、CHAOSS メトリクス約 40 種類を SQL ベースで再現。_
-
-**計算ロジックはすべて “分子・分母・ウィンドウ” が Postgres テーブルで確認でき、独自指標も Worker 追加で拡張可能** です。OSS の健康診断や KPI トラッキングに採用する際は、上記 6 領域を目的に応じ組み合わせると多面的な洞察が得られます。
-
-#### `OpenSourceContributo.rs`
-
-- 説明
-  - ユーザーごとの GitHub への貢献を検索する検索エンジン
-  - ユーザーが 2011-01-01 から昨日までに GitHub の任意の公開リポジトリに行ったすべてのコントリビューションの一覧を検索するユーティリティです
-  - 2015-01-01 から現在までのデータは GitHub Archive にあります。それ以前のデータは別のスキーマを使い、Google の BigQuery から取得しています
-  - **指定したGitHubユーザーの全“貢献イベント”を横断検索**できるようにするためのソフトウェアです。データは **GH Archive** と（2015 年以前は）**BigQuery** の公開データを使い、**2011-01-01〜「昨日」まで**のイベントを対象にしています。([GitHub](https://github.com/tenex/opensourcecontributors/blob/master/README.md))
-  - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）。ホスト版は opensourcecontributo.rs ドメインで公開されていました（現在は応答が不安定）。([Stack Overflow](https://stackoverflow.com/questions/36332950/github-api-v3-events-to-retrieve-all-events-through-api))
-  - リポジトリ単位やイベント時系列のタブビューで見られる“検索エンジン”的な UI（Stack Overflow の解説）。([Stack Overflow](https://stackoverflow.com/questions/36332950/github-api-v3-events-to-retrieve-all-events-through-api))
-  - **データパイプライン（util/archive-processor）**
-    1. GH Archive から生のイベント JSON を取得
-    2. スター等の“非貢献”イベントを除去し、検索用のキー（例：小文字化したユーザー名）を付与して変換
-    3. **MongoDB** にロード
-
-#### その他
-
-1. `apache/kibble`
+6. GrimoireLab
+   - 参考
+     - [https://chaoss.github.io/grimoirelab-tutorial/](https://chaoss.github.io/grimoirelab-tutorial/)
+   - 説明
+     - Bitergia／LibreSoft の Metric-Grimoire 系ツールを継承し、2017 年に CHAOSS 初期ソフトウェアとして採択
+     - **30 種類超のデータソース＆150 以上の指標・可視化**を提供する総合基盤
+     - Git、GitHub、Jira、Slack、Mailing List など「開発・コミュニティ全域」を一元分析できる点が強み
+7. `OpenSourceContributo.rs`
+   - 説明
+     - ユーザーごとの GitHub への貢献を検索する検索エンジン
+     - ユーザー名を入れると、その人が**どの公開リポジトリにどんなイベントで貢献したか**を一覧化（Issues/PR/Push/コメント等のイベントベース）
+8. `apache/kibble`
    - 参考
      - [https://github.com/apache/kibble](https://github.com/apache/kibble)
      - [https://deepwiki.com/apache/kibble](https://deepwiki.com/apache/kibble)
      - [https://whimsy.apache.org/board/minutes/Kibble.html](https://whimsy.apache.org/board/minutes/Kibble.html)
    - 説明
      - あらゆるソフトウェアプロジェクトに関するデータを収集・集計・可視化するためのツール
-2. `apache/incubator-devlake`
+9. `apache/incubator-devlake`
    - 参考
      - [https://deepwiki.com/apache/incubator-devlake](https://deepwiki.com/apache/incubator-devlake)
    - 説明
      - Apache DevLake は、さまざまな DevOps ツールから分散しているデータを取り込み、分析・可視化する
-3. `hypertrons/hypertrons`
-   - 参考
-     1. [https://github.com/hypertrons/hypertrons](https://github.com/hypertrons/hypertrons)
-   - 説明
-     1. c
-4. **`Hypercrx`**
-   - 説明
-     - X-lab はブラウザプラグイン Hypercrx（発音は「ハイプ CRX」）を開発しました
-     - OpenDigger のメトリクススキームを土台に、GitHub ページへ複数の可視化コンポーネントを組み込みます
-   - 参考
-     - [https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
-5. `anvaka/pm`
-   - 説明
-     - 主要なソフトウェアパッケージ管理システムの可視化機能
-   - 参考
-     - [https://github.com/anvaka/pm](https://github.com/anvaka/pm)
+10. `hypertrons/hypertrons`
+    - 参考
+      1. [https://github.com/hypertrons/hypertrons](https://github.com/hypertrons/hypertrons)
+    - 説明
+      1. c
+11. **`Hypercrx`**
+    - 説明
+      - X-lab はブラウザプラグイン Hypercrx（発音は「ハイプ CRX」）を開発しました
+      - OpenDigger のメトリクススキームを土台に、GitHub ページへ複数の可視化コンポーネントを組み込みます
+    - 参考
+      - [https://github.com/hypertrons/hypertrons-crx](https://github.com/hypertrons/hypertrons-crx)
+12. `anvaka/pm`
+    - 説明
+      - 主要なソフトウェアパッケージ管理システムの可視化機能
+    - 参考
+      - [https://github.com/anvaka/pm](https://github.com/anvaka/pm)
 
-6. **Gephi**
-   - 説明
-     - ネットワーク分析と可視化
+13. **Gephi**
+    - 説明
+      - ネットワーク分析と可視化
 
 ### データ可視化サービス
 
@@ -7459,11 +7321,10 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 2. GitHub Community Profile & Insights
    - 説明
      - README／LICENSE／CODE_OF_CONDUCT などの有無をチェックリスト化し、外部からの貢献準備度を示す
-
 3. `GitHub Octoverse`
    - 説明
-     - GitHub Octoverse のタスクごとの重み付け値は非公開らしい
-     - Octoverse で使われる別指標「Mona Rank」- Octoverse 2023 以降で、人気プロジェクトなどの評価に使われる「Mona Rank」という指標があります
+     - GitHub Octoverse のタスクごとの重み付け値は非公開
+     - Octoverse で使われる別指標「Mona Rank」- Octoverse 2023 以降で、人気プロジェクトなどの評価に使われる「Mona Rank」という指標がある
 4. Health of Open Source Software
 5. Source-o-grapher
 6. CNCF
@@ -9003,8 +8864,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 ### 貢献検知の仕組み
 
-下記の方法を、「貢献検知の仕組み」の参考にしたい。
-
 1. j-platpat
    - 参考
      - [https://www.j-platpat.inpit.go.jp/p0200](https://www.j-platpat.inpit.go.jp/p0200)
@@ -9043,11 +8902,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 属性の異なる投稿がバランスよく流れていれば、閉じた情報空間へ偏っていないとみなせます
      - 逆に特定コミュニティの投稿へ偏れば、バブルへ深く沈んでいる兆しとして強調されます
 
-8. フロントランニング
-   - 説明
-     - フロントランニングの情報を察知する仕組みを使って、参考にしているかどうかを察知する仕組みを作る
-
-9. Optic
+8. Optic
    - 参考
      - [Optic](http://optic.xyz/)
    - 説明
@@ -9055,7 +8910,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 偽物がある場合、その商品がどのようにコピーやリミックスされたかを明らかにするサービスです
      - そのほかの偽物をチェックしたり、リミックスされているか確認するサービスを検知する仕組みの参考にしたい
 
-10. MyBib
+9. MyBib
 
 - 参考
   - [MyBib](https://chrome.google.com/webstore/detail/mybib-free-citation-gener/phidhnmbkbkbkbknhldmpmnacgicphkf)
@@ -9237,96 +9092,65 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - ODNI 傘下の研究開発部門 IARPA は、匿名テキストの著者を明らかにしつつ保護も進める AI 開発を掲げる HIATUS を立ち上げました
       - 名称は Human Interpretable Attribution of Text Using Underlying Structure で、構造情報を説明しやすく使うことを想定しています
 
-37. 登録制や申告制
+37. 特許や著作権を管理の仕組み
     - 説明
-      - 無料主義アプリへ、自己開発物の主張対象を登録してもらいます
-      - 他者が利用する際は報告が必須とし、未報告なら自動削除や評価軸ポイントの剥奪を検討します
-      - \* 楽曲なら歌詞・メロディの利用を申告してもらいます
-      - システム側は登録状況を並行して確認し、登録者だけが利用できるようにします
-      - 未登録利用が見つかった場合は参考利用とみなして代理登録するか、表示を止める運用が考えられます
-      - 申告を怠る利用者には、確認のためのスクレイピング費用を負担してもらう案です
-      - 理想は、何かを開発したら、その対象を思いつくまでに参考にした要素を全て自己申告してもらうこと
-      - でも、面倒だし漏れが出る
+      - 特許や著作権の管理の仕組み
 
-38. 特許や著作権を管理の仕組み
-    - 説明
-      - 特許や著作権の管理の仕組みを、無料主義の開発したノーハウを誰が使っているかを管理する仕組みに応用する
-      - 特許検索を支援するサービスもあります
-      - 無料主義では利用した商品・サービスと閲覧履歴から利用状況を把握しやすくします
-      - 利用事実の自己申告が貢献度や獲得ポイントへつながる設計にすれば、申請しやすい導線も作れます
-      - この方向性を参考にしていきたいです
-
-39. AI による検知
+38. AI による検知
     - 説明
       - 自分が持っているアイデアを積極的に書き込み、解説文も書くことで、それに似たサービスがあれば、そのアイデアを出した人もそのサービスが貢献度を獲得するほど、そのアイデアを出した人も評価軸ポイントを獲得できるようにする
 
-40. URL だけでも引用元を載せる
+39. URL だけでも引用元を載せる
     - 説明
       - Twitter で解説するときに引用していたら URL も最後に載せて、載せなければ批判される流れを、検知する方法で利用する
 
-41. データ分析による検知
+40. 3つ提示する方法
     - 説明
-      - アイデアを出して公開するだけで、公開者 A が参照者 B の評価軸ポイント獲得へ良い影響を与えたと分析できれば、追加の探索なしに評価軸ポイントを付与できます
-      - わざわざ参考関係を探し回る必要はない、という整理です
-      - 自分が気づいていない対象を参考にして何かを開発している場合もあるから、それをデータ分析や AI で、その人の過去の閲覧履歴や見た人物の参考にしたと登録されている内容などから見つけてくれるようにする？
-      - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える。でも経験という要素で評価軸ポイントを分けるときは 3 つ以上のメインの参考にしたことよりも得られる割合は少なくなる
+      - 自分で思いついたことから参考にしたことを 3 つ以上提示していき、それ以外の経験から生み出されたものだと伝えるならば、それまでのすべてのその人が関わってきたことに対して貢献のポイントを与える
 
-42. SHA256
+41. SHA256で作者の証明
     - 参考
       - [https://tsumuri.moe/note/article/000156](https://tsumuri.moe/note/article/000156)
     - 説明
-      - tsumuri がこの記事を書いたという証明
-      - 私しか使うべきではない言葉なので修正してください言葉の SHA256 です。この元を知っていれば私です
       - これは私が記事をパクられた際に使えるものであり、私がコピーしていない証拠にはなりません
-      - 私がコピーしていないかどうかに関しては、皆様の信頼におまかせします
-      - 少なくとも参考文献も書かずに資料をコピーするようなことはしません
 
-43. ハッシュ関数
-    - 説明
-      - 参考にしているかどうかは、ハッシュ関数からハッシュ値を算出している
-      - ハッシュ値を算出して、参考にしているかどうかを判断する
-      - ブロックチェインみたいに連なるように、参考にしている人たちが連なるようにすれば、参考にしているかがすぐに分かる？
-
-44. 勝手にアイデアを盗まれない仕組み
+42. 勝手にアイデアを盗まれない仕組み
     - 参考
       - [https://twitter.com/rottenegg0115/status/1626078699375464448](https://twitter.com/rottenegg0115/status/1626078699375464448)
 
-45. JDream Innovation Assist
+43. JDream Innovation Assist
     - 参考
       - [https://twitter.com/hayataka88/status/1717882962052882841](https://twitter.com/hayataka88/status/1717882962052882841)
-    - 説明
-      - 貢献検知の仕組みの参考にしたい
+    - ## 説明
       - 論文・特許・ニュースの 3 ソースから技術・競合動向を可視化する JDream Innovation Assist へ情報が追加されました
       - 海外特許も収録し、グローバルな分析に対応する、と紹介されています（ジー・サーチ）
 
-46. 官民データ共有のあり方に関する調査
+44. 官民データ共有のあり方に関する調査
     - 参考
       - [https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf](https://jpo.go.jp/resources/report/sonota/service/document/index/2022hokokusho.pdf)
       - [https://twitter.com/hayataka88/status/1719719488789287350](https://twitter.com/hayataka88/status/1719719488789287350)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
-      - 特許情報活用の論点が整理された報告書です
+      - 特許情報活用の論点が整理された報告書
       - 発案者と事業実施者をブロックチェインで結びロイヤリティを還流する案があります
       - 知財需要の計測なども扱われています
       - 調査の名称は『令和 4 年度特許情報に係る官民データ共有のあり方に関する調査』です
 
-47. 特許情報分析・可視化
+45. 特許情報分析・可視化
     - 参考
       - [https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf](https://asahi-kasei.com/jp/ir/library/asahikasei-report/pdf/23jp.pdf)
       - [https://twitter.com/hayataka88/status/1716288794683744368](https://twitter.com/hayataka88/status/1716288794683744368)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
-      - 旭化成の統合報告書で公開している特許情報分析・可視化の事例。他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています
+      - 旭化成の統合報告書で公開している特許情報分析・可視化の事例
+      - 他社との協業、顧客との対話などにも、特許情報を活用しているようです。また、社内での IP ランドスケープの実施状況を公開しています
 
-48. データの可視化
+46. データの可視化
     - 参考
       - [https://www.data-to-viz.com/](https://www.data-to-viz.com/)
       - [https://note.com/d-v-osorezan/n/ne5a6b0dad97b](https://note.com/d-v-osorezan/n/ne5a6b0dad97b)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
       - データの可視化のデータベース
 
-49. 近似最近傍探索
+47. 近似最近傍探索
     - 参考
       - [https://github.com/spotify/voyager](https://github.com/spotify/voyager)
       - [https://twitter.com/MLBear2/status/1715937638950277122](https://twitter.com/MLBear2/status/1715937638950277122)
@@ -9334,72 +9158,55 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - Spotify が新たな近似最近傍探索ライブラリ「Voyager」を OSS として出したらしい
       - 最近隣検索の技術は、商品の推薦や地図上の場所の検索など、様々なアイテムの間の類似性を高速に見つけ出すために非常に有用であると広く認識されています
       - Voyager のもっとも魅力的な部分は、その基盤となる「H&SW（Hierarchical Navigable Small Worlds）」という新しい技術です
-      - Repository:
 
-50. 特許情報可視化
+48. 特許情報可視化
     - 参考
       - [https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf](https://mitsubishielectric.co.jp/ir/data/integrated-report/pdf/2023/integrated-report2023-jp.pdf)
       - [https://twitter.com/hayataka88/status/1712612049463947355](https://twitter.com/hayataka88/status/1712612049463947355)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
       - 三菱電機・統合報告書 2023 における特許情報可視化
 
-51. Semantic Scholar API
+49. Semantic Scholar API
     - 参考
       - [https://arxiv.org/abs/2004.07180](https://arxiv.org/abs/2004.07180)
       - [https://twitter.com/hayataka88/status/1715335234676461753](https://twitter.com/hayataka88/status/1715335234676461753)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
-      - あと、SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず
+      - SPECTER という引用関係も加味した論文の Embedding も気になる。確か、Semantic Scholar API でも取得できたはず
       - SPECTER: Document-level Representation Learning using Citation-informed Transformers
 
-52. AI detector
+50. AI detector
     - 参考
       - [https://gigazine.net/news/20231105-ai-detector/](https://gigazine.net/news/20231105-ai-detector/)
     - 説明
-      - AI detector・AI 検出器を貢献検知の仕組みの参考にしたい
+      - AI detector・AI 検出器
 
-53. デジタル著作権マネージャー (DRM)
+51. デジタル著作権マネージャー (DRM)
     - 説明
       - デジタル著作権マネージャー (DRM) を「貢献検知の仕組み」で収益分配したり検知する方法の参考にしたい
 
-54. 分布仮説（distributional hypothesis）
+52. 分布仮説（distributional hypothesis）
     - 参考
       - [https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82](https://www.acceluniverse.com/blog/developers/2019/11/-deep-learning2-1-2-3.html#:~:text=%E3%81%9D%E3%82%8C%E3%81%AF%E3%80%8E%E5%8D%98%E8%AA%9E%E3%81%AE%E6%84%8F%E5%91%B3%E3%81%AF,%E3%81%95%E3%82%8C%E3%82%8B%E3%81%A8%E3%81%84%E3%81%86%E3%81%93%E3%81%A8%E3%81%A0%E3%80%82)
       - [https://lifescience.fronteo.com/products/amanogawa/](https://lifescience.fronteo.com/products/amanogawa/)
       - [https://www.fronteo.com/ai-learning/article-search-ai](https://www.fronteo.com/ai-learning/article-search-ai)
       - [https://twitter.com/hayataka88/status/1723253034757886336](https://twitter.com/hayataka88/status/1723253034757886336)
     - 説明
-      - 分布仮説を「貢献検知の仕組み」の参考にしたい
       - 「単語の意味は、その周辺の単語によって形成される」という考え方です。つまり、単語自体には意味がなく、その単語の「コンテキスト（文脈）」によって単語の意味が形成されるということです。﻿
-      - **類似性・関連性を見抜く AI**
-      - 貢献検知の仕組みの参考にしたい
-      - 論文検索を AI で革新 – 類似性、関連性を見抜く AI
-      - FRONTEO の「発見型概念検索」AI システム「KIBIT Amanogawa」が、類似性・関連性のある論文を高い精度で発見できる特長を解説します
-      - 「分布仮説」という考え方、「単語のベクトル化」による意味の埋め込み
-      - その「KIBIT」を搭載した論文検索 AI「KIBIT Amanogawa」は、PubMed の全論文を学習させ、独自の自然言語処理 AI の技術を論文探索に活用した「発見型概念検索」システムです
-      - KIBIT Amanogawa が関連性・類似性の高い論文を見つける精度に優れているのは、他の検索手法のアルゴリズムとは異なるユニークなベクトル化の手法を持っているからです
-      - ポイントの 1 つが、単語と文の双方から解析する点、もう 1 つが、分布仮説に忠実にアルゴリズムを構築している点です。さらに、希少な言葉でも適切に検索できる重み付けと、単語の意味どうしの足し引きによる解析も強みです
-      - 類似文書を探し出すタスクにおいて、Google の BERT をはじめ生成 AI で広く使われる Transformer などよりも KIBIT Amanogawa の精度が高いことが検証済みです
-      - なお、分布仮説に由来する Word2Vec（Google 開発のアルゴリズム）は Transformer よりベクトル化の結果が良いことが報告されていますが、同じく分布仮説に基づく KIBIT Amanogawa はさらに、Word2Vec と比較して 15％高い精度を達成しています。〈Yamada et al.(2020)〉
-      - FRONTEO の Amanogawa のアルゴリズムに関する記事。PubMed から類似論文を検索できるシステム
 
-55. ボイス・ライト・プロテクション
+53. ボイス・ライト・プロテクション
     - 参考
       - [https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB](https://chizaizukan.com/news/6N7vKavrOATyEiGF1CjyAB)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
       - AI 音声プラットフォームの「CoeFont」を運営する株式会社 CoeFont は、声優や俳優、著名人の「声の権利」を守るための新しい取組み「ボイス・ライト・プロテクション」を開始した
       - 不正利用を防止、権利者に収益還元
       - 「ボイス・ライト・プロテクション」は、「CoeFont」で、声の提供者と利用者の間に契約関係を確立するもの。「CoeFont」に声を登録した声優や俳優は、自身の音声の利用について一般公開か許可制かを選択可能になる
       - 「AI 音声プラットフォーム「CoeFont」、“過去の音声”から AI 音声の生成に成功 ─ デジタルハリウッド大学と共同で」（ニュース記事）
 
-56. TrackerIQ
+54. TrackerIQ
     - 参考
       - [https://prtimes.jp/main/html/rd/p/000000068.000017278.html](https://prtimes.jp/main/html/rd/p/000000068.000017278.html)
       - [https://techable.jp/archives/221155](https://techable.jp/archives/221155)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
       - 従業員による企業情報の持ち出しを防止！ イスラエル発“SaaS 特化”の内部不正検知プラットフォーム
       - 今回、企業で導入が進むクラウドアプリケーション内で“ユーザーが行う不審な振る舞い”を検知するアプリケーションディレクション＆レスポンス（ADR）製品である「TrackerIQ（トラッカー・アイキュー）」シリーズの販売を開始した
       - 同シリーズは Microsoft 365、Salesforce、AWS などを中心とした SaaS アプリケーションをモニタリングし、不正を検出することが可能だ
@@ -9408,21 +9215,20 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 独自開発のクラスタリングエンジンにより、膨大な「ユーザー・ジャーニー」と呼ばれるアプリケーション内でユーザーが行う一連の行動を類似性に基づいて自動的にグルーピングし、検知モデルを作成することが可能。このグループから外れたユーザー・ジャーニーを不審な振る舞いとして検知する
       - 参考元：
 
-57. 深層学習特許類似度マップ
+55. 深層学習特許類似度マップ
     - 参考
       - [https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html](https://www2.deloitte.com/jp/ja/pages/deloitte-analytics/articles/dapublicity-tsubota-kozu-ipaj.html)
       - [https://twitter.com/hayataka88/status/1714057488767525066](https://twitter.com/hayataka88/status/1714057488767525066)
       - [https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html](https://www2.deloitte.com/jp/ja/pages/strategy/solutions/ipa/ai-ip-analytics.html)
       - [https://twitter.com/e-patent/status/1714038804238217309](https://twitter.com/e-patent/status/1714038804238217309)
     - 説明
-      - 貢献検知の仕組みの参考にしたい
-      - ・被引用分析
+      - 被引用分析
       - 深層学習特許類似度マップによる技術探索手法
       - デロイト トーマツ ファイナンシャルアドバイザリーの AI を活用した IP ランドスケープ分析
 
-58. スパム検知
+56. スパム検知
     - 説明
-      - スパムを検知する仕組みを貢献検知の仕組みの参考にしたい
+      - スパムを検知する仕組みを
 
 ### 感情の測定方法
 
@@ -9448,45 +9254,35 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
      - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
 
-3. 心理学・行動経済学
-   - 説明
-     - 心理学や行動経済学から幸福度を算出する方法、無料主義で、感情や幸福度を算出する方法の参考にしたい
-
-4. 経験サンプリング研究
+3. 経験サンプリング研究
    - 参考
      - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
    - 説明
      - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
      - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
 
-5. 取得データの種類
+4. 取得データの種類
    - 説明
      - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
      - 感情の算出の参考にしたい
 
-6. Utility and Happiness（Kimball & Willis）
-   - 参考
-     - [https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness](https://himaginary.hatenablog.com/entry/20231005/Utility-and-Happiness)
-   - 説明
-     - 幸福は次の 2 つの要素の和である。(1) 生涯効用に関する最近のニュースに依存する高揚感ないし短期的幸福、(2) 健康、娯楽、もしくは栄養と同様の副効用関数である基調的気分ないし長期的幸福
-
-7. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
+5. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
    - 参考
      - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
    - 説明
      - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
 
-8. From Happiness Data to Economic Conclusions
+6. From Happiness Data to Economic Conclusions
    - 参考
      - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
    - 説明
      - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
 
-9. 潜在的連合テスト
+7. 潜在的連合テスト
    - 説明
      - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
 
-10. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
+8. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
 
 - 参考
   - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
@@ -9509,8 +9305,8 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - 参考
   - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
 - 説明
-  - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービスだ
-  - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられるという
+  - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービス
+  - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられる
 
 14. Web カメラだけで心拍数と心拍変動
 
@@ -9538,27 +9334,18 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 - 説明
   - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
   - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
-  - GPS に従って街の中をさまよい、気になる瞬間を写真に残していくと、ジャーナルアプリがあなたの 1 日の物語を綴ってくれる
   - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
   - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
   - 「自動感情日誌」になる
   - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
   - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
-  - そのアプリ API から気分の記録とか取ってこれないかな
-  - ヘルスケアのデータ取得ができる API があるらしい。HealthKit
-  - Amazon やその他の何かの購入履歴やサービス利用履歴などで突合
-  - 上記のヘルスケアのようなデータが「結果」のデータ（y 軸）、購入履歴や使用履歴が「手段」のデータ（x 軸）この 2 つが必要
+  - ヘルスケアのデータ取得ができる API がある。HealthKit
   - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
 
 17. TherapeiaVR
 
 - 説明
   - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
-
-18. 感情認識 AI
-    - 説明
-      - 感情認識 AI を感情の算出の参考にしたい
-      - 感情認識 AI。人の感情を認識しようとする AI
 
 19. 感性アナライザ
     - 参考
@@ -9570,18 +9357,13 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 説明
       - スマートウォッチが脈拍の変動からストレスを推定する仕組み
 
-21. スケジュールと現在の気分の記録＆報告
-    - 説明
-      - 無料主義アプリで、毎日の気分と今日の大体のスケジュールを記載して提出すれば報酬が得られるようにして、「幸福度の向上」の評価軸ベース評価の参考にしたら良い
-
-22. wellday
+21. wellday
     - 参考
       - [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
     - 説明
       - 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない
-      - ウェルデイは 2019 年に設立した。独自の人工知能（AI）を活用し、業務で普段利用するコミュニケーションツールを利用して、従業員のストレスを予測するサービスを手掛けている
 
-23. 皮膚電気活動（EDA）
+22. 皮膚電気活動（EDA）
     - 参考
       - [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
     - 説明
@@ -9589,7 +9371,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです
       - Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです
 
-24. テキストから病気を見つける技術
+23. テキストから病気を見つける技術
     - 参考
       - [https://togetter.com/li/2226111](https://togetter.com/li/2226111)
       - [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155)
@@ -9599,32 +9381,30 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう
       - アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と
 
-25. Apple Mood Tracking
+24. Apple Mood Tracking
     - 参考
       - [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
     - 説明
-      - Apple Mood Tracking は良い。これでいいじゃんってなってる
       - Apple watch から通知
-      - ↓
       - Watch から直で感情ログ
       - そのまま音声入力で状況記録
       - アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる
       - ジャーナルアプリが出たら写真と感情の紐付けも
 
-26. 「非侵襲型」の血糖値計測
+25. 「非侵襲型」の血糖値計測
     - 参考
       - [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
     - 説明
       - 「非侵襲型」の血糖値計測で健康の測定や感情の算出
 
-27. Google 音声アシスタント
+26. Google 音声アシスタント
     - 参考
       - [http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ)
       - [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
     - 説明
       - Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した
 
-28. Empath
+27. Empath
     - 参考
       - [https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWV13XKbB74fQ/)
       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)
@@ -9635,25 +9415,25 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 商願 2014-35949：「Empath」
       - 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）
 
-29. Hugtics
+28. Hugtics
     - 参考
       - [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
     - 説明
       - 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する
 
-30. アイトラッキング
+29. アイトラッキング
     - 参考
       - [https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
     - 説明
       - Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許
       - 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる
 
-31. 非接触型の脈拍測定
+30. 非接触型の脈拍測定
     - 説明
       - カメラを使った非接触型の脈拍測定ができるらしい
       - この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
 
-32. 可食ワイヤレス生体情報センサ
+31. 可食ワイヤレス生体情報センサ
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
     - 説明
@@ -9661,16 +9441,16 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」
       - 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した
 
-33. 感情認識技術
+32. 感情認識技術
     - 説明
       - 感情認識技術
       - 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
 
-34. 失言検出課題、チーズケーキ課題
+33. 失言検出課題、チーズケーキ課題
     - 説明
       - 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
 
-35. 脳活動解読
+34. 脳活動解読
     - 参考
       - [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/)
       - [【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full)
@@ -9680,13 +9460,13 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる
       - 論文情報：
 
-36. ストレスチェックと生活習慣等の分析
+35. ストレスチェックと生活習慣等の分析
     - 参考
       - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
     - 説明
       - 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている
 
-37. ANBAI
+36. ANBAI
     - 参考
       - [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/)
       - [https://anbai.team/](https://anbai.team/)
@@ -9694,7 +9474,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 説明
       - 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」
 
-38. Mappiness
+37. Mappiness
     - 参考
       - [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html)
       - [Mappiness](https://www.mappinessapp.com/)
@@ -9705,20 +9485,20 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ
       - 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました
 
-39. 汗からストレスレベル
+38. 汗からストレスレベル
     - 参考
       - [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
     - 説明
       - 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表
       - 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました
 
-40. 動きから感情
+39. 動きから感情
     - 参考
       - [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
     - 説明
       - スマホで使えるモーションキャプチャー、ソニー「mocopi」
 
-41. ChatGPT に聞いた幸福度を測定する方法
+40. ChatGPT に聞いた幸福度を測定する方法
     - 説明
       - アンケート調査以外で幸福度を測定する方法として、次のようなものがあります
       - 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法
@@ -9728,7 +9508,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です
       - ChatGPT
 
-42. 赤ちゃんの泣き声を分析
+41. 赤ちゃんの泣き声を分析
     - 参考
       - [https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)
       - [https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying)
@@ -9738,13 +9518,13 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - CES 2023: The device that tells you why your baby is crying
       - \*\*
 
-43. うつ病を定量化して分析
+42. うつ病を定量化して分析
     - 参考
       - [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
     - 説明
       - 「新型うつ」とは何だったのか
 
-44. VR の視線の動きで ADHD 診断
+43. VR の視線の動きで ADHD 診断
     - 参考
       - [Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)
       - [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
@@ -9753,7 +9533,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました
       - 研究の詳細は、2022 年 11 月 24 日付の科学誌『』に掲載されました
 
-45. 中国で共産党員の忠誠心を判定する AI
+44. 中国で共産党員の忠誠心を判定する AI
     - 参考
       - [サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)
       - [https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
@@ -9763,7 +9543,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 人民の監視を強める中国 なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている
       - それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった
 
-46. SOXAI Ring
+45. SOXAI Ring
     - 参考
       - [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring)
       - [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
@@ -9772,19 +9552,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス
       - 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという
 
-47. 非接触型睡眠トラッカー「Halo Rise」
+46. 非接触型睡眠トラッカー「Halo Rise」
     - 参考
       - [https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
     - 説明
       - Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです
       - 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する
 
-48. 感情の算出にアンケート調査を使う場合の懸念点
+47. 感情の算出にアンケート調査を使う場合の懸念点
     - 説明
       - アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
       - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
 
-49. 光学式センサ、3 軸加速度センサ
+48. 光学式センサ、3 軸加速度センサ
     - 参考
       - [https://36kr.jp/9669/](https://36kr.jp/9669/)
     - 説明
@@ -9792,7 +9572,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる
       - 光学式センサで心拍数を計測できるデバイスもある
 
-50. うつ病治療 VR 製品
+49. うつ病治療 VR 製品
     - 参考
       - [https://techable.jp/archives/177646](https://techable.jp/archives/177646)
       - [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html)
@@ -9804,7 +9584,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です
       - 「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている
 
-51. ミキワメウェルビーイング
+50. ミキワメウェルビーイング
     - 参考
       - [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
       - [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
@@ -9814,7 +9594,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる
       - 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している
 
-52. 機能的近赤外分光分析法（fNIRS）
+51. 機能的近赤外分光分析法（fNIRS）
     - 参考
       - [https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
     - 説明
@@ -9825,11 +9605,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - \*\*
       - NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
 
-53. アンケート調査による幸福度の算出
+52. アンケート調査による幸福度の算出
     - 説明
       - 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
 
-54. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
+53. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
     - 説明
@@ -9838,7 +9618,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ
       - KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ
 
-55. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
+54. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
     - 参考
       - [詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
     - 説明
@@ -9846,20 +9626,20 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した
       - 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの
 
-56. 産後うつを身体症状を基に早期発見する調査尺度
+55. 産後うつを身体症状を基に早期発見する調査尺度
     - 参考
       - [精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
     - 説明
       - 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した
       - 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は
 
-57. うつ尺度「BDI-II」
+56. うつ尺度「BDI-II」
     - 参考
       - [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
     - 説明
       - 世界的に広く使われているうつ尺度「BDI-II」
 
-58. 使える API
+57. 使える API
     - 参考
       - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
       - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
@@ -9874,26 +9654,26 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
       - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
 
-59. モニター調査・アンケート調査
+58. モニター調査・アンケート調査
     - 説明
       - モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る
       - そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる
       - 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る
       - でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
 
-60. 文脈依存型推薦エンジン(Context based recommendation system)
+59. 文脈依存型推薦エンジン(Context based recommendation system)
     - 参考
       - [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
     - 説明
       - 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています
 
-61. ギャラップ社・Glassdoor の調査
+60. ギャラップ社・Glassdoor の調査
     - 参考
       - [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
     - 説明
       - ギャラップ社が 250 万人のアメリカ人を対象に行った調査
 
-62. 多属性評価
+61. 多属性評価
     - 参考
       - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
     - 説明
@@ -9905,7 +9685,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）
       - A simplified approach to measuring national gender inequality
 
-63. 毎日簡単なアンケートに答える方法
+62. 毎日簡単なアンケートに答える方法
     - 参考
       - [https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html)
       - [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
@@ -9913,24 +9693,24 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - アンケートの設問内容は何？
       - 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました
 
-64. オンライン測定
+63. オンライン測定
     - 参考
       - [https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
     - 説明
       - オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた
 
-65. 尿検査できるセンサー Withings の「U-Scan」
+64. 尿検査できるセンサー Withings の「U-Scan」
     - 説明
       - 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
 
-66. 心拍変動（HRV）
+65. 心拍変動（HRV）
     - 参考
       - [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
     - 説明
       - 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する
       - iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる
 
-67. ツイート分析
+66. ツイート分析
     - 参考
       - [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/)
       - [【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en)
@@ -9942,7 +9722,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された
       - 論文情報：
 
-68. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
+67. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
     - 参考
       - [https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
     - 説明
@@ -9950,19 +9730,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ
       - VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している
 
-69. 思想教育の効果を可視化
+68. 思想教育の効果を可視化
     - 参考
       - [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
     - 説明
       - 「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した
       - 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた
 
-70. アンケート調査以外の要素
+69. アンケート調査以外の要素
     - 説明
       - 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている
       - 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
 
-71. ツイート分析
+70. ツイート分析
     - 参考
       - [https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7)
       - [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
@@ -9971,7 +9751,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの
       - Hoaxy: How claims spread online
 
-72. SNS の文章を解析
+71. SNS の文章を解析
     - 参考
       - [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/)
       - [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/)
@@ -9985,7 +9765,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 論文情報：
       - なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな
 
-73. ワークサンプルテスト
+72. ワークサンプルテスト
     - 参考
       - [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
       - [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
@@ -9994,14 +9774,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - </span>\*\*
       - サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です
 
-74. Omegawave
+73. Omegawave
     - 参考
       - [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
     - 説明
       - フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している
       - Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる
 
-75. FaiCE（フェイス）
+74. FaiCE（フェイス）
     - 参考
       - [https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
     - 説明
@@ -10009,7 +9789,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。\*\*
       - \*\*
 
-76. ひきこもり度を簡単に評価できるテスト
+75. ひきこもり度を簡単に評価できるテスト
     - 参考
       - [Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
       - [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
@@ -10017,7 +9797,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました
       - 研究の詳細は、2022 年 11 月 30 日付の科学誌『』に掲載されています
 
-77. パルスアイ
+76. パルスアイ
     - 参考
       - [https://techable.jp/archives/185582](https://techable.jp/archives/185582)
     - 説明
@@ -10026,7 +9806,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
       - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
 
-78. Classroom Technologies が Intel と提携して開発しているシステム
+77. Classroom Technologies が Intel と提携して開発しているシステム
     - 参考
       - [Classroom Technologies](https://www.class.com/)
       - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
@@ -10034,7 +9814,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 説明
       - 仮想空間上で行う授業のソフトを販売する企業の\***\*が\*\***と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる
 
-79. Face2Brain
+78. Face2Brain
     - 参考
       - [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya)
       - [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/)
@@ -10043,21 +9823,21 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 「顔画像」から脳波を推定するアルゴリズム Face2Brain
       - 「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム
 
-80. CBT-I
+79. CBT-I
     - 参考
       - [https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
     - 説明
       - 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した
       - 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという
 
-81. Face++や Microsoft AI などの顔認識技術
+80. Face++や Microsoft AI などの顔認識技術
     - 参考
       - [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
     - 説明
       - 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった
       - でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた
 
-82. 「充実した人生」を測る指標
+81. 「充実した人生」を測る指標
     - 参考
       - [『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)
       - [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
@@ -10066,7 +9846,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました
       - 研究の詳細は、2022 年 9 月 30 日付で学術誌に掲載されています
 
-83. Dot Mind Unlocked
+82. Dot Mind Unlocked
     - 参考
       - [ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)
       - [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
@@ -10074,14 +9854,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - ***
       - ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」
 
-84. Oura
+83. Oura
     - 参考
       - [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
     - 説明
       - 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング
       - 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている
 
-85. 瞳孔反応解析技術
+84. 瞳孔反応解析技術
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
     - 説明
@@ -10089,7 +9869,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - \*\*「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ
       - 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている
 
-86. ESHA（イーエスエイチエー）・KIBI 理論
+85. ESHA（イーエスエイチエー）・KIBI 理論
     - 参考
       - [https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)
       - [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
@@ -10101,7 +9881,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - \*\*[株式会社エモテック・ラボ
       - ]()\*\*
 
-87. 幸福度の指標
+86. 幸福度の指標
     - 参考
       - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
     - 説明
@@ -10113,7 +9893,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
       - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
 
-88. 幸福度の指標
+87. 幸福度の指標
     - 参考
       - [「幸せ」を追求するのはいいことなのか？──『ハッピークラシー――「幸せ」願望に支配される日常』](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
       - [https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989)
@@ -10124,38 +9904,38 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - そもそも幸福は客観的に評価可能なのか、がある。アンケート調査や尺度には数多くの種類がある。オックスフォード幸せ調査、人生満足感尺度、経験サンプリング法、一日再現法など。これらを用いて心理学者と経済学者は幸せには客観的な基軸があるとを主張したが[
       - \*1]()、これにはいまだに疑問が残る
 
-89. 幸福度を測る 11 の要素
+88. 幸福度を測る 11 の要素
     - 参考
       - [https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0](https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0)
     - 説明
       - 過去の幸福研究などをベースに、人間に幸福をもたらす要素を 11 パターンに分類しております
 
-90. 音声
+89. 音声
     - 参考
       - [https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full)
     - 説明
       - スマートフォンと機械学習でうつ病を検知、30 秒の音声から
 
-91. マイク
+90. マイク
     - 参考
       - [https://www.itmedia.co.jp/news/articles/2301/25/news068.html](https://www.itmedia.co.jp/news/articles/2301/25/news068.html)
     - 説明
       - 特別な機器を必要とせず、マイクのあるスマホだけで検査できるってのが可能性を感じる。精度が高まれば応用いろいろできそう。／話し方で「飲みすぎ」か分かる AI 12 秒の会話で酩酊状態を特定
 
-92. うつ病予測
+91. うつ病予測
     - 参考
       - [https://twitter.com/AIBoom-net/status/1618865899628560391](https://twitter.com/AIBoom-net/status/1618865899628560391)
     - 説明
       - 北京大学とヘルスケア企業による共同研究の報告。ディープラーニングベースの手法を用いて、およそ 8 割の精度で高齢者のうつ病を検知できるとのこと
 
-93. EEG
+92. EEG
     - 参考
       - [https://twitter.com/masatojames/status/1618502175021486080](https://twitter.com/masatojames/status/1618502175021486080)
     - 説明
       - EEG で行うっぽい
       - 音楽聴いてる状態を特定するのに、イヤホンに脳波センサーと音波センサー取り付けるの考えてたけど、これあればセンサー 1 種類で済むんよな
 
-94. 脳内の磁場変化を察知できるセンサー
+93. 脳内の磁場変化を察知できるセンサー
     - 参考
       - [https://twitter.com/tmiyatake1/status/1620241970928181250](https://twitter.com/tmiyatake1/status/1620241970928181250)
     - 説明
@@ -10163,19 +9943,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - ユースケースとしてはユーザーの感情を読み取って、それに対してアクションを行える仕組みが考えられる
       - 考えるだけでバーチャルの世界をコントロール出来るようになる
 
-95. Canary
+94. Canary
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/)
     - 説明
       - Canary Speech という企業の声から人の精神状態・感情を評価するアプリ「Canary」を参考にしたい
 
-96. fMRI と EEG
+95. fMRI と EEG
     - 参考
       - [https://twitter.com/shiropen2/status/1620573717507219456](https://twitter.com/shiropen2/status/1620573717507219456)
     - 説明
       - 脳全体の血流や代謝を測定する fMRI と脳内の電気的活動に伴う電磁気信号を捉える脳波（EEG)を組み合わせ（非侵襲的）深層学習で音声合成による曲の復元と識別を行う
 
-97. スマホで血管老化を予測
+96. スマホで血管老化を予測
     - 参考
       - [https://www.nature.com/articles/s41598-020-76816-6](https://www.nature.com/articles/s41598-020-76816-6)
       - [https://twitter.com/AIBoom-net/status/1623595459506995202](https://twitter.com/AIBoom-net/status/1623595459506995202)
@@ -10183,13 +9963,13 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - スマホで血管老化を予測 機械学習により高精度に
       - スマートフォンで取得できる PRG※と、4 つの変数（性別、身長、体重、喫煙有無）を機械学習で分析し、血管老化を AUC 95％で予測できるとの報告。※RPG：フォトプレチスモグラフィ。血中酸素飽和度などの測定に使用
 
-98. 表情
+97. 表情
     - 参考
       - [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
     - 説明
       - 声が出せない状況下でもマスク＋ AI で会話
 
-99. 唇の筋肉の動きを分析
+98. 唇の筋肉の動きを分析
     - 参考
       - [https://nature.com/articles/s41467-022-32231-1](https://nature.com/articles/s41467-022-32231-1)
       - [https://twitter.com/AIBoom-net/status/1623657972781154304](https://twitter.com/AIBoom-net/status/1623657972781154304)
@@ -10198,15 +9978,15 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 「マスクの下にある唇の動きを読み取る」という課題は、複数の研究グループにより取り組まれています
       - 下記は、レーダー信号と Wi-Fi 信号を深層学習で分析して読み取るアプローチ。上記 ツイート で紹介した研究とは別角度からの解決となります
 
-100.  心臓のエコー図
-      - 参考
-        - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
-        - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
-      - 説明
-        - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
-        - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
+99. 心臓のエコー図
+    - 参考
+      - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
+      - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
+    - 説明
+      - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
+      - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
 
-101.  リストバンド型加速度計
+100.  リストバンド型加速度計
       - 参考
         - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
         - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
@@ -10214,19 +9994,19 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
         - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
 
-102.  AiGROW
+101.  AiGROW
       - 説明
       - AiGROW で Big-5 モデルを使って性格検査
       - 木村充、福原正大、田代琴音「潜在的連合の測定による 5 因子性格検査ツール GROW-IAT の開発と評価」
 
-103.  汗の成分を検出できる生地
+102.  汗の成分を検出できる生地
       - 参考
         - [https://www.technologyreview.jp/n/](https://www.technologyreview.jp/n/)
       - 説明
         - 東北大学の研究チームは、汗の成分を検出できる生地を開発した。肌着用に使えるもので、人間が常時着用することで、汗の成分から健康状態をモニタリングできるようになる可能性がある
         - 研究チームが今回開発した生地は、独自の手法で製造した多機能繊維を織り込むことで、汗の成分の検出が可能になった。研究成果は 1 月 9 日、アナリティカル・アンド・バイオアナリティカル・ケミストリー（Analytical and Bioanalytical Chemistry）誌に掲載された。研究チームは今後、脳波や心拍、体温などを計測できる繊維の開発を進めるという
 
-104.  MetaMe
+103.  MetaMe
       - 参考
         - [https://www.itmedia.co.jp/news/articles/2302/20/news103.html](https://www.itmedia.co.jp/news/articles/2302/20/news103.html)
       - 説明
@@ -10236,11 +10016,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - MetaMe には、NTT が開発した技術も盛り込まれる。取得した脳波を、アバターがまとうオーラとして可視化し、コミュニケーションを活性化させる技術も、MetaMe には試験実装された
         - 見ているものでオーラが変化することで、相手や自分の感情の変化が可視化されるという
 
-105.  ホルモン分泌量
+104.  ホルモン分泌量
       - 説明
         - 表情・リアクション、 ドーパミンやオキシトシンやセロトニンなどのホルモン分泌量などから感情の算出
 
-106.  肥満測定法
+105.  肥満測定法
       - 参考
         - [https://nature.com/articles/s41598-023-30434-0](https://nature.com/articles/s41598-023-30434-0)
         - [https://twitter.com/AIBoom-net/status/1630433286907629568](https://twitter.com/AIBoom-net/status/1630433286907629568)
@@ -10248,7 +10028,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - BMI に代わる新しい肥満測定法 3D スキャン＋ AI で
         - Nature Scientific Reports より。人体を 3 次元測定し、機械学習で肥満カテゴリー分類を行う技術が発表された。体重と身長のみで肥満度を測定する BMI よりも優れた手法とのこと
 
-107.  スリープマスク
+106.  スリープマスク
       - 参考
         - [https://forbesjapan.com/articles/detail/49483](https://forbesjapan.com/articles/detail/49483)
       - 説明
@@ -10256,24 +10036,24 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - また、睡眠中のユーザーの側頭部にかかる圧力を検出するセンサーや、湿度や温度を検出するセンサーを通じて、ベッドルームの状況を把握できる
         - アップルは将来の AirPods に心拍数や体温の測定機能を盛り込むと予想されている
 
-108.  痛みの指標
+107.  痛みの指標
       - 参考
         - [https://www.nature.com/articles/s41562-023-01539-3](https://www.nature.com/articles/s41562-023-01539-3)
       - 説明
         - ウェルビーイングを測定する際には痛みの指標も取り入れなさいねという意見論文
         - Governments should measure pain when assessing societal wellbeing
 
-109.  BHQ
+108.  BHQ
       - 参考
         - [https://twitter.com/Neron-Ngsk32/status/1624916875686862850](https://twitter.com/Neron-Ngsk32/status/1624916875686862850)
       - 説明
         - 主観的幸福度は私もおおむねこの理解で、評価する方法として最近は、イェール大の PERMA はじめ、大阪大学の特許技術レジリエンス指標、MRI を活用した BHQ。BHQ は脳のサイズを測る技術。コロナ禍など慢性ストレスのかかる状況だと縮むということなので環境因子、経済因子（こちらは限界ある）も関連する（文字数）
 
-110.  心電図アプリ
+109.  心電図アプリ
       - 説明
         - アップルウオッチの心電図アプリ
 
-111.  心の理論
+110.  心の理論
       - 参考
         - [https://arxiv.org/abs/2302.02083](https://arxiv.org/abs/2302.02083)
         - [https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf](https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf)
@@ -10288,7 +10068,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - OSF | Theory of Mind May Have Spontaneously Emerged in Large Language Models
         - 心の理論を獲得している AI に感情を推測してもらう
 
-112.  COI 拠点
+111.  COI 拠点
       - 参考
         - [https://dhbr.diamond.jp/articles/-/9243](https://dhbr.diamond.jp/articles/-/9243)
       - 説明
@@ -10300,7 +10080,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 実は、我々は超多項目の岩木健診に加えて、「QOL（クオリティ・オブ・ライフ）健診」を実施しています。2 時間程度で終わるコンパクトな健診で、「メタボ」（メタボリックシンドローム）、「口腔保健」「ロコモ」（ロコモティブシンドローム）、「うつ病・認知症」の 4 つのテーマで、検査項目を約 40 に絞っています
         - 現在、QOL 健診をリモートで行える「セルフモニタリング式 QOL 健診」の開発に取り組んでいます。セルフモニタリングで日々の健康データを収集・蓄積し、健康未来予測 AI がオンラインで一人ひとりに適したアドバイスを行うといった世界観を目指しています
 
-113.  性格を予測
+112.  性格を予測
       - 参考
         - [https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554](https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554)
         - [https://doi.org/10.1016/j.actpsy.2022.103740](https://doi.org/10.1016/j.actpsy.2022.103740)
@@ -10309,14 +10089,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 20 秒の音声から AI が「性格」を予測
         - 機械学習モデルに音声を分析させることで、性格特性ビッグ 5（外向性・協調性・誠実性・開放性・神経症的傾向）を予測できることを示唆した。とくに「外向性」は他の特性より予測精度が高いとのこと
 
-114.  Google の API とかでも文章から感情分析
+113.  Google の API とかでも文章から感情分析
       - 参考
         - [https://twitter.com/cumulo-autumn/status/1626129783892643841](https://twitter.com/cumulo-autumn/status/1626129783892643841)
       - 説明
         - google の API とかでも文章から感情分析出来るらしいので今後はそっちも試す予定ですが、今は GPT3 を使って会話内容の感情分析をしてます
         - 「次の会話から感情を喜 0.7 悲 0.1 怒 0.2 等のように数値として表せ」みたいな感じのプロンプトを使って分析してます
 
-115.  Intellect
+114.  Intellect
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000007.000102702.html](https://prtimes.jp/main/html/rd/p/000000007.000102702.html)
       - 説明
@@ -10324,11 +10104,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 「Intellect」にて出題される 26 設問に利用者が回答することで、「心理的ウェルビーイング」「レジリエンス」「対人関係の構築」「成長マインドセット」「自己認識」「自己効力感」「目標志向」「目的と意義」「楽観主義」「感情コントロール」「ストレスマネジメント」「関与の促進」「ワークライフバランス」の 13 領域における個々のメンタル状況が数値化されると共に、どの領域がウェルビーイングな状態であるか否かを瞬時に把握することが可能となる
         - Intellect では、利用者が日々変化するメンタルコンディションを利用者自身が把握できるよう、アプリ起動時に表示される「気分」ボタンから利用者の「気分」を記録する「デイリーチェックイン」を提供しております
 
-116.  感情の円環モデル
+115.  感情の円環モデル
       - 説明
         - ビッグファイブ、感情の円環モデル（の次元）、システム 1・2
 
-117.  セルフモニタリング
+116.  セルフモニタリング
       - 参考
         - [https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html](https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html)
       - 説明
@@ -10338,7 +10118,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 少量の血液で約 7,000 種のタンパク質を一度に測定することで、現在の体の状態と予測される将来の疾患リスクを把握できる検査サービス「フォーネスビジュアス」はその一例です。検査を受けた人が医療機関を通じて提供される専用アプリでは生活習慣を改善するための多彩なメニューを利用でき、歩数や消費カロリーなど毎日の健康データの記録や、健康づくりのための目標設定とその取り組みの管理も行える
         - 「歩行センシング・ウェルネスソリューション」は、約 13g の歩行分析センサーを搭載した専用インソールを靴に入れるだけで、歩行速度、歩幅、接地角度など 20 項目以上のデータを収集する。足の健康状態を推定する独自の歩容分析 AI 技術によって、歩行を通じた健康増進を支援
 
-118.  発話から「疲労」を検出
+117.  発話から「疲労」を検出
       - 参考
         - [https://doi.org/10.1088/1742-6596/2224/1/012023](https://doi.org/10.1088/1742-6596/2224/1/012023)
         - [https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023](https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023)
@@ -10347,14 +10127,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 発話から「疲労」を検出 深層学習で最大 92％
         - 声に含まれる周波数や速度などの特徴から、人の疲れを予測できることが示唆された。深層学習アプローチを用いることにより、高精度で検出できるとのこと。中国の南通⼤学研究者らによる報告
 
-119.  主観的 QOL 計測
+118.  主観的 QOL 計測
       - 参考
         - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F)
       - 説明
         - 人工知能は人間の幸福度を測ることができるか？ ～主観的 QoL 計測におけるパターン認識・メディア理解技術の可能性を探る～
         - \*
 
-120.  ウェアラブルデバイスでうつ病の診断
+119.  ウェアラブルデバイスでうつ病の診断
       - 参考
         - [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)
         - [https://twitter.com/](https://twitter.com/)
@@ -10366,7 +10146,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - [
         - -daichikonno/status/1634757593821507590]()
 
-121.  血糖値測定
+120.  血糖値測定
       - 参考
         - [https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01](https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01)
         - [https://twitter.com/g7z5e/status/1628567288738897920](https://twitter.com/g7z5e/status/1628567288738897920)
@@ -10376,7 +10156,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 穿刺せずに血液中のグルコースを継続的に測定できる技術を開発中
         - 血糖値を測って、感情の算出の参考にしたい
 
-122.  筋肉の動きから感情を算出する
+121.  筋肉の動きから感情を算出する
       - 参考
         - [https://www.nature.com/articles/s42256-023-00616-6#Sec14](https://www.nature.com/articles/s42256-023-00616-6#Sec14)
         - [https://twitter.com/namchan-koushi/status/1633241319123599360](https://twitter.com/namchan-koushi/status/1633241319123599360)
@@ -10385,7 +10165,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 喉に薄いパッチを貼るだけで音声認識を行う研究が進んでいます。パッチに組み込まれたセンサーが皮膚表面に伝わる筋肉の動きと音の振動を感知し、AI の学習モデルを通して認識可能な音声に変換してくれます
         - 騒音の大きい場所での利用だけでなく、声帯を切除した人たちにも有用な技術です
 
-123.  ChatGPT が人の「性格」を分析
+122.  ChatGPT が人の「性格」を分析
       - 参考
         - [https://doi.org/10.48550/arXiv.2303.01248](https://doi.org/10.48550/arXiv.2303.01248)
         - [https://arxiv.org/abs/2303.01248](https://arxiv.org/abs/2303.01248)
@@ -10393,7 +10173,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 説明
         - ChatGPT が人の「性格」を分析できる可能性が示唆された
 
-124.  Divergent Association Task/拡散連想課題（DAT）
+123.  Divergent Association Task/拡散連想課題（DAT）
       - 参考
         - [https://karapaia.com/archives/52317371.html](https://karapaia.com/archives/52317371.html)
       - 説明
@@ -10405,7 +10185,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 人の創造性を測定する主な方法としては、あるものの用途をできるだけ多く考案する「代替用途課題（Alternative Uses Task）」と、2 つの単語を 3 つ目の単語でつなぐ「連想ギャップ補完課題（Bridge-the-Associative Gap Task）」の 2 つがある
         - References:Measuring creativity, one word at a time | Newsroom - McGill University / written by hiroching / edited by / parumo
 
-125.  困難マインドセット尺度
+124.  困難マインドセット尺度
       - 参考
         - [https://buff.ly/3ZLaF45](https://buff.ly/3ZLaF45)
         - [https://journals.sagepub.com/doi/abs/10.1177/01461672231153680](https://journals.sagepub.com/doi/abs/10.1177/01461672231153680)
@@ -10413,11 +10193,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 説明
         - 困難に対するマインドセットには不可能、重要のほかに自己改善という側面がある。困難マインドセット尺度を複数文化圏で使用し、自己改善の機会と捉える程度には文化差があることを示した。さらに勤勉性、徳、人生の意味、楽観性との関連も示した（Yan et al., 2023, PSPB）
 
-126.  筋肉から作られる微かな表情
+125.  筋肉から作られる微かな表情
       - 説明
         - アマゾンの顔認証システムでは、多くの筋肉から作られる微かな表情から、喜び、悲しみ、怒り、嫌悪、驚き、恐れを識別できる
 
-127.  感情分析
+126.  感情分析
       - 参考
         - [https://github.com/rondinellimorais](https://github.com/rondinellimorais)
         - [@rondmorais](https://twitter.com/rondmorais)
@@ -10439,14 +10219,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - [
         - -daichikonno/status/1636923475251298304]()
 
-128.  I'mbesideyou
+127.  I'mbesideyou
       - 参考
         - [https://forbesjapan.com/articles/detail/61733](https://forbesjapan.com/articles/detail/61733)
       - 説明
         - 日系スタートアップ、I'mbesideyou
         - 人間の表情や顔の向きから視線や音声といった状態を基に、AI 統合解析によって、有効と判断したコミュニケーションをサポートする
 
-129.  CyberneX
+128.  CyberneX
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000012.000086789.html](https://prtimes.jp/main/html/rd/p/000000012.000086789.html)
         - [https://techable.jp/archives/200126](https://techable.jp/archives/200126)
@@ -10456,7 +10236,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - CyberneX が提供する「XHOLOS Ear Brain Interface」というイヤホン型脳波計や、脳波データを保存し解釈するためのアルゴリズムを搭載した「α Relax Analyzer」などの脳情報活用基盤を利用します
         - また、「α Relax Analyzer」におけるリラックス度を可視化するための指標である「リラックススコア」は、取得した脳波データの各スペクトルの強度などをもとに CyberneX が独自開発したアルゴリズムで算出されます
 
-130.  腸内細菌
+129.  腸内細菌
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000001021.000017666.html](https://prtimes.jp/main/html/rd/p/000001021.000017666.html)
         - [https://techable.jp/archives/200166](https://techable.jp/archives/200166)
@@ -10471,7 +10251,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - （3）ストレス条件： 心理社会的ストレス（時間制限などを含む）をかけられた状態で暗算を行う
         - PR TIMES：\*\*\*\*
 
-131.  メンタルヘルス状態の推定に ChatGPT
+130.  メンタルヘルス状態の推定に ChatGPT
       - 参考
         - [https://doi.org/10.48550/arXiv.2303.15727](https://t.co/L624cROCbM)
         - [https://arxiv.org/abs/2303.15727](https://arxiv.org/abs/2303.15727)
@@ -10480,7 +10260,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - メンタルヘルス状態の推定に ChatGPT が有用
         - 米ライス大学の心理学 AI 研究者による報告。SNS 投稿からのストレス検出、うつ病検出において高い精度が確認されたとのこと
 
-132.  AI との対話
+131.  AI との対話
       - 参考
         - [https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html](https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html)
       - 説明
@@ -10490,23 +10270,23 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - まず AI チャットボットとの対話によって、その人のウェルビーイングを計測します。状態やタイプをグループ化したうえで、NEC 版行動変容提案モデルをもとにアドバイスを行いました
         - 因果関係を可視化する「要因分析型 AI」です。NEC 社内で実施した従業員エンゲージメントに関するアンケート結果からは、働く気分を天気で表現していたのですが、それに影響する因果構造を分析・可視化。要因を把握することで、具体的な改善アクションにつなげています
 
-133.  hume
+132.  hume
       - 参考
         - [https://hume.ai/products/](https://hume.ai/products/)
         - [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
       - 説明
-        - 人間のあらゆる感情を分析する『hume』がやばい感じ。
+        - 人間のあらゆる感情を分析する『hume』がやばい感じ
         - ・30 以上の人間の感情を可視化するデータプラットフォーム
         - ・顔の表情や声紋などからデータ化
 
-134.  脳活動を計測
+133.  脳活動を計測
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000013.000049573.html](https://prtimes.jp/main/html/rd/p/000000013.000049573.html)
       - 説明
         - アラヤ、事故予防技術のための運転手の脳活動を計測、運転時の認知処理を支援するインタフェースの有用性を発表
         - 株式会社アラヤは、本田技術研究所と共同で、運転中の脳活動から安全運転に関わる部位を特定し、AI を活用して先んじて危険因子を運転手に知らせるシステムの実証実験などの一連の結果をまとめ、第 27 回 ESV 国際会議（ESV2023）で本成果を発表しました
 
-135.  耳の中の細かい振動から呼吸や心拍を測定
+134.  耳の中の細かい振動から呼吸や心拍を測定
       - 参考
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790)
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953)
@@ -10514,7 +10294,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 説明
         - Apple が耳の中の細かい振動から呼吸や心拍を測定できる技術と聴力を長期モニタリングが出来る技術の特許申請を出した
 
-136.  Image Decoder
+135.  Image Decoder
       - 参考
         - [https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/](https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/)
       - 説明
@@ -10522,7 +10302,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - Meta Platforms の研究者は 2023 年 10 月 18 日、脳活動から人の“心“を読むアプリケーション「Image Decoder」を発表した
         - 「Image Decoder」は、同社が提供する自己教師付きのオープンソース基盤モデル「DINOv2」をベースとしたアプリケーション。脳から出てくる磁気を記録する MEG（脳磁図検査）で脳活動を把握することで、隔たったところにいる被験者が何を見ているか、何を想像しているかを把握できる
 
-137.  心拍数モニタ機能
+136.  心拍数モニタ機能
       - 参考
         - [https://daily-gadget.net/2023/11/02/post-63765/](https://daily-gadget.net/2023/11/02/post-63765/)
       - 説明
@@ -10532,7 +10312,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 追加センサーなしでどうやってこんなことを行うのかというと、ANC イヤホンのスピーカーと内蔵マイクを利用します。「プローピング信号」という超音波をスピーカーから流し、その反射をマイクで測定します。外耳道は血管に囲まれているため、心臓の鼓動によって内部の容積と圧力が微妙に変化し、この変動をマイクによって測定することで心拍数が分かるというもの
         - 超音波を使用するため、音楽が流れていても聞こえないように測定が可能
 
-138.  情動変容メカニズム
+137.  情動変容メカニズム
       - 参考
         - [https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf](https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf)
         - [https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/](https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/)
@@ -10543,7 +10323,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - \*1）と脳科学を融合した感性脳科学の観点から、そのメカニズムや相関関係の解明に取り組むことを目的としたものです
         - 情動変容の定量計測や感動状態の新たな定義、余韻形成との相関関係を紐解くことを目指す研究を開始します
 
-139.  光学式心拍センサー
+138.  光学式心拍センサー
       - 参考
         - [https://techable.jp/archives/220874](https://techable.jp/archives/220874)
       - 説明
@@ -10551,11 +10331,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - Polar Electro（本社：フィンランド、設立：1977 年、以下「ポラール」）は、1982 年に世界初とされるワイヤレス式心拍計モニター装置を開発した、心拍計測・分析のスペシャリストだ
         - 今回、同社の光学式心拍センサー「Polar Verity Sense」と、株式会社 obniz（以下、obniz）の IoT プラットフォームが連携した
 
-140.  UK Biobank
+139.  UK Biobank
       - 説明
         - UK Biobank を幸福度の算出の学習データに
 
-141.  AirPods で脳信号を記録
+140.  AirPods で脳信号を記録
       - 参考
         - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
       - 説明
@@ -10564,7 +10344,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 耳の中から非侵襲的に EEG 信号を取得するアプローチ
         - この柔軟なセンサーは、EEG 信号を収集するだけでなく、汗からの乳酸も感知できる
 
-142.  AI による感情推測
+141.  AI による感情推測
       - 参考
         - [https://seleck.cc/1616](https://seleck.cc/1616)
       - 説明
@@ -10572,7 +10352,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 2 つ目は、テキスト情報からの推測です
         - 3 つ目は、話している内容を AI が正確に認識できているかどうかです
 
-143.  感情可視化技術
+142.  感情可視化技術
       - 参考
         - [https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine](https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine)
       - 説明
@@ -10583,7 +10363,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - 我々のもっとも強力で特徴的な点は、計測対象者がデバイスを装着せずに、通常通りの行動をしてもらいながらデータを収集できることです。つまり、計測が行われていることを意識させずにデータを取得することを重要視しています。例えば映画の場合、座席の後ろに赤外線カメラを配置し、観客の生体データを測定しました
         - さらに、生体データの取得により、人々が意識的にコントロールできない要素が反映され、面白くない状況でも笑顔を作り出したり、怖くないのに怖い表情をしたりするなどのノイズを排除できます。事前に映画を拝見して、感情を具体的にどのように見える化できるか、松竹さんにとって何が意義があるのか、観客にとって楽しい体験となるかを考えました
 
-144.  血圧と睡眠障害をモニタリング
+143.  血圧と睡眠障害をモニタリング
       - 参考
         - [https://forbesjapan.com/articles/detail/67114](https://forbesjapan.com/articles/detail/67114)
       - 説明
@@ -10592,14 +10372,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - Apple Watch シリーズの将来的な機能として、近赤外線分光法を用いた血圧測定の可能性が以前から議論されてきた
         - 一方、睡眠時無呼吸症候群は血中酸素濃度、運動量、呼吸数、いびき、心拍数などの要素を分析することで特定できる
 
-145.  社会的文脈と感情
+144.  社会的文脈と感情
       - 参考
         - [https://t.co/RBGkg9QxQ8](https://t.co/RBGkg9QxQ8)
       - 説明
         - 感情の算出の参考にしたい
         - Sixteen facial expressions occur in similar contexts worldwide
 
-146.  Tesla がドライバーの顔認識
+145.  Tesla がドライバーの顔認識
       - 参考
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721)
         - [https://twitter.com/tmiyatake1/status/1728202847513420100](https://twitter.com/tmiyatake1/status/1728202847513420100)
@@ -10608,14 +10388,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - Tesla がドライバーの顔認識をしてパーソナライズされた体験を提供する技術の特許申請を行なった
         - 車に乗った際に名前で呼んでくれたり、エアコンや席の調整、そして意識が無かったり反応が無ければ救急車を呼ぶと同時に自動運転で近くの病院に移動する
 
-147.  e-skin ECG
+146.  e-skin ECG
       - 参考
         - [https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/](https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/)
       - 説明
         - 感情の算出の参考にしたい
         - 慶應義塾大学病院にホルター心電図の郵送検査サービス「e-skin ECG」が導入 ─ 人間ドックでホルター心電図検査可能に
 
-148.  明確に自覚していない情動に対する顔色
+147.  明確に自覚していない情動に対する顔色
       - 参考
         - [https://univ-journal.jp/235496/](https://univ-journal.jp/235496/)
       - 説明
@@ -10624,7 +10404,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - “ハイブリッド表情”という特殊な表情画像を使用して、心理物理実験を実施。ハイブリッド表情は、幸せ表情と無表情、あるいは怒り表情と無表情の顔を異なる空間周波数で混在させた表情（順にハイブリッド幸せ表情、ハイブリッド怒り表情）で、情動研究でよく使われる実験刺激の 1 つだ
         - 論文情報：【Cognition and Emotion】The effect of facial colour on implicit facial expressions
 
-149.  Oura Ring の「Daytime Stress」
+148.  Oura Ring の「Daytime Stress」
       - 参考
         - [https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/](https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/)
       - 説明
@@ -10634,7 +10414,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
         - AI を活用した日記機能。音声認識と AI による自動タグづけにより、1 日の振り返りを話して記録できるほか、気分や精神状態もジェスチャーひとつで記録できる。「Stress Resilience」（今冬から提供予定）
         - 日中のストレス負荷や、日中および睡眠中の回復の追跡により、利用者のストレス耐性を評価する機能。「Daytime Stress」により取得した情報を使用しており、健康を改善するための情報も提供される
 
-150.  Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能
+149.  Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能
       - 説明
         - Oura Ring の 日中のストレスと回復をリアルタイムで追跡する新機能で、リングの 心拍変動や 心拍数や動きや体温を測定して、生理的なストレスをリアルタイムで測定する 新機能を幸福度の測定等の参考にしたい
 
@@ -10647,7 +10427,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - [Ocean Marketplace](https://market.oceanprotocol.com/)
      - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
    - 説明
-     - 無料主義のデータをやり取りする場所の参考にしたい
      - データマーケットプレイスで収益化
 
 2. デジタル庁のオープンデータの取り組み
@@ -10659,8 +10438,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
    - 参考
      - [https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU](https://mirror.xyz/0xF60fB76e6AD89364Af3ffE72C447882bFe390331/z0w-OS2vEwAWcTU2pbAo8VCou20uhL7hKOsrOymlUeU)
      - [https://twitter.com/extreme-stretch/status/1608610308079390722](https://twitter.com/extreme-stretch/status/1608610308079390722)
-   - 説明
-     - "公共圏（公共 AI）を維持するためのお世話の方法として、データを収めましょう" は発想の展開かも。よいデータをおさめないと自分たちが将来的に苦しむことになる、というインセンティブも働くかも
 
 4. データ収集ツール ISeeChange
    - 参考
@@ -10670,31 +10447,20 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - データ収集ツール ISeeChange
      - ISeeChange は、一般市民が自分の暮らす地域で起こっている気候変動の影響を写真や記事で投稿できる無料のデジタルプラットフォーム
 
-5. ウェアラブル端末
-   - 説明
-     - ストレスなどを常時計測できる技術などもすでにあるからそれを評価軸の算出に使用する
-
-6. 持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)
+5. 持続血糖測定（Continuous Glucose Monitoring）、Quantified Self (クオンティファイド・セルフ)
    - 参考
      - [https://globe.asahi.com/article/14635630](https://globe.asahi.com/article/14635630)
    - 説明
      - デバイスを利用して自分の体と心の健康状態や活動を数値で管理する考え方を「Quantified Self (クオンティファイド・セルフ）」といいます
      - 持続血糖測定（Continuous Glucose Monitoring）は、糖尿病治療や予防のために、皮膚の直下に挿入された細い小さな針を通じて持続的に血糖値を測ります。自分の血糖値の状況をアプリを通じて視覚的に管理でき、アメリカでは医師の処方のもと、小児患者も使用しています
 
-7. odp
+6. odp
    - 参考
      - [https://odp.jig.jp/](https://odp.jig.jp/)
    - 説明
      - odp を利用することで、あなたの自治体のデータを、オープンデータ評価指標で最高水準とされている 5 つ星オープンデータとして公開できます
 
-8. 感情を算出するための生体情報のデータを取得する参考
-   - 参考
-     - [https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/](https://www.nikkei.com/article/DGXZQOUA163L80W3A210C2000000/)
-     - [https://twitter.com/maru56/status/1631649589605588992](https://twitter.com/maru56/status/1631649589605588992)
-   - 説明
-     - 「個人が特定されない形で体重や身長、血圧や脂質などの検査値を企業や研究機関に提供する。治療法や医薬品の開発に役立てる」医療情報、個人特定せず検査値提供 研究開発後押し
-
-9. MilCount（ミルカウント）
+7. MilCount（ミルカウント）
    - 参考
      - [AI](https://chizaizukan.com/tag/ai/property)
      - [ニュースリリースはこちら（東急エージェンシー）](https://www.tokyu-agc.co.jp/assets/img/page/news/2023/release20230221.pdf)
@@ -10705,7 +10471,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 交通広告メジャメント（計測方法）としてカメラ 1 台の画像センシングで広告効果を可視化するサービス「MilCount（ミルカウント）」を導入した
      - 「MilCount」は、広告媒体接触者のデータを“速く、見やすく、簡単に”可視化するクラウドサービス。デジタルサイネージ用ディスプレイが複数あるエリアでも、カメラ 1 台で 10m 先・視野角 120 度以内の媒体接触者の属性（年齢・性別など）を 1 時間ごとに測定し、独自の推計ロジックにより媒体設置エリア全体のデータを算出する
 
-10. NeoFace Monitor
+8. NeoFace Monitor
 
 - 参考
   - [https://japan.zdnet.com/article/35201639/](https://japan.zdnet.com/article/35201639/)
@@ -10716,19 +10482,14 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
     - 参考
       - [https://japan.zdnet.com/article/35197605/](https://japan.zdnet.com/article/35197605/)
     - 説明
-      - ジールのオープンデータ提供サービス「CO－ODE（コ・オード）」
+      - ジールのオープンデータ提供サービス
       - 国や自治体が公開するオープンデータを使いやすく加工し、配信・提供しているコ・オード
 
 12. データ版 Kaggle
     - 参考
       - [https://https-deeplearning-ai.github.io/data-centric-comp/](https://t.co/9Z8LEt888O)
 
-13. マーケティング調査会社
-    - 説明
-      - マーケティングやデータ分析の調査、会社が収集しているユーザの行動ログを利用してデータ分析をする手法やデータを取得する方法を、貢献度の算出の行うときのデータの収集に参考にしたい
-      - マーケティング調査会社・データ分析会社「ヴァリューズ」が集計した無印良品ユーザーの行動ログ
-
-14. iNaturalist、eBird、ResearchKit
+13. iNaturalist、eBird、ResearchKit
     - 参考
       - [https://ssir-j.org/the-looming-fight-over-how-we-give-our-data](https://ssir-j.org/the-looming-fight-over-how-we-give-our-data/)
     - 説明
@@ -10740,41 +10501,24 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - 2015 年にアップルは、任意でスマートフォンのデータを医療研究者に共有することを可能にするソフトウェアフレームワーク「ResearchKit」を発表した
       - 非営利団体のモジラ財団は最近、Rally という名の新たなウェブサイトツールを発表したが、これを使えば Firefox のブラウザから直接、関心のある調査研究にデータを提供できる。つまり、提供者自身の選択権とコントロール権が中心に据えられているのです
 
-15. Pint
-    - 参考
-      - [マインディア](https://corporate.minedia.com/)
-      - [https://signal.diamond.jp/articles/-/1227](https://signal.diamond.jp/articles/-/1227)
-    - 説明
-      - データを差し出さないと過小評価されてしまう場合もあるし、データを差し出さないことによって、過剰評価されている人たちは、周りからの批判を浴びることになる
-      - 個人のデータの扱いに対する規制が厳しくなってきている中で、Pint のユーザーから事前に承諾を得て直接取得した「ゼロパーティーデータ（個人が明示的な同意を持って提供するデータ）」である点が大きな特徴だ
-      - 「『自らデータを提供するからこそのメリット』にかなりフォーカスしたアプリになっています。データ連携によって実際に購買したのかどうかをトラッキングできるから、（キャッシュバックなど）お得に買い物ができる。購買データがあるから、自分にあった商品やお得な情報が見つかる。今後は企業から消費者に対して魅力的なオファーを提示できるような仕組みも取り入れていく予定です。こうしたメリットを充実させていくことで、多くの人が長く活用するプラットフォームを目指していきます」（鈴木氏）
-      - C 向けには 5 月よりモバイルアプリ「Pint」の提供を始めた（現時点では Android 版のみ）
-      - ユーザー自ら購買データを提供することで、EC サイトの買い物がお得になる ──。ユーザーに明確なメリットを提示することで多様なデータを収集し、そのデータを企業の課題解決につなげていくことを目指しているスタートアップがある。2018 年創業のだ
+14. The Graph
 
-16. The Graph
-    - 説明
-      - The Graph をオープンデータの参考にしたい
-
-17. openfuture
+15. openfuture
     - 参考
       - [https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1](https://openfuture.pubpub.org/pub/notes-on-open-ai/release/1)
-    - 説明
-      - openfuture をオープンにする参考にしたい
 
-18. TytoCare
+16. TytoCare
     - 参考
       - [https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/](https://www.nikkei.com/article/DGXZQOUC24CLD0U3A021C2000000/)
     - 説明
-      - データ取得の参考にしたい
       - 「タイトケア社が開発・販売するキット「TytoCare」を国内で発売した。カメラやセンサーが付いた本体に 3 種類の付属の部品を組み合わせることで聴診音や体温、咽頭や鼓膜、皮膚の画像など 8 項目のデータが得られる
       - DeNA 系のアルム、オンライン診療の支援キット：日本経済新聞
 
-19. 企業の顧客データ取引所
+17. 企業の顧客データ取引所
     - 参考
       - [https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/](https://www.nikkei.com/article/DGKKZO76257750Q3A121C2MM8000/)
     - 説明
-      - データ取得の参考にしたい
-      - 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す。企業がデータをサービスや商品開発に生かしたり、投資家が取引に参加して売買益を得たりできる
+      - 国内企業約 100 社でつくるデータ社会推進協議会（DSA、東京・港）は、企業が持つ消費者の商品購入や位置情報などの匿名データを売買する市場の創設に乗り出す
 
 ### 評価軸の指標
 
@@ -10785,19 +10529,11 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - 個人消費をベースに、所得分配、家事・ボランティア、などの無料だけど良いことや犯罪や公害といったマイナスなことも含めた指標
      - 脱成長派の経済学者ハーマン・デイリー
 
-2. 経済効果、経済損失を図る方法
-   - 説明
-     - 経済効果を図るときに何がどれだけ経済効果を生み出しているかどうかを図る仕組みを評価軸への貢献度の算出の参考にしたい
-
-3. SDGs の認証方法や評価方法や S&P などの株式の格付けの方法
-   - 説明
-     - B-Corp 認証、製品、店舗の内装材料、アウトソースする企業の Sedex (Supply Ethical Data Exchange)、衛星写真の活用
-
 ### 非干渉の権利
 
-下記の方法を、「非干渉の社会」「非干渉の権利」の参考にしたい。
+下記の方法を「非干渉の権利」の参考にしたい。
 
-1. 無料主義の SNS（DYSTOPIA）
+1. DYSTOPIA
    - 参考
      - [https://twitter.com/dystopia-sns/status/1705831398056284171](https://twitter.com/dystopia-sns/status/1705831398056284171)
    - 説明
@@ -10810,7 +10546,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 3. 潜在的連合テスト
    - 説明
-     - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する？
+     - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の思想がどのクラスタに属するか、この評価軸の仕組みが求める思想を持っているか判断する
      - 自分で考えられない速度で答えないと終わることができないテストで思想を特定する
 
 4. 見たくないコンテンツを加工する機能
@@ -10826,7 +10562,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - [https://technologyreview.jp/s/279706/social-media-filters-are-helping-people-explore-their-gender-identity/sbm/](https://t.co/lMJxYrPcBj)
      - [https://twitter.com/sasakitoshinao/status/1545543768513855488](https://twitter.com/sasakitoshinao/status/1545543768513855488)
    - 説明
-     - すでに、自分の見たい世界を見れるようにするために加工する人たちや文化が生まれてきているから、それを無料主義で加速させる
      - トランスジェンダーの人にとっては「切望している、外見と自認している性のアイデンティティとが一致する多幸感も与えてくれる。肉体的な性別移行を考える際に、フィルターを役立てる人もいる」と。MITTR。／「盛り」だけじゃない、顔加工アプリがもたらす新しい価値
 
 6. 見たくないコンテンツを加工する機能
@@ -10835,7 +10570,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - [https://www.itmedia.co.jp/news/articles/2212/01/news060.html](https://www.itmedia.co.jp/news/articles/2212/01/news060.html)
    - 説明
      - 写真内の不要な顔だけ“実在しない顔”に置き替える AI プライバシー保護に活用 Intel などが開発
-     - 米ビンガムトン大学と Intel Labs に所属する研究者らが発表した論文「」は、写真内に写る指定した顔を実在しない偽の顔（ディープフェイク）に変換する深層学習モデルを提案した研究報告だ
+     - 米ビンガムトン大学と Intel Labs に所属する研究者らが発表した論文は、写真内に写る指定した顔を実在しない偽の顔（ディープフェイク）に変換する深層学習モデルを提案した研究報告だ
 
 7. Bluesky
    - 参考
@@ -10846,8 +10581,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
 
 ### 正当性
 
-下記の方法を、「貢献度の算出結果に正当性を持たせる仕組み」の参考にしたい。
-
 1. pol.is
    - 参考
      - [http://pol.is](http://pol.is)
@@ -10856,85 +10589,69 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
    - 参考
      - [https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/](https://knskito.com/2018/08/21/%E3%80%8C%E3%83%94%E3%82%A2%E4%BA%88%E6%B8%AC%E6%B3%95%E3%80%8D%E3%81%AF%E3%81%BE%E3%81%95%E3%81%AB%E5%88%86%E6%95%A3%E5%9E%8B%E3%82%AA%E3%83%A9%E3%82%AF%E3%83%AB%E7%94%A8%E3%81%AE%E3%83%A1%E3%82%AB/)
 
-3. 分散型オラクルの妥当性を得る方法
-   - 説明
-     - 分散型オラクルの妥当性を得る方法を、貢献度の算出のためのデータ分析の結果の妥当性を判断する仕組みの参考にしたい
-
-4. 「Solafune」
+3. 「Solafune」
    - 参考
      - [https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight](https://thebridge.jp/2022/07/mp-weekly-news-2206-cyberagentcapital-insight)
    - 説明
      - サービス概要：人工衛星が取得した地球観測データを使うアルゴリズムの開発・提供を行う「Solafune」です
      - 衛星データ解析のアルゴリズム開発をオンライン競技化し、衛星データをオープン化しています
-     - 手順の例は次のとおりです
-     - データセットをオンライン公開する
-     - 世界中から解析結果を収集し、自動評価とスコアリングを行う
-     - 優秀なアルゴリズムを抽出し、ソースコードを買い取る
+     - データセットをオンライン公開し、世界中から解析結果を収集し、自動評価とスコアリングを行い、優秀なアルゴリズムを抽出し、ソースコードを買い取る
 
 ### 意思決定
 
-下記の方法を、「無料主義の意思決定」の参考にしたい。
-
-1. 専門能力に応じた投票重み（引用）
+1. 専門能力に応じた投票重み
    - 参考
      - [https://twitter.com/wahukusweet/status/1635496572246196224](https://twitter.com/wahukusweet/status/1635496572246196224)
    - 説明
      - ツイートでは、意思決定権者の専門能力に応じてカテゴリ別の投票重みを変え、定期見直しする案が述べられています
 
-2. これを行って、貢献度の分析結果のどれが正しいかを選んでいく？
+1. 正解を知る少数派が割合を低めに見積もる性質を利用
    - 参考
      - [https://twitter.com/cameturtle/status/1605763510616702977](https://twitter.com/cameturtle/status/1605763510616702977)
    - 説明
      - 割合を低く見積もる人たちの本来聞きたい質問の回答を集めると集合知にできる
      - 「他の参加者のうち何％が、その質問へ yes で答えると見積もるか？」という質問を追加する
-     - （続き）
      - 正解を知る少数派が割合を低めに見積もる性質を利用して集合知を集約する
      - 問題の予測に加え、他者の予測についての予測も併用する点が面白い
-     - Gnosis
-     - 分散型予測市場プラットフォーム
 
-3. Polis
+1. Polis
    - 参考
      - [http://pol.is](https://t.co/mnPKxGq7RI)
      - [https://twitter.com/-serinuntius/status/1592833685119590400](https://twitter.com/-serinuntius/status/1592833685119590400)
    - 説明
      - 返信なくして 3 値で判定してる
 
-4. Conviction Voting
+1. Conviction Voting
    - 参考
      - [https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475](https://medium.com/giveth/conviction-voting-a-novel-continuous-decision-making-alternative-to-governance-aa746cfb9475)
 
-5. Futarchy
+1. Futarchy
    - 説明
      - Futarchy は、政府の一形態で、選出された役人が国民の幸福の尺度を定義し、予測市場を使用して、どの政策がもっともプラスの効果をもたらすかを決定する
 
 ### etc の参考
 
-1. john-law-coin（評価軸ポイントの設計）
+1. john-law-coin
    - 参考
      - [https://github.com/xharaken/john-law-coin/tree/main/docs](https://github.com/xharaken/john-law-coin/tree/main/docs)
    - 説明
-     - 評価軸ポイントの設計の参考にしたい
+     - 評価軸ポイントの設計の参考
 
 2. VitaDAO
    - 参考
      - [https://note.com/rshibato/n/ncd17e33c5e4a](https://note.com/rshibato/n/ncd17e33c5e4a)
    - 説明
-     - VitaDAO などの DeSi を無料主義で研究を支援する参考にしたい
      - 長寿研究の民主化を目指す「VitaDAO」- 分散型科学の先端事例
 
 3. kleros / Plurality Conference（無料主義の裁判）
    - 参考
      - [UC Berkeley で開催された Plurality Conference 参加記の Scrapbox メモ](https://scrapbox.io/tkgshn/UC-Berkeley%E3%81%A7%E8%A1%8C%E3%82%8F%E3%82%8C%E3%81%9FPlurality-Conference%E3%81%AB%E5%8F%82%E5%8A%A0%E3%81%97%E3%81%9F)
    - 説明
-     - 無料主義の裁判の参考にしたい
      - kleros は分散型裁判所
 
 4. The Network State
    - 参考
      - [https://thenetworkstate.com/](https://thenetworkstate.com/)
-   - 説明
-     - 国づくりにおける評価軸の仕組みを参考にしたい
      - Coinbase の元 CTO/a16z のパートナーでもある [@balajis](https://twitter.com/balajis) の「The Network State」を参考にして、国を作っていきたい
 
 5. CityDAO
@@ -10946,7 +10663,6 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
      - [https://twitter.com/sanctumnation](https://twitter.com/sanctumnation)
    - 説明
      - ニューヨークにあるニュースクール大学の准教授で警察力の自動化について研究しているピーター・アサロ
-     - 「Sanctum」
 
 7. 海上自治都市・公海を漂う新国家
    - 参考
@@ -10997,8 +10713,7 @@ _Augur は Git 系プラットフォームの全履歴＋コミュニケーシ�
       - [Braintech ガイドブック PDF](https://brains.link/wp/wp-content/uploads/2022/10/Braintech-guidebook-ver1.1.pdf)
       - [関連ニュースへのショートリンク](https://t.co/2IaBDNhQJX)
     - 説明
-      - イヤホンで脳波を測り生産性を高める関連で、凸版印刷は 30 社を超える顧客へ装置を販売しているとされています（日本経済新聞の報じるところです）
-      - 参考リンク: ほか
+      - イヤホンで脳波を測り生産性を高める関連で、凸版印刷は 30 社を超える顧客へ装置を販売しているとされています
 
 ## 資本主義から無料主義へ移行する方法
 
