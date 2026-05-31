@@ -8,10 +8,8 @@
 		"url": "git+https://github.com/yuichisugio/freeism-documentation.git"
 	},
 	"scripts": {
-		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md && pnpm exec textlint --fix src/freeism.en.md",
-		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md && pnpm exec textlint src/freeism.en.md",
-		"lint:ja": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md",
-		"lint:en": "pnpm exec textlint src/freeism.en.md && pnpm exec textlint README.md"
+		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md",
+		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md"
 	},
 	"keywords": [],
 	"devDependencies": {
