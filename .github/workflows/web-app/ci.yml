@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     paths:
-      - "web-app/**"
+      - "projects/web-app/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -13,7 +13,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "web-app/**"
+      - "projects/web-app/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        working-directory: web-app
+        working-directory: projects/web-app
 
     strategy:
       matrix:
@@ -55,8 +55,8 @@ jobs:
       - uses: actions/cache@v4 # Turborepo & Next.js ビルドキャッシュ
         with:
           path: |
-            web-app/.turbo
-            web-app/.next/cache
+            projects/web-app/.turbo
+            projects/web-app/.next/cache
           key: ${{ runner.os }}-next-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-next-

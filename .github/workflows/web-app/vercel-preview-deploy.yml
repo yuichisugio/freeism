@@ -5,7 +5,7 @@ on:
     branches-ignore:
       - main
     paths:
-      - "web-app/**"
+      - "projects/web-app/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: web-app
+        working-directory: projects/web-app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

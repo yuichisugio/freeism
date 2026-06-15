@@ -54,6 +54,6 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.suggest.autoImports": true,
-  "typescript.tsdk": "${workspaceFolder}/web-app/node_modules/typescript/lib",
-  "vitest.rootConfig": "./web-app/vitest.config.ts"
+  "typescript.tsdk": "${workspaceFolder}/projects/web-app/node_modules/typescript/lib",
+  "vitest.rootConfig": "./projects/web-app/vitest.config.ts"
 }

@@ -17,11 +17,11 @@
 
 | Path                                 | Description                                                                                                                                       |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`documentation/`](./documentation/) | Freeism specification |
+| [`projects/documentation/`](./projects/documentation/) | Freeism specification |
 | [`docs/`](./docs/)                   | Markdown for the repository root (this README in Japanese, the Japanese code of conduct, etc.).                                                   |
-| [`web-app/`](./web-app/)             | web app |
-| [`calc-contrib/`](./calc-contrib/)   | Software that calculates contribution scores |
-| [`depchecker/`](./depchecker/)       | Software that fetches dependencies                                                         |
+| [`projects/web-app/`](./projects/web-app/)             | web app |
+| [`projects/calc-contrib/`](./projects/calc-contrib/)   | Software that calculates contribution scores |
+| [`projects/depchecker/`](./projects/depchecker/)       | Software that fetches dependencies                                                         |
 
 ```
 freeism/
@@ -29,8 +29,9 @@ freeism/
 ├── CODE_OF_CONDUCT.md        # Code of conduct (English)
 ├── LICENSE                   # License
 ├── docs/                     # Documentation for this repository
-├── documentation/           # Freeism specification
-├── web-app/                  # Freeism app
-├── calc-contrib/             # Contribution calculation
-└── depchecker/               # Dependency fetching
+└── projects/                 # Monorepo projects
+    ├── documentation/        # Freeism specification
+    ├── web-app/              # Freeism app
+    ├── calc-contrib/         # Contribution calculation
+    └── depchecker/           # Dependency fetching
 ```

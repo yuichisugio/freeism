@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "web-app/**"
+      - "projects/web-app/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-22.04 # zstd 対応 runner
     defaults:
       run:
-        working-directory: web-app
+        working-directory: projects/web-app
     steps:
       # 0. 取得
       - uses: actions/checkout@v4
@@ -53,8 +53,8 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: |
-            web-app/.next/cache
-            web-app/.turbo        # ← RemoteCache 不使用時もローカルキャッシュ
+            projects/web-app/.next/cache
+            projects/web-app/.turbo        # ← RemoteCache 不使用時もローカルキャッシュ
           key: ${{ runner.os }}-next-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-next-main-

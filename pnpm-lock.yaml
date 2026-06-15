@@ -8,7 +8,7 @@ importers:
 
   .: {}
 
-  documentation:
+  projects/documentation:
     devDependencies:
       '@textlint-ja/textlint-rule-no-insert-dropping-sa':
         specifier: ^1.0.1
@@ -71,7 +71,7 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(textlint@11.9.1)
 
-  web-app:
+  projects/web-app:
     dependencies:
       '@aws-sdk/client-s3':
         specifier: ^3.758.0

@@ -22,18 +22,19 @@ freeism/
 ├── CODE_OF_CONDUCT.md        # 行動規範（英語）
 ├── LICENSE                   # ライセンス
 ├── docs/                     # リポジトリ用ドキュメント
-├── documentation/            # 無料主義の仕様
-├── web-app/                  # 無料主義アプリ
-├── calc-contrib/             # 貢献度の算出
-└── depchecker/               # 依存関係の取得
+└── projects/                 # モノレポ管理対象のプロジェクト
+    ├── documentation/        # 無料主義の仕様
+    ├── web-app/              # 無料主義アプリ
+    ├── calc-contrib/         # 貢献度の算出
+    └── depchecker/           # 依存関係の取得
 ```
 
 | パス(README.md)                                  | 説明                                                                                                                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`documentation/`](../documentation/README.md) | 無料主義の仕様 |
-| [`web-app/`](../web-app/README.md)             | Web アプリ |
-| [`calc-contrib/`](../calc-contrib/README.md)   | 貢献度を算出するソフトウェア |
-| [`depchecker/`](../depchecker/README.md)       | 依存関係を取得するソフトウェア |
+| [`projects/documentation/`](../projects/documentation/README.md) | 無料主義の仕様 |
+| [`projects/web-app/`](../projects/web-app/README.md)             | Web アプリ |
+| [`projects/calc-contrib/`](../projects/calc-contrib/README.md)   | 貢献度を算出するソフトウェア |
+| [`projects/depchecker/`](../projects/depchecker/README.md)       | 依存関係を取得するソフトウェア |
 
 ## 初期設定
 

@@ -15,7 +15,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: web-app
+        working-directory: projects/web-app
 
     env:
       DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}

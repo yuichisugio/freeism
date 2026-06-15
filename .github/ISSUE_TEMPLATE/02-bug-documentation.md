@@ -1,6 +1,6 @@
 ---
 name: バグ・要望（documentation / 仕様）
-about: documentation/ 配下の仕様書・Markdown に関する問題や改善
+about: projects/documentation/ 配下の仕様書・Markdown に関する問題や改善
 title: '[documentation] '
 labels: ['bug', 'documentation']
 assignees: ''

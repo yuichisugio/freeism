@@ -1,9 +1,9 @@
 # Monorepo（freeism）: パスごとのレビュー割当。必要に応じてチームやユーザーを追加してください。
 
-/web-app/ @yuichisugio
-/documentation/ @yuichisugio
-/calc-contrib/ @yuichisugio
-/depchecker/ @yuichisugio
+/projects/web-app/ @yuichisugio
+/projects/documentation/ @yuichisugio
+/projects/calc-contrib/ @yuichisugio
+/projects/depchecker/ @yuichisugio
 
 /.github/ @yuichisugio
 /docs/ @yuichisugio

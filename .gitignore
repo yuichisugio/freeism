@@ -1,61 +1,62 @@
 # Monorepo-wide
 node_modules/
 .pnpm-store/
+.mypy_cache
 .DS_Store
 settings.local.json
 
 # Husky generated stub (see documentation toolchain)
 .husky/_
-documentation/.husky/_
+projects/documentation/.husky/_
 
 # --- calc-contrib, depchecker ---
-calc-contrib/results/
-calc-contrib/*/results/*
-calc-contrib/*/results/
+projects/calc-contrib/results/
+projects/calc-contrib/*/results/*
+projects/calc-contrib/*/results/
 
-depchecker/results/
-depchecker/*/results/*
-depchecker/*/results/
+projects/depchecker/results/
+projects/depchecker/*/results/*
+projects/depchecker/*/results/
 
 # --- web-app ---
-web-app/.pnp
-web-app/.pnp.*
-web-app/.yarn/*
-!web-app/.yarn/patches
-!web-app/.yarn/plugins
-!web-app/.yarn/releases
-!web-app/.yarn/versions
+projects/web-app/.pnp
+projects/web-app/.pnp.*
+projects/web-app/.yarn/*
+!projects/web-app/.yarn/patches
+!projects/web-app/.yarn/plugins
+!projects/web-app/.yarn/releases
+!projects/web-app/.yarn/versions
 
-web-app/coverage/
+projects/web-app/coverage/
 
-web-app/.next/
-web-app/out/
+projects/web-app/.next/
+projects/web-app/out/
 
-web-app/build
-web-app/html
+projects/web-app/build
+projects/web-app/html
 
-web-app/*.pem
-web-app/.eslintcache
+projects/web-app/*.pem
+projects/web-app/.eslintcache
 .vscode/settings.json.bak
 
-web-app/npm-debug.log*
-web-app/yarn-debug.log*
-web-app/yarn-error.log*
-web-app/.pnpm-debug.log*
+projects/web-app/npm-debug.log*
+projects/web-app/yarn-debug.log*
+projects/web-app/yarn-error.log*
+projects/web-app/.pnpm-debug.log*
 
-web-app/.env*
-!web-app/.env.example
+projects/web-app/.env*
+!projects/web-app/.env.example
 
-web-app/.vercel
+projects/web-app/.vercel
 
-web-app/*.tsbuildinfo
-web-app/next-env.d.ts
-web-app/dist
+projects/web-app/*.tsbuildinfo
+projects/web-app/next-env.d.ts
+projects/web-app/dist
 
-web-app/git-worktrees/*
+projects/web-app/git-worktrees/*
 
-web-app/supabase/.branches
-web-app/supabase/.temp
-web-app/supabase/.env.keys
-web-app/supabase/.env.local
-web-app/supabase/.env.*.local
+projects/web-app/supabase/.branches
+projects/web-app/supabase/.temp
+projects/web-app/supabase/.env.keys
+projects/web-app/supabase/.env.local
+projects/web-app/supabase/.env.*.local
