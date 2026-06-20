@@ -8035,87 +8035,79 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
 
 48. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
+    - 参考
+      - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
 
-- 参考
-  - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
+49. 幸福度を測る方法の参考にしたい対象
+    - 説明
+      - ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
 
-11. 幸福度を測る方法の参考にしたい対象
+50. センサー「エモコアイ」
+    - 参考
+      - [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
+    - 説明
+      - センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する
+      - 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する
 
-- 説明
-  - ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
+51. Thymia
+    - 参考
+      - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
+    - 説明
+      - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービス
+      - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられる
 
-12. センサー「エモコアイ」
+52. Web カメラだけで心拍数と心拍変動
+    - 参考
+      - [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136)
+      - [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
+    - 説明
+      - Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい
 
-- 参考
-  - [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
-- 説明
-  - センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する
-  - 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する
+53. GPT-4 が性格診断・感情分析
+    - 参考
+      - [https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend)
+      - [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
+    - 説明
+      - 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した
+      - その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた
 
-13. Thymia
+54. iOS 17 の「心の健康状態」
+    - 参考
+      - [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
+      - [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d)
+      - [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
+    - 説明
+      - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
+      - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
+      - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
+      - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
+      - 「自動感情日誌」になる
+      - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
+      - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
+      - ヘルスケアのデータ取得ができる API がある。HealthKit
+      - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
 
-- 参考
-  - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
-- 説明
-  - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービス
-  - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられる
+55. TherapeiaVR
+    - 説明
+      - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
 
-14. Web カメラだけで心拍数と心拍変動
-
-- 参考
-  - [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136)
-  - [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
-- 説明
-  - Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい
-
-15. GPT-4 が性格診断・感情分析
-
-- 参考
-  - [https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend)
-  - [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
-- 説明
-  - 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した
-  - その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた
-
-16. iOS 17 の「心の健康状態」
-
-- 参考
-  - [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
-  - [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d)
-  - [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
-- 説明
-  - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
-  - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
-  - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
-  - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
-  - 「自動感情日誌」になる
-  - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
-  - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
-  - ヘルスケアのデータ取得ができる API がある。HealthKit
-  - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
-
-17. TherapeiaVR
-
-- 説明
-  - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
-
-19. 感性アナライザ
+56. 感性アナライザ
     - 参考
       - [https://realsound.jp/tech/2023/05/post-1337515.html](https://realsound.jp/tech/2023/05/post-1337515.html)
     - 説明
       - 電通サイエンスジャムの技術である「感性アナライザ」によって体験中の脳波を測定し、ハグ時の幸福度に関連する感情変化を計測・可視化する取り組みも行われており、ハグによって脳の働きが変化していく様子を視覚的にとらえることも可能だ
 
-20. 脈拍の変動
+57. 脈拍の変動
     - 説明
       - スマートウォッチが脈拍の変動からストレスを推定する仕組み
 
-21. wellday
+58. wellday
     - 参考
       - [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
     - 説明
       - 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない
 
-22. 皮膚電気活動（EDA）
+59. 皮膚電気活動（EDA）
     - 参考
       - [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
     - 説明
@@ -8123,7 +8115,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです
       - Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです
 
-23. テキストから病気を見つける技術
+60. テキストから病気を見つける技術
     - 参考
       - [https://togetter.com/li/2226111](https://togetter.com/li/2226111)
       - [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155)
@@ -8133,7 +8125,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう
       - アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と
 
-24. Apple Mood Tracking
+61. Apple Mood Tracking
     - 参考
       - [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
     - 説明
@@ -8143,20 +8135,20 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる
       - ジャーナルアプリが出たら写真と感情の紐付けも
 
-25. 「非侵襲型」の血糖値計測
+62. 「非侵襲型」の血糖値計測
     - 参考
       - [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
     - 説明
       - 「非侵襲型」の血糖値計測で健康の測定や感情の算出
 
-26. Google 音声アシスタント
+63. Google 音声アシスタント
     - 参考
       - [http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ)
       - [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
     - 説明
       - Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した
 
-27. Empath
+64. Empath
     - 参考
       - [https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/)
       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)
@@ -8167,25 +8159,25 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 商願 2014-35949：「Empath」
       - 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）
 
-28. Hugtics
+65. Hugtics
     - 参考
       - [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
     - 説明
       - 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する
 
-29. アイトラッキング
+66. アイトラッキング
     - 参考
       - [https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
     - 説明
       - Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許
       - 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる
 
-30. 非接触型の脈拍測定
+67. 非接触型の脈拍測定
     - 説明
       - カメラを使った非接触型の脈拍測定ができるらしい
       - この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
 
-31. 可食ワイヤレス生体情報センサ
+68. 可食ワイヤレス生体情報センサ
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
     - 説明
@@ -8193,16 +8185,16 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」
       - 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した
 
-32. 感情認識技術
+69. 感情認識技術
     - 説明
       - 感情認識技術
       - 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
 
-33. 失言検出課題、チーズケーキ課題
+70. 失言検出課題、チーズケーキ課題
     - 説明
       - 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
 
-34. 脳活動解読
+71. 脳活動解読
     - 参考
       - [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/)
       - [【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full)
@@ -8212,13 +8204,13 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる
       - 論文情報：
 
-35. ストレスチェックと生活習慣等の分析
+72. ストレスチェックと生活習慣等の分析
     - 参考
       - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
     - 説明
       - 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている
 
-36. ANBAI
+73. ANBAI
     - 参考
       - [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/)
       - [https://anbai.team/](https://anbai.team/)
@@ -8226,7 +8218,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 説明
       - 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」
 
-37. Mappiness
+74. Mappiness
     - 参考
       - [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html)
       - [Mappiness](https://www.mappinessapp.com/)
@@ -8237,20 +8229,20 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ
       - 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました
 
-38. 汗からストレスレベル
+75. 汗からストレスレベル
     - 参考
       - [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
     - 説明
       - 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表
       - 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました
 
-39. 動きから感情
+76. 動きから感情
     - 参考
       - [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
     - 説明
       - スマホで使えるモーションキャプチャー、ソニー「mocopi」
 
-40. ChatGPT に聞いた幸福度を測定する方法
+77. ChatGPT に聞いた幸福度を測定する方法
     - 説明
       - アンケート調査以外で幸福度を測定する方法として、次のようなものがあります
       - 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法
@@ -8260,7 +8252,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です
       - ChatGPT
 
-41. 赤ちゃんの泣き声を分析
+78. 赤ちゃんの泣き声を分析
     - 参考
       - [https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)
       - [https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying)
@@ -8270,13 +8262,13 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - CES 2023: The device that tells you why your baby is crying
       - \*\*
 
-42. うつ病を定量化して分析
+79. うつ病を定量化して分析
     - 参考
       - [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
     - 説明
       - 「新型うつ」とは何だったのか
 
-43. VR の視線の動きで ADHD 診断
+80. VR の視線の動きで ADHD 診断
     - 参考
       - [Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)
       - [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
@@ -8285,7 +8277,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました
       - 研究の詳細は、2022 年 11 月 24 日付の科学誌『』に掲載されました
 
-44. 中国で共産党員の忠誠心を判定する AI
+81. 中国で共産党員の忠誠心を判定する AI
     - 参考
       - [サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)
       - [https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
@@ -8295,7 +8287,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 人民の監視を強める中国 なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている
       - それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった
 
-45. SOXAI Ring
+82. SOXAI Ring
     - 参考
       - [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring)
       - [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
@@ -8304,19 +8296,19 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス
       - 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという
 
-46. 非接触型睡眠トラッカー「Halo Rise」
+83. 非接触型睡眠トラッカー「Halo Rise」
     - 参考
       - [https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
     - 説明
       - Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです
       - 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する
 
-47. 感情の算出にアンケート調査を使う場合の懸念点
+84. 感情の算出にアンケート調査を使う場合の懸念点
     - 説明
       - アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
       - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
 
-48. 光学式センサ、3 軸加速度センサ
+85. 光学式センサ、3 軸加速度センサ
     - 参考
       - [https://36kr.jp/9669/](https://36kr.jp/9669/)
     - 説明
@@ -8324,7 +8316,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる
       - 光学式センサで心拍数を計測できるデバイスもある
 
-49. うつ病治療 VR 製品
+86. うつ病治療 VR 製品
     - 参考
       - [https://techable.jp/archives/177646](https://techable.jp/archives/177646)
       - [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html)
@@ -8336,7 +8328,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です
       - 「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている
 
-50. ミキワメウェルビーイング
+87. ミキワメウェルビーイング
     - 参考
       - [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
       - [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
@@ -8346,7 +8338,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる
       - 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している
 
-51. 機能的近赤外分光分析法（fNIRS）
+88. 機能的近赤外分光分析法（fNIRS）
     - 参考
       - [https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
     - 説明
@@ -8357,11 +8349,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - \*\*
       - NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
 
-52. アンケート調査による幸福度の算出
+89. アンケート調査による幸福度の算出
     - 説明
       - 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
 
-53. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
+90. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
     - 説明
@@ -8370,7 +8362,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ
       - KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ
 
-54. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
+91. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
     - 参考
       - [詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
     - 説明
@@ -8378,20 +8370,20 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した
       - 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの
 
-55. 産後うつを身体症状を基に早期発見する調査尺度
+92. 産後うつを身体症状を基に早期発見する調査尺度
     - 参考
       - [精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
     - 説明
       - 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した
       - 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は
 
-56. うつ尺度「BDI-II」
+93. うつ尺度「BDI-II」
     - 参考
       - [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
     - 説明
       - 世界的に広く使われているうつ尺度「BDI-II」
 
-57. 使える API
+94. 使える API
     - 参考
       - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
       - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
@@ -8406,26 +8398,26 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
       - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
 
-58. モニター調査・アンケート調査
+95. モニター調査・アンケート調査
     - 説明
       - モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る
       - そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる
       - 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る
       - でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
 
-59. 文脈依存型推薦エンジン(Context based recommendation system)
+96. 文脈依存型推薦エンジン(Context based recommendation system)
     - 参考
       - [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
     - 説明
       - 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています
 
-60. ギャラップ社・Glassdoor の調査
+97. ギャラップ社・Glassdoor の調査
     - 参考
       - [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
     - 説明
       - ギャラップ社が 250 万人のアメリカ人を対象に行った調査
 
-61. 多属性評価
+98. 多属性評価
     - 参考
       - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
     - 説明
@@ -8437,7 +8429,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）
       - A simplified approach to measuring national gender inequality
 
-62. 毎日簡単なアンケートに答える方法
+99. 毎日簡単なアンケートに答える方法
     - 参考
       - [https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html)
       - [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
@@ -8445,24 +8437,32 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - アンケートの設問内容は何？
       - 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました
 
-63. オンライン測定
+100. オンライン測定
+
+
     - 参考
       - [https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
     - 説明
       - オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた
 
-64. 尿検査できるセンサー Withings の「U-Scan」
+101. 尿検査できるセンサー Withings の「U-Scan」
+
+
     - 説明
       - 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
 
-65. 心拍変動（HRV）
+102. 心拍変動（HRV）
+
+
     - 参考
       - [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
     - 説明
       - 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する
       - iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる
 
-66. ツイート分析
+103. ツイート分析
+
+
     - 参考
       - [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/)
       - [【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en)
@@ -8474,7 +8474,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された
       - 論文情報：
 
-67. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
+104. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
+
+
     - 参考
       - [https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
     - 説明
@@ -8482,19 +8484,25 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ
       - VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している
 
-68. 思想教育の効果を可視化
+105. 思想教育の効果を可視化
+
+
     - 参考
       - [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
     - 説明
       - 「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した
       - 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた
 
-69. アンケート調査以外の要素
+106. アンケート調査以外の要素
+
+
     - 説明
       - 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている
       - 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
 
-70. ツイート分析
+107. ツイート分析
+
+
     - 参考
       - [https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7)
       - [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
@@ -8503,7 +8511,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの
       - Hoaxy: How claims spread online
 
-71. SNS の文章を解析
+108. SNS の文章を解析
+
+
     - 参考
       - [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/)
       - [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/)
@@ -8517,7 +8527,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 論文情報：
       - なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな
 
-72. ワークサンプルテスト
+109. ワークサンプルテスト
+
+
     - 参考
       - [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
       - [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
@@ -8526,14 +8538,18 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - </span>\*\*
       - サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です
 
-73. Omegawave
+110. Omegawave
+
+
     - 参考
       - [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
     - 説明
       - フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している
       - Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる
 
-74. FaiCE（フェイス）
+111. FaiCE（フェイス）
+
+
     - 参考
       - [https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
     - 説明
@@ -8541,7 +8557,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。\*\*
       - \*\*
 
-75. ひきこもり度を簡単に評価できるテスト
+112. ひきこもり度を簡単に評価できるテスト
+
+
     - 参考
       - [Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
       - [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
@@ -8549,7 +8567,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました
       - 研究の詳細は、2022 年 11 月 30 日付の科学誌『』に掲載されています
 
-76. パルスアイ
+113. パルスアイ
+
+
     - 参考
       - [https://techable.jp/archives/185582](https://techable.jp/archives/185582)
     - 説明
@@ -8558,7 +8578,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
       - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
 
-77. Classroom Technologies が Intel と提携して開発しているシステム
+114. Classroom Technologies が Intel と提携して開発しているシステム
+
+
     - 参考
       - [Classroom Technologies](https://www.class.com/)
       - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
@@ -8566,7 +8588,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     - 説明
       - 仮想空間上で行う授業のソフトを販売する企業の\***\*が\*\***と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる
 
-78. Face2Brain
+115. Face2Brain
+
+
     - 参考
       - [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya)
       - [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/)
@@ -8575,21 +8599,27 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 「顔画像」から脳波を推定するアルゴリズム Face2Brain
       - 「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム
 
-79. CBT-I
+116. CBT-I
+
+
     - 参考
       - [https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
     - 説明
       - 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した
       - 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという
 
-80. Face++や Microsoft AI などの顔認識技術
+117. Face++や Microsoft AI などの顔認識技術
+
+
     - 参考
       - [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
     - 説明
       - 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった
       - でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた
 
-81. 「充実した人生」を測る指標
+118. 「充実した人生」を測る指標
+
+
     - 参考
       - [『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)
       - [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
@@ -8598,7 +8628,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました
       - 研究の詳細は、2022 年 9 月 30 日付で学術誌に掲載されています
 
-82. Dot Mind Unlocked
+119. Dot Mind Unlocked
+
+
     - 参考
       - [ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)
       - [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
@@ -8606,14 +8638,18 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - ***
       - ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」
 
-83. Oura
+120. Oura
+
+
     - 参考
       - [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
     - 説明
       - 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング
       - 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている
 
-84. 瞳孔反応解析技術
+121. 瞳孔反応解析技術
+
+
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
     - 説明
@@ -8621,7 +8657,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - \*\*「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ
       - 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている
 
-85. ESHA（イーエスエイチエー）・KIBI 理論
+122. ESHA（イーエスエイチエー）・KIBI 理論
+
+
     - 参考
       - [https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)
       - [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
@@ -8633,7 +8671,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - \*\*[株式会社エモテック・ラボ
       - ]()\*\*
 
-86. 幸福度の指標
+123. 幸福度の指標
+
+
     - 参考
       - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
     - 説明
@@ -8645,7 +8685,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
       - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
 
-87. 幸福度の指標
+124. 幸福度の指標
+
+
     - 参考
       - [「幸せ」を追求するのはいいことなのか？──『ハッピークラシー――「幸せ」願望に支配される日常』](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
       - [https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000#f-e4aef989)
@@ -8656,38 +8698,50 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - そもそも幸福は客観的に評価可能なのか、がある。アンケート調査や尺度には数多くの種類がある。オックスフォード幸せ調査、人生満足感尺度、経験サンプリング法、一日再現法など。これらを用いて心理学者と経済学者は幸せには客観的な基軸があるとを主張したが[
       - \*1]()、これにはいまだに疑問が残る
 
-88. 幸福度を測る 11 の要素
+125. 幸福度を測る 11 の要素
+
+
     - 参考
       - [https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0](https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0)
     - 説明
       - 過去の幸福研究などをベースに、人間に幸福をもたらす要素を 11 パターンに分類しております
 
-89. 音声
+126. 音声
+
+
     - 参考
       - [https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full)
     - 説明
       - スマートフォンと機械学習でうつ病を検知、30 秒の音声から
 
-90. マイク
+127. マイク
+
+
     - 参考
       - [https://www.itmedia.co.jp/news/articles/2301/25/news068.html](https://www.itmedia.co.jp/news/articles/2301/25/news068.html)
     - 説明
       - 特別な機器を必要とせず、マイクのあるスマホだけで検査できるってのが可能性を感じる。精度が高まれば応用いろいろできそう。／話し方で「飲みすぎ」か分かる AI 12 秒の会話で酩酊状態を特定
 
-91. うつ病予測
+128. うつ病予測
+
+
     - 参考
       - [https://twitter.com/AIBoom-net/status/1618865899628560391](https://twitter.com/AIBoom-net/status/1618865899628560391)
     - 説明
       - 北京大学とヘルスケア企業による共同研究の報告。ディープラーニングベースの手法を用いて、およそ 8 割の精度で高齢者のうつ病を検知できるとのこと
 
-92. EEG
+129. EEG
+
+
     - 参考
       - [https://twitter.com/masatojames/status/1618502175021486080](https://twitter.com/masatojames/status/1618502175021486080)
     - 説明
       - EEG で行うっぽい
       - 音楽聴いてる状態を特定するのに、イヤホンに脳波センサーと音波センサー取り付けるの考えてたけど、これあればセンサー 1 種類で済むんよな
 
-93. 脳内の磁場変化を察知できるセンサー
+130. 脳内の磁場変化を察知できるセンサー
+
+
     - 参考
       - [https://twitter.com/tmiyatake1/status/1620241970928181250](https://twitter.com/tmiyatake1/status/1620241970928181250)
     - 説明
@@ -8695,19 +8749,25 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - ユースケースとしてはユーザーの感情を読み取って、それに対してアクションを行える仕組みが考えられる
       - 考えるだけでバーチャルの世界をコントロール出来るようになる
 
-94. Canary
+131. Canary
+
+
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/)
     - 説明
       - Canary Speech という企業の声から人の精神状態・感情を評価するアプリ「Canary」を参考にしたい
 
-95. fMRI と EEG
+132. fMRI と EEG
+
+
     - 参考
       - [https://twitter.com/shiropen2/status/1620573717507219456](https://twitter.com/shiropen2/status/1620573717507219456)
     - 説明
       - 脳全体の血流や代謝を測定する fMRI と脳内の電気的活動に伴う電磁気信号を捉える脳波（EEG)を組み合わせ（非侵襲的）深層学習で音声合成による曲の復元と識別を行う
 
-96. スマホで血管老化を予測
+133. スマホで血管老化を予測
+
+
     - 参考
       - [https://www.nature.com/articles/s41598-020-76816-6](https://www.nature.com/articles/s41598-020-76816-6)
       - [https://twitter.com/AIBoom-net/status/1623595459506995202](https://twitter.com/AIBoom-net/status/1623595459506995202)
@@ -8715,13 +8775,17 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - スマホで血管老化を予測 機械学習により高精度に
       - スマートフォンで取得できる PRG※と、4 つの変数（性別、身長、体重、喫煙有無）を機械学習で分析し、血管老化を AUC 95％で予測できるとの報告。※RPG：フォトプレチスモグラフィ。血中酸素飽和度などの測定に使用
 
-97. 表情
+134. 表情
+
+
     - 参考
       - [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
     - 説明
       - 声が出せない状況下でもマスク＋ AI で会話
 
-98. 唇の筋肉の動きを分析
+135. 唇の筋肉の動きを分析
+
+
     - 参考
       - [https://nature.com/articles/s41467-022-32231-1](https://nature.com/articles/s41467-022-32231-1)
       - [https://twitter.com/AIBoom-net/status/1623657972781154304](https://twitter.com/AIBoom-net/status/1623657972781154304)
@@ -8730,7 +8794,9 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 「マスクの下にある唇の動きを読み取る」という課題は、複数の研究グループにより取り組まれています
       - 下記は、レーダー信号と Wi-Fi 信号を深層学習で分析して読み取るアプローチ。上記 ツイート で紹介した研究とは別角度からの解決となります
 
-99. 心臓のエコー図
+136. 心臓のエコー図
+
+
     - 参考
       - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
       - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
@@ -8738,27 +8804,29 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
       - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
 
-100.  リストバンド型加速度計
-      - 参考
-        - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
-        - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
-      - 説明
-        - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
-        - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
+137. リストバンド型加速度計
 
-101.  AiGROW
+
+    - 参考
+      - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
+      - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
+    - 説明
+      - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
+      - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
+
+138.  AiGROW
       - 説明
       - AiGROW で Big-5 モデルを使って性格検査
       - 木村充、福原正大、田代琴音「潜在的連合の測定による 5 因子性格検査ツール GROW-IAT の開発と評価」
 
-102.  汗の成分を検出できる生地
+139.  汗の成分を検出できる生地
       - 参考
         - [https://www.technologyreview.jp/n/](https://www.technologyreview.jp/n/)
       - 説明
         - 東北大学の研究チームは、汗の成分を検出できる生地を開発した。肌着用に使えるもので、人間が常時着用することで、汗の成分から健康状態をモニタリングできるようになる可能性がある
         - 研究チームが今回開発した生地は、独自の手法で製造した多機能繊維を織り込むことで、汗の成分の検出が可能になった。研究成果は 1 月 9 日、アナリティカル・アンド・バイオアナリティカル・ケミストリー（Analytical and Bioanalytical Chemistry）誌に掲載された。研究チームは今後、脳波や心拍、体温などを計測できる繊維の開発を進めるという
 
-103.  MetaMe
+140.  MetaMe
       - 参考
         - [https://www.itmedia.co.jp/news/articles/2302/20/news103.html](https://www.itmedia.co.jp/news/articles/2302/20/news103.html)
       - 説明
@@ -8768,11 +8836,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - MetaMe には、NTT が開発した技術も盛り込まれる。取得した脳波を、アバターがまとうオーラとして可視化し、コミュニケーションを活性化させる技術も、MetaMe には試験実装された
         - 見ているものでオーラが変化することで、相手や自分の感情の変化が可視化されるという
 
-104.  ホルモン分泌量
+141.  ホルモン分泌量
       - 説明
         - 表情・リアクション、 ドーパミンやオキシトシンやセロトニンなどのホルモン分泌量などから感情の算出
 
-105.  肥満測定法
+142.  肥満測定法
       - 参考
         - [https://nature.com/articles/s41598-023-30434-0](https://nature.com/articles/s41598-023-30434-0)
         - [https://twitter.com/AIBoom-net/status/1630433286907629568](https://twitter.com/AIBoom-net/status/1630433286907629568)
@@ -8780,7 +8848,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - BMI に代わる新しい肥満測定法 3D スキャン＋ AI で
         - Nature Scientific Reports より。人体を 3 次元測定し、機械学習で肥満カテゴリー分類を行う技術が発表された。体重と身長のみで肥満度を測定する BMI よりも優れた手法とのこと
 
-106.  スリープマスク
+143.  スリープマスク
       - 参考
         - [https://forbesjapan.com/articles/detail/49483](https://forbesjapan.com/articles/detail/49483)
       - 説明
@@ -8788,24 +8856,24 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - また、睡眠中のユーザーの側頭部にかかる圧力を検出するセンサーや、湿度や温度を検出するセンサーを通じて、ベッドルームの状況を把握できる
         - アップルは将来の AirPods に心拍数や体温の測定機能を盛り込むと予想されている
 
-107.  痛みの指標
+144.  痛みの指標
       - 参考
         - [https://www.nature.com/articles/s41562-023-01539-3](https://www.nature.com/articles/s41562-023-01539-3)
       - 説明
         - ウェルビーイングを測定する際には痛みの指標も取り入れなさいねという意見論文
         - Governments should measure pain when assessing societal wellbeing
 
-108.  BHQ
+145.  BHQ
       - 参考
         - [https://twitter.com/Neron-Ngsk32/status/1624916875686862850](https://twitter.com/Neron-Ngsk32/status/1624916875686862850)
       - 説明
         - 主観的幸福度は私もおおむねこの理解で、評価する方法として最近は、イェール大の PERMA はじめ、大阪大学の特許技術レジリエンス指標、MRI を活用した BHQ。BHQ は脳のサイズを測る技術。コロナ禍など慢性ストレスのかかる状況だと縮むということなので環境因子、経済因子（こちらは限界ある）も関連する（文字数）
 
-109.  心電図アプリ
+146.  心電図アプリ
       - 説明
         - アップルウオッチの心電図アプリ
 
-110.  心の理論
+147.  心の理論
       - 参考
         - [https://arxiv.org/abs/2302.02083](https://arxiv.org/abs/2302.02083)
         - [https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf](https://arxiv.org/ftp/arxiv/papers/2302/2302.02083.pdf)
@@ -8820,7 +8888,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - OSF | Theory of Mind May Have Spontaneously Emerged in Large Language Models
         - 心の理論を獲得している AI に感情を推測してもらう
 
-111.  COI 拠点
+148.  COI 拠点
       - 参考
         - [https://dhbr.diamond.jp/articles/-/9243](https://dhbr.diamond.jp/articles/-/9243)
       - 説明
@@ -8832,7 +8900,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 実は、我々は超多項目の岩木健診に加えて、「QOL（クオリティ・オブ・ライフ）健診」を実施しています。2 時間程度で終わるコンパクトな健診で、「メタボ」（メタボリックシンドローム）、「口腔保健」「ロコモ」（ロコモティブシンドローム）、「うつ病・認知症」の 4 つのテーマで、検査項目を約 40 に絞っています
         - 現在、QOL 健診をリモートで行える「セルフモニタリング式 QOL 健診」の開発に取り組んでいます。セルフモニタリングで日々の健康データを収集・蓄積し、健康未来予測 AI がオンラインで一人ひとりに適したアドバイスを行うといった世界観を目指しています
 
-112.  性格を予測
+149.  性格を予測
       - 参考
         - [https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554](https://linkinghub.elsevier.com/retrieve/pii/S0001691822002554)
         - [https://doi.org/10.1016/j.actpsy.2022.103740](https://doi.org/10.1016/j.actpsy.2022.103740)
@@ -8841,14 +8909,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 20 秒の音声から AI が「性格」を予測
         - 機械学習モデルに音声を分析させることで、性格特性ビッグ 5（外向性・協調性・誠実性・開放性・神経症的傾向）を予測できることを示唆した。とくに「外向性」は他の特性より予測精度が高いとのこと
 
-113.  Google の API とかでも文章から感情分析
+150.  Google の API とかでも文章から感情分析
       - 参考
         - [https://twitter.com/cumulo-autumn/status/1626129783892643841](https://twitter.com/cumulo-autumn/status/1626129783892643841)
       - 説明
         - google の API とかでも文章から感情分析出来るらしいので今後はそっちも試す予定ですが、今は GPT3 を使って会話内容の感情分析をしてます
         - 「次の会話から感情を喜 0.7 悲 0.1 怒 0.2 等のように数値として表せ」みたいな感じのプロンプトを使って分析してます
 
-114.  Intellect
+151.  Intellect
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000007.000102702.html](https://prtimes.jp/main/html/rd/p/000000007.000102702.html)
       - 説明
@@ -8856,11 +8924,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 「Intellect」にて出題される 26 設問に利用者が回答することで、「心理的ウェルビーイング」「レジリエンス」「対人関係の構築」「成長マインドセット」「自己認識」「自己効力感」「目標志向」「目的と意義」「楽観主義」「感情コントロール」「ストレスマネジメント」「関与の促進」「ワークライフバランス」の 13 領域における個々のメンタル状況が数値化されると共に、どの領域がウェルビーイングな状態であるか否かを瞬時に把握することが可能となる
         - Intellect では、利用者が日々変化するメンタルコンディションを利用者自身が把握できるよう、アプリ起動時に表示される「気分」ボタンから利用者の「気分」を記録する「デイリーチェックイン」を提供しております
 
-115.  感情の円環モデル
+152.  感情の円環モデル
       - 説明
         - ビッグファイブ、感情の円環モデル（の次元）、システム 1・2
 
-116.  セルフモニタリング
+153.  セルフモニタリング
       - 参考
         - [https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html](https://wisdom.nec.com/ja/feature/healthcare/202302101/index.html)
       - 説明
@@ -8870,7 +8938,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 少量の血液で約 7,000 種のタンパク質を一度に測定することで、現在の体の状態と予測される将来の疾患リスクを把握できる検査サービス「フォーネスビジュアス」はその一例です。検査を受けた人が医療機関を通じて提供される専用アプリでは生活習慣を改善するための多彩なメニューを利用でき、歩数や消費カロリーなど毎日の健康データの記録や、健康づくりのための目標設定とその取り組みの管理も行える
         - 「歩行センシング・ウェルネスソリューション」は、約 13g の歩行分析センサーを搭載した専用インソールを靴に入れるだけで、歩行速度、歩幅、接地角度など 20 項目以上のデータを収集する。足の健康状態を推定する独自の歩容分析 AI 技術によって、歩行を通じた健康増進を支援
 
-117.  発話から「疲労」を検出
+154.  発話から「疲労」を検出
       - 参考
         - [https://doi.org/10.1088/1742-6596/2224/1/012023](https://doi.org/10.1088/1742-6596/2224/1/012023)
         - [https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023](https://iopscience.iop.org/article/10.1088/1742-6596/2224/1/012023)
@@ -8879,14 +8947,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 発話から「疲労」を検出 深層学習で最大 92％
         - 声に含まれる周波数や速度などの特徴から、人の疲れを予測できることが示唆された。深層学習アプローチを用いることにより、高精度で検出できるとのこと。中国の南通⼤学研究者らによる報告
 
-118.  主観的 QOL 計測
+155.  主観的 QOL 計測
       - 参考
         - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session-num=109&lecture-number=A-9-6&year=2017&conf-type=F)
       - 説明
         - 人工知能は人間の幸福度を測ることができるか？ ～主観的 QoL 計測におけるパターン認識・メディア理解技術の可能性を探る～
         - \*
 
-119.  ウェアラブルデバイスでうつ病の診断
+156.  ウェアラブルデバイスでうつ病の診断
       - 参考
         - [https://www.cell.com/heliyon/fulltext/S2405-8440(20)30119-5](<https://www.cell.com/heliyon/fulltext/S2405-8440(20)
         - [https://twitter.com/](https://twitter.com/)
@@ -8898,7 +8966,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - [
         - -daichikonno/status/1634757593821507590]()
 
-120.  血糖値測定
+157.  血糖値測定
       - 参考
         - [https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01](https://bloomberg.co.jp/news/articles/2023-02-22/RQHT1BT1UM0W01)
         - [https://twitter.com/g7z5e/status/1628567288738897920](https://twitter.com/g7z5e/status/1628567288738897920)
@@ -8908,7 +8976,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 穿刺せずに血液中のグルコースを継続的に測定できる技術を開発中
         - 血糖値を測って、感情の算出の参考にしたい
 
-121.  筋肉の動きから感情を算出する
+158.  筋肉の動きから感情を算出する
       - 参考
         - [https://www.nature.com/articles/s42256-023-00616-6#Sec14](https://www.nature.com/articles/s42256-023-00616-6#Sec14)
         - [https://twitter.com/namchan-koushi/status/1633241319123599360](https://twitter.com/namchan-koushi/status/1633241319123599360)
@@ -8917,7 +8985,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 喉に薄いパッチを貼るだけで音声認識を行う研究が進んでいます。パッチに組み込まれたセンサーが皮膚表面に伝わる筋肉の動きと音の振動を感知し、AI の学習モデルを通して認識可能な音声に変換してくれます
         - 騒音の大きい場所での利用だけでなく、声帯を切除した人たちにも有用な技術です
 
-122.  ChatGPT が人の「性格」を分析
+159.  ChatGPT が人の「性格」を分析
       - 参考
         - [https://doi.org/10.48550/arXiv.2303.01248](https://doi.org/10.48550/arXiv.2303.01248)
         - [https://arxiv.org/abs/2303.01248](https://arxiv.org/abs/2303.01248)
@@ -8925,7 +8993,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 説明
         - ChatGPT が人の「性格」を分析できる可能性が示唆された
 
-123.  Divergent Association Task/拡散連想課題（DAT）
+160.  Divergent Association Task/拡散連想課題（DAT）
       - 参考
         - [https://karapaia.com/archives/52317371.html](https://karapaia.com/archives/52317371.html)
       - 説明
@@ -8937,7 +9005,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 人の創造性を測定する主な方法としては、あるものの用途をできるだけ多く考案する「代替用途課題（Alternative Uses Task）」と、2 つの単語を 3 つ目の単語でつなぐ「連想ギャップ補完課題（Bridge-the-Associative Gap Task）」の 2 つがある
         - References:Measuring creativity, one word at a time | Newsroom - McGill University / written by hiroching / edited by / parumo
 
-124.  困難マインドセット尺度
+161.  困難マインドセット尺度
       - 参考
         - [https://buff.ly/3ZLaF45](https://buff.ly/3ZLaF45)
         - [https://journals.sagepub.com/doi/abs/10.1177/01461672231153680](https://journals.sagepub.com/doi/abs/10.1177/01461672231153680)
@@ -8945,11 +9013,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 説明
         - 困難に対するマインドセットには不可能、重要のほかに自己改善という側面がある。困難マインドセット尺度を複数文化圏で使用し、自己改善の機会と捉える程度には文化差があることを示した。さらに勤勉性、徳、人生の意味、楽観性との関連も示した（Yan et al., 2023, PSPB）
 
-125.  筋肉から作られる微かな表情
+162.  筋肉から作られる微かな表情
       - 説明
         - アマゾンの顔認証システムでは、多くの筋肉から作られる微かな表情から、喜び、悲しみ、怒り、嫌悪、驚き、恐れを識別できる
 
-126.  感情分析
+163.  感情分析
       - 参考
         - [https://github.com/rondinellimorais](https://github.com/rondinellimorais)
         - [@rondmorais](https://twitter.com/rondmorais)
@@ -8971,14 +9039,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - [
         - -daichikonno/status/1636923475251298304]()
 
-127.  I'mbesideyou
+164.  I'mbesideyou
       - 参考
         - [https://forbesjapan.com/articles/detail/61733](https://forbesjapan.com/articles/detail/61733)
       - 説明
         - 日系スタートアップ、I'mbesideyou
         - 人間の表情や顔の向きから視線や音声といった状態を基に、AI 統合解析によって、有効と判断したコミュニケーションをサポートする
 
-128.  CyberneX
+165.  CyberneX
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000012.000086789.html](https://prtimes.jp/main/html/rd/p/000000012.000086789.html)
         - [https://techable.jp/archives/200126](https://techable.jp/archives/200126)
@@ -8988,7 +9056,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - CyberneX が提供する「XHOLOS Ear Brain Interface」というイヤホン型脳波計や、脳波データを保存し解釈するためのアルゴリズムを搭載した「α Relax Analyzer」などの脳情報活用基盤を利用します
         - また、「α Relax Analyzer」におけるリラックス度を可視化するための指標である「リラックススコア」は、取得した脳波データの各スペクトルの強度などをもとに CyberneX が独自開発したアルゴリズムで算出されます
 
-129.  腸内細菌
+166.  腸内細菌
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000001021.000017666.html](https://prtimes.jp/main/html/rd/p/000001021.000017666.html)
         - [https://techable.jp/archives/200166](https://techable.jp/archives/200166)
@@ -9003,7 +9071,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - （3）ストレス条件： 心理社会的ストレス（時間制限などを含む）をかけられた状態で暗算を行う
         - PR TIMES：\*\*\*\*
 
-130.  メンタルヘルス状態の推定に ChatGPT
+167.  メンタルヘルス状態の推定に ChatGPT
       - 参考
         - [https://doi.org/10.48550/arXiv.2303.15727](https://t.co/L624cROCbM)
         - [https://arxiv.org/abs/2303.15727](https://arxiv.org/abs/2303.15727)
@@ -9012,7 +9080,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - メンタルヘルス状態の推定に ChatGPT が有用
         - 米ライス大学の心理学 AI 研究者による報告。SNS 投稿からのストレス検出、うつ病検出において高い精度が確認されたとのこと
 
-131.  AI との対話
+168.  AI との対話
       - 参考
         - [https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html](https://wisdom.nec.com/ja/feature/workstyle/2023033101/index.html)
       - 説明
@@ -9022,7 +9090,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - まず AI チャットボットとの対話によって、その人のウェルビーイングを計測します。状態やタイプをグループ化したうえで、NEC 版行動変容提案モデルをもとにアドバイスを行いました
         - 因果関係を可視化する「要因分析型 AI」です。NEC 社内で実施した従業員エンゲージメントに関するアンケート結果からは、働く気分を天気で表現していたのですが、それに影響する因果構造を分析・可視化。要因を把握することで、具体的な改善アクションにつなげています
 
-132.  hume
+169.  hume
       - 参考
         - [https://hume.ai/products/](https://hume.ai/products/)
         - [https://twitter.com/shota7180/status/1645867556006420482](https://twitter.com/shota7180/status/1645867556006420482)
@@ -9031,14 +9099,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - ・30 以上の人間の感情を可視化するデータプラットフォーム
         - ・顔の表情や声紋などからデータ化
 
-133.  脳活動を計測
+170.  脳活動を計測
       - 参考
         - [https://prtimes.jp/main/html/rd/p/000000013.000049573.html](https://prtimes.jp/main/html/rd/p/000000013.000049573.html)
       - 説明
         - アラヤ、事故予防技術のための運転手の脳活動を計測、運転時の認知処理を支援するインタフェースの有用性を発表
         - 株式会社アラヤは、本田技術研究所と共同で、運転中の脳活動から安全運転に関わる部位を特定し、AI を活用して先んじて危険因子を運転手に知らせるシステムの実証実験などの一連の結果をまとめ、第 27 回 ESV 国際会議（ESV2023）で本成果を発表しました
 
-134.  耳の中の細かい振動から呼吸や心拍を測定
+171.  耳の中の細かい振動から呼吸や心拍を測定
       - 参考
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230097790)
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230096953)
@@ -9046,7 +9114,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 説明
         - Apple が耳の中の細かい振動から呼吸や心拍を測定できる技術と聴力を長期モニタリングが出来る技術の特許申請を出した
 
-135.  Image Decoder
+172.  Image Decoder
       - 参考
         - [https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/](https://chizaizukan.com/news/YU41BmbgKEb2T31LxbG8v/)
       - 説明
@@ -9054,7 +9122,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - Meta Platforms の研究者は 2023 年 10 月 18 日、脳活動から人の“心“を読むアプリケーション「Image Decoder」を発表した
         - 「Image Decoder」は、同社が提供する自己教師付きのオープンソース基盤モデル「DINOv2」をベースとしたアプリケーション。脳から出てくる磁気を記録する MEG（脳磁図検査）で脳活動を把握することで、隔たったところにいる被験者が何を見ているか、何を想像しているかを把握できる
 
-136.  心拍数モニタ機能
+173.  心拍数モニタ機能
       - 参考
         - [https://daily-gadget.net/2023/11/02/post-63765/](https://daily-gadget.net/2023/11/02/post-63765/)
       - 説明
@@ -9064,7 +9132,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 追加センサーなしでどうやってこんなことを行うのかというと、ANC イヤホンのスピーカーと内蔵マイクを利用します。「プローピング信号」という超音波をスピーカーから流し、その反射をマイクで測定します。外耳道は血管に囲まれているため、心臓の鼓動によって内部の容積と圧力が微妙に変化し、この変動をマイクによって測定することで心拍数が分かるというもの
         - 超音波を使用するため、音楽が流れていても聞こえないように測定が可能
 
-137.  情動変容メカニズム
+174.  情動変容メカニズム
       - 参考
         - [https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf](https://release.nikkei.co.jp/attach/663891/01-202310311152.pdf)
         - [https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/](https://www.nikkei.com/article/DGXZRSP663891-R31C23A0000000/)
@@ -9075,7 +9143,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - \*1）と脳科学を融合した感性脳科学の観点から、そのメカニズムや相関関係の解明に取り組むことを目的としたものです
         - 情動変容の定量計測や感動状態の新たな定義、余韻形成との相関関係を紐解くことを目指す研究を開始します
 
-138.  光学式心拍センサー
+175.  光学式心拍センサー
       - 参考
         - [https://techable.jp/archives/220874](https://techable.jp/archives/220874)
       - 説明
@@ -9083,11 +9151,11 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - Polar Electro（本社：フィンランド、設立：1977 年、以下「ポラール」）は、1982 年に世界初とされるワイヤレス式心拍計モニター装置を開発した、心拍計測・分析のスペシャリストだ
         - 今回、同社の光学式心拍センサー「Polar Verity Sense」と、株式会社 obniz（以下、obniz）の IoT プラットフォームが連携した
 
-139.  UK Biobank
+176.  UK Biobank
       - 説明
         - UK Biobank を幸福度の算出の学習データに
 
-140.  AirPods で脳信号を記録
+177.  AirPods で脳信号を記録
       - 参考
         - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
       - 説明
@@ -9096,7 +9164,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 耳の中から非侵襲的に EEG 信号を取得するアプローチ
         - この柔軟なセンサーは、EEG 信号を収集するだけでなく、汗からの乳酸も感知できる
 
-141.  AI による感情推測
+178.  AI による感情推測
       - 参考
         - [https://seleck.cc/1616](https://seleck.cc/1616)
       - 説明
@@ -9104,7 +9172,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 2 つ目は、テキスト情報からの推測です
         - 3 つ目は、話している内容を AI が正確に認識できているかどうかです
 
-142.  感情可視化技術
+179.  感情可視化技術
       - 参考
         - [https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine](https://thebridge.jp/2023/10/shochiku-olive-mugenlabo-magazine)
       - 説明
@@ -9115,7 +9183,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - 我々のもっとも強力で特徴的な点は、計測対象者がデバイスを装着せずに、通常通りの行動をしてもらいながらデータを収集できることです。つまり、計測が行われていることを意識させずにデータを取得することを重要視しています。例えば映画の場合、座席の後ろに赤外線カメラを配置し、観客の生体データを測定しました
         - さらに、生体データの取得により、人々が意識的にコントロールできない要素が反映され、面白くない状況でも笑顔を作り出したり、怖くないのに怖い表情をしたりするなどのノイズを排除できます。事前に映画を拝見して、感情を具体的にどのように見える化できるか、松竹さんにとって何が意義があるのか、観客にとって楽しい体験となるかを考えました
 
-143.  血圧と睡眠障害をモニタリング
+180.  血圧と睡眠障害をモニタリング
       - 参考
         - [https://forbesjapan.com/articles/detail/67114](https://forbesjapan.com/articles/detail/67114)
       - 説明
@@ -9124,14 +9192,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - Apple Watch シリーズの将来的な機能として、近赤外線分光法を用いた血圧測定の可能性が以前から議論されてきた
         - 一方、睡眠時無呼吸症候群は血中酸素濃度、運動量、呼吸数、いびき、心拍数などの要素を分析することで特定できる
 
-144.  社会的文脈と感情
+181.  社会的文脈と感情
       - 参考
         - [https://t.co/RBGkg9QxQ8](https://t.co/RBGkg9QxQ8)
       - 説明
         - 感情の算出の参考にしたい
         - Sixteen facial expressions occur in similar contexts worldwide
 
-145.  Tesla がドライバーの顔認識
+182.  Tesla がドライバーの顔認識
       - 参考
         - [https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/20230356721)
         - [https://twitter.com/tmiyatake1/status/1728202847513420100](https://twitter.com/tmiyatake1/status/1728202847513420100)
@@ -9140,14 +9208,14 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - Tesla がドライバーの顔認識をしてパーソナライズされた体験を提供する技術の特許申請を行なった
         - 車に乗った際に名前で呼んでくれたり、エアコンや席の調整、そして意識が無かったり反応が無ければ救急車を呼ぶと同時に自動運転で近くの病院に移動する
 
-146.  e-skin ECG
+183.  e-skin ECG
       - 参考
         - [https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/](https://chizaizukan.com/news/6Fq9WTyC0azPRPhQw2gWNH/)
       - 説明
         - 感情の算出の参考にしたい
         - 慶應義塾大学病院にホルター心電図の郵送検査サービス「e-skin ECG」が導入 ─ 人間ドックでホルター心電図検査可能に
 
-147.  明確に自覚していない情動に対する顔色
+184.  明確に自覚していない情動に対する顔色
       - 参考
         - [https://univ-journal.jp/235496/](https://univ-journal.jp/235496/)
       - 説明
@@ -9156,7 +9224,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - “ハイブリッド表情”という特殊な表情画像を使用して、心理物理実験を実施。ハイブリッド表情は、幸せ表情と無表情、あるいは怒り表情と無表情の顔を異なる空間周波数で混在させた表情（順にハイブリッド幸せ表情、ハイブリッド怒り表情）で、情動研究でよく使われる実験刺激の 1 つだ
         - 論文情報：【Cognition and Emotion】The effect of facial colour on implicit facial expressions
 
-148.  Oura Ring の「Daytime Stress」
+185.  Oura Ring の「Daytime Stress」
       - 参考
         - [https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/](https://chizaizukan.com/news/j1VQOVHxmHvxgqGoDHiwt/)
       - 説明
@@ -9166,7 +9234,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
         - AI を活用した日記機能。音声認識と AI による自動タグづけにより、1 日の振り返りを話して記録できるほか、気分や精神状態もジェスチャーひとつで記録できる。「Stress Resilience」（今冬から提供予定）
         - 日中のストレス負荷や、日中および睡眠中の回復の追跡により、利用者のストレス耐性を評価する機能。「Daytime Stress」により取得した情報を使用しており、健康を改善するための情報も提供される
 
-149.  Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能
+186.  Oura Ring の日中のストレスと回復をリアルタイムで追跡する新機能
       - 説明
         - Oura Ring の 日中のストレスと回復をリアルタイムで追跡する新機能で、リングの 心拍変動や 心拍数や動きや体温を測定して、生理的なストレスをリアルタイムで測定する 新機能を幸福度の測定等の参考にしたい
 
