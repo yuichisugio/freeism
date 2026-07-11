@@ -16,6 +16,9 @@ importers:
       husky:
         specifier: ^5.0.0-alpha.6
         version: 5.2.0
+      lint-staged:
+        specifier: ^15.3.0
+        version: 15.5.2
       textlint:
         specifier: ^11.6.3
         version: 11.9.1

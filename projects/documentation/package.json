@@ -9,11 +9,13 @@
 	},
 	"scripts": {
 		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md",
-		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md"
+		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md",
+		"lint-staged": "lint-staged"
 	},
 	"keywords": [],
 	"devDependencies": {
 		"husky": "^5.0.0-alpha.6",
+		"lint-staged": "^15.3.0",
 		"@textlint-ja/textlint-rule-no-insert-dropping-sa": "^1.0.1",
 		"textlint": "^11.6.3",
 		"textlint-filter-rule-comments": "^1.2.2",
