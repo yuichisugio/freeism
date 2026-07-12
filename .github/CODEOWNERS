@@ -1,6 +1,10 @@
 # Monorepo（freeism）: パスごとのレビュー割当。必要に応じてチームやユーザーを追加してください。
 
 /projects/web-app/ @yuichisugio
+/projects/points-web-app/ @yuichisugio
+/projects/markets-web-app/ @yuichisugio
+/docs/web-app/ @yuichisugio
+/plan/web-app/ @yuichisugio
 /projects/documentation/ @yuichisugio
 /projects/calc-contrib/ @yuichisugio
 /projects/depchecker/ @yuichisugio

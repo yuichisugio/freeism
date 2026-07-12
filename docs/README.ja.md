@@ -24,17 +24,22 @@ freeism/
 ├── docs/                     # リポジトリ用ドキュメント
 └── projects/                 # モノレポ管理対象のプロジェクト
     ├── documentation/        # 無料主義の仕様
-    ├── web-app/              # 無料主義アプリ
+    ├── points-web-app/       # points.freeism.app
+    ├── markets-web-app/      # markets.freeism.app
+    ├── web-app/              # v0.2切替まで保持する旧実装
     ├── calc-contrib/         # 貢献度の算出
     └── depchecker/           # 依存関係の取得
 ```
 
-| パス(README.md)                                  | 説明                                                                                                                                        |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`projects/documentation/`](../projects/documentation/README.md) | 無料主義の仕様 |
-| [`projects/web-app/`](../projects/web-app/README.md)             | Web アプリ |
-| [`projects/calc-contrib/`](../projects/calc-contrib/README.md)   | 貢献度を算出するソフトウェア |
-| [`projects/depchecker/`](../projects/depchecker/README.md)       | 依存関係を取得するソフトウェア |
+| パス(README.md)                                                      | 説明                              |
+| -------------------------------------------------------------------- | --------------------------------- |
+| [`projects/documentation/`](../projects/documentation/README.md)     | 無料主義の仕様                    |
+| [`projects/points-web-app/`](../projects/points-web-app/README.md)   | Points Web アプリ                 |
+| [`projects/markets-web-app/`](../projects/markets-web-app/README.md) | Markets Web アプリ                |
+| [`docs/web-app/`](./web-app/README.md)                               | Web アプリ横断仕様                |
+| [`projects/web-app/`](../projects/web-app/README.md)                 | v0.2切替まで保持する旧Next.js実装 |
+| [`projects/calc-contrib/`](../projects/calc-contrib/README.md)       | 貢献度を算出するソフトウェア      |
+| [`projects/depchecker/`](../projects/depchecker/README.md)           | 依存関係を取得するソフトウェア    |
 
 ## 初期設定
 

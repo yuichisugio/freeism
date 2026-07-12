@@ -10181,7 +10181,7 @@ A society in which everyone can live a highly satisfying life even if they stumb
     4. Many others also exist
 23. Methods to find globally installed libraries
     1. JavaScript/TypeScript (Node + browser)
-       - `npx depcheck`
+       - `pnpm dlx depcheck`
        - Finds cases where import/require exists but the package is missing from package.json
     2. ESLint `import/no-extraneous-dependencies`
     3. Detecting "undeclared globals"
@@ -10601,6 +10601,12 @@ We want to draw on the methods below as references for the "right to non-interfe
    - `projects/depchecker` in the `freeism` repository
    - Dependency detection
    - Prototype of the `contribution-detection mechanism`
-3. `web-app`
+3. `points-web-app`
+   - `projects/points-web-app` in the `freeism` repository
+   - `points.freeism.app` for point grants, evaluation criteria, and balances
+4. `markets-web-app`
+   - `projects/markets-web-app` in the `freeism` repository
+   - `markets.freeism.app` for listings and auctions
+5. `web-app` (legacy)
    - `projects/web-app` in the `freeism` repository
-   - Prototype of the `freeism app`
+   - Legacy monolith retained until the v0.2 cutover

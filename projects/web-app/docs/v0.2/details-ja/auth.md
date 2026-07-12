@@ -1,3 +1,0 @@
-メールアドレスの一致ではなく、OAuth Providerが返すユーザーIDの一致でログイン処理をする。
-
-認証をNextAuth.jsからAuth0へ移行する

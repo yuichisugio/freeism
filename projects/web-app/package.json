@@ -26,7 +26,7 @@
     "unused:fix": "ts-prune --project tsconfig.json --write",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
-    "format:add": "git diff --cached --name-only | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs npx prettier --write",
+    "format:add": "git diff --cached --name-only --relative | grep -E '\\.(js|jsx|ts|tsx|json|css|scss|md)$' | xargs pnpm exec prettier --write",
     "prepare": "cd ../.. && husky .husky",
     "commit:test": "echo 'Testing commit flow...' && git add . && git commit -m 'test: commit flow test'",
     "postinstall": "prisma generate",

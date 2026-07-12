@@ -10270,7 +10270,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
     4. その他も多くある
 23. グローバルインストールしているライブラリを見つける方法
     1. JavaScript/TypeScript（Node＋ブラウザ）
-       - `npx depcheck`
+       - `pnpm dlx depcheck`
        - 不足分は「import/require はあるのに package.json にない」ケースの発見
     2. ESLint の`import/no-extraneous-dependencies`
     3. “未宣言のグローバル”検出
@@ -10689,6 +10689,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - `freeism`リポジトリの`projects/depchecker`
    - 依存関係の検知
    - `貢献検知の仕組み`のプロトタイプ
-3. `web-app`
+3. `points-web-app`
+   - `freeism`リポジトリの`projects/points-web-app`
+   - ポイント付与・評価軸・残高管理を行う`points.freeism.app`
+4. `markets-web-app`
+   - `freeism`リポジトリの`projects/markets-web-app`
+   - 商材出品・Auction を行う`markets.freeism.app`
+5. `web-app`（旧実装）
    - `freeism`リポジトリの`projects/web-app`
-   - `無料主義アプリ`のプロトタイプ
+   - v0.2 切替まで保持する旧モノリスのプロトタイプ

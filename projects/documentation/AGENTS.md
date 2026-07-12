@@ -9,7 +9,7 @@ This project contains the Freeism documentation. Markdown sources live under `sr
 - `pnpm install`: install dependencies for the root workspace, including this documentation package.
 - `pnpm --filter documentation lint`: run textlint with the project's `.textlintrc` rules.
 
-There is no `npm start` command or local application server in this repository.
+There is no `pnpm start` command or local application server in this repository.
 
 ## Coding Style & Naming Conventions
 

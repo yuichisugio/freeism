@@ -15,13 +15,16 @@
 
 ## Folder structure
 
-| Path                                 | Description                                                                                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`projects/documentation/`](./projects/documentation/) | Freeism specification |
-| [`docs/`](./docs/)                   | Markdown for the repository root (this README in Japanese, the Japanese code of conduct, etc.).                                                   |
-| [`projects/web-app/`](./projects/web-app/)             | web app |
-| [`projects/calc-contrib/`](./projects/calc-contrib/)   | Software that calculates contribution scores |
-| [`projects/depchecker/`](./projects/depchecker/)       | Software that fetches dependencies                                                         |
+| Path                                                       | Description                                                                                     |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [`projects/documentation/`](./projects/documentation/)     | Freeism specification                                                                           |
+| [`docs/`](./docs/)                                         | Markdown for the repository root (this README in Japanese, the Japanese code of conduct, etc.). |
+| [`projects/points-web-app/`](./projects/points-web-app/)   | `points.freeism.app` frontend/backend specs and implementation plan                             |
+| [`projects/markets-web-app/`](./projects/markets-web-app/) | `markets.freeism.app` frontend/backend specs and implementation plan                            |
+| [`projects/web-app/`](./projects/web-app/)                 | Legacy Next.js implementation retained until the v0.2 cutover                                   |
+| [`docs/web-app/`](./docs/web-app/)                         | Cross-app architecture, authentication, API, security, and migration manifest                   |
+| [`projects/calc-contrib/`](./projects/calc-contrib/)       | Software that calculates contribution scores                                                    |
+| [`projects/depchecker/`](./projects/depchecker/)           | Software that fetches dependencies                                                              |
 
 ```
 freeism/
@@ -31,7 +34,9 @@ freeism/
 ├── docs/                     # Documentation for this repository
 └── projects/                 # Monorepo projects
     ├── documentation/        # Freeism specification
-    ├── web-app/              # Freeism app
+    ├── points-web-app/       # points.freeism.app
+    ├── markets-web-app/      # markets.freeism.app
+    ├── web-app/              # Legacy app until v0.2 cutover
     ├── calc-contrib/         # Contribution calculation
     └── depchecker/           # Dependency fetching
 ```

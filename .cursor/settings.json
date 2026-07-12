@@ -22,7 +22,7 @@
 		}
 	],
 	"eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
-	"eslint.packageManager": "npm",
+	"eslint.packageManager": "pnpm",
 	"eslint.execArgv": [],
 	"eslint.options": {
 		"cache": true,

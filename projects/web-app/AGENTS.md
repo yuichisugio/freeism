@@ -12,13 +12,16 @@
 
 ## 仕様・ドキュメントの参照先
 
-- v0.2 の設計方針は `docs/v0.2/index.ja.md` を入口にする。
-- 現行実装から読み取った詳細仕様は `docs/v0.1/index.ja.md` と `docs/v0.1/details/` を確認する。
-- v0.2 の詳細ルールは `docs/v0.2/details-ja/` を確認する。
-  - 命名規則: `docs/v0.2/details-ja/naming-convention.md`
-  - バックエンドレスポンス形式: `docs/v0.2/details-ja/response-format.md`
-  - 認証、キャッシュなどの詳細: 同ディレクトリ内の各ファイル
-- 移行・統一・将来対応の計画は `plan/` に集約する。
+- v0.2 の設計方針は `../../docs/web-app/v0.2/architecture.md` と `../../docs/web-app/v0.2/decision-register.md`
+  を入口にする。
+- 現行実装から読み取ったv0.1仕様は、`../points-web-app/docs/v0.1/`、`../markets-web-app/docs/v0.1/`、`../../docs/web-app/archive/v0.1/`を確認する。
+- v0.2 の詳細ルールは各新appと横断仕様を確認する。
+  - Points: `../points-web-app/docs/v0.2/`
+  - Markets: `../markets-web-app/docs/v0.2/`
+  - 命名規則: `../../docs/web-app/v0.2/naming-convention.md`
+  - バックエンドレスポンス形式: `../../docs/web-app/v0.2/response-format.md`
+  - 認証: `../../docs/web-app/v0.2/authentication.md`
+- 移行計画は`../../plan/web-app/`と各新appの`plan/`を確認する。
 - 実装と仕様が乖離している場合は、実装で観測できた内容と乖離内容を該当ドキュメントの冒頭に明記する。
 - 実装変更で仕様が変わる場合は、冗長化や重複を避けながら関連する `docs/` または `plan/` を更新する。
 
@@ -78,7 +81,7 @@
 
 ## Coding Style & Naming Conventions
 
-- 命名規則は `docs/v0.2/details-ja/naming-convention.md` を正とする。
+- 命名規則は `../../docs/web-app/v0.2/naming-convention.md` を正とする。
 - ファイル名とディレクトリ名は原則 `kebab-case` にする。
 - 変数、関数、引数、props、通常の object key は `camelCase` にする。
 - React コンポーネント、型、interface、Prisma model は `PascalCase` にする。
@@ -141,7 +144,7 @@
 
 - データ更新・取得の多くは `src/actions/` の Server Action に置く。
 - Server Action の標準的な戻り値は `{ success, message, data }`。
-- Route Handler は endpoint ごとに形式が異なるため、詳細は `docs/v0.2/details-ja/response-format.md` を確認する。
+- 旧Route Handlerの観測はarchive、新Hono契約は`../../docs/web-app/v0.2/response-format.md`を確認する。
 - 失敗は `success: false` だけでなく、例外、redirect、HTTP status と `{ error }` の組み合わせもあり得る。
 - 非同期処理では、想定内エラーと想定外エラーを分けて扱う。
 
@@ -149,7 +152,7 @@
 
 - server state は TanStack Query を使う。
 - query key、QueryClient、IndexedDB persistence などは `src/library-setting/tanstack-query.ts` に集約する。
-- cache strategy は `docs/v0.2/details-ja/cache.md` と実装側の query key / invalidation を合わせて確認する。
+- 旧cache strategyは`../../docs/web-app/archive/v0.2/cache.md`、v0.2の採用方針は横断アーキテクチャを確認する。
 - PWA と service worker 関連の静的ファイルは `public/` に配置する。
 
 ### Real-time, Notifications, and Upload
