@@ -83,7 +83,7 @@
 - Workflow class: `AuctionSettlementWorkflow`
 - Workflow binding: `AUCTION_SETTLEMENT`
 - DO IDは`auctionId`から決定論的に導出し、任意user inputをそのまま名前にしない。
-- Workflow instance IDはAuction + settlement revisionで一意にする。
+- Workflow instance IDはSettlement ID + immutable settlement revision + 単調なworkflow attemptで一意にし、Cloudflareの100文字上限内にする。初回は`attempt:0`、手動retryは同じ業務revisionのままattemptだけを増やし、完了済みinstance IDを再利用しない。
 
 ## 10. frontend
 

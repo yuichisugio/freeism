@@ -20,6 +20,8 @@
 - `trustedOrigins`は環境ごとの当該アプリ完全一致originだけとする。
 - OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
 - Points OAuthは環境別pairwise secretと`subject_type=pairwise`を標準pluginで使い、public subjectを発行しない。
+- Points OAuth Providerは`disableJwtPlugin: true`でAccess Tokenをopaqueにし、標準introspectionの`active`、issuer、audience/resource、client、scope、期限と、利用者Tokenだけのpairwise subjectを検証する。Points Resource APIは同一Better Auth instanceの標準Resource Clientでin-process検証し、Marketsのremote introspection credentialを複製しない。JWT Access Tokenの内部Points user IDをMarketsへ公開しない。
+- Client Credentialsもopaqueだが、利用者scopeとM2M scopeを互いに素にする。pairwise `sub`あり＋利用者scopeだけを利用者principal、利用者`sub`なし＋M2M scopeだけをM2M principalへ分類し、独自token-class claim、Service Binding、Tokenの外形、emailを認可根拠にしない。
 - private/認証responseは`Cache-Control: private, no-store`。
 
 Better Authの詳細は[認証仕様](./authentication.md)を正本とする。
@@ -53,7 +55,7 @@ Settlement手動retryはMarkets内に別ADMIN roleを作らない。Marketsか�
 
 - browserは各アプリの同一origin`/api/*`だけを呼ぶ。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
-- mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、Points–MarketsのM2M listing eligibility／reservation status／一括capture／release requestだけ1MiBとする。listing eligibilityの追加はDEC-256承認対象である。
+- mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、Points–MarketsのM2M Point Package Auction eligibility／reservation status／一括capture／release requestだけ1MiBとする。Auction eligibilityの1MiB上限はDEC-256で確定している。
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
 - important mutationは`Idempotency-Key`必須。
 - 同じkey・同じpayloadは同じ結果、異なるpayloadは409。
@@ -121,7 +123,7 @@ URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/
 - attachmentはIDとlast sequenceだけ。secret、AutoBid上限、sessionを保存しない。
 - heartbeat timerを使わない。
 - D1 CAS commit後だけbroadcastし、version/seq gapはHTTP snapshotでresyncする。
-- seller自己入札、終了後bid、listing economic field変更をserver/DO/D1で拒否する。
+- seller自己入札、終了後bid、Auction economic field変更をserver/DO/D1で拒否する。
 
 ## 8. 初期rate limit
 
@@ -139,7 +141,7 @@ URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/
 | URL検証               | user + normalized URL                 | 1時間5回                                   |
 | URL検証               | user                                  | 1日30回                                    |
 | CSV validation/commit | ADMIN + 評価軸                        | 1分2回、1時間10回                          |
-| listing／Auction CSV  | Markets user + operation              | 1分2回、1時間10回                          |
+| Auction CSV           | Markets user + operation              | 1分2回、1時間10回                          |
 | settlement手動retry   | Points ADMIN + Markets user + Auction | 1時間5回、single-flight、assertion 1回消費 |
 
 idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
@@ -160,7 +162,7 @@ PointsとMarketsはenvironment別のSite Key／Secretとtoken replay tableをそ
 | Points  | CSV validate／commit                  | `points_csv`               |
 | Points  | 未受領FIX claim confirm               | `points_claim`             |
 | Markets | Google OAuth／Points link・unlink開始 | `markets_oauth_start`      |
-| Markets | listing／Auction CSV validate／commit | `markets_csv`              |
+| Markets | Auction CSV validate／commit          | `markets_csv`              |
 | Markets | bid／buy-now                          | `markets_bid`              |
 | Markets | WebSocket upgrade                     | `markets_ws_upgrade`       |
 | Markets | Settlement手動retry confirm           | `markets_settlement_retry` |
@@ -373,7 +375,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Google/GitHub Points login/linkとGoogle fresh
 - Markets Google login、Points明示link
 - FIX CSVから未受領claim
-- listing/Auction/bid/AutoBid/WS resync
+- Auction/bid/AutoBid/WS resync
 - settlement/proof/review
 - public/private profile
 

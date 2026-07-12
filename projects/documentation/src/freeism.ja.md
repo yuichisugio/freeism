@@ -10694,7 +10694,7 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - ポイント付与・評価軸・残高管理を行う`points.freeism.app`
 4. `markets-web-app`
    - `freeism`リポジトリの`projects/markets-web-app`
-   - 商材出品・Auction を行う`markets.freeism.app`
+   - 商材情報を含むAuctionを扱う`markets.freeism.app`
 5. `web-app`（旧実装）
    - `freeism`リポジトリの`projects/web-app`
    - v0.2 切替まで保持する旧モノリスのプロトタイプ

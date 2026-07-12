@@ -1,6 +1,6 @@
 # Markets Web App v0.2 仕様
 
-`markets.freeism.app`は、商材の出品とAuctionを責務とする。ポイント付与、残高、評価軸、FIXは`points.freeism.app`が所有する。
+`markets.freeism.app`は、商材情報を含むAuctionを責務とする。出品はAuction作成を意味し、独立したListing resourceは持たない。ポイント付与、残高、評価軸、FIXは`points.freeism.app`が所有する。
 
 ## 正本
 
@@ -16,7 +16,7 @@
 
 - Better Auth、Hono、Drizzle、D1、AuctionRoom Durable Object、Settlement Workflowを使う`auction-worker`と、TanStack Start/Vite PlusのSPA+SSGを同じprojectで管理する。
 - MarketsはGoogleだけで独立ログインし、Pointsは後から1対1で明示連携する。
-- Taskは完全廃止し、「Task作成」へ読み替えない。作成するのはlistingとAuctionだけである。
+- Taskは完全廃止し、「Task作成」へ読み替えない。作成するのはAuctionだけである。
 - multi-unit uniform-price、AutoBid、即決、終了延長、終了時vector reservationを実装する。
 - WebSocketはread-only subscription、bidは認証済みHTTP mutationとする。
 - 通知、PWA、画像、Q&A、chatは実装しない。

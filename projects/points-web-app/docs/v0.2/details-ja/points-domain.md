@@ -107,7 +107,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - economic fieldの変更は不変`pointPackageRevision`を追加し、既存revisionを更新しない。
 - プロフィールへ0件以上の公式パッケージを登録できる。profileは重複のない`pointPackageId`と連続した`displayOrder`だけを持ち、複数登録・登録解除・並べ替えを同じD1原子処理で行う。関係の削除はPackage本体やrevisionを削除しない。
 - Packageのname、description、URL、正規化名の一意性、Public content hashの対象と新revision条件は[評価軸とパッケージの管理](evaluation-criteria-management.md)を正本とする。
-- Markets listingは必ず不変`pointPackageRevisionId`とPublic `contentHash`をsnapshotし、確定直前にPointsのM2M listing eligibility receiptを取得する。不変revisionの履歴`status`だけを現在の出品可否として扱わない。
+- Markets Auctionは必ず不変`pointPackageRevisionId`とPublic `contentHash`をsnapshotし、確定直前にPointsのM2M Point Package Auction eligibility receiptを取得する。不変revisionの履歴`status`だけを現在のAuction利用可否として扱わない。
 
 ## 6. 金額表現
 
@@ -209,7 +209,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ### 9.4 貢献評価代用
 
-> 本節の計算式、UTC月別revision、非再帰source、0方向切捨て、訂正差分方式はDEC-259の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節の計算式、UTC月別revision、非再帰source、0方向切捨て、訂正差分方式はDEC-259で確定している。
 
 - 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの不変`substitutionMethodRevision`とする。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateRevisionId`とする。
 - `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateRevisionId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
@@ -222,7 +222,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ### 9.5 自動分配
 
-> 本節の保持額、score、最大剰余、1,000件上限、訂正snapshot方式はDEC-260の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節の保持額、score、最大剰余、1,000件上限、訂正snapshot方式はDEC-260で確定している。
 
 - プロフィールへ公式パッケージを1件以上登録した場合だけ有効化できる。
 - 初期値はOFF。ON時はUIに「自動分配を設定中」と表示する。

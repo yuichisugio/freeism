@@ -32,11 +32,11 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 - environmentごとに1つのMarkets OAuth Client IDを発行する。
 - Pointsは標準pairwise subjectを使い、Markets clientを`subject_type=pairwise`で静的登録する。public subjectを許可せず、environment／別client間で同じsubjectを共有しない。
 - 同じClient IDに`authorization_code`、`refresh_token`、`client_credentials`を許可する。
-- grantごとにscope allowlistとtoken classを分離する。
+- grantごとに互いに素なscope allowlistを分離する。標準introspectionへ独自`token_class`／`grant_type` claimを追加しない。
 - stagingとproductionでClient ID、secret、redirect URI、issuer、JWKS、audience/resourceを共有しない。
 - Client secretはMarkets Worker Secretsにだけ保存し、D1、browser、repository、build artifactへ入れない。
 
-同じsecretの漏えいが両grantへ影響し得る残余riskを受容する。分離を維持する主防御はgrant、scope、audience、token class、reservation ownership、idempotencyである。
+同じsecretの漏えいが両grantへ影響し得る残余riskを受容する。分離を維持する主防御は互いに素なscope、audience、pairwise `sub`の有無から導出するprincipal class、reservation ownership、idempotencyである。
 
 ### 3.2 Authorization Code + Refresh Token
 
@@ -44,8 +44,11 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 - redirect URIは完全一致allowlistとする。
 - user consentを省略しない。
 - `offline_access`でRefresh Tokenを発行する。
+- Better Auth OAuth Providerは`disableJwtPlugin: true`とし、利用者Access Tokenをopaqueに固定する。JWT Access TokenをResource APIへ発行しない。
+- confidential Markets clientのID TokenはBetter Auth標準のClient Secret署名をOIDC用途でだけ検証し、Points Resource APIのBearerまたは連携keyにしない。
 - user Access TokenとRefresh TokenはMarkets D1へアプリ層暗号化して保存する。
 - browserへAccess/Refresh Tokenを返さず、Markets host-only sessionだけを使う。
+- Marketsは標準`/oauth2/introspect`で`active=true`、issuer、pairwise subject、Client ID、scope、audience/resource、期限を検証する。Token文字列をJWTとしてdecodeせず、Points内部user IDを連携keyにしない。
 
 許可scope:
 
@@ -62,13 +65,14 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 
 - Markets WorkerだけがToken endpointを呼ぶ。
 - user subject、redirect URI、`offline_access`を持たせない。
-- M2M tokenは短命、memory cache可能だが永続平文保存しない。
+- `disableJwtPlugin: true`によりM2M Access Tokenもopaqueとするが、利用者Tokenとはscopeと利用者`sub`の有無を分離する。
+- M2M tokenは短命、memory cache可能だが永続平文保存しない。標準introspectionで利用者`sub`が存在しないこととM2M scopeだけであることを必須にし、利用者subjectとして解釈しない。
 
 許可scope:
 
 - `points.connection.link-attempt.create`
 - `points.connection.link-attempt.finalize`
-- `points.packages.listing-eligibility`
+- `points.packages.auction-eligibility`
 - `points.reservations.status`
 - `points.reservations.capture`
 - `points.reservations.release`
@@ -87,12 +91,16 @@ Settlementの手動再試行だけは通常の利用者grant、Refresh Token、C
 
 ### 3.5 Resource Server検証
 
-各requestで署名、`iss`、`aud/resource`、`exp`、`nbf`、`client_id/azp`、grant/token class、scopeを検証する。
+Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、Resource Server専用Client Secretを追加しない。Marketsがlink完了等でremote `/oauth2/introspect`を呼ぶ場合だけ、Markets confidential Client ID／Secretを使う。各requestで`active=true`、`iss`、`aud/resource`、`exp`、存在する場合の`nbf`、`client_id`、scope、利用者Tokenのpairwise `sub`を検証する。opaque Tokenを未検証decodeせず、独自Token形式・独自introspection endpoint・内部user IDをpairwise subjectへ上書きするcustom claimを作らない。
 
+- user tokenはpairwise `sub`が存在し、scopeが利用者allowlistだけである場合に限って利用者委任principalへ分類し、ACTIVEなapp-owned connectionを照合する。MarketsへPoints内部user IDを返さない。
+- M2M tokenは利用者`sub`が存在せず、scopeがM2M allowlistだけである場合に限ってM2M principalへ分類し、Client IDと既存reservation所有権も検証する。標準introspectionの`token_type=Bearer`は分類根拠にしない。
+- 利用者／M2M scopeの混在、`sub`有無との矛盾、未知scope、分類不能を拒否する。Better Authの標準responseだけでこの分類が成立しない場合は独自claimへfallbackせずreleaseを停止する。
 - user tokenでcapture/release/statusを実行できない。
 - M2M tokenで任意ユーザーのbalance readやreservation createを実行できない。
 - staging tokenをproductionが受け付けず、逆も同様とする。
 - Service Bindingから来たことだけで検証を省略しない。
+- Better Auth `1.7.0-rc.1`と正式`1.7.0`のlive spikeでopaqueなAuthorization Code／Refresh／Client Credentials、pairwise introspection、revocation、resource、scope分離を検証し、標準APIで成立しなければ独自実装へfallbackせず停止する。
 
 ## 4. Token保存とrefresh
 
@@ -114,7 +122,7 @@ Settlementの手動再試行だけは通常の利用者grant、Refresh Token、C
 - `Content-Type: application/json`
 - `X-Request-Id`はcallerが設定可能。未指定時はPointsが発行する
 - private responseは`Cache-Control: private, no-store`
-- 一般browser JSONは64KiB、M2M listing eligibility／reservation status／一括capture／releaseは1MiBを上限とし、超過時はbodyをparseせず`413`を返す。listing eligibilityへの1MiB適用はDEC-256承認対象とする
+- 一般browser JSONは64KiB、M2M Point Package Auction eligibility／reservation status／一括capture／releaseは1MiBを上限とし、超過時はbodyをparseせず`413`を返す。Auction eligibilityへの1MiB適用はDEC-256で確定している
 
 ### 5.2 response
 
@@ -158,7 +166,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 | Method／path                                                     | operationId                           |
 | ---------------------------------------------------------------- | ------------------------------------- |
 | `GET /api/v1/point-package-revisions/{pointPackageRevisionId}`   | `getPublicPointPackageRevision`       |
-| `POST /api/v1/point-package-listing-eligibility-checks`          | `checkPointPackageListingEligibility` |
+| `POST /api/v1/point-package-auction-eligibility-checks`          | `checkPointPackageAuctionEligibility` |
 | `POST /api/v1/oauth/link-attempts`                               | `createPointsLinkAttempt`             |
 | `POST /api/v1/oauth/link-attempts/{linkAttemptId}/finalizations` | `finalizePointsLinkAttempt`           |
 | `GET /api/v1/me/connection`                                      | `getPointsConnection`                 |
@@ -211,28 +219,28 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
 - hash対象fieldは`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、`relatedUrl | null`、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`evaluationCriterionRevisionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
 - revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
-- Marketsの出品CSVは`pointPackageId`と`pointPackageRevisionId`の両方を必須とし、responseの組合せが一致しなければ確定しない
-- responseの`status`は当該不変revision作成時の履歴状態であり、Packageの現在状態を表さない。新規listingと開始前PATCHは`status === "ACTIVE"`を確認したうえで、次のM2M listing eligibility receiptも必須とする
-- Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`をlistingへsnapshotする。予約／capture時の経済計算はPoints D1のrevisionを正本とする
+- MarketsのAuction CSVは`pointPackageId`と`pointPackageRevisionId`の両方を必須とし、responseの組合せが一致しなければ確定しない
+- responseの`status`は当該不変revision作成時の履歴状態であり、Packageの現在状態を表さない。新規Auctionと開始前PATCHは`status === "ACTIVE"`を確認したうえで、次のM2M Point Package Auction eligibility receiptも必須とする
+- Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`を`auctionRevision`へsnapshotする。予約／capture時の経済計算はPoints D1のrevisionを正本とする
 
-### 7.0a 現在のPackage出品可否receipt
+### 7.0a 現在のPackageのAuction利用可否receipt
 
-> 本節のAPI、30秒lease、過去ACTIVE revisionを許可する規則はDEC-256の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節のAPI、30秒lease、過去ACTIVE revisionを許可する規則はDEC-256で確定している。
 
-`POST /api/v1/point-package-listing-eligibility-checks`
+`POST /api/v1/point-package-auction-eligibility-checks`
 
 - token: Client Credentials
-- scope: `points.packages.listing-eligibility`
+- scope: `points.packages.auction-eligibility`
 - `Idempotency-Key`と`Content-Type: application/json`を必須とし、request bodyは1MiB、`items`は1〜1,000件に制限する
 - request:
 
 ```json
 {
-  "listingCommandId": "lcmd_01...",
-  "listingCommandHash": "sha256:...",
+  "auctionCommandId": "acmd_01...",
+  "auctionCommandHash": "sha256:...",
   "items": [
     {
-      "listingItemId": "row_0001",
+      "auctionItemId": "row_0001",
       "pointPackageId": "pkg_01...",
       "pointPackageRevisionId": "ppr_01...",
       "contentHash": "sha256:..."
@@ -241,21 +249,21 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 }
 ```
 
-- `listingItemId`はrequest内一意とし、CSVでは`clientRowId`、開始前PATCHでは変更command内の安定IDからMarketsが作る。Points user、seller、title等のMarkets private fieldは送らない
-- `listingCommandHash`はserver再parse後の全listing commandと、Public Revision APIから検証した全snapshot／`contentHash`を含むcanonical hashとする。receiptはClient ID、command ID／hash、`listingItemId`順へ正規化した全itemへ束縛する
-- Pointsは1つのD1原子処理で、全revisionが指定Packageに属すること、requestの`contentHash`と保存済み不変hashが一致すること、各revision作成時の`status`が`ACTIVE`であること、各Packageの現在`lifecycleStatus`が`ACTIVE`であることを検査する。1件でも不適格ならreceiptを0件とし、`409 POINT_PACKAGE_LISTING_INELIGIBLE`と`listingItemId`順の安全なitem errorだけを返す
-- 現在の`pointPackages.lifecycleStatus`、`currentRevisionId`、`eligibilityVersion`は最新の不変Package Revision追加と同じPoints D1 transactionで更新する。新規出品の可否は`lifecycleStatus`へ従うが、指定revisionが`currentRevisionId`と一致する必要はない。現在ACTIVEなら過去の`status=ACTIVE` revisionも利用でき、過去の`status=INACTIVE` revisionは利用できない
+- `auctionItemId`はrequest内一意とし、CSVでは`clientRowId`、開始前PATCHでは変更command内の安定IDからMarketsが作る。Points user、seller、title等のMarkets private fieldは送らない
+- `auctionCommandHash`はserver再parse後のAuction batchまたは開始前PATCH command全体と、Public Revision APIから検証した全snapshot／`contentHash`を含むcanonical hashとする。receiptはClient ID、command ID／hash、`auctionItemId`順へ正規化した全itemへ束縛する
+- Pointsは1つのD1原子処理で、全revisionが指定Packageに属すること、requestの`contentHash`と保存済み不変hashが一致すること、各revision作成時の`status`が`ACTIVE`であること、各Packageの現在`lifecycleStatus`が`ACTIVE`であることを検査する。1件でも不適格ならreceiptを0件とし、`409 POINT_PACKAGE_AUCTION_INELIGIBLE`と`auctionItemId`順の安全なitem errorだけを返す
+- 現在の`pointPackages.lifecycleStatus`、`currentRevisionId`、`eligibilityVersion`は最新の不変Package Revision追加と同じPoints D1 transactionで更新する。新規Auctionでの利用可否は`lifecycleStatus`へ従うが、指定revisionが`currentRevisionId`と一致する必要はない。現在ACTIVEなら過去の`status=ACTIVE` revisionも利用でき、過去の`status=INACTIVE` revisionは利用できない
 - 全件成功時だけ次を返す:
 
 ```json
 {
   "data": {
-    "listingEligibilityReceiptId": "pel_01...",
-    "listingCommandId": "lcmd_01...",
-    "listingCommandHash": "sha256:...",
+    "pointPackageAuctionEligibilityReceiptId": "paer_01...",
+    "auctionCommandId": "acmd_01...",
+    "auctionCommandHash": "sha256:...",
     "items": [
       {
-        "listingItemId": "row_0001",
+        "auctionItemId": "row_0001",
         "pointPackageId": "pkg_01...",
         "pointPackageRevisionId": "ppr_01...",
         "contentHash": "sha256:...",
@@ -271,11 +279,12 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 }
 ```
 
+- `pointPackageAuctionEligibilityReceiptId`は、Auction全体のvalidation完了ではなく、指定したPoint Package revisionをそのAuction作成／開始前編集で利用できることだけをPointsが確認したreceiptである
 - receipt発行transactionを線形化点とし、`validUntil = checkedAt + 30秒`で固定する。Marketsは`serverNow < validUntil`の間にD1 commitを開始した場合だけreceiptを使用でき、ちょうど`validUntil`以後の開始を拒否する。commit開始後に期限を跨いでもよい
 - receipt発行後にPackageがINACTIVEになっても、期限内に開始したMarkets commitは許可する。この最大30秒のleaseをv0.2の明示的なrace境界とし、発行済みreceiptの取消、2PC、consume callbackを追加しない
 - 同じIdempotency-Key／同じcanonical payloadは成功receiptまたは失敗responseを元の`checkedAt`／`validUntil`のまま再生し、期限を延長しない。同じkey／異なるpayloadは`409 IDEMPOTENCY_KEY_REUSED`とする。期限切れ後のretryは同じcommand ID／hashを保ち、新しいIdempotency-Keyで全itemを再検査する
 - CSV previewでも可否を表示できるが、preview時のreceiptはcommitへ再利用しない。確定時はCSVをserver再parseし、Public Revision hashを再検証した後にfresh receiptを取得する。開始前PATCHも同じ手順を使う
-- Marketsはreceipt ID、command ID／hash、itemごとのPackage ID／Revision ID／content hash／eligibility version、`checkedAt`、`validUntil`、commit開始時刻をlisting snapshotへ保存する。確定済みAuctionと既存精算はreceipt期限切れや後のINACTIVE化で変更しない
+- Marketsはreceipt ID、command ID／hash、itemごとのPackage ID／Revision ID／content hash／eligibility version、`checkedAt`、`validUntil`、commit開始時刻を`auctionRevision`へ保存する。確定済みAuctionと既存精算はreceipt期限切れや後のINACTIVE化で変更しない
 
 ### 7.1 連携status
 
@@ -423,7 +432,7 @@ ACTIVE -> EXPIRED
 
 ## 9. Settlementの責務
 
-1. MarketsがAuction cutoffとimmutable settlement planを確定する。
+1. MarketsがAuction終了cutoff、またはAuctionRoomで全数量をlockした`BUY_NOW` commandからimmutable settlement planを確定する。
 2. user tokenでwinner候補を同じroundとして予約する。
 3. 残高不足・負残高の確定的失敗者がいれば、そのroundの成功予約も全releaseする。
 4. 確定的失敗者だけを除外し、同じcutoffからwinner/quantity/clearingを再計算して新roundを予約する。一時障害では除外しない。
@@ -433,10 +442,12 @@ ACTIVE -> EXPIRED
 
 PointsはAuction rankingを再計算せず、Marketsはpoint vectorを独自再計算しない。
 
+`BUY_NOW`も同じ11-operation契約を使い、hold作成だけで完了扱いにしない。Marketsのrestore evidenceは、外部作用開始前のD1 preflight、同じidempotency keyの決定的reservation作成拒否でreservation ID 0件、または存在する全reservationの未capture status＋ACTIVE分のrelease receipt完備、という相互排他的な3種だけを許可する。いずれかを満たすterminal failureだけ内部`restoreBuyNowHold` CASで全数量を`FAILED_RESTORED`へ進め、結果不明はholdを維持してmanual actionとする。capture後は`CAPTURED_PENDING_FINALIZE`からrestore／refundせずproofを確定し、proof migration適用後の`settleBuyNowHold` CASで`SETTLED`へ進める。endAt時の未終端holdは終了時planを遅延し、全hold終端後の復元済み残数で作る。
+
 ## 10. Rate limit
 
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
-- listing eligibilityはclient IDとlisting command IDをkeyにし、同じIdempotency-Keyの保存済み結果をrate countより先に返す。
+- Point Package Auction eligibilityはclient IDとAuction command IDをkeyにし、同じIdempotency-Keyの保存済み結果をrate countより先に返す。
 - reservation createはsubject、Markets client、Auction、settlementをkeyに制限する。
 - capture/release/statusはclient IDとsettlementをkeyにし、retryを壊さないようidempotency cacheを先に確認する。
 - rate limit responseは`429`と`Retry-After`を返す。
@@ -445,9 +456,9 @@ PointsはAuction rankingを再計算せず、Marketsはpoint vectorを独自再�
 
 - OpenAPI schemaと生成Markets clientの差分0
 - Package ID／Revision IDの一致、immutable response、ETag／content hash、Markets snapshotを検証する
-- listing eligibilityは1〜1,000 item、現在ACTIVE／INACTIVE、過去ACTIVE revision、1件不適格時receipt 0件、Client／command／全item束縛、30秒境界、INACTIVE race、同じ冪等keyの期限非延長、Markets snapshotを検証する
+- Point Package Auction eligibilityは1〜1,000 item、現在ACTIVE／INACTIVE、過去ACTIVE revision、1件不適格時receipt 0件、Client／command／全item束縛、30秒境界、INACTIVE race、同じ冪等keyの期限非延長、Markets snapshotを検証する
 - user/M2M scopeの正逆両方
-- issuer/audience/client/env不一致
+- introspection `active=false`、issuer/audience/client/env不一致
 - PKCE、state、redirect URI、code再利用
 - Refresh Token同時更新とrotation
 - plaintext tokenがD1 export、session、browser、logにない

@@ -168,7 +168,7 @@ step-upでは専用Google Authorization Code flowを開始する。authorization
 - OAuth Client、Client Secret、署名鍵の変更
 - Settlementの管理者再試行・reconciliation
 
-M2MのPackage listing eligibility、capture、release、status取得はGoogle Sessionではなく、Client Credentials Token、専用scope、Client／commandまたは予約所有権、冪等性で保護する。listing eligibilityの追加はDEC-256承認対象である。
+M2MのPoint Package Auction eligibility、capture、release、status取得はGoogle Sessionではなく、Client Credentials Token、専用scope、Client／Auction commandまたは予約所有権、冪等性で保護する。Auction eligibilityはDEC-256で確定している。
 
 Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、ADMIN、Google fresh、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時testで拒否する。
 
@@ -317,16 +317,25 @@ link、unlink、relink、Settlement手動retryのOAuth stateへ、利用者入�
 
 PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers Secretから設定し、Markets clientを`subject_type=pairwise`で静的登録する。public subjectを発行せず、同じPointsユーザーでもClient ID／environmentが違えばsubjectを分離する。pairwise secretは通常rotationしない。漏えい時は全user grantを`REAUTH_REQUIRED`へ進め、秘密を更新し、既存Markets userと新subjectをGoogle freshのcontrolled relinkで再対応させる。旧subjectと履歴を削除しない。
 
+利用者委任Access TokenはBetter Auth OAuth Providerの標準`disableJwtPlugin: true`でopaqueに固定し、JWT Access Tokenを発行しない。これはJWT Access Tokenの`sub`がPoints内部user IDになる標準挙動を避け、Marketsへ公開する本人識別子を`issuer + pairwise subject`だけに限定するためである。
+
+- confidential clientのID Tokenは`disableJwtPlugin: true`時のBetter Auth標準どおりClient Secretで署名し、OIDC clientだけが検証する。Points Resource APIのBearer Tokenや連携正本には使わない。
+- pairwise `sub`はID Token、UserInfo、標準`/oauth2/introspect`の応答にだけ現れる。MarketsはToken文字列をparseせず、標準introspectionの`active=true`、`iss`、`sub`、`client_id`、scope、audience/resource、期限を検証して`issuer + sub`を保存する。
+- `disableJwtPlugin: true`はOAuth Provider全体へ適用されるため、Client Credentials Access Tokenもopaqueになる。ただし標準introspectionに独自`token_class`／`grant_type` claimを追加しない。利用者委任principalは「pairwise `sub`あり＋利用者scopeだけ」、M2M principalは「利用者`sub`なし＋M2M scopeだけ」から導出し、scopeが混在する、`sub`の有無とscope種別が矛盾する、または分類不能なTokenは拒否する。
+- Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、別のResource Server Client Secretや独自HTTP endpointを作らない。Marketsがlink完了等でremote introspectionする場合だけ、同じMarkets confidential Client ID／SecretをMarkets Worker Secretから使う。どちらもopaque Tokenを未検証decodeせず、内部user IDをpairwise `sub`へ上書きするcustom claimを作らない。
+- Marketsのremote introspection credentialはMarkets Worker Secretにだけ置き、browserやPoints Resource API設定へ複製しない。Service Binding経由でも各requestのBearerをPoints内の標準Resource Clientへ渡して検証し、positive resultをrequest境界を越えて無期限cacheしない。
+- Better Auth `1.7.0-rc.1`と正式`1.7.0`の双方で、opaqueなAuthorization Code／Refresh／Client Credentials、pairwise introspection、revocation、audience/resource、scope分離をlive spikeする。標準APIで成立しなければ独自実装へfallbackせずreleaseを停止して再承認する。
+
 ### 8.3 同一Client ID内のgrant分離
 
 環境ごとに1つのMarkets OAuth Client IDを作り、そのClient ID内でgrantとscopeを分離する。
 
-| Token class             | grant                                 | 許可scope・用途                                                                                                |
+| Principal／Token用途    | grant                                 | 許可scope・用途                                                                                                |
 | ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 利用者委任Token         | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create` |
+| 利用者委任opaque Token  | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create` |
 | Connection unlink       | 専用`authorization_code`              | `points.connection.unlink`だけ。Google fresh後の通常unlinkを一回だけ認可する                                   |
 | Settlement管理assertion | 専用`authorization_code`              | `points.admin.settlement.retry`だけ。対象Auction／Settlementの手動再試行を一回だけ認可する                     |
-| Worker間Token           | `client_credentials`                  | `points.reservations.status`、`points.reservations.capture`、`points.reservations.release`                     |
+| Worker間opaque Token    | `client_credentials`                  | `points.reservations.status`、`points.reservations.capture`、`points.reservations.release`                     |
 
 link-attempt作成／finalizeには同じClient Credentials grantの`points.connection.link-attempt.create`／`points.connection.link-attempt.finalize`だけを使う。このscopeでbalance、reserve、settlement、unlinkを実行できない。
 
@@ -351,27 +360,25 @@ Settlement手動再試行では、通常の利用者委任TokenやWorker間Token
 
 PointsはADMINとfreshnessの証明だけを担い、Auction ranking、Settlement state、Workflow retryを実行しない。Marketsはassertion検証後も自身のD1で対象state、single-flight、retry上限、reason、idempotencyを検証し、自身のWorkflowだけを再試行する。
 
-Access Tokenには少なくとも次を持たせ、Points Resource APIが検証する。
+標準introspection応答はGate Aで実測したfieldだけを使い、opaque Access Token自体をJWTとしてdecodeしない。次を必須にする。
 
 - `iss`
 - `aud`
-- `sub`（利用者Tokenの場合）
+- pairwise `sub`（利用者Tokenでは必須、M2M Tokenでは不存在を必須とする）
 - `client_id`または`azp`
 - `scope`
-- grantに対応するToken class
 - `exp`
-- `jti`
 
-Points API用resource／audienceを必須とし、他ResourceへのToken再利用を拒否する。Service Bindingは通信経路であり認可根拠ではないため、Binding経由でもBearer Tokenと上記claimsを検証する。
+`active=true`とPoints API用resource／audienceを必須とし、他ResourceへのToken再利用を拒否する。`token_type=Bearer`は両principalに共通なので分類根拠にしない。利用者scope集合とM2M scope集合は互いに素とし、`sub`有無＋scope集合から導出したprincipal classをroute policyへ照合する。Better Auth `1.7.0-rc.1`／正式`1.7.0`のどちらかでM2Mの`sub`不存在またはこの一意分類が成立しなければ、custom claimで補わずreleaseを停止する。Service Bindingは通信経路であり認可根拠ではないため、Binding経由でもBearer Tokenと上記introspection結果を検証する。
 
 ### 8.4 Token保存とRefresh
 
 - PointsのAccess／Refresh TokenはMarkets D1のBetter Auth Accountへ暗号化保存する。
 - Points TokenをMarketsのCookie、ブラウザJavaScript、`localStorage`へ返さない。
 - MarketsのブラウザにはMarkets Session Cookieだけを保存する。
-- OAuth Client Secret、Better Auth Secret、pairwise secret、Token暗号化key ring、署名private JWKは環境別Workers Secretsに保存し、D1や公開設定へ置かない。
+- OAuth Client Secret、Better Auth Secret、pairwise secret、Token暗号化key ring、ID Token／Settlement管理assertion用署名keyは環境別Workers Secretsに保存し、D1や公開設定へ置かない。
 - Token暗号文はkey versionを持つ。key ringはcurrent encrypt keyと旧decrypt-only keyを持ち、read／Refresh CAS時にcurrent versionへlazy rewrapする。unknown versionは失敗し、旧version ciphertextが0件になるまで旧keyを削除しない。
-- OAuth/JWTはSecretのprivate JWKと`kid`で署名し、JWKSにはcurrentと移行中のprevious public keyだけを公開する。最長Token期限、clock skew、deploy overlapを経過し、旧`kid` trafficが0であることを確認してからprevious keyを削除する。D1へprivate keyを保存しない。
+- Settlement管理assertion等の非opaque署名TokenはSecretのprivate JWKと`kid`で署名し、JWKSにはcurrentと移行中のprevious public keyだけを公開する。最長Token期限、clock skew、deploy overlapを経過し、旧`kid` trafficが0であることを確認してからprevious keyを削除する。D1へprivate keyを保存しない。confidential clientのID Tokenは`disableJwtPlugin: true`時のBetter Auth標準Client Secret署名を使い、独自JWKへ差し替えずResource API Bearerへ転用しない。
 - Access Token期限切れ時は保存済みRefresh Tokenで更新し、新しいAccess／Refresh Tokenを暗号化して置換する。
 - 401時の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
 - Refresh Token Rotationの同時実行は、Markets Account単位のD1 lease／CASでsingle-flight化する。
@@ -501,7 +508,9 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 ### 14.5 Points–Markets OAuth
 
 - state、nonce、redirect URI、PKCE verifier、Authorization Code再利用の不正を拒否する。
-- issuer、audience／resource、署名、期限、`client_id`／`azp`、Token class、scope不一致を拒否する。
+- opaque Tokenの未検証decode、introspectionの`active=false`、issuer、audience／resource、期限、`client_id`、Token class、scope不一致を拒否する。
+- 利用者Tokenのintrospectionがpairwise `sub`を返し、Points内部user IDをMarketsへ公開しないことを検証する。
+- Client Credentials Tokenのintrospection結果を利用者subjectとして解釈しない。
 - 利用者Tokenでcapture／releaseできない。
 - M2M Tokenで残高取得・新規reserve・任意debitができない。
 - Client AがClient Bの予約をsettleできない。
@@ -515,7 +524,7 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - Access／Refresh Tokenがブラウザへ出ず、Markets D1で暗号化される。
 - 同時Refreshをsingle-flight化し、Refresh Token Rotationで古いTokenを並列使用しない。
 - 401後のRefresh・再試行が最大1回である。
-- Service Binding経由でもBearer Tokenなし、不正scope、不正audienceを拒否する。
+- Service Binding経由でもBearer Tokenなし、introspection失敗、不正scope、不正audienceを拒否する。
 
 ### 14.6 Cookie・CSRF・環境分離
 
@@ -535,7 +544,7 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 
 ### 14.8 Release回帰
 
-- Better Auth 1.7正式版でGoogle／GitHub login、明示link、fresh認証、Token暗号化、OAuth Provider、Refresh Rotation、Client Credentials、resource-bound Tokenの全テストが成功する。
+- Better Auth 1.7正式版でGoogle／GitHub login、明示link、fresh認証、Token暗号化、OAuth Provider、opaque Access Token、pairwise introspection、Refresh Rotation、Client Credentials、resource-bound Tokenの全テストが成功する。
 - 上記テストが未完了の場合はProduction releaseを許可しない。
 
 ## 15. 参考仕様
