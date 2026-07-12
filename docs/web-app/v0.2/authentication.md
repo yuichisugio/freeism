@@ -33,28 +33,34 @@ MarketsはPointsをログインProviderにしない。MarketsへGoogleでログ�
 
 ## 3. Better Auth共通設定
 
-PointsとMarketsは、それぞれ独立したBetter Auth instanceを持つ。共通の規則は次のとおりである。
-
-- `providerId + accountId`に一意制約を持たせる。
+PointsとMarketsは、それぞれ独立したBetter Auth instanceを持つ。Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
 
 Account linkingとOAuth state／Cookieの正本設定形は次とする。各optionをtop-levelへ置かず、Better Authの`account`／`account.accountLinking`配下へ設定する。
 
 ```ts
-account: {
-  storeStateStrategy: "database",
-  storeAccountCookie: false,
-  accountLinking: {
-    enabled: true,
-    disableImplicitLinking: true,
-    trustedProviders: [],
-    allowDifferentEmails: true,
-    updateUserInfoOnLink: false,
-    allowUnlinkingAll: false,
+const socialProviderIds = app === "points" ? ["google", "github"] : ["google"];
+
+betterAuth({
+  // Workers Secretsから組み立てる。先頭がcurrent、残りがdecrypt-only。
+  secrets: versionedBetterAuthSecrets,
+  account: {
+    encryptOAuthTokens: true,
+    storeStateStrategy: "database",
+    storeAccountCookie: false,
+    accountLinking: {
+      enabled: true,
+      disableImplicitLinking: true,
+      trustedProviders: [...socialProviderIds],
+      allowDifferentEmails: true,
+      updateUserInfoOnLink: false,
+      allowUnlinkingAll: false,
+    },
   },
-}
+});
 ```
 
-- OAuth Tokenはアプリケーションレベルで暗号化してD1へ保存する。
+- `trustedProviders`は各appの承認済みSocial Provider正本集合と必ず同じにする。PointsはGoogle＋GitHub、MarketsはGoogleだけである。これは未verified emailでも明示linkを成立させるためのProvider信頼設定であり、`disableImplicitLinking: true`を維持してメール一致の暗黙linkを禁止する。
+- Social OAuth TokenはBetter Auth標準の`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。独自AES-GCM envelope、独自暗号key ring、read時lazy rewrapを実装せず、標準のversioned secretsを使う。標準暗号形式・algorithmをアプリ契約へ固定しない。
 - OAuth TokenをAccount Cookieへ保存せず、OAuth stateはD1-backed storageへ保存する。
 - Authorization Code flowではPKCE S256を必須とする。
 - CSRF検査とOrigin検査を無効化しない。
@@ -112,6 +118,9 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - Account close後も永久対応を物理削除しない。
 - 同じOAuth主体で再度ログインした場合は、新しい空ユーザーを作らず元のPointsユーザーを再開する。
 - 受領済みFIX、`evaluationTotal`、台帳、訂正先を別ユーザーへ移動しない。
+- この永久対応はPoints app-owned tableへ保存し、`(providerId, accountId)`複合一意制約を持たせる。Better Auth CLI生成Account schemaにこの永久性を期待しない。
+- login／明示link／Account close後の再開は、app-owned永久対応を同じD1 transactionまたは失敗時に再実行可能な単調処理で照合する。同じ主体を別ユーザーへ割り当てない。
+- 永久対応table、一意制約、既存対応への再開経路はPoints実装計画Task 9が所有し、Task 9完了をproduction release blockerとする。Task 1ではBetter Auth標準Accountの既存Account再利用だけを検査する。
 
 ### 5.2 GitHub所有権の無効化
 
@@ -378,8 +387,8 @@ PointsはADMINとfreshnessの証明だけを担い、Auction ranking、Settlemen
 - PointsのAccess／Refresh TokenはMarkets D1のBetter Auth Accountへ暗号化保存する。
 - Points TokenをMarketsのCookie、ブラウザJavaScript、`localStorage`へ返さない。
 - MarketsのブラウザにはMarkets Session Cookieだけを保存する。
-- OAuth Client Secret、Better Auth Secret、pairwise secret、Token暗号化key ring、ID Token／Settlement管理assertion用署名keyは環境別Workers Secretsに保存し、D1や公開設定へ置かない。
-- Token暗号文はkey versionを持つ。key ringはcurrent encrypt keyと旧decrypt-only keyを持ち、read／Refresh CAS時にcurrent versionへlazy rewrapする。unknown versionは失敗し、旧version ciphertextが0件になるまで旧keyを削除しない。
+- OAuth Client Secret、Better Authのversioned secrets、pairwise secret、ID Token／Settlement管理assertion用署名keyは環境別Workers Secretsに保存し、D1や公開設定へ置かない。
+- Better Authのversioned secretsは先頭をcurrent encrypt secret、残りを旧decrypt-only secretとする。新規保存、Token refresh、再連携等の次回writeでcurrent versionへ収束させる。独自read時lazy rewrapや独自ciphertext件数reconciliationを追加せず、旧secretのretireは標準rotation手順と回帰testに従う。
 - Settlement管理assertion等の非opaque署名TokenはSecretのprivate JWKと`kid`で署名し、JWKSにはcurrentと移行中のprevious public keyだけを公開する。最長Token期限、clock skew、deploy overlapを経過し、旧`kid` trafficが0であることを確認してからprevious keyを削除する。D1へprivate keyを保存しない。confidential clientのID Tokenは`disableJwtPlugin: true`時のBetter Auth標準Client Secret署名を使い、独自JWKへ差し替えずResource API Bearerへ転用しない。
 - Access Token期限切れ時は保存済みRefresh Tokenで更新し、新しいAccess／Refresh Tokenを暗号化して置換する。
 - 401時の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
@@ -468,11 +477,11 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - email/password、Apple、未設定Providerを利用できない。
 - 同じemail・異なるGoogle `sub`またはGitHub IDを暗黙linkしない。
 - 異なるemailのGoogle／GitHub Accountをログイン済みユーザーへ明示linkできる。
-- `(providerId, accountId)`を複数ユーザーへlinkできない。
+- Task 1でBetter Auth標準Accountの既存Account再利用を検査し、Task 9でapp-owned永久対応の複合一意制約、競合、close後の再開を検査する。
 - Provider Accountが別ユーザーに属する場合、メール一致で統合しない。
 - link時にPointsの名前、メール、画像を上書きしない。
 - GitHub email欠落時の予約ドメイン値を本人識別・通知・link判定に使わない。
-- OAuth TokenがD1上で暗号化され、Account Cookie・ブラウザへ出ない。
+- Social OAuth Tokenが`account.encryptOAuthTokens: true`によりD1上で暗号化され、Account Cookie・ブラウザへ出ず、versioned secret rotation後のrefresh／再連携でcurrent versionへ収束する。
 
 ### 14.2 GitHub永久対応・所有権無効化
 

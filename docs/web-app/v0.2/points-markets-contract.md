@@ -104,9 +104,10 @@ Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`o
 
 ## 4. Token保存とrefresh
 
-- Better AuthのOAuth token暗号化機能または同等のversioned envelope encryptionを使う。
-- encrypted payloadはkey version、nonce、ciphertext、auth tagを持つ。
-- key ringはWorkers Secretsで環境・アプリ別に管理し、current encrypt keyと旧decrypt-only keyを持つ。unknown versionを拒否し、read／Refresh CASでlazy rewrapする。旧version ciphertext 0件を確認するまで旧keyを削除しない。
+- MarketsのPoints利用者Access／Refresh TokenはBetter Auth Accountへ保存し、Better Auth標準`account.encryptOAuthTokens: true`と標準versioned secretsだけで暗号化する。独自AES-GCM envelope／key ring、Tokenの平文直接INSERT、read時lazy rewrapを実装しない。
+- versioned secretsはWorkers Secretsで環境・アプリ別に管理し、先頭をcurrent encrypt secret、残りを旧decrypt-only secretとする。標準暗号形式・algorithmを本contractへ固定しない。
+- 新規保存、Refresh Token rotation、再連携等の次回writeでcurrent versionへ収束させる。Markets固有のD1 refresh lease／CASはsingle-flight制御として維持するが、暗号方式を独自実装せず、CASで置換するTokenにもBetter Auth標準暗号経路を使う。
+- MarketsはPointsをMarketsログイン用Social Providerとして公開しない。Task 6Aで、Points接続TokenをBetter Auth Accountへ保存・更新する標準経路と`account.encryptOAuthTokens`の適用を実物で検証し、標準APIで成立しなければ独自暗号へfallbackせずreleaseを停止する。
 - tokenをCookie、localStorage、session payload、Problem Details、log、auditへ出さない。
 - Refresh Token rotationは、`pointsConnectionId`単位のD1 lease/CASでsingle-flightにする。
 - lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshはwinnerの結果を再読込する。
