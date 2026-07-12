@@ -1,0 +1,43 @@
+{
+  "name": "@freeism/markets-web-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "preview": "vp preview --host 127.0.0.1 --port 4173",
+    "check": "vp check",
+    "test": "vp test run --config vitest.config.ts",
+    "test:worker": "vp test run --config vitest.worker.config.ts",
+    "test:e2e": "playwright test",
+    "build": "vp build",
+    "build:staging": "CLOUDFLARE_ENV=staging vp build && node ../../scripts/web-app/generate-static-security-headers.mjs . staging",
+    "build:production": "CLOUDFLARE_ENV=production vp build && node ../../scripts/web-app/generate-static-security-headers.mjs . production",
+    "build:assert": "node ../../scripts/web-app/assert-worker-build.mjs .",
+    "types:worker": "wrangler types"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "5.101.2",
+    "@tanstack/react-router": "1.170.17",
+    "@tanstack/react-start": "1.168.27",
+    "hono": "4.12.28",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-markdown": "10.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.43.2",
+    "@cloudflare/vitest-pool-workers": "0.18.2",
+    "@playwright/test": "1.61.1",
+    "@types/node": "24.13.3",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "happy-dom": "20.10.6",
+    "typescript": "6.0.3",
+    "vite": "8.1.4",
+    "vite-plus": "0.2.4",
+    "vitest": "4.1.10",
+    "wrangler": "4.108.0"
+  }
+}

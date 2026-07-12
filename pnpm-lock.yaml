@@ -87,6 +87,70 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(textlint@11.9.1)
 
+  projects/markets-web-app:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: 5.101.2
+        version: 5.101.2(react@19.2.7)
+      '@tanstack/react-router':
+        specifier: 1.170.17
+        version: 1.170.17(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@tanstack/react-start':
+        specifier: 1.168.27
+        version: 1.168.27(esbuild@0.28.1)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(rolldown@1.1.5)(rollup@4.60.2)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3))(webpack@5.106.2(esbuild@0.28.1))
+      hono:
+        specifier: 4.12.28
+        version: 4.12.28
+      react:
+        specifier: 19.2.7
+        version: 19.2.7
+      react-dom:
+        specifier: 19.2.7
+        version: 19.2.7(react@19.2.7)
+      react-markdown:
+        specifier: 10.1.0
+        version: 10.1.0(@types/react@19.2.17)(react@19.2.7)
+    devDependencies:
+      '@cloudflare/vite-plugin':
+        specifier: 1.43.2
+        version: 1.43.2(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3))(workerd@1.20260706.1)(wrangler@4.108.0)
+      '@cloudflare/vitest-pool-workers':
+        specifier: 0.18.2
+        version: 0.18.2(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10)
+      '@playwright/test':
+        specifier: 1.61.1
+        version: 1.61.1
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
+      '@types/react':
+        specifier: 19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: 19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+      '@vitejs/plugin-react':
+        specifier: 6.0.3
+        version: 6.0.3(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3))
+      happy-dom:
+        specifier: 20.10.6
+        version: 20.10.6
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vite:
+        specifier: 8.1.4
+        version: 8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3)
+      vite-plus:
+        specifier: 0.2.4
+        version: 0.2.4(@types/node@24.13.3)(esbuild@0.28.1)(happy-dom@20.10.6)(jiti@2.7.0)(jsdom@26.1.0)(msw@2.13.6(@types/node@24.13.3)(typescript@6.0.3))(terser@5.46.2)(tsx@4.23.0)(typescript@6.0.3)(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3))(yaml@2.8.3)
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@24.13.3)(@vitest/browser-preview@4.1.10)(happy-dom@20.10.6)(jsdom@26.1.0)(msw@2.13.6(@types/node@24.13.3)(typescript@6.0.3))(vite@8.1.4(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(yaml@2.8.3))
+      wrangler:
+        specifier: 4.108.0
+        version: 4.108.0
+
   projects/points-web-app:
     dependencies:
       '@tanstack/react-query':
