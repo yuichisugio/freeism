@@ -1,2 +1,7 @@
 packages:
   - projects/*
+minimumReleaseAge: 4320
+blockExoticSubdeps: true
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
