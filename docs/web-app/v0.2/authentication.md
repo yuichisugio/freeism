@@ -59,7 +59,7 @@ account: {
 - Authorization Code flowではPKCE S256を必須とする。
 - CSRF検査とOrigin検査を無効化しない。
 - `trustedOrigins`は環境ごとの完全一致originだけを列挙する。
-- 認証済み・非公開レスポンスは`Cache-Control: no-store`とする。
+- 認証済み・非公開レスポンスは`Cache-Control: private, no-store`、OAuth／token／callback responseは`Cache-Control: no-store`とする。
 
 明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前、メール、画像で既存Pointsプロフィールを上書きしない。
 
@@ -293,6 +293,8 @@ revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revoca
 
 ### 8.2 Authorization Code flow
 
+Points Better Authのissuer／base URLは`https://points.freeism.app/api/auth`とする。標準endpointは`/api/auth/oauth2/authorize`、`/api/auth/oauth2/token`、`/api/auth/oauth2/introspect`、`/api/auth/oauth2/revoke`、Discoveryはissuer相対の`/api/auth/.well-known/openid-configuration`を使う。これらの独自endpointや互換aliasを作らない。Task 6Aのlive feasibility gateで標準実装との一致を検証し、1つでも一致しなければreleaseを停止する。
+
 1. Marketsがstate、nonce、PKCE verifier／challengeを生成し、Markets SessionとMarkets userへserver-sideで束縛する。
 2. Markets WorkerがClient CredentialsでPointsのlink-attempt APIを呼び、`marketsUserId`、state hash、PKCE challenge、redirect URI、scope、期限へ束縛したopaque `linkAttemptId`を取得する。
 3. browser authorization requestは`linkAttemptId`だけを渡し、Pointsはapp-owned attemptを再取得する。request bodyの`marketsUserId`を信用しない。
@@ -320,7 +322,7 @@ PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers 
 利用者委任Access TokenはBetter Auth OAuth Providerの標準`disableJwtPlugin: true`でopaqueに固定し、JWT Access Tokenを発行しない。これはJWT Access Tokenの`sub`がPoints内部user IDになる標準挙動を避け、Marketsへ公開する本人識別子を`issuer + pairwise subject`だけに限定するためである。
 
 - confidential clientのID Tokenは`disableJwtPlugin: true`時のBetter Auth標準どおりClient Secretで署名し、OIDC clientだけが検証する。Points Resource APIのBearer Tokenや連携正本には使わない。
-- pairwise `sub`はID Token、UserInfo、標準`/oauth2/introspect`の応答にだけ現れる。MarketsはToken文字列をparseせず、標準introspectionの`active=true`、`iss`、`sub`、`client_id`、scope、audience/resource、期限を検証して`issuer + sub`を保存する。
+- pairwise `sub`はID Token、UserInfo、標準`/api/auth/oauth2/introspect`の応答にだけ現れる。MarketsはToken文字列をparseせず、標準introspectionの`active=true`、`iss`、`sub`、`client_id`、scope、audience/resource、期限を検証して`issuer + sub`を保存する。
 - `disableJwtPlugin: true`はOAuth Provider全体へ適用されるため、Client Credentials Access Tokenもopaqueになる。ただし標準introspectionに独自`token_class`／`grant_type` claimを追加しない。利用者委任principalは「pairwise `sub`あり＋利用者scopeだけ」、M2M principalは「利用者`sub`なし＋M2M scopeだけ」から導出し、scopeが混在する、`sub`の有無とscope種別が矛盾する、または分類不能なTokenは拒否する。
 - Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、別のResource Server Client Secretや独自HTTP endpointを作らない。Marketsがlink完了等でremote introspectionする場合だけ、同じMarkets confidential Client ID／SecretをMarkets Worker Secretから使う。どちらもopaque Tokenを未検証decodeせず、内部user IDをpairwise `sub`へ上書きするcustom claimを作らない。
 - Marketsのremote introspection credentialはMarkets Worker Secretにだけ置き、browserやPoints Resource API設定へ複製しない。Service Binding経由でも各requestのBearerをPoints内の標準Resource Clientへ渡して検証し、positive resultをrequest境界を越えて無期限cacheしない。
@@ -330,12 +332,12 @@ PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers 
 
 環境ごとに1つのMarkets OAuth Client IDを作り、そのClient ID内でgrantとscopeを分離する。
 
-| Principal／Token用途    | grant                                 | 許可scope・用途                                                                                                |
-| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 利用者委任opaque Token  | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create` |
-| Connection unlink       | 専用`authorization_code`              | `points.connection.unlink`だけ。Google fresh後の通常unlinkを一回だけ認可する                                   |
-| Settlement管理assertion | 専用`authorization_code`              | `points.admin.settlement.retry`だけ。対象Auction／Settlementの手動再試行を一回だけ認可する                     |
-| Worker間opaque Token    | `client_credentials`                  | `points.reservations.status`、`points.reservations.capture`、`points.reservations.release`                     |
+| Principal／Token用途    | grant                                 | 許可scope・用途                                                                                                                                                                                                       |
+| ----------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 利用者委任opaque Token  | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create`                                                                                                        |
+| Connection unlink       | 専用`authorization_code`              | `points.connection.unlink`だけ。Google fresh後の通常unlinkを一回だけ認可する                                                                                                                                          |
+| Settlement管理assertion | 専用`authorization_code`              | `points.admin.settlement.retry`だけ。対象Auction／Settlementの手動再試行を一回だけ認可する                                                                                                                            |
+| Worker間opaque Token    | `client_credentials`                  | `points.connection.link-attempt.create`、`points.connection.link-attempt.finalize`、`points.packages.auction-eligibility`、`points.reservations.status`、`points.reservations.capture`、`points.reservations.release` |
 
 link-attempt作成／finalizeには同じClient Credentials grantの`points.connection.link-attempt.create`／`points.connection.link-attempt.finalize`だけを使う。このscopeでbalance、reserve、settlement、unlinkを実行できない。
 
@@ -531,7 +533,7 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - Points CookieがMarketsへ、Markets CookieがPointsへ送信されない。
 - stagingのCookie、OAuth Client、issuer、audience、Secretをproductionが拒否する。
 - 不正Origin、CSRF state、Fetch Metadataを拒否する。
-- 認証済みレスポンスに`no-store`が付く。
+- 認証済みレスポンスに`Cache-Control: private, no-store`が付く。
 - credential付きwildcard CORSを返さない。
 
 ### 14.7 Rate Limit・Turnstile

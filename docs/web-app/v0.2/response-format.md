@@ -16,6 +16,7 @@ Points/MarketsのHono REST API、browser BFF、Service Binding APIへ適用す�
 ```
 
 - 単一resource、配列、command resultはすべて`data`へ入れる。
+- success envelopeは`data`と`meta`を必須にし、`meta.requestId`も必須にする。
 - paginationは`meta.cursor`、`meta.hasMore`を使う。
 - mutationは作成/更新されたresource ID、revision/version、idempotency resultを返す。
 - `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
@@ -42,11 +43,12 @@ RFC 9457 Problem Detailsを使う。
 - `status`はHTTP statusと一致。
 - `detail`へsecret、SQL、stack、個人情報を入れない。
 - `code`は安定した`SCREAMING_SNAKE_CASE`。
+- `type`、`title`、`status`、`code`、`requestId`は必須、`detail`と`instance`は任意とする。
 - field validationは`errors[]`へrow/field/codeを返す。
 
 ## 4. status
 
-- `200`: read、idempotent command replay
+- `200`: readまたはoperation contractで200と定義したcommand成功
 - `201`: resource作成
 - `202`: Workflow等の非同期開始
 - `204`: bodyなしの成功
@@ -67,14 +69,14 @@ RFC 9457 Problem Detailsを使う。
 ## 5. idempotency
 
 - critical mutationは`Idempotency-Key`必須。
-- 同じkey/payload hashは同じstatus、data/problemへ収束する。
+- 同じkey/payload hashは初回と同じHTTP status、domain `data`またはProblem Details domain結果へ収束する。初回`201`のreplayを`200`へ変えない。
 - 同じkeyでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`。
-- `meta.requestId`はretryごとに異なり得るが、domain result IDは同じにする。
+- transport observabilityの`meta.requestId`／Problem Detailsの`requestId`はretryごとに再発行してよいが、domain result IDは同じにする。
 
 ## 6. cache
 
 - session/private API: `Cache-Control: private, no-store`
-- OAuth/token/callback: `no-store`
+- OAuth/token/callback: `Cache-Control: no-store`
 - immutable public revision/proof: content hash付きの明示public cache
 - mutable Auction snapshot: 短いcacheまたは`no-store`、ETag/versionを使用
 - error responseは認証内容を共有cacheしない

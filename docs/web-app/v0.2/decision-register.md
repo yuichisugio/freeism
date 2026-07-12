@@ -23,6 +23,7 @@
 - `ARCH`：[アーキテクチャ](./architecture.md)
 - `AUTH`：[認証・外部ID・サービス間認可](./authentication.md)
 - `API`：[レスポンス形式](./response-format.md)
+- `CONTRACT`：[Points–Markets連携契約](./points-markets-contract.md)
 - `POINTS`：[Points v0.2仕様](../../../projects/points-web-app/docs/v0.2/index.ja.md)
 - `MARKETS`：[Markets v0.2仕様](../../../projects/markets-web-app/docs/v0.2/index.ja.md)
 - `AUCTION`：[Auction詳細](../../../projects/markets-web-app/docs/v0.2/details-ja/auction.md)
@@ -384,6 +385,7 @@
 | DEC-262 | 採用           | v0.2では独立したListing aggregateを廃止し、商材情報とAuction条件を単一の`auction`／不変`auctionRevision`へ統合する。CSV 1行はAuction 1件だけを作り、作成・開始前編集・取消・検索・履歴・proof・Package可否receiptはAuction ID、Auction version、Auction commandだけを使用する。再出品は既存Auctionの再利用ではなく新しいAuction IDで作成する。                                                                   | DEC-028、DEC-030、DEC-129、DEC-145、DEC-250の独立Listingに関する部分だけを上書きする。Task完全廃止、Markets所有、CSV-only／最大1,000件、作成・入札・落札履歴とwatchlist／通知なし、開始前編集・取消と3種の取消blockは維持する。DEC-254の文字境界とDEC-256の30秒receiptは意味を変えずAuctionへ適用し、旧Listing名のAPI・scope・ID・互換aliasを作らない。 | MARKETS, AUCTION, API      |
 | DEC-263 | 採用           | Points OAuth Providerは`disableJwtPlugin: true`で利用者委任とClient CredentialsのAccess Tokenをopaqueにする。Points Resource APIは同じBetter Auth instanceの標準Resource Clientでin-process introspectionし、Marketsのremote introspectionだけがMarkets confidential Client Secretを使う。利用者principalは`issuer + pairwise sub`と利用者scopeだけ、M2M principalは利用者`sub`なしとM2M scopeだけから導出する。 | JWT Access Tokenの内部Points user ID、独自`token_class`／`grant_type` claim、独自Token／introspectionへfallbackしない。scope混在、`sub`有無との矛盾、標準Better Auth `1.7.0-rc.1`／正式`1.7.0`で一意分類できない場合はreleaseを停止する。ID TokenはResource API Bearerにしない。                                                                        | AUTH, POINTS, MARKETS, API |
 | DEC-264 | 採用           | 即時購入commandは要求全数量を一括holdし、`BUY_NOW` plan／outbox／Workflowを直ちに開始する。capture前の復元は、外部作用開始前、決定的reservation作成拒否でID 0件、または全reservation未capture＋ACTIVE分release完了のいずれかを確認した場合だけ`FAILED_RESTORED`へ進める。結果不明はholdを維持してmanual action、capture後はproofへforward finalizeする。endAt時の未終端holdは終了時planを遅延する。              | partial buy-now、oversell、capture後rollbackを禁止する。restore／settleを別の内部CAS RPCとしてproof migration順に実装し、全hold終端後の復元済み残数で終了時planを作る。残数0かつ未終端hold 0ならAuction終了、endAt前に残数があれば`OPEN`維持、endAt後は再OPENしない。通常終了settlementと同じ冪等・単調sagaを再利用する。                               | MARKETS, AUCTION, POINTS   |
+| DEC-265 | 採用           | Task 4 OpenAPIはCONTRACTをwire正本として、11操作のexact schema／status／body上限／Idempotency-Key要否、初回statusとdomain結果を保つreplay、再発行可能なrequest ID、`private, no-store`、Problem code、共通型を実装する。Points Better Authはissuer `https://points.freeism.app/api/auth`配下の標準endpointだけを使い、M2M allowlistへPackage eligibilityを含める。Task 6Aで不一致ならreleaseを停止する。         | DEC-197、DEC-222、DEC-241、DEC-256、DEC-263をoperation／wire単位で具体化する。schema全文はCONTRACTだけを正本とする。                                                                                                                                                                                                                                    | CONTRACT                   |
 
 ## 20. 文書適用規則
 

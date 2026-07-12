@@ -48,7 +48,7 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 - confidential Markets clientのID TokenはBetter Auth標準のClient Secret署名をOIDC用途でだけ検証し、Points Resource APIのBearerまたは連携keyにしない。
 - user Access TokenとRefresh TokenはMarkets D1へアプリ層暗号化して保存する。
 - browserへAccess/Refresh Tokenを返さず、Markets host-only sessionだけを使う。
-- Marketsは標準`/oauth2/introspect`で`active=true`、issuer、pairwise subject、Client ID、scope、audience/resource、期限を検証する。Token文字列をJWTとしてdecodeせず、Points内部user IDを連携keyにしない。
+- Marketsは標準`/api/auth/oauth2/introspect`で`active=true`、issuer、pairwise subject、Client ID、scope、audience/resource、期限を検証する。Token文字列をJWTとしてdecodeせず、Points内部user IDを連携keyにしない。
 
 許可scope:
 
@@ -91,7 +91,7 @@ Settlementの手動再試行だけは通常の利用者grant、Refresh Token、C
 
 ### 3.5 Resource Server検証
 
-Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、Resource Server専用Client Secretを追加しない。Marketsがlink完了等でremote `/oauth2/introspect`を呼ぶ場合だけ、Markets confidential Client ID／Secretを使う。各requestで`active=true`、`iss`、`aud/resource`、`exp`、存在する場合の`nbf`、`client_id`、scope、利用者Tokenのpairwise `sub`を検証する。opaque Tokenを未検証decodeせず、独自Token形式・独自introspection endpoint・内部user IDをpairwise subjectへ上書きするcustom claimを作らない。
+Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、Resource Server専用Client Secretを追加しない。Marketsがlink完了等でremote `/api/auth/oauth2/introspect`を呼ぶ場合だけ、Markets confidential Client ID／Secretを使う。各requestで`active=true`、`iss`、`aud/resource`、`exp`、存在する場合の`nbf`、`client_id`、scope、利用者Tokenのpairwise `sub`を検証する。opaque Tokenを未検証decodeせず、独自Token形式・独自introspection endpoint・内部user IDをpairwise subjectへ上書きするcustom claimを作らない。
 
 - user tokenはpairwise `sub`が存在し、scopeが利用者allowlistだけである場合に限って利用者委任principalへ分類し、ACTIVEなapp-owned connectionを照合する。MarketsへPoints内部user IDを返さない。
 - M2M tokenは利用者`sub`が存在せず、scopeがM2M allowlistだけである場合に限ってM2M principalへ分類し、Client IDと既存reservation所有権も検証する。標準introspectionの`token_type=Bearer`は分類根拠にしない。
@@ -110,7 +110,7 @@ Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`o
 - tokenをCookie、localStorage、session payload、Problem Details、log、auditへ出さない。
 - Refresh Token rotationは、`pointsConnectionId`単位のD1 lease/CASでsingle-flightにする。
 - lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshはwinnerの結果を再読込する。
-- 401時は明示refreshを1回だけ行い、同じAPI requestを同じidempotency keyで1回だけ再試行する。
+- 401時は明示refreshを1回だけ行い、同じAPI requestを1回だけ再試行する。`Idempotency-Key`必須操作では同じkeyを使い、read-only操作へkeyを追加しない。
 - `invalid_grant`は連携を`REAUTH_REQUIRED`にし、無限retryしない。
 
 ## 5. 共通HTTP contract
@@ -118,11 +118,11 @@ Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`o
 ### 5.1 headers
 
 - `Authorization: Bearer {token}`
-- mutationは`Idempotency-Key: {opaque-id}`必須
+- `Idempotency-Key: {opaque-id}`は7章のoperation matrixで「必須」とした操作だけで必須とする。GET、balance-check、reservation-statusでは要求しない
 - `Content-Type: application/json`
 - `X-Request-Id`はcallerが設定可能。未指定時はPointsが発行する
 - private responseは`Cache-Control: private, no-store`
-- 一般browser JSONは64KiB、M2M Point Package Auction eligibility／reservation status／一括capture／releaseは1MiBを上限とし、超過時はbodyをparseせず`413`を返す。Auction eligibilityへの1MiB適用はDEC-256で確定している
+- Point Package Auction eligibility／reservation status／一括capture／releaseは1,048,576 bytes、それ以外のJSON POSTは65,536 bytesをrequest body上限とし、超過時はbodyをparseせず`413`を返す。Auction eligibilityへの1MiB適用はDEC-256で確定している
 
 ### 5.2 response
 
@@ -149,7 +149,20 @@ Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`o
 }
 ```
 
-同じidempotency keyと同じpayload hashはstatus/bodyを含め同じ結果へ収束する。同じkeyで異なるpayloadは`409 IDEMPOTENCY_KEY_REUSED`を返す。
+同じidempotency keyと同じpayload hashは初回HTTP statusとdomain結果へ収束する。初回が`201`ならreplayも`201`とする。成功時の`data`または失敗時のProblem Details domain結果は保持するが、transport observabilityの`meta.requestId`／`requestId`は再試行ごとに再発行してよい。同じkeyで異なるpayloadは`409 IDEMPOTENCY_KEY_REUSED`を返す。
+
+### 5.3 OpenAPI共通schema
+
+- Task 4 OpenAPIのJSON objectはすべて`additionalProperties: false`とする。
+- opaque ID／keyはprefixをwire validationへ固定しないnon-empty stringとする。通常のID／keyは最大255文字、`reservationKey`だけは最大512文字とする。
+- SHA-256 hashは`^sha256:[0-9a-f]{64}$`、UTC instantはOpenAPI `string`／`date-time`とし、実装はUTCのRFC 3339を返す。
+- `priceTicks`はinteger `0..9007199254740991`、`quantity`、`weight`、`totalWeight`、`packageTick`、各versionはinteger `1..9007199254740991`、`displayOrder`はinteger `0..9007199254740991`とする。
+- scale済みamount／balanceはJSON numberではなくASCII整数文字列`^-?(0|[1-9][0-9]*)$`とする。必要額は非負整数文字列`^(0|[1-9][0-9]*)$`とし、文字列をparseした境界でJavaScript安全整数範囲を検証する。
+- bodyを返すsuccess envelopeは`data`と`meta`をrequiredにし、`meta.requestId`をrequired non-empty stringとする。public revisionの`304`はbodyを返さない。
+- RFC 9457 Problem Detailsは`type`、`title`、`status`、`code`、`requestId`をrequired、`detail`と`instance`をoptionalとする。validation `errors` itemは`code`をrequired SCREAMING_SNAKE_CASE、`row`をoptional non-negative integer、`field`をoptional string、`message`をoptional safe stringとし、秘密値を含めない。
+- protected responseのexact cache値は`Cache-Control: private, no-store`とする。public Point Package Revisionだけは7.0のimmutable cacheを例外とする。
+
+共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`は`POINT_PACKAGE_AUCTION_INELIGIBLE`、`LINK_ATTEMPT_ALREADY_FINALIZED`、`ACTIVE_RESERVATION_EXISTS`、`INSUFFICIENT_BALANCE`、`POINT_RESERVATION_NOT_ACTIVE`、`POINT_RESERVATION_EXPIRED`、`RESERVATION_VECTOR_HASH_MISMATCH`、`SETTLEMENT_PLAN_HASH_MISMATCH`だけを正本とし、このTaskで実装内部error codeを追加しない。
 
 ## 6. 金額とvector
 
@@ -159,23 +172,23 @@ Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`o
 - Marketsから送られた表示用component snapshotを経済計算の正本にしない。
 - すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
 
-## 7. Endpoint
+## 7. Endpoint wire正本
 
-OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成clientで別名を作らない。
+OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成clientで別名を作らない。body上限はbyte数であり、GETはrequest bodyなしとする。
 
-| Method／path                                                     | operationId                           |
-| ---------------------------------------------------------------- | ------------------------------------- |
-| `GET /api/v1/point-package-revisions/{pointPackageRevisionId}`   | `getPublicPointPackageRevision`       |
-| `POST /api/v1/point-package-auction-eligibility-checks`          | `checkPointPackageAuctionEligibility` |
-| `POST /api/v1/oauth/link-attempts`                               | `createPointsLinkAttempt`             |
-| `POST /api/v1/oauth/link-attempts/{linkAttemptId}/finalizations` | `finalizePointsLinkAttempt`           |
-| `GET /api/v1/me/connection`                                      | `getPointsConnection`                 |
-| `POST /api/v1/me/connection-deactivations`                       | `deactivatePointsConnection`          |
-| `POST /api/v1/me/balance-checks`                                 | `checkPointBalance`                   |
-| `POST /api/v1/me/point-reservations`                             | `createPointReservation`              |
-| `POST /api/v1/point-reservations/status`                         | `getPointReservationStatus`           |
-| `POST /api/v1/settlements/{settlementId}/capture`                | `capturePointSettlement`              |
-| `POST /api/v1/point-reservations/release`                        | `releasePointReservation`             |
+| Method／path                                                     | operationId                           | Success | Body上限        | `Idempotency-Key` |
+| ---------------------------------------------------------------- | ------------------------------------- | ------- | --------------- | ----------------- |
+| `GET /api/v1/point-package-revisions/{pointPackageRevisionId}`   | `getPublicPointPackageRevision`       | 200/304 | なし            | 不要              |
+| `POST /api/v1/point-package-auction-eligibility-checks`          | `checkPointPackageAuctionEligibility` | 201     | 1,048,576 bytes | 必須              |
+| `POST /api/v1/oauth/link-attempts`                               | `createPointsLinkAttempt`             | 201     | 65,536 bytes    | 必須              |
+| `POST /api/v1/oauth/link-attempts/{linkAttemptId}/finalizations` | `finalizePointsLinkAttempt`           | 200     | 65,536 bytes    | 必須              |
+| `GET /api/v1/me/connection`                                      | `getPointsConnection`                 | 200     | なし            | 不要              |
+| `POST /api/v1/me/connection-deactivations`                       | `deactivatePointsConnection`          | 200     | 65,536 bytes    | 必須              |
+| `POST /api/v1/me/balance-checks`                                 | `checkPointBalance`                   | 200     | 65,536 bytes    | 不要              |
+| `POST /api/v1/me/point-reservations`                             | `createPointReservation`              | 201     | 65,536 bytes    | 必須              |
+| `POST /api/v1/point-reservations/status`                         | `getPointReservationStatus`           | 200     | 1,048,576 bytes | 不要              |
+| `POST /api/v1/settlements/{settlementId}/capture`                | `capturePointSettlement`              | 200     | 1,048,576 bytes | 必須              |
+| `POST /api/v1/point-reservations/release`                        | `releasePointReservation`             | 200     | 1,048,576 bytes | 必須              |
 
 ### 7.0 不変Point Package Revision
 
@@ -222,6 +235,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - MarketsのAuction CSVは`pointPackageId`と`pointPackageRevisionId`の両方を必須とし、responseの組合せが一致しなければ確定しない
 - responseの`status`は当該不変revision作成時の履歴状態であり、Packageの現在状態を表さない。新規Auctionと開始前PATCHは`status === "ACTIVE"`を確認したうえで、次のM2M Point Package Auction eligibility receiptも必須とする
 - Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`を`auctionRevision`へsnapshotする。予約／capture時の経済計算はPoints D1のrevisionを正本とする
+- success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`と`relatedUrl`はrequired nullable、`status`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。`304`は`If-None-Match`一致時だけ許可する
 
 ### 7.0a 現在のPackageのAuction利用可否receipt
 
@@ -250,8 +264,9 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 ```
 
 - `auctionItemId`はrequest内一意とし、CSVでは`clientRowId`、開始前PATCHでは変更command内の安定IDからMarketsが作る。Points user、seller、title等のMarkets private fieldは送らない
+- successは`201`とし、本節に示すrequest／success response exampleの全fieldをrequiredにする。`items`は`minItems: 1`、`maxItems: 1000`、request内の`auctionItemId`はuniqueとする
 - `auctionCommandHash`はserver再parse後のAuction batchまたは開始前PATCH command全体と、Public Revision APIから検証した全snapshot／`contentHash`を含むcanonical hashとする。receiptはClient ID、command ID／hash、`auctionItemId`順へ正規化した全itemへ束縛する
-- Pointsは1つのD1原子処理で、全revisionが指定Packageに属すること、requestの`contentHash`と保存済み不変hashが一致すること、各revision作成時の`status`が`ACTIVE`であること、各Packageの現在`lifecycleStatus`が`ACTIVE`であることを検査する。1件でも不適格ならreceiptを0件とし、`409 POINT_PACKAGE_AUCTION_INELIGIBLE`と`auctionItemId`順の安全なitem errorだけを返す
+- Pointsは1つのD1原子処理で、全revisionが指定Packageに属すること、requestの`contentHash`と保存済み不変hashが一致すること、各revision作成時の`status`が`ACTIVE`であること、各Packageの現在`lifecycleStatus`が`ACTIVE`であることを検査する。1件でも不適格ならreceiptを0件とし、`409 POINT_PACKAGE_AUCTION_INELIGIBLE`と`auctionItemId`昇順の`errors`だけを返す。各item error objectはrequiredの`auctionItemId`と`code`の2 fieldだけを持ち、`code`は`POINT_PACKAGE_NOT_FOUND | POINT_PACKAGE_REVISION_NOT_FOUND | POINT_PACKAGE_REVISION_MISMATCH | POINT_PACKAGE_REVISION_INACTIVE | POINT_PACKAGE_INACTIVE | CONTENT_HASH_MISMATCH`に限定する。残高、Points user、内部row ID、private metadataを返さない
 - 現在の`pointPackages.lifecycleStatus`、`currentRevisionId`、`eligibilityVersion`は最新の不変Package Revision追加と同じPoints D1 transactionで更新する。新規Auctionでの利用可否は`lifecycleStatus`へ従うが、指定revisionが`currentRevisionId`と一致する必要はない。現在ACTIVEなら過去の`status=ACTIVE` revisionも利用でき、過去の`status=INACTIVE` revisionは利用できない
 - 全件成功時だけ次を返す:
 
@@ -292,7 +307,8 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: user
 - scope: `points.connection.read`
-- response: pairwise subject、ACTIVE/REAUTH_REQUIRED、granted scopes。emailは返さない
+- success `200`の`data` required: `pointsConnectionId`、`issuer`、`subject`、`status`、`grantedScopes`、`grantVersion`、`linkedAt`
+- `status`は`ACTIVE | REAUTH_REQUIRED`、`grantedScopes`はuniqueで通常user allowlistの`openid | profile | offline_access | points.connection.read | points.balance.read | points.reservations.create`だけを許可する。email、表示名、Points内部user IDは返さない
 
 ### 7.1a link attempt作成
 
@@ -300,9 +316,10 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: Client Credentials
 - scope: `points.connection.link-attempt.create`
-- request: `marketsUserId`、`stateHash`、`pkceChallenge`、`redirectUri`、要求scope、`expiresAt`、`returnUrlHash`
-- response: opaque `linkAttemptId`と期限。Markets Session ID、PKCE verifier、raw stateは返さない
-- attemptは一回限り、最長10分、Client IDへ束縛し、authorization requestから任意fieldで上書きできない
+- request required: `marketsUserId`、`stateHash`、`pkceChallenge`、`redirectUri`、`requestedScopes`、`expiresAt`、`returnUrlHash`
+- `pkceChallenge`はS256 base64url 43文字、`requestedScopes`はuniqueかつ`minItems: 1`で、通常user allowlistの`openid | profile | offline_access | points.connection.read | points.balance.read | points.reservations.create`だけを許可する
+- success `201`の`data` required: `linkAttemptId`、`expiresAt`。Markets Session ID、PKCE verifier、raw stateは返さない
+- attemptは一回限り、最長10分、Client ID、state／hash、PKCE、redirect URI、scopeへ束縛し、authorization requestから任意fieldで上書きできない
 - Pointsのconsent POSTがapp-owned 1対1 uniqueを確定するまでtoken familyを発行しない
 
 ### 7.1b link attempt finalization
@@ -311,7 +328,8 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: Client Credentials
 - scope: `points.connection.link-attempt.finalize`
-- request: `outcome = CONFIRM | CANCEL`、Markets local connection ID、attempt payload hash
+- request required: `outcome`、`marketsPointsConnectionId`、`attemptPayloadHash`。`outcome`は`CONFIRM | CANCEL`とする
+- success `200`の`data` required: `linkAttemptFinalizationReceiptId`、`linkAttemptId`、`marketsPointsConnectionId`、`outcome`、`grantStatus`、`finalizedAt`。`CONFIRM`は`grantStatus: ACTIVE`、`CANCEL`は`grantStatus: CANCELLED`に対応する
 - Token交換後のgrantは`PENDING_MARKETS_CONFIRMATION`で、CONFIRM receiptまでuser Resource APIを拒否する
 - CONFIRMはgrantをACTIVEへ進めimmutable receiptを返す。Marketsはreceipt後だけlocal rowをACTIVEへ進める
 - CANCELまたは10分TTL reaperは新attempt由来grant／token familyだけをrevocation outboxへ入れ、既存connectionを変更しない
@@ -323,7 +341,8 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: 通常unlink専用の一回限りtoken
 - scope: `points.connection.unlink`
-- request: `pointsConnectionId`、`reason`、Markets側idempotency keyと一致する`deactivationKey`
+- request required: `pointsConnectionId`、`reason`、`deactivationKey`。`deactivationKey`は`Idempotency-Key` headerと完全一致する
+- success `200`の`data` required: `connectionDeactivationReceiptId`、`pointsConnectionId`、`status`、`grantVersion`、`reason`、`deactivatedAt`。`status`は`UNLINKED`とし、revocation outboxやTokenは返さない
 - Pointsはtokenのsubject／client IDから対象app-owned grantを解決し、bodyだけを信用しない
 - D1 guardはgrantが`ACTIVE`でACTIVE reservationが0件であることを再確認する。1件でもあれば`409 ACTIVE_RESERVATION_EXISTS`で何も変更しない
 - 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receipt、auditを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
@@ -336,8 +355,9 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: user
 - scope: `points.balance.read`
-- request: `pointPackageRevisionId`、`priceTicks`、`quantity`
-- response: component vector、各available balance、全体の`canReserve`
+- request required: `pointPackageRevisionId`、`priceTicks`、`quantity`
+- success `200`の`data` required: `pointPackageRevisionId`、`priceTicks`、`quantity`、`vectorHash`、`components`、`canReserve`、`checkedAt`
+- responseの`components`は`minItems: 1`かつ`evaluationCriterionId`昇順とし、各item requiredは`evaluationCriterionId`、`evaluationCriterionRevisionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`とする。`requiredAmountScaled`は非負整数文字列、`availableBalanceScaled`はsigned integer文字列とする
 - read結果だけで残高を確保しない。Auction bid時にはこのendpointを呼ばない
 
 ### 7.4 vector reservation作成
@@ -362,10 +382,14 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 }
 ```
 
+- requestは上記9 fieldすべてをrequiredとし、`leaseSeconds`は`const: 900`とする
+- success `201`の`data` required: `pointReservationId`、`reservationKey`、`status`、`auctionId`、`settlementId`、`planHash`、`pointPackageRevisionId`、`priceTicks`、`quantity`、`vectorHash`、`components`、`leaseSeconds`、`createdAt`、`expiresAt`
+- responseの`status`は`ACTIVE`、`leaseSeconds`は900とする。`components`は`minItems: 1`で、各item requiredは`evaluationCriterionId`、`evaluationCriterionRevisionId`、`amountScaled`とし、`amountScaled`は非負整数文字列とする
+
 - Pointsはtoken subjectとACTIVEな1対1 connectionから利用者を解決し、bodyの`marketsUserId`だけを信用しない。
 - 全componentを同じPoints D1原子処理で予約する。部分予約を返さない。
 - leaseは15分固定。caller指定が異なれば拒否する。
-- 需要が供給以下でuniform clearing priceが0 tickになるwinnerは、全component amountが0のreservationを作成できる。0 vectorでも状態は`ACTIVE`、lease、所有client、settlement、plan hashを通常どおり保存し、「予約なし」へ省略しない。
+- 需要が供給以下でuniform clearing priceが0 tickになるwinnerは、全componentの`amountScaled: "0"`を含むreservationを作成できる。0 vectorでも状態は`ACTIVE`、lease、所有client、settlement、plan hashを通常どおり保存し、「予約なし」や空の`components`へ省略しない。
 
 ### 7.5 reservation status
 
@@ -373,8 +397,10 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: M2M
 - scope: `points.reservations.status`
-- request: reservation IDまたはreservation keyの配列
-- Markets Client IDが作成したreservationだけを返す
+- requestはexactly one of `{ lookupBy: "POINT_RESERVATION_ID", pointReservationIds: string[] }`または`{ lookupBy: "RESERVATION_KEY", reservationKeys: string[] }`とする。配列は`minItems: 1`かつuniqueとし、1MiB上限以外の件数上限を追加しない
+- success `200`の`data` required: `items`。各item requiredは`pointReservationId`、`reservationKey`、`status`、`auctionId`、`settlementId`、`planHash`、`vectorHash`、`createdAt`、`expiresAt`、`terminalAt`、`terminalReceiptId`
+- `status`は`ACTIVE | CAPTURED | RELEASED | EXPIRED`とする。`terminalAt`と`terminalReceiptId`はrequired nullableで、ACTIVEでは両方`null`、terminal状態では`terminalAt`を必須値とし、receiptのないEXPIREDでは`terminalReceiptId: null`とする
+- 同じMarkets Client IDが作成したreservationだけを返す。unknownまたはother-clientのresourceは存在を開示しない`404 RESOURCE_NOT_FOUND`へ収束させる
 
 ### 7.6 settlement capture
 
@@ -382,11 +408,14 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: M2M
 - scope: `points.reservations.capture`
-- request: `auctionId`、`planHash`、winnerごとのreservation IDとexpected vector hash
+- pathの`settlementId`とrequest対象は一致を必須とする
+- request required: `auctionId`、`planHash`、`reservations`。`reservations`は`minItems: 1`で、各item requiredは`pointReservationId`と`expectedVectorHash`、`pointReservationId`はrequest内uniqueとする
+- success `200`の`data` required: `captureReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`reservations`、`capturedAt`、`contentHash`。`status`は`CAPTURED`、responseのreservation item requiredは`pointReservationId`、`vectorHash`、`status: CAPTURED`とし、`pointReservationId`昇順で返す
 - 同一settlementの全winner・全評価軸を1回のPoints D1原子処理でcaptureする
 - 1件でもACTIVEでない、期限切れ、所有client不一致、hash不一致ならcaptureを1件も行わない
 - 全reservationの所有client／status／hash検査に成功した後、capture時点の残高再検査で1件でも不足すればcaptureを0件のまま`409 INSUFFICIENT_BALANCE`を返す。Problem Details extension `insufficientReservationIds`は、requestに含まれ、同じMarkets Client IDが所有し、残高不足になったreservation IDを重複なしの昇順配列で返す。空配列を返さない
 - `insufficientReservationIds`はこのM2M endpointだけで返し、user token、browser API、public APIへ返さない。残高、評価軸ID、必要額、Points user IDを含めず、所有client検査より前のerrorへ付けない
+- operation固有Problem Details extensionを許可するのは`409 INSUFFICIENT_BALANCE`の`insufficientReservationIds`だけとする
 - 0 vector reservationは通常どおり`ACTIVE -> CAPTURED`へ進め、capture receiptへ含める。Point ledger entryは0件、全残高と`evaluationTotal`は不変とし、ledger 0件を理由にtransaction guardを失敗させない
 - 成功後は同じrequestを何度送っても同じcapture resultを返す
 
@@ -411,7 +440,8 @@ Marketsは配列の全IDが送信したcurrent roundに属することを検証�
 
 - token: M2M
 - scope: `points.reservations.release`
-- request: reservation ID、reason、plan hash
+- request required: `pointReservationId`、`reason`、`planHash`
+- success `200`の`data` required: `releaseReceiptId`、`pointReservationId`、`status`、`reason`、`planHash`、`releasedAt`、`contentHash`。`status`は`RELEASED`とする
 - ACTIVEだけをRELEASEDへ進める。CAPTUREDをrelease/refundしない
 - 同じclientが作成したreservationだけを操作できる
 
@@ -449,7 +479,7 @@ PointsはAuction rankingを再計算せず、Marketsはpoint vectorを独自再�
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
 - Point Package Auction eligibilityはclient IDとAuction command IDをkeyにし、同じIdempotency-Keyの保存済み結果をrate countより先に返す。
 - reservation createはsubject、Markets client、Auction、settlementをkeyに制限する。
-- capture/release/statusはclient IDとsettlementをkeyにし、retryを壊さないようidempotency cacheを先に確認する。
+- capture/releaseはclient IDとsettlementをkeyにし、retryを壊さないようidempotency cacheを先に確認する。read-onlyのstatusは同じrate keyを使うが`Idempotency-Key`やidempotency cacheを要求しない。
 - rate limit responseは`429`と`Retry-After`を返す。
 
 ## 11. Contract test
