@@ -467,6 +467,10 @@ test("auction eligibility 409 distinguishes ineligibility from idempotency key r
   const response = operation("checkPointPackageAuctionEligibility").responses[
     "409"
   ];
+  assert.equal(
+    response.description,
+    "Auction ineligibility or idempotency-key reuse conflict. No eligibility receipt is issued.",
+  );
   const conflict = response.content["application/problem+json"].schema;
   assert.ok(conflict.oneOf, "eligibility 409 must be a oneOf");
   assert.equal(conflict.oneOf.length, 2);

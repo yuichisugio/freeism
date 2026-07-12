@@ -792,7 +792,7 @@ export interface operations {
           "application/json": components["schemas"]["AuctionEligibilityResponse"];
         };
       };
-      /** @description At least one item is ineligible. No eligibility receipt is issued. */
+      /** @description Auction ineligibility or idempotency-key reuse conflict. No eligibility receipt is issued. */
       409: {
         headers: {
           /** @description Exact cache policy: private, no-store */
