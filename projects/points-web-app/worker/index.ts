@@ -1,17 +1,19 @@
 import { Hono } from "hono";
 
+import { pointsBackendApp } from "../src/backend/app";
 import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
 
 const app = new Hono<{ Bindings: Env }>();
 
-app.get("/api/health", (context) =>
-  withSecurityHeaders(
-    context.json({ service: "points-worker", status: "ok" }),
-    context.env,
-    "no-store",
-  ),
-);
+app.use("/api/*", async (context, next) => {
+  await next();
+  context.res = withSecurityHeaders(context.res, context.env, "no-store");
+});
+
+app.route("/", pointsBackendApp);
+
+app.get("/api/health", (context) => context.json({ service: "points-worker", status: "ok" }));
 
 app.notFound(async (context) => {
   const request = context.req.raw;

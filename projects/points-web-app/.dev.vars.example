@@ -1,1 +1,5 @@
-# Task 2 has no secrets. Add local-only secrets to an untracked .dev.vars file in later tasks.
+BETTER_AUTH_SECRETS=2:replace-with-current-secret-at-least-32-characters,1:replace-with-previous-secret-at-least-32-characters
+GOOGLE_CLIENT_ID=replace-with-google-fixture-client-id
+GOOGLE_CLIENT_SECRET=replace-with-google-fixture-client-secret
+GITHUB_CLIENT_ID=replace-with-github-fixture-client-id
+GITHUB_CLIENT_SECRET=replace-with-github-fixture-client-secret
