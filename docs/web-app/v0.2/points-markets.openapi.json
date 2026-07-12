@@ -136,6 +136,9 @@
               }
             }
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "default": {
             "description": "RFC 9457 Problem Details",
             "headers": {
@@ -243,10 +246,20 @@
             "content": {
               "application/problem+json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AuctionEligibilityProblem"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AuctionEligibilityProblem"
+                    },
+                    {
+                      "$ref": "#/components/schemas/IdempotencyKeyReusedProblem"
+                    }
+                  ]
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -354,6 +367,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -468,6 +484,9 @@
               }
             }
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "default": {
             "description": "RFC 9457 Problem Details",
             "headers": {
@@ -548,6 +567,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -631,6 +653,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -722,6 +747,9 @@
               }
             }
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "default": {
             "description": "RFC 9457 Problem Details",
             "headers": {
@@ -806,6 +834,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -894,6 +925,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -1019,6 +1053,9 @@
               }
             }
           },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
           "default": {
             "description": "RFC 9457 Problem Details",
             "headers": {
@@ -1122,6 +1159,9 @@
                 }
               }
             }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
           },
           "default": {
             "description": "RFC 9457 Problem Details",
@@ -1260,6 +1300,36 @@
         "x-freeism-access-token-format": "opaque",
         "x-freeism-principal-class": "m2m",
         "x-freeism-user-subject-required": false
+      }
+    },
+    "responses": {
+      "RateLimited": {
+        "description": "RFC 9457 rate limit Problem Details",
+        "headers": {
+          "Cache-Control": {
+            "description": "Exact cache policy: private, no-store",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "private, no-store"
+            }
+          },
+          "Retry-After": {
+            "description": "Non-empty HTTP Retry-After value",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/RateLimitedProblem"
+            }
+          }
+        }
       }
     },
     "schemas": {
@@ -1401,6 +1471,41 @@
               "$ref": "#/components/schemas/ValidationError"
             },
             "minItems": 1
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
+      "RateLimitedProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 429
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "code": {
+            "type": "string",
+            "const": "RATE_LIMITED"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
           }
         },
         "required": ["type", "title", "status", "code", "requestId"]
@@ -1700,6 +1805,41 @@
         },
         "required": ["type", "title", "status", "code", "requestId", "errors"]
       },
+      "IdempotencyKeyReusedProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 409
+          },
+          "code": {
+            "type": "string",
+            "const": "IDEMPOTENCY_KEY_REUSED"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
       "CreateLinkAttemptRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -1799,6 +1939,16 @@
         ]
       },
       "FinalizeLinkAttemptData": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FinalizeLinkAttemptConfirmedData"
+          },
+          {
+            "$ref": "#/components/schemas/FinalizeLinkAttemptCancelledData"
+          }
+        ]
+      },
+      "FinalizeLinkAttemptConfirmedData": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -1813,11 +1963,11 @@
           },
           "outcome": {
             "type": "string",
-            "enum": ["CONFIRM", "CANCEL"]
+            "const": "CONFIRM"
           },
           "grantStatus": {
             "type": "string",
-            "enum": ["ACTIVE", "CANCELLED"]
+            "const": "ACTIVE"
           },
           "finalizedAt": {
             "$ref": "#/components/schemas/UtcInstant"
@@ -1830,10 +1980,40 @@
           "outcome",
           "grantStatus",
           "finalizedAt"
-        ],
-        "x-freeism-correlations": [
-          "outcome=CONFIRM implies grantStatus=ACTIVE",
-          "outcome=CANCEL implies grantStatus=CANCELLED"
+        ]
+      },
+      "FinalizeLinkAttemptCancelledData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "linkAttemptFinalizationReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "linkAttemptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "marketsPointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "outcome": {
+            "type": "string",
+            "const": "CANCEL"
+          },
+          "grantStatus": {
+            "type": "string",
+            "const": "CANCELLED"
+          },
+          "finalizedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "linkAttemptFinalizationReceiptId",
+          "linkAttemptId",
+          "marketsPointsConnectionId",
+          "outcome",
+          "grantStatus",
+          "finalizedAt"
         ]
       },
       "FinalizeLinkAttemptResponse": {
@@ -2275,6 +2455,22 @@
         ]
       },
       "ReservationStatusItem": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActiveReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/CapturedReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/ReleasedReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/ExpiredReservationStatusItem"
+          }
+        ]
+      },
+      "ActiveReservationStatusItem": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -2286,7 +2482,7 @@
           },
           "status": {
             "type": "string",
-            "enum": ["ACTIVE", "CAPTURED", "RELEASED", "EXPIRED"]
+            "const": "ACTIVE"
           },
           "auctionId": {
             "$ref": "#/components/schemas/OpaqueId"
@@ -2307,14 +2503,166 @@
             "$ref": "#/components/schemas/UtcInstant"
           },
           "terminalAt": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/UtcInstant"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": "null"
+          },
+          "terminalReceiptId": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "CapturedReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "CAPTURED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "ReleasedReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "RELEASED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "ExpiredReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "EXPIRED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
           },
           "terminalReceiptId": {
             "oneOf": [
@@ -2339,8 +2687,7 @@
           "expiresAt",
           "terminalAt",
           "terminalReceiptId"
-        ],
-        "x-freeism-terminal-correlation": "ACTIVE requires terminalAt and terminalReceiptId null; terminal states require terminalAt; EXPIRED may have terminalReceiptId null"
+        ]
       },
       "ReservationStatusData": {
         "type": "object",

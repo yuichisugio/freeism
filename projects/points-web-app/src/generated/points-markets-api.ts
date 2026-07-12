@@ -257,6 +257,19 @@ export interface components {
       requestId: components["schemas"]["OpaqueId"];
       errors?: components["schemas"]["ValidationError"][];
     };
+    RateLimitedProblem: {
+      /** Format: uri */
+      type: string;
+      title: string;
+      /** @constant */
+      status: 429;
+      detail?: string;
+      /** Format: uri-reference */
+      instance?: string;
+      /** @constant */
+      code: "RATE_LIMITED";
+      requestId: components["schemas"]["OpaqueId"];
+    };
     PublicPointPackageRevisionComponent: {
       evaluationCriterionId: components["schemas"]["OpaqueId"];
       evaluationCriterionRevisionId: components["schemas"]["OpaqueId"];
@@ -339,6 +352,19 @@ export interface components {
       instance?: string;
       errors: components["schemas"]["AuctionEligibilityItemError"][];
     };
+    IdempotencyKeyReusedProblem: {
+      /** Format: uri */
+      type: string;
+      title: string;
+      /** @constant */
+      status: 409;
+      /** @constant */
+      code: "IDEMPOTENCY_KEY_REUSED";
+      requestId: components["schemas"]["OpaqueId"];
+      detail?: string;
+      /** Format: uri-reference */
+      instance?: string;
+    };
     CreateLinkAttemptRequest: {
       marketsUserId: components["schemas"]["OpaqueId"];
       stateHash: components["schemas"]["Sha256Hash"];
@@ -370,14 +396,27 @@ export interface components {
       marketsPointsConnectionId: components["schemas"]["OpaqueId"];
       attemptPayloadHash: components["schemas"]["Sha256Hash"];
     };
-    FinalizeLinkAttemptData: {
+    FinalizeLinkAttemptData:
+      | components["schemas"]["FinalizeLinkAttemptConfirmedData"]
+      | components["schemas"]["FinalizeLinkAttemptCancelledData"];
+    FinalizeLinkAttemptConfirmedData: {
       linkAttemptFinalizationReceiptId: components["schemas"]["OpaqueId"];
       linkAttemptId: components["schemas"]["OpaqueId"];
       marketsPointsConnectionId: components["schemas"]["OpaqueId"];
-      /** @enum {string} */
-      outcome: "CONFIRM" | "CANCEL";
-      /** @enum {string} */
-      grantStatus: "ACTIVE" | "CANCELLED";
+      /** @constant */
+      outcome: "CONFIRM";
+      /** @constant */
+      grantStatus: "ACTIVE";
+      finalizedAt: components["schemas"]["UtcInstant"];
+    };
+    FinalizeLinkAttemptCancelledData: {
+      linkAttemptFinalizationReceiptId: components["schemas"]["OpaqueId"];
+      linkAttemptId: components["schemas"]["OpaqueId"];
+      marketsPointsConnectionId: components["schemas"]["OpaqueId"];
+      /** @constant */
+      outcome: "CANCEL";
+      /** @constant */
+      grantStatus: "CANCELLED";
       finalizedAt: components["schemas"]["UtcInstant"];
     };
     FinalizeLinkAttemptResponse: {
@@ -501,18 +540,65 @@ export interface components {
     ReservationStatusRequest:
       | components["schemas"]["ReservationStatusByIdRequest"]
       | components["schemas"]["ReservationStatusByKeyRequest"];
-    ReservationStatusItem: {
+    ReservationStatusItem:
+      | components["schemas"]["ActiveReservationStatusItem"]
+      | components["schemas"]["CapturedReservationStatusItem"]
+      | components["schemas"]["ReleasedReservationStatusItem"]
+      | components["schemas"]["ExpiredReservationStatusItem"];
+    ActiveReservationStatusItem: {
       pointReservationId: components["schemas"]["OpaqueId"];
       reservationKey: components["schemas"]["ReservationKey"];
-      /** @enum {string} */
-      status: "ACTIVE" | "CAPTURED" | "RELEASED" | "EXPIRED";
+      /** @constant */
+      status: "ACTIVE";
       auctionId: components["schemas"]["OpaqueId"];
       settlementId: components["schemas"]["OpaqueId"];
       planHash: components["schemas"]["Sha256Hash"];
       vectorHash: components["schemas"]["Sha256Hash"];
       createdAt: components["schemas"]["UtcInstant"];
       expiresAt: components["schemas"]["UtcInstant"];
-      terminalAt: components["schemas"]["UtcInstant"] | null;
+      terminalAt: null;
+      terminalReceiptId: null;
+    };
+    CapturedReservationStatusItem: {
+      pointReservationId: components["schemas"]["OpaqueId"];
+      reservationKey: components["schemas"]["ReservationKey"];
+      /** @constant */
+      status: "CAPTURED";
+      auctionId: components["schemas"]["OpaqueId"];
+      settlementId: components["schemas"]["OpaqueId"];
+      planHash: components["schemas"]["Sha256Hash"];
+      vectorHash: components["schemas"]["Sha256Hash"];
+      createdAt: components["schemas"]["UtcInstant"];
+      expiresAt: components["schemas"]["UtcInstant"];
+      terminalAt: components["schemas"]["UtcInstant"];
+      terminalReceiptId: components["schemas"]["OpaqueId"];
+    };
+    ReleasedReservationStatusItem: {
+      pointReservationId: components["schemas"]["OpaqueId"];
+      reservationKey: components["schemas"]["ReservationKey"];
+      /** @constant */
+      status: "RELEASED";
+      auctionId: components["schemas"]["OpaqueId"];
+      settlementId: components["schemas"]["OpaqueId"];
+      planHash: components["schemas"]["Sha256Hash"];
+      vectorHash: components["schemas"]["Sha256Hash"];
+      createdAt: components["schemas"]["UtcInstant"];
+      expiresAt: components["schemas"]["UtcInstant"];
+      terminalAt: components["schemas"]["UtcInstant"];
+      terminalReceiptId: components["schemas"]["OpaqueId"];
+    };
+    ExpiredReservationStatusItem: {
+      pointReservationId: components["schemas"]["OpaqueId"];
+      reservationKey: components["schemas"]["ReservationKey"];
+      /** @constant */
+      status: "EXPIRED";
+      auctionId: components["schemas"]["OpaqueId"];
+      settlementId: components["schemas"]["OpaqueId"];
+      planHash: components["schemas"]["Sha256Hash"];
+      vectorHash: components["schemas"]["Sha256Hash"];
+      createdAt: components["schemas"]["UtcInstant"];
+      expiresAt: components["schemas"]["UtcInstant"];
+      terminalAt: components["schemas"]["UtcInstant"];
       terminalReceiptId: components["schemas"]["OpaqueId"] | null;
     };
     ReservationStatusData: {
@@ -604,7 +690,21 @@ export interface components {
       meta: components["schemas"]["RequestMeta"];
     };
   };
-  responses: never;
+  responses: {
+    /** @description RFC 9457 rate limit Problem Details */
+    RateLimited: {
+      headers: {
+        /** @description Exact cache policy: private, no-store */
+        "Cache-Control": "private, no-store";
+        /** @description Non-empty HTTP Retry-After value */
+        "Retry-After": string;
+        [name: string]: unknown;
+      };
+      content: {
+        "application/problem+json": components["schemas"]["RateLimitedProblem"];
+      };
+    };
+  };
   parameters: never;
   requestBodies: never;
   headers: never;
@@ -650,6 +750,7 @@ export interface operations {
         };
         content?: never;
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -699,9 +800,12 @@ export interface operations {
           [name: string]: unknown;
         };
         content: {
-          "application/problem+json": components["schemas"]["AuctionEligibilityProblem"];
+          "application/problem+json":
+            | components["schemas"]["AuctionEligibilityProblem"]
+            | components["schemas"]["IdempotencyKeyReusedProblem"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -743,6 +847,7 @@ export interface operations {
           "application/json": components["schemas"]["CreateLinkAttemptResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -786,6 +891,7 @@ export interface operations {
           "application/json": components["schemas"]["FinalizeLinkAttemptResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -821,6 +927,7 @@ export interface operations {
           "application/json": components["schemas"]["PointsConnectionResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -862,6 +969,7 @@ export interface operations {
           "application/json": components["schemas"]["DeactivateConnectionResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -901,6 +1009,7 @@ export interface operations {
           "application/json": components["schemas"]["BalanceCheckResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -942,6 +1051,7 @@ export interface operations {
           "application/json": components["schemas"]["CreateReservationResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -981,6 +1091,7 @@ export interface operations {
           "application/json": components["schemas"]["ReservationStatusResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -1037,6 +1148,7 @@ export interface operations {
             | components["schemas"]["CaptureConflictProblem"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {
@@ -1078,6 +1190,7 @@ export interface operations {
           "application/json": components["schemas"]["ReleaseReservationResponse"];
         };
       };
+      429: components["responses"]["RateLimited"];
       /** @description RFC 9457 Problem Details */
       default: {
         headers: {

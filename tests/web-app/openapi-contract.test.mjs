@@ -175,6 +175,15 @@ function securityScopes(operationId) {
   );
 }
 
+function generatedSchema(name) {
+  const marker = `    ${name}:`;
+  const start = generatedContract.indexOf(marker);
+  assert.notEqual(start, -1, `generated schema ${name} not found`);
+  const remainder = generatedContract.slice(start + marker.length);
+  const nextSchema = remainder.match(/\n    [A-Za-z][A-Za-z0-9]*:/);
+  return remainder.slice(0, nextSchema?.index);
+}
+
 test("OpenAPI 3.1 document owns exactly the eleven Points operations", () => {
   assert.equal(document.openapi, "3.1.0");
 
@@ -437,9 +446,14 @@ test("auction eligibility is atomic, bounded and returns a non-extending 30 seco
     failureReceiptCount: 0,
     idempotentReplayExtendsLease: false,
   });
-  const problem = resolveSchema(
-    candidate.responses["409"].content["application/problem+json"].schema,
-  );
+  const problem = candidate.responses["409"].content[
+    "application/problem+json"
+  ].schema.oneOf
+    .map(resolveSchema)
+    .find(
+      (variant) =>
+        variant.properties.code.const === "POINT_PACKAGE_AUCTION_INELIGIBLE",
+    );
   assert.deepEqual(
     problem.properties.code.const,
     "POINT_PACKAGE_AUCTION_INELIGIBLE",
@@ -447,6 +461,40 @@ test("auction eligibility is atomic, bounded and returns a non-extending 30 seco
   const itemError = resolveSchema(problem.properties.errors.items);
   assertRequired(itemError, ["auctionItemId", "code"]);
   assert.equal(itemError.properties.code.enum.length, 6);
+});
+
+test("auction eligibility 409 distinguishes ineligibility from idempotency key reuse", () => {
+  const response = operation("checkPointPackageAuctionEligibility").responses[
+    "409"
+  ];
+  const conflict = response.content["application/problem+json"].schema;
+  assert.ok(conflict.oneOf, "eligibility 409 must be a oneOf");
+  assert.equal(conflict.oneOf.length, 2);
+
+  const variants = conflict.oneOf.map(resolveSchema);
+  const ineligible = variants.find(
+    (variant) =>
+      variant.properties.code.const === "POINT_PACKAGE_AUCTION_INELIGIBLE",
+  );
+  const reused = variants.find(
+    (variant) => variant.properties.code.const === "IDEMPOTENCY_KEY_REUSED",
+  );
+
+  assertRequired(ineligible, [
+    "type",
+    "title",
+    "status",
+    "code",
+    "requestId",
+    "errors",
+  ]);
+  assert.equal(ineligible.properties.status.const, 409);
+  const itemError = resolveSchema(ineligible.properties.errors.items);
+  assertRequired(itemError, ["auctionItemId", "code"]);
+
+  assertRequired(reused, ["type", "title", "status", "code", "requestId"]);
+  assert.equal(reused.properties.status.const, 409);
+  assert.equal(reused.properties.errors, undefined);
 });
 
 test("link attempt, connection, balance and reservation wire schemas are exact", () => {
@@ -643,6 +691,144 @@ test("status, capture and release schemas preserve ownership and state rules", (
       onlyCallingClientOwnedResource: true,
     },
   );
+});
+
+test("finalization and reservation status schemas preserve correlated unions in generated types", () => {
+  const finalization = document.components.schemas.FinalizeLinkAttemptData;
+  assert.ok(finalization.oneOf, "finalization data must be a oneOf");
+  assert.equal(finalization.oneOf.length, 2);
+  const finalizationVariants = finalization.oneOf.map(resolveSchema);
+  for (const variant of finalizationVariants) {
+    assertRequired(variant, [
+      "linkAttemptFinalizationReceiptId",
+      "linkAttemptId",
+      "marketsPointsConnectionId",
+      "outcome",
+      "grantStatus",
+      "finalizedAt",
+    ]);
+  }
+  assert.deepEqual(
+    finalizationVariants.map((variant) => [
+      variant.properties.outcome.const,
+      variant.properties.grantStatus.const,
+    ]),
+    [
+      ["CONFIRM", "ACTIVE"],
+      ["CANCEL", "CANCELLED"],
+    ],
+  );
+
+  const generatedFinalization = generatedSchema("FinalizeLinkAttemptData");
+  assert.match(
+    generatedFinalization,
+    /FinalizeLinkAttemptConfirmedData[\s\S]*FinalizeLinkAttemptCancelledData/,
+  );
+  assert.match(
+    generatedSchema("FinalizeLinkAttemptConfirmedData"),
+    /outcome: "CONFIRM";[\s\S]*grantStatus: "ACTIVE";/,
+  );
+  assert.match(
+    generatedSchema("FinalizeLinkAttemptCancelledData"),
+    /outcome: "CANCEL";[\s\S]*grantStatus: "CANCELLED";/,
+  );
+
+  const reservationStatus = document.components.schemas.ReservationStatusItem;
+  assert.ok(reservationStatus.oneOf, "reservation status item must be a oneOf");
+  assert.equal(reservationStatus.oneOf.length, 4);
+  const reservationVariants = reservationStatus.oneOf.map(resolveSchema);
+  for (const variant of reservationVariants) {
+    assertRequired(variant, [
+      "pointReservationId",
+      "reservationKey",
+      "status",
+      "auctionId",
+      "settlementId",
+      "planHash",
+      "vectorHash",
+      "createdAt",
+      "expiresAt",
+      "terminalAt",
+      "terminalReceiptId",
+    ]);
+  }
+  assert.deepEqual(
+    reservationVariants.map((variant) => variant.properties.status.const),
+    ["ACTIVE", "CAPTURED", "RELEASED", "EXPIRED"],
+  );
+
+  const byStatus = Object.fromEntries(
+    reservationVariants.map((variant) => [
+      variant.properties.status.const,
+      variant,
+    ]),
+  );
+  assert.deepEqual(byStatus.ACTIVE.properties.terminalAt, { type: "null" });
+  assert.deepEqual(byStatus.ACTIVE.properties.terminalReceiptId, {
+    type: "null",
+  });
+  for (const status of ["CAPTURED", "RELEASED", "EXPIRED"]) {
+    assert.equal(
+      byStatus[status].properties.terminalAt.$ref,
+      "#/components/schemas/UtcInstant",
+    );
+  }
+  for (const status of ["CAPTURED", "RELEASED"]) {
+    assert.equal(
+      byStatus[status].properties.terminalReceiptId.$ref,
+      "#/components/schemas/OpaqueId",
+    );
+  }
+  assert.deepEqual(byStatus.EXPIRED.properties.terminalReceiptId.oneOf, [
+    { $ref: "#/components/schemas/OpaqueId" },
+    { type: "null" },
+  ]);
+
+  assert.match(
+    generatedSchema("ReservationStatusItem"),
+    /ActiveReservationStatusItem[\s\S]*CapturedReservationStatusItem[\s\S]*ReleasedReservationStatusItem[\s\S]*ExpiredReservationStatusItem/,
+  );
+  assert.match(
+    generatedSchema("ActiveReservationStatusItem"),
+    /status: "ACTIVE";[\s\S]*terminalAt: null;[\s\S]*terminalReceiptId: null;/,
+  );
+  assert.match(
+    generatedSchema("CapturedReservationStatusItem"),
+    /status: "CAPTURED";[\s\S]*terminalAt: components\["schemas"\]\["UtcInstant"\];[\s\S]*terminalReceiptId: components\["schemas"\]\["OpaqueId"\];/,
+  );
+  assert.match(
+    generatedSchema("ReleasedReservationStatusItem"),
+    /status: "RELEASED";[\s\S]*terminalAt: components\["schemas"\]\["UtcInstant"\];[\s\S]*terminalReceiptId: components\["schemas"\]\["OpaqueId"\];/,
+  );
+  assert.match(
+    generatedSchema("ExpiredReservationStatusItem"),
+    /status: "EXPIRED";[\s\S]*terminalAt: components\["schemas"\]\["UtcInstant"\];[\s\S]*terminalReceiptId: components\["schemas"\]\["OpaqueId"\] \| null;/,
+  );
+});
+
+test("all operations expose the shared RFC 9457 rate limit response", () => {
+  for (const [, , operationId] of operations) {
+    assert.deepEqual(operation(operationId).responses["429"], {
+      $ref: "#/components/responses/RateLimited",
+    });
+  }
+
+  const response = document.components.responses.RateLimited;
+  assert.equal(response.headers["Cache-Control"].required, true);
+  assert.deepEqual(response.headers["Cache-Control"].schema, {
+    type: "string",
+    const: "private, no-store",
+  });
+  assert.equal(response.headers["Retry-After"].required, true);
+  assert.equal(response.headers["Retry-After"].schema.type, "string");
+  assert.equal(response.headers["Retry-After"].schema.minLength, 1);
+
+  const problem = resolveSchema(
+    response.content["application/problem+json"].schema,
+  );
+  assertRequired(problem, ["type", "title", "status", "code", "requestId"]);
+  assert.equal(problem.properties.status.const, 429);
+  assert.equal(problem.properties.code.const, "RATE_LIMITED");
 });
 
 test("capture balance conflicts always disclose the safe non-empty reservation ID set", () => {
