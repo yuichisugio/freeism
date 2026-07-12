@@ -1,0 +1,71 @@
+:root {
+  color: #18221d;
+  background: #f6f2e8;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: #12603f;
+}
+button,
+a {
+  outline-offset: 3px;
+}
+
+.page-shell {
+  width: min(100% - 2rem, 64rem);
+  margin: 0 auto;
+  padding: 4rem 0;
+}
+
+.ledger-panel,
+.fixed-page {
+  border-left: 4px solid #12603f;
+  padding-left: clamp(1rem, 4vw, 3rem);
+}
+
+.eyebrow {
+  color: #7d641b;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.lede {
+  max-width: 42rem;
+  font-size: 1.15rem;
+  line-height: 1.75;
+}
+.fix-marker {
+  color: #7d641b;
+  font-weight: 800;
+}
+.language-control {
+  display: flex;
+  gap: 0.5rem;
+}
+.language-control button {
+  padding: 0.5rem 0.8rem;
+}
+.fixed-page-language {
+  max-width: 48rem;
+  line-height: 1.75;
+}
+
+html[data-fixed-page-language="ja"] .fixed-page-language[data-language="en"],
+html[data-fixed-page-language="en"] .fixed-page-language[data-language="ja"] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

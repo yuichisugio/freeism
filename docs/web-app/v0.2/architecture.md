@@ -186,7 +186,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - API namespaceは`auth`、`app`、`public`、`resource`、`internal`、`oauth`、`well-known`へ分ける。
 - 日本語・英語、WCAG 2.1 AA、keyboard操作、screen reader対応を両アプリ共通要件とする。固定公開ページはlocaleごとのcanonical Markdown content hash、両言語のsemantic content、`lang`境界、言語toggleのaccessible name／状態通知を回帰testで保証する。
 
-2026-07-11の調査baselineは、`@tanstack/react-start@1.168.27`、`vite-plus@0.2.4`、`hono@4.12.29`、`drizzle-orm@0.45.2`、`wrangler@4.110.0`である。実装では`^`や`latest`を使わず、このbaselineまたは安全性を再確認した新しい1バージョンへ完全固定する。
+2026-07-12の実装baselineは、`@tanstack/react-start@1.168.27`、`vite-plus@0.2.4`、`hono@4.12.28`、`drizzle-orm@0.45.2`、`wrangler@4.108.0`である。実装では`^`や`latest`を使わず、このbaselineまたは安全性を再確認した新しい1バージョンへ完全固定する。
 
 ## 7. リアルタイムと精算
 

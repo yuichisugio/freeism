@@ -19,6 +19,9 @@ projects/depchecker/*/results/*
 projects/depchecker/*/results/
 
 # --- web-app ---
+projects/*-web-app/.wrangler/
+projects/*-web-app/dist/
+
 projects/web-app/.pnp
 projects/web-app/.pnp.*
 projects/web-app/.yarn/*

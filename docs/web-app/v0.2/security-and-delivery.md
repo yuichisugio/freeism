@@ -260,12 +260,12 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - pnpm `10.33.3`
 - Vite Plus `0.2.4`
 - TanStack Start `1.168.27`
-- Hono `4.12.29`
+- Hono `4.12.28`
 - Drizzle ORM `0.45.2`
 - Drizzle Kit `0.31.10`
-- Wrangler `4.110.0`
-- `@cloudflare/vite-plugin` `1.44.0`
-- `@cloudflare/vitest-pool-workers` `0.18.4`
+- Wrangler `4.108.0`
+- `@cloudflare/vite-plugin` `1.43.2`
+- `@cloudflare/vitest-pool-workers` `0.18.2`
 - Better Auth一式 `1.7.0-rc.1`は開発/stagingだけ
 
 直接dependencyは`^`、`~`、`latest`を使わず完全固定する。lockfileをcommitし、同じpackage群のBetter Auth versionを混在させない。

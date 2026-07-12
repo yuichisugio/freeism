@@ -1,0 +1,60 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "points-worker",
+  "main": "./src/server.ts",
+  "compatibility_date": "2026-07-12",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "assets_navigation_has_no_effect",
+    "global_fetch_strictly_public",
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "APP_ENV": "local",
+    "APP_HOST": "localhost",
+  },
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 1 },
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*", "/.well-known/*"],
+  },
+  "env": {
+    "staging": {
+      "name": "points-worker-staging",
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "APP_ENV": "staging",
+        "APP_HOST": "staging.points.freeism.app",
+      },
+      "routes": [{ "pattern": "staging.points.freeism.app", "custom_domain": true }],
+      "observability": {
+        "enabled": true,
+        "logs": { "head_sampling_rate": 1 },
+        "traces": { "enabled": true, "head_sampling_rate": 1 },
+      },
+    },
+    "production": {
+      "name": "points-worker-production",
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": {
+        "APP_ENV": "production",
+        "APP_HOST": "points.freeism.app",
+      },
+      "routes": [{ "pattern": "points.freeism.app", "custom_domain": true }],
+      "observability": {
+        "enabled": true,
+        "logs": { "head_sampling_rate": 1 },
+        "traces": { "enabled": true, "head_sampling_rate": 0.05 },
+      },
+    },
+  },
+}
