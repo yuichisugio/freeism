@@ -415,7 +415,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - 1件でもACTIVEでない、期限切れ、所有client不一致、hash不一致ならcaptureを1件も行わない
 - 全reservationの所有client／status／hash検査に成功した後、capture時点の残高再検査で1件でも不足すればcaptureを0件のまま`409 INSUFFICIENT_BALANCE`を返す。Problem Details extension `insufficientReservationIds`は、requestに含まれ、同じMarkets Client IDが所有し、残高不足になったreservation IDを重複なしの昇順配列で返す。空配列を返さない
 - `insufficientReservationIds`はこのM2M endpointだけで返し、user token、browser API、public APIへ返さない。残高、評価軸ID、必要額、Points user IDを含めず、所有client検査より前のerrorへ付けない
-- operation固有Problem Details extensionを許可するのは`409 INSUFFICIENT_BALANCE`の`insufficientReservationIds`だけとする
+- capture operationで許可するoperation固有Problem Details extensionは、`409 INSUFFICIENT_BALANCE`の`insufficientReservationIds`だけとする
 - 0 vector reservationは通常どおり`ACTIVE -> CAPTURED`へ進め、capture receiptへ含める。Point ledger entryは0件、全残高と`evaluationTotal`は不変とし、ledger 0件を理由にtransaction guardを失敗させない
 - 成功後は同じrequestを何度送っても同じcapture resultを返す
 
