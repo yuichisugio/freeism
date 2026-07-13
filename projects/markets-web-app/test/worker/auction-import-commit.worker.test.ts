@@ -45,8 +45,8 @@ const snapshot = {
 function preview(title = "Auction one"): AuctionImportPreview {
   return {
     fileHash: `sha256:${"b".repeat(64)}`,
-    auctionCommandId: "acmd_commit_1",
-    auctionCommandHash: `sha256:${"c".repeat(64)}`,
+    auctionCommandId: "acmd_82e5773ebf844251ed6740bb719a936f",
+    auctionCommandHash: "sha256:82e5773ebf844251ed6740bb719a936fb1db6e2d3c91016a7ade236888218347",
     rows: [
       {
         clientRowId: "row-1",
@@ -230,5 +230,33 @@ describe("Auction import commit", () => {
       ),
     ).rejects.toMatchObject({ code: "AUCTION_IMPORT_VALIDATION_FAILED" });
     expect(checkEligibility).not.toHaveBeenCalled();
+  });
+
+  it("rejects a valid field replacement when the preview command identity is unchanged", async () => {
+    const original = preview();
+    const candidate = {
+      ...original,
+      rows: [{ ...original.rows[0]!, title: "A different valid auction title" }],
+    };
+    const checkEligibility = vi.fn(dependencies().checkEligibility);
+    const before = await env
+      .DB!.prepare("SELECT COUNT(*) AS count FROM auctions")
+      .first<number>("count");
+
+    await expect(
+      commitAuctionImport(
+        {
+          actor,
+          idempotencyKey: `command-changed-${crypto.randomUUID()}`,
+          preview: candidate,
+          sellerIdentitySnapshot: actor,
+        },
+        dependencies({ checkEligibility }),
+      ),
+    ).rejects.toMatchObject({ code: "AUCTION_COMMAND_CHANGED" });
+    expect(checkEligibility).not.toHaveBeenCalled();
+    expect(
+      await env.DB!.prepare("SELECT COUNT(*) AS count FROM auctions").first<number>("count"),
+    ).toBe(before);
   });
 });

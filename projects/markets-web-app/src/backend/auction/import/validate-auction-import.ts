@@ -93,6 +93,16 @@ async function sha256(value: string | Uint8Array): Promise<string> {
   return `sha256:${hex}`;
 }
 
+export async function calculateAuctionCommandIdentity(
+  rows: readonly (AuctionImportRow & { packageSnapshot: VerifiedPackageRevision })[],
+) {
+  const auctionCommandHash = await sha256(canonicalJson({ rows }));
+  return {
+    auctionCommandHash,
+    auctionCommandId: `acmd_${auctionCommandHash.slice("sha256:".length, 39)}`,
+  };
+}
+
 function gcd(left: bigint, right: bigint): bigint {
   let a = left;
   let b = right;
@@ -288,8 +298,8 @@ export async function validateAuctionImport(
     ...row,
     packageSnapshot: snapshots[index]!,
   }));
-  const auctionCommandHash = await sha256(canonicalJson({ rows: commandRows }));
-  const auctionCommandId = `acmd_${auctionCommandHash.slice("sha256:".length, 39)}`;
+  const { auctionCommandHash, auctionCommandId } =
+    await calculateAuctionCommandIdentity(commandRows);
   const eligibilityRequest: EligibilityRequest = {
     auctionCommandId,
     auctionCommandHash,

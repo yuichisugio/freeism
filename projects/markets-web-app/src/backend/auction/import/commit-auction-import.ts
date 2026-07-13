@@ -12,6 +12,7 @@ import type {
   AuctionImportPreviewRow,
   VerifiedPackageRevision,
 } from "./validate-auction-import";
+import { calculateAuctionCommandIdentity } from "./validate-auction-import";
 
 type EligibilityRequest = components["schemas"]["AuctionEligibilityRequest"];
 type EligibilityResponse = components["schemas"]["AuctionEligibilityResponse"];
@@ -186,6 +187,22 @@ export async function commitAuctionImport(
 
   const fresh = await Promise.all(preview.rows.map((row) => dependencies.refreshPackage(row)));
   fresh.forEach((revision, index) => assertFreshPackage(preview.rows[index]!, revision));
+  const commandRows = preview.rows.map((row, index) => {
+    const {
+      eligible: _eligible,
+      packageEligibilityVersion: _packageEligibilityVersion,
+      packageSnapshot: _packageSnapshot,
+      ...auctionRow
+    } = row;
+    return { ...auctionRow, packageSnapshot: fresh[index]! };
+  });
+  const identity = await calculateAuctionCommandIdentity(commandRows);
+  if (
+    identity.auctionCommandId !== preview.auctionCommandId ||
+    identity.auctionCommandHash !== preview.auctionCommandHash
+  ) {
+    throw new AuctionCommitError("AUCTION_COMMAND_CHANGED");
+  }
   const commitStartedAt = dependencies.now();
   if (preview.rows.some((row) => Date.parse(row.startsAt) <= commitStartedAt.getTime())) {
     throw new AuctionCommitError("AUCTION_STARTS_AT_NOT_FUTURE");
