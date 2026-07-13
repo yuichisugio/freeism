@@ -392,6 +392,7 @@ describe("Point Package Auction eligibility receipts", () => {
 
   it("stores and replays a stable 409 with zero receipts when eligibility changes before the write batch", async () => {
     const revision = await seedPackage("pkg_race");
+    const stillActive = await seedPackage("pkg_race_ok");
     let changed = false;
     const racingDb = new Proxy(db, {
       get(target, property) {
@@ -415,7 +416,13 @@ describe("Point Package Auction eligibility receipts", () => {
         return typeof value === "function" ? value.bind(target) : value;
       },
     });
-    const input = eligibilityInput(revision, { idempotencyKey: "idem-race" });
+    const input = eligibilityInput(revision, {
+      idempotencyKey: "idem-race",
+      items: [
+        eligibilityInput(revision).items[0],
+        { ...eligibilityInput(stillActive).items[0], auctionItemId: "row_2" },
+      ],
+    });
 
     let firstBody: unknown;
     try {
@@ -424,6 +431,9 @@ describe("Point Package Auction eligibility receipts", () => {
     } catch (error) {
       expect(error).toBeInstanceOf(PointPackageAuctionEligibilityError);
       firstBody = (error as PointPackageAuctionEligibilityError).body;
+      expect(firstBody).toMatchObject({
+        errors: [{ auctionItemId: "row_1", code: "POINT_PACKAGE_INACTIVE" }],
+      });
     }
     const receiptCount = await db
       .prepare("SELECT COUNT(*) AS count FROM point_package_auction_eligibility_receipt")
@@ -445,5 +455,129 @@ describe("Point Package Auction eligibility receipts", () => {
       expect(error).toBeInstanceOf(PointPackageAuctionEligibilityError);
       expect((error as PointPackageAuctionEligibilityError).body).toEqual(firstBody);
     }
+  });
+
+  it("returns a concurrently stored success when failure persistence loses the same-key race", async () => {
+    const revision = await seedPackage("pkg_failrace");
+    await db
+      .prepare("UPDATE point_package SET lifecycle_status = 'INACTIVE' WHERE id = ?")
+      .bind(revision.pointPackageId)
+      .run();
+    const input = eligibilityInput(revision, { idempotencyKey: "idem-failure-success-race" });
+    let injected = false;
+    const concurrentDb = new Proxy(db, {
+      get(target, property) {
+        if (property === "prepare") {
+          return (query: string) => {
+            const statement = db.prepare(query);
+            if (
+              !query.includes("INSERT INTO point_package_auction_eligibility_idempotency") ||
+              !query.includes("409")
+            ) {
+              return statement;
+            }
+            return new Proxy(statement, {
+              get(statementTarget, statementProperty) {
+                if (statementProperty === "bind") {
+                  return (...values: unknown[]) => {
+                    const bound = statementTarget.bind(...values);
+                    return new Proxy(bound, {
+                      get(boundTarget, boundProperty) {
+                        if (boundProperty === "run") {
+                          return async () => {
+                            if (!injected) {
+                              injected = true;
+                              await db
+                                .prepare(
+                                  `UPDATE point_package SET lifecycle_status = 'ACTIVE'
+                                   WHERE id = ?`,
+                                )
+                                .bind(revision.pointPackageId)
+                                .run();
+                              await checkPointPackageAuctionEligibility(db, input);
+                            }
+                            return boundTarget.run();
+                          };
+                        }
+                        const value = Reflect.get(boundTarget, boundProperty, boundTarget);
+                        return typeof value === "function" ? value.bind(boundTarget) : value;
+                      },
+                    });
+                  };
+                }
+                const value = Reflect.get(statementTarget, statementProperty, statementTarget);
+                return typeof value === "function" ? value.bind(statementTarget) : value;
+              },
+            });
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+
+    const result = await checkPointPackageAuctionEligibility(concurrentDb, input);
+    expect(result.status).toBe(201);
+    const receiptCount = await db
+      .prepare("SELECT COUNT(*) AS count FROM point_package_auction_eligibility_receipt")
+      .first<{ count: number }>();
+    expect(receiptCount?.count).toBe(1);
+  });
+
+  it("uses the batch-time eligibilityVersion when an ACTIVE package advances to another ACTIVE revision", async () => {
+    const revision = await seedPackage("pkg_actrace");
+    let advanced = false;
+    const racingDb = new Proxy(db, {
+      get(target, property) {
+        if (property === "batch") {
+          return async (statements: D1PreparedStatement[]) => {
+            if (!advanced) {
+              advanced = true;
+              await importPointPackages(db, {
+                actorPointsUserId: "pusr_admin",
+                reason: "advance active revision before eligibility batch",
+                items: [
+                  {
+                    pointPackageId: revision.pointPackageId,
+                    expectedRevision: 1,
+                    status: "ACTIVE",
+                    name: `Package ${revision.pointPackageId}`,
+                    description: "new active revision",
+                    relatedUrl: null,
+                    components: [
+                      {
+                        evaluationCriterionId: `crit_${revision.pointPackageId}`,
+                        displayOrder: 0,
+                        weight: 1,
+                      },
+                    ],
+                  },
+                ],
+              });
+            }
+            return db.batch(statements);
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+
+    const result = await checkPointPackageAuctionEligibility(
+      racingDb,
+      eligibilityInput(revision, { idempotencyKey: "idem-active-revision-race" }),
+    );
+    expect(result.status).toBe(201);
+    expect(result.body.data.items[0]).toMatchObject({
+      pointPackageRevisionId: revision.pointPackageRevisionId,
+      packageEligibilityVersion: 2,
+    });
+    const stored = await db
+      .prepare(
+        `SELECT package_eligibility_version AS packageEligibilityVersion
+         FROM point_package_auction_eligibility_item`,
+      )
+      .first<{ packageEligibilityVersion: number }>();
+    expect(stored?.packageEligibilityVersion).toBe(2);
   });
 });

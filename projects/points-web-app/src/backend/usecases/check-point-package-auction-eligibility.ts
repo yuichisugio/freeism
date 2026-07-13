@@ -202,7 +202,7 @@ async function storeFailure(
   payloadHash: string,
   checkedAt: Date,
   errors: Array<{ auctionItemId: string; code: IneligibilityCode }>,
-): Promise<never> {
+): Promise<{ status: 201; body: EligibilitySuccessBody }> {
   const body: EligibilityFailureBody = {
     code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
     errors: errors.sort((left, right) => left.auctionItemId.localeCompare(right.auctionItemId)),
@@ -229,7 +229,7 @@ async function storeFailure(
   } catch {
     const replay = await findReplay(db, input.marketsClientId, input.idempotencyKey, payloadHash);
     if (replay) {
-      throw new Error("UNREACHABLE_SUCCESS_REPLAY");
+      return replay;
     }
   }
   throw new PointPackageAuctionEligibilityError(body);
@@ -279,7 +279,7 @@ export async function checkPointPackageAuctionEligibility(
         `INSERT INTO point_package_auction_eligibility_idempotency
            (id, markets_client_id, idempotency_key, payload_hash, expected_item_count,
             status, response_body, checked_at, valid_until)
-         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, 0, '{}', ?, ?)`,
       )
       .bind(
         idempotencyId,
@@ -287,14 +287,6 @@ export async function checkPointPackageAuctionEligibility(
         input.idempotencyKey,
         payloadHash,
         items.length,
-        JSON.stringify({
-          code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
-          errors: items.map((item) => ({
-            auctionItemId: item.auctionItemId,
-            code: "POINT_PACKAGE_INACTIVE",
-          })),
-          checkedAt: checkedAt.toISOString(),
-        } satisfies EligibilityFailureBody),
         checkedAt.getTime(),
         validUntil.getTime(),
       ),
@@ -330,14 +322,35 @@ export async function checkPointPackageAuctionEligibility(
           AND revision.status = 'ACTIVE'
          JOIN point_package package
            ON package.id = revision.point_package_id
-          AND package.lifecycle_status = 'ACTIVE'
-          AND package.eligibility_version = json_extract(requested.value, '$.packageEligibilityVersion')`,
+          AND package.lifecycle_status = 'ACTIVE'`,
       )
       .bind(receiptId, receiptId, JSON.stringify(items)),
     db
       .prepare(
         `UPDATE point_package_auction_eligibility_idempotency
-         SET status = 201, response_body = ?
+         SET status = 201,
+             response_body = json_set(
+               ?, '$.data.items',
+               json(COALESCE((
+                 SELECT json_group_array(json_object(
+                   'auctionItemId', item.auctionItemId,
+                   'pointPackageId', item.pointPackageId,
+                   'pointPackageRevisionId', item.pointPackageRevisionId,
+                   'contentHash', item.contentHash,
+                   'packageEligibilityVersion', item.packageEligibilityVersion
+                 ))
+                 FROM (
+                   SELECT auction_item_id AS auctionItemId,
+                          point_package_id AS pointPackageId,
+                          point_package_revision_id AS pointPackageRevisionId,
+                          content_hash AS contentHash,
+                          package_eligibility_version AS packageEligibilityVersion
+                   FROM point_package_auction_eligibility_item
+                   WHERE receipt_id = ?
+                   ORDER BY auction_item_id
+                 ) item
+               ), '[]'))
+             )
          WHERE id = ? AND status = 0
            AND expected_item_count = (
              SELECT COUNT(*)
@@ -346,14 +359,38 @@ export async function checkPointPackageAuctionEligibility(
              WHERE receipt.idempotency_id = ?
            )`,
       )
-      .bind(JSON.stringify(storedSuccessBody(body)), idempotencyId, idempotencyId),
+      .bind(JSON.stringify(storedSuccessBody(body)), receiptId, idempotencyId, idempotencyId),
+    db
+      .prepare(
+        `UPDATE point_package_auction_eligibility_idempotency
+         SET status = 409,
+             response_body = json_object(
+               'code', 'POINT_PACKAGE_AUCTION_INELIGIBLE',
+               'errors', json(COALESCE((
+                 SELECT json_group_array(json_object(
+                   'auctionItemId', json_extract(requested.value, '$.auctionItemId'),
+                   'code', 'POINT_PACKAGE_INACTIVE'
+                 ))
+                 FROM json_each(?) requested
+                 WHERE NOT EXISTS (
+                   SELECT 1 FROM point_package_auction_eligibility_item item
+                   WHERE item.receipt_id = ?
+                     AND item.auction_item_id = json_extract(requested.value, '$.auctionItemId')
+                 )
+               ), '[]')),
+               'checkedAt', ?
+             ),
+             valid_until = NULL
+         WHERE id = ? AND status = 0`,
+      )
+      .bind(itemsJson, receiptId, checkedAt.toISOString(), idempotencyId),
     db
       .prepare(
         `DELETE FROM point_package_auction_eligibility_item
          WHERE receipt_id = ?
            AND EXISTS (
              SELECT 1 FROM point_package_auction_eligibility_idempotency
-             WHERE id = ? AND status = 0
+             WHERE id = ? AND status = 409
            )`,
       )
       .bind(receiptId, idempotencyId),
@@ -363,17 +400,10 @@ export async function checkPointPackageAuctionEligibility(
          WHERE id = ?
            AND EXISTS (
              SELECT 1 FROM point_package_auction_eligibility_idempotency
-             WHERE id = ? AND status = 0
+             WHERE id = ? AND status = 409
            )`,
       )
       .bind(receiptId, idempotencyId),
-    db
-      .prepare(
-        `UPDATE point_package_auction_eligibility_idempotency
-         SET status = 409, valid_until = NULL
-         WHERE id = ? AND status = 0`,
-      )
-      .bind(idempotencyId),
   ];
 
   try {
