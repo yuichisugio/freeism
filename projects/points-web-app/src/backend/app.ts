@@ -9,6 +9,7 @@ import { registerEvaluationRoutes } from "./http/routes/evaluation-routes";
 import { registerFixRoutes } from "./http/routes/fix-routes";
 import { registerOwnershipRoutes } from "./http/routes/ownership-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
+import { registerTransactionRoutes } from "./http/routes/transaction-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
@@ -37,6 +38,7 @@ export function createPointsBackendApp(
     webOwnershipFetch: dependencies.webOwnershipFetch,
   });
   registerProfileRoutes(app, dependencies.getSession);
+  registerTransactionRoutes(app, dependencies.getSession);
   return app;
 }
 

@@ -71,6 +71,13 @@
       "when": 1783924548188,
       "tag": "0009_web-ownership-revalidation",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1783926217190,
+      "tag": "0010_transfer-exchange-ledger",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import { evaluationCriteria, evaluationCriterionRevisions } from "./evaluation";
+import { pointTransactionItems } from "./point-transactions";
 import { pointsUsers } from "./points-user";
 
 const timestamp = (name: string) =>
@@ -159,12 +160,18 @@ export const pointLedgerEntries = sqliteTable(
       .references(() => evaluationCriterionRevisions.id, { onDelete: "restrict" }),
     deltaAmountScaled: integer("delta_amount_scaled").notNull(),
     affectsEvaluationTotal: integer("affects_evaluation_total", { mode: "boolean" }).notNull(),
-    sourceType: text("source_type", { enum: ["FIX"] }).notNull(),
-    sourceFixRevisionId: text("source_fix_revision_id")
-      .notNull()
-      .references(() => fixRevisions.id, { onDelete: "restrict" }),
+    sourceType: text("source_type", {
+      enum: ["FIX", "TRANSFER_DEBIT", "TRANSFER_CREDIT", "EXCHANGE_BURN", "EXCHANGE_MINT"],
+    }).notNull(),
+    sourceFixRevisionId: text("source_fix_revision_id").references(() => fixRevisions.id, {
+      onDelete: "restrict",
+    }),
     sourceUnclaimedFixEntryId: text("source_unclaimed_fix_entry_id").references(
       () => unclaimedFixEntries.id,
+      { onDelete: "restrict" },
+    ),
+    sourceTransactionItemId: text("source_transaction_item_id").references(
+      () => pointTransactionItems.id,
       { onDelete: "restrict" },
     ),
     createdAt: timestamp("created_at"),
@@ -176,12 +183,27 @@ export const pointLedgerEntries = sqliteTable(
     uniqueIndex("point_ledger_entry_unclaimed_uidx")
       .on(table.sourceUnclaimedFixEntryId)
       .where(sql`${table.sourceUnclaimedFixEntryId} is not null`),
+    uniqueIndex("point_ledger_entry_transaction_source_uidx")
+      .on(table.sourceTransactionItemId, table.sourceType)
+      .where(sql`${table.sourceTransactionItemId} is not null`),
     index("point_ledger_entry_account_idx").on(table.pointsUserId, table.evaluationCriterionId),
     check(
       "point_ledger_entry_delta_check",
       sql`typeof(${table.deltaAmountScaled}) = 'integer' and ${table.deltaAmountScaled} between -9007199254740991 and 9007199254740991`,
     ),
-    check("point_ledger_entry_source_type_check", sql`${table.sourceType} = 'FIX'`),
+    check(
+      "point_ledger_entry_source_check",
+      sql`(${table.sourceType} = 'FIX'
+             and ${table.sourceFixRevisionId} is not null
+             and ${table.sourceTransactionItemId} is null
+             and ${table.affectsEvaluationTotal} = 1)
+          or (${table.sourceType} in
+                ('TRANSFER_DEBIT', 'TRANSFER_CREDIT', 'EXCHANGE_BURN', 'EXCHANGE_MINT')
+             and ${table.sourceFixRevisionId} is null
+             and ${table.sourceUnclaimedFixEntryId} is null
+             and ${table.sourceTransactionItemId} is not null
+             and ${table.affectsEvaluationTotal} = 0)`,
+    ),
   ],
 );
 

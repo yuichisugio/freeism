@@ -7,5 +7,6 @@ export * from "./idempotency";
 export * from "./ownership";
 export * from "./ownership-revalidation-job";
 export * from "./permanent-oauth-subject";
+export * from "./point-transactions";
 export * from "./points-user";
 export * from "./profile";
