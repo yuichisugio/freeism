@@ -259,7 +259,8 @@ export class D1SettlementReservationRepository implements SettlementReservationR
         `UPDATE settlement_round_winners
          SET status = 'ACTIVE', point_reservation_id = ?, vector_hash = ?, expires_at = ?,
              points_request_id = ?, updated_at = ?
-         WHERE settlement_round_id = ? AND markets_user_id = ? AND status IN ('PENDING', 'UNKNOWN')`,
+         WHERE settlement_round_id = ? AND markets_user_id = ?
+           AND status IN ('PENDING', 'UNKNOWN', 'REJECTED')`,
       )
       .bind(
         input.pointReservationId,
@@ -413,6 +414,35 @@ export class D1SettlementReservationRepository implements SettlementReservationR
       .run();
   }
 
+  async confirmAllReservationsNonCapturable(input: {
+    failureHash: string;
+    marketsUserId: string;
+    now: string;
+    pointReservationId: string;
+    receiptId: string;
+    roundId: string;
+  }): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        `UPDATE settlement_round_winners
+         SET failure_code = 'ALL_RESERVATIONS_NON_CAPTURABLE', updated_at = ?
+         WHERE settlement_round_id = ? AND markets_user_id = ?
+           AND status = 'RELEASED' AND point_reservation_id = ?
+           AND release_receipt_id = ? AND release_content_hash IS NOT NULL
+           AND released_at IS NOT NULL AND failure_hash = ?`,
+      )
+      .bind(
+        input.now,
+        input.roundId,
+        input.marketsUserId,
+        input.pointReservationId,
+        input.receiptId,
+        input.failureHash,
+      )
+      .run();
+    return result.meta.changes === 1;
+  }
+
   async hasNoIssuedReservationEvidence(
     roundId: string,
     marketsUserId: string,
@@ -489,9 +519,6 @@ export class D1BuyNowRestorer {
     holdId: string;
     settlementId: string;
   }): Promise<{ receiptId: string }> {
-    if (input.evidenceType !== "RESERVATION_REJECTED") {
-      throw new Error("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");
-    }
     const now = new Date().toISOString();
     const row = await this.db
       .prepare(
@@ -502,18 +529,27 @@ export class D1BuyNowRestorer {
       .bind(input.holdId, input.settlementId)
       .first<{ auctionId: string; status: string }>();
     if (!row) throw new Error("BUY_NOW_HOLD_NOT_FOUND");
+    const evidenceSql =
+      input.evidenceType === "RESERVATION_REJECTED"
+        ? `SELECT 1 AS found
+           FROM settlement_round_winners w
+           JOIN settlement_rounds r ON r.id = w.settlement_round_id
+           WHERE r.settlement_id = ? AND w.status = 'REJECTED'
+             AND w.point_reservation_id IS NULL AND w.failure_hash = ?
+             AND w.failure_code IN (
+               'INSUFFICIENT_BALANCE', 'INVALID_ACCESS_TOKEN', 'REAUTH_REQUIRED',
+               'REAUTH_REQUIRED_LOCAL', 'POINTS_USER_INTROSPECTION_INVALID',
+               'POINTS_TOKEN_NOT_FOUND', 'RESERVATION_KEY_NOT_FOUND')`
+        : `SELECT 1 AS found
+           FROM settlement_round_winners w
+           JOIN settlement_rounds r ON r.id = w.settlement_round_id
+           WHERE r.settlement_id = ? AND w.status = 'RELEASED'
+             AND w.point_reservation_id IS NOT NULL AND w.failure_hash = ?
+             AND w.failure_code = 'ALL_RESERVATIONS_NON_CAPTURABLE'
+             AND w.release_receipt_id IS NOT NULL
+             AND w.release_content_hash IS NOT NULL AND w.released_at IS NOT NULL`;
     const evidence = await this.db
-      .prepare(
-        `SELECT 1 AS found
-         FROM settlement_round_winners w
-         JOIN settlement_rounds r ON r.id = w.settlement_round_id
-         WHERE r.settlement_id = ? AND w.status = 'REJECTED'
-           AND w.point_reservation_id IS NULL AND w.failure_hash = ?
-           AND w.failure_code IN (
-             'INSUFFICIENT_BALANCE', 'INVALID_ACCESS_TOKEN', 'REAUTH_REQUIRED',
-             'REAUTH_REQUIRED_LOCAL', 'POINTS_USER_INTROSPECTION_INVALID',
-             'POINTS_TOKEN_NOT_FOUND', 'RESERVATION_KEY_NOT_FOUND')`,
-      )
+      .prepare(evidenceSql)
       .bind(input.settlementId, input.failureHash)
       .first<number>("found");
     if (evidence !== 1) throw new Error("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");

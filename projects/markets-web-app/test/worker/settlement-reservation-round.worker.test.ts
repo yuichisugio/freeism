@@ -1,13 +1,16 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
+import { createMarketsAuth } from "../../src/backend/auth/create-auth";
 import { closeAuctionAndPlan } from "../../src/backend/db/d1-settlement-plan-repository";
 import {
   D1BuyNowRestorer,
   D1SettlementReservationRepository,
 } from "../../src/backend/db/d1-settlement-repository";
 import { PointsApiError } from "../../src/backend/points/points-api-client";
+import { createBetterAuthPointsTokenStore } from "../../src/backend/points/points-token-store";
 import { createSettlementPlan } from "../../src/backend/settlement/create-settlement-plan";
+import { createSettlementReservationDependencies } from "../../src/backend/settlement/settlement-dependencies";
 import {
   reserveSettlementRound,
   type BuyNowRestorer,
@@ -428,6 +431,161 @@ describe("settlement reservation round", () => {
     ).toBe(0);
   });
 
+  it("refreshes an expired user token once before reserving with the same key", async () => {
+    const seeded = await seedEndSettlement();
+    const marketsUserId = seeded.buyerIds[0];
+    const connectionId = `pc_${marketsUserId}`;
+    const accountId = `points_${crypto.randomUUID()}`;
+    const authUserId = await env.DB.prepare("SELECT auth_user_id FROM markets_user WHERE id = ?")
+      .bind(marketsUserId)
+      .first<string>("auth_user_id");
+    if (!authUserId) throw new Error("TEST_AUTH_USER_NOT_FOUND");
+    const authEnv = {
+      ...env,
+      APP_ORIGIN: "https://markets.example.test",
+      BETTER_AUTH_SECRETS: "2:test-current-secret-at-least-32-characters",
+      GOOGLE_CLIENT_ID: "google-client",
+      GOOGLE_CLIENT_SECRET: "google-secret",
+    };
+    const tokenStore = createBetterAuthPointsTokenStore(createMarketsAuth(authEnv));
+    await tokenStore.save({
+      accessToken: "expired-access-token",
+      accessTokenExpiresAt: new Date(Date.now() - 60_000),
+      accountId,
+      authUserId,
+      refreshToken: "current-refresh-token",
+      scopes: ["offline_access", "points.reservations.create"],
+    });
+    await env.DB.prepare(
+      `UPDATE points_connection SET better_auth_account_id = ?, token_version = 0
+       WHERE id = ?`,
+    )
+      .bind(accountId, connectionId)
+      .run();
+
+    const introspectedTokens: string[] = [];
+    let reservationKey = "";
+    const service = {
+      fetch: vi.fn(async (request: Request) => {
+        const url = new URL(request.url);
+        if (url.pathname.endsWith("/oauth2/introspect")) {
+          const token = (await request.formData()).get("token")?.toString() ?? "";
+          introspectedTokens.push(token);
+          if (token === "expired-access-token" || token === "expired-revoked-access-token") {
+            return Response.json({ active: false });
+          }
+          return Response.json({
+            active: true,
+            aud: "https://points.example.test/api",
+            client_id: "markets-user-client",
+            exp: Math.floor(Date.now() / 1000) + 3_600,
+            iss: "https://points.example.test",
+            scope: "offline_access points.reservations.create",
+            sub: `subject_${marketsUserId}`,
+          });
+        }
+        if (url.pathname.endsWith("/oauth2/token")) {
+          const body = await request.formData();
+          expect(body.get("grant_type")).toBe("refresh_token");
+          if (body.get("refresh_token") === "revoked-refresh-token") {
+            return Response.json({ error: "invalid_grant" }, { status: 400 });
+          }
+          expect(body.get("refresh_token")).toBe("current-refresh-token");
+          return Response.json({
+            access_token: "refreshed-access-token",
+            expires_in: 3_600,
+            refresh_token: "rotated-refresh-token",
+            scope: "offline_access points.reservations.create",
+            token_type: "Bearer",
+          });
+        }
+        if (url.pathname === "/api/v1/me/point-reservations") {
+          expect(request.headers.get("Authorization")).toBe("Bearer refreshed-access-token");
+          const body = (await request.json()) as { planHash: string; reservationKey: string };
+          reservationKey = body.reservationKey;
+          return Response.json({
+            data: {
+              expiresAt: new Date(Date.now() + 900_000).toISOString(),
+              planHash: body.planHash,
+              pointReservationId: "pres_refreshed",
+              reservationKey: body.reservationKey,
+              status: "ACTIVE",
+              vectorHash: "7".repeat(64),
+            },
+            meta: { requestId: "req_refreshed" },
+          });
+        }
+        return new Response(null, { status: 404 });
+      }),
+    } satisfies Fetcher;
+    const deps = createSettlementReservationDependencies({
+      ...authEnv,
+      POINTS_AUDIENCE: "https://points.example.test/api",
+      POINTS_ISSUER: "https://points.example.test",
+      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
+      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
+      POINTS_SERVICE: service,
+      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
+      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
+      POINTS_USER_CLIENT_ID: "markets-user-client",
+      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
+    });
+    const receipt = await deps.gateway.reserve({
+      allocationQuantity: 1,
+      auctionId: seeded.auctionId,
+      leaseSeconds: 900,
+      marketsUserId,
+      planHash: seeded.planHash,
+      pointPackageRevisionId: `ppr_${seeded.auctionId.slice(4)}`,
+      pointsConnectionId: connectionId,
+      priceTicks: 25,
+      reservationKey: `${seeded.settlementId}:${marketsUserId}:revision_1`,
+      settlementId: seeded.settlementId,
+    });
+    expect(receipt.pointReservationId).toBe("pres_refreshed");
+    expect(introspectedTokens).toEqual([
+      "expired-access-token",
+      "refreshed-access-token",
+      "refreshed-access-token",
+    ]);
+    expect(reservationKey).toBe(`${seeded.settlementId}:${marketsUserId}:revision_1`);
+    expect(
+      await env.DB.prepare("SELECT token_version FROM points_connection WHERE id = ?")
+        .bind(connectionId)
+        .first<number>("token_version"),
+    ).toBe(1);
+    const stored = await env.DB.prepare(
+      "SELECT access_token AS accessToken, refresh_token AS refreshToken FROM account WHERE account_id = ? AND provider_id = 'points'",
+    )
+      .bind(accountId)
+      .first<{ accessToken: string; refreshToken: string }>();
+    expect(stored?.accessToken).not.toContain("refreshed-access-token");
+    expect(stored?.refreshToken).not.toContain("rotated-refresh-token");
+
+    await tokenStore.save({
+      accessToken: "expired-revoked-access-token",
+      accessTokenExpiresAt: new Date(Date.now() - 60_000),
+      accountId,
+      authUserId,
+      refreshToken: "revoked-refresh-token",
+      scopes: ["offline_access", "points.reservations.create"],
+    });
+    await expect(
+      deps.gateway.reserve({
+        allocationQuantity: 1,
+        auctionId: seeded.auctionId,
+        leaseSeconds: 900,
+        marketsUserId,
+        planHash: seeded.planHash,
+        pointPackageRevisionId: `ppr_${seeded.auctionId.slice(4)}`,
+        pointsConnectionId: connectionId,
+        priceTicks: 25,
+        reservationKey: `${seeded.settlementId}:${marketsUserId}:revision_2`,
+        settlementId: seeded.settlementId,
+      }),
+    ).rejects.toThrow("REAUTH_REQUIRED");
+  });
+
   it("restores a rejected BUY_NOW hold without selecting another buyer", async () => {
     const seeded = await seedEndSettlement();
     const { holdId, planned, settlementId } = await seedBuyNowSettlement(seeded);
@@ -479,8 +637,104 @@ describe("settlement reservation round", () => {
       settlementRevision: 1,
     });
     expect(result).toEqual({ kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" });
-    expect(points.statusByKeys).toHaveBeenCalledTimes(1);
+    expect(points.statusByKeys).toHaveBeenCalledTimes(2);
+    expect(points.release).toHaveBeenCalledTimes(1);
     expect(restore.restoreBuyNowHold).not.toHaveBeenCalled();
+  });
+
+  it("releases a discovered ACTIVE BUY_NOW reservation before atomic restore", async () => {
+    const seeded = await seedEndSettlement();
+    const { planned, settlementId } = await seedBuyNowSettlement(seeded);
+    const reservationKey = `${settlementId}:${seeded.buyerIds[0]}:revision_1`;
+    let statusCall = 0;
+    const points = gateway(
+      async () => {
+        throw new Error("POINTS_RESERVATION_RESPONSE_MISMATCH");
+      },
+      async () => {
+        statusCall += 1;
+        if (statusCall === 1) {
+          return [
+            {
+              expiresAt: new Date(Date.parse(seeded.now) + 15 * 60_000).toISOString(),
+              pointReservationId: "pres_discovered",
+              reservationKey,
+              status: "ACTIVE" as const,
+              vectorHash: "6".repeat(64),
+            },
+          ];
+        }
+        return [
+          {
+            pointReservationId: "pres_discovered",
+            reservationKey,
+            status: "RELEASED" as const,
+            terminalReceiptId: "release_pres_discovered",
+          },
+        ];
+      },
+    );
+    const restore = new D1BuyNowRestorer(env.DB, env.AUCTION_SETTLEMENT);
+    const restoreSpy = vi.spyOn(restore, "restoreBuyNowHold");
+    await expect(
+      reserveSettlementRound(dependencies(points, restore, seeded.now), {
+        planHash: planned.planHash,
+        roundOrdinal: 1,
+        settlementId,
+        settlementRevision: 1,
+      }),
+    ).resolves.toMatchObject({ kind: "BUY_NOW_RESTORED" });
+    expect(points.release).toHaveBeenCalledTimes(1);
+    expect(restoreSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ evidenceType: "ALL_RESERVATIONS_NON_CAPTURABLE" }),
+    );
+    expect(
+      await env.DB.prepare(
+        `SELECT status, point_reservation_id AS pointReservationId,
+                release_receipt_id AS releaseReceiptId, failure_code AS failureCode
+         FROM settlement_round_winners WHERE settlement_round_id = ?`,
+      )
+        .bind(`sround_${settlementId}_1`)
+        .first(),
+    ).toMatchObject({
+      failureCode: "ALL_RESERVATIONS_NON_CAPTURABLE",
+      pointReservationId: "pres_discovered",
+      releaseReceiptId: "release_pres_discovered",
+      status: "RELEASED",
+    });
+  });
+
+  it("keeps BUY_NOW pending when a discovered reservation is CAPTURED", async () => {
+    const seeded = await seedEndSettlement();
+    const { holdId, planned, settlementId } = await seedBuyNowSettlement(seeded);
+    const points = gateway(
+      async () => {
+        throw new Error("POINTS_RESERVATION_RESPONSE_MISMATCH");
+      },
+      async () => [
+        {
+          pointReservationId: "pres_captured",
+          reservationKey: `${settlementId}:${seeded.buyerIds[0]}:revision_1`,
+          status: "CAPTURED" as const,
+        },
+      ],
+    );
+    const restore = restorer();
+    await expect(
+      reserveSettlementRound(dependencies(points, restore, seeded.now), {
+        planHash: planned.planHash,
+        roundOrdinal: 1,
+        settlementId,
+        settlementRevision: 1,
+      }),
+    ).resolves.toEqual({ kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" });
+    expect(points.release).not.toHaveBeenCalled();
+    expect(restore.restoreBuyNowHold).not.toHaveBeenCalled();
+    expect(
+      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("PENDING");
   });
 
   it("atomically persists BUY_NOW restore intent and dispatches the delayed END outbox", async () => {

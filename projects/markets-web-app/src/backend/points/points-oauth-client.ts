@@ -29,6 +29,15 @@ interface TokenResponse {
   token_type: string;
 }
 
+export class PointsOAuthTokenEndpointError extends Error {
+  constructor(
+    readonly status: number,
+    readonly oauthError?: string,
+  ) {
+    super("POINTS_TOKEN_REQUEST_FAILED");
+  }
+}
+
 interface IntrospectionResponse {
   active: boolean;
   aud?: string | string[];
@@ -309,19 +318,28 @@ export class PointsOAuthClient {
   }
 
   private async token(clientId: string, clientSecret: string, body: URLSearchParams) {
-    const token = await readJson<TokenResponse>(
-      await this.service.fetch(
-        new Request(`${this.config.issuer}/oauth2/token`, {
-          body,
-          headers: {
-            Authorization: basic(clientId, clientSecret),
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          method: "POST",
-        }),
-      ),
-      "POINTS_TOKEN_REQUEST_FAILED",
+    const response = await this.service.fetch(
+      new Request(`${this.config.issuer}/oauth2/token`, {
+        body,
+        headers: {
+          Authorization: basic(clientId, clientSecret),
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method: "POST",
+      }),
     );
+    if (!response.ok) {
+      const problem: unknown = await response.json<unknown>().catch(() => undefined);
+      const oauthError =
+        typeof problem === "object" &&
+        problem !== null &&
+        "error" in problem &&
+        typeof problem.error === "string"
+          ? problem.error
+          : undefined;
+      throw new PointsOAuthTokenEndpointError(response.status, oauthError);
+    }
+    const token = await response.json<TokenResponse>();
     if (
       !token.access_token ||
       token.token_type.toLowerCase() !== "bearer" ||

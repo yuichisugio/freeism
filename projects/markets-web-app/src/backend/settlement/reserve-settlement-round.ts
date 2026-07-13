@@ -31,6 +31,7 @@ export interface ReservationStatusReceipt {
   pointReservationId?: string;
   reservationKey: string;
   status: "ACTIVE" | "CAPTURED" | "EXPIRED" | "RELEASED" | "NOT_FOUND";
+  terminalReceiptId?: string;
   vectorHash?: string;
 }
 
@@ -139,6 +140,14 @@ export interface SettlementReservationRepository {
     settlementId: string;
     nextRound: { cutoffHash: string; excludedUserIds: readonly string[]; planHash: string };
   }): Promise<void>;
+  confirmAllReservationsNonCapturable(input: {
+    failureHash: string;
+    marketsUserId: string;
+    now: string;
+    pointReservationId: string;
+    receiptId: string;
+    roundId: string;
+  }): Promise<boolean>;
   confirmNoReservationId(roundId: string, marketsUserId: string, now: string): Promise<void>;
   hasNoIssuedReservationEvidence(
     roundId: string,
@@ -477,6 +486,8 @@ export async function reserveSettlementRound(
       await dependencies.repository.markManualAction(input.settlementId, round.id, now);
       return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
     }
+    let evidenceType: "RESERVATION_REJECTED" | "ALL_RESERVATIONS_NON_CAPTURABLE" =
+      "RESERVATION_REJECTED";
     if (!failure.idDefinitelyNotIssued) {
       try {
         const statuses = await dependencies.gateway.statusByKeys([
@@ -491,6 +502,51 @@ export async function reserveSettlementRound(
             failure.marketsUserId,
             now,
           );
+        } else if (
+          status?.status === "ACTIVE" &&
+          status.pointReservationId &&
+          status.vectorHash &&
+          status.expiresAt
+        ) {
+          await dependencies.repository.recordWinnerReceipt({
+            expiresAt: status.expiresAt,
+            marketsUserId: failure.marketsUserId,
+            now,
+            pointReservationId: status.pointReservationId,
+            roundId: round.id,
+            vectorHash: status.vectorHash,
+          });
+          const released = await dependencies.gateway.release({
+            planHash: input.planHash,
+            pointReservationId: status.pointReservationId,
+            reservationKey: round.winners[0]!.reservationKey,
+          });
+          await dependencies.repository.recordRelease({
+            ...released,
+            marketsUserId: failure.marketsUserId,
+            now,
+            roundId: round.id,
+          });
+          const verified = (
+            await dependencies.gateway.statusByKeys([round.winners[0]!.reservationKey])
+          ).find((item) => item.reservationKey === round.winners[0]!.reservationKey);
+          if (
+            verified?.status !== "RELEASED" ||
+            verified.pointReservationId !== status.pointReservationId ||
+            verified.terminalReceiptId !== released.receiptId ||
+            !(await dependencies.repository.confirmAllReservationsNonCapturable({
+              failureHash: failure.failureHash,
+              marketsUserId: failure.marketsUserId,
+              now,
+              pointReservationId: status.pointReservationId,
+              receiptId: released.receiptId,
+              roundId: round.id,
+            }))
+          ) {
+            await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+            return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
+          }
+          evidenceType = "ALL_RESERVATIONS_NON_CAPTURABLE";
         } else {
           await dependencies.repository.markManualAction(input.settlementId, round.id, now);
           return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
@@ -501,6 +557,7 @@ export async function reserveSettlementRound(
       }
     }
     if (
+      evidenceType === "RESERVATION_REJECTED" &&
       !(await dependencies.repository.hasNoIssuedReservationEvidence(
         round.id,
         failure.marketsUserId,
@@ -511,7 +568,7 @@ export async function reserveSettlementRound(
       return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
     }
     const receipt = await dependencies.buyNowRestorer.restoreBuyNowHold({
-      evidenceType: "RESERVATION_REJECTED",
+      evidenceType,
       failureHash: failure.failureHash,
       holdId: loaded.plan.buyNowHoldId,
       settlementId: input.settlementId,
