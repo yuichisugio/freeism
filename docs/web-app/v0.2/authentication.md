@@ -148,15 +148,15 @@ GitHubはログインProviderでもあるため、所有権利用の停止をBet
 1. Better Auth Sessionが15分以内のfresh sessionである。
 2. 検証済みGoogle ID Tokenの`auth_time`が現在から900秒以内である。
 
-step-upでは専用Google Authorization Code flowを開始する。authorization requestへnonce、PKCE S256と`claims={"id_token":{"auth_time":{"essential":true}}}`を含め、Google側で`auth_time` claimを有効にする。Googleの現行公式referenceが列挙する`prompt`は`none`、`consent`、`select_account`であり、`prompt=login`や未掲載の`max_age`を再認証保証として固定しない。`prompt=select_account`を使う場合もaccount選択UIのためだけで、freshnessの証明には扱わない。
+step-upでは専用Google Authorization Code flowを開始する。authorization requestへPKCE S256と`claims={"id_token":{"auth_time":{"essential":true}}}`を含め、Google側で`auth_time` claimを有効にする。Googleの現行公式referenceが列挙する`prompt`は`none`、`consent`、`select_account`であり、`prompt=login`や未掲載の`max_age`を再認証保証として固定しない。`prompt=select_account`を使う場合もaccount選択UIのためだけで、freshnessの証明には扱わない。
 
-- Authorization Code交換で得たGoogle ID Tokenの署名、`nonce`、`iss`、`aud`／`azp`、`exp`、`sub`、`auth_time`をWorkerで検証する。
+- Authorization Code交換で得たGoogle ID Tokenの署名、`iss`、`aud`／`azp`、`exp`、`sub`、`auth_time`をWorkerで検証する。
 - `auth_time <= 900秒`だけを許可し、claim欠落、未来時刻、901秒以上を拒否する。
 - Google `sub`が現在のPointsユーザーにlink済みのGoogle `accountId`と一致する。
 - email一致では通さない。
 - 成功後にSession IDをローテーションする。
 
-実装開始前にBetter Auth `1.7.0-rc.1`がGoogle authorization requestへ`claims`、nonce、PKCEを欠落なく渡せることと、実Google OAuth Appで利用者操作後に900秒以内の`auth_time`を得られることをstaging live contract spikeで確認する。自動test fixtureだけでは代替しない。Googleの公式対応範囲で再認証を促しても新しい`auth_time`を安定して得られない場合、15分fresh要件を弱めたり未掲載parameterへfallbackせず、重要操作をrelease blockerにして方式を再設計・再承認する。
+`1.7.0-rc.1`の組み込みGoogle providerは、`state`とPKCE S256を生成し、標準`additionalParams`で`claims`を渡せる一方、`requiresIdTokenNonce`と`idTokenNonce`のauthorization URL転送を実装していない。開発はこの標準機能の範囲で進め、独自hookやprovider forkで`nonce`を補わない。1.7正式版での`nonce`対応と、実Google OAuth Appで利用者操作後に900秒以内の`auth_time`を得られることはstaging live contract spikeで再確認する。自動test fixtureだけでは代替せず、どちらかが成立しない場合は重要操作を本番release blockerにして方式を再設計・再承認する。
 
 再認証中に対象データが変化した場合は、古い確認内容を無効にし、件数・正負合計・評価軸などを再取得して再確認する。
 

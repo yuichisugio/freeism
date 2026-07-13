@@ -67,7 +67,7 @@
 - profileまたは評価軸別設定の`PRIVATE -> PUBLIC`を含む公開範囲拡大
 - ADMIN、FIX、評価軸、パッケージ、OAuth clientに関する管理操作
 
-GitHubだけで作成したユーザーが重要操作を始める場合、同じsessionからGoogleを明示linkし、署名済みID Tokenの`sub`、`nonce`、`iss`、`aud`、`auth_time`を検証できた時だけstep-upを成立させる。
+GitHubだけで作成したユーザーが重要操作を始める場合、同じsessionからGoogleを明示linkし、署名済みID Tokenの`sub`、`iss`、`aud`、`auth_time`を検証できた時だけstep-upを成立させる。`nonce`はBetter Auth 1.7正式版の標準対応をstaging live gateで再確認し、独自hookでは補わない。
 
 ## 6. Account closeと再開
 

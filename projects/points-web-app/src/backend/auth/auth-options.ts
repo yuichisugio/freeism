@@ -11,6 +11,10 @@ export interface PointsAuthConfig {
   GOOGLE_CLIENT_SECRET: string;
 }
 
+export const googleFreshAuthorizationParams = Object.freeze({
+  claims: JSON.stringify({ id_token: { auth_time: { essential: true } } }),
+});
+
 export function parseBetterAuthSecrets(value: string): NonNullable<BetterAuthOptions["secrets"]> {
   if (value.length === 0) {
     throw new Error("BETTER_AUTH_SECRETS must contain at least one versioned secret");
