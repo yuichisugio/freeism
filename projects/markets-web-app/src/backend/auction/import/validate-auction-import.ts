@@ -146,7 +146,7 @@ function canonicalRevisionContent(revision: PublicRevision) {
   };
 }
 
-async function verifyRevision(
+export async function verifyAuctionPackageRevision(
   row: AuctionImportRow,
   result: PointPackageRevisionHttpResult,
 ): Promise<VerifiedPackageRevision> {
@@ -280,7 +280,7 @@ export async function validateAuctionImport(
       loading = dependencies.packageRevisionReader.get(row.pointPackageRevisionId);
       revisionsById.set(row.pointPackageRevisionId, loading);
     }
-    return loading.then((result) => verifyRevision(row, result));
+    return loading.then((result) => verifyAuctionPackageRevision(row, result));
   };
   const snapshots = await Promise.all(normalized.rows.map(snapshotFor));
   const fileHash = await sha256(input.bytes);

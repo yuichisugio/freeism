@@ -11,6 +11,7 @@ import {
 import { registerAuthRoutes } from "./http/routes/auth-routes";
 import { registerAuctionEventRoutes } from "./http/routes/auction-event-routes";
 import { registerAuctionImportRoutes } from "./http/routes/auction-import-routes";
+import { registerAuctionManagementRoutes } from "./http/routes/auction-management-routes";
 import { registerPointsConnectionRoutes } from "./http/routes/points-connection-routes";
 import type { PointsConnectionService } from "./points/points-link-saga";
 import type { PointsUnlinkAuthorizationService } from "./points/points-unlink-authorization";
@@ -30,6 +31,7 @@ export function createMarketsBackendApp(
   registerAuthRoutes(app, getSession);
   registerAuctionEventRoutes(app, getSession);
   registerAuctionImportRoutes(app, getSession);
+  registerAuctionManagementRoutes(app, getSession);
   registerPointsConnectionRoutes(
     app,
     getSession,
