@@ -10,6 +10,7 @@ import {
 } from "./http/middleware/request-security-middleware";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
 import { registerAuctionEventRoutes } from "./http/routes/auction-event-routes";
+import { registerAuctionCommandRoutes } from "./http/routes/auction-command-routes";
 import { registerAuctionImportRoutes } from "./http/routes/auction-import-routes";
 import { registerAuctionManagementRoutes } from "./http/routes/auction-management-routes";
 import { registerPointsConnectionRoutes } from "./http/routes/points-connection-routes";
@@ -28,7 +29,11 @@ export function createMarketsBackendApp(
     requestSecurityMiddleware,
     createIdempotencyMiddleware(getSession, "points-connection-confirm"),
   );
+  app.use("/api/auctions/:auctionId/bids", jsonMutationBodyLimit, requestSecurityMiddleware);
+  app.use("/api/auctions/:auctionId/auto-bid", jsonMutationBodyLimit, requestSecurityMiddleware);
+  app.use("/api/auctions/:auctionId/buy-now", jsonMutationBodyLimit, requestSecurityMiddleware);
   registerAuthRoutes(app, getSession);
+  registerAuctionCommandRoutes(app, getSession);
   registerAuctionEventRoutes(app, getSession);
   registerAuctionImportRoutes(app, getSession);
   registerAuctionManagementRoutes(app, getSession);

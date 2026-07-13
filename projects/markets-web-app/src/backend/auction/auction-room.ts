@@ -3,6 +3,11 @@ import { DurableObject } from "cloudflare:workers";
 import { D1AuctionTransitionRepository } from "../db/d1-auction-transition-repository";
 import { D1WebSocketLeaseRepository } from "../db/d1-websocket-lease-repository";
 import { nextAuctionAlarmAt } from "./auction-lifecycle-scheduler";
+import {
+  executeAuctionCommand,
+  type AuctionCommandResult,
+  type ExecuteAuctionCommandInput,
+} from "./execute-auction-command";
 import { readWebSocketAttachment, type WebSocketAttachment } from "./websocket-attachment";
 
 export interface AuctionRoomEvent {
@@ -33,6 +38,15 @@ function publicEventValue(value: unknown): unknown {
 export class AuctionRoom extends DurableObject<Env> {
   private readonly transitions = new D1AuctionTransitionRepository(this.env.DB);
   private readonly leases = new D1WebSocketLeaseRepository(this.env.DB);
+
+  async executeCommand(input: ExecuteAuctionCommandInput): Promise<AuctionCommandResult> {
+    await this.advanceDueTransitions(input.serverNow);
+    const committed = await executeAuctionCommand(this.env.DB, input);
+    if (!committed.replayed) {
+      for (const event of committed.publicEvents) await this.broadcastCommitted(event);
+    }
+    return committed.result;
+  }
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
