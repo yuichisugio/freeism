@@ -124,6 +124,12 @@ export function assertGeneratedConfig(config, environment, expected) {
   if (config.vars?.POINTS_ISSUER !== expected.issuer) {
     throw new Error(`generated config has the wrong POINTS_ISSUER for ${environment}`);
   }
+  if (config.vars?.APP_HOST !== expected.host) {
+    throw new Error(`generated config has the wrong APP_HOST for ${environment}`);
+  }
+  if (config.vars?.APP_ORIGIN !== expected.origin) {
+    throw new Error(`generated config has the wrong APP_ORIGIN for ${environment}`);
+  }
   exactlyOne(
     config.routes,
     (item) => sameJson(item, expected.route),

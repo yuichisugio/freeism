@@ -114,8 +114,10 @@ export function releaseTargetFromConfig(config, environment) {
   ]) {
     const expectedDomain =
       name === "production" ? "markets.freeism.app" : "staging.markets.freeism.app";
+    const expectedOrigin = `https://${expectedDomain}`;
     const expectedIssuer =
       name === "production" ? "https://points.freeism.app" : "https://staging.points.freeism.app";
+    const expectedTraceSamplingRate = name === "production" ? 0.05 : 1;
     const workflow = oneBinding(
       source.workflows,
       (item) => item.binding === "AUCTION_SETTLEMENT",
@@ -141,8 +143,12 @@ export function releaseTargetFromConfig(config, environment) {
       workflow.name !== `auction-settlement-${name}` ||
       service.service !== `points-worker-${name}` ||
       analytics.dataset !== `markets_ops_${name}` ||
+      source.vars?.APP_HOST !== expectedDomain ||
+      source.vars?.APP_ORIGIN !== expectedOrigin ||
       source.vars?.POINTS_ISSUER !== expectedIssuer ||
-      route.pattern !== expectedDomain
+      route.pattern !== expectedDomain ||
+      source.observability?.logs?.head_sampling_rate !== 1 ||
+      source.observability?.traces?.head_sampling_rate !== expectedTraceSamplingRate
     ) {
       throw new Error(`source wrangler ${name} resources do not match the environment`);
     }
@@ -208,7 +214,9 @@ export function releaseTargetFromConfig(config, environment) {
     service,
     analytics,
     email,
+    host: source.vars.APP_HOST,
     issuer: source.vars.POINTS_ISSUER,
+    origin: source.vars.APP_ORIGIN,
     route,
     observability: source.observability,
   };

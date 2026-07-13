@@ -10,6 +10,8 @@ function sourceReleaseConfig() {
     name: `auction-worker-${name}`,
     vars: {
       APP_ENV: name,
+      APP_HOST: `${name === "production" ? "" : "staging."}markets.freeism.app`,
+      APP_ORIGIN: `https://${name === "production" ? "" : "staging."}markets.freeism.app`,
       POINTS_ISSUER:
         name === "production" ? "https://points.freeism.app" : "https://staging.points.freeism.app",
     },
@@ -135,7 +137,12 @@ test("empty D1の必須schemaとlegacy Listing不在を検査する", async () =
 });
 
 test("empty D1の主要unique/check/append-only triggerを検査する", async () => {
-  const { assertSchemaInvariants } = await import("../../scripts/verify-empty-d1.mjs");
+  const { assertCurrentSchemaInvariants, assertReservationRoundSchemaInvariants } =
+    await import("../../scripts/verify-empty-d1.mjs");
+  const assertSchemaInvariants = (rows) => {
+    assertCurrentSchemaInvariants(rows);
+    assertReservationRoundSchemaInvariants(rows);
+  };
   const rows = [
     {
       type: "table",
@@ -360,6 +367,186 @@ test("実0000〜0006 schema dumpで着地済みinvariant driftを検出する", 
   );
 });
 
+test("Task 12〜15とopsの将来schema invariantを構造で固定する", async () => {
+  const { assertFutureSchemaInvariants } = await import("../../scripts/verify-empty-d1.mjs");
+  const rows = [
+    {
+      type: "table",
+      name: "settlement_capture_receipts",
+      tbl_name: "settlement_capture_receipts",
+      sql: 'CREATE TABLE settlement_capture_receipts (CONSTRAINT "settlement_capture_receipts_plan_hash_check" CHECK (length(plan_hash) = 64))',
+    },
+    {
+      type: "table",
+      name: "settlement_allocations",
+      tbl_name: "settlement_allocations",
+      sql: 'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length(vector_hash) = 64))',
+    },
+    {
+      type: "table",
+      name: "proofs",
+      tbl_name: "proofs",
+      sql: 'CREATE TABLE proofs (CONSTRAINT "proofs_content_hash_check" CHECK (length(content_hash) = 64))',
+    },
+    {
+      type: "table",
+      name: "settlement_finalize_receipts",
+      tbl_name: "settlement_finalize_receipts",
+      sql: 'CREATE TABLE settlement_finalize_receipts (CONSTRAINT "settlement_finalize_receipts_proof_set_hash_check" CHECK (length(proof_set_hash) = 64))',
+    },
+    {
+      type: "table",
+      name: "settlement_retry_authorizations",
+      tbl_name: "settlement_retry_authorizations",
+      sql: "CREATE TABLE settlement_retry_authorizations (status TEXT CONSTRAINT settlement_retry_authorizations_status_check CHECK (status IN ('STARTED','PENDING','USED','EXPIRED')))",
+    },
+    {
+      type: "table",
+      name: "settlement_retry_assertion_jtis",
+      tbl_name: "settlement_retry_assertion_jtis",
+      sql: "CREATE TABLE settlement_retry_assertion_jtis (status TEXT CONSTRAINT settlement_retry_assertion_jtis_status_check CHECK (status IN ('PENDING','USED')))",
+    },
+    {
+      type: "table",
+      name: "settlement_reconciliation_leases",
+      tbl_name: "settlement_reconciliation_leases",
+      sql: "CREATE TABLE settlement_reconciliation_leases (settlement_id TEXT PRIMARY KEY, lease_expires_at TEXT NOT NULL)",
+    },
+    {
+      type: "table",
+      name: "proof_reviews",
+      tbl_name: "proof_reviews",
+      sql: "CREATE TABLE proof_reviews (direction TEXT, revision_number INTEGER, CONSTRAINT proof_reviews_direction_check CHECK (direction IN ('SELLER_TO_BUYER','BUYER_TO_SELLER')), CONSTRAINT proof_reviews_revision_check CHECK (revision_number >= 1))",
+    },
+    {
+      type: "table",
+      name: "proof_review_revisions",
+      tbl_name: "proof_review_revisions",
+      sql: "CREATE TABLE proof_review_revisions (revision_number INTEGER, rating INTEGER, CONSTRAINT proof_review_revisions_revision_check CHECK (revision_number >= 1), CONSTRAINT proof_review_revisions_rating_check CHECK (rating BETWEEN 1 AND 5))",
+    },
+    {
+      type: "table",
+      name: "ops_alerts",
+      tbl_name: "ops_alerts",
+      sql: "CREATE TABLE ops_alerts (repeat_count INTEGER CONSTRAINT ops_alerts_repeat_count_check CHECK (repeat_count >= 1))",
+    },
+    {
+      type: "table",
+      name: "ops_alert_cleanup_leases",
+      tbl_name: "ops_alert_cleanup_leases",
+      sql: "CREATE TABLE ops_alert_cleanup_leases (lease_key TEXT PRIMARY KEY, lease_expires_at TEXT NOT NULL)",
+    },
+    ...[
+      [
+        "settlement_capture_receipts_settlement_uidx",
+        "settlement_capture_receipts",
+        "settlement_id",
+      ],
+      [
+        "settlement_allocations_ordinal_uidx",
+        "settlement_allocations",
+        "settlement_id, allocation_ordinal",
+      ],
+      [
+        "settlement_allocations_buyer_uidx",
+        "settlement_allocations",
+        "settlement_id, buyer_markets_user_id",
+      ],
+      ["settlement_allocations_reservation_uidx", "settlement_allocations", "point_reservation_id"],
+      ["proofs_allocation_uidx", "proofs", "allocation_id"],
+      [
+        "settlement_finalize_receipts_settlement_uidx",
+        "settlement_finalize_receipts",
+        "settlement_id",
+      ],
+      [
+        "settlement_finalize_receipts_capture_uidx",
+        "settlement_finalize_receipts",
+        "capture_receipt_id",
+      ],
+      ["test_retry_state_uidx", "settlement_retry_authorizations", "state_hash"],
+      ["test_retry_assertion_uidx", "settlement_retry_authorizations", "assertion_jti"],
+      ["test_assertion_authorization_uidx", "settlement_retry_assertion_jtis", "authorization_id"],
+      ["test_rate_jti_uidx", "settlement_retry_rate_events", "jti"],
+      ["test_review_direction_uidx", "proof_reviews", "proof_id, direction"],
+      ["test_review_revision_uidx", "proof_review_revisions", "review_id, revision_number"],
+      ["watchlist_entries_user_auction_uidx", "watchlist_entries", "markets_user_id, auction_id"],
+    ].map(([name, table, columns]) => ({
+      type: "index",
+      name,
+      tbl_name: table,
+      sql: `CREATE UNIQUE INDEX ${name} ON ${table} (${columns})`,
+    })),
+    {
+      type: "index",
+      name: "test_retry_rate_idx",
+      tbl_name: "settlement_retry_rate_events",
+      sql: "CREATE INDEX test_retry_rate_idx ON settlement_retry_rate_events (points_admin_subject_hash, markets_user_id, auction_id, created_at)",
+    },
+    {
+      type: "index",
+      name: "test_review_history_idx",
+      tbl_name: "proof_review_revisions",
+      sql: "CREATE INDEX test_review_history_idx ON proof_review_revisions (review_id, created_at, id)",
+    },
+    {
+      type: "index",
+      name: "watchlist_entries_user_created_idx",
+      tbl_name: "watchlist_entries",
+      sql: "CREATE INDEX watchlist_entries_user_created_idx ON watchlist_entries (markets_user_id, created_at, auction_id)",
+    },
+    {
+      type: "index",
+      name: "test_ops_cleanup_idx",
+      tbl_name: "ops_alerts",
+      sql: "CREATE INDEX test_ops_cleanup_idx ON ops_alerts (status, resolved_at)",
+    },
+    ...[
+      "settlement_capture_receipts",
+      "settlement_allocations",
+      "proofs",
+      "settlement_finalize_receipts",
+      "settlement_retry_rate_events",
+      "proof_review_revisions",
+    ].flatMap((table) =>
+      ["UPDATE", "DELETE"].map((operation) => ({
+        type: "trigger",
+        name: `test_${table}_${operation.toLowerCase()}`,
+        tbl_name: table,
+        sql: `CREATE TRIGGER test_${table}_${operation.toLowerCase()} BEFORE ${operation} ON ${table} BEGIN SELECT RAISE(ABORT, 'IMMUTABLE'); END`,
+      })),
+    ),
+    {
+      type: "trigger",
+      name: "test_retry_assertion_status_guard",
+      tbl_name: "settlement_retry_assertion_jtis",
+      sql: "CREATE TRIGGER test_retry_assertion_status_guard BEFORE UPDATE OF status ON settlement_retry_assertion_jtis BEGIN SELECT RAISE(ABORT, 'INVALID'); END",
+    },
+    {
+      type: "trigger",
+      name: "test_proof_reviews_update_guard",
+      tbl_name: "proof_reviews",
+      sql: "CREATE TRIGGER test_proof_reviews_update_guard BEFORE UPDATE ON proof_reviews BEGIN SELECT RAISE(ABORT, 'INVALID'); END",
+    },
+  ];
+
+  assert.doesNotThrow(() => assertFutureSchemaInvariants(rows));
+  for (const name of [
+    "settlement_capture_receipts_settlement_uidx",
+    "test_proofs_update",
+    "test_retry_state_uidx",
+    "test_retry_assertion_status_guard",
+    "test_review_revision_uidx",
+    "watchlist_entries_user_created_idx",
+    "test_ops_cleanup_idx",
+  ]) {
+    assert.throws(
+      () => assertFutureSchemaInvariants(rows.filter((row) => row.name !== name)),
+      /missing/i,
+    );
+  }
+});
+
 test("runtime sourceの禁止importとSSEを検出する", async () => {
   const { inspectRuntimeSourceEntries } =
     await import("../../scripts/verify-runtime-boundaries.mjs");
@@ -524,6 +711,11 @@ test("remote release environmentはstagingとproductionだけ", async () => {
       (config.env.production.analytics_engine_datasets =
         config.env.staging.analytics_engine_datasets),
     (config) => (config.env.production.vars.POINTS_ISSUER = config.env.staging.vars.POINTS_ISSUER),
+    (config) => (config.env.production.vars.APP_HOST = config.env.staging.vars.APP_HOST),
+    (config) => (config.env.production.vars.APP_ORIGIN = config.env.staging.vars.APP_ORIGIN),
+    (config) =>
+      (config.env.production.observability.traces.head_sampling_rate =
+        config.env.staging.observability.traces.head_sampling_rate),
     (config) => (config.env.production.routes = config.env.staging.routes),
   ]) {
     const mixed = sourceReleaseConfig();
@@ -550,7 +742,12 @@ test("generated deploy artifactはMarketsの全release bindingを要求する", 
       "assets_navigation_has_no_effect",
       "global_fetch_strictly_public",
     ],
-    vars: { APP_ENV: "staging", POINTS_ISSUER: "https://staging.points.freeism.app" },
+    vars: {
+      APP_ENV: "staging",
+      APP_HOST: "staging.markets.freeism.app",
+      APP_ORIGIN: "https://staging.markets.freeism.app",
+      POINTS_ISSUER: "https://staging.points.freeism.app",
+    },
     assets: {
       directory: "../client",
       not_found_handling: "none",
@@ -638,6 +835,51 @@ test("generated deploy artifactはMarketsの全release bindingを要求する", 
         expected,
       ),
     /Worker-first/i,
+  );
+  assert.throws(
+    () =>
+      assertGeneratedConfig(
+        {
+          ...config,
+          vars: {
+            ...config.vars,
+            APP_ORIGIN: "https://markets.freeism.app",
+          },
+        },
+        "staging",
+        expected,
+      ),
+    /APP_ORIGIN/i,
+  );
+  assert.throws(
+    () =>
+      assertGeneratedConfig(
+        {
+          ...config,
+          vars: {
+            ...config.vars,
+            APP_HOST: "markets.freeism.app",
+          },
+        },
+        "staging",
+        expected,
+      ),
+    /APP_HOST/i,
+  );
+  assert.throws(
+    () =>
+      assertGeneratedConfig(
+        {
+          ...config,
+          observability: {
+            ...config.observability,
+            traces: { enabled: true, head_sampling_rate: 0.05 },
+          },
+        },
+        "staging",
+        expected,
+      ),
+    /observability/i,
   );
 });
 

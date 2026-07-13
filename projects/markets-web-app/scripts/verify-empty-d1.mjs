@@ -167,13 +167,124 @@ const REQUIRED_SCHEMA_INVARIANTS = [
   }),
 ];
 
-const REQUIRED_FUTURE_SCHEMA_INVARIANTS = [
+const REQUIRED_FUTURE_TABLE_INVARIANTS = [
   [
-    "table",
+    "settlement_capture_receipts",
+    /settlement_capture_receipts_plan_hash_check["`]?\s+CHECK/i,
+    "capture receipt plan hash check",
+  ],
+  [
+    "settlement_allocations",
+    /settlement_allocations_vector_hash_check["`]?\s+CHECK/i,
+    "allocation vector hash check",
+  ],
+  ["proofs", /proofs_content_hash_check["`]?\s+CHECK/i, "proof content hash check"],
+  [
+    "settlement_finalize_receipts",
+    /settlement_finalize_receipts_proof_set_hash_check["`]?\s+CHECK/i,
+    "finalize receipt proof set hash check",
+  ],
+  [
+    "settlement_retry_authorizations",
+    /CHECK\s*\([\s\S]*status[\s\S]*STARTED[\s\S]*PENDING[\s\S]*USED[\s\S]*EXPIRED/i,
+    "retry authorization status check",
+  ],
+  [
+    "settlement_retry_assertion_jtis",
+    /CHECK\s*\([\s\S]*status[\s\S]*PENDING[\s\S]*USED/i,
+    "retry assertion status check",
+  ],
+  [
     "ops_alert_cleanup_leases",
     /lease_key[\s\S]*PRIMARY KEY[\s\S]*lease_expires_at/i,
     "cleanup lease primary key and expiry",
   ],
+  [
+    "settlement_reconciliation_leases",
+    /settlement_id[\s\S]*PRIMARY KEY[\s\S]*lease_expires_at/i,
+    "reconciliation lease primary key and expiry",
+  ],
+  [
+    "proof_reviews",
+    /CHECK\s*\([\s\S]*direction[\s\S]*SELLER_TO_BUYER[\s\S]*BUYER_TO_SELLER/i,
+    "proof review direction check",
+  ],
+  [
+    "proof_reviews",
+    /CHECK\s*\([\s\S]*revision_number[\s\S]*(?:>=|between)\s*1/i,
+    "proof review revision check",
+  ],
+  [
+    "proof_review_revisions",
+    /CHECK\s*\([\s\S]*rating[\s\S]*(?:BETWEEN\s+1\s+AND\s+5|>=\s*1[\s\S]*<=\s*5)/i,
+    "proof review rating check",
+  ],
+  ["ops_alerts", /CHECK\s*\([\s\S]*repeat_count[\s\S]*>=\s*1/i, "ops alert repeat count check"],
+];
+
+const REQUIRED_FUTURE_INDEX_CONTRACTS = [
+  ["settlement_capture_receipts", ["settlement_id"], true, "capture receipt settlement unique"],
+  [
+    "settlement_allocations",
+    ["settlement_id", "allocation_ordinal"],
+    true,
+    "allocation ordinal unique",
+  ],
+  [
+    "settlement_allocations",
+    ["settlement_id", "buyer_markets_user_id"],
+    true,
+    "allocation buyer unique",
+  ],
+  ["settlement_allocations", ["point_reservation_id"], true, "allocation reservation unique"],
+  ["proofs", ["allocation_id"], true, "proof allocation unique"],
+  ["settlement_finalize_receipts", ["settlement_id"], true, "finalize settlement unique"],
+  ["settlement_finalize_receipts", ["capture_receipt_id"], true, "finalize capture receipt unique"],
+  ["settlement_retry_authorizations", ["state_hash"], true, "retry state hash unique"],
+  ["settlement_retry_authorizations", ["assertion_jti"], true, "retry assertion JTI unique"],
+  [
+    "settlement_retry_assertion_jtis",
+    ["authorization_id"],
+    true,
+    "retry assertion authorization unique",
+  ],
+  ["settlement_retry_rate_events", ["jti"], true, "retry rate event JTI unique"],
+  [
+    "settlement_retry_rate_events",
+    ["points_admin_subject_hash", "markets_user_id", "auction_id", "created_at"],
+    false,
+    "retry rate lookup index",
+  ],
+  ["proof_reviews", ["proof_id", "direction"], true, "proof review direction unique"],
+  [
+    "proof_review_revisions",
+    ["review_id", "revision_number"],
+    true,
+    "proof review revision unique",
+  ],
+  [
+    "proof_review_revisions",
+    ["review_id", "created_at", "id"],
+    false,
+    "proof review history index",
+  ],
+  ["watchlist_entries", ["markets_user_id", "auction_id"], true, "watchlist user auction unique"],
+  [
+    "watchlist_entries",
+    ["markets_user_id", "created_at", "auction_id"],
+    false,
+    "watchlist listing index",
+  ],
+  ["ops_alerts", ["status", "resolved_at"], false, "ops alert cleanup index"],
+];
+
+const REQUIRED_FUTURE_APPEND_ONLY_TABLES = [
+  "settlement_capture_receipts",
+  "settlement_allocations",
+  "proofs",
+  "settlement_finalize_receipts",
+  "settlement_retry_rate_events",
+  "proof_review_revisions",
 ];
 
 const REQUIRED_TRIGGER_CONTRACTS = [
@@ -231,11 +342,11 @@ export function assertCurrentSchemaInvariants(rows) {
 
 export function assertSchemaInvariants(rows) {
   assertCurrentSchemaInvariants(rows);
-  const byKey = new Map(rows.map((row) => [`${row.type}:${row.name}`, row.sql ?? ""]));
-  for (const [type, name, pattern, label] of REQUIRED_FUTURE_SCHEMA_INVARIANTS) {
-    const sql = byKey.get(`${type}:${name}`);
-    if (!sql || !pattern.test(sql)) throw new Error(`empty D1 is missing ${label}`);
-  }
+  assertReservationRoundSchemaInvariants(rows);
+  assertFutureSchemaInvariants(rows);
+}
+
+export function assertReservationRoundSchemaInvariants(rows) {
   for (const [table, operation, label] of REQUIRED_TRIGGER_CONTRACTS) {
     const found = rows.some(
       (row) =>
@@ -258,6 +369,54 @@ export function assertSchemaInvariants(rows) {
   );
   if (!hasWinnerStatusGuard) {
     throw new Error("empty D1 is missing settlement_round_winners status transition guard");
+  }
+}
+
+function indexColumnsPattern(table, columns, unique) {
+  const tablePattern = `["\\\`]?${table}["\\\`]?`;
+  const columnPattern = columns.map((column) => `["\\\`]?${column}["\\\`]?`).join("\\s*,\\s*");
+  return new RegExp(
+    `^CREATE\\s+${unique ? "UNIQUE\\s+" : ""}INDEX[\\s\\S]*ON\\s+${tablePattern}\\s*\\(\\s*${columnPattern}\\s*\\)`,
+    "i",
+  );
+}
+
+function hasAbortTrigger(rows, table, operation) {
+  return rows.some(
+    (row) =>
+      row.type === "trigger" &&
+      row.tbl_name === table &&
+      new RegExp(
+        `BEFORE\\s+${operation}\\s+ON\\s+["\\\`]?${table}["\\\`]?[\\s\\S]*RAISE\\s*\\(\\s*ABORT`,
+        "i",
+      ).test(row.sql ?? ""),
+  );
+}
+
+export function assertFutureSchemaInvariants(rows) {
+  const byKey = new Map(rows.map((row) => [`${row.type}:${row.name}`, row.sql ?? ""]));
+  for (const [name, pattern, label] of REQUIRED_FUTURE_TABLE_INVARIANTS) {
+    const sql = byKey.get(`table:${name}`);
+    if (!sql || !pattern.test(sql)) throw new Error(`empty D1 is missing ${label}`);
+  }
+  for (const [table, columns, unique, label] of REQUIRED_FUTURE_INDEX_CONTRACTS) {
+    const pattern = indexColumnsPattern(table, columns, unique);
+    if (!rows.some((row) => row.type === "index" && pattern.test(row.sql ?? ""))) {
+      throw new Error(`empty D1 is missing ${label}`);
+    }
+  }
+  for (const table of REQUIRED_FUTURE_APPEND_ONLY_TABLES) {
+    for (const operation of ["UPDATE", "DELETE"]) {
+      if (!hasAbortTrigger(rows, table, operation)) {
+        throw new Error(`empty D1 is missing ${table} ${operation.toLowerCase()} guard`);
+      }
+    }
+  }
+  if (!hasAbortTrigger(rows, "settlement_retry_assertion_jtis", "UPDATE(?:\\s+OF\\s+status)?")) {
+    throw new Error("empty D1 is missing retry assertion status guard");
+  }
+  if (!hasAbortTrigger(rows, "proof_reviews", "UPDATE")) {
+    throw new Error("empty D1 is missing proof review current pointer guard");
   }
 }
 
