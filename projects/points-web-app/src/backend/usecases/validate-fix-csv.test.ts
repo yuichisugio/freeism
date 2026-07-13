@@ -18,9 +18,12 @@ describe("generic Web FIX recipient URL normalization", () => {
       "https://127.0.0.1/profile",
       "https://[::1]/profile",
       "https://localhost/profile",
+      "https://localhost./profile",
       "https://sub.localhost/profile",
       "https://host.local/profile",
       "https://metadata.google.internal/profile",
+      "https://metadata.google.internal./profile",
+      "https://github.com./alice",
       "https://profile.example.test/profile",
       "https://intranet/profile",
     ]) {

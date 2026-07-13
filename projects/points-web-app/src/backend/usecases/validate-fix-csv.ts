@@ -144,6 +144,7 @@ export function normalizeGenericWebProfileUrl(value: string): string {
     throw new Error("RECIPIENT_PROFILE_URL_INVALID");
   }
   const hostname = url.hostname.toLowerCase();
+  const hasTerminalDot = hostname.endsWith(".");
   const isIpLiteral = hostname.startsWith("[") || /^[0-9.]+$/.test(hostname);
   const isReserved =
     hostname === "localhost" ||
@@ -154,6 +155,7 @@ export function normalizeGenericWebProfileUrl(value: string): string {
     url.port !== "" ||
     url.username !== "" ||
     url.password !== "" ||
+    hasTerminalDot ||
     isIpLiteral ||
     isReserved
   ) {
