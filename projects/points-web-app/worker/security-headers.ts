@@ -4,7 +4,7 @@ function contentSecurityPolicy(env: Env): string {
   const connectSource = env.APP_ENV === "local" ? "'self'" : `'self' wss://${env.APP_HOST}`;
   const directives = [
     "default-src 'none'",
-    "script-src 'self'",
+    "script-src 'self' https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
@@ -12,7 +12,7 @@ function contentSecurityPolicy(env: Env): string {
     "form-action 'self'",
     "base-uri 'none'",
     "object-src 'none'",
-    "frame-src 'none'",
+    "frame-src https://challenges.cloudflare.com",
     "frame-ancestors 'none'",
     "manifest-src 'self'",
     "worker-src 'none'",

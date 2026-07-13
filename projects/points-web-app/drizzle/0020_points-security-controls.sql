@@ -28,7 +28,7 @@ CREATE TABLE `turnstile_token_replay` (
 );
 --> statement-breakpoint
 CREATE INDEX `turnstile_token_replay_expiry_idx` ON `turnstile_token_replay` (`expires_at`);--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
+PRAGMA defer_foreign_keys=on;--> statement-breakpoint
 CREATE TABLE `__new_ops_alert` (
 	`alert_key` text PRIMARY KEY NOT NULL,
 	`type` text NOT NULL,
@@ -46,6 +46,5 @@ CREATE TABLE `__new_ops_alert` (
 INSERT INTO `__new_ops_alert`("alert_key", "type", "resource_id_hash", "status", "first_observed_at", "last_observed_at", "resolved_at", "repeat_count", "safe_detail_code") SELECT "alert_key", "type", "resource_id_hash", "status", "first_observed_at", "last_observed_at", "resolved_at", "repeat_count", "safe_detail_code" FROM `ops_alert`;--> statement-breakpoint
 DROP TABLE `ops_alert`;--> statement-breakpoint
 ALTER TABLE `__new_ops_alert` RENAME TO `ops_alert`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE INDEX `ops_alert_status_observed_idx` ON `ops_alert` (`status`,`last_observed_at`);--> statement-breakpoint
 CREATE INDEX `ops_alert_resolved_cleanup_idx` ON `ops_alert` (`status`,`resolved_at`);

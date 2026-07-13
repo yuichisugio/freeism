@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { GoogleReauthButton } from "../auth/google-reauth-button";
 import { ProviderButtons } from "../auth/provider-buttons";
+import { TurnstileChallenge } from "../security/turnstile-challenge";
 
 export function OwnershipPanel() {
   const [accountId, setAccountId] = useState("");
@@ -18,13 +19,27 @@ export function OwnershipPanel() {
   } | null>(null);
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [turnstile, setTurnstile] = useState<{ action: string; siteKey: string } | null>(null);
 
-  async function verifyWeb() {
+  async function verifyWeb(turnstileToken?: string) {
     const response = await fetch("/api/ownership/web/verify", {
       body: JSON.stringify({ url }),
-      headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": crypto.randomUUID(),
+        ...(turnstileToken ? { "X-Turnstile-Token": turnstileToken } : {}),
+      },
       method: "POST",
     });
+    if (response.status === 428) {
+      const problem = (await response.json()) as { action?: string; siteKey?: string };
+      if (problem.action && problem.siteKey) {
+        setTurnstile({ action: problem.action, siteKey: problem.siteKey });
+        setMessage("Bot確認を完了すると自動的に再検証します。");
+        return;
+      }
+    }
+    setTurnstile(null);
     setMessage(
       response.ok
         ? "Webページのリンクを確認しました。"
@@ -110,6 +125,16 @@ export function OwnershipPanel() {
         <button disabled={!url} onClick={() => void verifyWeb()} type="button">
           リンクを検証・再検証
         </button>
+        {turnstile ? (
+          <TurnstileChallenge
+            action={turnstile.action}
+            onError={() =>
+              setMessage("Bot確認を開始できませんでした。時間をおいて再試行してください。")
+            }
+            onToken={(token) => void verifyWeb(token)}
+            siteKey={turnstile.siteKey}
+          />
+        ) : null}
         {message ? (
           <p aria-live="polite" className="status-card">
             {message}
