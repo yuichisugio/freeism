@@ -9,6 +9,21 @@ const RESERVED_HOST_SUFFIXES = [
   ".example",
 ] as const;
 
+function normalizePercentEncoding(value: string): string {
+  return value.replace(/%[0-9a-fA-F]{2}/g, (encoded) => {
+    const octet = Number.parseInt(encoded.slice(1), 16);
+    const isUnreserved =
+      (octet >= 0x41 && octet <= 0x5a) ||
+      (octet >= 0x61 && octet <= 0x7a) ||
+      (octet >= 0x30 && octet <= 0x39) ||
+      octet === 0x2d ||
+      octet === 0x2e ||
+      octet === 0x5f ||
+      octet === 0x7e;
+    return isUnreserved ? String.fromCharCode(octet) : `%${encoded.slice(1).toUpperCase()}`;
+  });
+}
+
 export function normalizeIdentityUrl(value: string): string {
   let url: URL;
   try {
@@ -34,5 +49,5 @@ export function normalizeIdentityUrl(value: string): string {
     throw new Error("IDENTITY_URL_INVALID");
   }
   url.hash = "";
-  return url.toString();
+  return normalizePercentEncoding(url.toString());
 }

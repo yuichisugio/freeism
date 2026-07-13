@@ -2,8 +2,38 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import { commitFixCsv } from "../../src/backend/usecases/commit-fix-csv";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
+import { validateFixCsv } from "../../src/backend/usecases/validate-fix-csv";
+
+const FIX_HEADER =
+  "fixResultId,expectedRevision,recipientProfileUrl,evaluationCriterionId,amount,evaluationAt,managementId,memo";
+
+async function commitCsv(
+  actorPointsUserId: string,
+  csv: string,
+  idempotencyKey: string,
+  reason: string,
+) {
+  const bytes = new TextEncoder().encode(csv);
+  const now = new Date();
+  const validated = await validateFixCsv(env.DB!, bytes, {
+    githubClientId: "test",
+    githubClientSecret: "test",
+    now,
+  });
+  expect(validated.errors).toEqual([]);
+  return commitFixCsv(env.DB!, bytes, {
+    actorPointsUserId,
+    expectedValidationHash: validated.validationHash,
+    githubClientId: "test",
+    githubClientSecret: "test",
+    idempotencyKey,
+    now,
+    reason,
+  });
+}
 
 async function createUser(suffix: string, google = true) {
   const authUserId = `ownership-auth-${suffix}`;
@@ -478,6 +508,134 @@ describe("unclaimed FIX claim", () => {
     ).toMatchObject({ count: 1 });
   });
 
+  it("returns the latest empty preview when another claim consumes the whole previewed set", async () => {
+    const suffix = crypto.randomUUID();
+    const { authUserId, pointsUser } = await createUser(suffix);
+    const criterion = await createCriterion(pointsUser.id, `${suffix}_empty`);
+    const normalizedUrl = `https://profiles.example.com/empty-${suffix}`;
+    const ownershipId = `ownership_empty_${suffix}`;
+    await seedOwnership({
+      effectiveAt: Date.now(),
+      normalizedUrl,
+      ownerPointsUserId: pointsUser.id,
+      ownershipId,
+      epochId: `epoch_empty_${suffix}`,
+    });
+    await seedUnclaimed({
+      actorPointsUserId: pointsUser.id,
+      amountScaled: 1_000,
+      criterionId: criterion.id,
+      criterionRevisionId: criterion.revisionId,
+      evaluationAt: "2026-01",
+      normalizedUrl,
+      suffix: `${suffix}_empty`,
+    });
+    const app = appFor(authUserId);
+    const preview = await app.fetch(
+      new Request(`https://points.test/api/ownership/${ownershipId}/claim-preview`),
+      env,
+    );
+    const previewBody = (await preview.json()) as { data: { claimSetHash: string } };
+    const first = await app.fetch(
+      new Request(`https://points.test/api/ownership/${ownershipId}/claim`, {
+        body: JSON.stringify({ claimSetHash: previewBody.data.claimSetHash }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": `first-${suffix}` },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(first.status).toBe(201);
+
+    const stale = await app.fetch(
+      new Request(`https://points.test/api/ownership/${ownershipId}/claim`, {
+        body: JSON.stringify({ claimSetHash: previewBody.data.claimSetHash }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": `stale-${suffix}` },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(stale.status).toBe(409);
+    await expect(stale.json()).resolves.toMatchObject({
+      code: "CLAIM_SET_CHANGED",
+      data: { totalCount: 0 },
+    });
+  });
+
+  it("maps a concurrent idempotency-key collision on another ownership to reuse", async () => {
+    const suffix = crypto.randomUUID();
+    const { authUserId, pointsUser } = await createUser(suffix);
+    const criterion = await createCriterion(pointsUser.id, `${suffix}_idem_race`);
+    const ownerships = await Promise.all(
+      ["first", "second"].map(async (label) => {
+        const normalizedUrl = `https://profiles.example.com/${label}-${suffix}`;
+        const ownershipId = `ownership_${label}_${suffix}`;
+        await seedOwnership({
+          effectiveAt: Date.now(),
+          normalizedUrl,
+          ownerPointsUserId: pointsUser.id,
+          ownershipId,
+          epochId: `epoch_${label}_${suffix}`,
+        });
+        await seedUnclaimed({
+          actorPointsUserId: pointsUser.id,
+          amountScaled: 1_000,
+          criterionId: criterion.id,
+          criterionRevisionId: criterion.revisionId,
+          evaluationAt: "2026-01",
+          normalizedUrl,
+          suffix: `${suffix}_${label}`,
+        });
+        return ownershipId;
+      }),
+    );
+    const app = appFor(authUserId);
+    const previews = await Promise.all(
+      ownerships.map(async (ownershipId) => {
+        const response = await app.fetch(
+          new Request(`https://points.test/api/ownership/${ownershipId}/claim-preview`),
+          env,
+        );
+        return (await response.json()) as { data: { claimSetHash: string } };
+      }),
+    );
+    let batchCount = 0;
+    let releaseBatches!: () => void;
+    const bothBatchesReady = new Promise<void>((resolve) => {
+      releaseBatches = resolve;
+    });
+    const barrierDb = new Proxy(env.DB!, {
+      get(target, property, receiver) {
+        if (property === "batch") {
+          return async (statements: D1PreparedStatement[]) => {
+            batchCount += 1;
+            if (batchCount === 2) releaseBatches();
+            await bothBatchesReady;
+            return target.batch(statements);
+          };
+        }
+        const value = Reflect.get(target, property, receiver) as unknown;
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const requestEnv = { ...env, DB: barrierDb };
+    const idempotencyKey = `shared-${suffix}`;
+    const responses = await Promise.all(
+      ownerships.map((ownershipId, index) =>
+        app.fetch(
+          new Request(`https://points.test/api/ownership/${ownershipId}/claim`, {
+            body: JSON.stringify({ claimSetHash: previews[index]!.data.claimSetHash }),
+            headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+            method: "POST",
+          }),
+          requestEnv,
+        ),
+      ),
+    );
+    expect(responses.map((response) => response.status).sort()).toEqual([201, 409]);
+    const rejected = responses.find((response) => response.status === 409)!;
+    await expect(rejected.json()).resolves.toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
+  });
+
   it("requires a linked Google account and a session newer than 901 seconds for claim confirm", async () => {
     const suffix = crypto.randomUUID();
     const linked = await createUser(`${suffix}_linked`);
@@ -591,5 +749,159 @@ describe("unclaimed FIX claim", () => {
         .bind(pointsUser.id, criterion.id)
         .first(),
     ).toEqual({ balance: Number.MAX_SAFE_INTEGER, evaluationTotal: Number.MAX_SAFE_INTEGER });
+  });
+
+  it("keeps correction deltas with the original claimant after Web reownership, lapse, and row deletion", async () => {
+    const suffix = crypto.randomUUID();
+    const original = await createUser(`${suffix}_original`);
+    const next = await createUser(`${suffix}_next`);
+    const first = await createCriterion(original.pointsUser.id, `${suffix}_correction_first`);
+    const removed = await createCriterion(original.pointsUser.id, `${suffix}_correction_removed`);
+    const normalizedUrl = `https://profiles.example.com/correction-${suffix}`;
+
+    const initial = await commitCsv(
+      original.pointsUser.id,
+      `${FIX_HEADER}\n,,${normalizedUrl},${first.id},10,2026-01,,initial`,
+      `initial-${suffix}`,
+      "initial",
+    );
+    const fixResultId = initial.results[0]!.fixResultId;
+    await commitCsv(
+      original.pointsUser.id,
+      `${FIX_HEADER}\n${fixResultId},1,${normalizedUrl},${first.id},10,2026-01,,keep\n${fixResultId},1,${normalizedUrl},${removed.id},5,2026-01,,remove-later`,
+      `second-${suffix}`,
+      "add criterion",
+    );
+
+    const ownershipId = `ownership_correction_${suffix}`;
+    const firstEpochId = `epoch_correction_first_${suffix}`;
+    await seedOwnership({
+      effectiveAt: Date.parse("2026-07-01T00:00:00Z"),
+      normalizedUrl,
+      ownerPointsUserId: original.pointsUser.id,
+      ownershipId,
+      epochId: firstEpochId,
+    });
+    const app = appFor(original.authUserId);
+    const preview = await app.fetch(
+      new Request(`https://points.test/api/ownership/${ownershipId}/claim-preview`),
+      env,
+    );
+    const previewBody = (await preview.json()) as { data: { claimSetHash: string } };
+    const claimed = await app.fetch(
+      new Request(`https://points.test/api/ownership/${ownershipId}/claim`, {
+        body: JSON.stringify({ claimSetHash: previewBody.data.claimSetHash }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": `claim-${suffix}` },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(claimed.status).toBe(201);
+
+    const nextEpochId = `epoch_correction_next_${suffix}`;
+    const nextEffectiveAt = Date.parse("2026-08-01T00:00:00Z");
+    await env.DB!.batch([
+      env
+        .DB!.prepare(
+          `INSERT INTO ownership_epoch
+             (id, identity_ownership_id, owner_points_user_id, effective_at,
+              verification_method, evidence_hash, success_count, request_id, created_at)
+           VALUES (?, ?, ?, ?, 'WEB_LINK', ?, 3, ?, ?)`,
+        )
+        .bind(
+          nextEpochId,
+          ownershipId,
+          next.pointsUser.id,
+          nextEffectiveAt,
+          "9".repeat(64),
+          `req-${nextEpochId}`,
+          nextEffectiveAt,
+        ),
+      env
+        .DB!.prepare("UPDATE ownership_epoch SET ended_at = ? WHERE id = ?")
+        .bind(nextEffectiveAt, firstEpochId),
+      env
+        .DB!.prepare(
+          `UPDATE identity_ownership
+           SET points_user_id = ?, current_ownership_epoch_id = ?, status = 'LAPSED'
+           WHERE id = ?`,
+        )
+        .bind(next.pointsUser.id, nextEpochId, ownershipId),
+    ]);
+
+    const correction = await commitCsv(
+      original.pointsUser.id,
+      `${FIX_HEADER}\n${fixResultId},2,${normalizedUrl},${first.id},12,2026-01,,correct-and-delete`,
+      `correction-${suffix}`,
+      "correct after reownership",
+    );
+    const correctionRevisionId = correction.results[0]!.fixRevisionId;
+    const correctionDeltas = await env
+      .DB!.prepare(
+        `SELECT points_user_id AS pointsUserId, evaluation_criterion_id AS criterionId,
+                delta_amount_scaled AS delta
+         FROM point_ledger_entry WHERE source_fix_revision_id = ? ORDER BY criterionId`,
+      )
+      .bind(correctionRevisionId)
+      .all<{ criterionId: string; delta: number; pointsUserId: string }>();
+    expect(correctionDeltas.results).toEqual([
+      { criterionId: first.id, delta: 20_000, pointsUserId: original.pointsUser.id },
+      { criterionId: removed.id, delta: -50_000, pointsUserId: original.pointsUser.id },
+    ]);
+    expect(
+      await env
+        .DB!.prepare(
+          "SELECT count(*) AS count FROM point_ledger_entry WHERE points_user_id = ? AND source_fix_revision_id = ?",
+        )
+        .bind(next.pointsUser.id, correctionRevisionId)
+        .first<{ count: number }>(),
+    ).toEqual({ count: 0 });
+  });
+
+  it("aggregates one revision and criterion when multiple active Web URLs resolve to one user", async () => {
+    const suffix = crypto.randomUUID();
+    const owner = await createUser(`${suffix}_aggregate`);
+    const criterion = await createCriterion(owner.pointsUser.id, `${suffix}_aggregate`);
+    const placeholder = await createCriterion(owner.pointsUser.id, `${suffix}_placeholder`);
+    const placeholderUrl = `https://profiles.example.com/placeholder-${suffix}`;
+    const firstUrl = `https://profiles.example.com/first-${suffix}`;
+    const secondUrl = `https://profiles.example.com/second-${suffix}`;
+    const initial = await commitCsv(
+      owner.pointsUser.id,
+      `${FIX_HEADER}\n,,${placeholderUrl},${placeholder.id},1,2026-07,,placeholder`,
+      `aggregate-initial-${suffix}`,
+      "aggregate initial",
+    );
+    const fixResultId = initial.results[0]!.fixResultId;
+    for (const [label, normalizedUrl] of [
+      ["first", firstUrl],
+      ["second", secondUrl],
+    ] as const) {
+      await seedOwnership({
+        effectiveAt: Date.parse("2026-01-01T00:00:00Z"),
+        normalizedUrl,
+        ownerPointsUserId: owner.pointsUser.id,
+        ownershipId: `ownership_${label}_${suffix}`,
+        epochId: `epoch_${label}_${suffix}`,
+      });
+    }
+    const correction = await commitCsv(
+      owner.pointsUser.id,
+      `${FIX_HEADER}\n${fixResultId},1,${placeholderUrl},${placeholder.id},1,2026-07,,placeholder\n${fixResultId},1,${firstUrl},${criterion.id},1,2026-07,,first\n${fixResultId},1,${secondUrl},${criterion.id},2,2026-07,,second`,
+      `aggregate-correction-${suffix}`,
+      "aggregate correction",
+    );
+    const correctionRevisionId = correction.results[0]!.fixRevisionId;
+    expect(
+      await env
+        .DB!.prepare(
+          `SELECT count(*) AS count, sum(delta_amount_scaled) AS total
+           FROM point_ledger_entry
+           WHERE source_fix_revision_id = ? AND points_user_id = ?
+             AND evaluation_criterion_id = ?`,
+        )
+        .bind(correctionRevisionId, owner.pointsUser.id, criterion.id)
+        .first<{ count: number; total: number }>(),
+    ).toEqual({ count: 1, total: 30_000 });
   });
 });

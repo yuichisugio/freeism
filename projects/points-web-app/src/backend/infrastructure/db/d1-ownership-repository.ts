@@ -210,9 +210,9 @@ export async function claimUnclaimedFixes(
     loaded.ownershipEpochId,
     loaded.entries,
   );
-  if (preview.entries.length === 0) throw new OwnershipClaimError("NO_UNCLAIMED_FIXES");
   if (preview.claimSetHash !== input.claimSetHash)
     throw new OwnershipClaimError("CLAIM_SET_CHANGED");
+  if (preview.entries.length === 0) throw new OwnershipClaimError("NO_UNCLAIMED_FIXES");
 
   const claimId = `fixclaim_${crypto.randomUUID()}`;
   const commandId = `fixclaimcmd_${crypto.randomUUID()}`;
@@ -347,7 +347,14 @@ export async function claimUnclaimedFixes(
   try {
     await db.batch([guard, claim, ledger, items, idempotency, audit]);
   } catch (error) {
-    if (error instanceof Error && error.message.includes("FOREIGN KEY constraint failed")) {
+    const isForeignKeyConflict =
+      error instanceof Error && error.message.includes("FOREIGN KEY constraint failed");
+    const isIdempotencyConflict =
+      error instanceof Error &&
+      error.message.includes(
+        "UNIQUE constraint failed: fix_claim.points_user_id, fix_claim.idempotency_key",
+      );
+    if (isForeignKeyConflict || isIdempotencyConflict) {
       const concurrentReplay = await findClaimReplay(
         db,
         input.pointsUserId,
@@ -355,7 +362,7 @@ export async function claimUnclaimedFixes(
         payloadHash,
       );
       if (concurrentReplay) return concurrentReplay;
-      throw new OwnershipClaimError("CLAIM_SET_CHANGED");
+      if (isForeignKeyConflict) throw new OwnershipClaimError("CLAIM_SET_CHANGED");
     }
     throw error;
   }

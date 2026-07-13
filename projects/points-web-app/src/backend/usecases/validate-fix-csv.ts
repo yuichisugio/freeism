@@ -130,7 +130,7 @@ async function findWebOwnershipRecipients(
            WHEN 7 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || '-01T00:00:00Z') * 1000
            WHEN 10 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || 'T00:00:00Z') * 1000
            ELSE unixepoch(json_extract(input.value, '$.evaluationAt')) * 1000
-         END) < epoch.ended_at
+         END) < epoch.ended_at)
        ORDER BY lookupKey, epoch.effective_at`,
     )
     .bind(canonicalJson(inputs))

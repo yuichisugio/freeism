@@ -37,8 +37,39 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
     )
     .bind(JSON.stringify([...new Set(resultIds)]))
     .all<PreviousEntry & { fixResultId: string }>();
+  const claimedRows = await db
+    .prepare(
+      `SELECT revision.fix_result_id AS fixResultId,
+              CASE WHEN unclaimed.recipient_provider_id = 'github'
+                THEN 'github:' || unclaimed.recipient_account_id
+                ELSE 'web:' || unclaimed.recipient_profile_url END AS recipientKey,
+              unclaimed.evaluation_criterion_id AS evaluationCriterionId,
+              claim.points_user_id AS pointsUserId
+       FROM fix_revision revision
+       JOIN unclaimed_fix_entry unclaimed ON unclaimed.source_fix_revision_id = revision.id
+       JOIN fix_claim_item item ON item.unclaimed_fix_entry_id = unclaimed.id
+       JOIN fix_claim claim ON claim.id = item.fix_claim_id
+       JOIN json_each(?) input ON input.value = revision.fix_result_id
+       ORDER BY revision.revision, claim.claimed_at`,
+    )
+    .bind(JSON.stringify([...new Set(resultIds)]))
+    .all<{
+      evaluationCriterionId: string;
+      fixResultId: string;
+      pointsUserId: string;
+      recipientKey: string;
+    }>();
+  const claimedRecipients = new Map<string, string>();
+  for (const row of claimedRows.results) {
+    const key = `${row.fixResultId}\u0000${row.recipientKey}\u0000${row.evaluationCriterionId}`;
+    if (!claimedRecipients.has(key)) claimedRecipients.set(key, row.pointsUserId);
+  }
   const grouped = new Map<string, PreviousEntry[]>();
   for (const row of rows.results) {
+    row.pointsUserId =
+      claimedRecipients.get(
+        `${row.fixResultId}\u0000${row.recipientKey}\u0000${row.evaluationCriterionId}`,
+      ) ?? row.pointsUserId;
     const group = grouped.get(row.fixResultId) ?? [];
     group.push(row);
     grouped.set(row.fixResultId, group);
@@ -110,7 +141,18 @@ export async function commitFixRows(
   const heads: unknown[] = [];
   const revisions: unknown[] = [];
   const entries: unknown[] = [];
-  const ledger: unknown[] = [];
+  const ledger = new Map<
+    string,
+    {
+      createdAt: number;
+      deltaAmountScaled: number;
+      evaluationCriterionId: string;
+      evaluationCriterionRevisionId: string;
+      fixRevisionId: string;
+      id: string;
+      pointsUserId: string;
+    }
+  >();
   const unclaimed: unknown[] = [];
   const results: CommittedFixResult[] = [];
 
@@ -121,9 +163,31 @@ export async function commitFixRows(
     const revision = isNew ? 1 : Number(first.expectedRevision) + 1;
     const fixRevisionId = `fixrev_${crypto.randomUUID()}`;
     if (isNew) heads.push({ createdAt: input.now.getTime(), fixResultId, fixRevisionId, revision });
+    const oldValues = previous.get(fixResultId) ?? [];
+    const originalRecipients = new Map(
+      oldValues
+        .filter((value): value is PreviousEntry & { pointsUserId: string } =>
+          Boolean(value.pointsUserId),
+        )
+        .map((value) => [
+          `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
+          value.pointsUserId,
+        ]),
+    );
+    const resolvedRows = rows.map((row) => {
+      const recipientKey = row.recipientAccountId
+        ? `github:${row.recipientAccountId}`
+        : `web:${row.normalizedRecipientProfileUrl}`;
+      return {
+        ...row,
+        recipientPointsUserId:
+          originalRecipients.get(`${recipientKey}\u0000${row.evaluationCriterionId}`) ??
+          row.recipientPointsUserId,
+      };
+    });
     revisions.push({
       actorPointsUserId: input.actorPointsUserId,
-      contentHash: await hashCanonicalPayload(rows),
+      contentHash: await hashCanonicalPayload(resolvedRows),
       createdAt: input.now.getTime(),
       fileHash: input.fileHash,
       fixResultId,
@@ -132,7 +196,7 @@ export async function commitFixRows(
       revision,
       validationHash: input.validationHash,
     });
-    const nextValues: FixRevisionValue[] = rows.map((row) => ({
+    const nextValues: FixRevisionValue[] = resolvedRows.map((row) => ({
       amountScaled: row.amountScaled,
       evaluationCriterionId: row.evaluationCriterionId,
       pointsUserId: row.recipientPointsUserId,
@@ -140,7 +204,7 @@ export async function commitFixRows(
         ? `github:${row.recipientAccountId}`
         : `web:${row.normalizedRecipientProfileUrl}`,
     }));
-    rows.forEach((row) =>
+    resolvedRows.forEach((row) =>
       entries.push({
         ...row,
         createdAt: input.now.getTime(),
@@ -149,7 +213,6 @@ export async function commitFixRows(
         identityResolvedAt: row.recipientProviderId ? input.now.getTime() : null,
       }),
     );
-    const oldValues = previous.get(fixResultId) ?? [];
     const oldByKey = new Map(
       oldValues.map((value) => [
         `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
@@ -157,7 +220,7 @@ export async function commitFixRows(
       ]),
     );
     const nextByKey = new Map(
-      rows.map((row) => {
+      resolvedRows.map((row) => {
         const recipientKey = row.recipientAccountId
           ? `github:${row.recipientAccountId}`
           : `web:${row.normalizedRecipientProfileUrl}`;
@@ -177,9 +240,14 @@ export async function commitFixRows(
         fixRevisionId,
       };
       if (delta.pointsUserId) {
-        ledger.push({
+        const ledgerKey = `${fixRevisionId}\u0000${delta.pointsUserId}\u0000${delta.evaluationCriterionId}`;
+        const existing = ledger.get(ledgerKey);
+        const deltaAmountScaled = (existing?.deltaAmountScaled ?? 0) + delta.deltaAmountScaled;
+        if (!Number.isSafeInteger(deltaAmountScaled)) throw new Error("SAFE_INTEGER_OVERFLOW");
+        ledger.set(ledgerKey, {
           ...common,
-          id: `ledger_${crypto.randomUUID()}`,
+          deltaAmountScaled,
+          id: existing?.id ?? `ledger_${crypto.randomUUID()}`,
           pointsUserId: delta.pointsUserId,
         });
       } else {
@@ -262,7 +330,7 @@ export async function commitFixRows(
               json_extract(value, '$.deltaAmountScaled'), 1, 'FIX',
               json_extract(value, '$.fixRevisionId'), json_extract(value, '$.createdAt')
        FROM json_each(?)`,
-      ledger,
+      [...ledger.values()].filter((entry) => entry.deltaAmountScaled !== 0),
     ),
     ...jsonStatements(
       `INSERT INTO unclaimed_fix_entry

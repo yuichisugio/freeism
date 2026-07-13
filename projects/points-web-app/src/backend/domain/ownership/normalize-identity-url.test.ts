@@ -25,6 +25,15 @@ describe("normalizeIdentityUrl", () => {
     expect(new Set(values).size).toBe(values.length);
   });
 
+  it("normalizes equivalent percent-encoding without decoding reserved octets", () => {
+    expect(normalizeIdentityUrl("https://example.com/%7ealice/%41?name=%62ob&next=%2fhome")).toBe(
+      "https://example.com/~alice/A?name=bob&next=%2Fhome",
+    );
+    expect(normalizeIdentityUrl("https://example.com/alice%2Fadmin")).toBe(
+      "https://example.com/alice%2Fadmin",
+    );
+  });
+
   it.each([
     "http://example.com/alice",
     "https://user:secret@example.com/alice",
