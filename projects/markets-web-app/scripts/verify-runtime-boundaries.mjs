@@ -13,9 +13,10 @@ const FORBIDDEN_RUNTIME_PACKAGES = [
 const RUNTIME_IMPORT = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*)["']([^"']+)["']/g;
 
 function forbiddenPackage(specifier) {
-  return FORBIDDEN_RUNTIME_PACKAGES.find(
-    (name) => specifier === name || (name.endsWith("/") && specifier.startsWith(name)),
-  );
+  return FORBIDDEN_RUNTIME_PACKAGES.find((name) => {
+    const root = name.endsWith("/") ? name.slice(0, -1) : name;
+    return specifier === root || specifier.startsWith(`${root}/`);
+  });
 }
 
 export function inspectRuntimeSourceEntries(entries) {

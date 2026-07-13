@@ -2,9 +2,10 @@ import { spawnSync } from "node:child_process";
 import { access, readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 
 import { findGeneratedWorkerConfig } from "../../../scripts/web-app/assert-worker-build.mjs";
-import { releaseEnvironment } from "./migrate-d1.mjs";
+import { loadReleaseTarget, releaseEnvironment } from "./migrate-d1.mjs";
 
 const REQUIRED_FLAGS = [
   "nodejs_compat",
@@ -20,12 +21,35 @@ function exactlyOne(items, predicate, message) {
   if ((items ?? []).filter(predicate).length !== 1) throw new Error(message);
 }
 
-export function assertGeneratedConfig(config, environment) {
+export function assertDeployEnvironment(environment, configuredEnvironment) {
+  releaseEnvironment(environment);
+  if (configuredEnvironment && configuredEnvironment !== environment) {
+    throw new Error(
+      `CLOUDFLARE_ENV ${configuredEnvironment} does not match deploy target ${environment}`,
+    );
+  }
+}
+
+export function assertArtifactFreshness(mtimes) {
+  if (
+    mtimes.artifact < mtimes.source ||
+    mtimes.artifact < mtimes.worker ||
+    mtimes.artifact < mtimes.lockfile
+  ) {
+    throw new Error("generated config is stale; rebuild immediately before deployment");
+  }
+}
+
+function sameJson(actual, expected) {
+  return isDeepStrictEqual(actual, expected);
+}
+
+export function assertGeneratedConfig(config, environment, expected) {
   releaseEnvironment(environment);
   if (config.targetEnvironment !== environment || config.vars?.APP_ENV !== environment) {
     throw new Error(`generated config is not flattened for ${environment}`);
   }
-  if (config.name !== expectedWorkerName(environment)) {
+  if (config.name !== expectedWorkerName(environment) || config.name !== expected.workerName) {
     throw new Error(`unexpected Worker name: ${String(config.name)}`);
   }
   if (config.workers_dev !== false || config.preview_urls !== false) {
@@ -49,70 +73,80 @@ export function assertGeneratedConfig(config, environment) {
   }
   exactlyOne(
     config.d1_databases,
-    (item) => item.binding === "DB" && Boolean(item.database_id),
-    "generated config must contain exactly one named D1 DB binding",
+    (item) =>
+      item.binding === expected.database.binding &&
+      item.database_id === expected.database.id &&
+      item.database_name === expected.database.name &&
+      item.migrations_dir === expected.database.migrationsDir,
+    "generated config D1 DB does not match the source environment",
   );
   exactlyOne(
     config.durable_objects?.bindings,
-    (item) => item.name === "AUCTION_ROOMS" && item.class_name === "AuctionRoom",
+    (item) => sameJson(item, expected.durableObject),
     "generated config must contain AUCTION_ROOMS",
   );
   exactlyOne(
     config.workflows,
-    (item) => item.binding === "AUCTION_SETTLEMENT",
+    (item) => sameJson(item, expected.workflow),
     "generated config must contain AUCTION_SETTLEMENT",
   );
   exactlyOne(
     config.services,
-    (item) => item.binding === "POINTS_SERVICE" && item.service === `points-worker-${environment}`,
+    (item) => sameJson(item, expected.service),
     "generated config must contain environment-specific POINTS_SERVICE",
   );
   exactlyOne(
     config.analytics_engine_datasets,
-    (item) => item.binding === "OPS_METRICS" && Boolean(item.dataset),
+    (item) => sameJson(item, expected.analytics),
     "generated config must contain OPS_METRICS",
   );
   exactlyOne(
     config.send_email,
-    (item) => item.name === "OPS_ALERT_EMAIL" && Boolean(item.destination_address),
+    (item) => sameJson(item, expected.email),
     "generated config must contain fixed OPS_ALERT_EMAIL",
   );
   if (!config.triggers?.crons?.includes("*/5 * * * *")) {
     throw new Error("generated config must contain the five-minute Cron");
   }
-  const expectedIssuer =
-    environment === "production"
-      ? "https://points.freeism.app"
-      : "https://staging.points.freeism.app";
-  if (config.vars?.POINTS_ISSUER !== expectedIssuer) {
+  if (config.vars?.POINTS_ISSUER !== expected.issuer) {
     throw new Error(`generated config has the wrong POINTS_ISSUER for ${environment}`);
+  }
+  exactlyOne(
+    config.routes,
+    (item) => sameJson(item, expected.route),
+    "generated config custom domain does not match the source environment",
+  );
+  if (!sameJson(config.observability, expected.observability)) {
+    throw new Error("generated config observability does not match the source environment");
   }
 }
 
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 export async function deployGenerated(environment) {
-  releaseEnvironment(environment);
+  assertDeployEnvironment(environment, process.env.CLOUDFLARE_ENV);
+  const expected = await loadReleaseTarget(environment);
   const configPath = await findGeneratedWorkerConfig(appRoot);
   const config = JSON.parse(await readFile(configPath, "utf8"));
-  assertGeneratedConfig(config, environment);
+  assertGeneratedConfig(config, environment, expected);
 
   const sourceConfig = resolve(appRoot, "wrangler.jsonc");
   if (config.configPath && resolve(config.configPath) !== sourceConfig) {
     throw new Error("generated config points to a different source config");
   }
   const workerPath = resolve(dirname(configPath), "index.js");
-  const [generatedStats, sourceStats, workerStats] = await Promise.all([
+  const [generatedStats, sourceStats, workerStats, lockfileStats] = await Promise.all([
     stat(configPath),
     stat(sourceConfig),
     stat(workerPath),
+    stat(resolve(appRoot, "../../pnpm-lock.yaml")),
   ]);
-  if (
-    generatedStats.mtimeMs < sourceStats.mtimeMs ||
-    generatedStats.mtimeMs < workerStats.mtimeMs
-  ) {
-    throw new Error("generated config is stale; rebuild immediately before deployment");
-  }
+  assertArtifactFreshness({
+    artifact: generatedStats.mtimeMs,
+    lockfile: lockfileStats.mtimeMs,
+    source: sourceStats.mtimeMs,
+    worker: workerStats.mtimeMs,
+  });
   await access(resolve(dirname(configPath), config.assets.directory));
 
   const result = spawnSync("wrangler", ["deploy", "--config", configPath], {

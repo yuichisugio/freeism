@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -49,7 +50,10 @@ function importerBlock(lockfile, importer) {
 
 function assertLockfilePackage(block, packageName, version, expected) {
   const escaped = packageName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = new RegExp(`^      ['"]?${escaped}['"]?:\\n        specifier: ([^\\n]+)`, "m");
+  const pattern = new RegExp(
+    `^      ['"]?${escaped}['"]?:\\n        specifier: ([^\\n]+)\\n        version: ([^\\n]+)`,
+    "m",
+  );
   const match = block.match(pattern);
   if (!expected) {
     if (match) throw new Error(`Markets lockfile must not contain ${packageName}`);
@@ -57,6 +61,12 @@ function assertLockfilePackage(block, packageName, version, expected) {
   }
   if (match?.[1] !== version) {
     throw new Error(`lockfile ${packageName} specifier must be ${version}`);
+  }
+  const resolvedVersion = match[2].split("(", 1)[0];
+  if (resolvedVersion !== version) {
+    throw new Error(
+      `lockfile ${packageName} resolved version must be ${version}; received ${resolvedVersion}`,
+    );
   }
 }
 
@@ -74,7 +84,76 @@ export function assertBetterAuthLockfile(lockfile, version) {
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = resolve(appRoot, "../..");
 
-export async function verifyBetterAuthRelease(environment) {
+export const BETTER_AUTH_RELEASE_REGRESSION_COMMANDS = [
+  ["pnpm", ["contract:web-app:check"]],
+  [
+    "pnpm",
+    ["--filter", "@freeism/markets-web-app", "test", "--", "src/backend/auth/auth-options.test.ts"],
+  ],
+  [
+    "pnpm",
+    [
+      "--filter",
+      "@freeism/markets-web-app",
+      "test:worker",
+      "--",
+      "test/worker/auth-google.worker.test.ts",
+    ],
+  ],
+  [
+    "pnpm",
+    [
+      "--filter",
+      "@freeism/points-web-app",
+      "test",
+      "--",
+      "test/contract/points-oauth.contract.test.ts",
+      "test/contract/google-fresh-authorization-params.contract.test.ts",
+    ],
+  ],
+  [
+    "pnpm",
+    [
+      "--filter",
+      "@freeism/points-web-app",
+      "test:worker",
+      "--",
+      "test/worker/admin-auth.worker.test.ts",
+      "test/worker/auth-social.worker.test.ts",
+      "test/worker/oauth-client-bootstrap.worker.test.ts",
+      "test/worker/oauth-resource.worker.test.ts",
+    ],
+  ],
+  [
+    "pnpm",
+    [
+      "--filter",
+      "@freeism/markets-web-app",
+      "test",
+      "--",
+      "test/contract/settlement-admin-assertion.contract.test.ts",
+    ],
+  ],
+];
+
+export function runBetterAuthReleaseRegressions(
+  runner = (command, args) =>
+    spawnSync(command, args, {
+      cwd: repositoryRoot,
+      env: process.env,
+      stdio: "inherit",
+    }),
+) {
+  for (const [command, args] of BETTER_AUTH_RELEASE_REGRESSION_COMMANDS) {
+    const result = runner(command, args);
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`Better Auth release regression failed: ${command} ${args.join(" ")}`);
+    }
+  }
+}
+
+export async function verifyBetterAuthRelease(environment, runner) {
   const [markets, points, lockfile] = await Promise.all([
     readFile(resolve(appRoot, "package.json"), "utf8").then(JSON.parse),
     readFile(resolve(repositoryRoot, "projects/points-web-app/package.json"), "utf8").then(
@@ -84,6 +163,7 @@ export async function verifyBetterAuthRelease(environment) {
   ]);
   const version = assertBetterAuthRelease(environment, { markets, points });
   assertBetterAuthLockfile(lockfile, version);
+  if (version === FINAL_VERSION) runBetterAuthReleaseRegressions(runner);
   process.stdout.write(`Better Auth ${version} ${environment} release gate: PASS\n`);
 }
 
