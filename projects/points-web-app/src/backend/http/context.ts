@@ -14,6 +14,7 @@ export type Bindings = Omit<Env, "DB"> & {
   MARKETS_USER_OAUTH_CLIENT_SECRET: string;
   POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN?: string;
   POINTS_OAUTH_PAIRWISE_SECRET: string;
+  POINTS_OPS_DRILL_TOKEN?: string;
 };
 
 export interface AuthenticatedSession {
