@@ -1,11 +1,20 @@
-import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
+import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   plugins: [
-    cloudflareTest({
+    cloudflareTest(async () => ({
       main: "./worker/index.ts",
       miniflare: {
+        bindings: {
+          APP_ORIGIN: "https://markets.example.test",
+          BETTER_AUTH_SECRETS:
+            "2:test-current-secret-at-least-32-characters,1:test-old-secret-at-least-32-characters",
+          GOOGLE_CLIENT_ID: "test-google-client-id",
+          GOOGLE_CLIENT_SECRET: "test-google-client-secret",
+          TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
+        },
+        d1Databases: ["DB"],
         serviceBindings: {
           ASSETS: "test-assets",
         },
@@ -30,9 +39,10 @@ export default defineConfig({
       wrangler: {
         configPath: "./wrangler.jsonc",
       },
-    }),
+    })),
   ],
   test: {
-    include: ["worker/**/*.worker.test.ts"],
+    include: ["worker/**/*.worker.test.ts", "test/worker/**/*.worker.test.ts"],
+    setupFiles: ["./test/worker/apply-migrations.ts"],
   },
 });
