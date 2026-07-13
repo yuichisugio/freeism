@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-13T09:59:58.355Z",
+  "package": {
+    "name": "@better-auth/oauth-provider",
+    "version": "1.7.0-rc.1",
+    "lockfileIntegritySha512": "sha512-992i44HfdHRDlMSnaapXMkMRKGyNxIMm5K//K2yiL0dErdtBB5s5q1PZI0Cm2/imzrOI6HP9UjUvy6lCDj6EHw==",
+    "inspectedContentSha256": "26c308beea51f9c4fa7238e77ac12c22ee4ccdcdcb40097f2b3be2faee621fd1"
+  },
+  "documentationUrls": [
+    "https://www.better-auth.com/docs/plugins/oauth-provider",
+    "https://better-auth.com/docs/guides/1-7-upgrade-guide"
+  ],
+  "inspectedFiles": [
+    "package.json",
+    "dist/client-resource.d.mts",
+    "dist/client.d.mts",
+    "dist/index.d.mts",
+    "dist/oauth-BrNRbP2A.d.mts",
+    "dist/oauth-ScTJEcFV.d.mts",
+    "dist/client-assertion-D-tAYsKC.mjs",
+    "dist/client-resource.mjs",
+    "dist/client.mjs",
+    "dist/index.mjs",
+    "dist/introspect-DvHp2a64.mjs",
+    "dist/resource-challenge-B-cqv4ur.mjs",
+    "dist/rolldown-runtime-wcPFST8Q.mjs",
+    "dist/signed-query-Df1MNiSH.mjs",
+    "dist/utils-DO8lmoDw.mjs",
+    "dist/version--aseHtsu.mjs",
+    "@better-auth/core/dist/oauth2/index.mjs",
+    "@better-auth/core/dist/oauth2/verify.mjs"
+  ],
+  "supported": {
+    "opaqueAccessTokens": {
+      "supported": true,
+      "evidence": [
+        "OAuthOptions exposes disableJwtPlugin and the runtime selects opaque access-token storage when enabled."
+      ]
+    },
+    "clientCredentialsWithoutUser": {
+      "supported": true,
+      "evidence": [
+        "The public callback contract marks user as undefined for client_credentials, and the built-in grant issues without a user object."
+      ]
+    },
+    "confidentialRemoteIntrospection": {
+      "supported": true,
+      "evidence": [
+        "The public Resource Client exposes remoteVerify with an introspection URL and confidential-client authentication."
+      ]
+    },
+    "separateClientScopeAllowlists": {
+      "supported": true,
+      "evidence": [
+        "Each registered client has its own scopes and grantTypes fields, so user and M2M clients can use disjoint allowlists."
+      ]
+    },
+    "standardRevocation": {
+      "supported": true,
+      "evidence": [
+        "The public OAuth Provider exposes the standard revocation endpoint."
+      ]
+    },
+    "pairwiseUserSubjectAtIntrospection": {
+      "supported": true,
+      "evidence": [
+        "The provider resolves the user subject through pairwiseSecret before returning active introspection data."
+      ]
+    },
+    "idTokenRejectedAsResourceBearer": {
+      "supported": true,
+      "evidence": [
+        "ID tokens use the confidential-client HS256 path, while Resource Client verification asks introspection for an access token."
+      ]
+    }
+  },
+  "acceptedDesign": {
+    "userClient": "separate-confidential-client",
+    "m2mClient": "separate-confidential-client",
+    "settlementClient": "separate-confidential-client",
+    "introspection": "standard-confidential-remote",
+    "consistency": "pending-confirm-revocation-outbox"
+  },
+  "avoidedUnsupportedCapabilities": [
+    "grant-specific scope allowlists inside one client",
+    "auth-only in-process opaque introspection",
+    "application transaction enlistment for authorization codes",
+    "application transaction enlistment for token families"
+  ],
+  "result": "PASS"
+}
