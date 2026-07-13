@@ -90,11 +90,21 @@ async function findRegisteredRecipients(
   if (accountIds.length === 0) return new Map();
   const rows = await db
     .prepare(
-      `SELECT account.account_id AS accountId, points_user.id AS pointsUserId
-       FROM account
-       JOIN points_user ON points_user.auth_user_id = account.user_id
-       JOIN json_each(?) input ON input.value = account.account_id
-       WHERE account.provider_id = 'github'`,
+      `SELECT subject.account_id AS accountId, subject.points_user_id AS pointsUserId
+       FROM permanent_oauth_subject subject
+       JOIN points_user ON points_user.id = subject.points_user_id
+       JOIN account
+         ON account.provider_id = subject.provider_id
+        AND account.account_id = subject.account_id
+        AND account.user_id = points_user.auth_user_id
+       JOIN identity_ownership ownership
+         ON ownership.identity_type = 'GITHUB_OAUTH'
+        AND ownership.normalized_identity_key = 'github:' || subject.account_id
+        AND ownership.points_user_id = subject.points_user_id
+        AND ownership.status = 'ACTIVE'
+        AND ownership.permanent_correspondence = 1
+       JOIN json_each(?) input ON input.value = subject.account_id
+       WHERE subject.provider_id = 'github'`,
     )
     .bind(canonicalJson([...new Set(accountIds)]))
     .all<{ accountId: string; pointsUserId: string }>();

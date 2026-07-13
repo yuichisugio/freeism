@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import { reconcilePermanentOAuthSubjects } from "../../src/backend/infrastructure/db/permanent-oauth-subject-repository";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
 
@@ -81,6 +82,7 @@ describe("immutable FIX revision and delta ledger", () => {
       recipientAuthUserId,
       () => `pusr_recipient_${suffix}`,
     );
+    await reconcilePermanentOAuthSubjects(env.DB!, recipientAuthUserId, recipient.id);
     await env
       .DB!.prepare("INSERT INTO admin_membership (id, points_user_id, role) VALUES (?, ?, 'ADMIN')")
       .bind(`adm_owner_${suffix}`, owner.id)

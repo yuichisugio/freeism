@@ -12,6 +12,9 @@ import {
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
 
+const FIX_HEADER =
+  "fixResultId,expectedRevision,recipientProfileUrl,evaluationCriterionId,amount,evaluationAt,managementId,memo";
+
 async function createUser(suffix: string, providers: Array<"github" | "google"> = ["google"]) {
   const authUserId = `github-auth-${suffix}`;
   const now = Date.now();
@@ -50,6 +53,7 @@ function appFor(
   authUserId: string,
   dependencies: {
     getGitHubAccessToken?: () => Promise<string | null>;
+    githubFetch?: typeof fetch;
     githubRevokeFetch?: typeof fetch;
   } = {},
 ) {
@@ -361,6 +365,62 @@ describe("GitHub permanent ownership", () => {
     ).toEqual({ accessToken: `github-encrypted-access-${suffix}` });
   });
 
+  it("retries when account linking replaces the token during provider revoke", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix, ["google", "github"]);
+    const accountId = `github-subject-${suffix}`;
+    await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
+    const plainTokens = [`old-plain-token-${suffix}`, `new-plain-token-${suffix}`];
+    const revokedTokens: string[] = [];
+    let tokenReadCount = 0;
+    const response = await appFor(user.authUserId, {
+      getGitHubAccessToken: async () => plainTokens[tokenReadCount++] ?? null,
+      githubRevokeFetch: async (request) => {
+        const revokeRequest = request instanceof Request ? request : new Request(request);
+        revokedTokens.push(((await revokeRequest.json()) as { access_token: string }).access_token);
+        if (revokedTokens.length === 1) {
+          await env
+            .DB!.prepare(
+              `UPDATE account
+                 SET access_token = ?, refresh_token = ?, id_token = ?, updated_at = ?
+               WHERE user_id = ? AND provider_id = 'github' AND account_id = ?`,
+            )
+            .bind(
+              `new-encrypted-access-${suffix}`,
+              `new-encrypted-refresh-${suffix}`,
+              `new-encrypted-id-${suffix}`,
+              Date.now() + 1,
+              user.authUserId,
+              accountId,
+            )
+            .run();
+        }
+        return new Response(null, { status: 204 });
+      },
+    }).fetch(
+      new Request("https://points.test/api/ownership/github/deactivate", {
+        body: JSON.stringify({ accountId }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(200);
+    expect(revokedTokens).toEqual(plainTokens);
+    expect(
+      await env
+        .DB!.prepare(
+          `SELECT ownership.status, account.access_token AS accessToken
+           FROM identity_ownership ownership
+           JOIN account ON account.account_id = ? AND account.provider_id = 'github'
+           WHERE ownership.normalized_identity_key = ?`,
+        )
+        .bind(accountId, `github:${accountId}`)
+        .first(),
+    ).toEqual({ accessToken: null, status: "INACTIVE" });
+  });
+
   it("does not mistake token access failure for an already-revoked token", async () => {
     const suffix = crypto.randomUUID();
     const user = await createUser(suffix, ["google", "github"]);
@@ -527,5 +587,151 @@ describe("GitHub permanent ownership", () => {
     );
     expect(claim.status).toBe(201);
     await expect(claim.json()).resolves.toMatchObject({ data: { claimedCount: 2 } });
+  });
+
+  it("keeps inactive GitHub FIXes unclaimed until explicit reactivation confirmation", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix, ["google", "github"]);
+    const accountId = String(Math.floor(Math.random() * 1_000_000) + 10_000);
+    await env
+      .DB!.prepare(
+        "UPDATE account SET account_id = ? WHERE user_id = ? AND provider_id = 'github'",
+      )
+      .bind(accountId, user.authUserId)
+      .run();
+    await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
+    await env
+      .DB!.prepare("INSERT INTO admin_membership (id, points_user_id, role) VALUES (?, ?, 'ADMIN')")
+      .bind(`adm_${suffix}`, user.pointsUser.id)
+      .run();
+
+    const criterionId = `criterion_${suffix}`;
+    await importEvaluationCriteria(env.DB!, {
+      actorPointsUserId: user.pointsUser.id,
+      items: [
+        {
+          balanceVisibleByDefault: false,
+          buyNowEnabled: true,
+          description: "Inactive GitHub FIX test",
+          evaluationCriterionId: criterionId,
+          exchangeEnabled: true,
+          expectedRevision: null,
+          minimumUnit: "0.0001",
+          name: `Inactive ${suffix.slice(0, 8)}`,
+          relatedUrls: [],
+          status: "ACTIVE",
+          transferEnabled: true,
+        },
+      ],
+      reason: "Inactive GitHub FIX test",
+    });
+
+    const login = `inactive-${suffix.slice(0, 8)}`;
+    const app = appFor(user.authUserId, {
+      getGitHubAccessToken: async () => `plain-token-${suffix}`,
+      githubFetch: async () =>
+        Response.json({
+          html_url: `https://github.com/${login}`,
+          id: Number(accountId),
+          login,
+          type: "User",
+        }),
+      githubRevokeFetch: async () => new Response(null, { status: 204 }),
+    });
+    const deactivate = await app.fetch(
+      new Request("https://points.test/api/ownership/github/deactivate", {
+        body: JSON.stringify({ accountId }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(deactivate.status).toBe(200);
+
+    const csv = `${FIX_HEADER}\n,,https://github.com/${login},${criterionId},2,2026-07,,positive\n,,https://github.com/${login},${criterionId},-0.5,2026-07,,negative`;
+    const validate = await app.fetch(
+      new Request("https://points.test/api/admin/fixes/csv/validate", {
+        body: csv,
+        headers: { "Content-Type": "text/csv" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(validate.status).toBe(200);
+    const validation = (await validate.json()) as { data: { validationHash: string } };
+    const commit = await app.fetch(
+      new Request("https://points.test/api/admin/fixes/csv/commit", {
+        body: csv,
+        headers: {
+          "Content-Type": "text/csv",
+          "Idempotency-Key": `inactive-fix-${suffix}`,
+          "X-Reason": "inactive GitHub FIX",
+          "X-Validation-Hash": validation.data.validationHash,
+        },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(commit.status).toBe(201);
+    expect(
+      await env
+        .DB!.prepare("SELECT count(*) AS count FROM point_ledger_entry WHERE points_user_id = ?")
+        .bind(user.pointsUser.id)
+        .first(),
+    ).toEqual({ count: 0 });
+    expect(
+      await env
+        .DB!.prepare(
+          "SELECT count(*) AS count FROM unclaimed_fix_entry WHERE recipient_provider_id = 'github' AND recipient_account_id = ?",
+        )
+        .bind(accountId)
+        .first(),
+    ).toEqual({ count: 2 });
+
+    const reactivate = await app.fetch(
+      new Request("https://points.test/api/ownership/github/reactivate", {
+        body: JSON.stringify({ accountId }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(reactivate.status).toBe(200);
+    const reactivation = (await reactivate.json()) as {
+      data: {
+        claimPreview: { claimSetHash: string; negativeCount?: number; totalCount: number };
+        identityOwnershipId: string;
+      };
+    };
+    expect(reactivation.data.claimPreview.totalCount).toBe(2);
+    expect(
+      await env
+        .DB!.prepare("SELECT count(*) AS count FROM point_ledger_entry WHERE points_user_id = ?")
+        .bind(user.pointsUser.id)
+        .first(),
+    ).toEqual({ count: 0 });
+
+    const claim = await app.fetch(
+      new Request(
+        `https://points.test/api/ownership/${reactivation.data.identityOwnershipId}/claim`,
+        {
+          body: JSON.stringify({ claimSetHash: reactivation.data.claimPreview.claimSetHash }),
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": `inactive-claim-${suffix}`,
+          },
+          method: "POST",
+        },
+      ),
+      env,
+    );
+    expect(claim.status).toBe(201);
+    await expect(claim.json()).resolves.toMatchObject({ data: { claimedCount: 2 } });
+    expect(
+      await env
+        .DB!.prepare("SELECT count(*) AS count FROM point_ledger_entry WHERE points_user_id = ?")
+        .bind(user.pointsUser.id)
+        .first(),
+    ).toEqual({ count: 2 });
   });
 });
