@@ -644,7 +644,7 @@ describe("settlement reservation round", () => {
 
   it("releases a discovered ACTIVE BUY_NOW reservation before atomic restore", async () => {
     const seeded = await seedEndSettlement();
-    const { planned, settlementId } = await seedBuyNowSettlement(seeded);
+    const { holdId, planned, settlementId } = await seedBuyNowSettlement(seeded);
     const reservationKey = `${settlementId}:${seeded.buyerIds[0]}:revision_1`;
     let statusCall = 0;
     const points = gateway(
@@ -675,19 +675,61 @@ describe("settlement reservation round", () => {
       },
     );
     const restore = new D1BuyNowRestorer(env.DB, env.AUCTION_SETTLEMENT);
-    const restoreSpy = vi.spyOn(restore, "restoreBuyNowHold");
+    let committedReceiptId = "";
+    const crashAfterCommit: BuyNowRestorer = {
+      async restoreBuyNowHold(input) {
+        const receipt = await restore.restoreBuyNowHold(input);
+        committedReceiptId = receipt.receiptId;
+        throw new Error("TEST_AFTER_BUY_NOW_RESTORE_COMMIT");
+      },
+    };
+    const input = {
+      planHash: planned.planHash,
+      roundOrdinal: 1,
+      settlementId,
+      settlementRevision: 1,
+    };
     await expect(
-      reserveSettlementRound(dependencies(points, restore, seeded.now), {
-        planHash: planned.planHash,
-        roundOrdinal: 1,
-        settlementId,
-        settlementRevision: 1,
-      }),
-    ).resolves.toMatchObject({ kind: "BUY_NOW_RESTORED" });
+      reserveSettlementRound(dependencies(points, crashAfterCommit, seeded.now), input),
+    ).rejects.toThrow("TEST_AFTER_BUY_NOW_RESTORE_COMMIT");
+    expect(committedReceiptId).not.toBe("");
+    expect(
+      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("FAILED_RESTORED");
+    const reserveCalls = points.reserve.mock.calls.length;
+    const releaseCalls = points.release.mock.calls.length;
+    const statusCalls = points.statusByKeys.mock.calls.length;
+    await expect(
+      reserveSettlementRound(dependencies(points, restore, seeded.now), input),
+    ).resolves.toEqual({ kind: "BUY_NOW_RESTORED", receiptId: committedReceiptId });
+    expect(points.reserve).toHaveBeenCalledTimes(reserveCalls);
+    expect(points.release).toHaveBeenCalledTimes(releaseCalls);
+    expect(points.statusByKeys).toHaveBeenCalledTimes(statusCalls);
     expect(points.release).toHaveBeenCalledTimes(1);
-    expect(restoreSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ evidenceType: "ALL_RESERVATIONS_NON_CAPTURABLE" }),
-    );
+    const failureHash = await env.DB.prepare(
+      "SELECT failure_hash FROM settlement_round_winners WHERE settlement_round_id = ?",
+    )
+      .bind(`sround_${settlementId}_1`)
+      .first<string>("failure_hash");
+    if (!failureHash) throw new Error("TEST_FAILURE_HASH_NOT_FOUND");
+    await expect(
+      restore.restoreBuyNowHold({
+        evidenceType: "ALL_RESERVATIONS_NON_CAPTURABLE",
+        failureHash: "0".repeat(64),
+        holdId,
+        settlementId,
+      }),
+    ).rejects.toThrow("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");
+    await expect(
+      restore.restoreBuyNowHold({
+        evidenceType: "RESERVATION_REJECTED",
+        failureHash,
+        holdId,
+        settlementId,
+      }),
+    ).rejects.toThrow("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");
     expect(
       await env.DB.prepare(
         `SELECT status, point_reservation_id AS pointReservationId,

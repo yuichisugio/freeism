@@ -253,6 +253,30 @@ export class D1SettlementReservationRepository implements SettlementReservationR
       .run();
   }
 
+  async findCompletedBuyNowRestoreEvidence(input: {
+    holdId: string;
+    roundId: string;
+    settlementId: string;
+  }): Promise<{ failureHash: string } | null> {
+    const rows = await this.db
+      .prepare(
+        `SELECT w.failure_hash AS failureHash
+         FROM settlement_round_winners w
+         JOIN settlement_rounds r ON r.id = w.settlement_round_id
+         JOIN settlements s ON s.id = r.settlement_id AND s.kind = 'BUY_NOW'
+         JOIN buy_now_holds h ON h.id = ? AND h.auction_id = s.auction_id
+         JOIN auction_close_resume_outbox o ON o.buy_now_hold_id = h.id
+         WHERE r.id = ? AND r.settlement_id = ? AND h.status = 'FAILED_RESTORED'
+           AND w.status = 'RELEASED' AND w.point_reservation_id IS NOT NULL
+           AND w.failure_code = 'ALL_RESERVATIONS_NON_CAPTURABLE'
+           AND w.failure_hash IS NOT NULL AND w.release_receipt_id IS NOT NULL
+           AND w.release_content_hash IS NOT NULL AND w.released_at IS NOT NULL`,
+      )
+      .bind(input.holdId, input.roundId, input.settlementId)
+      .all<{ failureHash: string }>();
+    return rows.results.length === 1 ? rows.results[0]! : null;
+  }
+
   async recordWinnerReceipt(input: WinnerReceiptInput): Promise<void> {
     await this.db
       .prepare(

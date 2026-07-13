@@ -128,6 +128,11 @@ export interface WinnerFailureInput {
 
 export interface SettlementReservationRepository {
   beginOrResumeRound(input: BeginRoundInput): Promise<ReservationRoundState>;
+  findCompletedBuyNowRestoreEvidence(input: {
+    holdId: string;
+    roundId: string;
+    settlementId: string;
+  }): Promise<{ failureHash: string } | null>;
   completeReleaseAndExclude(input: {
     auctionId: string;
     exclusions: readonly {
@@ -306,6 +311,31 @@ export async function reserveSettlementRound(
     settlementId: input.settlementId,
     winners,
   });
+  if (loaded.plan.kind === "BUY_NOW" && round.winners.length === 1) {
+    const winner = round.winners[0]!;
+    if (winner.status === "RELEASED") {
+      const replay = await dependencies.repository.findCompletedBuyNowRestoreEvidence({
+        holdId: loaded.plan.buyNowHoldId,
+        roundId: round.id,
+        settlementId: input.settlementId,
+      });
+      if (!replay) {
+        await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+        return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESTORE_EVIDENCE_INVALID" };
+      }
+      const receipt = await dependencies.buyNowRestorer.restoreBuyNowHold({
+        evidenceType: "ALL_RESERVATIONS_NON_CAPTURABLE",
+        failureHash: replay.failureHash,
+        holdId: loaded.plan.buyNowHoldId,
+        settlementId: input.settlementId,
+      });
+      return { kind: "BUY_NOW_RESTORED", receiptId: receipt.receiptId };
+    }
+    if (winner.status === "CAPTURED") {
+      await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+      return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_CAPTURED" };
+    }
+  }
   if (round.state === "RELEASED") {
     return {
       excludedUserIds: round.excludedUserIds,
