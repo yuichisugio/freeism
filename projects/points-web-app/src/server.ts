@@ -21,10 +21,7 @@ const serverEntry = createServerEntry({
     const url = new URL(request.url);
     const pathname = url.pathname;
     const isGetOrHead = request.method === "GET" || request.method === "HEAD";
-    if (
-      url.hostname === "localhost" &&
-      ((isGetOrHead && FIXED_PAGE_PATHS.has(pathname)) || isSpaNavigationRequest(request))
-    ) {
+    if ((isGetOrHead && FIXED_PAGE_PATHS.has(pathname)) || isSpaNavigationRequest(request)) {
       return handler.fetch(request);
     }
     return fetchPointsApi(request, env);
