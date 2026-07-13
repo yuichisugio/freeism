@@ -20,6 +20,11 @@ export interface WinnerReservationRequest {
 }
 
 export interface WinnerReservationReceipt {
+  components?: readonly {
+    amountScaled: string;
+    evaluationCriterionId: string;
+    evaluationCriterionRevisionId: string;
+  }[];
   expiresAt: string;
   pointReservationId: string;
   requestId?: string;

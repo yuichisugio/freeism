@@ -40,6 +40,7 @@ interface WinnerRow {
   reservationKey: string;
   status: ReservationRoundState["winners"][number]["status"];
   vectorHash: string | null;
+  componentVectorJson: string | null;
 }
 
 type WinnerRowFailureClass = "INSUFFICIENT" | "REAUTH_REQUIRED" | "TEMPORARY" | "CONFLICT";
@@ -227,7 +228,8 @@ export class D1SettlementReservationRepository implements SettlementReservationR
                 allocation_quantity AS allocationQuantity, price_tick_count AS priceTickCount,
                 price_ticks AS priceTicks, reservation_key AS reservationKey,
                 attempt_count AS attemptCount, status, point_reservation_id AS pointReservationId,
-                vector_hash AS vectorHash, expires_at AS expiresAt,
+                vector_hash AS vectorHash, component_vector_json AS componentVectorJson,
+                expires_at AS expiresAt,
                 failure_class AS failureClass, failure_code AS failureCode,
                 failure_hash AS failureHash
          FROM settlement_round_winners WHERE settlement_round_id = ?
@@ -281,14 +283,21 @@ export class D1SettlementReservationRepository implements SettlementReservationR
     await this.db
       .prepare(
         `UPDATE settlement_round_winners
-         SET status = 'ACTIVE', point_reservation_id = ?, vector_hash = ?, expires_at = ?,
-             points_request_id = ?, updated_at = ?
+         SET status = 'ACTIVE', point_reservation_id = ?, vector_hash = ?,
+             component_vector_json = ?, expires_at = ?, points_request_id = ?, updated_at = ?
          WHERE settlement_round_id = ? AND markets_user_id = ?
            AND status IN ('PENDING', 'UNKNOWN', 'REJECTED')`,
       )
       .bind(
         input.pointReservationId,
         input.vectorHash,
+        input.components
+          ? JSON.stringify(
+              [...input.components].sort((left, right) =>
+                left.evaluationCriterionId.localeCompare(right.evaluationCriterionId),
+              ),
+            )
+          : null,
         input.expiresAt,
         input.requestId ?? null,
         input.now,

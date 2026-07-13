@@ -49,7 +49,7 @@ async function uniqueIndexColumns(tableName: string) {
 }
 
 describe("Markets greenfield domain schema", () => {
-  it("applies the seven greenfield migrations in sequence", async () => {
+  it("applies the eight greenfield migrations in sequence", async () => {
     await expect(appliedMigrationNames()).resolves.toEqual([
       "0000_markets-auth.sql",
       "0001_points-oauth-connection.sql",
@@ -58,7 +58,35 @@ describe("Markets greenfield domain schema", () => {
       "0004_settlement-saga.sql",
       "0005_settlement-reservation-rounds.sql",
       "0006_buy-now-restore-outbox.sql",
+      "0007_settlement-proof.sql",
     ]);
+  });
+
+  it("keeps capture receipts, allocations, proofs, and finalize receipts append-only", async () => {
+    const names = (
+      await db
+        .prepare(
+          `SELECT name FROM sqlite_master
+           WHERE type = 'trigger' AND name LIKE 'settlement_%_no_%' OR name LIKE 'proofs_no_%'
+           ORDER BY name`,
+        )
+        .all<{ name: string }>()
+    ).results.map((row) => row.name);
+    expect(names).toEqual(
+      expect.arrayContaining([
+        "proofs_no_delete",
+        "proofs_no_update",
+        "settlement_allocations_no_delete",
+        "settlement_allocations_no_update",
+        "settlement_capture_receipts_no_delete",
+        "settlement_capture_receipts_no_update",
+        "settlement_finalize_receipts_no_delete",
+        "settlement_finalize_receipts_no_update",
+      ]),
+    );
+    expect(await tableColumns("settlement_round_winners")).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "component_vector_json" })]),
+    );
   });
 
   it("owns Auction and Package snapshots without a separate Listing resource", async () => {

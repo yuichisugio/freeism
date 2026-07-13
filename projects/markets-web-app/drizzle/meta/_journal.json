@@ -50,6 +50,13 @@
       "when": 1783958937176,
       "tag": "0006_buy-now-restore-outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1783961075522,
+      "tag": "0007_settlement-proof",
+      "breakpoints": true
     }
   ]
 }

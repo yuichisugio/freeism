@@ -139,6 +139,7 @@ export function createSettlementReservationDependencies(
         throw new Error("POINTS_RESERVATION_RESPONSE_MISMATCH");
       }
       return {
+        components: response.data.components,
         expiresAt: response.data.expiresAt,
         pointReservationId: response.data.pointReservationId,
         requestId: response.meta.requestId,

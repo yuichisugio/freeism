@@ -1,0 +1,4203 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "eb36f46c-a56c-426a-bfaf-e42b20f4667a",
+  "prevId": "66b4be59-b6fd-4773-b09f-3ae6473de0b1",
+  "tables": {
+    "account": {
+      "name": "account",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "account_userId_idx": {
+          "name": "account_userId_idx",
+          "columns": ["user_id"],
+          "isUnique": false
+        },
+        "account_provider_account_uidx": {
+          "name": "account_provider_account_uidx",
+          "columns": ["provider_id", "account_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "account_user_id_user_id_fk": {
+          "name": "account_user_id_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "rate_limit": {
+      "name": "rate_limit",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_request": {
+          "name": "last_request",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "rate_limit_key_unique": {
+          "name": "rate_limit_key_unique",
+          "columns": ["key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session": {
+      "name": "session",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_token_unique": {
+          "name": "session_token_unique",
+          "columns": ["token"],
+          "isUnique": true
+        },
+        "session_userId_idx": {
+          "name": "session_userId_idx",
+          "columns": ["user_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "session_user_id_user_id_fk": {
+          "name": "session_user_id_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "user": {
+      "name": "user",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "verification": {
+      "name": "verification",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": ["identifier"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auction_blacklist_events": {
+      "name": "auction_blacklist_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason_code": {
+          "name": "reason_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "auction_blacklist_events_user_uidx": {
+          "name": "auction_blacklist_events_user_uidx",
+          "columns": ["auction_id", "markets_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auction_blacklist_events_auction_id_auctions_id_fk": {
+          "name": "auction_blacklist_events_auction_id_auctions_id_fk",
+          "tableFrom": "auction_blacklist_events",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_blacklist_events_markets_user_id_markets_user_id_fk": {
+          "name": "auction_blacklist_events_markets_user_id_markets_user_id_fk",
+          "tableFrom": "auction_blacklist_events",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auction_commands": {
+      "name": "auction_commands",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_markets_user_id": {
+          "name": "actor_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operation": {
+          "name": "operation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_auction_version": {
+          "name": "expected_auction_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "response_body": {
+          "name": "response_body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "auction_commands_auction_command_uidx": {
+          "name": "auction_commands_auction_command_uidx",
+          "columns": ["auction_id", "command_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auction_commands_auction_id_auctions_id_fk": {
+          "name": "auction_commands_auction_id_auctions_id_fk",
+          "tableFrom": "auction_commands",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_commands_actor_markets_user_id_markets_user_id_fk": {
+          "name": "auction_commands_actor_markets_user_id_markets_user_id_fk",
+          "tableFrom": "auction_commands",
+          "tableTo": "markets_user",
+          "columnsFrom": ["actor_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auction_commands_payload_hash_check": {
+          "name": "auction_commands_payload_hash_check",
+          "value": "length(\"auction_commands\".\"payload_hash\") = 64"
+        },
+        "auction_commands_expected_version_check": {
+          "name": "auction_commands_expected_version_check",
+          "value": "\"auction_commands\".\"expected_auction_version\" between 1 and 9007199254740991"
+        }
+      }
+    },
+    "auction_revisions": {
+      "name": "auction_revisions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision_number": {
+          "name": "revision_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "external_url": {
+          "name": "external_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "seller_identity_snapshot": {
+          "name": "seller_identity_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_issuer": {
+          "name": "points_issuer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_snapshot_id": {
+          "name": "point_package_snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts_at": {
+          "name": "starts_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ends_at": {
+          "name": "ends_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "package_tick": {
+          "name": "package_tick",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buy_now_price_tick_count": {
+          "name": "buy_now_price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "extension_rule_json": {
+          "name": "extension_rule_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "eligibility_receipt_id": {
+          "name": "eligibility_receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_command_id": {
+          "name": "auction_command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_command_hash": {
+          "name": "auction_command_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "package_eligibility_version": {
+          "name": "package_eligibility_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eligibility_checked_at": {
+          "name": "eligibility_checked_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eligibility_valid_until": {
+          "name": "eligibility_valid_until",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "commit_started_at": {
+          "name": "commit_started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "auction_revisions_number_uidx": {
+          "name": "auction_revisions_number_uidx",
+          "columns": ["auction_id", "revision_number"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auction_revisions_auction_id_auctions_id_fk": {
+          "name": "auction_revisions_auction_id_auctions_id_fk",
+          "tableFrom": "auction_revisions",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_revisions_point_package_snapshot_id_point_package_snapshots_id_fk": {
+          "name": "auction_revisions_point_package_snapshot_id_point_package_snapshots_id_fk",
+          "tableFrom": "auction_revisions",
+          "tableTo": "point_package_snapshots",
+          "columnsFrom": ["point_package_snapshot_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auction_revisions_revision_check": {
+          "name": "auction_revisions_revision_check",
+          "value": "\"auction_revisions\".\"revision_number\" between 1 and 9007199254740991"
+        },
+        "auction_revisions_quantity_check": {
+          "name": "auction_revisions_quantity_check",
+          "value": "\"auction_revisions\".\"quantity\" between 1 and 1000"
+        },
+        "auction_revisions_package_tick_check": {
+          "name": "auction_revisions_package_tick_check",
+          "value": "\"auction_revisions\".\"package_tick\" between 1 and 9007199254740991"
+        },
+        "auction_revisions_buy_now_tick_count_check": {
+          "name": "auction_revisions_buy_now_tick_count_check",
+          "value": "\"auction_revisions\".\"buy_now_price_tick_count\" is null or \"auction_revisions\".\"buy_now_price_tick_count\" between 1 and 9007199254740991"
+        },
+        "auction_revisions_seller_snapshot_check": {
+          "name": "auction_revisions_seller_snapshot_check",
+          "value": "json_valid(\"auction_revisions\".\"seller_identity_snapshot\")"
+        },
+        "auction_revisions_extension_rule_check": {
+          "name": "auction_revisions_extension_rule_check",
+          "value": "\"auction_revisions\".\"extension_rule_json\" is null or json_valid(\"auction_revisions\".\"extension_rule_json\")"
+        }
+      }
+    },
+    "auctions": {
+      "name": "auctions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "seller_markets_user_id": {
+          "name": "seller_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'DRAFT'"
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "auctions_seller_status_idx": {
+          "name": "auctions_seller_status_idx",
+          "columns": ["seller_markets_user_id", "status"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "auctions_seller_markets_user_id_markets_user_id_fk": {
+          "name": "auctions_seller_markets_user_id_markets_user_id_fk",
+          "tableFrom": "auctions",
+          "tableTo": "markets_user",
+          "columnsFrom": ["seller_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auctions_status_check": {
+          "name": "auctions_status_check",
+          "value": "\"auctions\".\"status\" in ('DRAFT', 'SCHEDULED', 'OPEN', 'CLOSING', 'SETTLING', 'SETTLED', 'CANCELLED', 'SETTLEMENT_RETRYABLE', 'SETTLEMENT_MANUAL_ACTION_REQUIRED')"
+        },
+        "auctions_version_check": {
+          "name": "auctions_version_check",
+          "value": "\"auctions\".\"version\" between 1 and 9007199254740991"
+        }
+      }
+    },
+    "auto_bid_rules": {
+      "name": "auto_bid_rules",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bidder_markets_user_id": {
+          "name": "bidder_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auto_bid_max_tick_count": {
+          "name": "auto_bid_max_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "active": {
+          "name": "active",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "auto_bid_rules_auction_user_uidx": {
+          "name": "auto_bid_rules_auction_user_uidx",
+          "columns": ["auction_id", "bidder_markets_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auto_bid_rules_auction_id_auctions_id_fk": {
+          "name": "auto_bid_rules_auction_id_auctions_id_fk",
+          "tableFrom": "auto_bid_rules",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auto_bid_rules_bidder_markets_user_id_markets_user_id_fk": {
+          "name": "auto_bid_rules_bidder_markets_user_id_markets_user_id_fk",
+          "tableFrom": "auto_bid_rules",
+          "tableTo": "markets_user",
+          "columnsFrom": ["bidder_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auto_bid_rules_quantity_check": {
+          "name": "auto_bid_rules_quantity_check",
+          "value": "\"auto_bid_rules\".\"quantity\" between 1 and 1000"
+        },
+        "auto_bid_rules_max_tick_count_check": {
+          "name": "auto_bid_rules_max_tick_count_check",
+          "value": "\"auto_bid_rules\".\"auto_bid_max_tick_count\" between 0 and 9007199254740991"
+        },
+        "auto_bid_rules_active_check": {
+          "name": "auto_bid_rules_active_check",
+          "value": "\"auto_bid_rules\".\"active\" in (0, 1)"
+        }
+      }
+    },
+    "bid_events": {
+      "name": "bid_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bid_seq": {
+          "name": "bid_seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bidder_markets_user_id": {
+          "name": "bidder_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_tick_count": {
+          "name": "price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "bid_events_auction_sequence_uidx": {
+          "name": "bid_events_auction_sequence_uidx",
+          "columns": ["auction_id", "bid_seq"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "bid_events_auction_id_auctions_id_fk": {
+          "name": "bid_events_auction_id_auctions_id_fk",
+          "tableFrom": "bid_events",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bid_events_bidder_markets_user_id_markets_user_id_fk": {
+          "name": "bid_events_bidder_markets_user_id_markets_user_id_fk",
+          "tableFrom": "bid_events",
+          "tableTo": "markets_user",
+          "columnsFrom": ["bidder_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "bid_events_bid_seq_check": {
+          "name": "bid_events_bid_seq_check",
+          "value": "\"bid_events\".\"bid_seq\" between 1 and 9007199254740991"
+        },
+        "bid_events_quantity_check": {
+          "name": "bid_events_quantity_check",
+          "value": "\"bid_events\".\"quantity\" between 1 and 1000"
+        },
+        "bid_events_price_tick_count_check": {
+          "name": "bid_events_price_tick_count_check",
+          "value": "\"bid_events\".\"price_tick_count\" between 0 and 9007199254740991"
+        }
+      }
+    },
+    "bid_positions": {
+      "name": "bid_positions",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bidder_markets_user_id": {
+          "name": "bidder_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_tick_count": {
+          "name": "price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reached_sequence": {
+          "name": "reached_sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'ACTIVE'"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "bid_positions_active_user_uidx": {
+          "name": "bid_positions_active_user_uidx",
+          "columns": ["auction_id", "bidder_markets_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "bid_positions_auction_id_auctions_id_fk": {
+          "name": "bid_positions_auction_id_auctions_id_fk",
+          "tableFrom": "bid_positions",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "bid_positions_bidder_markets_user_id_markets_user_id_fk": {
+          "name": "bid_positions_bidder_markets_user_id_markets_user_id_fk",
+          "tableFrom": "bid_positions",
+          "tableTo": "markets_user",
+          "columnsFrom": ["bidder_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "bid_positions_quantity_check": {
+          "name": "bid_positions_quantity_check",
+          "value": "\"bid_positions\".\"quantity\" between 1 and 1000"
+        },
+        "bid_positions_price_tick_count_check": {
+          "name": "bid_positions_price_tick_count_check",
+          "value": "\"bid_positions\".\"price_tick_count\" between 0 and 9007199254740991"
+        },
+        "bid_positions_reached_sequence_check": {
+          "name": "bid_positions_reached_sequence_check",
+          "value": "\"bid_positions\".\"reached_sequence\" between 1 and 9007199254740991"
+        },
+        "bid_positions_status_check": {
+          "name": "bid_positions_status_check",
+          "value": "\"bid_positions\".\"status\" in ('ACTIVE', 'INACTIVE')"
+        }
+      }
+    },
+    "buy_now_holds": {
+      "name": "buy_now_holds",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buyer_markets_user_id": {
+          "name": "buyer_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buy_now_price_tick_count": {
+          "name": "buy_now_price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "buy_now_holds_auction_status_idx": {
+          "name": "buy_now_holds_auction_status_idx",
+          "columns": ["auction_id", "status"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "buy_now_holds_auction_id_auctions_id_fk": {
+          "name": "buy_now_holds_auction_id_auctions_id_fk",
+          "tableFrom": "buy_now_holds",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "buy_now_holds_buyer_markets_user_id_markets_user_id_fk": {
+          "name": "buy_now_holds_buyer_markets_user_id_markets_user_id_fk",
+          "tableFrom": "buy_now_holds",
+          "tableTo": "markets_user",
+          "columnsFrom": ["buyer_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "buy_now_holds_quantity_check": {
+          "name": "buy_now_holds_quantity_check",
+          "value": "\"buy_now_holds\".\"quantity\" between 1 and 1000"
+        },
+        "buy_now_holds_price_tick_count_check": {
+          "name": "buy_now_holds_price_tick_count_check",
+          "value": "\"buy_now_holds\".\"buy_now_price_tick_count\" between 1 and 9007199254740991"
+        },
+        "buy_now_holds_status_check": {
+          "name": "buy_now_holds_status_check",
+          "value": "\"buy_now_holds\".\"status\" in ('PENDING', 'CAPTURED_PENDING_FINALIZE', 'SETTLED', 'FAILED_RESTORED')"
+        }
+      }
+    },
+    "point_package_snapshot_components": {
+      "name": "point_package_snapshot_components",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_snapshot_id": {
+          "name": "point_package_snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_name": {
+          "name": "evaluation_criterion_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weight": {
+          "name": "weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minimum_unit_scaled": {
+          "name": "minimum_unit_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "point_package_snapshot_components_criterion_uidx": {
+          "name": "point_package_snapshot_components_criterion_uidx",
+          "columns": ["point_package_snapshot_id", "evaluation_criterion_id"],
+          "isUnique": true
+        },
+        "point_package_snapshot_components_order_uidx": {
+          "name": "point_package_snapshot_components_order_uidx",
+          "columns": ["point_package_snapshot_id", "display_order"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_snapshot_components_point_package_snapshot_id_point_package_snapshots_id_fk": {
+          "name": "point_package_snapshot_components_point_package_snapshot_id_point_package_snapshots_id_fk",
+          "tableFrom": "point_package_snapshot_components",
+          "tableTo": "point_package_snapshots",
+          "columnsFrom": ["point_package_snapshot_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_snapshot_components_weight_check": {
+          "name": "point_package_snapshot_components_weight_check",
+          "value": "\"point_package_snapshot_components\".\"weight\" between 1 and 9007199254740991"
+        },
+        "point_package_snapshot_components_unit_check": {
+          "name": "point_package_snapshot_components_unit_check",
+          "value": "\"point_package_snapshot_components\".\"minimum_unit_scaled\" between 1 and 9007199254740991"
+        },
+        "point_package_snapshot_components_order_check": {
+          "name": "point_package_snapshot_components_order_check",
+          "value": "\"point_package_snapshot_components\".\"display_order\" >= 0"
+        }
+      }
+    },
+    "point_package_snapshots": {
+      "name": "point_package_snapshots",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_id": {
+          "name": "point_package_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "total_weight": {
+          "name": "total_weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "point_package_snapshots_revision_uidx": {
+          "name": "point_package_snapshots_revision_uidx",
+          "columns": ["point_package_revision_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_snapshots_total_weight_check": {
+          "name": "point_package_snapshots_total_weight_check",
+          "value": "\"point_package_snapshots\".\"total_weight\" between 1 and 9007199254740991"
+        }
+      }
+    },
+    "turnstile_token_replays": {
+      "name": "turnstile_token_replays",
+      "columns": {
+        "token_hash": {
+          "name": "token_hash",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operation": {
+          "name": "operation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "hostname": {
+          "name": "hostname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "used_at": {
+          "name": "used_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "turnstile_token_replays_expiry_idx": {
+          "name": "turnstile_token_replays_expiry_idx",
+          "columns": ["expires_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "turnstile_token_replays_hash_check": {
+          "name": "turnstile_token_replays_hash_check",
+          "value": "length(\"turnstile_token_replays\".\"token_hash\") = 64"
+        }
+      }
+    },
+    "websocket_slot_leases": {
+      "name": "websocket_slot_leases",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_slot": {
+          "name": "user_slot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_slot": {
+          "name": "auction_slot",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lease_expires_at": {
+          "name": "lease_expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "websocket_slot_leases_user_slot_uidx": {
+          "name": "websocket_slot_leases_user_slot_uidx",
+          "columns": ["markets_user_id", "user_slot"],
+          "isUnique": true
+        },
+        "websocket_slot_leases_auction_slot_uidx": {
+          "name": "websocket_slot_leases_auction_slot_uidx",
+          "columns": ["markets_user_id", "auction_id", "auction_slot"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "websocket_slot_leases_markets_user_id_markets_user_id_fk": {
+          "name": "websocket_slot_leases_markets_user_id_markets_user_id_fk",
+          "tableFrom": "websocket_slot_leases",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "websocket_slot_leases_auction_id_auctions_id_fk": {
+          "name": "websocket_slot_leases_auction_id_auctions_id_fk",
+          "tableFrom": "websocket_slot_leases",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "websocket_slot_leases_user_slot_check": {
+          "name": "websocket_slot_leases_user_slot_check",
+          "value": "\"websocket_slot_leases\".\"user_slot\" between 1 and 20"
+        },
+        "websocket_slot_leases_auction_slot_check": {
+          "name": "websocket_slot_leases_auction_slot_check",
+          "value": "\"websocket_slot_leases\".\"auction_slot\" between 1 and 3"
+        }
+      }
+    },
+    "audit_events": {
+      "name": "audit_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_markets_user_id": {
+          "name": "actor_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "event_code": {
+          "name": "event_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_id": {
+          "name": "target_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "before_json": {
+          "name": "before_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "after_json": {
+          "name": "after_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "environment": {
+          "name": "environment",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "result": {
+          "name": "result",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "audit_events_target_idx": {
+          "name": "audit_events_target_idx",
+          "columns": ["target_type", "target_id", "created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "audit_events_actor_markets_user_id_markets_user_id_fk": {
+          "name": "audit_events_actor_markets_user_id_markets_user_id_fk",
+          "tableFrom": "audit_events",
+          "tableTo": "markets_user",
+          "columnsFrom": ["actor_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "audit_events_before_json_check": {
+          "name": "audit_events_before_json_check",
+          "value": "\"audit_events\".\"before_json\" is null or json_valid(\"audit_events\".\"before_json\")"
+        },
+        "audit_events_after_json_check": {
+          "name": "audit_events_after_json_check",
+          "value": "\"audit_events\".\"after_json\" is null or json_valid(\"audit_events\".\"after_json\")"
+        }
+      }
+    },
+    "idempotency_results": {
+      "name": "idempotency_results",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_markets_user_id": {
+          "name": "actor_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operation": {
+          "name": "operation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PENDING'"
+        },
+        "response_status": {
+          "name": "response_status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "response_body": {
+          "name": "response_body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "response_content_type": {
+          "name": "response_content_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "idempotency_results_actor_operation_key_uidx": {
+          "name": "idempotency_results_actor_operation_key_uidx",
+          "columns": ["actor_markets_user_id", "operation", "idempotency_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "idempotency_results_actor_markets_user_id_markets_user_id_fk": {
+          "name": "idempotency_results_actor_markets_user_id_markets_user_id_fk",
+          "tableFrom": "idempotency_results",
+          "tableTo": "markets_user",
+          "columnsFrom": ["actor_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "idempotency_results_key_check": {
+          "name": "idempotency_results_key_check",
+          "value": "length(\"idempotency_results\".\"idempotency_key\") between 1 and 200"
+        },
+        "idempotency_results_payload_hash_check": {
+          "name": "idempotency_results_payload_hash_check",
+          "value": "length(\"idempotency_results\".\"payload_hash\") = 64"
+        },
+        "idempotency_results_state_check": {
+          "name": "idempotency_results_state_check",
+          "value": "\"idempotency_results\".\"state\" in ('PENDING', 'COMPLETED')"
+        },
+        "idempotency_results_response_status_check": {
+          "name": "idempotency_results_response_status_check",
+          "value": "\"idempotency_results\".\"response_status\" is null or \"idempotency_results\".\"response_status\" between 100 and 599"
+        }
+      }
+    },
+    "markets_user": {
+      "name": "markets_user",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "markets_user_auth_user_id_uidx": {
+          "name": "markets_user_auth_user_id_uidx",
+          "columns": ["auth_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "markets_user_auth_user_id_user_id_fk": {
+          "name": "markets_user_auth_user_id_user_id_fk",
+          "tableFrom": "markets_user",
+          "tableTo": "user",
+          "columnsFrom": ["auth_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ops_alerts": {
+      "name": "ops_alerts",
+      "columns": {
+        "dedupe_key": {
+          "name": "dedupe_key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "signal": {
+          "name": "signal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_seen_at": {
+          "name": "first_seen_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "delivery_attempt_count": {
+          "name": "delivery_attempt_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "safe_detail_code": {
+          "name": "safe_detail_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "ops_alerts_status_seen_idx": {
+          "name": "ops_alerts_status_seen_idx",
+          "columns": ["status", "last_seen_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ops_alerts_severity_check": {
+          "name": "ops_alerts_severity_check",
+          "value": "\"ops_alerts\".\"severity\" in ('INFO', 'WARNING', 'CRITICAL')"
+        },
+        "ops_alerts_status_check": {
+          "name": "ops_alerts_status_check",
+          "value": "\"ops_alerts\".\"status\" in ('OPEN', 'RESOLVED')"
+        },
+        "ops_alerts_delivery_attempt_check": {
+          "name": "ops_alerts_delivery_attempt_check",
+          "value": "\"ops_alerts\".\"delivery_attempt_count\" >= 0"
+        }
+      }
+    },
+    "points_connection": {
+      "name": "points_connection",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "link_attempt_id": {
+          "name": "link_attempt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempt_payload_hash": {
+          "name": "attempt_payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_issuer": {
+          "name": "points_issuer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_subject": {
+          "name": "points_subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_client_id": {
+          "name": "user_client_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "m2m_client_id": {
+          "name": "m2m_client_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "granted_scopes": {
+          "name": "granted_scopes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_grant_id": {
+          "name": "points_grant_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "points_grant_version": {
+          "name": "points_grant_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "confirmation_receipt_id": {
+          "name": "confirmation_receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "deactivation_receipt_id": {
+          "name": "deactivation_receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "better_auth_account_id": {
+          "name": "better_auth_account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "token_version": {
+          "name": "token_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "refresh_lease_owner": {
+          "name": "refresh_lease_owner",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_lease_expires_at": {
+          "name": "refresh_lease_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "points_connection_link_attempt_uidx": {
+          "name": "points_connection_link_attempt_uidx",
+          "columns": ["link_attempt_id"],
+          "isUnique": true
+        },
+        "points_connection_live_markets_user_uidx": {
+          "name": "points_connection_live_markets_user_uidx",
+          "columns": ["markets_user_id"],
+          "isUnique": true,
+          "where": "\"points_connection\".\"status\" IN ('PENDING_CONFIRMATION', 'ACTIVE')"
+        },
+        "points_connection_live_subject_uidx": {
+          "name": "points_connection_live_subject_uidx",
+          "columns": ["points_issuer", "points_subject"],
+          "isUnique": true,
+          "where": "\"points_connection\".\"status\" IN ('PENDING_CONFIRMATION', 'ACTIVE')"
+        },
+        "points_connection_auth_user_idx": {
+          "name": "points_connection_auth_user_idx",
+          "columns": ["auth_user_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "points_connection_markets_user_id_markets_user_id_fk": {
+          "name": "points_connection_markets_user_id_markets_user_id_fk",
+          "tableFrom": "points_connection",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "points_connection_auth_user_id_user_id_fk": {
+          "name": "points_connection_auth_user_id_user_id_fk",
+          "tableFrom": "points_connection",
+          "tableTo": "user",
+          "columnsFrom": ["auth_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "points_oauth_state": {
+      "name": "points_oauth_state",
+      "columns": {
+        "link_attempt_id": {
+          "name": "link_attempt_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state_hash": {
+          "name": "state_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pkce_verifier": {
+          "name": "pkce_verifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nonce": {
+          "name": "nonce",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "callback_uri": {
+          "name": "callback_uri",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "return_url_hash": {
+          "name": "return_url_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "requested_scopes": {
+          "name": "requested_scopes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempt_payload_hash": {
+          "name": "attempt_payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'STARTED'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "points_oauth_state_hash_uidx": {
+          "name": "points_oauth_state_hash_uidx",
+          "columns": ["state_hash"],
+          "isUnique": true
+        },
+        "points_oauth_state_markets_user_idx": {
+          "name": "points_oauth_state_markets_user_idx",
+          "columns": ["markets_user_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "points_oauth_state_markets_user_id_markets_user_id_fk": {
+          "name": "points_oauth_state_markets_user_id_markets_user_id_fk",
+          "tableFrom": "points_oauth_state",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "points_oauth_state_auth_user_id_user_id_fk": {
+          "name": "points_oauth_state_auth_user_id_user_id_fk",
+          "tableFrom": "points_oauth_state",
+          "tableTo": "user",
+          "columnsFrom": ["auth_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "points_unlink_authorization": {
+      "name": "points_unlink_authorization",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_connection_id": {
+          "name": "points_connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state_hash": {
+          "name": "state_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pkce_verifier": {
+          "name": "pkce_verifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nonce": {
+          "name": "nonce",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "callback_uri": {
+          "name": "callback_uri",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'STARTED'"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "points_unlink_authorization_state_uidx": {
+          "name": "points_unlink_authorization_state_uidx",
+          "columns": ["state_hash"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "points_unlink_authorization_points_connection_id_points_connection_id_fk": {
+          "name": "points_unlink_authorization_points_connection_id_points_connection_id_fk",
+          "tableFrom": "points_unlink_authorization",
+          "tableTo": "points_connection",
+          "columnsFrom": ["points_connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "points_unlink_authorization_markets_user_id_markets_user_id_fk": {
+          "name": "points_unlink_authorization_markets_user_id_markets_user_id_fk",
+          "tableFrom": "points_unlink_authorization",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "points_unlink_authorization_auth_user_id_user_id_fk": {
+          "name": "points_unlink_authorization_auth_user_id_user_id_fk",
+          "tableFrom": "points_unlink_authorization",
+          "tableTo": "user",
+          "columnsFrom": ["auth_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "proofs": {
+      "name": "proofs",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allocation_id": {
+          "name": "allocation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_revision_id": {
+          "name": "auction_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buyer_markets_user_id": {
+          "name": "buyer_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "item_snapshot_json": {
+          "name": "item_snapshot_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "seller_identity_snapshot_json": {
+          "name": "seller_identity_snapshot_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buyer_identity_snapshot_json": {
+          "name": "buyer_identity_snapshot_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allocation_quantity": {
+          "name": "allocation_quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "uniform_price_tick_count": {
+          "name": "uniform_price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_ticks": {
+          "name": "price_ticks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "component_vector_json": {
+          "name": "component_vector_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "completion_status": {
+          "name": "completion_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settled_at": {
+          "name": "settled_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "proofs_allocation_uidx": {
+          "name": "proofs_allocation_uidx",
+          "columns": ["allocation_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "proofs_allocation_id_settlement_allocations_id_fk": {
+          "name": "proofs_allocation_id_settlement_allocations_id_fk",
+          "tableFrom": "proofs",
+          "tableTo": "settlement_allocations",
+          "columnsFrom": ["allocation_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "proofs_settlement_id_settlements_id_fk": {
+          "name": "proofs_settlement_id_settlements_id_fk",
+          "tableFrom": "proofs",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "proofs_auction_id_auctions_id_fk": {
+          "name": "proofs_auction_id_auctions_id_fk",
+          "tableFrom": "proofs",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "proofs_auction_revision_id_auction_revisions_id_fk": {
+          "name": "proofs_auction_revision_id_auction_revisions_id_fk",
+          "tableFrom": "proofs",
+          "tableTo": "auction_revisions",
+          "columnsFrom": ["auction_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "proofs_buyer_markets_user_id_markets_user_id_fk": {
+          "name": "proofs_buyer_markets_user_id_markets_user_id_fk",
+          "tableFrom": "proofs",
+          "tableTo": "markets_user",
+          "columnsFrom": ["buyer_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "proofs_item_snapshot_check": {
+          "name": "proofs_item_snapshot_check",
+          "value": "json_valid(\"proofs\".\"item_snapshot_json\")"
+        },
+        "proofs_seller_snapshot_check": {
+          "name": "proofs_seller_snapshot_check",
+          "value": "json_valid(\"proofs\".\"seller_identity_snapshot_json\")"
+        },
+        "proofs_buyer_snapshot_check": {
+          "name": "proofs_buyer_snapshot_check",
+          "value": "json_valid(\"proofs\".\"buyer_identity_snapshot_json\")"
+        },
+        "proofs_component_vector_check": {
+          "name": "proofs_component_vector_check",
+          "value": "json_valid(\"proofs\".\"component_vector_json\")"
+        },
+        "proofs_quantity_check": {
+          "name": "proofs_quantity_check",
+          "value": "\"proofs\".\"allocation_quantity\" between 1 and 1000"
+        },
+        "proofs_uniform_price_check": {
+          "name": "proofs_uniform_price_check",
+          "value": "\"proofs\".\"uniform_price_tick_count\" between 0 and 9007199254740991"
+        },
+        "proofs_price_ticks_check": {
+          "name": "proofs_price_ticks_check",
+          "value": "\"proofs\".\"price_ticks\" between 0 and 9007199254740991"
+        },
+        "proofs_status_check": {
+          "name": "proofs_status_check",
+          "value": "\"proofs\".\"completion_status\" = 'SETTLED'"
+        },
+        "proofs_plan_hash_check": {
+          "name": "proofs_plan_hash_check",
+          "value": "length(\"proofs\".\"plan_hash\") = 64"
+        },
+        "proofs_content_hash_check": {
+          "name": "proofs_content_hash_check",
+          "value": "length(\"proofs\".\"content_hash\") = 64"
+        }
+      }
+    },
+    "settlement_allocations": {
+      "name": "settlement_allocations",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_round_id": {
+          "name": "settlement_round_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allocation_ordinal": {
+          "name": "allocation_ordinal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buyer_markets_user_id": {
+          "name": "buyer_markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_reservation_id": {
+          "name": "point_reservation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "uniform_price_tick_count": {
+          "name": "uniform_price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_ticks": {
+          "name": "price_ticks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "vector_hash": {
+          "name": "vector_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settled_at": {
+          "name": "settled_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_allocations_ordinal_uidx": {
+          "name": "settlement_allocations_ordinal_uidx",
+          "columns": ["settlement_id", "allocation_ordinal"],
+          "isUnique": true
+        },
+        "settlement_allocations_buyer_uidx": {
+          "name": "settlement_allocations_buyer_uidx",
+          "columns": ["settlement_id", "buyer_markets_user_id"],
+          "isUnique": true
+        },
+        "settlement_allocations_reservation_uidx": {
+          "name": "settlement_allocations_reservation_uidx",
+          "columns": ["point_reservation_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_allocations_settlement_id_settlements_id_fk": {
+          "name": "settlement_allocations_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_allocations",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_allocations_settlement_round_id_settlement_rounds_id_fk": {
+          "name": "settlement_allocations_settlement_round_id_settlement_rounds_id_fk",
+          "tableFrom": "settlement_allocations",
+          "tableTo": "settlement_rounds",
+          "columnsFrom": ["settlement_round_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_allocations_auction_id_auctions_id_fk": {
+          "name": "settlement_allocations_auction_id_auctions_id_fk",
+          "tableFrom": "settlement_allocations",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_allocations_buyer_markets_user_id_markets_user_id_fk": {
+          "name": "settlement_allocations_buyer_markets_user_id_markets_user_id_fk",
+          "tableFrom": "settlement_allocations",
+          "tableTo": "markets_user",
+          "columnsFrom": ["buyer_markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_allocations_ordinal_check": {
+          "name": "settlement_allocations_ordinal_check",
+          "value": "\"settlement_allocations\".\"allocation_ordinal\" between 1 and 9007199254740991"
+        },
+        "settlement_allocations_quantity_check": {
+          "name": "settlement_allocations_quantity_check",
+          "value": "\"settlement_allocations\".\"quantity\" between 1 and 1000"
+        },
+        "settlement_allocations_uniform_price_check": {
+          "name": "settlement_allocations_uniform_price_check",
+          "value": "\"settlement_allocations\".\"uniform_price_tick_count\" between 0 and 9007199254740991"
+        },
+        "settlement_allocations_price_ticks_check": {
+          "name": "settlement_allocations_price_ticks_check",
+          "value": "\"settlement_allocations\".\"price_ticks\" between 0 and 9007199254740991"
+        },
+        "settlement_allocations_vector_hash_check": {
+          "name": "settlement_allocations_vector_hash_check",
+          "value": "length(\"settlement_allocations\".\"vector_hash\") = 64 or (length(\"settlement_allocations\".\"vector_hash\") = 71 and substr(\"settlement_allocations\".\"vector_hash\", 1, 7) = 'sha256:')"
+        }
+      }
+    },
+    "settlement_capture_receipts": {
+      "name": "settlement_capture_receipts",
+      "columns": {
+        "capture_receipt_id": {
+          "name": "capture_receipt_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_round_id": {
+          "name": "settlement_round_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "captured_at": {
+          "name": "captured_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reservations_json": {
+          "name": "reservations_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_capture_receipts_settlement_uidx": {
+          "name": "settlement_capture_receipts_settlement_uidx",
+          "columns": ["settlement_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_capture_receipts_settlement_id_settlements_id_fk": {
+          "name": "settlement_capture_receipts_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_capture_receipts",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_capture_receipts_settlement_round_id_settlement_rounds_id_fk": {
+          "name": "settlement_capture_receipts_settlement_round_id_settlement_rounds_id_fk",
+          "tableFrom": "settlement_capture_receipts",
+          "tableTo": "settlement_rounds",
+          "columnsFrom": ["settlement_round_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_capture_receipts_auction_id_auctions_id_fk": {
+          "name": "settlement_capture_receipts_auction_id_auctions_id_fk",
+          "tableFrom": "settlement_capture_receipts",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_capture_receipts_plan_hash_check": {
+          "name": "settlement_capture_receipts_plan_hash_check",
+          "value": "length(\"settlement_capture_receipts\".\"plan_hash\") = 64"
+        },
+        "settlement_capture_receipts_content_hash_check": {
+          "name": "settlement_capture_receipts_content_hash_check",
+          "value": "length(\"settlement_capture_receipts\".\"content_hash\") = 64"
+        },
+        "settlement_capture_receipts_reservations_json_check": {
+          "name": "settlement_capture_receipts_reservations_json_check",
+          "value": "json_valid(\"settlement_capture_receipts\".\"reservations_json\")"
+        }
+      }
+    },
+    "settlement_finalize_receipts": {
+      "name": "settlement_finalize_receipts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "capture_receipt_id": {
+          "name": "capture_receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "proof_ids_json": {
+          "name": "proof_ids_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "proof_set_hash": {
+          "name": "proof_set_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "finalized_at": {
+          "name": "finalized_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_finalize_receipts_settlement_uidx": {
+          "name": "settlement_finalize_receipts_settlement_uidx",
+          "columns": ["settlement_id"],
+          "isUnique": true
+        },
+        "settlement_finalize_receipts_capture_uidx": {
+          "name": "settlement_finalize_receipts_capture_uidx",
+          "columns": ["capture_receipt_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_finalize_receipts_settlement_id_settlements_id_fk": {
+          "name": "settlement_finalize_receipts_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_finalize_receipts",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_finalize_receipts_capture_receipt_id_settlement_capture_receipts_capture_receipt_id_fk": {
+          "name": "settlement_finalize_receipts_capture_receipt_id_settlement_capture_receipts_capture_receipt_id_fk",
+          "tableFrom": "settlement_finalize_receipts",
+          "tableTo": "settlement_capture_receipts",
+          "columnsFrom": ["capture_receipt_id"],
+          "columnsTo": ["capture_receipt_id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_finalize_receipts_plan_hash_check": {
+          "name": "settlement_finalize_receipts_plan_hash_check",
+          "value": "length(\"settlement_finalize_receipts\".\"plan_hash\") = 64"
+        },
+        "settlement_finalize_receipts_proof_ids_check": {
+          "name": "settlement_finalize_receipts_proof_ids_check",
+          "value": "json_valid(\"settlement_finalize_receipts\".\"proof_ids_json\")"
+        },
+        "settlement_finalize_receipts_proof_set_hash_check": {
+          "name": "settlement_finalize_receipts_proof_set_hash_check",
+          "value": "length(\"settlement_finalize_receipts\".\"proof_set_hash\") = 64"
+        }
+      }
+    },
+    "auction_close_cutoffs": {
+      "name": "auction_close_cutoffs",
+      "columns": {
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_revision_id": {
+          "name": "auction_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "closed_auction_version": {
+          "name": "closed_auction_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cutoff_at": {
+          "name": "cutoff_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "max_bid_seq": {
+          "name": "max_bid_seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eligible_bid_ids_json": {
+          "name": "eligible_bid_ids_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ranking_input_hash": {
+          "name": "ranking_input_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "available_quantity": {
+          "name": "available_quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "package_tick": {
+          "name": "package_tick",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "algorithm_version": {
+          "name": "algorithm_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "auction_close_cutoffs_auction_id_auctions_id_fk": {
+          "name": "auction_close_cutoffs_auction_id_auctions_id_fk",
+          "tableFrom": "auction_close_cutoffs",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_close_cutoffs_auction_revision_id_auction_revisions_id_fk": {
+          "name": "auction_close_cutoffs_auction_revision_id_auction_revisions_id_fk",
+          "tableFrom": "auction_close_cutoffs",
+          "tableTo": "auction_revisions",
+          "columnsFrom": ["auction_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auction_close_cutoffs_version_check": {
+          "name": "auction_close_cutoffs_version_check",
+          "value": "\"auction_close_cutoffs\".\"closed_auction_version\" between 1 and 9007199254740991"
+        },
+        "auction_close_cutoffs_bid_seq_check": {
+          "name": "auction_close_cutoffs_bid_seq_check",
+          "value": "\"auction_close_cutoffs\".\"max_bid_seq\" between 0 and 9007199254740991"
+        },
+        "auction_close_cutoffs_quantity_check": {
+          "name": "auction_close_cutoffs_quantity_check",
+          "value": "\"auction_close_cutoffs\".\"available_quantity\" between 0 and 1000"
+        },
+        "auction_close_cutoffs_package_tick_check": {
+          "name": "auction_close_cutoffs_package_tick_check",
+          "value": "\"auction_close_cutoffs\".\"package_tick\" between 1 and 9007199254740991"
+        },
+        "auction_close_cutoffs_eligible_json_check": {
+          "name": "auction_close_cutoffs_eligible_json_check",
+          "value": "json_valid(\"auction_close_cutoffs\".\"eligible_bid_ids_json\")"
+        },
+        "auction_close_cutoffs_hash_check": {
+          "name": "auction_close_cutoffs_hash_check",
+          "value": "length(\"auction_close_cutoffs\".\"ranking_input_hash\") = 64"
+        }
+      }
+    },
+    "auction_close_resume_outbox": {
+      "name": "auction_close_resume_outbox",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buy_now_hold_id": {
+          "name": "buy_now_hold_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PENDING'"
+        },
+        "settlement_outbox_id": {
+          "name": "settlement_outbox_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "dispatched_at": {
+          "name": "dispatched_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auction_close_resume_outbox_hold_uidx": {
+          "name": "auction_close_resume_outbox_hold_uidx",
+          "columns": ["buy_now_hold_id"],
+          "isUnique": true
+        },
+        "auction_close_resume_outbox_status_idx": {
+          "name": "auction_close_resume_outbox_status_idx",
+          "columns": ["status", "created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "auction_close_resume_outbox_auction_id_auctions_id_fk": {
+          "name": "auction_close_resume_outbox_auction_id_auctions_id_fk",
+          "tableFrom": "auction_close_resume_outbox",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "auction_close_resume_outbox_buy_now_hold_id_buy_now_holds_id_fk": {
+          "name": "auction_close_resume_outbox_buy_now_hold_id_buy_now_holds_id_fk",
+          "tableFrom": "auction_close_resume_outbox",
+          "tableTo": "buy_now_holds",
+          "columnsFrom": ["buy_now_hold_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auction_close_resume_outbox_status_check": {
+          "name": "auction_close_resume_outbox_status_check",
+          "value": "\"auction_close_resume_outbox\".\"status\" in ('PENDING', 'DISPATCHED')"
+        }
+      }
+    },
+    "settlement_exclusions": {
+      "name": "settlement_exclusions",
+      "columns": {
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_round_ordinal": {
+          "name": "first_round_ordinal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "blacklist_event_id": {
+          "name": "blacklist_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_exclusions_user_uidx": {
+          "name": "settlement_exclusions_user_uidx",
+          "columns": ["settlement_id", "markets_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_exclusions_settlement_id_settlements_id_fk": {
+          "name": "settlement_exclusions_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_exclusions",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_exclusions_markets_user_id_markets_user_id_fk": {
+          "name": "settlement_exclusions_markets_user_id_markets_user_id_fk",
+          "tableFrom": "settlement_exclusions",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_exclusions_round_check": {
+          "name": "settlement_exclusions_round_check",
+          "value": "\"settlement_exclusions\".\"first_round_ordinal\" between 1 and 9007199254740991"
+        },
+        "settlement_exclusions_reason_check": {
+          "name": "settlement_exclusions_reason_check",
+          "value": "\"settlement_exclusions\".\"reason\" in ('INSUFFICIENT_BALANCE', 'REAUTH_REQUIRED')"
+        }
+      }
+    },
+    "settlement_outbox": {
+      "name": "settlement_outbox",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_revision": {
+          "name": "settlement_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workflow_attempt": {
+          "name": "workflow_attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "workflow_instance_id": {
+          "name": "workflow_instance_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PENDING'"
+        },
+        "delivery_attempt_count": {
+          "name": "delivery_attempt_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "last_error_code": {
+          "name": "last_error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "dispatched_at": {
+          "name": "dispatched_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "settlement_outbox_attempt_uidx": {
+          "name": "settlement_outbox_attempt_uidx",
+          "columns": ["settlement_id", "settlement_revision", "workflow_attempt"],
+          "isUnique": true
+        },
+        "settlement_outbox_status_idx": {
+          "name": "settlement_outbox_status_idx",
+          "columns": ["status", "created_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "settlement_outbox_settlement_id_settlements_id_fk": {
+          "name": "settlement_outbox_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_outbox",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_outbox_revision_check": {
+          "name": "settlement_outbox_revision_check",
+          "value": "\"settlement_outbox\".\"settlement_revision\" between 1 and 9007199254740991"
+        },
+        "settlement_outbox_attempt_check": {
+          "name": "settlement_outbox_attempt_check",
+          "value": "\"settlement_outbox\".\"workflow_attempt\" between 0 and 9007199254740991"
+        },
+        "settlement_outbox_plan_hash_check": {
+          "name": "settlement_outbox_plan_hash_check",
+          "value": "length(\"settlement_outbox\".\"plan_hash\") = 64"
+        },
+        "settlement_outbox_status_check": {
+          "name": "settlement_outbox_status_check",
+          "value": "\"settlement_outbox\".\"status\" in ('PENDING', 'DISPATCHED')"
+        },
+        "settlement_outbox_delivery_attempt_check": {
+          "name": "settlement_outbox_delivery_attempt_check",
+          "value": "\"settlement_outbox\".\"delivery_attempt_count\" >= 0"
+        }
+      }
+    },
+    "settlement_plans": {
+      "name": "settlement_plans",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_revision": {
+          "name": "settlement_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_json": {
+          "name": "plan_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "algorithm_version": {
+          "name": "algorithm_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_plans_revision_uidx": {
+          "name": "settlement_plans_revision_uidx",
+          "columns": ["settlement_id", "settlement_revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_plans_settlement_id_settlements_id_fk": {
+          "name": "settlement_plans_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_plans",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_plans_revision_check": {
+          "name": "settlement_plans_revision_check",
+          "value": "\"settlement_plans\".\"settlement_revision\" between 1 and 9007199254740991"
+        },
+        "settlement_plans_json_check": {
+          "name": "settlement_plans_json_check",
+          "value": "json_valid(\"settlement_plans\".\"plan_json\")"
+        },
+        "settlement_plans_hash_check": {
+          "name": "settlement_plans_hash_check",
+          "value": "length(\"settlement_plans\".\"plan_hash\") = 64"
+        }
+      }
+    },
+    "settlement_round_winners": {
+      "name": "settlement_round_winners",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_round_id": {
+          "name": "settlement_round_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_user_id": {
+          "name": "markets_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_connection_id": {
+          "name": "points_connection_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "allocation_quantity": {
+          "name": "allocation_quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_tick_count": {
+          "name": "price_tick_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "price_ticks": {
+          "name": "price_ticks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reservation_key": {
+          "name": "reservation_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempt_count": {
+          "name": "attempt_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PENDING'"
+        },
+        "point_reservation_id": {
+          "name": "point_reservation_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "vector_hash": {
+          "name": "vector_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "component_vector_json": {
+          "name": "component_vector_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure_class": {
+          "name": "failure_class",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure_hash": {
+          "name": "failure_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "release_receipt_id": {
+          "name": "release_receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "release_content_hash": {
+          "name": "release_content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "released_at": {
+          "name": "released_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "points_request_id": {
+          "name": "points_request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_round_winners_user_uidx": {
+          "name": "settlement_round_winners_user_uidx",
+          "columns": ["settlement_round_id", "markets_user_id"],
+          "isUnique": true
+        },
+        "settlement_round_winners_key_uidx": {
+          "name": "settlement_round_winners_key_uidx",
+          "columns": ["reservation_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_round_winners_settlement_round_id_settlement_rounds_id_fk": {
+          "name": "settlement_round_winners_settlement_round_id_settlement_rounds_id_fk",
+          "tableFrom": "settlement_round_winners",
+          "tableTo": "settlement_rounds",
+          "columnsFrom": ["settlement_round_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_round_winners_markets_user_id_markets_user_id_fk": {
+          "name": "settlement_round_winners_markets_user_id_markets_user_id_fk",
+          "tableFrom": "settlement_round_winners",
+          "tableTo": "markets_user",
+          "columnsFrom": ["markets_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "settlement_round_winners_points_connection_id_points_connection_id_fk": {
+          "name": "settlement_round_winners_points_connection_id_points_connection_id_fk",
+          "tableFrom": "settlement_round_winners",
+          "tableTo": "points_connection",
+          "columnsFrom": ["points_connection_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_round_winners_quantity_check": {
+          "name": "settlement_round_winners_quantity_check",
+          "value": "\"settlement_round_winners\".\"allocation_quantity\" between 1 and 1000"
+        },
+        "settlement_round_winners_attempt_check": {
+          "name": "settlement_round_winners_attempt_check",
+          "value": "\"settlement_round_winners\".\"attempt_count\" between 0 and 9007199254740991"
+        },
+        "settlement_round_winners_status_check": {
+          "name": "settlement_round_winners_status_check",
+          "value": "\"settlement_round_winners\".\"status\" in ('PENDING', 'ACTIVE', 'REJECTED', 'UNKNOWN', 'RELEASED', 'EXPIRED', 'CAPTURED')"
+        },
+        "settlement_round_winners_component_vector_check": {
+          "name": "settlement_round_winners_component_vector_check",
+          "value": "\"settlement_round_winners\".\"component_vector_json\" is null or json_valid(\"settlement_round_winners\".\"component_vector_json\")"
+        }
+      }
+    },
+    "settlement_rounds": {
+      "name": "settlement_rounds",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_id": {
+          "name": "settlement_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "round_ordinal": {
+          "name": "round_ordinal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "plan_hash": {
+          "name": "plan_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cutoff_hash": {
+          "name": "cutoff_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "state": {
+          "name": "state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'RESERVING'"
+        },
+        "excluded_user_ids_json": {
+          "name": "excluded_user_ids_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "first_attempt_at": {
+          "name": "first_attempt_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retry_deadline_at": {
+          "name": "retry_deadline_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlement_rounds_ordinal_uidx": {
+          "name": "settlement_rounds_ordinal_uidx",
+          "columns": ["settlement_id", "round_ordinal"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "settlement_rounds_settlement_id_settlements_id_fk": {
+          "name": "settlement_rounds_settlement_id_settlements_id_fk",
+          "tableFrom": "settlement_rounds",
+          "tableTo": "settlements",
+          "columnsFrom": ["settlement_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlement_rounds_ordinal_check": {
+          "name": "settlement_rounds_ordinal_check",
+          "value": "\"settlement_rounds\".\"round_ordinal\" between 1 and 9007199254740991"
+        },
+        "settlement_rounds_plan_hash_check": {
+          "name": "settlement_rounds_plan_hash_check",
+          "value": "length(\"settlement_rounds\".\"plan_hash\") = 64"
+        },
+        "settlement_rounds_cutoff_hash_check": {
+          "name": "settlement_rounds_cutoff_hash_check",
+          "value": "length(\"settlement_rounds\".\"cutoff_hash\") = 64"
+        },
+        "settlement_rounds_excluded_json_check": {
+          "name": "settlement_rounds_excluded_json_check",
+          "value": "json_valid(\"settlement_rounds\".\"excluded_user_ids_json\")"
+        },
+        "settlement_rounds_deadline_check": {
+          "name": "settlement_rounds_deadline_check",
+          "value": "\"settlement_rounds\".\"retry_deadline_at\" >= \"settlement_rounds\".\"first_attempt_at\""
+        },
+        "settlement_rounds_state_check": {
+          "name": "settlement_rounds_state_check",
+          "value": "\"settlement_rounds\".\"state\" in ('RESERVING', 'RELEASING', 'RELEASED', 'RESERVED', 'FAILED')"
+        }
+      }
+    },
+    "settlements": {
+      "name": "settlements",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_id": {
+          "name": "auction_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "settlement_revision": {
+          "name": "settlement_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "workflow_attempt": {
+          "name": "workflow_attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "saga_state": {
+          "name": "saga_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PLANNED'"
+        },
+        "current_plan_id": {
+          "name": "current_plan_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))"
+        }
+      },
+      "indexes": {
+        "settlements_source_uidx": {
+          "name": "settlements_source_uidx",
+          "columns": ["auction_id", "kind", "source_key"],
+          "isUnique": true
+        },
+        "settlements_auction_state_idx": {
+          "name": "settlements_auction_state_idx",
+          "columns": ["auction_id", "saga_state"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "settlements_auction_id_auctions_id_fk": {
+          "name": "settlements_auction_id_auctions_id_fk",
+          "tableFrom": "settlements",
+          "tableTo": "auctions",
+          "columnsFrom": ["auction_id"],
+          "columnsTo": ["id"],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "settlements_kind_check": {
+          "name": "settlements_kind_check",
+          "value": "\"settlements\".\"kind\" in ('END_OF_AUCTION', 'BUY_NOW')"
+        },
+        "settlements_revision_check": {
+          "name": "settlements_revision_check",
+          "value": "\"settlements\".\"settlement_revision\" between 1 and 9007199254740991"
+        },
+        "settlements_attempt_check": {
+          "name": "settlements_attempt_check",
+          "value": "\"settlements\".\"workflow_attempt\" between 0 and 9007199254740991"
+        },
+        "settlements_state_check": {
+          "name": "settlements_state_check",
+          "value": "\"settlements\".\"saga_state\" in ('PLANNED', 'RESERVING', 'RESERVED', 'CAPTURING', 'CAPTURED', 'FINALIZING', 'SETTLED', 'MANUAL_ACTION_REQUIRED')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

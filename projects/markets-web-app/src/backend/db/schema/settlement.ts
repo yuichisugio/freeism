@@ -253,6 +253,7 @@ export const settlementRoundWinners = sqliteTable(
       .notNull(),
     pointReservationId: text("point_reservation_id"),
     vectorHash: text("vector_hash"),
+    componentVectorJson: text("component_vector_json"),
     expiresAt: text("expires_at"),
     failureClass: text("failure_class"),
     failureCode: text("failure_code"),
@@ -281,6 +282,10 @@ export const settlementRoundWinners = sqliteTable(
     check(
       "settlement_round_winners_status_check",
       sql`${table.status} in ('PENDING', 'ACTIVE', 'REJECTED', 'UNKNOWN', 'RELEASED', 'EXPIRED', 'CAPTURED')`,
+    ),
+    check(
+      "settlement_round_winners_component_vector_check",
+      sql`${table.componentVectorJson} is null or json_valid(${table.componentVectorJson})`,
     ),
   ],
 );

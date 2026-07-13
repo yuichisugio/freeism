@@ -6,6 +6,11 @@ import { D1WebSocketLeaseRepository } from "../db/d1-websocket-lease-repository"
 import { dispatchSettlementOutbox } from "../settlement/outbox-dispatcher";
 import { nextAuctionAlarmAt } from "./auction-lifecycle-scheduler";
 import {
+  settleBuyNowHold,
+  type BuyNowTerminalReceipt,
+  type SettleBuyNowHoldInput,
+} from "./settle-buy-now-hold";
+import {
   executeAuctionCommand,
   type AuctionCommandResult,
   type ExecuteAuctionCommandInput,
@@ -55,6 +60,10 @@ export class AuctionRoom extends DurableObject<Env> {
       }
     }
     return committed.result;
+  }
+
+  async settleBuyNowHold(input: SettleBuyNowHoldInput): Promise<BuyNowTerminalReceipt> {
+    return settleBuyNowHold(this.env.DB, input);
   }
 
   async fetch(request: Request): Promise<Response> {

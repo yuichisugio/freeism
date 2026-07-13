@@ -40,9 +40,19 @@ function isAuctionEligibilityItemError(value: unknown): value is AuctionEligibil
 
 function readProblem(value: unknown) {
   if (typeof value !== "object" || value === null) {
-    return { code: "POINTS_API_ERROR", errors: [], requestId: undefined };
+    return {
+      code: "POINTS_API_ERROR",
+      errors: [],
+      insufficientReservationIds: undefined,
+      requestId: undefined,
+    };
   }
-  const problem = value as { code?: unknown; errors?: unknown; requestId?: unknown };
+  const problem = value as {
+    code?: unknown;
+    errors?: unknown;
+    insufficientReservationIds?: unknown;
+    requestId?: unknown;
+  };
   const code = typeof problem.code === "string" ? problem.code : "POINTS_API_ERROR";
   const errors =
     code === "POINT_PACKAGE_AUCTION_INELIGIBLE" &&
@@ -53,6 +63,10 @@ function readProblem(value: unknown) {
   return {
     code,
     errors,
+    insufficientReservationIds:
+      code === "INSUFFICIENT_BALANCE" && Array.isArray(problem.insufficientReservationIds)
+        ? problem.insufficientReservationIds
+        : undefined,
     requestId: typeof problem.requestId === "string" ? problem.requestId : undefined,
   };
 }
@@ -68,6 +82,7 @@ export class PointsApiError extends Error {
     readonly errors: readonly AuctionEligibilityItemError[] = [],
     readonly requestId?: string,
     readonly retryAfter?: string,
+    readonly insufficientReservationIds?: readonly unknown[],
   ) {
     super(code);
   }
@@ -83,6 +98,7 @@ async function json<T>(response: Response): Promise<T> {
       problem.errors,
       problem.requestId,
       response.headers.get("Retry-After") ?? undefined,
+      problem.insufficientReservationIds,
     );
   }
   return response.json<T>();
@@ -223,7 +239,12 @@ export class PointsApiClient {
     );
   }
 
-  async capturePointSettlement(settlementId: string, body: CaptureBody, idempotencyKey: string) {
+  async capturePointSettlement(
+    settlementId: string,
+    body: CaptureBody,
+    idempotencyKey: string,
+    options: PointsRequestOptions = {},
+  ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.capture"]);
     return json<components["schemas"]["CaptureSettlementResponse"]>(
       await this.service.fetch(
@@ -231,6 +252,7 @@ export class PointsApiClient {
           bearer,
           body,
           idempotencyKey,
+          signal: options.signal,
         }),
       ),
     );

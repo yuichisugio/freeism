@@ -4,4 +4,5 @@ export * from "./idempotency-audit";
 export * from "./markets-user";
 export * from "./ops";
 export * from "./points-connection";
+export * from "./proof";
 export * from "./settlement";
