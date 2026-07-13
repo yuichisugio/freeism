@@ -1,9 +1,17 @@
 import type { Hono } from "hono";
 
 import { getProfile, parseProfileUpdateBody, updateProfile } from "../../usecases/update-profile";
+import { updateProfilePointPackages } from "../../usecases/update-profile-point-packages";
+import {
+  getProfileEvaluationVisibility,
+  isEvaluationVisibilityExpansion,
+  updateProfileEvaluationVisibility,
+  type EvaluationVisibilityDto,
+} from "../../usecases/update-profile-evaluation-visibility";
 import type { BackendContext } from "../context";
 import { requireBindings } from "../context";
 import { idempotencyKeyMiddleware, profileBodyLimit } from "../middleware/idempotency-middleware";
+import { findFreshGoogleAccountId } from "../middleware/google-fresh-middleware";
 import { createSessionMiddleware, type GetSession } from "../middleware/session-middleware";
 import { problem } from "../problem";
 
@@ -52,6 +60,140 @@ export function registerProfileRoutes(app: Hono<BackendContext>, getSession: Get
         }
         throw error;
       }
+    },
+  );
+
+  app.put(
+    "/api/profile/point-packages",
+    profileBodyLimit,
+    sessionMiddleware,
+    idempotencyKeyMiddleware,
+    async (context) => {
+      let body: unknown;
+      try {
+        body = await context.req.json();
+      } catch {
+        return problem(context, 400, "INVALID_REQUEST_BODY", "Invalid request body");
+      }
+      const pointPackageIds =
+        body && typeof body === "object"
+          ? (body as { pointPackageIds?: unknown }).pointPackageIds
+          : null;
+      if (
+        !Array.isArray(pointPackageIds) ||
+        !pointPackageIds.every((pointPackageId) => typeof pointPackageId === "string")
+      ) {
+        return problem(context, 422, "INVALID_POINT_PACKAGES", "Invalid Point Package list");
+      }
+      try {
+        const result = await updateProfilePointPackages(requireBindings(context.env).DB, {
+          pointsUserId: context.get("pointsUser").id,
+          pointPackageIds,
+        });
+        return context.json({
+          data: { pointPackageIds: result },
+          meta: { requestId: `req_${crypto.randomUUID()}` },
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === "DUPLICATE_POINT_PACKAGE") {
+          return problem(context, 422, error.message, "Duplicate Point Package");
+        }
+        throw error;
+      }
+    },
+  );
+
+  app.put(
+    "/api/profile/evaluation-visibilities/:evaluationCriterionId",
+    profileBodyLimit,
+    sessionMiddleware,
+    idempotencyKeyMiddleware,
+    async (context) => {
+      let rawBody: unknown;
+      try {
+        rawBody = await context.req.json();
+      } catch {
+        return problem(context, 400, "INVALID_REQUEST_BODY", "Invalid request body");
+      }
+      if (!rawBody || typeof rawBody !== "object") {
+        return problem(context, 422, "INVALID_EVALUATION_VISIBILITY", "Invalid visibility");
+      }
+      const body = rawBody as Record<string, unknown>;
+      const wireKeys = [
+        "balanceVisibility",
+        "evaluationTotalVisibility",
+        "fixHistoryVisibility",
+        "transferHistoryVisibility",
+        "exchangeHistoryVisibility",
+      ] as const;
+      if (
+        !wireKeys.every((key) => body[key] === "PUBLIC" || body[key] === "PRIVATE") ||
+        Object.keys(body).some((key) => !wireKeys.includes(key as (typeof wireKeys)[number]))
+      ) {
+        return problem(context, 422, "INVALID_EVALUATION_VISIBILITY", "Invalid visibility");
+      }
+
+      const database = requireBindings(context.env).DB;
+      const evaluationCriterionId = context.req.param("evaluationCriterionId");
+      const criterion = await database
+        .prepare(
+          `SELECT revision.balance_visible_by_default AS balanceVisibleByDefault
+           FROM evaluation_criterion criterion
+           JOIN evaluation_criterion_revision revision ON revision.id = criterion.current_revision_id
+           WHERE criterion.id = ?`,
+        )
+        .bind(evaluationCriterionId)
+        .first<{ balanceVisibleByDefault: number }>();
+      if (!criterion) {
+        return problem(
+          context,
+          404,
+          "EVALUATION_CRITERION_NOT_FOUND",
+          "Evaluation criterion not found",
+        );
+      }
+
+      const pointsUserId = context.get("pointsUser").id;
+      const balanceVisibleByDefault = criterion.balanceVisibleByDefault === 1;
+      const previous = await getProfileEvaluationVisibility(database, {
+        pointsUserId,
+        evaluationCriterionId,
+        balanceVisibleByDefault,
+      });
+      const next: EvaluationVisibilityDto = {
+        balance: body.balanceVisibility as EvaluationVisibilityDto["balance"],
+        evaluationTotal:
+          body.evaluationTotalVisibility as EvaluationVisibilityDto["evaluationTotal"],
+        fix: body.fixHistoryVisibility as EvaluationVisibilityDto["fix"],
+        transfer: body.transferHistoryVisibility as EvaluationVisibilityDto["transfer"],
+        exchange: body.exchangeHistoryVisibility as EvaluationVisibilityDto["exchange"],
+      };
+      if (isEvaluationVisibilityExpansion(previous, next)) {
+        const googleAccountId = await findFreshGoogleAccountId(
+          context.env,
+          context.get("authSession").session,
+        );
+        if (!googleAccountId) {
+          return problem(context, 401, "FRESH_GOOGLE_AUTH_REQUIRED", "Fresh Google auth required");
+        }
+        context.set("googleAccountId", googleAccountId);
+      }
+      const result = await updateProfileEvaluationVisibility(database, {
+        pointsUserId,
+        evaluationCriterionId,
+        visibility: next,
+        balanceVisibleByDefault,
+      });
+      return context.json({
+        data: {
+          balanceVisibility: result.balance,
+          evaluationTotalVisibility: result.evaluationTotal,
+          fixHistoryVisibility: result.fix,
+          transferHistoryVisibility: result.transfer,
+          exchangeHistoryVisibility: result.exchange,
+        },
+        meta: { requestId: `req_${crypto.randomUUID()}` },
+      });
     },
   );
 }

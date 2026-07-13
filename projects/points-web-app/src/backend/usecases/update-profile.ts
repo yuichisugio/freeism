@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
 import { createDb } from "../infrastructure/db/client";
@@ -6,6 +6,10 @@ import { user } from "../infrastructure/db/schema/auth";
 import { idempotencyResults } from "../infrastructure/db/schema/idempotency";
 import { pointsUsers } from "../infrastructure/db/schema/points-user";
 import { profiles } from "../infrastructure/db/schema/profile";
+import {
+  profileEvaluationVisibilities,
+  profilePointPackages,
+} from "../infrastructure/db/schema/evaluation";
 
 const PROFILE_UPDATE_OPERATION = "profile-update";
 
@@ -15,8 +19,15 @@ export interface ProfileDto {
   description: string;
   externalUrls: string[];
   visibility: "PUBLIC" | "PRIVATE";
-  pointPackages: [];
-  evaluationVisibilities: [];
+  pointPackages: Array<{ pointPackageId: string; displayOrder: number }>;
+  evaluationVisibilities: Array<{
+    evaluationCriterionId: string;
+    balanceVisibility: "PUBLIC" | "PRIVATE";
+    evaluationTotalVisibility: "PUBLIC" | "PRIVATE";
+    fixHistoryVisibility: "PUBLIC" | "PRIVATE";
+    transferHistoryVisibility: "PUBLIC" | "PRIVATE";
+    exchangeHistoryVisibility: "PUBLIC" | "PRIVATE";
+  }>;
 }
 
 export interface ProfileUpdateBody {
@@ -48,22 +59,24 @@ function defaultDisplayName(name: string, pointsUserId: string): string {
   return (trimmed.length === 0 ? pointsUserId : trimmed).slice(0, 100);
 }
 
-function toProfileDto(row: {
-  pointsUserId: string;
-  authDisplayName: string;
-  displayName: string | null;
-  description: string | null;
-  externalUrls: string[] | null;
-  visibility: "PUBLIC" | "PRIVATE" | null;
-}): ProfileDto {
+function toProfileDto(
+  row: {
+    pointsUserId: string;
+    authDisplayName: string;
+    displayName: string | null;
+    description: string | null;
+    externalUrls: string[] | null;
+    visibility: "PUBLIC" | "PRIVATE" | null;
+  },
+  settings: Pick<ProfileDto, "pointPackages" | "evaluationVisibilities">,
+): ProfileDto {
   return {
     pointsUserId: row.pointsUserId,
     displayName: row.displayName ?? defaultDisplayName(row.authDisplayName, row.pointsUserId),
     description: row.description ?? "",
     externalUrls: row.externalUrls ?? [],
     visibility: row.visibility ?? "PUBLIC",
-    pointPackages: [],
-    evaluationVisibilities: [],
+    ...settings,
   };
 }
 
@@ -111,7 +124,36 @@ async function selectProfile(database: ReturnType<typeof createDb>, pointsUserId
   if (!row) {
     throw new Error("POINTS_USER_NOT_FOUND");
   }
-  return toProfileDto(row);
+  return toProfileDto(row, await selectProfileSettings(database, pointsUserId));
+}
+
+async function selectProfileSettings(
+  database: ReturnType<typeof createDb>,
+  pointsUserId: string,
+): Promise<Pick<ProfileDto, "pointPackages" | "evaluationVisibilities">> {
+  const [pointPackages, evaluationVisibilities] = await Promise.all([
+    database
+      .select({
+        pointPackageId: profilePointPackages.pointPackageId,
+        displayOrder: profilePointPackages.displayOrder,
+      })
+      .from(profilePointPackages)
+      .where(eq(profilePointPackages.pointsUserId, pointsUserId))
+      .orderBy(asc(profilePointPackages.displayOrder)),
+    database
+      .select({
+        evaluationCriterionId: profileEvaluationVisibilities.evaluationCriterionId,
+        balanceVisibility: profileEvaluationVisibilities.balanceVisibility,
+        evaluationTotalVisibility: profileEvaluationVisibilities.evaluationTotalVisibility,
+        fixHistoryVisibility: profileEvaluationVisibilities.fixVisibility,
+        transferHistoryVisibility: profileEvaluationVisibilities.transferVisibility,
+        exchangeHistoryVisibility: profileEvaluationVisibilities.exchangeVisibility,
+      })
+      .from(profileEvaluationVisibilities)
+      .where(eq(profileEvaluationVisibilities.pointsUserId, pointsUserId))
+      .orderBy(asc(profileEvaluationVisibilities.evaluationCriterionId)),
+  ]);
+  return { pointPackages, evaluationVisibilities };
 }
 
 export async function getProfile(databaseBinding: D1Database, pointsUserId: string) {
@@ -185,8 +227,7 @@ export async function updateProfile(
   const profile: ProfileDto = {
     pointsUserId: input.actorPointsUserId,
     ...input.body,
-    pointPackages: [],
-    evaluationVisibilities: [],
+    ...(await selectProfileSettings(database, input.actorPointsUserId)),
   };
   const body: ProfileResponseBody = {
     data: profile,
