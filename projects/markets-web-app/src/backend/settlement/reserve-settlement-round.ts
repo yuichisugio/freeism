@@ -1,6 +1,9 @@
 import { clearAuction } from "../auction/domain/clear-auction";
 import type { BidPosition } from "../auction/domain/auction-types";
-import { classifyReservationFailure, type ReservationFailureClass } from "./classify-reservation-failure";
+import {
+  classifyReservationFailure,
+  type ReservationFailureClass,
+} from "./classify-reservation-failure";
 import { createSettlementPlan, type SettlementPlan } from "./create-settlement-plan";
 
 export interface WinnerReservationRequest {
@@ -10,7 +13,7 @@ export interface WinnerReservationRequest {
   marketsUserId: string;
   planHash: string;
   pointPackageRevisionId: string;
-  pointsConnectionId: string;
+  pointsConnectionId: string | null;
   priceTicks: number;
   reservationKey: string;
   settlementId: string;
@@ -64,13 +67,14 @@ export interface LoadedSettlementPlan {
   plan: SettlementPlan;
   planHash: string;
   positions: readonly (BidPosition & { id: string; pointsConnectionId: string | null })[];
+  reauthRequiredUserIds: readonly string[];
   settlementId: string;
 }
 
 export interface RoundWinnerInput {
   allocationQuantity: number;
   marketsUserId: string;
-  pointsConnectionId: string;
+  pointsConnectionId: string | null;
   priceTickCount: number;
   priceTicks: number;
   reservationKey: string;
@@ -87,6 +91,7 @@ export interface BeginRoundInput {
 }
 
 export interface ReservationRoundState {
+  excludedUserIds: readonly string[];
   firstAttemptAt: string;
   id: string;
   retryDeadlineAt: string;
@@ -95,6 +100,9 @@ export interface ReservationRoundState {
   winners: readonly (RoundWinnerInput & {
     attemptCount: number;
     expiresAt: string | null;
+    failureClass: ReservationFailureClass | null;
+    failureCode: string | null;
+    failureHash: string | null;
     pointReservationId: string | null;
     status: "PENDING" | "ACTIVE" | "REJECTED" | "UNKNOWN" | "RELEASED" | "EXPIRED" | "CAPTURED";
     vectorHash: string | null;
@@ -121,15 +129,29 @@ export interface SettlementReservationRepository {
   beginOrResumeRound(input: BeginRoundInput): Promise<ReservationRoundState>;
   completeReleaseAndExclude(input: {
     auctionId: string;
-    exclusions: readonly { failureClass: "INSUFFICIENT" | "REAUTH_REQUIRED"; marketsUserId: string }[];
+    exclusions: readonly {
+      failureClass: "INSUFFICIENT" | "REAUTH_REQUIRED";
+      marketsUserId: string;
+    }[];
     now: string;
     roundId: string;
     roundOrdinal: number;
     settlementId: string;
+    nextRound: { cutoffHash: string; excludedUserIds: readonly string[]; planHash: string };
   }): Promise<void>;
-  loadPlan(settlementId: string, settlementRevision: number, planHash: string): Promise<LoadedSettlementPlan>;
+  confirmNoReservationId(roundId: string, marketsUserId: string, now: string): Promise<void>;
+  hasNoIssuedReservationEvidence(
+    roundId: string,
+    marketsUserId: string,
+    failureHash: string,
+  ): Promise<boolean>;
+  loadPlan(
+    settlementId: string,
+    settlementRevision: number,
+    planHash: string,
+  ): Promise<LoadedSettlementPlan>;
   markManualAction(settlementId: string, roundId: string, now: string): Promise<void>;
-  markReserved(roundId: string, settlementId: string, now: string): Promise<void>;
+  markReserved(roundId: string, settlementId: string, now: string): Promise<boolean>;
   recordRelease(input: {
     contentHash: string;
     marketsUserId: string;
@@ -189,7 +211,10 @@ async function endWinners(loaded: LoadedSettlementPlan, roundOrdinal: number) {
     pointPackageRevisionId: loaded.plan.pointPackageRevisionId,
     quantity: loaded.plan.quantity,
   });
-  if (rebuilt.plan.kind !== "END_OF_AUCTION" || rebuilt.plan.rankingInputHash !== loaded.cutoffHash) {
+  if (
+    rebuilt.plan.kind !== "END_OF_AUCTION" ||
+    rebuilt.plan.rankingInputHash !== loaded.cutoffHash
+  ) {
     throw new Error("SETTLEMENT_CUTOFF_MISMATCH");
   }
   const clearing = clearAuction({
@@ -199,8 +224,7 @@ async function endWinners(loaded: LoadedSettlementPlan, roundOrdinal: number) {
   });
   return clearing.allocations
     .map((allocation) => {
-      const pointsConnectionId = loaded.connectionByUser[allocation.marketsUserId];
-      if (!pointsConnectionId) throw new Error("REAUTH_REQUIRED");
+      const pointsConnectionId = loaded.connectionByUser[allocation.marketsUserId] ?? null;
       const reservationKey = `${loaded.settlementId}:${allocation.marketsUserId}:revision_${roundOrdinal}`;
       if (reservationKey.length > 512) throw new Error("RESERVATION_KEY_TOO_LONG");
       return {
@@ -221,8 +245,7 @@ async function endWinners(loaded: LoadedSettlementPlan, roundOrdinal: number) {
 
 function buyNowWinners(loaded: LoadedSettlementPlan, roundOrdinal: number): RoundWinnerInput[] {
   if (loaded.plan.kind !== "BUY_NOW") throw new Error("BUY_NOW_PLAN_REQUIRED");
-  const pointsConnectionId = loaded.connectionByUser[loaded.plan.buyerMarketsUserId];
-  if (!pointsConnectionId) throw new Error("REAUTH_REQUIRED");
+  const pointsConnectionId = loaded.connectionByUser[loaded.plan.buyerMarketsUserId] ?? null;
   const reservationKey = `${loaded.settlementId}:${loaded.plan.buyerMarketsUserId}:revision_${roundOrdinal}`;
   if (reservationKey.length > 512) throw new Error("RESERVATION_KEY_TOO_LONG");
   return [
@@ -239,7 +262,12 @@ function buyNowWinners(loaded: LoadedSettlementPlan, roundOrdinal: number): Roun
 
 export async function reserveSettlementRound(
   dependencies: ReserveSettlementRoundDependencies,
-  input: { planHash: string; roundOrdinal: number; settlementId: string; settlementRevision: number },
+  input: {
+    planHash: string;
+    roundOrdinal: number;
+    settlementId: string;
+    settlementRevision: number;
+  },
 ): Promise<ReservationRoundResult> {
   const now = dependencies.now().toISOString();
   const loaded = await dependencies.repository.loadPlan(
@@ -269,19 +297,74 @@ export async function reserveSettlementRound(
     settlementId: input.settlementId,
     winners,
   });
+  if (round.state === "RELEASED") {
+    return {
+      excludedUserIds: round.excludedUserIds,
+      kind: "RECALCULATE",
+      nextRoundOrdinal: round.roundOrdinal + 1,
+    };
+  }
+  if (round.state === "FAILED") {
+    return { kind: "MANUAL_ACTION", reason: "SETTLEMENT_ROUND_FAILED" };
+  }
   const active = new Map<string, WinnerReservationReceipt>();
   const failures: {
     failureClass: ReservationFailureClass;
     failureHash: string;
     marketsUserId: string;
+    idDefinitelyNotIssued: boolean;
   }[] = [];
 
   for (const winner of round.winners) {
-    if (winner.status === "ACTIVE" && winner.pointReservationId && winner.vectorHash && winner.expiresAt) {
+    if (winner.status === "RELEASED") continue;
+    if (winner.status === "REJECTED" && winner.failureClass && winner.failureHash) {
+      failures.push({
+        failureClass: winner.failureClass,
+        failureHash: winner.failureHash,
+        idDefinitelyNotIssued: [
+          "INSUFFICIENT_BALANCE",
+          "INVALID_ACCESS_TOKEN",
+          "REAUTH_REQUIRED",
+          "REAUTH_REQUIRED_LOCAL",
+          "POINTS_USER_INTROSPECTION_INVALID",
+          "POINTS_TOKEN_NOT_FOUND",
+          "RESERVATION_KEY_NOT_FOUND",
+        ].includes(winner.failureCode ?? ""),
+        marketsUserId: winner.marketsUserId,
+      });
+      continue;
+    }
+    if (
+      winner.status === "ACTIVE" &&
+      winner.pointReservationId &&
+      winner.vectorHash &&
+      winner.expiresAt
+    ) {
       active.set(winner.marketsUserId, {
         expiresAt: winner.expiresAt,
         pointReservationId: winner.pointReservationId,
         vectorHash: winner.vectorHash,
+      });
+      continue;
+    }
+    if (loaded.reauthRequiredUserIds.includes(winner.marketsUserId)) {
+      const failure = await classifyReservationFailure(new Error("REAUTH_REQUIRED_LOCAL"), {
+        planHash: input.planHash,
+        reservationKey: winner.reservationKey,
+      });
+      await dependencies.repository.recordWinnerFailure({
+        failureClass: failure.class,
+        failureCode: failure.safeCode,
+        failureHash: failure.failureHash,
+        marketsUserId: winner.marketsUserId,
+        now,
+        roundId: round.id,
+      });
+      failures.push({
+        failureClass: failure.class,
+        failureHash: failure.failureHash,
+        idDefinitelyNotIssued: true,
+        marketsUserId: winner.marketsUserId,
       });
       continue;
     }
@@ -365,13 +448,18 @@ export async function reserveSettlementRound(
       failures.push({
         failureClass: failure.class,
         failureHash: failure.failureHash,
+        idDefinitelyNotIssued: failure.idDefinitelyNotIssued,
         marketsUserId: winner.marketsUserId,
       });
     }
   }
 
   if (failures.length === 0) {
-    await dependencies.repository.markReserved(round.id, input.settlementId, now);
+    const marked = await dependencies.repository.markReserved(round.id, input.settlementId, now);
+    if (!marked) {
+      await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+      return { kind: "MANUAL_ACTION", reason: "RESERVATION_STATE_DIVERGED" };
+    }
     return {
       kind: "RESERVED",
       planHash: input.planHash,
@@ -389,6 +477,39 @@ export async function reserveSettlementRound(
       await dependencies.repository.markManualAction(input.settlementId, round.id, now);
       return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
     }
+    if (!failure.idDefinitelyNotIssued) {
+      try {
+        const statuses = await dependencies.gateway.statusByKeys([
+          round.winners[0]!.reservationKey,
+        ]);
+        const status = statuses.find(
+          (item) => item.reservationKey === round.winners[0]!.reservationKey,
+        );
+        if (status?.status === "NOT_FOUND") {
+          await dependencies.repository.confirmNoReservationId(
+            round.id,
+            failure.marketsUserId,
+            now,
+          );
+        } else {
+          await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+          return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
+        }
+      } catch {
+        await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+        return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
+      }
+    }
+    if (
+      !(await dependencies.repository.hasNoIssuedReservationEvidence(
+        round.id,
+        failure.marketsUserId,
+        failure.failureHash,
+      ))
+    ) {
+      await dependencies.repository.markManualAction(input.settlementId, round.id, now);
+      return { kind: "MANUAL_ACTION", reason: "BUY_NOW_RESERVATION_UNKNOWN" };
+    }
     const receipt = await dependencies.buyNowRestorer.restoreBuyNowHold({
       evidenceType: "RESERVATION_REJECTED",
       failureHash: failure.failureHash,
@@ -398,7 +519,11 @@ export async function reserveSettlementRound(
     return { kind: "BUY_NOW_RESTORED", receiptId: receipt.receiptId };
   }
 
-  if (failures.some((failure) => failure.failureClass === "CONFLICT" || failure.failureClass === "TEMPORARY")) {
+  if (
+    failures.some(
+      (failure) => failure.failureClass === "CONFLICT" || failure.failureClass === "TEMPORARY",
+    )
+  ) {
     await dependencies.repository.markManualAction(input.settlementId, round.id, now);
     return { kind: "MANUAL_ACTION", reason: "RESERVATION_RESULT_NOT_RECALCULABLE" };
   }
@@ -421,6 +546,9 @@ export async function reserveSettlementRound(
     failureClass: failure.failureClass as "INSUFFICIENT" | "REAUTH_REQUIRED",
     marketsUserId: failure.marketsUserId,
   }));
+  const nextExcludedUserIds = [
+    ...new Set([...loaded.excludedUserIds, ...exclusions.map((item) => item.marketsUserId)]),
+  ].sort();
   await dependencies.repository.completeReleaseAndExclude({
     auctionId: loaded.auctionId,
     exclusions,
@@ -428,9 +556,14 @@ export async function reserveSettlementRound(
     roundId: round.id,
     roundOrdinal: input.roundOrdinal,
     settlementId: input.settlementId,
+    nextRound: {
+      cutoffHash: loaded.cutoffHash,
+      excludedUserIds: nextExcludedUserIds,
+      planHash: input.planHash,
+    },
   });
   return {
-    excludedUserIds: [...new Set([...loaded.excludedUserIds, ...exclusions.map((item) => item.marketsUserId)])].sort(),
+    excludedUserIds: nextExcludedUserIds,
     kind: "RECALCULATE",
     nextRoundOrdinal: input.roundOrdinal + 1,
   };

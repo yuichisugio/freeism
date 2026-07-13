@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-import { auctionRevisions, auctions } from "./auction";
+import { auctionRevisions, auctions, buyNowHolds } from "./auction";
 import { marketsUsers } from "./markets-user";
 import { pointsConnections } from "./points-connection";
 
@@ -162,6 +162,33 @@ export const settlementOutbox = sqliteTable(
   ],
 );
 
+export const auctionCloseResumeOutbox = sqliteTable(
+  "auction_close_resume_outbox",
+  {
+    id: text("id").primaryKey(),
+    auctionId: text("auction_id")
+      .notNull()
+      .references(() => auctions.id),
+    buyNowHoldId: text("buy_now_hold_id")
+      .notNull()
+      .references(() => buyNowHolds.id),
+    status: text("status", { enum: ["PENDING", "DISPATCHED"] })
+      .default("PENDING")
+      .notNull(),
+    settlementOutboxId: text("settlement_outbox_id"),
+    createdAt: text("created_at").default(now).notNull(),
+    dispatchedAt: text("dispatched_at"),
+  },
+  (table) => [
+    uniqueIndex("auction_close_resume_outbox_hold_uidx").on(table.buyNowHoldId),
+    index("auction_close_resume_outbox_status_idx").on(table.status, table.createdAt),
+    check(
+      "auction_close_resume_outbox_status_check",
+      sql`${table.status} in ('PENDING', 'DISPATCHED')`,
+    ),
+  ],
+);
+
 export const settlementRounds = sqliteTable(
   "settlement_rounds",
   {
@@ -185,11 +212,17 @@ export const settlementRounds = sqliteTable(
   },
   (table) => [
     uniqueIndex("settlement_rounds_ordinal_uidx").on(table.settlementId, table.roundOrdinal),
-    check("settlement_rounds_ordinal_check", sql`${table.roundOrdinal} between 1 and ${safeInteger}`),
+    check(
+      "settlement_rounds_ordinal_check",
+      sql`${table.roundOrdinal} between 1 and ${safeInteger}`,
+    ),
     check("settlement_rounds_plan_hash_check", sql`length(${table.planHash}) = 64`),
     check("settlement_rounds_cutoff_hash_check", sql`length(${table.cutoffHash}) = 64`),
     check("settlement_rounds_excluded_json_check", sql`json_valid(${table.excludedUserIdsJson})`),
-    check("settlement_rounds_deadline_check", sql`${table.retryDeadlineAt} >= ${table.firstAttemptAt}`),
+    check(
+      "settlement_rounds_deadline_check",
+      sql`${table.retryDeadlineAt} >= ${table.firstAttemptAt}`,
+    ),
     check(
       "settlement_rounds_state_check",
       sql`${table.state} in ('RESERVING', 'RELEASING', 'RELEASED', 'RESERVED', 'FAILED')`,
@@ -207,9 +240,7 @@ export const settlementRoundWinners = sqliteTable(
     marketsUserId: text("markets_user_id")
       .notNull()
       .references(() => marketsUsers.id),
-    pointsConnectionId: text("points_connection_id")
-      .notNull()
-      .references(() => pointsConnections.id),
+    pointsConnectionId: text("points_connection_id").references(() => pointsConnections.id),
     allocationQuantity: integer("allocation_quantity").notNull(),
     priceTickCount: integer("price_tick_count").notNull(),
     priceTicks: integer("price_ticks").notNull(),
@@ -239,8 +270,14 @@ export const settlementRoundWinners = sqliteTable(
       table.marketsUserId,
     ),
     uniqueIndex("settlement_round_winners_key_uidx").on(table.reservationKey),
-    check("settlement_round_winners_quantity_check", sql`${table.allocationQuantity} between 1 and 1000`),
-    check("settlement_round_winners_attempt_check", sql`${table.attemptCount} between 0 and ${safeInteger}`),
+    check(
+      "settlement_round_winners_quantity_check",
+      sql`${table.allocationQuantity} between 1 and 1000`,
+    ),
+    check(
+      "settlement_round_winners_attempt_check",
+      sql`${table.attemptCount} between 0 and ${safeInteger}`,
+    ),
     check(
       "settlement_round_winners_status_check",
       sql`${table.status} in ('PENDING', 'ACTIVE', 'REJECTED', 'UNKNOWN', 'RELEASED', 'EXPIRED', 'CAPTURED')`,
@@ -264,7 +301,10 @@ export const settlementExclusions = sqliteTable(
   },
   (table) => [
     uniqueIndex("settlement_exclusions_user_uidx").on(table.settlementId, table.marketsUserId),
-    check("settlement_exclusions_round_check", sql`${table.firstRoundOrdinal} between 1 and ${safeInteger}`),
+    check(
+      "settlement_exclusions_round_check",
+      sql`${table.firstRoundOrdinal} between 1 and ${safeInteger}`,
+    ),
     check(
       "settlement_exclusions_reason_check",
       sql`${table.reason} in ('INSUFFICIENT_BALANCE', 'REAUTH_REQUIRED')`,

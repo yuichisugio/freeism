@@ -43,6 +43,13 @@
       "when": 1783957059888,
       "tag": "0005_settlement-reservation-rounds",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783958937176,
+      "tag": "0006_buy-now-restore-outbox",
+      "breakpoints": true
     }
   ]
 }

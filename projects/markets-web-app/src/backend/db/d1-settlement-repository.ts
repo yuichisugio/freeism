@@ -9,6 +9,7 @@ import type {
   WinnerReceiptInput,
 } from "../settlement/reserve-settlement-round";
 import { resumeAuctionCloseFromCutoff } from "./d1-settlement-plan-repository";
+import { dispatchSettlementOutbox } from "../settlement/outbox-dispatcher";
 
 interface PlanRow {
   auctionId: string;
@@ -28,14 +29,25 @@ interface WinnerRow {
   allocationQuantity: number;
   attemptCount: number;
   expiresAt: string | null;
+  failureClass: WinnerRowFailureClass | null;
+  failureCode: string | null;
+  failureHash: string | null;
   marketsUserId: string;
   pointReservationId: string | null;
-  pointsConnectionId: string;
+  pointsConnectionId: string | null;
   priceTickCount: number;
   priceTicks: number;
   reservationKey: string;
   status: ReservationRoundState["winners"][number]["status"];
   vectorHash: string | null;
+}
+
+type WinnerRowFailureClass = "INSUFFICIENT" | "REAUTH_REQUIRED" | "TEMPORARY" | "CONFLICT";
+
+interface ConnectionCandidate {
+  marketsUserId: string;
+  pointsConnectionId: string;
+  status: string;
 }
 
 export class D1SettlementReservationRepository implements SettlementReservationRepository {
@@ -80,10 +92,11 @@ export class D1SettlementReservationRepository implements SettlementReservationR
               `SELECT bp.id, bp.bidder_markets_user_id AS marketsUserId,
                       bp.quantity, bp.price_tick_count AS priceTickCount,
                       bp.reached_sequence AS reachedSequence,
-                      pc.id AS pointsConnectionId
+                      (SELECT id FROM points_connection pc
+                       WHERE pc.markets_user_id = bp.bidder_markets_user_id
+                       ORDER BY CASE pc.status WHEN 'ACTIVE' THEN 0 ELSE 1 END,
+                                pc.updated_at DESC LIMIT 1) AS pointsConnectionId
                FROM bid_positions bp
-               LEFT JOIN points_connection pc
-                 ON pc.markets_user_id = bp.bidder_markets_user_id AND pc.status = 'ACTIVE'
                WHERE bp.auction_id = ? AND bp.status = 'ACTIVE' AND bp.updated_at <= ?
                ORDER BY bp.reached_sequence, bp.id`,
             )
@@ -92,15 +105,17 @@ export class D1SettlementReservationRepository implements SettlementReservationR
         : { results: [] as PositionRow[] };
     const connections = await this.db
       .prepare(
-        `SELECT id AS pointsConnectionId, markets_user_id AS marketsUserId
-         FROM points_connection WHERE status = 'ACTIVE'
-           AND markets_user_id IN (
+        `SELECT id AS pointsConnectionId, markets_user_id AS marketsUserId, status
+         FROM points_connection WHERE markets_user_id IN (
              SELECT bidder_markets_user_id FROM bid_positions WHERE auction_id = ?
              UNION SELECT buyer_markets_user_id FROM buy_now_holds WHERE auction_id = ?
-           )`,
+           )
+         ORDER BY markets_user_id,
+                  CASE status WHEN 'ACTIVE' THEN 0 ELSE 1 END,
+                  updated_at DESC`,
       )
       .bind(plan.auctionId, plan.auctionId)
-      .all<{ marketsUserId: string; pointsConnectionId: string }>();
+      .all<ConnectionCandidate>();
     const excluded = await this.db
       .prepare(
         `SELECT markets_user_id AS marketsUserId FROM settlement_exclusions
@@ -108,11 +123,18 @@ export class D1SettlementReservationRepository implements SettlementReservationR
       )
       .bind(settlementId)
       .all<{ marketsUserId: string }>();
-    const connectionByUser = Object.fromEntries(
-      connections.results.map((item) => [item.marketsUserId, item.pointsConnectionId]),
-    );
+    const connectionByUser: Record<string, string> = {};
+    const reauthRequiredUserIds = new Set<string>();
+    for (const item of connections.results) {
+      if (connectionByUser[item.marketsUserId]) continue;
+      connectionByUser[item.marketsUserId] = item.pointsConnectionId;
+      if (item.status !== "ACTIVE") reauthRequiredUserIds.add(item.marketsUserId);
+    }
     for (const userId of requestedUsers ?? []) {
-      if (!connectionByUser[userId]) throw new Error("REAUTH_REQUIRED");
+      if (!connectionByUser[userId]) reauthRequiredUserIds.add(userId);
+    }
+    for (const position of positions.results) {
+      if (!position.pointsConnectionId) reauthRequiredUserIds.add(position.marketsUserId);
     }
     return {
       auctionId: row.auctionId,
@@ -122,9 +144,9 @@ export class D1SettlementReservationRepository implements SettlementReservationR
       plan,
       planHash,
       positions: positions.results.filter(
-        (position) =>
-          plan.kind !== "END_OF_AUCTION" || plan.eligibleBidIds.includes(position.id),
+        (position) => plan.kind !== "END_OF_AUCTION" || plan.eligibleBidIds.includes(position.id),
       ),
+      reauthRequiredUserIds: [...reauthRequiredUserIds].sort(),
       settlementId,
     };
   }
@@ -188,11 +210,16 @@ export class D1SettlementReservationRepository implements SettlementReservationR
     const round = await this.db
       .prepare(
         `SELECT id, round_ordinal AS roundOrdinal, state, first_attempt_at AS firstAttemptAt,
+                excluded_user_ids_json AS excludedUserIdsJson,
                 retry_deadline_at AS retryDeadlineAt
          FROM settlement_rounds WHERE settlement_id = ? AND round_ordinal = ?`,
       )
       .bind(input.settlementId, input.roundOrdinal)
-      .first<Omit<ReservationRoundState, "winners">>();
+      .first<
+        Omit<ReservationRoundState, "winners" | "excludedUserIds"> & {
+          excludedUserIdsJson: string;
+        }
+      >();
     if (!round) throw new Error("SETTLEMENT_ROUND_NOT_CREATED");
     const winners = await this.db
       .prepare(
@@ -200,13 +227,19 @@ export class D1SettlementReservationRepository implements SettlementReservationR
                 allocation_quantity AS allocationQuantity, price_tick_count AS priceTickCount,
                 price_ticks AS priceTicks, reservation_key AS reservationKey,
                 attempt_count AS attemptCount, status, point_reservation_id AS pointReservationId,
-                vector_hash AS vectorHash, expires_at AS expiresAt
+                vector_hash AS vectorHash, expires_at AS expiresAt,
+                failure_class AS failureClass, failure_code AS failureCode,
+                failure_hash AS failureHash
          FROM settlement_round_winners WHERE settlement_round_id = ?
          ORDER BY markets_user_id`,
       )
       .bind(round.id)
       .all<WinnerRow>();
-    return { ...round, winners: winners.results };
+    return {
+      ...round,
+      excludedUserIds: JSON.parse(round.excludedUserIdsJson) as string[],
+      winners: winners.results,
+    };
   }
 
   async recordWinnerAttempt(roundId: string, marketsUserId: string, now: string): Promise<void> {
@@ -289,16 +322,26 @@ export class D1SettlementReservationRepository implements SettlementReservationR
 
   async completeReleaseAndExclude(input: {
     auctionId: string;
-    exclusions: readonly { failureClass: "INSUFFICIENT" | "REAUTH_REQUIRED"; marketsUserId: string }[];
+    exclusions: readonly {
+      failureClass: "INSUFFICIENT" | "REAUTH_REQUIRED";
+      marketsUserId: string;
+    }[];
     now: string;
     roundId: string;
     roundOrdinal: number;
     settlementId: string;
+    nextRound: { cutoffHash: string; excludedUserIds: readonly string[]; planHash: string };
   }): Promise<void> {
+    const nextRoundOrdinal = input.roundOrdinal + 1;
+    const nextRoundId = `sround_${input.settlementId}_${nextRoundOrdinal}`;
+    const retryDeadlineAt = new Date(Date.parse(input.now) + 5 * 60_000).toISOString();
     const statements: D1PreparedStatement[] = [
       this.db
-        .prepare("UPDATE settlement_rounds SET state = 'RELEASED', updated_at = ? WHERE id = ?")
-        .bind(input.now, input.roundId),
+        .prepare(
+          `UPDATE settlement_rounds
+           SET state = 'RELEASED', excluded_user_ids_json = ?, updated_at = ? WHERE id = ?`,
+        )
+        .bind(JSON.stringify(input.nextRound.excludedUserIds), input.now, input.roundId),
     ];
     for (const exclusion of input.exclusions) {
       const blacklistId =
@@ -328,18 +371,70 @@ export class D1SettlementReservationRepository implements SettlementReservationR
             input.settlementId,
             exclusion.marketsUserId,
             input.roundOrdinal,
-            exclusion.failureClass === "INSUFFICIENT"
-              ? "INSUFFICIENT_BALANCE"
-              : "REAUTH_REQUIRED",
+            exclusion.failureClass === "INSUFFICIENT" ? "INSUFFICIENT_BALANCE" : "REAUTH_REQUIRED",
             blacklistId,
             input.now,
           ),
       );
     }
+    statements.push(
+      this.db
+        .prepare(
+          `INSERT OR IGNORE INTO settlement_rounds
+           (id, settlement_id, round_ordinal, plan_hash, cutoff_hash, state,
+            excluded_user_ids_json, first_attempt_at, retry_deadline_at, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, 'RESERVING', ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          nextRoundId,
+          input.settlementId,
+          nextRoundOrdinal,
+          input.nextRound.planHash,
+          input.nextRound.cutoffHash,
+          JSON.stringify(input.nextRound.excludedUserIds),
+          input.now,
+          retryDeadlineAt,
+          input.now,
+          input.now,
+        ),
+    );
     await this.db.batch(statements);
   }
 
-  async markReserved(roundId: string, settlementId: string, now: string): Promise<void> {
+  async confirmNoReservationId(roundId: string, marketsUserId: string, now: string): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE settlement_round_winners
+         SET failure_code = 'RESERVATION_KEY_NOT_FOUND', updated_at = ?
+         WHERE settlement_round_id = ? AND markets_user_id = ?
+           AND status = 'REJECTED' AND point_reservation_id IS NULL`,
+      )
+      .bind(now, roundId, marketsUserId)
+      .run();
+  }
+
+  async hasNoIssuedReservationEvidence(
+    roundId: string,
+    marketsUserId: string,
+    failureHash: string,
+  ): Promise<boolean> {
+    const row = await this.db
+      .prepare(
+        `SELECT 1 AS found FROM settlement_round_winners
+         WHERE settlement_round_id = ? AND markets_user_id = ?
+           AND status = 'REJECTED' AND point_reservation_id IS NULL
+           AND failure_hash = ?
+           AND failure_code IN (
+             'INSUFFICIENT_BALANCE', 'INVALID_ACCESS_TOKEN', 'REAUTH_REQUIRED',
+             'REAUTH_REQUIRED_LOCAL', 'POINTS_USER_INTROSPECTION_INVALID',
+             'POINTS_TOKEN_NOT_FOUND', 'RESERVATION_KEY_NOT_FOUND')`,
+      )
+      .bind(roundId, marketsUserId, failureHash)
+      .first<number>("found");
+    return row === 1;
+  }
+
+  async markReserved(roundId: string, settlementId: string, now: string): Promise<boolean> {
     await this.db.batch([
       this.db
         .prepare(
@@ -357,6 +452,12 @@ export class D1SettlementReservationRepository implements SettlementReservationR
         )
         .bind(now, settlementId, roundId),
     ]);
+    return (
+      (await this.db
+        .prepare("SELECT state FROM settlement_rounds WHERE id = ?")
+        .bind(roundId)
+        .first<string>("state")) === "RESERVED"
+    );
   }
 
   async markManualAction(settlementId: string, roundId: string, now: string): Promise<void> {
@@ -375,7 +476,12 @@ export class D1SettlementReservationRepository implements SettlementReservationR
 }
 
 export class D1BuyNowRestorer {
-  constructor(private readonly db: D1Database) {}
+  constructor(
+    private readonly db: D1Database,
+    private readonly workflow: Workflow<
+      import("../settlement/outbox-dispatcher").SettlementWorkflowParams
+    >,
+  ) {}
 
   async restoreBuyNowHold(input: {
     evidenceType: "RESERVATION_REJECTED" | "ALL_RESERVATIONS_NON_CAPTURABLE";
@@ -383,6 +489,9 @@ export class D1BuyNowRestorer {
     holdId: string;
     settlementId: string;
   }): Promise<{ receiptId: string }> {
+    if (input.evidenceType !== "RESERVATION_REJECTED") {
+      throw new Error("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");
+    }
     const now = new Date().toISOString();
     const row = await this.db
       .prepare(
@@ -393,17 +502,88 @@ export class D1BuyNowRestorer {
       .bind(input.holdId, input.settlementId)
       .first<{ auctionId: string; status: string }>();
     if (!row) throw new Error("BUY_NOW_HOLD_NOT_FOUND");
-    if (row.status !== "FAILED_RESTORED") {
-      const result = await this.db
+    const evidence = await this.db
+      .prepare(
+        `SELECT 1 AS found
+         FROM settlement_round_winners w
+         JOIN settlement_rounds r ON r.id = w.settlement_round_id
+         WHERE r.settlement_id = ? AND w.status = 'REJECTED'
+           AND w.point_reservation_id IS NULL AND w.failure_hash = ?
+           AND w.failure_code IN (
+             'INSUFFICIENT_BALANCE', 'INVALID_ACCESS_TOKEN', 'REAUTH_REQUIRED',
+             'REAUTH_REQUIRED_LOCAL', 'POINTS_USER_INTROSPECTION_INVALID',
+             'POINTS_TOKEN_NOT_FOUND', 'RESERVATION_KEY_NOT_FOUND')`,
+      )
+      .bind(input.settlementId, input.failureHash)
+      .first<number>("found");
+    if (evidence !== 1) throw new Error("BUY_NOW_RESTORE_EVIDENCE_REQUIRED");
+
+    const resumeOutboxId = `close_resume_${input.holdId}`;
+    await this.db.batch([
+      this.db
         .prepare(
           `UPDATE buy_now_holds SET status = 'FAILED_RESTORED', updated_at = ?
            WHERE id = ? AND status = 'PENDING'`,
         )
-        .bind(now, input.holdId)
-        .run();
-      if (result.meta.changes !== 1) throw new Error("BUY_NOW_RESTORE_CONFLICT");
-      await resumeAuctionCloseFromCutoff(this.db, { auctionId: row.auctionId, serverNow: now });
+        .bind(now, input.holdId),
+      this.db
+        .prepare(
+          `INSERT OR IGNORE INTO auction_close_resume_outbox
+           (id, auction_id, buy_now_hold_id, status, created_at)
+           SELECT ?, auction_id, id, 'PENDING', ? FROM buy_now_holds
+           WHERE id = ? AND status = 'FAILED_RESTORED'`,
+        )
+        .bind(resumeOutboxId, now, input.holdId),
+    ]);
+    const persisted = await this.db
+      .prepare(
+        `SELECT h.status AS holdStatus, o.id AS outboxId
+         FROM buy_now_holds h LEFT JOIN auction_close_resume_outbox o
+           ON o.buy_now_hold_id = h.id WHERE h.id = ?`,
+      )
+      .bind(input.holdId)
+      .first<{ holdStatus: string; outboxId: string | null }>();
+    if (persisted?.holdStatus !== "FAILED_RESTORED" || !persisted.outboxId) {
+      throw new Error("BUY_NOW_RESTORE_CONFLICT");
     }
+    await dispatchAuctionCloseResumeOutbox(this.db, this.workflow, resumeOutboxId, now);
     return { receiptId: `restore_${input.holdId}_${input.failureHash.slice(0, 16)}` };
   }
+}
+
+interface CloseResumeOutboxRow {
+  auctionId: string;
+  status: "PENDING" | "DISPATCHED";
+}
+
+export async function dispatchAuctionCloseResumeOutbox(
+  db: D1Database,
+  workflow: Workflow<import("../settlement/outbox-dispatcher").SettlementWorkflowParams>,
+  resumeOutboxId: string,
+  now = new Date().toISOString(),
+): Promise<void> {
+  const row = await db
+    .prepare(`SELECT auction_id AS auctionId, status FROM auction_close_resume_outbox WHERE id = ?`)
+    .bind(resumeOutboxId)
+    .first<CloseResumeOutboxRow>();
+  if (!row) throw new Error("AUCTION_CLOSE_RESUME_OUTBOX_NOT_FOUND");
+  if (row.status === "DISPATCHED") return;
+
+  const resumed = await resumeAuctionCloseFromCutoff(db, {
+    auctionId: row.auctionId,
+    serverNow: now,
+  });
+  let settlementOutboxId: string | null = null;
+  if (resumed.kind === "PLANNED") {
+    settlementOutboxId = resumed.outboxId;
+    await dispatchSettlementOutbox(db, workflow, resumed.outboxId);
+  }
+  await db
+    .prepare(
+      `UPDATE auction_close_resume_outbox
+       SET status = 'DISPATCHED', settlement_outbox_id = ?, dispatched_at = ?
+       WHERE id = ? AND status = 'PENDING'`,
+    )
+    .bind(settlementOutboxId, now, resumeOutboxId)
+    .run();
 }

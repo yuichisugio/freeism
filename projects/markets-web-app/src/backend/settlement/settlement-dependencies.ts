@@ -4,7 +4,7 @@ import {
   D1SettlementReservationRepository,
 } from "../db/d1-settlement-repository";
 import type { Bindings } from "../http/context";
-import { PointsApiClient } from "../points/points-api-client";
+import { PointsApiClient, PointsApiError } from "../points/points-api-client";
 import { PointsOAuthClient } from "../points/points-oauth-client";
 import { createBetterAuthPointsTokenStore } from "../points/points-token-store";
 import type {
@@ -64,6 +64,7 @@ export function createSettlementReservationDependencies(
 
   const gateway: ReservationGateway = {
     async reserve(input) {
+      if (!input.pointsConnectionId) throw new Error("REAUTH_REQUIRED_LOCAL");
       const response = await api.createPointReservation(
         {
           auctionId: input.auctionId,
@@ -94,10 +95,23 @@ export function createSettlementReservationDependencies(
       };
     },
     async statusByKeys(keys) {
-      const response = await api.getPointReservationStatus({
-        lookupBy: "RESERVATION_KEY",
-        reservationKeys: [...keys],
-      });
+      let response;
+      try {
+        response = await api.getPointReservationStatus({
+          lookupBy: "RESERVATION_KEY",
+          reservationKeys: [...keys],
+        });
+      } catch (error) {
+        if (
+          keys.length === 1 &&
+          error instanceof PointsApiError &&
+          error.status === 404 &&
+          error.code === "RESOURCE_NOT_FOUND"
+        ) {
+          return [{ reservationKey: keys[0]!, status: "NOT_FOUND" as const }];
+        }
+        throw error;
+      }
       const byKey = new Map(response.data.items.map((item) => [item.reservationKey, item]));
       return keys.map((reservationKey) => {
         const item = byKey.get(reservationKey);
@@ -128,7 +142,7 @@ export function createSettlementReservationDependencies(
     },
   };
   return {
-    buyNowRestorer: new D1BuyNowRestorer(env.DB),
+    buyNowRestorer: new D1BuyNowRestorer(env.DB, env.AUCTION_SETTLEMENT),
     gateway,
     now: () => new Date(),
     repository: new D1SettlementReservationRepository(env.DB),
