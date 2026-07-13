@@ -50,9 +50,25 @@ function authenticatedApp(authUserId: string, createdAt = new Date()) {
 
 describe("Points user and global ADMIN", () => {
   beforeEach(async () => {
+    await db.batch([
+      db.prepare("DROP TRIGGER IF EXISTS permanent_oauth_subject_no_update"),
+      db.prepare("DROP TRIGGER IF EXISTS permanent_oauth_subject_no_delete"),
+    ]);
     await db.exec(
-      "DELETE FROM audit_event; DELETE FROM admin_membership; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
+      "DELETE FROM audit_event; DELETE FROM admin_membership; DELETE FROM permanent_oauth_subject; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
     );
+    await db.batch([
+      db.prepare(
+        `CREATE TRIGGER permanent_oauth_subject_no_update
+         BEFORE UPDATE ON permanent_oauth_subject
+         BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_PERMANENT_OAUTH_SUBJECT'); END`,
+      ),
+      db.prepare(
+        `CREATE TRIGGER permanent_oauth_subject_no_delete
+         BEFORE DELETE ON permanent_oauth_subject
+         BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_PERMANENT_OAUTH_SUBJECT'); END`,
+      ),
+    ]);
   });
 
   it("returns a problem+json 401 when the Better Auth session is missing", async () => {

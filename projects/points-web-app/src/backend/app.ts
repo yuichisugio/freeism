@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { createPointsAuth } from "./auth/create-auth";
+import { getGitHubAccessToken, type GetGitHubAccessToken } from "./auth/github-identity-grant";
 import type { BackendContext } from "./http/context";
 import { registerAdminRoutes } from "./http/routes/admin-routes";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
@@ -12,7 +13,9 @@ import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
   getSession: GetSession;
+  getGitHubAccessToken?: GetGitHubAccessToken;
   githubFetch?: typeof fetch;
+  githubRevokeFetch?: typeof fetch;
 }
 
 const defaultDependencies: PointsBackendDependencies = {
@@ -27,7 +30,10 @@ export function createPointsBackendApp(
   registerEvaluationRoutes(app);
   registerAdminRoutes(app, dependencies.getSession);
   registerFixRoutes(app, dependencies.getSession, { githubFetch: dependencies.githubFetch });
-  registerOwnershipRoutes(app, dependencies.getSession);
+  registerOwnershipRoutes(app, dependencies.getSession, {
+    getGitHubAccessToken: dependencies.getGitHubAccessToken ?? getGitHubAccessToken,
+    githubRevokeFetch: dependencies.githubRevokeFetch,
+  });
   registerProfileRoutes(app, dependencies.getSession);
   return app;
 }
