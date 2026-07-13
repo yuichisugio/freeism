@@ -5,11 +5,13 @@ import type { BackendContext } from "./http/context";
 import { registerAdminRoutes } from "./http/routes/admin-routes";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
 import { registerEvaluationRoutes } from "./http/routes/evaluation-routes";
+import { registerFixRoutes } from "./http/routes/fix-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
   getSession: GetSession;
+  githubFetch?: typeof fetch;
 }
 
 const defaultDependencies: PointsBackendDependencies = {
@@ -23,6 +25,7 @@ export function createPointsBackendApp(
   registerAuthRoutes(app);
   registerEvaluationRoutes(app);
   registerAdminRoutes(app, dependencies.getSession);
+  registerFixRoutes(app, dependencies.getSession, { githubFetch: dependencies.githubFetch });
   registerProfileRoutes(app, dependencies.getSession);
   return app;
 }
