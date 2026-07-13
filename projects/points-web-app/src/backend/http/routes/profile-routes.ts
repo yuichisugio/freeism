@@ -1,11 +1,11 @@
 import type { Hono } from "hono";
 
 import { getProfile, parseProfileUpdateBody, updateProfile } from "../../usecases/update-profile";
-import { updateProfilePointPackages } from "../../usecases/update-profile-point-packages";
+import { updateProfilePointPackagesIdempotently } from "../../usecases/update-profile-point-packages";
 import {
   getProfileEvaluationVisibility,
   isEvaluationVisibilityExpansion,
-  updateProfileEvaluationVisibility,
+  updateProfileEvaluationVisibilityIdempotently,
   type EvaluationVisibilityDto,
 } from "../../usecases/update-profile-evaluation-visibility";
 import type { BackendContext } from "../context";
@@ -86,17 +86,22 @@ export function registerProfileRoutes(app: Hono<BackendContext>, getSession: Get
         return problem(context, 422, "INVALID_POINT_PACKAGES", "Invalid Point Package list");
       }
       try {
-        const result = await updateProfilePointPackages(requireBindings(context.env).DB, {
-          pointsUserId: context.get("pointsUser").id,
-          pointPackageIds,
-        });
-        return context.json({
-          data: { pointPackageIds: result },
-          meta: { requestId: `req_${crypto.randomUUID()}` },
-        });
+        const result = await updateProfilePointPackagesIdempotently(
+          requireBindings(context.env).DB,
+          {
+            pointsUserId: context.get("pointsUser").id,
+            pointPackageIds,
+            idempotencyKey: context.req.header("Idempotency-Key")!,
+            requestId: `req_${crypto.randomUUID()}`,
+          },
+        );
+        return context.json(result.body, result.status as 200);
       } catch (error) {
         if (error instanceof Error && error.message === "DUPLICATE_POINT_PACKAGE") {
           return problem(context, 422, error.message, "Duplicate Point Package");
+        }
+        if (error instanceof Error && error.message === "IDEMPOTENCY_KEY_REUSED") {
+          return problem(context, 409, error.message, "Idempotency key reused");
         }
         throw error;
       }
@@ -168,32 +173,38 @@ export function registerProfileRoutes(app: Hono<BackendContext>, getSession: Get
         transfer: body.transferHistoryVisibility as EvaluationVisibilityDto["transfer"],
         exchange: body.exchangeHistoryVisibility as EvaluationVisibilityDto["exchange"],
       };
+      let allowPublicExpansion = false;
       if (isEvaluationVisibilityExpansion(previous, next)) {
         const googleAccountId = await findFreshGoogleAccountId(
           context.env,
           context.get("authSession").session,
         );
-        if (!googleAccountId) {
-          return problem(context, 401, "FRESH_GOOGLE_AUTH_REQUIRED", "Fresh Google auth required");
+        if (googleAccountId) {
+          context.set("googleAccountId", googleAccountId);
+          allowPublicExpansion = true;
         }
-        context.set("googleAccountId", googleAccountId);
       }
-      const result = await updateProfileEvaluationVisibility(database, {
-        pointsUserId,
-        evaluationCriterionId,
-        visibility: next,
-        balanceVisibleByDefault,
-      });
-      return context.json({
-        data: {
-          balanceVisibility: result.balance,
-          evaluationTotalVisibility: result.evaluationTotal,
-          fixHistoryVisibility: result.fix,
-          transferHistoryVisibility: result.transfer,
-          exchangeHistoryVisibility: result.exchange,
-        },
-        meta: { requestId: `req_${crypto.randomUUID()}` },
-      });
+      let result;
+      try {
+        result = await updateProfileEvaluationVisibilityIdempotently(database, {
+          pointsUserId,
+          evaluationCriterionId,
+          visibility: next,
+          balanceVisibleByDefault,
+          allowPublicExpansion,
+          idempotencyKey: context.req.header("Idempotency-Key")!,
+          requestId: `req_${crypto.randomUUID()}`,
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === "FRESH_GOOGLE_AUTH_REQUIRED") {
+          return problem(context, 401, error.message, "Fresh Google auth required");
+        }
+        if (error instanceof Error && error.message === "IDEMPOTENCY_KEY_REUSED") {
+          return problem(context, 409, error.message, "Idempotency key reused");
+        }
+        throw error;
+      }
+      return context.json(result.body, result.status as 200);
     },
   );
 }

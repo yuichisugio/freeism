@@ -163,40 +163,37 @@ async function findReplay(
   };
 }
 
-async function inspectItem(db: D1Database, item: PointPackageAuctionEligibilityItemInput) {
-  const pointPackage = await db
+async function inspectItems(db: D1Database, itemsJson: string) {
+  const rows = await db
     .prepare(
-      `SELECT lifecycle_status AS lifecycleStatus, eligibility_version AS eligibilityVersion
-       FROM point_package WHERE id = ?`,
+      `WITH requested AS (
+         SELECT json_extract(value, '$.auctionItemId') AS auctionItemId,
+                json_extract(value, '$.pointPackageId') AS pointPackageId,
+                json_extract(value, '$.pointPackageRevisionId') AS pointPackageRevisionId,
+                json_extract(value, '$.contentHash') AS contentHash
+         FROM json_each(?)
+       )
+       SELECT requested.auctionItemId, requested.pointPackageId,
+              requested.pointPackageRevisionId, requested.contentHash,
+              package.eligibility_version AS packageEligibilityVersion,
+              CASE
+                WHEN package.id IS NULL THEN 'POINT_PACKAGE_NOT_FOUND'
+                WHEN revision.id IS NULL THEN 'POINT_PACKAGE_REVISION_NOT_FOUND'
+                WHEN revision.point_package_id <> requested.pointPackageId
+                  THEN 'POINT_PACKAGE_REVISION_MISMATCH'
+                WHEN revision.status <> 'ACTIVE' THEN 'POINT_PACKAGE_REVISION_INACTIVE'
+                WHEN package.lifecycle_status <> 'ACTIVE' THEN 'POINT_PACKAGE_INACTIVE'
+                WHEN revision.content_hash <> requested.contentHash THEN 'CONTENT_HASH_MISMATCH'
+                ELSE NULL
+              END AS code
+       FROM requested
+       LEFT JOIN point_package package ON package.id = requested.pointPackageId
+       LEFT JOIN point_package_revision revision ON revision.id = requested.pointPackageRevisionId
+       ORDER BY requested.auctionItemId`,
     )
-    .bind(item.pointPackageId)
-    .first<{ lifecycleStatus: "ACTIVE" | "INACTIVE"; eligibilityVersion: number }>();
-  if (!pointPackage) {
-    return { code: "POINT_PACKAGE_NOT_FOUND" as const };
-  }
-  const revision = await db
-    .prepare(
-      `SELECT point_package_id AS pointPackageId, status, content_hash AS contentHash
-       FROM point_package_revision WHERE id = ?`,
-    )
-    .bind(item.pointPackageRevisionId)
-    .first<{ pointPackageId: string; status: "ACTIVE" | "INACTIVE"; contentHash: string }>();
-  if (!revision) {
-    return { code: "POINT_PACKAGE_REVISION_NOT_FOUND" as const };
-  }
-  if (revision.pointPackageId !== item.pointPackageId) {
-    return { code: "POINT_PACKAGE_REVISION_MISMATCH" as const };
-  }
-  if (revision.status !== "ACTIVE") {
-    return { code: "POINT_PACKAGE_REVISION_INACTIVE" as const };
-  }
-  if (pointPackage.lifecycleStatus !== "ACTIVE") {
-    return { code: "POINT_PACKAGE_INACTIVE" as const };
-  }
-  if (revision.contentHash !== item.contentHash) {
-    return { code: "CONTENT_HASH_MISMATCH" as const };
-  }
-  return { eligibilityVersion: pointPackage.eligibilityVersion };
+    .bind(itemsJson)
+    .all<EligibilityItemResult & { code: IneligibilityCode | null }>();
+  return rows.results;
 }
 
 async function storeFailure(
@@ -251,15 +248,11 @@ export async function checkPointPackageAuctionEligibility(
   }
 
   const checkedAt = input.now ?? new Date();
-  const inspections = await Promise.all(
-    payload.items.map(async (item) => ({ item, result: await inspectItem(db, item) })),
-  );
-  const errors: Array<{ auctionItemId: string; code: IneligibilityCode }> = [];
-  for (const { item, result } of inspections) {
-    if ("code" in result && result.code !== undefined) {
-      errors.push({ auctionItemId: item.auctionItemId, code: result.code });
-    }
-  }
+  const itemsJson = JSON.stringify(payload.items);
+  const inspections = await inspectItems(db, itemsJson);
+  const errors = inspections
+    .filter((item): item is typeof item & { code: IneligibilityCode } => item.code !== null)
+    .map((item) => ({ auctionItemId: item.auctionItemId, code: item.code }));
   if (errors.length > 0) {
     return storeFailure(db, input, payloadHash, checkedAt, errors);
   }
@@ -267,10 +260,7 @@ export async function checkPointPackageAuctionEligibility(
   const validUntil = new Date(checkedAt.getTime() + 30_000);
   const receiptId = `paer_${crypto.randomUUID()}`;
   const idempotencyId = `paei_${crypto.randomUUID()}`;
-  const items = inspections.map(({ item, result }) => ({
-    ...item,
-    packageEligibilityVersion: (result as { eligibilityVersion: number }).eligibilityVersion,
-  }));
+  const items = inspections.map(({ code: _, ...item }) => item);
   const body: EligibilitySuccessBody = {
     data: toEligibilityData({
       pointPackageAuctionEligibilityReceiptId: receiptId,
@@ -289,7 +279,7 @@ export async function checkPointPackageAuctionEligibility(
         `INSERT INTO point_package_auction_eligibility_idempotency
            (id, markets_client_id, idempotency_key, payload_hash, expected_item_count,
             status, response_body, checked_at, valid_until)
-         VALUES (?, ?, ?, ?, ?, 0, '{}', ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?)`,
       )
       .bind(
         idempotencyId,
@@ -297,6 +287,14 @@ export async function checkPointPackageAuctionEligibility(
         input.idempotencyKey,
         payloadHash,
         items.length,
+        JSON.stringify({
+          code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
+          errors: items.map((item) => ({
+            auctionItemId: item.auctionItemId,
+            code: "POINT_PACKAGE_INACTIVE",
+          })),
+          checkedAt: checkedAt.toISOString(),
+        } satisfies EligibilityFailureBody),
         checkedAt.getTime(),
         validUntil.getTime(),
       ),
@@ -316,38 +314,66 @@ export async function checkPointPackageAuctionEligibility(
         checkedAt.getTime(),
         validUntil.getTime(),
       ),
-    ...items.map((item) =>
-      db
-        .prepare(
-          `INSERT INTO point_package_auction_eligibility_item
-             (id, receipt_id, auction_item_id, point_package_id, point_package_revision_id,
-              content_hash, package_eligibility_version)
-           SELECT ?, ?, ?, revision.point_package_id, revision.id,
-                  revision.content_hash, package.eligibility_version
-           FROM point_package_revision revision
-           JOIN point_package package ON package.id = revision.point_package_id
-           WHERE revision.id = ? AND revision.point_package_id = ?
-             AND revision.content_hash = ? AND revision.status = 'ACTIVE'
-             AND package.lifecycle_status = 'ACTIVE'
-             AND package.eligibility_version = ?`,
-        )
-        .bind(
-          `${receiptId}_${item.auctionItemId}`,
-          receiptId,
-          item.auctionItemId,
-          item.pointPackageRevisionId,
-          item.pointPackageId,
-          item.contentHash,
-          item.packageEligibilityVersion,
-        ),
-    ),
+    db
+      .prepare(
+        `INSERT INTO point_package_auction_eligibility_item
+           (id, receipt_id, auction_item_id, point_package_id, point_package_revision_id,
+            content_hash, package_eligibility_version)
+         SELECT ? || '_' || json_extract(requested.value, '$.auctionItemId'),
+                ?, json_extract(requested.value, '$.auctionItemId'), revision.point_package_id,
+                revision.id, revision.content_hash, package.eligibility_version
+         FROM json_each(?) requested
+         JOIN point_package_revision revision
+           ON revision.id = json_extract(requested.value, '$.pointPackageRevisionId')
+          AND revision.point_package_id = json_extract(requested.value, '$.pointPackageId')
+          AND revision.content_hash = json_extract(requested.value, '$.contentHash')
+          AND revision.status = 'ACTIVE'
+         JOIN point_package package
+           ON package.id = revision.point_package_id
+          AND package.lifecycle_status = 'ACTIVE'
+          AND package.eligibility_version = json_extract(requested.value, '$.packageEligibilityVersion')`,
+      )
+      .bind(receiptId, receiptId, JSON.stringify(items)),
     db
       .prepare(
         `UPDATE point_package_auction_eligibility_idempotency
          SET status = 201, response_body = ?
+         WHERE id = ? AND status = 0
+           AND expected_item_count = (
+             SELECT COUNT(*)
+             FROM point_package_auction_eligibility_item item
+             JOIN point_package_auction_eligibility_receipt receipt ON receipt.id = item.receipt_id
+             WHERE receipt.idempotency_id = ?
+           )`,
+      )
+      .bind(JSON.stringify(storedSuccessBody(body)), idempotencyId, idempotencyId),
+    db
+      .prepare(
+        `DELETE FROM point_package_auction_eligibility_item
+         WHERE receipt_id = ?
+           AND EXISTS (
+             SELECT 1 FROM point_package_auction_eligibility_idempotency
+             WHERE id = ? AND status = 0
+           )`,
+      )
+      .bind(receiptId, idempotencyId),
+    db
+      .prepare(
+        `DELETE FROM point_package_auction_eligibility_receipt
+         WHERE id = ?
+           AND EXISTS (
+             SELECT 1 FROM point_package_auction_eligibility_idempotency
+             WHERE id = ? AND status = 0
+           )`,
+      )
+      .bind(receiptId, idempotencyId),
+    db
+      .prepare(
+        `UPDATE point_package_auction_eligibility_idempotency
+         SET status = 409, valid_until = NULL
          WHERE id = ? AND status = 0`,
       )
-      .bind(JSON.stringify(storedSuccessBody(body)), idempotencyId),
+      .bind(idempotencyId),
   ];
 
   try {
@@ -364,5 +390,9 @@ export async function checkPointPackageAuctionEligibility(
     }
     throw error;
   }
-  return { status: 201, body };
+  const stored = await findReplay(db, input.marketsClientId, input.idempotencyKey, payloadHash);
+  if (!stored) {
+    throw new Error("ELIGIBILITY_RESULT_NOT_STORED");
+  }
+  return stored;
 }

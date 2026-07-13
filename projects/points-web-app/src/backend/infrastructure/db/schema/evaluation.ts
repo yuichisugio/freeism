@@ -86,6 +86,13 @@ export const evaluationCriterionRelatedUrls = sqliteTable(
   ],
 );
 
+export const evaluationCriterionRevisionSeals = sqliteTable("evaluation_criterion_revision_seal", {
+  evaluationCriterionRevisionId: text("evaluation_criterion_revision_id")
+    .primaryKey()
+    .references(() => evaluationCriterionRevisions.id, { onDelete: "restrict" }),
+  sealedAt: timestamp("sealed_at"),
+});
+
 export const pointPackages = sqliteTable(
   "point_package",
   {
@@ -185,6 +192,13 @@ export const pointPackageComponents = sqliteTable(
     ),
   ],
 );
+
+export const pointPackageRevisionSeals = sqliteTable("point_package_revision_seal", {
+  pointPackageRevisionId: text("point_package_revision_id")
+    .primaryKey()
+    .references(() => pointPackageRevisions.id, { onDelete: "restrict" }),
+  sealedAt: timestamp("sealed_at"),
+});
 
 export const pointPackageLifecycleEvents = sqliteTable(
   "point_package_lifecycle_event",

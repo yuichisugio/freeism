@@ -2,6 +2,8 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
+import { importPointPackages } from "../../src/backend/usecases/import-point-packages";
 
 const db =
   env.DB ??
@@ -36,6 +38,54 @@ function profileRequest(body: unknown, idempotencyKey = `idem_${crypto.randomUUI
     },
     method: "PUT",
   });
+}
+
+function mutationRequest(path: string, body: unknown, idempotencyKey: string) {
+  return new Request(`https://points.test${path}`, {
+    body: JSON.stringify(body),
+    headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+    method: "PUT",
+  });
+}
+
+async function seedCriterionAndPackage(suffix: string) {
+  const evaluationCriterionId = `crit_profile_${suffix}`;
+  const pointPackageId = `pkg_profile_${suffix}`;
+  await importEvaluationCriteria(db, {
+    actorPointsUserId: "pusr_admin",
+    reason: "profile idempotency test",
+    items: [
+      {
+        evaluationCriterionId,
+        expectedRevision: null,
+        status: "ACTIVE",
+        name: `Criterion ${suffix.slice(0, 8)}`,
+        description: "Description",
+        minimumUnit: "0.0001",
+        transferEnabled: true,
+        exchangeEnabled: true,
+        balanceVisibleByDefault: false,
+        buyNowEnabled: true,
+        relatedUrls: [],
+      },
+    ],
+  });
+  await importPointPackages(db, {
+    actorPointsUserId: "pusr_admin",
+    reason: "profile idempotency test",
+    items: [
+      {
+        pointPackageId,
+        expectedRevision: null,
+        status: "ACTIVE",
+        name: `Package ${suffix}`,
+        description: null,
+        relatedUrl: null,
+        components: [{ evaluationCriterionId, displayOrder: 0, weight: 1 }],
+      },
+    ],
+  });
+  return { evaluationCriterionId, pointPackageId };
 }
 
 describe("authenticated profile and idempotency", () => {
@@ -170,5 +220,76 @@ describe("authenticated profile and idempotency", () => {
       code: "REQUEST_BODY_TOO_LARGE",
       status: 413,
     });
+  });
+
+  it("replays Point Package profile mutations and conflicts on a changed payload", async () => {
+    const app = await createAuthenticatedProfileApp();
+    await app.fetch(new Request("https://points.test/api/profile"), env);
+    const seeded = await seedCriterionAndPackage(crypto.randomUUID());
+    const key = `idem_${crypto.randomUUID()}`;
+    const first = await app.fetch(
+      mutationRequest(
+        "/api/profile/point-packages",
+        { pointPackageIds: [seeded.pointPackageId] },
+        key,
+      ),
+      env,
+    );
+    const firstBody = await first.json();
+    const replay = await app.fetch(
+      mutationRequest(
+        "/api/profile/point-packages",
+        { pointPackageIds: [seeded.pointPackageId] },
+        key,
+      ),
+      env,
+    );
+    expect(first.status).toBe(200);
+    expect(replay.status).toBe(200);
+    await expect(replay.json()).resolves.toEqual(firstBody);
+
+    const conflict = await app.fetch(
+      mutationRequest("/api/profile/point-packages", { pointPackageIds: [] }, key),
+      env,
+    );
+    expect(conflict.status).toBe(409);
+  });
+
+  it("replays visibility mutations and includes criterionId in the idempotency payload", async () => {
+    const app = await createAuthenticatedProfileApp();
+    await app.fetch(new Request("https://points.test/api/profile"), env);
+    const firstCriterion = await seedCriterionAndPackage(crypto.randomUUID());
+    const secondCriterion = await seedCriterionAndPackage(crypto.randomUUID());
+    const key = `idem_${crypto.randomUUID()}`;
+    const body = {
+      balanceVisibility: "PRIVATE",
+      evaluationTotalVisibility: "PRIVATE",
+      fixHistoryVisibility: "PRIVATE",
+      transferHistoryVisibility: "PRIVATE",
+      exchangeHistoryVisibility: "PRIVATE",
+    };
+    const path = `/api/profile/evaluation-visibilities/${firstCriterion.evaluationCriterionId}`;
+    const first = await app.fetch(mutationRequest(path, body, key), env);
+    const firstBody = await first.json();
+    const replay = await app.fetch(mutationRequest(path, body, key), env);
+    expect(first.status).toBe(200);
+    expect(replay.status).toBe(200);
+    await expect(replay.json()).resolves.toEqual(firstBody);
+
+    const changedPayload = await app.fetch(
+      mutationRequest(path, { ...body, evaluationTotalVisibility: "PUBLIC" }, key),
+      env,
+    );
+    expect(changedPayload.status).toBe(409);
+
+    const conflict = await app.fetch(
+      mutationRequest(
+        `/api/profile/evaluation-visibilities/${secondCriterion.evaluationCriterionId}`,
+        body,
+        key,
+      ),
+      env,
+    );
+    expect(conflict.status).toBe(409);
   });
 });

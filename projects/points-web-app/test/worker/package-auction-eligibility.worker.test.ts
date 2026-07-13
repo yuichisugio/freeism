@@ -76,15 +76,17 @@ async function resetEvaluationTables() {
   for (const trigger of [
     "evaluation_criterion_revision_no_delete",
     "evaluation_criterion_related_url_no_delete",
+    "evaluation_criterion_revision_seal_no_delete",
     "point_package_normalized_name_history_no_delete",
     "point_package_revision_no_delete",
     "point_package_component_no_delete",
+    "point_package_revision_seal_no_delete",
     "point_package_lifecycle_event_no_delete",
   ]) {
     await db.prepare(`DROP TRIGGER IF EXISTS ${trigger}`).run();
   }
   await db.exec(
-    "DELETE FROM point_package_auction_eligibility_item; DELETE FROM point_package_auction_eligibility_receipt; DELETE FROM point_package_auction_eligibility_idempotency; DELETE FROM point_package_lifecycle_event; DELETE FROM point_package_component; DELETE FROM point_package_revision; DELETE FROM point_package_normalized_name_history; DELETE FROM point_package; DELETE FROM evaluation_criterion_related_url; DELETE FROM evaluation_criterion_revision; DELETE FROM evaluation_criterion;",
+    "DELETE FROM point_package_auction_eligibility_item; DELETE FROM point_package_auction_eligibility_receipt; DELETE FROM point_package_auction_eligibility_idempotency; DELETE FROM point_package_lifecycle_event; DELETE FROM point_package_revision_seal; DELETE FROM point_package_component; DELETE FROM point_package_revision; DELETE FROM point_package_normalized_name_history; DELETE FROM point_package; DELETE FROM evaluation_criterion_revision_seal; DELETE FROM evaluation_criterion_related_url; DELETE FROM evaluation_criterion_revision; DELETE FROM evaluation_criterion;",
   );
   for (const [name, table, message] of [
     [
@@ -96,6 +98,11 @@ async function resetEvaluationTables() {
       "evaluation_criterion_related_url_no_delete",
       "evaluation_criterion_related_url",
       "IMMUTABLE_EVALUATION_CRITERION_RELATED_URL",
+    ],
+    [
+      "evaluation_criterion_revision_seal_no_delete",
+      "evaluation_criterion_revision_seal",
+      "IMMUTABLE_EVALUATION_CRITERION_REVISION_SEAL",
     ],
     [
       "point_package_normalized_name_history_no_delete",
@@ -111,6 +118,11 @@ async function resetEvaluationTables() {
       "point_package_component_no_delete",
       "point_package_component",
       "IMMUTABLE_POINT_PACKAGE_COMPONENT",
+    ],
+    [
+      "point_package_revision_seal_no_delete",
+      "point_package_revision_seal",
+      "IMMUTABLE_POINT_PACKAGE_REVISION_SEAL",
     ],
     [
       "point_package_lifecycle_event_no_delete",
@@ -187,6 +199,22 @@ describe("Point Package Auction eligibility receipts", () => {
         .bind(first.pointPackageId)
         .run(),
     ).rejects.toThrow();
+    await expect(
+      db
+        .prepare(
+          `INSERT INTO point_package_component
+             (id, point_package_revision_id, evaluation_criterion_id,
+              evaluation_criterion_revision_id, evaluation_criterion_name,
+              display_order, minimum_unit_scaled, buy_now_enabled, weight)
+           SELECT ?, ?, component.evaluation_criterion_id,
+                  component.evaluation_criterion_revision_id, component.evaluation_criterion_name,
+                  1, component.minimum_unit_scaled, component.buy_now_enabled, component.weight
+           FROM point_package_component component
+           WHERE component.point_package_revision_id = ? AND component.display_order = 0`,
+        )
+        .bind("late_package_component", first.pointPackageRevisionId, first.pointPackageRevisionId)
+        .run(),
+    ).rejects.toThrow("IMMUTABLE_POINT_PACKAGE_COMPONENT");
   });
 
   it("accepts 1-1000 unique items and binds the receipt to client, command, hash and normalized items", async () => {
@@ -197,8 +225,21 @@ describe("Point Package Auction eligibility receipts", () => {
       pointPackageRevisionId: revision.pointPackageRevisionId,
       contentHash: revision.contentHash,
     })).reverse();
+    let statementCount = 0;
+    const boundedDb = new Proxy(db, {
+      get(target, property) {
+        if (property === "prepare") {
+          return (query: string) => {
+            statementCount += 1;
+            return db.prepare(query);
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
     const result = await checkPointPackageAuctionEligibility(
-      db,
+      boundedDb,
       eligibilityInput(revision, { items }),
     );
     expect(result.status).toBe(201);
@@ -208,6 +249,7 @@ describe("Point Package Auction eligibility receipts", () => {
       auctionCommandId: "acmd_1",
       auctionCommandHash: "sha256:command",
     });
+    expect(statementCount).toBeLessThanOrEqual(12);
   });
 
   it("rejects invalid size and duplicate auctionItemId", async () => {
@@ -346,5 +388,62 @@ describe("Point Package Auction eligibility receipts", () => {
         }),
       ),
     ).rejects.toThrow("POINT_PACKAGE_AUCTION_INELIGIBLE");
+  });
+
+  it("stores and replays a stable 409 with zero receipts when eligibility changes before the write batch", async () => {
+    const revision = await seedPackage("pkg_race");
+    let changed = false;
+    const racingDb = new Proxy(db, {
+      get(target, property) {
+        if (property === "batch") {
+          return async (statements: D1PreparedStatement[]) => {
+            if (!changed) {
+              changed = true;
+              await db
+                .prepare(
+                  `UPDATE point_package
+                   SET lifecycle_status = 'INACTIVE', eligibility_version = eligibility_version + 1
+                   WHERE id = ?`,
+                )
+                .bind(revision.pointPackageId)
+                .run();
+            }
+            return db.batch(statements);
+          };
+        }
+        const value = Reflect.get(target, property, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const input = eligibilityInput(revision, { idempotencyKey: "idem-race" });
+
+    let firstBody: unknown;
+    try {
+      await checkPointPackageAuctionEligibility(racingDb, input);
+      throw new Error("expected eligibility failure");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PointPackageAuctionEligibilityError);
+      firstBody = (error as PointPackageAuctionEligibilityError).body;
+    }
+    const receiptCount = await db
+      .prepare("SELECT COUNT(*) AS count FROM point_package_auction_eligibility_receipt")
+      .first<{ count: number }>();
+    expect(receiptCount?.count).toBe(0);
+
+    await db
+      .prepare(
+        `UPDATE point_package
+         SET lifecycle_status = 'ACTIVE', eligibility_version = eligibility_version + 1
+         WHERE id = ?`,
+      )
+      .bind(revision.pointPackageId)
+      .run();
+    try {
+      await checkPointPackageAuctionEligibility(db, input);
+      throw new Error("expected replayed eligibility failure");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PointPackageAuctionEligibilityError);
+      expect((error as PointPackageAuctionEligibilityError).body).toEqual(firstBody);
+    }
   });
 });

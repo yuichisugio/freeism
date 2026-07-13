@@ -78,15 +78,17 @@ async function resetEvaluationTables() {
   for (const trigger of [
     "evaluation_criterion_revision_no_delete",
     "evaluation_criterion_related_url_no_delete",
+    "evaluation_criterion_revision_seal_no_delete",
     "point_package_normalized_name_history_no_delete",
     "point_package_revision_no_delete",
     "point_package_component_no_delete",
+    "point_package_revision_seal_no_delete",
     "point_package_lifecycle_event_no_delete",
   ]) {
     await db.prepare(`DROP TRIGGER IF EXISTS ${trigger}`).run();
   }
   await db.exec(
-    "DELETE FROM profile_evaluation_visibility; DELETE FROM profile_point_package; DELETE FROM point_package_auction_eligibility_item; DELETE FROM point_package_auction_eligibility_receipt; DELETE FROM point_package_auction_eligibility_idempotency; DELETE FROM point_package_lifecycle_event; DELETE FROM point_package_component; DELETE FROM point_package_revision; DELETE FROM point_package_normalized_name_history; DELETE FROM point_package; DELETE FROM evaluation_criterion_related_url; DELETE FROM evaluation_criterion_revision; DELETE FROM evaluation_criterion; DELETE FROM profiles; DELETE FROM admin_membership; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
+    "DELETE FROM profile_evaluation_visibility; DELETE FROM profile_point_package; DELETE FROM point_package_auction_eligibility_item; DELETE FROM point_package_auction_eligibility_receipt; DELETE FROM point_package_auction_eligibility_idempotency; DELETE FROM point_package_lifecycle_event; DELETE FROM point_package_revision_seal; DELETE FROM point_package_component; DELETE FROM point_package_revision; DELETE FROM point_package_normalized_name_history; DELETE FROM point_package; DELETE FROM evaluation_criterion_revision_seal; DELETE FROM evaluation_criterion_related_url; DELETE FROM evaluation_criterion_revision; DELETE FROM evaluation_criterion; DELETE FROM profiles; DELETE FROM admin_membership; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
   );
   for (const [name, table, message] of [
     [
@@ -98,6 +100,11 @@ async function resetEvaluationTables() {
       "evaluation_criterion_related_url_no_delete",
       "evaluation_criterion_related_url",
       "IMMUTABLE_EVALUATION_CRITERION_RELATED_URL",
+    ],
+    [
+      "evaluation_criterion_revision_seal_no_delete",
+      "evaluation_criterion_revision_seal",
+      "IMMUTABLE_EVALUATION_CRITERION_REVISION_SEAL",
     ],
     [
       "point_package_normalized_name_history_no_delete",
@@ -113,6 +120,11 @@ async function resetEvaluationTables() {
       "point_package_component_no_delete",
       "point_package_component",
       "IMMUTABLE_POINT_PACKAGE_COMPONENT",
+    ],
+    [
+      "point_package_revision_seal_no_delete",
+      "point_package_revision_seal",
+      "IMMUTABLE_POINT_PACKAGE_REVISION_SEAL",
     ],
     [
       "point_package_lifecycle_event_no_delete",
@@ -242,6 +254,16 @@ describe("evaluation criteria and immutable Point Package revisions", () => {
       db
         .prepare("DELETE FROM evaluation_criterion_related_url WHERE id = ?")
         .bind("ecr_crit_a_1_url_0")
+        .run(),
+    ).rejects.toThrow("IMMUTABLE_EVALUATION_CRITERION_RELATED_URL");
+    await expect(
+      db
+        .prepare(
+          `INSERT INTO evaluation_criterion_related_url
+             (id, evaluation_criterion_revision_id, display_order, url)
+           VALUES (?, ?, ?, ?)`,
+        )
+        .bind("late_related_url", "ecr_crit_a_1", 1, "https://example.test/late-related-url")
         .run(),
     ).rejects.toThrow("IMMUTABLE_EVALUATION_CRITERION_RELATED_URL");
   });
@@ -466,6 +488,7 @@ describe("evaluation criteria and immutable Point Package revisions", () => {
       evaluationCriterionId: "crit_a",
       visibility: {},
       balanceVisibleByDefault: true,
+      allowPublicExpansion: false,
     });
     expect(defaults).toEqual({
       balance: "PUBLIC",
@@ -485,6 +508,7 @@ describe("evaluation criteria and immutable Point Package revisions", () => {
         exchange: "PUBLIC",
       },
       balanceVisibleByDefault: true,
+      allowPublicExpansion: true,
     });
     expect(changed).toEqual({
       balance: "PRIVATE",
@@ -493,5 +517,45 @@ describe("evaluation criteria and immutable Point Package revisions", () => {
       transfer: "PUBLIC",
       exchange: "PUBLIC",
     });
+  });
+
+  it("rejects a non-fresh PRIVATE to PUBLIC visibility race using the latest D1 state", async () => {
+    await seedCriteria(["crit_visibility_race"]);
+    await updateProfileEvaluationVisibility(db, {
+      pointsUserId: "pusr_profile",
+      evaluationCriterionId: "crit_visibility_race",
+      visibility: { balance: "PUBLIC" },
+      balanceVisibleByDefault: true,
+      allowPublicExpansion: true,
+    });
+
+    await db
+      .prepare(
+        `UPDATE profile_evaluation_visibility
+         SET balance_visibility = 'PRIVATE'
+         WHERE points_user_id = ? AND evaluation_criterion_id = ?`,
+      )
+      .bind("pusr_profile", "crit_visibility_race")
+      .run();
+
+    await expect(
+      updateProfileEvaluationVisibility(db, {
+        pointsUserId: "pusr_profile",
+        evaluationCriterionId: "crit_visibility_race",
+        visibility: { balance: "PUBLIC" },
+        balanceVisibleByDefault: true,
+        allowPublicExpansion: false,
+      }),
+    ).rejects.toThrow("FRESH_GOOGLE_AUTH_REQUIRED");
+    await expect(
+      db
+        .prepare(
+          `SELECT balance_visibility AS balance
+           FROM profile_evaluation_visibility
+           WHERE points_user_id = ? AND evaluation_criterion_id = ?`,
+        )
+        .bind("pusr_profile", "crit_visibility_race")
+        .first(),
+    ).resolves.toEqual({ balance: "PRIVATE" });
   });
 });

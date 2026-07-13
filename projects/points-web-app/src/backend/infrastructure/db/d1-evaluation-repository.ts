@@ -167,6 +167,15 @@ export async function appendEvaluationCriterionRevisions(
           .bind(`${input.revisionId}_url_${displayOrder}`, input.revisionId, displayOrder, url),
       );
     });
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO evaluation_criterion_revision_seal
+             (evaluation_criterion_revision_id, sealed_at)
+           VALUES (?, ?)`,
+        )
+        .bind(input.revisionId, input.now.getTime()),
+    );
     if (!input.isNew) {
       statements.push(
         db
@@ -280,6 +289,14 @@ export async function appendPointPackageRevisions(
           ),
       );
     }
+    statements.push(
+      db
+        .prepare(
+          `INSERT INTO point_package_revision_seal (point_package_revision_id, sealed_at)
+           VALUES (?, ?)`,
+        )
+        .bind(value.pointPackageRevisionId, input.now.getTime()),
+    );
     statements.push(
       db
         .prepare(
