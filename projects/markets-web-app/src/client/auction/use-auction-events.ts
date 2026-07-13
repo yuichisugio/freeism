@@ -284,6 +284,7 @@ export function useAuctionEvents(input: UseAuctionEventsInput): AuctionConnectio
       const openedSocket = factory(websocketUrl(input.auctionId, controller.getState()));
       socket = openedSocket;
       openedSocket.addEventListener("message", (event) => {
+        if (!active || socket !== openedSocket) return;
         let parsed: unknown;
         try {
           parsed = JSON.parse(String(event.data));

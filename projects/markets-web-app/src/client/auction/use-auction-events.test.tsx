@@ -175,6 +175,12 @@ describe("useAuctionEvents", () => {
     expect(container.textContent).toBe("LIVE:true");
     await act(async () => first.emit("close"));
     expect(container.textContent).toBe("LIVE:true");
+    await act(async () => {
+      first.emit("message", { data: "not-json" });
+      await Promise.resolve();
+    });
+    expect(sockets).toHaveLength(2);
+    expect(container.textContent).toBe("LIVE:true");
     await act(async () => root.unmount());
   });
 });
