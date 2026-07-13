@@ -107,6 +107,14 @@ export function registerAuctionImportRoutes(
     } catch (error) {
       const candidate = error as { code?: unknown; errors?: unknown };
       const code = typeof candidate.code === "string" ? candidate.code : "";
+      if (code === "IDEMPOTENCY_KEY_REUSED") {
+        return problemDetails(
+          context,
+          409,
+          "IDEMPOTENCY_KEY_REUSED",
+          "Idempotency-Key reused with another payload",
+        );
+      }
       if (
         code === "AUCTION_IMPORT_VALIDATION_FAILED" ||
         code === "POINT_PACKAGE_MISMATCH" ||

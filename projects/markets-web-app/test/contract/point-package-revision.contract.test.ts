@@ -9,6 +9,7 @@ import {
   validateAuctionImport,
 } from "../../src/backend/auction/import/validate-auction-import";
 import { AUCTION_IMPORT_HEADERS } from "../../src/backend/auction/import/auction-import-row";
+import { PointsApiError } from "../../src/backend/points/points-api-client";
 import type { components } from "../../src/generated/points-markets-api";
 
 type PublicRevision = components["schemas"]["PublicPointPackageRevisionData"];
@@ -234,5 +235,98 @@ describe("validateAuctionImport", () => {
     } satisfies Partial<AuctionImportValidationError>);
     expect(get).not.toHaveBeenCalled();
     expect(checkEligibility).not.toHaveBeenCalled();
+  });
+
+  it("maps typed Points eligibility errors back to CSV rows", async () => {
+    const revision = await publicRevision();
+
+    await expect(
+      validateAuctionImport(
+        { bytes: csv(), idempotencyKey: "preview-key-1" },
+        {
+          checkEligibility: async () => {
+            throw new PointsApiError(409, "POINT_PACKAGE_AUCTION_INELIGIBLE", [
+              { auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" },
+            ]);
+          },
+          packageRevisionReader: { get: async () => httpResult(revision) },
+        },
+      ),
+    ).rejects.toMatchObject({
+      code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
+      errors: [{ code: "POINT_PACKAGE_INACTIVE", field: "pointPackageRevisionId", row: 2 }],
+    });
+  });
+
+  it("derives command identity only from normalized rows and verified snapshots", async () => {
+    const revision = await publicRevision();
+    const requests: Array<{ auctionCommandHash: string; auctionCommandId: string }> = [];
+    const dependencies = {
+      checkEligibility: async (request: {
+        auctionCommandHash: string;
+        auctionCommandId: string;
+      }) => {
+        requests.push(request);
+        const response = eligibilityResponse(request.auctionCommandId, request.auctionCommandHash);
+        response.data.items[0]!.contentHash = revision.contentHash;
+        return response;
+      },
+      packageRevisionReader: { get: async () => httpResult(revision) },
+    };
+
+    const lf = await validateAuctionImport(
+      { bytes: csv(), idempotencyKey: "preview-key-1" },
+      dependencies,
+    );
+    const crlf = await validateAuctionImport(
+      {
+        bytes: new TextEncoder().encode(new TextDecoder().decode(csv()).replaceAll("\n", "\r\n")),
+        idempotencyKey: "preview-key-1",
+      },
+      dependencies,
+    );
+    const anotherKey = await validateAuctionImport(
+      { bytes: csv(), idempotencyKey: "preview-key-2" },
+      dependencies,
+    );
+
+    expect(lf.fileHash).not.toBe(crlf.fileHash);
+    expect(
+      requests.map(({ auctionCommandHash, auctionCommandId }) => ({
+        auctionCommandHash,
+        auctionCommandId,
+      })),
+    ).toEqual([
+      {
+        auctionCommandHash: lf.auctionCommandHash,
+        auctionCommandId: lf.auctionCommandId,
+      },
+      {
+        auctionCommandHash: lf.auctionCommandHash,
+        auctionCommandId: lf.auctionCommandId,
+      },
+      {
+        auctionCommandHash: lf.auctionCommandHash,
+        auctionCommandId: lf.auctionCommandId,
+      },
+    ]);
+    expect(crlf.auctionCommandHash).toBe(lf.auctionCommandHash);
+    expect(anotherKey.auctionCommandId).toBe(lf.auctionCommandId);
+  });
+
+  it("preserves an eligibility idempotency-key conflict", async () => {
+    const revision = await publicRevision();
+
+    await expect(
+      validateAuctionImport(
+        { bytes: csv(), idempotencyKey: "reused-key" },
+        {
+          checkEligibility: async () => {
+            throw new PointsApiError(409, "IDEMPOTENCY_KEY_REUSED");
+          },
+          packageRevisionReader: { get: async () => httpResult(revision) },
+        },
+      ),
+    ).rejects.toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
   });
 });

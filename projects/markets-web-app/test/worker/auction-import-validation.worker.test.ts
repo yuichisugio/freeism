@@ -123,4 +123,23 @@ describe("Auction import preview route", () => {
       errors: [{ code: "AUCTION_FIELD_REQUIRED", field: "pointPackageId", row: 2 }],
     });
   });
+
+  it("returns a Points idempotency-key reuse as a 409 Problem Details response", async () => {
+    const conflict = app(
+      vi.fn(async () => {
+        const error = new Error("IDEMPOTENCY_KEY_REUSED");
+        Object.assign(error, { code: "IDEMPOTENCY_KEY_REUSED" });
+        throw error;
+      }),
+    );
+
+    const response = await conflict.hono.fetch(request(), env);
+
+    expect(response.status).toBe(409);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    await expect(response.json()).resolves.toMatchObject({
+      code: "IDEMPOTENCY_KEY_REUSED",
+      status: 409,
+    });
+  });
 });

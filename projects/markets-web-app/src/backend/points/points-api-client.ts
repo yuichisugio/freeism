@@ -17,11 +17,47 @@ type CaptureBody =
   operations["capturePointSettlement"]["requestBody"]["content"]["application/json"];
 type ReleaseBody =
   operations["releasePointReservation"]["requestBody"]["content"]["application/json"];
+type AuctionEligibilityItemError = components["schemas"]["AuctionEligibilityItemError"];
+
+const AUCTION_ELIGIBILITY_ERROR_CODES = [
+  "POINT_PACKAGE_NOT_FOUND",
+  "POINT_PACKAGE_REVISION_NOT_FOUND",
+  "POINT_PACKAGE_REVISION_MISMATCH",
+  "POINT_PACKAGE_REVISION_INACTIVE",
+  "POINT_PACKAGE_INACTIVE",
+  "CONTENT_HASH_MISMATCH",
+] as const;
+
+function isAuctionEligibilityItemError(value: unknown): value is AuctionEligibilityItemError {
+  if (typeof value !== "object" || value === null) return false;
+  const candidate = value as { auctionItemId?: unknown; code?: unknown };
+  return (
+    typeof candidate.auctionItemId === "string" &&
+    typeof candidate.code === "string" &&
+    AUCTION_ELIGIBILITY_ERROR_CODES.some((code) => code === candidate.code)
+  );
+}
+
+function readProblem(value: unknown) {
+  if (typeof value !== "object" || value === null) {
+    return { code: "POINTS_API_ERROR", errors: [] };
+  }
+  const problem = value as { code?: unknown; errors?: unknown };
+  const code = typeof problem.code === "string" ? problem.code : "POINTS_API_ERROR";
+  const errors =
+    code === "POINT_PACKAGE_AUCTION_INELIGIBLE" &&
+    Array.isArray(problem.errors) &&
+    problem.errors.every(isAuctionEligibilityItemError)
+      ? problem.errors
+      : [];
+  return { code, errors };
+}
 
 export class PointsApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
+    readonly errors: readonly AuctionEligibilityItemError[] = [],
   ) {
     super(code);
   }
@@ -29,11 +65,12 @@ export class PointsApiError extends Error {
 
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const problem: { code?: string } = await response
+    const body: unknown = await response
       .clone()
-      .json<{ code?: string }>()
-      .catch(() => ({}) as { code?: string });
-    throw new PointsApiError(response.status, problem.code ?? "POINTS_API_ERROR");
+      .json<unknown>()
+      .catch(() => undefined);
+    const problem = readProblem(body);
+    throw new PointsApiError(response.status, problem.code, problem.errors);
   }
   return response.json<T>();
 }

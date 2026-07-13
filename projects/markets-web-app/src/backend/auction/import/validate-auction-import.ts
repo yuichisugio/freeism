@@ -284,15 +284,12 @@ export async function validateAuctionImport(
   };
   const snapshots = await Promise.all(normalized.rows.map(snapshotFor));
   const fileHash = await sha256(input.bytes);
-  const commandSeed = await sha256(`${fileHash}\n${input.idempotencyKey}`);
-  const auctionCommandId = `acmd_${commandSeed.slice("sha256:".length, 39)}`;
   const commandRows = normalized.rows.map((row, index) => ({
     ...row,
     packageSnapshot: snapshots[index]!,
   }));
-  const auctionCommandHash = await sha256(
-    canonicalJson({ auctionCommandId, fileHash, rows: commandRows }),
-  );
+  const auctionCommandHash = await sha256(canonicalJson({ rows: commandRows }));
+  const auctionCommandId = `acmd_${auctionCommandHash.slice("sha256:".length, 39)}`;
   const eligibilityRequest: EligibilityRequest = {
     auctionCommandId,
     auctionCommandHash,
@@ -308,8 +305,32 @@ export async function validateAuctionImport(
   try {
     eligibility = await dependencies.checkEligibility(eligibilityRequest, input.idempotencyKey);
   } catch (error) {
-    const code = error instanceof Error ? error.message : "POINTS_DEPENDENCY_UNAVAILABLE";
+    const candidate = error as { code?: unknown; errors?: unknown };
+    const code =
+      typeof candidate.code === "string"
+        ? candidate.code
+        : error instanceof Error
+          ? error.message
+          : "POINTS_DEPENDENCY_UNAVAILABLE";
     if (code === "POINT_PACKAGE_AUCTION_INELIGIBLE") {
+      if (!Array.isArray(candidate.errors) || candidate.errors.length === 0) {
+        throw new AuctionImportValidationError("POINTS_ELIGIBILITY_RESPONSE_INVALID");
+      }
+      const sourceRows = new Map(
+        normalized.rows.map((row, index) => [row.clientRowId, parsed.rows[index]!.row]),
+      );
+      const itemErrors = candidate.errors.map((item) => {
+        const typed = item as { auctionItemId?: unknown; code?: unknown };
+        const row =
+          typeof typed.auctionItemId === "string" ? sourceRows.get(typed.auctionItemId) : undefined;
+        if (row === undefined || typeof typed.code !== "string") {
+          throw new AuctionImportValidationError("POINTS_ELIGIBILITY_RESPONSE_INVALID");
+        }
+        return { code: typed.code, field: "pointPackageRevisionId", row };
+      });
+      throw new AuctionImportValidationError(code, itemErrors);
+    }
+    if (code === "IDEMPOTENCY_KEY_REUSED") {
       throw new AuctionImportValidationError(code);
     }
     throw new AuctionImportValidationError("POINTS_DEPENDENCY_UNAVAILABLE");

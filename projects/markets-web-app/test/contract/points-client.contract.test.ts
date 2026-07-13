@@ -4,7 +4,7 @@ import {
   assertNoPointsReturnTargetInput,
   createPointsOAuthState,
 } from "../../src/backend/points/oauth-state";
-import { PointsApiClient } from "../../src/backend/points/points-api-client";
+import { PointsApiClient, PointsApiError } from "../../src/backend/points/points-api-client";
 import { PointsOAuthClient } from "../../src/backend/points/points-oauth-client";
 
 class RecordingFetcher implements Fetcher {
@@ -84,6 +84,51 @@ describe("Points generated API client contract", () => {
       "Bearer m2m:points.connection.link-attempt.create",
     );
     expect(fetcher.requests[1]?.headers.get("Authorization")).toBe("Bearer opaque-user-token");
+  });
+
+  it("keeps typed item errors from an auction eligibility conflict", async () => {
+    const fetcher: Fetcher = {
+      fetch: async () =>
+        Response.json(
+          {
+            code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
+            errors: [
+              { auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" },
+              { auctionItemId: "row-2", code: "CONTENT_HASH_MISMATCH" },
+            ],
+          },
+          { status: 409 },
+        ),
+      connect: () => {
+        throw new Error("not implemented");
+      },
+    };
+    const client = new PointsApiClient(fetcher, async () => "m2m-token");
+
+    await expect(
+      client.checkPointPackageAuctionEligibility(
+        {
+          auctionCommandHash: `sha256:${"a".repeat(64)}`,
+          auctionCommandId: "acmd_1",
+          items: [
+            {
+              auctionItemId: "row-1",
+              contentHash: `sha256:${"b".repeat(64)}`,
+              pointPackageId: "pkg_1",
+              pointPackageRevisionId: "ppr_1",
+            },
+          ],
+        },
+        "preview-key-1",
+      ),
+    ).rejects.toMatchObject({
+      code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
+      errors: [
+        { auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" },
+        { auctionItemId: "row-2", code: "CONTENT_HASH_MISMATCH" },
+      ],
+      status: 409,
+    } satisfies Partial<PointsApiError>);
   });
 
   it("has no caller-controlled return target and keeps the fixed settings path", async () => {
