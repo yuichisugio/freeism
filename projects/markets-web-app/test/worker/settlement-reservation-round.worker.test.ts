@@ -675,6 +675,11 @@ describe("settlement reservation round", () => {
       },
     );
     const restore = new D1BuyNowRestorer(env.DB, env.AUCTION_SETTLEMENT);
+    const crashBeforeCommit: BuyNowRestorer = {
+      async restoreBuyNowHold() {
+        throw new Error("TEST_BEFORE_BUY_NOW_RESTORE_COMMIT");
+      },
+    };
     let committedReceiptId = "";
     const crashAfterCommit: BuyNowRestorer = {
       async restoreBuyNowHold(input) {
@@ -690,6 +695,17 @@ describe("settlement reservation round", () => {
       settlementRevision: 1,
     };
     await expect(
+      reserveSettlementRound(dependencies(points, crashBeforeCommit, seeded.now), input),
+    ).rejects.toThrow("TEST_BEFORE_BUY_NOW_RESTORE_COMMIT");
+    expect(
+      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("PENDING");
+    const reserveCalls = points.reserve.mock.calls.length;
+    const releaseCalls = points.release.mock.calls.length;
+    const statusCalls = points.statusByKeys.mock.calls.length;
+    await expect(
       reserveSettlementRound(dependencies(points, crashAfterCommit, seeded.now), input),
     ).rejects.toThrow("TEST_AFTER_BUY_NOW_RESTORE_COMMIT");
     expect(committedReceiptId).not.toBe("");
@@ -698,9 +714,9 @@ describe("settlement reservation round", () => {
         .bind(holdId)
         .first<string>("status"),
     ).toBe("FAILED_RESTORED");
-    const reserveCalls = points.reserve.mock.calls.length;
-    const releaseCalls = points.release.mock.calls.length;
-    const statusCalls = points.statusByKeys.mock.calls.length;
+    expect(points.reserve).toHaveBeenCalledTimes(reserveCalls);
+    expect(points.release).toHaveBeenCalledTimes(releaseCalls);
+    expect(points.statusByKeys).toHaveBeenCalledTimes(statusCalls);
     await expect(
       reserveSettlementRound(dependencies(points, restore, seeded.now), input),
     ).resolves.toEqual({ kind: "BUY_NOW_RESTORED", receiptId: committedReceiptId });

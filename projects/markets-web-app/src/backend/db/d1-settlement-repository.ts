@@ -267,8 +267,10 @@ export class D1SettlementReservationRepository implements SettlementReservationR
          JOIN settlement_rounds r ON r.id = w.settlement_round_id
          JOIN settlements s ON s.id = r.settlement_id AND s.kind = 'BUY_NOW'
          JOIN buy_now_holds h ON h.id = ? AND h.auction_id = s.auction_id
-         JOIN auction_close_resume_outbox o ON o.buy_now_hold_id = h.id
-         WHERE r.id = ? AND r.settlement_id = ? AND h.status = 'FAILED_RESTORED'
+         LEFT JOIN auction_close_resume_outbox o ON o.buy_now_hold_id = h.id
+         WHERE r.id = ? AND r.settlement_id = ?
+           AND ((h.status = 'PENDING' AND o.id IS NULL)
+             OR (h.status = 'FAILED_RESTORED' AND o.id IS NOT NULL))
            AND w.status = 'RELEASED' AND w.point_reservation_id IS NOT NULL
            AND w.failure_code = 'ALL_RESERVATIONS_NON_CAPTURABLE'
            AND w.failure_hash IS NOT NULL AND w.release_receipt_id IS NOT NULL
