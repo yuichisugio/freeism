@@ -15,6 +15,13 @@
       "when": 1783949488672,
       "tag": "0001_points-oauth-connection",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783950355485,
+      "tag": "0002_markets-domain",
+      "breakpoints": true
     }
   ]
 }
