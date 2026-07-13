@@ -15,6 +15,12 @@ export function IndexPage() {
           <span className="fix-marker">AUCTION</span>
           <p>ポイントの付与と管理は、専用サービスから確認できます。</p>
         </div>
+        <div className="home-actions">
+          <a className="button-link" href="/auctions">
+            Auctionを見る
+          </a>
+          <a href="/login">Googleでログイン</a>
+        </div>
         <a className="points-link" href="https://points.freeism.app">
           Freeism Pointsへ
         </a>

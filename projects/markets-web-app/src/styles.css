@@ -18,6 +18,65 @@ a {
   outline-offset: 3px;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+.button-link {
+  border: 1px solid #12603f;
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #12603f;
+  cursor: pointer;
+  padding: 0.55rem 0.8rem;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #b78b13;
+}
+
+.app-header,
+.app-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem max(1rem, calc((100% - 64rem) / 2));
+  background: #fffdf7;
+  border-bottom: 1px solid #d7d0c0;
+}
+
+.app-header nav,
+.app-footer,
+.locale-switch,
+.home-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.brand-link {
+  font-weight: 800;
+}
+
+.app-footer {
+  border-top: 1px solid #d7d0c0;
+  border-bottom: 0;
+}
+
 .page-shell {
   width: min(100% - 2rem, 64rem);
   margin: 0 auto;
@@ -28,6 +87,77 @@ a {
 .fixed-page {
   border-left: 4px solid #12603f;
   padding-left: clamp(1rem, 4vw, 3rem);
+}
+
+.sub-panel,
+.auction-card {
+  margin-top: 1.5rem;
+  border: 1px solid #d7d0c0;
+  border-radius: 0.35rem;
+  background: #fffdf7;
+  padding: 1rem;
+}
+
+.filter-form,
+.sub-panel form {
+  display: grid;
+  gap: 0.55rem;
+  max-width: 36rem;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #6c766f;
+  border-radius: 0.2rem;
+  background: #fff;
+  padding: 0.55rem;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.fact-list > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+.fact-list dt {
+  font-weight: 700;
+}
+
+.fact-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.status-label {
+  font-weight: 700;
+}
+
+.problem-banner {
+  border-left: 4px solid #a03422;
+  background: #fff2ef;
+  padding: 0.75rem;
+}
+
+.absolute-time {
+  font-size: 0.85em;
+}
+
+.connection-state {
+  border-left: 3px solid #7d641b;
+  padding-left: 0.75rem;
+}
+
+.turnstile-placeholder {
+  border: 1px dashed #7d641b;
+  padding: 1rem;
 }
 
 .eyebrow {

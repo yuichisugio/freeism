@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { HeadContent, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 
+import { MarketsLocaleProvider } from "../client/i18n/markets-locale";
+import { AppShell } from "../components/app-shell";
 import { FIXED_PAGE_PRE_HYDRATION_SCRIPT } from "../content/fixed-page-language";
 import stylesHref from "../styles.css?url";
 
@@ -20,7 +22,11 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <MarketsLocaleProvider>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </MarketsLocaleProvider>
     </RootDocument>
   );
 }

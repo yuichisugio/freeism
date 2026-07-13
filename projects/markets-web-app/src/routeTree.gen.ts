@@ -11,9 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuctionsIndexRouteImport } from './routes/auctions/index'
+import { Route as SettingsPointsConnectionRouteImport } from './routes/settings/points-connection'
+import { Route as ProofsProofIdRouteImport } from './routes/proofs/$proofId'
+import { Route as AuctionsImportRouteImport } from './routes/auctions/import'
+import { Route as AuctionsAuctionIdRouteImport } from './routes/auctions/$auctionId'
+import { Route as SettlementsSettlementIdIndexRouteImport } from './routes/settlements/$settlementId/index'
+import { Route as MeAuctionsWonRouteImport } from './routes/me/auctions/won'
+import { Route as MeAuctionsCreatedRouteImport } from './routes/me/auctions/created'
+import { Route as MeAuctionsBidsRouteImport } from './routes/me/auctions/bids'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -23,6 +33,11 @@ const TermsRoute = TermsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -40,43 +55,176 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuctionsIndexRoute = AuctionsIndexRouteImport.update({
+  id: '/auctions/',
+  path: '/auctions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsPointsConnectionRoute =
+  SettingsPointsConnectionRouteImport.update({
+    id: '/settings/points-connection',
+    path: '/settings/points-connection',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ProofsProofIdRoute = ProofsProofIdRouteImport.update({
+  id: '/proofs/$proofId',
+  path: '/proofs/$proofId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuctionsImportRoute = AuctionsImportRouteImport.update({
+  id: '/auctions/import',
+  path: '/auctions/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuctionsAuctionIdRoute = AuctionsAuctionIdRouteImport.update({
+  id: '/auctions/$auctionId',
+  path: '/auctions/$auctionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettlementsSettlementIdIndexRoute =
+  SettlementsSettlementIdIndexRouteImport.update({
+    id: '/settlements/$settlementId/',
+    path: '/settlements/$settlementId/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const MeAuctionsWonRoute = MeAuctionsWonRouteImport.update({
+  id: '/me/auctions/won',
+  path: '/me/auctions/won',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeAuctionsCreatedRoute = MeAuctionsCreatedRouteImport.update({
+  id: '/me/auctions/created',
+  path: '/me/auctions/created',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeAuctionsBidsRoute = MeAuctionsBidsRouteImport.update({
+  id: '/me/auctions/bids',
+  path: '/me/auctions/bids',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
+  '/auctions/import': typeof AuctionsImportRoute
+  '/proofs/$proofId': typeof ProofsProofIdRoute
+  '/settings/points-connection': typeof SettingsPointsConnectionRoute
+  '/auctions/': typeof AuctionsIndexRoute
+  '/me/auctions/bids': typeof MeAuctionsBidsRoute
+  '/me/auctions/created': typeof MeAuctionsCreatedRoute
+  '/me/auctions/won': typeof MeAuctionsWonRoute
+  '/settlements/$settlementId/': typeof SettlementsSettlementIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
+  '/auctions/import': typeof AuctionsImportRoute
+  '/proofs/$proofId': typeof ProofsProofIdRoute
+  '/settings/points-connection': typeof SettingsPointsConnectionRoute
+  '/auctions': typeof AuctionsIndexRoute
+  '/me/auctions/bids': typeof MeAuctionsBidsRoute
+  '/me/auctions/created': typeof MeAuctionsCreatedRoute
+  '/me/auctions/won': typeof MeAuctionsWonRoute
+  '/settlements/$settlementId': typeof SettlementsSettlementIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
+  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
+  '/auctions/import': typeof AuctionsImportRoute
+  '/proofs/$proofId': typeof ProofsProofIdRoute
+  '/settings/points-connection': typeof SettingsPointsConnectionRoute
+  '/auctions/': typeof AuctionsIndexRoute
+  '/me/auctions/bids': typeof MeAuctionsBidsRoute
+  '/me/auctions/created': typeof MeAuctionsCreatedRoute
+  '/me/auctions/won': typeof MeAuctionsWonRoute
+  '/settlements/$settlementId/': typeof SettlementsSettlementIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/docs' | '/help' | '/privacy' | '/terms'
+  fullPaths:
+    | '/'
+    | '/docs'
+    | '/help'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/auctions/$auctionId'
+    | '/auctions/import'
+    | '/proofs/$proofId'
+    | '/settings/points-connection'
+    | '/auctions/'
+    | '/me/auctions/bids'
+    | '/me/auctions/created'
+    | '/me/auctions/won'
+    | '/settlements/$settlementId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/docs' | '/help' | '/privacy' | '/terms'
-  id: '__root__' | '/' | '/docs' | '/help' | '/privacy' | '/terms'
+  to:
+    | '/'
+    | '/docs'
+    | '/help'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/auctions/$auctionId'
+    | '/auctions/import'
+    | '/proofs/$proofId'
+    | '/settings/points-connection'
+    | '/auctions'
+    | '/me/auctions/bids'
+    | '/me/auctions/created'
+    | '/me/auctions/won'
+    | '/settlements/$settlementId'
+  id:
+    | '__root__'
+    | '/'
+    | '/docs'
+    | '/help'
+    | '/login'
+    | '/privacy'
+    | '/terms'
+    | '/auctions/$auctionId'
+    | '/auctions/import'
+    | '/proofs/$proofId'
+    | '/settings/points-connection'
+    | '/auctions/'
+    | '/me/auctions/bids'
+    | '/me/auctions/created'
+    | '/me/auctions/won'
+    | '/settlements/$settlementId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocsRoute: typeof DocsRoute
   HelpRoute: typeof HelpRoute
+  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AuctionsAuctionIdRoute: typeof AuctionsAuctionIdRoute
+  AuctionsImportRoute: typeof AuctionsImportRoute
+  ProofsProofIdRoute: typeof ProofsProofIdRoute
+  SettingsPointsConnectionRoute: typeof SettingsPointsConnectionRoute
+  AuctionsIndexRoute: typeof AuctionsIndexRoute
+  MeAuctionsBidsRoute: typeof MeAuctionsBidsRoute
+  MeAuctionsCreatedRoute: typeof MeAuctionsCreatedRoute
+  MeAuctionsWonRoute: typeof MeAuctionsWonRoute
+  SettlementsSettlementIdIndexRoute: typeof SettlementsSettlementIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -93,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -116,6 +271,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auctions/': {
+      id: '/auctions/'
+      path: '/auctions'
+      fullPath: '/auctions/'
+      preLoaderRoute: typeof AuctionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/points-connection': {
+      id: '/settings/points-connection'
+      path: '/settings/points-connection'
+      fullPath: '/settings/points-connection'
+      preLoaderRoute: typeof SettingsPointsConnectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proofs/$proofId': {
+      id: '/proofs/$proofId'
+      path: '/proofs/$proofId'
+      fullPath: '/proofs/$proofId'
+      preLoaderRoute: typeof ProofsProofIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auctions/import': {
+      id: '/auctions/import'
+      path: '/auctions/import'
+      fullPath: '/auctions/import'
+      preLoaderRoute: typeof AuctionsImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auctions/$auctionId': {
+      id: '/auctions/$auctionId'
+      path: '/auctions/$auctionId'
+      fullPath: '/auctions/$auctionId'
+      preLoaderRoute: typeof AuctionsAuctionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settlements/$settlementId/': {
+      id: '/settlements/$settlementId/'
+      path: '/settlements/$settlementId'
+      fullPath: '/settlements/$settlementId/'
+      preLoaderRoute: typeof SettlementsSettlementIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/auctions/won': {
+      id: '/me/auctions/won'
+      path: '/me/auctions/won'
+      fullPath: '/me/auctions/won'
+      preLoaderRoute: typeof MeAuctionsWonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/auctions/created': {
+      id: '/me/auctions/created'
+      path: '/me/auctions/created'
+      fullPath: '/me/auctions/created'
+      preLoaderRoute: typeof MeAuctionsCreatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/auctions/bids': {
+      id: '/me/auctions/bids'
+      path: '/me/auctions/bids'
+      fullPath: '/me/auctions/bids'
+      preLoaderRoute: typeof MeAuctionsBidsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -123,8 +341,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocsRoute: DocsRoute,
   HelpRoute: HelpRoute,
+  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AuctionsAuctionIdRoute: AuctionsAuctionIdRoute,
+  AuctionsImportRoute: AuctionsImportRoute,
+  ProofsProofIdRoute: ProofsProofIdRoute,
+  SettingsPointsConnectionRoute: SettingsPointsConnectionRoute,
+  AuctionsIndexRoute: AuctionsIndexRoute,
+  MeAuctionsBidsRoute: MeAuctionsBidsRoute,
+  MeAuctionsCreatedRoute: MeAuctionsCreatedRoute,
+  MeAuctionsWonRoute: MeAuctionsWonRoute,
+  SettlementsSettlementIdIndexRoute: SettlementsSettlementIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
