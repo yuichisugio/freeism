@@ -3,3 +3,4 @@ GOOGLE_CLIENT_ID=replace-with-google-fixture-client-id
 GOOGLE_CLIENT_SECRET=replace-with-google-fixture-client-secret
 GITHUB_CLIENT_ID=replace-with-github-fixture-client-id
 GITHUB_CLIENT_SECRET=replace-with-github-fixture-client-secret
+INITIAL_ADMIN_GOOGLE_ACCOUNT_ID=replace-with-initial-admin-google-account-id

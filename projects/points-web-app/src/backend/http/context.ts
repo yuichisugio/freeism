@@ -1,5 +1,6 @@
 export type Bindings = Omit<Env, "DB"> & {
   DB: D1Database;
+  INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: string;
 };
 
 export function requireBindings(env: Env): Bindings {

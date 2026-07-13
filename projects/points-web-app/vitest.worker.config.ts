@@ -13,6 +13,7 @@ export default defineConfig({
           GITHUB_CLIENT_SECRET: "test-github-client-secret",
           GOOGLE_CLIENT_ID: "test-google-client-id",
           GOOGLE_CLIENT_SECRET: "test-google-client-secret",
+          INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: "test-initial-admin-google-account-id",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
         },
         d1Databases: ["DB"],
