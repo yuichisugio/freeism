@@ -75,7 +75,7 @@ export function ProofPage({
         {reviews.error ? (
           <ProblemBanner message="レビューを取得できません。証明本文は変更されません。" />
         ) : null}
-        <ProofReviews reviews={reviews.data ?? []} />
+        {reviews.data ? <ProofReviews reviews={reviews.data} /> : null}
         <TradeReviewForm />
       </section>
     </main>

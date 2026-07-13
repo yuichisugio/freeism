@@ -58,6 +58,7 @@ describe("Markets canonical routes", () => {
     expect(html[3]).toContain("CSVファイル");
     expect(html[4]).toContain("入札");
     expect(html[8]).toContain("取引証明");
+    expect(html[8]).not.toContain("レビューはまだありません");
     expect(html[9]).toContain("Settlement");
   });
 

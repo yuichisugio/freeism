@@ -26,6 +26,7 @@ export function useApiResource<T>(load: () => Promise<T>): ApiResource<T> {
       },
       (reason: unknown) => {
         if (!active) return;
+        setData(null);
         setError(reason instanceof Error ? reason : new Error("REQUEST_FAILED"));
         setLoading(false);
       },
