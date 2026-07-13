@@ -2,6 +2,8 @@ import { sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { auctionRevisions, auctions } from "./auction";
+import { marketsUsers } from "./markets-user";
+import { pointsConnections } from "./points-connection";
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 const safeInteger = sql.raw("9007199254740991");
@@ -157,5 +159,115 @@ export const settlementOutbox = sqliteTable(
     check("settlement_outbox_plan_hash_check", sql`length(${table.planHash}) = 64`),
     check("settlement_outbox_status_check", sql`${table.status} in ('PENDING', 'DISPATCHED')`),
     check("settlement_outbox_delivery_attempt_check", sql`${table.deliveryAttemptCount} >= 0`),
+  ],
+);
+
+export const settlementRounds = sqliteTable(
+  "settlement_rounds",
+  {
+    id: text("id").primaryKey(),
+    settlementId: text("settlement_id")
+      .notNull()
+      .references(() => settlements.id),
+    roundOrdinal: integer("round_ordinal").notNull(),
+    planHash: text("plan_hash").notNull(),
+    cutoffHash: text("cutoff_hash").notNull(),
+    state: text("state", {
+      enum: ["RESERVING", "RELEASING", "RELEASED", "RESERVED", "FAILED"],
+    })
+      .default("RESERVING")
+      .notNull(),
+    excludedUserIdsJson: text("excluded_user_ids_json").default("[]").notNull(),
+    firstAttemptAt: text("first_attempt_at").notNull(),
+    retryDeadlineAt: text("retry_deadline_at").notNull(),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
+  },
+  (table) => [
+    uniqueIndex("settlement_rounds_ordinal_uidx").on(table.settlementId, table.roundOrdinal),
+    check("settlement_rounds_ordinal_check", sql`${table.roundOrdinal} between 1 and ${safeInteger}`),
+    check("settlement_rounds_plan_hash_check", sql`length(${table.planHash}) = 64`),
+    check("settlement_rounds_cutoff_hash_check", sql`length(${table.cutoffHash}) = 64`),
+    check("settlement_rounds_excluded_json_check", sql`json_valid(${table.excludedUserIdsJson})`),
+    check("settlement_rounds_deadline_check", sql`${table.retryDeadlineAt} >= ${table.firstAttemptAt}`),
+    check(
+      "settlement_rounds_state_check",
+      sql`${table.state} in ('RESERVING', 'RELEASING', 'RELEASED', 'RESERVED', 'FAILED')`,
+    ),
+  ],
+);
+
+export const settlementRoundWinners = sqliteTable(
+  "settlement_round_winners",
+  {
+    id: text("id").primaryKey(),
+    settlementRoundId: text("settlement_round_id")
+      .notNull()
+      .references(() => settlementRounds.id),
+    marketsUserId: text("markets_user_id")
+      .notNull()
+      .references(() => marketsUsers.id),
+    pointsConnectionId: text("points_connection_id")
+      .notNull()
+      .references(() => pointsConnections.id),
+    allocationQuantity: integer("allocation_quantity").notNull(),
+    priceTickCount: integer("price_tick_count").notNull(),
+    priceTicks: integer("price_ticks").notNull(),
+    reservationKey: text("reservation_key").notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    status: text("status", {
+      enum: ["PENDING", "ACTIVE", "REJECTED", "UNKNOWN", "RELEASED", "EXPIRED", "CAPTURED"],
+    })
+      .default("PENDING")
+      .notNull(),
+    pointReservationId: text("point_reservation_id"),
+    vectorHash: text("vector_hash"),
+    expiresAt: text("expires_at"),
+    failureClass: text("failure_class"),
+    failureCode: text("failure_code"),
+    failureHash: text("failure_hash"),
+    releaseReceiptId: text("release_receipt_id"),
+    releaseContentHash: text("release_content_hash"),
+    releasedAt: text("released_at"),
+    pointsRequestId: text("points_request_id"),
+    createdAt: text("created_at").default(now).notNull(),
+    updatedAt: text("updated_at").default(now).notNull(),
+  },
+  (table) => [
+    uniqueIndex("settlement_round_winners_user_uidx").on(
+      table.settlementRoundId,
+      table.marketsUserId,
+    ),
+    uniqueIndex("settlement_round_winners_key_uidx").on(table.reservationKey),
+    check("settlement_round_winners_quantity_check", sql`${table.allocationQuantity} between 1 and 1000`),
+    check("settlement_round_winners_attempt_check", sql`${table.attemptCount} between 0 and ${safeInteger}`),
+    check(
+      "settlement_round_winners_status_check",
+      sql`${table.status} in ('PENDING', 'ACTIVE', 'REJECTED', 'UNKNOWN', 'RELEASED', 'EXPIRED', 'CAPTURED')`,
+    ),
+  ],
+);
+
+export const settlementExclusions = sqliteTable(
+  "settlement_exclusions",
+  {
+    settlementId: text("settlement_id")
+      .notNull()
+      .references(() => settlements.id),
+    marketsUserId: text("markets_user_id")
+      .notNull()
+      .references(() => marketsUsers.id),
+    firstRoundOrdinal: integer("first_round_ordinal").notNull(),
+    reason: text("reason", { enum: ["INSUFFICIENT_BALANCE", "REAUTH_REQUIRED"] }).notNull(),
+    blacklistEventId: text("blacklist_event_id"),
+    createdAt: text("created_at").default(now).notNull(),
+  },
+  (table) => [
+    uniqueIndex("settlement_exclusions_user_uidx").on(table.settlementId, table.marketsUserId),
+    check("settlement_exclusions_round_check", sql`${table.firstRoundOrdinal} between 1 and ${safeInteger}`),
+    check(
+      "settlement_exclusions_reason_check",
+      sql`${table.reason} in ('INSUFFICIENT_BALANCE', 'REAUTH_REQUIRED')`,
+    ),
   ],
 );

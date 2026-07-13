@@ -1,7 +1,10 @@
 import { env, introspectWorkflowInstance } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
-import { closeAuctionAndPlan } from "../../src/backend/db/d1-settlement-plan-repository";
+import {
+  closeAuctionAndPlan,
+  resumeAuctionCloseFromCutoff,
+} from "../../src/backend/db/d1-settlement-plan-repository";
 import { createSettlementPlan } from "../../src/backend/settlement/create-settlement-plan";
 import {
   dispatchSettlementOutbox,
@@ -216,6 +219,90 @@ describe("settlement close and Workflow", () => {
     });
   });
 
+  it("closes a sold-out auction without creating an empty END plan", async () => {
+    const seeded = await seedDueAuction();
+    const buyerId = await env.DB.prepare(
+      "SELECT bidder_markets_user_id FROM bid_positions WHERE id = ?",
+    )
+      .bind(seeded.earlyBidId)
+      .first<string>("bidder_markets_user_id");
+    await env.DB.prepare(
+      `INSERT INTO buy_now_holds
+       (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status)
+       VALUES (?, ?, ?, 2, 20, 'SETTLED')`,
+    )
+      .bind(`hold_${crypto.randomUUID()}`, seeded.auctionId, buyerId)
+      .run();
+
+    await expect(
+      closeAuctionAndPlan(env.DB, {
+        auctionId: seeded.auctionId,
+        expectedAuctionVersion: 4,
+        expectedRevisionId: seeded.revisionId,
+        serverNow: seeded.serverNow,
+      }),
+    ).resolves.toEqual({ cutoffId: seeded.auctionId, kind: "SOLD_OUT" });
+    expect(await settlementCounts(seeded.auctionId)).toEqual({
+      cutoffs: 1,
+      outbox: 0,
+      plans: 0,
+      settlements: 0,
+      status: "SETTLED",
+      version: 5,
+    });
+  });
+
+  it("creates one delayed END plan from the saved cutoff after the last hold is restored", async () => {
+    const seeded = await seedDueAuction();
+    const buyerId = await env.DB.prepare(
+      "SELECT bidder_markets_user_id FROM bid_positions WHERE id = ?",
+    )
+      .bind(seeded.earlyBidId)
+      .first<string>("bidder_markets_user_id");
+    const holdId = `hold_${crypto.randomUUID()}`;
+    await env.DB.prepare(
+      `INSERT INTO buy_now_holds
+       (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status)
+       VALUES (?, ?, ?, 2, 20, 'PENDING')`,
+    )
+      .bind(holdId, seeded.auctionId, buyerId)
+      .run();
+    await closeAuctionAndPlan(env.DB, {
+      auctionId: seeded.auctionId,
+      expectedAuctionVersion: 4,
+      expectedRevisionId: seeded.revisionId,
+      serverNow: seeded.serverNow,
+    });
+    await env.DB.prepare("UPDATE buy_now_holds SET status = 'FAILED_RESTORED' WHERE id = ?")
+      .bind(holdId)
+      .run();
+
+    const resume = () =>
+      resumeAuctionCloseFromCutoff(env.DB, {
+        auctionId: seeded.auctionId,
+        serverNow: new Date(Date.parse(seeded.serverNow) + 1_000).toISOString(),
+      });
+    const results = await Promise.all([resume(), resume()]);
+    expect(results[0]).toMatchObject({ kind: "PLANNED" });
+    expect(results[1]).toEqual(results[0]);
+    expect(await settlementCounts(seeded.auctionId)).toEqual({
+      cutoffs: 1,
+      outbox: 1,
+      plans: 1,
+      settlements: 1,
+      status: "CLOSING",
+      version: 5,
+    });
+    const quantity = await env.DB.prepare(
+      `SELECT json_extract(p.plan_json, '$.quantity') AS quantity
+       FROM settlement_plans p JOIN settlements s ON s.id = p.settlement_id
+       WHERE s.auction_id = ? AND s.kind = 'END_OF_AUCTION'`,
+    )
+      .bind(seeded.auctionId)
+      .first<number>("quantity");
+    expect(quantity).toBe(2);
+  });
+
   it("rolls back the close CAS and cutoff when the outbox insert fails", async () => {
     const seeded = await seedDueAuction();
     await env.DB.exec(
@@ -277,7 +364,7 @@ describe("settlement close and Workflow", () => {
     expect(first.planHash).toMatch(/^[a-f0-9]{64}$/);
   });
 
-  it("dispatches one deterministic Workflow instance and fails explicitly after validation", async () => {
+  it("dispatches one deterministic Workflow instance and fails explicitly without Points bindings", async () => {
     const seeded = await seedDueAuction();
     const planned = await closeAuctionAndPlan(env.DB, {
       auctionId: seeded.auctionId,

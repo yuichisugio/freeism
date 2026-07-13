@@ -40,9 +40,9 @@ function isAuctionEligibilityItemError(value: unknown): value is AuctionEligibil
 
 function readProblem(value: unknown) {
   if (typeof value !== "object" || value === null) {
-    return { code: "POINTS_API_ERROR", errors: [] };
+    return { code: "POINTS_API_ERROR", errors: [], requestId: undefined };
   }
-  const problem = value as { code?: unknown; errors?: unknown };
+  const problem = value as { code?: unknown; errors?: unknown; requestId?: unknown };
   const code = typeof problem.code === "string" ? problem.code : "POINTS_API_ERROR";
   const errors =
     code === "POINT_PACKAGE_AUCTION_INELIGIBLE" &&
@@ -50,7 +50,15 @@ function readProblem(value: unknown) {
     problem.errors.every(isAuctionEligibilityItemError)
       ? problem.errors
       : [];
-  return { code, errors };
+  return {
+    code,
+    errors,
+    requestId: typeof problem.requestId === "string" ? problem.requestId : undefined,
+  };
+}
+
+export interface PointsRequestOptions {
+  signal?: AbortSignal;
 }
 
 export class PointsApiError extends Error {
@@ -58,6 +66,8 @@ export class PointsApiError extends Error {
     readonly status: number,
     readonly code: string,
     readonly errors: readonly AuctionEligibilityItemError[] = [],
+    readonly requestId?: string,
+    readonly retryAfter?: string,
   ) {
     super(code);
   }
@@ -65,12 +75,15 @@ export class PointsApiError extends Error {
 
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const body: unknown = await response
-      .clone()
-      .json<unknown>()
-      .catch(() => undefined);
+    const body: unknown = await response.json<unknown>().catch(() => undefined);
     const problem = readProblem(body);
-    throw new PointsApiError(response.status, problem.code, problem.errors);
+    throw new PointsApiError(
+      response.status,
+      problem.code,
+      problem.errors,
+      problem.requestId,
+      response.headers.get("Retry-After") ?? undefined,
+    );
   }
   return response.json<T>();
 }
@@ -83,6 +96,7 @@ function request(
     idempotencyKey?: string;
     ifNoneMatch?: string;
     method?: "GET" | "POST";
+    signal?: AbortSignal;
   },
 ) {
   const headers = new Headers({ Accept: "application/json" });
@@ -94,6 +108,7 @@ function request(
     body: input.body === undefined ? undefined : JSON.stringify(input.body),
     headers,
     method: input.method ?? (input.body === undefined ? "GET" : "POST"),
+    signal: input.signal,
   });
 }
 
@@ -185,6 +200,7 @@ export class PointsApiClient {
     body: ReservationBody,
     idempotencyKey: string,
     userAccessToken: string,
+    options: PointsRequestOptions = {},
   ) {
     return json<components["schemas"]["CreateReservationResponse"]>(
       await this.service.fetch(
@@ -192,15 +208,18 @@ export class PointsApiClient {
           bearer: userAccessToken,
           body,
           idempotencyKey,
+          signal: options.signal,
         }),
       ),
     );
   }
 
-  async getPointReservationStatus(body: StatusBody) {
+  async getPointReservationStatus(body: StatusBody, options: PointsRequestOptions = {}) {
     const bearer = await this.getM2MAccessToken(["points.reservations.status"]);
     return json<components["schemas"]["ReservationStatusResponse"]>(
-      await this.service.fetch(request("/api/v1/point-reservations/status", { bearer, body })),
+      await this.service.fetch(
+        request("/api/v1/point-reservations/status", { bearer, body, signal: options.signal }),
+      ),
     );
   }
 
@@ -217,11 +236,20 @@ export class PointsApiClient {
     );
   }
 
-  async releasePointReservation(body: ReleaseBody, idempotencyKey: string) {
+  async releasePointReservation(
+    body: ReleaseBody,
+    idempotencyKey: string,
+    options: PointsRequestOptions = {},
+  ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.release"]);
     return json<components["schemas"]["ReleaseReservationResponse"]>(
       await this.service.fetch(
-        request("/api/v1/point-reservations/release", { bearer, body, idempotencyKey }),
+        request("/api/v1/point-reservations/release", {
+          bearer,
+          body,
+          idempotencyKey,
+          signal: options.signal,
+        }),
       ),
     );
   }

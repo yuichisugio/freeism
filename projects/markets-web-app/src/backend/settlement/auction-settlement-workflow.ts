@@ -1,7 +1,10 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from "cloudflare:workers";
 import { NonRetryableError } from "cloudflare:workflows";
 
+import type { Bindings } from "../http/context";
 import type { SettlementWorkflowParams } from "./outbox-dispatcher";
+import { reserveSettlementRound } from "./reserve-settlement-round";
+import { createSettlementReservationDependencies } from "./settlement-dependencies";
 import { SETTLEMENT_STEP_POLICIES } from "./settlement-step-policies";
 
 interface PlanValidationRow {
@@ -43,6 +46,44 @@ export class AuctionSettlementWorkflow extends WorkflowEntrypoint<Env, Settlemen
         settlementRevision: row.settlementRevision,
       };
     });
-    throw new NonRetryableError("SETTLEMENT_EXECUTION_NOT_IMPLEMENTED");
+    const bindings = this.env as Partial<Bindings>;
+    if (
+      !bindings.POINTS_SERVICE ||
+      !bindings.POINTS_AUDIENCE ||
+      !bindings.POINTS_ISSUER ||
+      !bindings.POINTS_M2M_CLIENT_ID ||
+      !bindings.POINTS_M2M_CLIENT_SECRET ||
+      !bindings.POINTS_SETTLEMENT_CLIENT_ID ||
+      !bindings.POINTS_SETTLEMENT_CLIENT_SECRET ||
+      !bindings.POINTS_USER_CLIENT_ID ||
+      !bindings.POINTS_USER_CLIENT_SECRET
+    ) {
+      throw new NonRetryableError("POINTS_SETTLEMENT_BINDINGS_REQUIRED");
+    }
+    let roundOrdinal = 1;
+    while (true) {
+      const result = await step.do(
+        `reserve-round-${roundOrdinal}`,
+        SETTLEMENT_STEP_POLICIES.reserveRound,
+        () =>
+          reserveSettlementRound(
+            createSettlementReservationDependencies(bindings as Bindings),
+            {
+              planHash: event.payload.planHash,
+              roundOrdinal,
+              settlementId: event.payload.settlementId,
+              settlementRevision: event.payload.settlementRevision,
+            },
+          ),
+      );
+      if (result.kind === "RECALCULATE") {
+        roundOrdinal = result.nextRoundOrdinal;
+        continue;
+      }
+      if (result.kind === "RESERVED") {
+        throw new NonRetryableError("CAPTURE_NOT_IMPLEMENTED");
+      }
+      return result;
+    }
   }
 }

@@ -15,6 +15,7 @@ export interface CloseAuctionInput {
 
 export type CloseAuctionResult =
   | { kind: "NOT_DUE_OR_STALE" }
+  | { cutoffId: string; kind: "SOLD_OUT" }
   | { cutoffId: string; kind: "WAITING_FOR_BUY_NOW" }
   | {
       kind: "PLANNED";
@@ -38,6 +39,7 @@ interface CloseSnapshot {
 }
 
 interface ExistingCloseRow {
+  auctionStatus: string;
   cutoffAuctionId: string | null;
   outboxId: string | null;
   planHash: string | null;
@@ -107,8 +109,9 @@ async function loadExistingClose(
       `SELECT c.auction_id AS cutoffAuctionId, s.id AS settlementId,
               s.settlement_revision AS settlementRevision,
               s.workflow_attempt AS workflowAttempt, p.plan_hash AS planHash,
-              o.id AS outboxId
+              o.id AS outboxId, a.status AS auctionStatus
        FROM auction_close_cutoffs c
+       JOIN auctions a ON a.id = c.auction_id
        LEFT JOIN settlements s
          ON s.auction_id = c.auction_id AND s.kind = 'END_OF_AUCTION'
           AND s.source_key = 'end:' || c.auction_revision_id || ':' || c.cutoff_at
@@ -116,9 +119,9 @@ async function loadExistingClose(
        LEFT JOIN settlement_outbox o
          ON o.settlement_id = s.id AND o.settlement_revision = s.settlement_revision
           AND o.workflow_attempt = s.workflow_attempt
-       WHERE c.auction_id = ? AND c.auction_revision_id = ? AND c.cutoff_at = ?`,
+       WHERE c.auction_id = ? AND c.auction_revision_id = ?`,
     )
-    .bind(input.auctionId, input.expectedRevisionId, input.serverNow)
+    .bind(input.auctionId, input.expectedRevisionId)
     .first<ExistingCloseRow>();
   if (!row?.cutoffAuctionId) return { kind: "NOT_DUE_OR_STALE" };
   if (
@@ -140,6 +143,9 @@ async function loadExistingClose(
         planHash: row.planHash,
       },
     };
+  }
+  if (row.auctionStatus === "SETTLED") {
+    return { cutoffId: input.auctionId, kind: "SOLD_OUT" };
   }
   return { cutoffId: input.auctionId, kind: "WAITING_FOR_BUY_NOW" };
 }
@@ -171,7 +177,10 @@ export async function closeAuctionAndPlan(
     pointPackageRevisionId: snapshot.pointPackageRevisionId,
     // BUY_NOW の未完了 hold が全数量を押さえていても、close cutoff 自体は確定する。
     // この場合の plan は ranking input の正規化にだけ使い、DB には保存しない。
-    quantity: snapshot.unfinishedHoldCount === 0 ? snapshot.availableQuantity : snapshot.quantity,
+    quantity:
+      snapshot.unfinishedHoldCount === 0 && snapshot.availableQuantity > 0
+        ? snapshot.availableQuantity
+        : snapshot.quantity,
   });
   if (planned.plan.kind !== "END_OF_AUCTION") {
     throw new Error("END_OF_AUCTION_PLAN_REQUIRED");
@@ -181,15 +190,18 @@ export async function closeAuctionAndPlan(
   const outboxId = `outbox_${crypto.randomUUID()}`;
   const sourceKey = `end:${input.expectedRevisionId}:${input.serverNow}`;
 
+  const soldOut = snapshot.unfinishedHoldCount === 0 && snapshot.availableQuantity === 0;
+  const closingStatus = soldOut ? "SETTLED" : "CLOSING";
   const statements: D1PreparedStatement[] = [
     db
       .prepare(
-        `UPDATE auctions SET status = 'CLOSING', version = version + 1, updated_at = ?
+        `UPDATE auctions SET status = ?, version = version + 1, updated_at = ?
          WHERE id = ? AND current_revision_id = ? AND status = 'OPEN' AND version = ?
            AND EXISTS (SELECT 1 FROM auction_revisions
              WHERE id = ? AND auction_id = ? AND ends_at <= ?)`,
       )
       .bind(
+        closingStatus,
         input.serverNow,
         input.auctionId,
         input.expectedRevisionId,
@@ -206,7 +218,7 @@ export async function closeAuctionAndPlan(
           point_package_revision_id, package_tick, algorithm_version, created_at)
          SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
          WHERE EXISTS (SELECT 1 FROM auctions
-           WHERE id = ? AND current_revision_id = ? AND status = 'CLOSING'
+           WHERE id = ? AND current_revision_id = ? AND status = ?
              AND version = ? AND updated_at = ?)`,
       )
       .bind(
@@ -224,12 +236,13 @@ export async function closeAuctionAndPlan(
         input.serverNow,
         input.auctionId,
         input.expectedRevisionId,
+        closingStatus,
         input.expectedAuctionVersion + 1,
         input.serverNow,
       ),
   ];
 
-  if (snapshot.unfinishedHoldCount === 0) {
+  if (snapshot.unfinishedHoldCount === 0 && snapshot.availableQuantity > 0) {
     statements.push(
       db
         .prepare(
@@ -283,4 +296,131 @@ export async function closeAuctionAndPlan(
 
   await db.batch(statements);
   return loadExistingClose(db, input);
+}
+
+interface ResumeSnapshot {
+  algorithmVersion: string;
+  auctionRevisionId: string;
+  auctionStatus: string;
+  cutoffAt: string;
+  maxBidSeq: number;
+  packageTick: number;
+  pointPackageRevisionId: string;
+  quantity: number;
+  unfinishedHoldCount: number;
+}
+
+export async function resumeAuctionCloseFromCutoff(
+  db: D1Database,
+  input: { auctionId: string; serverNow: string },
+): Promise<CloseAuctionResult> {
+  if (!input.auctionId || !Number.isFinite(Date.parse(input.serverNow))) {
+    return { kind: "NOT_DUE_OR_STALE" };
+  }
+  const snapshot = await db
+    .prepare(
+      `SELECT c.auction_revision_id AS auctionRevisionId, c.cutoff_at AS cutoffAt,
+              c.max_bid_seq AS maxBidSeq, c.package_tick AS packageTick,
+              c.point_package_revision_id AS pointPackageRevisionId,
+              c.algorithm_version AS algorithmVersion, a.status AS auctionStatus,
+              r.quantity - COALESCE((SELECT SUM(quantity) FROM buy_now_holds
+                WHERE auction_id = a.id
+                  AND status IN ('PENDING', 'CAPTURED_PENDING_FINALIZE', 'SETTLED')), 0)
+                AS quantity,
+              (SELECT COUNT(*) FROM buy_now_holds
+                WHERE auction_id = a.id AND status IN ('PENDING', 'CAPTURED_PENDING_FINALIZE'))
+                AS unfinishedHoldCount
+       FROM auction_close_cutoffs c
+       JOIN auctions a ON a.id = c.auction_id
+       JOIN auction_revisions r ON r.id = c.auction_revision_id
+       WHERE c.auction_id = ?`,
+    )
+    .bind(input.auctionId)
+    .first<ResumeSnapshot>();
+  if (!snapshot) return { kind: "NOT_DUE_OR_STALE" };
+
+  const existingInput: CloseAuctionInput = {
+    auctionId: input.auctionId,
+    expectedAuctionVersion: 1,
+    expectedRevisionId: snapshot.auctionRevisionId,
+    serverNow: snapshot.cutoffAt,
+  };
+  if (snapshot.auctionStatus === "SETTLED") return loadExistingClose(db, existingInput);
+  if (snapshot.auctionStatus !== "CLOSING") return { kind: "NOT_DUE_OR_STALE" };
+  if (snapshot.unfinishedHoldCount > 0) {
+    return { cutoffId: input.auctionId, kind: "WAITING_FOR_BUY_NOW" };
+  }
+  if (snapshot.quantity <= 0) {
+    await db
+      .prepare(
+        `UPDATE auctions SET status = 'SETTLED', updated_at = ?
+         WHERE id = ? AND status = 'CLOSING'`,
+      )
+      .bind(input.serverNow, input.auctionId)
+      .run();
+    return loadExistingClose(db, existingInput);
+  }
+
+  const eligibleBids = await loadEligibleBids(db, input.auctionId, snapshot.cutoffAt);
+  const planned = await createSettlementPlan({
+    algorithmVersion: snapshot.algorithmVersion,
+    auctionId: input.auctionId,
+    auctionRevisionId: snapshot.auctionRevisionId,
+    cutoffAt: snapshot.cutoffAt,
+    eligibleBids,
+    kind: "END_OF_AUCTION",
+    maxBidSeq: snapshot.maxBidSeq,
+    packageTick: snapshot.packageTick,
+    pointPackageRevisionId: snapshot.pointPackageRevisionId,
+    quantity: snapshot.quantity,
+  });
+  const settlementId = `stl_${crypto.randomUUID()}`;
+  const planId = `spl_${crypto.randomUUID()}`;
+  const outboxId = `outbox_${crypto.randomUUID()}`;
+  const sourceKey = `end:${snapshot.auctionRevisionId}:${snapshot.cutoffAt}`;
+  await db.batch([
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO settlements
+         (id, auction_id, kind, source_key, settlement_revision, workflow_attempt,
+          saga_state, current_plan_id, created_at, updated_at)
+         VALUES (?, ?, 'END_OF_AUCTION', ?, 1, 0, 'PLANNED', ?, ?, ?)`,
+      )
+      .bind(
+        settlementId,
+        input.auctionId,
+        sourceKey,
+        planId,
+        input.serverNow,
+        input.serverNow,
+      ),
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO settlement_plans
+         (id, settlement_id, settlement_revision, plan_json, plan_hash,
+          algorithm_version, created_at)
+         SELECT ?, ?, 1, ?, ?, ?, ?
+         WHERE EXISTS (SELECT 1 FROM settlements WHERE id = ? AND current_plan_id = ?)`,
+      )
+      .bind(
+        planId,
+        settlementId,
+        planned.planJson,
+        planned.planHash,
+        snapshot.algorithmVersion,
+        input.serverNow,
+        settlementId,
+        planId,
+      ),
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO settlement_outbox
+         (id, settlement_id, settlement_revision, workflow_attempt, plan_hash,
+          status, delivery_attempt_count, created_at)
+         SELECT ?, ?, 1, 0, ?, 'PENDING', 0, ?
+         WHERE EXISTS (SELECT 1 FROM settlement_plans WHERE id = ?)`,
+      )
+      .bind(outboxId, settlementId, planned.planHash, input.serverNow, planId),
+  ]);
+  return loadExistingClose(db, existingInput);
 }

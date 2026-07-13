@@ -246,6 +246,21 @@ export class PointsOAuthClient {
     } satisfies PointsOAuthTokenSet;
   }
 
+  async introspectUserAccessToken(accessToken: string, requiredScopes: readonly string[]) {
+    const introspection = await this.introspect(
+      accessToken,
+      this.config.userClientId,
+      this.config.userClientSecret,
+    );
+    const scopes = this.assertUserIntrospection(introspection, requiredScopes);
+    return {
+      clientId: introspection.client_id!,
+      issuer: introspection.iss!,
+      scopes,
+      subject: introspection.sub!,
+    };
+  }
+
   async revoke(token: string, hint: "access_token" | "refresh_token") {
     await this.service.fetch(
       new Request(`${this.config.issuer}/oauth2/revoke`, {
