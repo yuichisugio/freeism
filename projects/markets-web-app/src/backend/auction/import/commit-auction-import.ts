@@ -116,7 +116,7 @@ export function assertEligibilityReceipt(
     data.auctionCommandId !== request.auctionCommandId ||
     data.auctionCommandHash !== request.auctionCommandHash ||
     data.items.length !== request.items.length ||
-    !data.eligibilityReceiptId ||
+    !data.pointPackageAuctionEligibilityReceiptId ||
     !Number.isFinite(Date.parse(data.checkedAt)) ||
     !Number.isFinite(Date.parse(data.validUntil))
   ) {
@@ -143,7 +143,7 @@ export function assertEligibilityReceipt(
     versions.set(item.auctionItemId, item.packageEligibilityVersion);
   }
   return {
-    eligibilityReceiptId: data.eligibilityReceiptId,
+    eligibilityReceiptId: data.pointPackageAuctionEligibilityReceiptId,
     checkedAt: data.checkedAt,
     validUntil: data.validUntil,
     versions,

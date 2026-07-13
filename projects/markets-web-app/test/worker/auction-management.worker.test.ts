@@ -146,7 +146,7 @@ describe("Auction management", () => {
         items: Array<Record<string, string>>;
       }) => ({
         data: {
-          eligibilityReceiptId: "receipt-new",
+          pointPackageAuctionEligibilityReceiptId: "receipt-new",
           auctionCommandId: request.auctionCommandId,
           auctionCommandHash: request.auctionCommandHash,
           items: request.items.map((item) => ({ ...item, packageEligibilityVersion: 2 })),

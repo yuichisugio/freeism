@@ -79,7 +79,7 @@ function dependencies(
     refreshPackage: async () => snapshot,
     checkEligibility: async (request) => ({
       data: {
-        eligibilityReceiptId: "receipt_1",
+        pointPackageAuctionEligibilityReceiptId: "receipt_1",
         auctionCommandId: request.auctionCommandId,
         auctionCommandHash: request.auctionCommandHash,
         items: request.items.map((item) => ({ ...item, packageEligibilityVersion: 2 })),
