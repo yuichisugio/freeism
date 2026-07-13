@@ -60,6 +60,28 @@ describe("createAuctionEventController", () => {
     expect(applyPublicEvent).toHaveBeenCalledTimes(1);
   });
 
+  it("disables bidding when a status event closes the auction", async () => {
+    const states: AuctionConnectionState[] = [];
+    const controller = createAuctionEventController({
+      applyPublicEvent: vi.fn(),
+      initial,
+      onState: (state) => states.push(state),
+      resync: vi.fn(),
+    });
+
+    await controller.accept(snapshotEvent());
+    await controller.accept(
+      snapshotEvent({
+        auctionVersion: 5,
+        bidSeq: 10,
+        data: { status: "CLOSED" },
+        type: "auction.status.changed",
+      }),
+    );
+
+    expect(states.at(-1)).toMatchObject({ canBid: false, state: "LIVE" });
+  });
+
   it.each([
     ["version gap", { auctionVersion: 6, bidSeq: 11, type: "auction.bid.updated" }],
     ["sequence gap", { auctionVersion: 5, bidSeq: 12, type: "auction.bid.updated" }],

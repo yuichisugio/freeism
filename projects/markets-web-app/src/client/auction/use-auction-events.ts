@@ -202,7 +202,8 @@ export function createAuctionEventController(
       publish({
         auctionVersion: event.auctionVersion,
         bidSeq: event.bidSeq,
-        canBid: state.canBid,
+        canBid:
+          event.type === "auction.status.changed" ? event.data.status === "OPEN" : state.canBid,
         state: "LIVE",
       });
     },
