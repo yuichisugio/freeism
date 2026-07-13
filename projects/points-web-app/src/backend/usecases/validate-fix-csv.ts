@@ -125,20 +125,54 @@ function validEvaluationAt(value: string): boolean {
   return Number.isFinite(Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value));
 }
 
-function normalizeRecipientProfileUrl(value: string): { normalized: string; github: boolean } {
+const RESERVED_HOST_SUFFIXES = [
+  ".localhost",
+  ".local",
+  ".internal",
+  ".home",
+  ".lan",
+  ".test",
+  ".invalid",
+  ".example",
+] as const;
+
+export function normalizeGenericWebProfileUrl(value: string): string {
   let url: URL;
   try {
     url = new URL(value);
   } catch {
     throw new Error("RECIPIENT_PROFILE_URL_INVALID");
   }
-  if (url.hostname.toLowerCase() === "github.com") {
-    return { normalized: normalizeGitHubProfileUrl(value), github: true };
-  }
-  if (url.protocol !== "https:" || url.username !== "" || url.password !== "" || url.hash !== "") {
+  const hostname = url.hostname.toLowerCase();
+  const isIpLiteral = hostname.startsWith("[") || /^[0-9.]+$/.test(hostname);
+  const isReserved =
+    hostname === "localhost" ||
+    !hostname.includes(".") ||
+    RESERVED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
+  if (
+    url.protocol !== "https:" ||
+    url.port !== "" ||
+    url.username !== "" ||
+    url.password !== "" ||
+    isIpLiteral ||
+    isReserved
+  ) {
     throw new Error("RECIPIENT_PROFILE_URL_INVALID");
   }
-  return { normalized: url.toString(), github: false };
+  url.hash = "";
+  return url.toString();
+}
+
+function normalizeRecipientProfileUrl(value: string): { normalized: string; github: boolean } {
+  try {
+    const url = new URL(value);
+    if (url.hostname.toLowerCase() === "github.com") {
+      return { normalized: normalizeGitHubProfileUrl(value), github: true };
+    }
+  } catch {
+    throw new Error("RECIPIENT_PROFILE_URL_INVALID");
+  }
+  return { normalized: normalizeGenericWebProfileUrl(value), github: false };
 }
 
 export async function validateFixCsv(
@@ -238,6 +272,34 @@ export async function validateFixCsv(
       recipientProviderId: recipient ? ("github" as const) : null,
     };
   });
+  const correctionKeys = rows.map((row) =>
+    row.fixResultId === ""
+      ? null
+      : [
+          row.fixResultId,
+          row.recipientAccountId
+            ? `github:${row.recipientAccountId}`
+            : `web:${row.normalizedRecipientProfileUrl}`,
+          row.evaluationCriterionId,
+        ].join("\u0000"),
+  );
+  const correctionKeyCounts = new Map<string, number>();
+  for (const key of correctionKeys) {
+    if (key !== null) correctionKeyCounts.set(key, (correctionKeyCounts.get(key) ?? 0) + 1);
+  }
+  correctionKeys.forEach((key, index) => {
+    if (key !== null && (correctionKeyCounts.get(key) ?? 0) > 1) {
+      errors.push(rowError(index + 2, "recipientProfileUrl", "CSV_DUPLICATE_BUSINESS_KEY"));
+    }
+  });
+  if (errors.length > 0) {
+    return {
+      errors,
+      fileHash: parsed.fileHash,
+      rows: [],
+      validationHash: await sha256Hex(canonicalJson({ errors, fileHash: parsed.fileHash })),
+    };
+  }
   const validationHash = await sha256Hex(
     canonicalJson({
       fileHash: parsed.fileHash,

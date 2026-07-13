@@ -55,6 +55,13 @@ export const fixRevisions = sqliteTable(
   ],
 );
 
+export const fixRevisionSeals = sqliteTable("fix_revision_seal", {
+  fixRevisionId: text("fix_revision_id")
+    .primaryKey()
+    .references(() => fixRevisions.id, { onDelete: "restrict" }),
+  sealedAt: timestamp("sealed_at"),
+});
+
 export const fixRevisionEntries = sqliteTable(
   "fix_revision_entry",
   {

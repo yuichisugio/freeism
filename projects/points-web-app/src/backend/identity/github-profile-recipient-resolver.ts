@@ -193,10 +193,12 @@ export async function resolveGitHubProfileRecipients(
     throw new GitHubIdentityLookupError("GITHUB_IDENTITY_LOOKUP_TIMEOUT");
   };
 
+  const workers = Array.from({ length: Math.min(6, normalizedUrls.length) }, () => worker());
   try {
-    await Promise.all(Array.from({ length: Math.min(6, normalizedUrls.length) }, () => worker()));
+    await Promise.all(workers);
   } catch (error) {
     overallController.abort();
+    await Promise.allSettled(workers);
     if (error instanceof GitHubIdentityLookupError) throw error;
     throw new GitHubIdentityLookupError("GITHUB_IDENTITY_LOOKUP_UNAVAILABLE");
   } finally {

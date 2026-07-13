@@ -156,9 +156,6 @@ describe("immutable FIX revision and delta ledger", () => {
       "X-Validation-Hash": correctionPreviewBody.data.validationHash,
     });
     expect(correction.status).toBe(201);
-    const correctionBody = (await correction.clone().json()) as {
-      data: { results: Array<{ fixRevisionId: string }> };
-    };
     const retry = await requestCsv("commit", correctionCsv, {
       "Idempotency-Key": `correction-${suffix}`,
       "X-Reason": "correct FIX",
@@ -176,6 +173,65 @@ describe("immutable FIX revision and delta ledger", () => {
       "X-Validation-Hash": samePreviewBody.data.validationHash,
     });
     expect(same.status).toBe(201);
+    const sameBody = (await same.json()) as {
+      data: { results: Array<{ fixRevisionId: string }> };
+    };
+    const duplicateCorrectionCsv = `${FIX_HEADER}\n${fixResultId},3,https://github.com/alice,${criterionId},1,2026-07,,duplicate-a\n${fixResultId},3,https://github.com/alice/,${criterionId},2,2026-07,,duplicate-b`;
+    const duplicateCorrection = await requestCsv("validate", duplicateCorrectionCsv);
+    expect(duplicateCorrection.status).toBe(422);
+    await expect(duplicateCorrection.json()).resolves.toMatchObject({
+      code: "CSV_VALIDATION_FAILED",
+      errors: [
+        { code: "CSV_DUPLICATE_BUSINESS_KEY", row: 2 },
+        { code: "CSV_DUPLICATE_BUSINESS_KEY", row: 3 },
+      ],
+    });
+
+    const twoNewResultsCsv = `${FIX_HEADER}\n,,https://github.com/alice,${criterionId},1,2026-07,,new-a\n,,https://github.com/alice/,${criterionId},2,2026-07,,new-b`;
+    const twoNewResults = await requestCsv("validate", twoNewResultsCsv);
+    expect(twoNewResults.status).toBe(200);
+
+    const sealedRevisionId = sameBody.data.results[0]!.fixRevisionId;
+    await expect(
+      env
+        .DB!.prepare(
+          `INSERT INTO fix_revision_entry
+             (id, fix_revision_id, recipient_profile_url, evaluation_criterion_id,
+              evaluation_criterion_revision_id, amount_scaled, evaluation_at, created_at)
+           VALUES (?, ?, 'https://freeism.app/late', ?, ?, 1, '2026-07', ?)`,
+        )
+        .bind(`late-entry-${suffix}`, sealedRevisionId, criterionId, `ecr_${criterionId}_1`, now)
+        .run(),
+    ).rejects.toThrow("SEALED_FIX_REVISION");
+    await expect(
+      env
+        .DB!.prepare(
+          `INSERT INTO unclaimed_fix_entry
+             (id, source_fix_revision_id, recipient_profile_url, evaluation_criterion_id,
+              evaluation_criterion_revision_id, delta_amount_scaled, evaluation_at, created_at)
+           VALUES (?, ?, 'https://freeism.app/late', ?, ?, 1, '2026-07', ?)`,
+        )
+        .bind(
+          `late-unclaimed-${suffix}`,
+          sealedRevisionId,
+          criterionId,
+          `ecr_${criterionId}_1`,
+          now,
+        )
+        .run(),
+    ).rejects.toThrow("SEALED_FIX_REVISION");
+    await expect(
+      env
+        .DB!.prepare("UPDATE fix_revision_seal SET sealed_at = ? WHERE fix_revision_id = ?")
+        .bind(now + 1, sealedRevisionId)
+        .run(),
+    ).rejects.toThrow("IMMUTABLE_FIX_REVISION_SEAL");
+    await expect(
+      env
+        .DB!.prepare("DELETE FROM fix_revision_seal WHERE fix_revision_id = ?")
+        .bind(sealedRevisionId)
+        .run(),
+    ).rejects.toThrow("IMMUTABLE_FIX_REVISION_SEAL");
 
     const account = await env
       .DB!.prepare(
@@ -212,6 +268,33 @@ describe("immutable FIX revision and delta ledger", () => {
         .run(),
     ).rejects.toThrow("IMMUTABLE_FIX_REVISION");
 
+    const overflowRevisionIds = [`overflow-rev-a-${suffix}`, `overflow-rev-b-${suffix}`];
+    for (const [index, fixRevisionId] of overflowRevisionIds.entries()) {
+      const overflowResultId = `overflow-result-${index}-${suffix}`;
+      await env.DB!.batch([
+        env
+          .DB!.prepare(
+            "INSERT INTO fix_result (id, current_revision_id, current_revision, created_at) VALUES (?, ?, 1, ?)",
+          )
+          .bind(overflowResultId, fixRevisionId, now),
+        env
+          .DB!.prepare(
+            `INSERT INTO fix_revision
+               (id, fix_result_id, revision, file_hash, validation_hash, content_hash,
+                actor_points_user_id, reason, created_at)
+             VALUES (?, ?, 1, ?, ?, ?, ?, 'overflow test', ?)`,
+          )
+          .bind(
+            fixRevisionId,
+            overflowResultId,
+            "a".repeat(64),
+            "b".repeat(64),
+            "c".repeat(64),
+            owner.id,
+            now,
+          ),
+      ]);
+    }
     const overflowBatch = env.DB!.batch([
       env
         .DB!.prepare(
@@ -225,7 +308,7 @@ describe("immutable FIX revision and delta ledger", () => {
           owner.id,
           criterionId,
           `ecr_${criterionId}_1`,
-          initialBody.data.results[0]!.fixRevisionId,
+          overflowRevisionIds[0],
           now,
         ),
       env
@@ -240,7 +323,7 @@ describe("immutable FIX revision and delta ledger", () => {
           owner.id,
           criterionId,
           `ecr_${criterionId}_1`,
-          correctionBody.data.results[0]!.fixRevisionId,
+          overflowRevisionIds[1],
           now,
         ),
     ]);

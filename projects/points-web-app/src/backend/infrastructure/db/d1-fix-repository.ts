@@ -278,6 +278,12 @@ export async function commitFixRows(
       unclaimed,
     ),
   ];
+  const sealWrites = jsonStatements(
+    `INSERT INTO fix_revision_seal (fix_revision_id, sealed_at)
+     SELECT json_extract(value, '$.fixRevisionId'), json_extract(value, '$.createdAt')
+     FROM json_each(?)`,
+    revisions,
+  );
   const idempotency = db
     .prepare(
       `INSERT INTO idempotency_results
@@ -308,7 +314,7 @@ export async function commitFixRows(
   await runCsvAtomicBatch(
     db,
     composeCsvAtomicBatch({
-      audit: [audit],
+      audit: [...sealWrites, audit],
       domainWrites,
       idempotencyResult: [idempotency],
       ledger: ledgerWrites,

@@ -138,4 +138,51 @@ describe("GitHub profile recipient resolver", () => {
       }),
     ).rejects.toMatchObject({ code: "GITHUB_IDENTITY_LOOKUP_TIMEOUT" });
   });
+
+  it("waits for every started lookup to settle after one lookup fails", async () => {
+    let slowLookupSettled = false;
+    const result = resolveGitHubProfileRecipients(
+      ["https://github.com/fail", "https://github.com/slow"],
+      {
+        ...credentials,
+        fetcher: (request, init) => {
+          if (String(request).endsWith("/fail")) {
+            return Promise.resolve(new Response("down", { status: 503 }));
+          }
+          return new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              setTimeout(() => {
+                slowLookupSettled = true;
+                reject(new DOMException("aborted", "AbortError"));
+              }, 5);
+            });
+          });
+        },
+      },
+    );
+
+    await expect(result).rejects.toMatchObject({ code: "GITHUB_IDENTITY_LOOKUP_UNAVAILABLE" });
+    expect(slowLookupSettled).toBe(true);
+  });
+
+  it("treats rename with the same numeric ID as one subject and username reuse as a new subject", async () => {
+    const renamed = await resolveGitHubProfileRecipients(
+      ["https://github.com/alice", "https://github.com/bob"],
+      {
+        ...credentials,
+        fetcher: async (request) => {
+          const login = new URL(String(request)).pathname.split("/").pop()!;
+          return githubUser(login, 42);
+        },
+      },
+    );
+    expect(renamed.get("https://github.com/alice")?.accountId).toBe("42");
+    expect(renamed.get("https://github.com/bob")?.accountId).toBe("42");
+
+    const reused = await resolveGitHubProfileRecipients(["https://github.com/alice"], {
+      ...credentials,
+      fetcher: async () => githubUser("alice", 84),
+    });
+    expect(reused.get("https://github.com/alice")?.accountId).toBe("84");
+  });
 });
