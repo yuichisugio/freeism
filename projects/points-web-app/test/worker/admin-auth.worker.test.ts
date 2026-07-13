@@ -1,6 +1,7 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
+import { createPointsBackendApp } from "../../src/backend/app";
 import { createPointsAuth } from "../../src/backend/auth/create-auth";
 import type { Bindings } from "../../src/backend/http/context";
 import { bootstrapInitialAdmin } from "../../src/backend/usecases/bootstrap-admin";
@@ -32,11 +33,164 @@ async function seedAuthUser(id: string, googleAccountId?: string) {
   }
 }
 
+function authenticatedApp(authUserId: string, createdAt = new Date()) {
+  return createPointsBackendApp({
+    getSession: async () => ({
+      session: {
+        createdAt,
+        userId: authUserId,
+      },
+      user: {
+        id: authUserId,
+      },
+    }),
+  });
+}
+
 describe("Points user and global ADMIN", () => {
   beforeEach(async () => {
     await db.exec(
       "DELETE FROM audit_event; DELETE FROM admin_membership; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
     );
+  });
+
+  it("returns a problem+json 401 when the Better Auth session is missing", async () => {
+    const app = createPointsBackendApp({ getSession: async () => null });
+
+    const response = await app.fetch(
+      new Request("https://points.test/api/admin/admin-memberships"),
+      env,
+    );
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("content-type")).toContain("application/problem+json");
+    await expect(response.json()).resolves.toMatchObject({
+      code: "AUTHENTICATION_REQUIRED",
+      status: 401,
+    });
+  });
+
+  it("requires a current Google account for a fresh admin mutation", async () => {
+    await seedAuthUser("owner");
+    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
+
+    const response = await authenticatedApp("owner").fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: "pusr_target", reason: "delegate" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FRESH_GOOGLE_AUTH_REQUIRED",
+      status: 401,
+    });
+  });
+
+  it("rejects an admin mutation when the Better Auth session is older than 900 seconds", async () => {
+    await seedAuthUser("owner", "google-owner");
+    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
+
+    const response = await authenticatedApp("owner", new Date(Date.now() - 901_000)).fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: "pusr_target", reason: "delegate" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "FRESH_GOOGLE_AUTH_REQUIRED",
+      status: 401,
+    });
+  });
+
+  it("reloads ADMIN membership for each request", async () => {
+    await seedAuthUser("owner", "google-owner");
+    const app = authenticatedApp("owner");
+    const request = () => new Request("https://points.test/api/admin/admin-memberships");
+
+    expect((await app.fetch(request(), env)).status).toBe(403);
+    const owner = await db
+      .prepare(
+        "SELECT id, auth_user_id AS authUserId FROM points_user WHERE auth_user_id = 'owner'",
+      )
+      .first<{ authUserId: string; id: string }>();
+    expect(owner?.id).toMatch(/^pusr_/);
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner?.id)
+      .run();
+
+    const response = await app.fetch(request(), env);
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      data: [{ pointsUserId: owner?.id, role: "ADMIN" }],
+    });
+  });
+
+  it("requires reason and connects POST and DELETE to the membership use case", async () => {
+    await seedAuthUser("owner", "google-owner");
+    await seedAuthUser("target");
+    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
+    const target = await provisionPointsUser(db, "target", () => "pusr_target");
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
+    const app = authenticatedApp("owner");
+
+    const missingReason = await app.fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: target.id }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(missingReason.status).toBe(422);
+    await expect(missingReason.json()).resolves.toMatchObject({ code: "ADMIN_REASON_REQUIRED" });
+
+    const added = await app.fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: target.id, reason: "delegate" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(added.status).toBe(201);
+
+    const removed = await app.fetch(
+      new Request(`https://points.test/api/admin/admin-memberships/${target.id}`, {
+        body: JSON.stringify({ reason: "delegation ended" }),
+        headers: { "Content-Type": "application/json" },
+        method: "DELETE",
+      }),
+      env,
+    );
+    expect(removed.status).toBe(204);
   });
 
   it("provisions one Points user for one Better Auth user", async () => {
