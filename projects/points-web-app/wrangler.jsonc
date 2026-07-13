@@ -10,6 +10,7 @@
   ],
   "workers_dev": false,
   "preview_urls": false,
+  "triggers": { "crons": ["*/15 * * * *"] },
   "vars": {
     "APP_ENV": "local",
     "APP_HOST": "localhost",
@@ -42,6 +43,7 @@
       "name": "points-worker-staging",
       "workers_dev": false,
       "preview_urls": false,
+      "triggers": { "crons": ["*/15 * * * *"] },
       "vars": {
         "APP_ENV": "staging",
         "APP_HOST": "staging.points.freeism.app",
@@ -68,6 +70,7 @@
       "name": "points-worker-production",
       "workers_dev": false,
       "preview_urls": false,
+      "triggers": { "crons": ["*/15 * * * *"] },
       "vars": {
         "APP_ENV": "production",
         "APP_HOST": "points.freeism.app",

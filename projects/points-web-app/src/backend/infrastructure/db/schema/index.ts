@@ -5,6 +5,7 @@ export * from "./evaluation";
 export * from "./fix-ledger";
 export * from "./idempotency";
 export * from "./ownership";
+export * from "./ownership-revalidation-job";
 export * from "./permanent-oauth-subject";
 export * from "./points-user";
 export * from "./profile";

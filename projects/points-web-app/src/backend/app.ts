@@ -16,6 +16,7 @@ export interface PointsBackendDependencies {
   getGitHubAccessToken?: GetGitHubAccessToken;
   githubFetch?: typeof fetch;
   githubRevokeFetch?: typeof fetch;
+  webOwnershipFetch?: typeof fetch;
 }
 
 const defaultDependencies: PointsBackendDependencies = {
@@ -33,6 +34,7 @@ export function createPointsBackendApp(
   registerOwnershipRoutes(app, dependencies.getSession, {
     getGitHubAccessToken: dependencies.getGitHubAccessToken ?? getGitHubAccessToken,
     githubRevokeFetch: dependencies.githubRevokeFetch,
+    webOwnershipFetch: dependencies.webOwnershipFetch,
   });
   registerProfileRoutes(app, dependencies.getSession);
   return app;

@@ -64,6 +64,13 @@
       "when": 1783923389363,
       "tag": "0008_permanent-oauth-subject",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1783924548188,
+      "tag": "0009_web-ownership-revalidation",
+      "breakpoints": true
     }
   ]
 }
