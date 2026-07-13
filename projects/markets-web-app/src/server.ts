@@ -4,7 +4,7 @@ import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { fetchMarketsApi } from "../worker/index";
 import { isSpaNavigationRequest } from "../worker/spa-fallback";
 
-export { AuctionRoom } from "../worker/index";
+export { AuctionRoom, AuctionSettlementWorkflow } from "../worker/index";
 
 const FIXED_PAGE_PATHS = new Set([
   "/",

@@ -29,6 +29,13 @@
       "when": 1783953675926,
       "tag": "0003_auction-command-guards",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783955285757,
+      "tag": "0004_settlement-saga",
+      "breakpoints": true
     }
   ]
 }

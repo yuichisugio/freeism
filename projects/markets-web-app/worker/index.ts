@@ -5,6 +5,7 @@ import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
 
 export { AuctionRoom } from "../src/backend/auction/auction-room";
+export { AuctionSettlementWorkflow } from "../src/backend/settlement/auction-settlement-workflow";
 
 const app = new Hono<{ Bindings: Env }>();
 

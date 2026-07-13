@@ -6,6 +6,7 @@ import type {
   ExecutedAuctionCommand,
 } from "../auction/execute-auction-command";
 import type { AuctionRoomEvent } from "../auction/auction-room";
+import { createSettlementPlan } from "../settlement/create-settlement-plan";
 
 export interface AuctionCommandAggregate {
   auctionId: string;
@@ -14,6 +15,8 @@ export interface AuctionCommandAggregate {
   currentRevisionId: string;
   endsAt: string;
   lastBidSeq: number;
+  packageTick: number;
+  pointPackageRevisionId: string;
   positions: AutoBidPosition[];
   quantity: number;
   revisionNumber: number;
@@ -110,12 +113,15 @@ export class D1AuctionCommandRepository {
         `SELECT a.id AS auctionId, a.seller_markets_user_id AS sellerMarketsUserId,
                 a.current_revision_id AS currentRevisionId, a.status, a.version,
                 r.revision_number AS revisionNumber, r.quantity, r.ends_at AS endsAt,
+                r.package_tick AS packageTick,
+                s.point_package_revision_id AS pointPackageRevisionId,
                 r.buy_now_price_tick_count AS buyNowPriceTickCount,
                 COALESCE((SELECT MAX(bid_seq) FROM bid_events WHERE auction_id = a.id), 0) AS lastBidSeq,
                 r.quantity - COALESCE((SELECT SUM(quantity) FROM buy_now_holds
                   WHERE auction_id = a.id AND status IN ('PENDING','CAPTURED_PENDING_FINALIZE','SETTLED')), 0)
                   AS availableQuantity
          FROM auctions a JOIN auction_revisions r ON r.id = a.current_revision_id
+         JOIN point_package_snapshots s ON s.id = r.point_package_snapshot_id
          WHERE a.id = ?`,
       )
       .bind(auctionId)
@@ -159,6 +165,7 @@ export class D1AuctionCommandRepository {
           responseBody,
         ),
     ];
+    let settlementOutboxId: string | null = null;
 
     const publicEvents: AuctionRoomEvent[] = [];
     if (input.command.kind === "PLACE_BID") {
@@ -262,15 +269,21 @@ export class D1AuctionCommandRepository {
       if (!buyNow?.accepted || !commit.holdId || !commit.settlementId) {
         throw new Error("BUY_NOW_COMMIT_INPUT_MISSING");
       }
-      const plan = {
+      const planned = await createSettlementPlan({
+        algorithmVersion: "uniform-price-v1",
         auctionId: input.auctionId,
         auctionRevisionId: aggregate.currentRevisionId,
+        availableQuantityBeforeHold: aggregate.availableQuantity,
         buyerMarketsUserId: input.actor.marketsUserId,
-        holdId: commit.holdId,
+        buyNowHoldId: commit.holdId,
         kind: "BUY_NOW",
+        packageTick: aggregate.packageTick,
+        pointPackageRevisionId: aggregate.pointPackageRevisionId,
         priceTickCount: buyNow.hold.priceTickCount,
         quantity: buyNow.hold.quantity,
-      };
+      });
+      const planId = `spl_${crypto.randomUUID()}`;
+      settlementOutboxId = `outbox_${crypto.randomUUID()}`;
       statements.push(
         this.db
           .prepare(
@@ -290,30 +303,35 @@ export class D1AuctionCommandRepository {
           ),
         this.db
           .prepare(
+            `INSERT INTO settlements
+             (id, auction_id, kind, source_key, settlement_revision, workflow_attempt,
+              saga_state, current_plan_id, created_at, updated_at)
+             VALUES (?, ?, 'BUY_NOW', ?, 1, 0, 'PLANNED', ?, ?, ?)`,
+          )
+          .bind(commit.settlementId, input.auctionId, `hold:${commit.holdId}`, planId, now, now),
+        this.db
+          .prepare(
             `INSERT INTO settlement_plans
-             (id, auction_id, auction_revision_id, kind, command_id, buy_now_hold_id,
-              buyer_markets_user_id, quantity, price_tick_count, plan_json, status, created_at)
-             VALUES (?, ?, ?, 'BUY_NOW', ?, ?, ?, ?, ?, ?, 'PLANNED', ?)`,
+             (id, settlement_id, settlement_revision, plan_json, plan_hash,
+              algorithm_version, created_at)
+             VALUES (?, ?, 1, ?, ?, ?, ?)`,
           )
           .bind(
+            planId,
             commit.settlementId,
-            input.auctionId,
-            aggregate.currentRevisionId,
-            input.commandId,
-            commit.holdId,
-            input.actor.marketsUserId,
-            buyNow.hold.quantity,
-            buyNow.hold.priceTickCount,
-            JSON.stringify(plan),
+            planned.planJson,
+            planned.planHash,
+            planned.plan.algorithmVersion,
             now,
           ),
         this.db
           .prepare(
             `INSERT INTO settlement_outbox
-             (id, settlement_id, workflow_attempt, status, created_at)
-             VALUES (?, ?, 0, 'PENDING', ?)`,
+             (id, settlement_id, settlement_revision, workflow_attempt, plan_hash,
+              status, delivery_attempt_count, created_at)
+             VALUES (?, ?, 1, 0, ?, 'PENDING', 0, ?)`,
           )
-          .bind(`outbox_${crypto.randomUUID()}`, commit.settlementId, now),
+          .bind(settlementOutboxId, commit.settlementId, planned.planHash, now),
       );
       publicEvents.push({
         auctionId: input.auctionId,
@@ -368,6 +386,6 @@ export class D1AuctionCommandRepository {
         ),
     );
     await this.db.batch(statements);
-    return { publicEvents, replayed: false, result };
+    return { publicEvents, replayed: false, result, settlementOutboxId };
   }
 }

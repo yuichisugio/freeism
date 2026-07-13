@@ -145,8 +145,8 @@ async function counts(auctionId: string) {
        (SELECT COUNT(*) FROM bid_events WHERE auction_id = ?) AS events,
        (SELECT COUNT(*) FROM bid_positions WHERE auction_id = ?) AS positions,
        (SELECT COUNT(*) FROM buy_now_holds WHERE auction_id = ?) AS holds,
-       (SELECT COUNT(*) FROM settlement_plans WHERE auction_id = ?) AS plans,
-       (SELECT COUNT(*) FROM settlement_outbox o JOIN settlement_plans p ON p.id = o.settlement_id WHERE p.auction_id = ?) AS outbox,
+       (SELECT COUNT(*) FROM settlement_plans p JOIN settlements s ON s.id = p.settlement_id WHERE s.auction_id = ?) AS plans,
+       (SELECT COUNT(*) FROM settlement_outbox o JOIN settlements s ON s.id = o.settlement_id WHERE s.auction_id = ?) AS outbox,
        (SELECT COUNT(*) FROM audit_events WHERE target_id = ?) AS audits,
        (SELECT version FROM auctions WHERE id = ?) AS version`,
   )

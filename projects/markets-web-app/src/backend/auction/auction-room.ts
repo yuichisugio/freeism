@@ -1,7 +1,9 @@
 import { DurableObject } from "cloudflare:workers";
 
 import { D1AuctionTransitionRepository } from "../db/d1-auction-transition-repository";
+import { closeAuctionAndPlan } from "../db/d1-settlement-plan-repository";
 import { D1WebSocketLeaseRepository } from "../db/d1-websocket-lease-repository";
+import { dispatchSettlementOutbox } from "../settlement/outbox-dispatcher";
 import { nextAuctionAlarmAt } from "./auction-lifecycle-scheduler";
 import {
   executeAuctionCommand,
@@ -44,6 +46,13 @@ export class AuctionRoom extends DurableObject<Env> {
     const committed = await executeAuctionCommand(this.env.DB, input);
     if (!committed.replayed) {
       for (const event of committed.publicEvents) await this.broadcastCommitted(event);
+      if (committed.settlementOutboxId) {
+        await dispatchSettlementOutbox(
+          this.env.DB,
+          this.env.AUCTION_SETTLEMENT,
+          committed.settlementOutboxId,
+        ).catch(() => undefined);
+      }
     }
     return committed.result;
   }
@@ -137,7 +146,18 @@ export class AuctionRoom extends DurableObject<Env> {
       }
 
       const nextStatus = snapshot.status === "SCHEDULED" ? "OPEN" : "CLOSING";
-      const changed = await this.transitions.compareAndSetStatus(snapshot, nextStatus, serverNow);
+      const closeResult =
+        nextStatus === "CLOSING"
+          ? await closeAuctionAndPlan(this.env.DB, {
+              auctionId,
+              expectedAuctionVersion: snapshot.version,
+              expectedRevisionId: snapshot.currentRevisionId,
+              serverNow,
+            })
+          : null;
+      const changed = closeResult
+        ? closeResult.kind !== "NOT_DUE_OR_STALE"
+        : await this.transitions.compareAndSetStatus(snapshot, nextStatus, serverNow);
       if (changed) {
         await this.broadcastCommitted({
           auctionId,
@@ -147,6 +167,13 @@ export class AuctionRoom extends DurableObject<Env> {
           occurredAt: serverNow,
           type: "auction.status.changed",
         });
+        if (closeResult?.kind === "PLANNED") {
+          await dispatchSettlementOutbox(
+            this.env.DB,
+            this.env.AUCTION_SETTLEMENT,
+            closeResult.outboxId,
+          ).catch(() => undefined);
+        }
       }
     }
 

@@ -51,6 +51,7 @@ export interface ExecutedAuctionCommand {
   publicEvents: readonly AuctionRoomEvent[];
   replayed: boolean;
   result: AuctionCommandResult;
+  settlementOutboxId: string | null;
 }
 
 export class AuctionCommandError extends Error {
@@ -101,7 +102,7 @@ export async function executeAuctionCommand(
   );
   if (replay.kind === "CONFLICT") throw new AuctionCommandError("IDEMPOTENCY_KEY_REUSED");
   if (replay.kind === "REPLAY") {
-    return { publicEvents: [], replayed: true, result: replay.result };
+    return { publicEvents: [], replayed: true, result: replay.result, settlementOutboxId: null };
   }
 
   if (!positiveSafeInteger(input.expectedAuctionVersion)) {
@@ -261,7 +262,12 @@ export async function executeAuctionCommand(
       input.commandId,
     );
     if (racedReplay.kind === "REPLAY") {
-      return { publicEvents: [], replayed: true, result: racedReplay.result };
+      return {
+        publicEvents: [],
+        replayed: true,
+        result: racedReplay.result,
+        settlementOutboxId: null,
+      };
     }
     if (racedReplay.kind === "CONFLICT") throw new AuctionCommandError("IDEMPOTENCY_KEY_REUSED");
     normalizeRepositoryError(error);
