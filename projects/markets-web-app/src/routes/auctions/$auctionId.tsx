@@ -51,7 +51,7 @@ export function AuctionDetailPage({
   const loadPublic = useCallback(() => client.auction(auctionId), [auctionId, client]);
   const loadPrivate = useCallback(() => client.privateAuction(auctionId), [auctionId, client]);
   const publicResource = useApiResource(loadPublic);
-  const privateResource = useApiResource(loadPrivate);
+  const privateResource = useApiResource(loadPrivate, { clearOnError: true });
   const auction = publicResource.data ?? { ...EMPTY_SNAPSHOT, auctionId };
   const resync = useCallback(async () => {
     const snapshot = await client.auction(auctionId);

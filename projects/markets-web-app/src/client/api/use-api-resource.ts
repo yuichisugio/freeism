@@ -7,7 +7,10 @@ export interface ApiResource<T> {
   reload: () => void;
 }
 
-export function useApiResource<T>(load: () => Promise<T>): ApiResource<T> {
+export function useApiResource<T>(
+  load: () => Promise<T>,
+  options: Readonly<{ clearOnError?: boolean }> = {},
+): ApiResource<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +29,7 @@ export function useApiResource<T>(load: () => Promise<T>): ApiResource<T> {
       },
       (reason: unknown) => {
         if (!active) return;
-        setData(null);
+        if (options.clearOnError) setData(null);
         setError(reason instanceof Error ? reason : new Error("REQUEST_FAILED"));
         setLoading(false);
       },
@@ -34,7 +37,7 @@ export function useApiResource<T>(load: () => Promise<T>): ApiResource<T> {
     return () => {
       active = false;
     };
-  }, [attempt, load]);
+  }, [attempt, load, options.clearOnError]);
 
   return { data, error, loading, reload };
 }
