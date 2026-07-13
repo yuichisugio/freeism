@@ -1,6 +1,7 @@
 import type { BetterAuthOptions } from "better-auth";
 
 import { pointsSocialProviderIds } from "../../shared/auth/social-providers";
+import { createPointsOAuthProvider } from "./points-oauth-provider";
 
 export interface PointsAuthConfig {
   APP_ORIGIN: string;
@@ -9,6 +10,10 @@ export interface PointsAuthConfig {
   GITHUB_CLIENT_SECRET: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  MARKETS_SETTLEMENT_RETRY_RESOURCE: string;
+  POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN?: string;
+  POINTS_OAUTH_PAIRWISE_SECRET: string;
+  DB?: D1Database;
 }
 
 export const googleFreshAuthorizationParams = Object.freeze({
@@ -93,6 +98,7 @@ export function createPointsAuthOptions(
         clientSecret: config.GOOGLE_CLIENT_SECRET,
       },
     },
+    plugins: [createPointsOAuthProvider(config)],
     trustedOrigins: [config.APP_ORIGIN],
   };
 }

@@ -10,5 +10,7 @@ export const auth = betterAuth(
     GITHUB_CLIENT_SECRET: "schema-generation-github-client-secret",
     GOOGLE_CLIENT_ID: "schema-generation-google-client-id",
     GOOGLE_CLIENT_SECRET: "schema-generation-google-client-secret",
+    MARKETS_SETTLEMENT_RETRY_RESOURCE: "http://localhost:3001/api/settlements/retry",
+    POINTS_OAUTH_PAIRWISE_SECRET: "schema-generation-pairwise-secret-at-least-32-characters",
   }),
 );

@@ -9,6 +9,7 @@ import { registerEvaluationRoutes } from "./http/routes/evaluation-routes";
 import { registerDistributionRoutes } from "./http/routes/distribution-routes";
 import { registerFixRoutes } from "./http/routes/fix-routes";
 import { registerOwnershipRoutes } from "./http/routes/ownership-routes";
+import { registerOAuthResourceRoutes } from "./http/routes/oauth-resource-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
 import { registerTransactionRoutes } from "./http/routes/transaction-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
@@ -39,6 +40,7 @@ export function createPointsBackendApp(
     githubRevokeFetch: dependencies.githubRevokeFetch,
     webOwnershipFetch: dependencies.webOwnershipFetch,
   });
+  registerOAuthResourceRoutes(app);
   registerProfileRoutes(app, dependencies.getSession);
   registerTransactionRoutes(app, dependencies.getSession);
   return app;

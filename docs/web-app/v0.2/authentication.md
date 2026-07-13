@@ -341,6 +341,8 @@ PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers 
 
 環境ごとにMarkets利用者用、M2M用、Settlement retry用の3つのOAuth Client IDを作り、Clientごとにgrantとscopeを分離する。
 
+初期登録はBetter Auth標準`/api/auth/oauth2/register`だけを使う。一回限りのbootstrap deploymentでのみ`POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN`を設定してdynamic registrationを開き、3 Clientと対応resource linkを登録する。返却されたClient ID／Secretはログやartifactへ出さず、その場でPoints／MarketsのWorker Secretへ保存する。直後にbootstrap tokenを削除して同じbuildを再deployし、通常時のregistrationが`403`であることを確認する。`oauth_client`やsecretをSQLで直接投入しない。
+
 | Client／Token用途          | grant                                 | 許可scope・用途                                                                                                                                                                                                       |
 | -------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 利用者用Client             | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create`。専用Authorization Codeでは`points.connection.unlink`だけを一回限りで使う                              |

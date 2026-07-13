@@ -13,6 +13,7 @@ const config = {
   GITHUB_CLIENT_SECRET: "test-github-client-secret",
   GOOGLE_CLIENT_ID: "test-google-client-id",
   GOOGLE_CLIENT_SECRET: "test-google-client-secret",
+  POINTS_OAUTH_PAIRWISE_SECRET: "test-pairwise-secret-at-least-32-characters",
 };
 
 describe("Google fresh authorization parameters", () => {

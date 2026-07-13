@@ -390,12 +390,23 @@ export interface components {
       data: components["schemas"]["CreateLinkAttemptData"];
       meta: components["schemas"]["RequestMeta"];
     };
-    FinalizeLinkAttemptRequest: {
-      /** @enum {string} */
-      outcome: "CONFIRM" | "CANCEL";
-      marketsPointsConnectionId: components["schemas"]["OpaqueId"];
-      attemptPayloadHash: components["schemas"]["Sha256Hash"];
-    };
+    FinalizeLinkAttemptRequest:
+      | {
+          /** @constant */
+          outcome: "CONFIRM";
+          marketsPointsConnectionId: components["schemas"]["OpaqueId"];
+          attemptPayloadHash: components["schemas"]["Sha256Hash"];
+          /** Format: uri */
+          pointsIssuer: string;
+          pointsSubject: components["schemas"]["OpaqueId"];
+          userClientId: components["schemas"]["OpaqueId"];
+        }
+      | {
+          /** @constant */
+          outcome: "CANCEL";
+          marketsPointsConnectionId: components["schemas"]["OpaqueId"];
+          attemptPayloadHash: components["schemas"]["Sha256Hash"];
+        };
     FinalizeLinkAttemptData:
       | components["schemas"]["FinalizeLinkAttemptConfirmedData"]
       | components["schemas"]["FinalizeLinkAttemptCancelledData"];

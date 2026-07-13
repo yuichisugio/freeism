@@ -4,3 +4,12 @@ GOOGLE_CLIENT_SECRET=replace-with-google-fixture-client-secret
 GITHUB_CLIENT_ID=replace-with-github-fixture-client-id
 GITHUB_CLIENT_SECRET=replace-with-github-fixture-client-secret
 INITIAL_ADMIN_GOOGLE_ACCOUNT_ID=replace-with-initial-admin-google-account-id
+POINTS_OAUTH_PAIRWISE_SECRET=replace-with-environment-specific-pairwise-secret-at-least-32-characters
+# Set only during the one-time OAuth client bootstrap, then delete and redeploy.
+# POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN=replace-with-one-time-random-token
+MARKETS_USER_OAUTH_CLIENT_ID=replace-with-markets-user-client-id
+MARKETS_USER_OAUTH_CLIENT_SECRET=replace-with-markets-user-client-secret
+MARKETS_M2M_OAUTH_CLIENT_ID=replace-with-markets-m2m-client-id
+MARKETS_M2M_OAUTH_CLIENT_SECRET=replace-with-markets-m2m-client-secret
+MARKETS_SETTLEMENT_OAUTH_CLIENT_ID=replace-with-markets-settlement-client-id
+MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET=replace-with-markets-settlement-client-secret

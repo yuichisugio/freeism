@@ -38,6 +38,14 @@ The repository owner checks the Cloudflare account, environments, desired names,
 
 Google OAuth App configuration is verified in Google Cloud; Better Auth static client inventory is verified through the app configuration. These are not fabricated as Terraform resources.
 
+### One-time standard OAuth client registration
+
+Create the three confidential clients only through Better Auth's standard `/api/auth/oauth2/register` endpoint. For the bootstrap deployment, set a one-time `POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN`; without that binding, dynamic registration remains disabled.
+
+Use `registerPointsOAuthClients()` from `projects/points-web-app/src/backend/auth/register-points-oauth-clients.ts` in the secured bootstrap runner. It registers USER, M2M, and SETTLEMENT clients with separate grants, scopes, pairwise subject policy, redirect URIs, and resource links. Its required `onRegistered` callback must persist each client ID and secret directly to the corresponding Points/Markets Worker Secrets and GitHub Environment secrets before the next client is registered, so a later registration failure does not make an earlier secret unrecoverable. Do not print or write the response to an artifact.
+
+Immediately delete `POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN`, redeploy the same build, and verify that `/api/auth/oauth2/register` returns `403`. Then verify an M2M opaque token and standard introspection before recording only hashes of the three client IDs in the evidence file. Never insert `oauth_client` rows or raw client secrets with SQL.
+
 ## State bucket check/apply/check
 
 Set a short-lived token with R2 read/write and the exact account ID, then run:

@@ -1918,24 +1918,37 @@
         "required": ["data", "meta"]
       },
       "FinalizeLinkAttemptRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "outcome": {
-            "type": "string",
-            "enum": ["CONFIRM", "CANCEL"]
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": { "type": "string", "const": "CONFIRM" },
+              "marketsPointsConnectionId": { "$ref": "#/components/schemas/OpaqueId" },
+              "attemptPayloadHash": { "$ref": "#/components/schemas/Sha256Hash" },
+              "pointsIssuer": { "type": "string", "format": "uri" },
+              "pointsSubject": { "$ref": "#/components/schemas/OpaqueId" },
+              "userClientId": { "$ref": "#/components/schemas/OpaqueId" }
+            },
+            "required": [
+              "outcome",
+              "marketsPointsConnectionId",
+              "attemptPayloadHash",
+              "pointsIssuer",
+              "pointsSubject",
+              "userClientId"
+            ]
           },
-          "marketsPointsConnectionId": {
-            "$ref": "#/components/schemas/OpaqueId"
-          },
-          "attemptPayloadHash": {
-            "$ref": "#/components/schemas/Sha256Hash"
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": { "type": "string", "const": "CANCEL" },
+              "marketsPointsConnectionId": { "$ref": "#/components/schemas/OpaqueId" },
+              "attemptPayloadHash": { "$ref": "#/components/schemas/Sha256Hash" }
+            },
+            "required": ["outcome", "marketsPointsConnectionId", "attemptPayloadHash"]
           }
-        },
-        "required": [
-          "outcome",
-          "marketsPointsConnectionId",
-          "attemptPayloadHash"
         ]
       },
       "FinalizeLinkAttemptData": {

@@ -7,6 +7,8 @@ export * from "./fix-ledger";
 export * from "./idempotency";
 export * from "./ownership";
 export * from "./ownership-revalidation-job";
+export * from "./oauth";
+export * from "./oauth-provider-standard";
 export * from "./permanent-oauth-subject";
 export * from "./point-transactions";
 export * from "./points-user";
