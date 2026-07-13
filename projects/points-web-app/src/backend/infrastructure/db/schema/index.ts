@@ -11,3 +11,4 @@ export * from "./permanent-oauth-subject";
 export * from "./point-transactions";
 export * from "./points-user";
 export * from "./profile";
+export * from "./reservation";

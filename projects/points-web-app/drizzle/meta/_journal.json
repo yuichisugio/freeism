@@ -85,6 +85,13 @@
       "when": 1783928708833,
       "tag": "0011_substitution-auto-distribution",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1783932416654,
+      "tag": "0012_vector-point-reservations",
+      "breakpoints": true
     }
   ]
 }
