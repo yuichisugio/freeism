@@ -32,7 +32,7 @@ describe("Points OAuth contract", () => {
     expect(pointsOAuthClients.SETTLEMENT.grantTypes).toEqual(["authorization_code"]);
     expect(pointsOAuthClients.USER.subjectType).toBe("pairwise");
     expect(pointsOAuthClients.SETTLEMENT.subjectType).toBe("pairwise");
-    expect(pointsOAuthClients.M2M.subjectType).toBeUndefined();
+    expect("subjectType" in pointsOAuthClients.M2M).toBe(false);
 
     const groups = Object.values(pointsOAuthScopes).map((scopes) => new Set(scopes));
     for (let left = 0; left < groups.length; left += 1) {

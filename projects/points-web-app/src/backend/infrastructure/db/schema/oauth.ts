@@ -97,3 +97,55 @@ export const pointsOAuthConnections = sqliteTable(
     check("points_oauth_connection_version_check", sql`${table.grantVersion} >= 1`),
   ],
 );
+
+export const pointsOAuthConnectionDeactivations = sqliteTable(
+  "points_oauth_connection_deactivation",
+  {
+    id: text("id").primaryKey(),
+    pointsConnectionId: text("points_connection_id")
+      .notNull()
+      .references(() => pointsOAuthConnections.id, { onDelete: "restrict" }),
+    userClientId: text("user_client_id").notNull(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    payloadHash: text("payload_hash").notNull(),
+    reason: text("reason").notNull(),
+    grantVersion: integer("grant_version").notNull(),
+    deactivatedAt: timestamp("deactivated_at"),
+  },
+  (table) => [
+    uniqueIndex("points_oauth_connection_deactivation_connection_uidx").on(
+      table.pointsConnectionId,
+    ),
+    uniqueIndex("points_oauth_connection_deactivation_idempotency_uidx").on(
+      table.userClientId,
+      table.idempotencyKey,
+    ),
+    check("points_oauth_connection_deactivation_version_check", sql`${table.grantVersion} >= 2`),
+  ],
+);
+
+export const pointsOAuthRevocationOutbox = sqliteTable(
+  "points_oauth_revocation_outbox",
+  {
+    id: text("id").primaryKey(),
+    pointsConnectionId: text("points_connection_id")
+      .notNull()
+      .references(() => pointsOAuthConnections.id, { onDelete: "restrict" }),
+    action: text("action", { enum: ["DELETE_CONSENT"] }).notNull(),
+    status: text("status", { enum: ["PENDING", "DELIVERED"] }).notNull(),
+    attempts: integer("attempts").notNull().default(0),
+    createdAt: timestamp("created_at"),
+    deliveredAt: integer("delivered_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    uniqueIndex("points_oauth_revocation_outbox_action_uidx").on(
+      table.pointsConnectionId,
+      table.action,
+    ),
+    index("points_oauth_revocation_outbox_pending_idx").on(table.status, table.createdAt),
+    check(
+      "points_oauth_revocation_outbox_status_check",
+      sql`${table.status} in ('PENDING', 'DELIVERED')`,
+    ),
+  ],
+);

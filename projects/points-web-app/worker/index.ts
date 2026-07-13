@@ -9,7 +9,11 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use("/api/*", async (context, next) => {
   await next();
-  context.res = withSecurityHeaders(context.res, context.env, "no-store");
+  context.res = withSecurityHeaders(
+    context.res,
+    context.env,
+    context.res.headers.get("Cache-Control") ?? "no-store",
+  );
 });
 
 app.route("/", pointsBackendApp);

@@ -1,4 +1,4 @@
-import { env } from "cloudflare:test";
+import { env, SELF } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
@@ -443,6 +443,74 @@ describe("evaluation criteria and immutable Point Package revisions", () => {
     expect(
       (await readPublicPointPackageRevision(db, first.pointPackageRevisionId)).contentHash,
     ).toBe(publicFirst.contentHash);
+  });
+
+  it("serves a verified public revision with a strong ETag and immutable cache", async () => {
+    await seedCriteria(["crit_public"]);
+    const [created] = await importPointPackages(db, {
+      actorPointsUserId: "pusr_admin",
+      reason: "public endpoint",
+      items: [pointPackage("pkg_public", ["crit_public"])],
+    });
+    const url = `http://localhost:3000/api/v1/point-package-revisions/${created.pointPackageRevisionId}`;
+
+    const response = await SELF.fetch(url);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+    expect(response.headers.get("etag")).toBe(`"${created.contentHash}"`);
+    await expect(response.json()).resolves.toMatchObject({
+      data: {
+        contentHash: created.contentHash,
+        pointPackageId: "pkg_public",
+        pointPackageRevisionId: created.pointPackageRevisionId,
+      },
+      meta: { requestId: expect.stringMatching(/^req_/) },
+    });
+
+    const notModified = await SELF.fetch(url, {
+      headers: { "If-None-Match": `"${created.contentHash}"` },
+    });
+    expect(notModified.status).toBe(304);
+    expect(notModified.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+    expect(notModified.headers.get("etag")).toBe(`"${created.contentHash}"`);
+    expect(await notModified.text()).toBe("");
+
+    const notFound = await SELF.fetch(
+      "http://localhost:3000/api/v1/point-package-revisions/missing",
+    );
+    expect(notFound.status).toBe(404);
+    expect(notFound.headers.get("cache-control")).toBe("private, no-store");
+
+    await db.batch([
+      db
+        .prepare(
+          `INSERT INTO point_package_revision
+             (id, point_package_id, revision, status, name, description, related_url,
+              total_weight, package_tick, content_hash, actor_points_user_id, reason, created_at)
+           SELECT 'ppr_pkg_public_corrupt', point_package_id, 2, status, name, description,
+                  related_url, total_weight, package_tick, ?, actor_points_user_id, reason, created_at
+           FROM point_package_revision WHERE id = ?`,
+        )
+        .bind(`sha256:${"0".repeat(64)}`, created.pointPackageRevisionId),
+      db
+        .prepare(
+          `INSERT INTO point_package_component
+           (id, point_package_revision_id, evaluation_criterion_id,
+            evaluation_criterion_revision_id, evaluation_criterion_name,
+            display_order, minimum_unit_scaled, buy_now_enabled, weight)
+         SELECT 'ppr_pkg_public_corrupt_component_0', 'ppr_pkg_public_corrupt',
+                evaluation_criterion_id, evaluation_criterion_revision_id,
+                evaluation_criterion_name, display_order, minimum_unit_scaled,
+                buy_now_enabled, weight
+         FROM point_package_component WHERE point_package_revision_id = ?`,
+        )
+        .bind(created.pointPackageRevisionId),
+    ]);
+    const corrupt = await SELF.fetch(
+      "http://localhost:3000/api/v1/point-package-revisions/ppr_pkg_public_corrupt",
+    );
+    expect(corrupt.status).toBe(500);
+    expect(corrupt.headers.get("cache-control")).toBe("private, no-store");
   });
 
   it("updates ordered profile packages idempotently and rejects duplicates", async () => {

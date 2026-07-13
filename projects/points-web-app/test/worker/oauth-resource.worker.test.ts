@@ -7,6 +7,7 @@ import {
   type PointsOAuthResourceConfig,
 } from "../../src/backend/auth/resource-token-introspection";
 import { createPointsLinkAttempt } from "../../src/backend/usecases/create-points-link-attempt";
+import { deactivatePointsConnection } from "../../src/backend/usecases/deactivate-points-connection";
 import { bindPointsLinkAttemptFromOAuthState } from "../../src/backend/usecases/bind-points-link-attempt-from-oauth-state";
 import { finalizePointsLinkAttempt } from "../../src/backend/usecases/finalize-points-link-attempt";
 import { readPointsConnection } from "../../src/backend/usecases/read-points-connection";
@@ -27,7 +28,9 @@ const resourceConfig: PointsOAuthResourceConfig = {
 
 describe("Points OAuth resource core", () => {
   beforeEach(async () => {
-    await db.exec("DELETE FROM points_oauth_connection; DELETE FROM points_oauth_link_attempt;");
+    await db.exec(
+      "DELETE FROM points_oauth_revocation_outbox; DELETE FROM points_oauth_connection_deactivation; DELETE FROM points_oauth_connection; DELETE FROM points_oauth_link_attempt;",
+    );
     const now = Date.now();
     for (const suffix of ["1", "expired"]) {
       await db
@@ -277,6 +280,151 @@ describe("Points OAuth resource core", () => {
       now: new Date(now.getTime() + 2_000),
     });
     expect(replay).toEqual(first);
+  });
+
+  it("deactivates an ACTIVE connection once and enqueues consent revocation", async () => {
+    const now = new Date("2026-07-13T00:00:00.000Z");
+    const attempt = await createPointsLinkAttempt(db, {
+      expiresAt: new Date(now.getTime() + 600_000),
+      idempotencyKey: "idem-link-deactivate",
+      marketsUserId: "musr_deactivate",
+      m2mClientId: "markets-m2m-client",
+      payloadHash: `sha256:${"e".repeat(64)}`,
+      pointsUserId: "pusr_1",
+      requestedScopes: ["points.connection.read", "points.connection.unlink"],
+      stateHash: `sha256:${"5".repeat(64)}`,
+      userClientId: "markets-user-client",
+      now,
+    });
+    const connection = await finalizePointsLinkAttempt(db, {
+      attemptPayloadHash: `sha256:${"e".repeat(64)}`,
+      idempotencyKey: "idem-finalize-deactivate",
+      issuer: "https://points.example.test/api/auth",
+      linkAttemptId: attempt.linkAttemptId,
+      marketsPointsConnectionId: "mpc_deactivate",
+      m2mClientId: "markets-m2m-client",
+      outcome: "CONFIRM",
+      pointsSubject: "pairwise-deactivate",
+      userClientId: "markets-user-client",
+      now: new Date(now.getTime() + 1_000),
+    });
+    if (connection.status === "CANCELLED") throw new Error("expected active connection");
+    const input = {
+      idempotencyKey: "idem-deactivate",
+      issuer: "https://points.example.test/api/auth",
+      now: new Date(now.getTime() + 2_000),
+      pointsConnectionId: connection.pointsConnectionId,
+      pointsSubject: "pairwise-deactivate",
+      reason: "user requested unlink",
+      requestId: "req_deactivate",
+      userClientId: "markets-user-client",
+    };
+    const [first, replay] = await Promise.all([
+      deactivatePointsConnection(db, input),
+      deactivatePointsConnection(db, input),
+    ]);
+    expect(replay).toEqual(first);
+    expect(first).toMatchObject({ grantVersion: 2, status: "UNLINKED" });
+    expect(
+      await db
+        .prepare(
+          "SELECT action, status FROM points_oauth_revocation_outbox WHERE points_connection_id = ?",
+        )
+        .bind(connection.pointsConnectionId)
+        .first(),
+    ).toEqual({ action: "DELETE_CONSENT", status: "PENDING" });
+    expect(
+      await db
+        .prepare("SELECT action, result FROM audit_event WHERE request_id = ?")
+        .bind(input.requestId)
+        .first(),
+    ).toEqual({ action: "POINTS_CONNECTION_DEACTIVATE", result: "SUCCESS" });
+    await expect(
+      deactivatePointsConnection(db, { ...input, pointsSubject: "other-subject" }),
+    ).rejects.toThrow("RESOURCE_NOT_FOUND");
+  });
+
+  it("mounts every protected interservice route and enforces the 1 MiB M2M body limit", async () => {
+    const app = new Hono<BackendContext>();
+    registerOAuthResourceRoutes(app, async (_request, _bindings, kind, scopes) =>
+      kind === "M2M"
+        ? {
+            clientId: "markets-m2m-client",
+            issuer: "http://localhost:3000/api/auth",
+            kind: "M2M",
+            scopes: [...scopes],
+          }
+        : {
+            clientId: "markets-user-client",
+            issuer: "http://localhost:3000/api/auth",
+            kind: "USER",
+            scopes: [...scopes],
+            subject: "route-confirmed-subject",
+          },
+    );
+    expect(app.routes.map(({ method, path }) => `${method} ${path}`).sort()).toEqual(
+      [
+        "GET /api/v1/me/connection",
+        "POST /api/v1/me/balance-checks",
+        "POST /api/v1/me/connection-deactivations",
+        "POST /api/v1/me/point-reservations",
+        "POST /api/v1/oauth/link-attempts",
+        "POST /api/v1/oauth/link-attempts/:linkAttemptId/finalizations",
+        "POST /api/v1/point-package-auction-eligibility-checks",
+        "POST /api/v1/point-reservations/release",
+        "POST /api/v1/point-reservations/status",
+        "POST /api/v1/settlements/:settlementId/capture",
+      ].sort(),
+    );
+    const response = await app.request(
+      "http://localhost:3000/api/v1/point-reservations/status",
+      {
+        body: JSON.stringify({ padding: "x".repeat(1024 * 1024) }),
+        headers: { Authorization: "Bearer opaque" },
+        method: "POST",
+      },
+      env as Bindings,
+    );
+    expect(response.status).toBe(413);
+  });
+
+  it("normalizes an invalid reservation status request to the documented problem code", async () => {
+    const app = new Hono<BackendContext>();
+    registerOAuthResourceRoutes(app, async (_request, _bindings, _kind, scopes) => ({
+      clientId: "markets-m2m-client",
+      issuer: "http://localhost:3000/api/auth",
+      kind: "M2M",
+      scopes: [...scopes],
+    }));
+
+    const response = await app.request(
+      "http://localhost:3000/api/v1/point-reservations/status",
+      {
+        body: JSON.stringify({ lookupBy: "POINT_RESERVATION_ID", pointReservationIds: [] }),
+        headers: { Authorization: "Bearer opaque" },
+        method: "POST",
+      },
+      env as Bindings,
+    );
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({ code: "VALIDATION_FAILED" });
+  });
+
+  it("normalizes an inactive Points connection to the invalid access token contract", async () => {
+    const app = new Hono<BackendContext>();
+    registerOAuthResourceRoutes(app, async () => {
+      throw new Error("POINTS_CONNECTION_NOT_ACTIVE");
+    });
+
+    const response = await app.request(
+      "http://localhost:3000/api/v1/me/connection",
+      { headers: { Authorization: "Bearer opaque" } },
+      env as Bindings,
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toMatchObject({ code: "INVALID_ACCESS_TOKEN" });
   });
 
   it("mounts create, cancel-finalize and connection read routes with principal separation", async () => {

@@ -32,3 +32,27 @@ export async function readPointsConnection(
     status: row.status,
   };
 }
+
+export async function resolveActivePointsConnection(
+  db: D1Database,
+  input: { issuer: string; pointsSubject: string; userClientId: string },
+) {
+  const row = await db
+    .prepare(
+      `SELECT id AS pointsConnectionId, points_user_id AS pointsUserId,
+              markets_user_id AS marketsUserId, m2m_client_id AS m2mClientId,
+              grant_version AS grantVersion
+       FROM points_oauth_connection
+       WHERE issuer = ? AND user_client_id = ? AND points_subject = ? AND status = 'ACTIVE'`,
+    )
+    .bind(input.issuer, input.userClientId, input.pointsSubject)
+    .first<{
+      grantVersion: number;
+      marketsUserId: string;
+      m2mClientId: string;
+      pointsConnectionId: string;
+      pointsUserId: string;
+    }>();
+  if (!row) throw new Error("POINTS_CONNECTION_NOT_ACTIVE");
+  return row;
+}

@@ -8,8 +8,25 @@ import {
 import { canonicalJson, sha256Hex } from "../../csv/csv-validation-result";
 import type { operations } from "../../../generated/points-markets-api";
 import { createPointsLinkAttempt } from "../../usecases/create-points-link-attempt";
+import { checkPointBalance } from "../../usecases/check-point-balance";
+import {
+  checkPointPackageAuctionEligibility,
+  PointPackageAuctionEligibilityError,
+  PointPackageAuctionEligibilityIdempotencyConflictError,
+} from "../../usecases/check-point-package-auction-eligibility";
+import {
+  captureSettlement,
+  CaptureInsufficientBalanceError,
+} from "../../usecases/capture-settlement";
+import { createPointReservation } from "../../usecases/create-point-reservation";
+import { deactivatePointsConnection } from "../../usecases/deactivate-points-connection";
 import { finalizePointsLinkAttempt } from "../../usecases/finalize-points-link-attempt";
-import { readPointsConnection } from "../../usecases/read-points-connection";
+import {
+  readPointsConnection,
+  resolveActivePointsConnection,
+} from "../../usecases/read-points-connection";
+import { readReservationStatus } from "../../usecases/read-reservation-status";
+import { releasePointReservation } from "../../usecases/release-point-reservation";
 import type { BackendContext, Bindings } from "../context";
 import { requireBindings } from "../context";
 import { problem } from "../problem";
@@ -18,6 +35,19 @@ type CreateLinkBody =
   operations["createPointsLinkAttempt"]["requestBody"]["content"]["application/json"];
 type FinalizeLinkBody =
   operations["finalizePointsLinkAttempt"]["requestBody"]["content"]["application/json"];
+type EligibilityBody =
+  operations["checkPointPackageAuctionEligibility"]["requestBody"]["content"]["application/json"];
+type BalanceBody = operations["checkPointBalance"]["requestBody"]["content"]["application/json"];
+type CreateReservationBody =
+  operations["createPointReservation"]["requestBody"]["content"]["application/json"];
+type ReservationStatusBody =
+  operations["getPointReservationStatus"]["requestBody"]["content"]["application/json"];
+type CaptureSettlementBody =
+  operations["capturePointSettlement"]["requestBody"]["content"]["application/json"];
+type ReleaseReservationBody =
+  operations["releasePointReservation"]["requestBody"]["content"]["application/json"];
+type DeactivateConnectionBody =
+  operations["deactivatePointsConnection"]["requestBody"]["content"]["application/json"];
 
 export type AuthorizePointsResource = (
   request: Request,
@@ -45,9 +75,9 @@ const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =
     scopes,
   );
 
-async function readJson<T>(context: Context<BackendContext>) {
+async function readJson<T>(context: Context<BackendContext>, limit = 64 * 1024) {
   const bytes = new Uint8Array(await context.req.arrayBuffer());
-  if (bytes.byteLength > 64 * 1024) throw new Error("REQUEST_BODY_TOO_LARGE");
+  if (bytes.byteLength > limit) throw new Error("REQUEST_BODY_TOO_LARGE");
   try {
     return JSON.parse(new TextDecoder().decode(bytes)) as T;
   } catch {
@@ -66,12 +96,65 @@ function requestId(context: Context<BackendContext>) {
 }
 
 function mapError(context: Context<BackendContext>, error: unknown) {
+  context.header("Cache-Control", "private, no-store");
+  if (error instanceof PointPackageAuctionEligibilityError) {
+    return context.json(
+      {
+        code: error.body.code,
+        errors: error.body.errors,
+        requestId: requestId(context),
+        status: 409,
+        title: "Point package is not eligible",
+        type: "https://points.freeism.app/problems/point-package-auction-ineligible",
+      },
+      409,
+      { "Content-Type": "application/problem+json" },
+    );
+  }
+  if (error instanceof PointPackageAuctionEligibilityIdempotencyConflictError) {
+    return problem(context, 409, "IDEMPOTENCY_KEY_REUSED", "Idempotency key reused");
+  }
+  if (error instanceof CaptureInsufficientBalanceError) {
+    return context.json(
+      {
+        code: "INSUFFICIENT_BALANCE" as const,
+        insufficientReservationIds: error.insufficientReservationIds,
+        requestId: requestId(context),
+        status: 409 as const,
+        title: "Insufficient balance",
+        type: "https://points.freeism.app/problems/insufficient-balance",
+      },
+      409,
+      { "Content-Type": "application/problem+json" },
+    );
+  }
   const code = error instanceof Error ? error.message : "INTERNAL_ERROR";
   if (code === "REQUEST_BODY_TOO_LARGE")
     return problem(context, 413, code, "Request body too large");
   if (code === "INVALID_ACCESS_TOKEN") return problem(context, 401, code, "Invalid access token");
+  if (code === "POINTS_CONNECTION_NOT_ACTIVE") {
+    return problem(context, 401, "INVALID_ACCESS_TOKEN", "Invalid access token");
+  }
+  if (code === "POINT_RESERVATION_STATUS_INVALID") {
+    return problem(context, 422, "VALIDATION_FAILED", "Invalid reservation status request");
+  }
   if (code === "POINTS_CONNECTION_NOT_FOUND" || code === "LINK_ATTEMPT_NOT_FOUND") {
     return problem(context, 404, "RESOURCE_NOT_FOUND", "Resource not found");
+  }
+  if (code === "RESOURCE_NOT_FOUND" || code === "POINT_PACKAGE_REVISION_NOT_FOUND") {
+    return problem(context, 404, "RESOURCE_NOT_FOUND", "Resource not found");
+  }
+  if (code === "CAPTURE_STATE_CHANGED") {
+    return problem(context, 409, "POINT_RESERVATION_NOT_ACTIVE", "Reservation state changed");
+  }
+  if (code === "RESERVATION_STATE_INVALID") {
+    return problem(context, 409, "POINT_RESERVATION_NOT_ACTIVE", "Reservation is not active");
+  }
+  if (code === "ACTIVE_RESERVATION_EXISTS") {
+    return problem(context, 409, code, "Active reservation exists");
+  }
+  if (code === "IDEMPOTENCY_KEY_REUSED") {
+    return problem(context, 409, code, "Idempotency key reused");
   }
   if (code.includes("FINALIZED") || code.includes("MISMATCH") || code.includes("EXPIRED")) {
     return problem(context, 409, code, "OAuth link state conflict");
@@ -174,6 +257,218 @@ export function registerOAuthResourceRoutes(
       return context.json(
         {
           data: { ...connection, linkedAt: connection.linkedAt.toISOString() },
+          meta: { requestId: requestId(context) },
+        },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/point-package-auction-eligibility-checks", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "M2M", [
+        "points.packages.auction-eligibility",
+      ]);
+      if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
+      const body = await readJson<EligibilityBody>(context, 1024 * 1024);
+      const result = await checkPointPackageAuctionEligibility(env.DB, {
+        ...body,
+        idempotencyKey: idempotencyKey(context),
+        marketsClientId: principal.clientId,
+      });
+      const { serverNowIsEligible: _, ...data } = result.body.data;
+      return context.json({ data, meta: { requestId: requestId(context) } }, 201, {
+        "Cache-Control": "private, no-store",
+      });
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/me/balance-checks", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "USER", ["points.balance.read"]);
+      if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
+      const connection = await resolveActivePointsConnection(env.DB, {
+        issuer: principal.issuer,
+        pointsSubject: principal.subject,
+        userClientId: principal.clientId,
+      });
+      const body = await readJson<BalanceBody>(context);
+      const balance = await checkPointBalance(env.DB, {
+        ...body,
+        pointsUserId: connection.pointsUserId,
+      });
+      return context.json(
+        {
+          data: { ...balance, checkedAt: balance.checkedAt.toISOString() },
+          meta: { requestId: requestId(context) },
+        },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/me/connection-deactivations", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "USER", ["points.connection.unlink"]);
+      if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
+      const body = await readJson<DeactivateConnectionBody>(context);
+      const key = idempotencyKey(context);
+      const responseRequestId = requestId(context);
+      if (body.deactivationKey !== key) throw new Error("IDEMPOTENCY_KEY_REUSED");
+      const deactivated = await deactivatePointsConnection(env.DB, {
+        idempotencyKey: key,
+        issuer: principal.issuer,
+        pointsConnectionId: body.pointsConnectionId,
+        pointsSubject: principal.subject,
+        reason: body.reason,
+        requestId: responseRequestId,
+        userClientId: principal.clientId,
+      });
+      return context.json(
+        {
+          data: { ...deactivated, deactivatedAt: deactivated.deactivatedAt.toISOString() },
+          meta: { requestId: responseRequestId },
+        },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/me/point-reservations", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "USER", [
+        "points.reservations.create",
+      ]);
+      if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
+      const connection = await resolveActivePointsConnection(env.DB, {
+        issuer: principal.issuer,
+        pointsSubject: principal.subject,
+        userClientId: principal.clientId,
+      });
+      const body = await readJson<CreateReservationBody>(context);
+      if (body.leaseSeconds !== 900 || body.marketsUserId !== connection.marketsUserId) {
+        throw new Error("VALIDATION_FAILED");
+      }
+      const reservation = await createPointReservation(env.DB, {
+        ...body,
+        idempotencyKey: idempotencyKey(context),
+        marketsClientId: connection.m2mClientId,
+        pointsConnectionId: connection.pointsConnectionId,
+        pointsUserId: connection.pointsUserId,
+      });
+      return context.json(
+        {
+          data: {
+            ...reservation,
+            components: reservation.components.map((component) => ({
+              ...component,
+              amountScaled: String(component.amountScaled),
+            })),
+            createdAt: reservation.createdAt.toISOString(),
+            expiresAt: reservation.expiresAt.toISOString(),
+          },
+          meta: { requestId: requestId(context) },
+        },
+        201,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/point-reservations/status", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "M2M", [
+        "points.reservations.status",
+      ]);
+      if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
+      const body = await readJson<ReservationStatusBody>(context, 1024 * 1024);
+      const reservations = await readReservationStatus(env.DB, {
+        marketsClientId: principal.clientId,
+        ...(body.lookupBy === "POINT_RESERVATION_ID"
+          ? { pointReservationIds: body.pointReservationIds }
+          : { reservationKeys: body.reservationKeys }),
+      });
+      return context.json(
+        {
+          data: {
+            items: reservations.map((reservation) => ({
+              ...reservation,
+              createdAt: reservation.createdAt.toISOString(),
+              expiresAt: reservation.expiresAt.toISOString(),
+              terminalAt: reservation.terminalAt?.toISOString() ?? null,
+            })),
+          },
+          meta: { requestId: requestId(context) },
+        },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/settlements/:settlementId/capture", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "M2M", [
+        "points.reservations.capture",
+      ]);
+      if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
+      const body = await readJson<CaptureSettlementBody>(context, 1024 * 1024);
+      const captured = await captureSettlement(env.DB, {
+        ...body,
+        idempotencyKey: idempotencyKey(context),
+        marketsClientId: principal.clientId,
+        settlementId: context.req.param("settlementId"),
+      });
+      return context.json(
+        {
+          data: { ...captured, capturedAt: captured.capturedAt.toISOString() },
+          meta: { requestId: requestId(context) },
+        },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.post("/api/v1/point-reservations/release", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "M2M", [
+        "points.reservations.release",
+      ]);
+      if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
+      const body = await readJson<ReleaseReservationBody>(context, 1024 * 1024);
+      const released = await releasePointReservation(env.DB, {
+        ...body,
+        idempotencyKey: idempotencyKey(context),
+        marketsClientId: principal.clientId,
+      });
+      return context.json(
+        {
+          data: { ...released, releasedAt: released.releasedAt.toISOString() },
           meta: { requestId: requestId(context) },
         },
         200,

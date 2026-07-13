@@ -120,6 +120,13 @@
       "when": 1783939942540,
       "tag": "0016_bind-oauth-link-subject",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1783941897082,
+      "tag": "0017_points-oauth-deactivation",
+      "breakpoints": true
     }
   ]
 }

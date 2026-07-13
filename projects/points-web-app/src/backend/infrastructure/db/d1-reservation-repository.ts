@@ -137,6 +137,7 @@ export async function insertReservation(
     marketsUserId: string;
     payloadHash: string;
     planHash: string;
+    pointsConnectionId?: string;
     pointPackageRevisionId: string;
     pointReservationId: string;
     pointsUserId: string;
@@ -172,7 +173,13 @@ export async function insertReservation(
             markets_user_id, points_user_id, auction_id, settlement_id, plan_hash,
             point_package_revision_id, price_ticks, quantity, vector_hash,
             expected_component_count, lease_seconds, created_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 900, ?, ?)`,
+         SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 900, ?, ?
+         WHERE ? IS NULL OR EXISTS (
+           SELECT 1 FROM points_oauth_connection connection
+           WHERE connection.id = ? AND connection.status = 'ACTIVE'
+             AND connection.points_user_id = ? AND connection.m2m_client_id = ?
+             AND connection.markets_user_id = ?
+         )`,
       )
       .bind(
         input.pointReservationId,
@@ -192,6 +199,11 @@ export async function insertReservation(
         components.length,
         input.createdAt.getTime(),
         input.expiresAt.getTime(),
+        input.pointsConnectionId ?? null,
+        input.pointsConnectionId ?? null,
+        input.pointsUserId,
+        input.marketsClientId,
+        input.marketsUserId,
       ),
     ...componentStatements,
     db
@@ -256,21 +268,24 @@ export async function readOwnedReservations(
   const componentChunks = chunkCanonicalJsonRows([
     ...new Set(rows.results.map(({ pointReservationId }) => pointReservationId)),
   ]);
-  if (componentChunks.length !== 1) throw new Error("POINT_RESERVATION_COMPONENT_READ_TOO_LARGE");
-  const components = await db
-    .prepare(
-      `SELECT component.point_reservation_id AS pointReservationId,
+  const componentResults: ReservationComponentRow[] = [];
+  for (const componentChunk of componentChunks) {
+    const components = await db
+      .prepare(
+        `SELECT component.point_reservation_id AS pointReservationId,
               component.evaluation_criterion_id AS evaluationCriterionId,
               component.evaluation_criterion_revision_id AS evaluationCriterionRevisionId,
               component.amount_scaled AS amountScaled
        FROM point_reservation_component component
        JOIN json_each(?) requested ON requested.value = component.point_reservation_id
        ORDER BY component.point_reservation_id, component.evaluation_criterion_id`,
-    )
-    .bind(componentChunks[0]!)
-    .all<ReservationComponentRow>();
+      )
+      .bind(componentChunk)
+      .all<ReservationComponentRow>();
+    componentResults.push(...components.results);
+  }
   const componentsByReservation = new Map<string, StoredReservation["components"]>();
-  for (const { pointReservationId, ...component } of components.results) {
+  for (const { pointReservationId, ...component } of componentResults) {
     const grouped = componentsByReservation.get(pointReservationId) ?? [];
     grouped.push(component);
     componentsByReservation.set(pointReservationId, grouped);

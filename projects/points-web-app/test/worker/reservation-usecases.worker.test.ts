@@ -7,6 +7,7 @@ import { provisionPointsUser } from "../../src/backend/usecases/provision-points
 import { commitPointTransaction } from "../../src/backend/infrastructure/db/d1-point-transaction-repository";
 import { readOwnedReservations } from "../../src/backend/infrastructure/db/d1-reservation-repository";
 import { captureSettlement } from "../../src/backend/usecases/capture-settlement";
+import { checkPointBalance } from "../../src/backend/usecases/check-point-balance";
 import { createPointReservation } from "../../src/backend/usecases/create-point-reservation";
 import { readReservationStatus } from "../../src/backend/usecases/read-reservation-status";
 import { releasePointReservation } from "../../src/backend/usecases/release-point-reservation";
@@ -244,6 +245,117 @@ describe("point reservation use cases", () => {
       pointReservationIds: [created.pointReservationId],
     });
     expect(stored[0]).toMatchObject({ status: "ACTIVE", terminalAt: null });
+  });
+
+  it("checks available balance without writing and resolves status by reservation key", async () => {
+    const suffix = crypto.randomUUID().replaceAll("-", "");
+    const user = await seedUser(`user_${suffix}`);
+    const { criteria, criterionIds, pointPackage } = await seedPackage(suffix, user.id);
+    await Promise.all([
+      seedBalance(user.id, criterionIds[0]!, criteria[0]!.evaluationCriterionRevisionId, 100),
+      seedBalance(user.id, criterionIds[1]!, criteria[1]!.evaluationCriterionRevisionId, 100),
+    ]);
+    const input = createInput(suffix, user, pointPackage.pointPackageRevisionId);
+    const before = await checkPointBalance(db, {
+      now: input.now,
+      pointPackageRevisionId: input.pointPackageRevisionId,
+      pointsUserId: user.id,
+      priceTicks: input.priceTicks,
+      quantity: input.quantity,
+    });
+    expect(before).toMatchObject({
+      canReserve: true,
+      components: [
+        { availableBalanceScaled: "100", requiredAmountScaled: "12", sufficient: true },
+        { availableBalanceScaled: "100", requiredAmountScaled: "24", sufficient: true },
+      ],
+    });
+
+    const created = await createPointReservation(db, input);
+    const after = await checkPointBalance(db, {
+      now: input.now,
+      pointPackageRevisionId: input.pointPackageRevisionId,
+      pointsUserId: user.id,
+      priceTicks: input.priceTicks,
+      quantity: input.quantity,
+    });
+    expect(after.components.map(({ availableBalanceScaled }) => availableBalanceScaled)).toEqual([
+      "88",
+      "76",
+    ]);
+    await expect(
+      readReservationStatus(db, {
+        marketsClientId: input.marketsClientId,
+        now: input.now,
+        reservationKeys: [input.reservationKey],
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        pointReservationId: created.pointReservationId,
+        reservationKey: input.reservationKey,
+        status: "ACTIVE",
+      }),
+    ]);
+  });
+
+  it("rejects a route-bound reservation after its Points connection is unlinked", async () => {
+    const suffix = crypto.randomUUID().replaceAll("-", "");
+    const user = await seedUser(`user_${suffix}`);
+    const { pointPackage } = await seedPackage(suffix, user.id);
+    const input = createInput(suffix, user, pointPackage.pointPackageRevisionId);
+    const now = input.now.getTime();
+    const attemptId = `pla_${suffix}`;
+    const connectionId = `pcn_${suffix}`;
+    await db.batch([
+      db
+        .prepare(
+          `INSERT INTO points_oauth_link_attempt
+             (id, idempotency_key, payload_hash, state_hash, user_client_id, m2m_client_id,
+              markets_user_id, points_user_id, requested_scopes, status, created_at, expires_at)
+           VALUES (?, ?, ?, ?, 'markets-user-client', ?, ?, ?, '[]', 'CONFIRMED', ?, ?)`,
+        )
+        .bind(
+          attemptId,
+          `link_${suffix}`,
+          `sha256:${"1".repeat(64)}`,
+          `sha256:${"2".repeat(64)}`,
+          input.marketsClientId,
+          input.marketsUserId,
+          user.id,
+          now,
+          now + 600_000,
+        ),
+      db
+        .prepare(
+          `INSERT INTO points_oauth_connection
+             (id, link_attempt_id, markets_points_connection_id, user_client_id,
+              m2m_client_id, markets_user_id, points_user_id, issuer, points_subject,
+              granted_scopes, status, grant_version, linked_at, updated_at)
+           VALUES (?, ?, ?, 'markets-user-client', ?, ?, ?, 'https://points.example.test/api/auth',
+                   ?, '[]', 'UNLINKED', 2, ?, ?)`,
+        )
+        .bind(
+          connectionId,
+          attemptId,
+          `mpc_${suffix}`,
+          input.marketsClientId,
+          input.marketsUserId,
+          user.id,
+          `subject_${suffix}`,
+          now,
+          now,
+        ),
+    ]);
+
+    await expect(
+      createPointReservation(db, { ...input, pointsConnectionId: connectionId }),
+    ).rejects.toThrow("POINTS_CONNECTION_NOT_ACTIVE");
+    expect(
+      await db
+        .prepare("SELECT COUNT(*) AS count FROM point_reservation WHERE reservation_key = ?")
+        .bind(input.reservationKey)
+        .first(),
+    ).toEqual({ count: 0 });
   });
 
   it("bulk-loads components within two D1 queries for a 1,000-item reservation list", async () => {

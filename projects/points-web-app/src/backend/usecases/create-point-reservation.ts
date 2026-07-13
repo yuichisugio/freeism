@@ -15,6 +15,7 @@ export interface CreatePointReservationInput {
   now?: Date;
   planHash: string;
   pointPackageRevisionId: string;
+  pointsConnectionId?: string;
   pointsUserId: string;
   priceTicks: number;
   quantity: number;
@@ -101,6 +102,7 @@ export async function createPointReservation(
     marketsUserId: input.marketsUserId,
     planHash: input.planHash,
     pointPackageRevisionId: input.pointPackageRevisionId,
+    pointsConnectionId: input.pointsConnectionId ?? null,
     pointsUserId: input.pointsUserId,
     priceTicks: input.priceTicks,
     quantity: input.quantity,
@@ -140,7 +142,26 @@ export async function createPointReservation(
       input.reservationKey,
       input.idempotencyKey,
     );
-    if (!concurrentReplay) throw error;
+    if (!concurrentReplay) {
+      if (input.pointsConnectionId) {
+        const activeConnection = await db
+          .prepare(
+            `SELECT 1 AS active
+             FROM points_oauth_connection
+             WHERE id = ? AND status = 'ACTIVE'
+               AND points_user_id = ? AND m2m_client_id = ? AND markets_user_id = ?`,
+          )
+          .bind(
+            input.pointsConnectionId,
+            input.pointsUserId,
+            input.marketsClientId,
+            input.marketsUserId,
+          )
+          .first<{ active: number }>();
+        if (!activeConnection) throw new Error("POINTS_CONNECTION_NOT_ACTIVE");
+      }
+      throw error;
+    }
     if (concurrentReplay.payloadHash !== payloadHash) throw new Error("IDEMPOTENCY_KEY_REUSED");
     return result(concurrentReplay);
   }
