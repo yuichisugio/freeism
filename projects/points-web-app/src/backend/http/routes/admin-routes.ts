@@ -1,5 +1,6 @@
-import type { Hono } from "hono";
+import type { Context, Hono } from "hono";
 
+import { freshOperationPolicies } from "../../auth/fresh-operation-policy";
 import { changeAdminMembership } from "../../usecases/change-admin-membership";
 import type { BackendContext } from "../context";
 import { requireBindings } from "../context";
@@ -21,11 +22,41 @@ async function readMembershipBody(request: Request): Promise<MembershipBody | nu
   }
 }
 
+function requirePolicy(operation: string) {
+  const policy = freshOperationPolicies.find((candidate) => candidate.operation === operation);
+  if (!policy) {
+    throw new Error(`FRESH_OPERATION_POLICY_MISSING:${operation}`);
+  }
+  return policy;
+}
+
+export const adminMembershipRoutePolicies = {
+  add: requirePolicy("admin-membership-add"),
+  delete: requirePolicy("admin-membership-delete"),
+};
+
+function mapAdminMembershipError(context: Context<BackendContext>, error: unknown): Response {
+  if (!(error instanceof Error)) {
+    throw error;
+  }
+  if (error.message === "ADMIN_LIMIT_OR_DUPLICATE") {
+    return problem(context, 409, error.message, "Admin limit or duplicate membership");
+  }
+  if (error.message === "LAST_ADMIN_REQUIRED") {
+    return problem(context, 409, error.message, "At least one administrator is required");
+  }
+  if (error.message === "ADMIN_REASON_REQUIRED") {
+    return problem(context, 422, error.message, "Admin reason required");
+  }
+  throw error;
+}
+
 export function registerAdminRoutes(app: Hono<BackendContext>, getSession: GetSession) {
   const sessionMiddleware = createSessionMiddleware(getSession);
-  const path = "/api/admin/admin-memberships";
+  const addPolicy = adminMembershipRoutePolicies.add;
+  const deletePolicy = adminMembershipRoutePolicies.delete;
 
-  app.get(path, sessionMiddleware, adminMiddleware, async (context) => {
+  app.get(addPolicy.route, sessionMiddleware, adminMiddleware, async (context) => {
     const memberships = await requireBindings(context.env)
       .DB.prepare(
         `SELECT points_user_id AS pointsUserId, role
@@ -39,39 +70,49 @@ export function registerAdminRoutes(app: Hono<BackendContext>, getSession: GetSe
     });
   });
 
-  app.post(path, sessionMiddleware, adminMiddleware, googleFreshMiddleware, async (context) => {
-    const body = await readMembershipBody(context.req.raw);
-    if (!body) {
-      return problem(context, 400, "INVALID_REQUEST_BODY", "Invalid request body");
-    }
-    if (typeof body.reason !== "string" || body.reason.trim().length === 0) {
-      return problem(context, 422, "ADMIN_REASON_REQUIRED", "Admin reason required");
-    }
-    if (typeof body.pointsUserId !== "string" || body.pointsUserId.length === 0) {
-      return problem(context, 422, "POINTS_USER_ID_REQUIRED", "Points user ID required");
-    }
+  app.post(
+    addPolicy.route,
+    sessionMiddleware,
+    adminMiddleware,
+    googleFreshMiddleware,
+    async (context) => {
+      const body = await readMembershipBody(context.req.raw);
+      if (!body) {
+        return problem(context, 400, "INVALID_REQUEST_BODY", "Invalid request body");
+      }
+      if (typeof body.reason !== "string" || body.reason.trim().length === 0) {
+        return problem(context, 422, "ADMIN_REASON_REQUIRED", "Admin reason required");
+      }
+      if (typeof body.pointsUserId !== "string" || body.pointsUserId.length === 0) {
+        return problem(context, 422, "POINTS_USER_ID_REQUIRED", "Points user ID required");
+      }
 
-    const requestId = `req_${crypto.randomUUID()}`;
-    await changeAdminMembership(requireBindings(context.env).DB, {
-      action: "ADD",
-      actorPointsUserId: context.get("pointsUser").id,
-      auditEventId: `audit_${crypto.randomUUID()}`,
-      membershipId: `adm_${crypto.randomUUID()}`,
-      reason: body.reason,
-      requestId,
-      targetPointsUserId: body.pointsUserId,
-    });
-    return context.json(
-      {
-        data: { pointsUserId: body.pointsUserId, role: "ADMIN" },
-        meta: { requestId },
-      },
-      201,
-    );
-  });
+      const requestId = `req_${crypto.randomUUID()}`;
+      try {
+        await changeAdminMembership(requireBindings(context.env).DB, {
+          action: "ADD",
+          actorPointsUserId: context.get("pointsUser").id,
+          auditEventId: `audit_${crypto.randomUUID()}`,
+          membershipId: `adm_${crypto.randomUUID()}`,
+          reason: body.reason,
+          requestId,
+          targetPointsUserId: body.pointsUserId,
+        });
+      } catch (error) {
+        return mapAdminMembershipError(context, error);
+      }
+      return context.json(
+        {
+          data: { pointsUserId: body.pointsUserId, role: "ADMIN" },
+          meta: { requestId },
+        },
+        201,
+      );
+    },
+  );
 
   app.delete(
-    `${path}/:pointsUserId`,
+    deletePolicy.route,
     sessionMiddleware,
     adminMiddleware,
     googleFreshMiddleware,
@@ -84,14 +125,18 @@ export function registerAdminRoutes(app: Hono<BackendContext>, getSession: GetSe
         return problem(context, 422, "ADMIN_REASON_REQUIRED", "Admin reason required");
       }
 
-      await changeAdminMembership(requireBindings(context.env).DB, {
-        action: "DELETE",
-        actorPointsUserId: context.get("pointsUser").id,
-        auditEventId: `audit_${crypto.randomUUID()}`,
-        reason: body.reason,
-        requestId: `req_${crypto.randomUUID()}`,
-        targetPointsUserId: context.req.param("pointsUserId"),
-      });
+      try {
+        await changeAdminMembership(requireBindings(context.env).DB, {
+          action: "DELETE",
+          actorPointsUserId: context.get("pointsUser").id,
+          auditEventId: `audit_${crypto.randomUUID()}`,
+          reason: body.reason,
+          requestId: `req_${crypto.randomUUID()}`,
+          targetPointsUserId: context.req.param("pointsUserId")!,
+        });
+      } catch (error) {
+        return mapAdminMembershipError(context, error);
+      }
       return context.body(null, 204);
     },
   );

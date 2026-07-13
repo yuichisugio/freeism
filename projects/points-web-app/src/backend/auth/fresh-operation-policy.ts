@@ -137,7 +137,7 @@ const baseFreshOperationPolicies = [
   },
   {
     operation: "admin-membership-delete",
-    route: "/api/admin/admin-memberships/:id",
+    route: "/api/admin/admin-memberships/:pointsUserId",
     admin: true,
     reason: true,
     idempotency: true,

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vite-plus/test";
 import { createPointsBackendApp } from "../../src/backend/app";
 import { createPointsAuth } from "../../src/backend/auth/create-auth";
 import type { Bindings } from "../../src/backend/http/context";
+import { adminMembershipRoutePolicies } from "../../src/backend/http/routes/admin-routes";
 import { bootstrapInitialAdmin } from "../../src/backend/usecases/bootstrap-admin";
 import { changeAdminMembership } from "../../src/backend/usecases/change-admin-membership";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
@@ -182,8 +183,27 @@ describe("Points user and global ADMIN", () => {
     );
     expect(added.status).toBe(201);
 
+    const duplicate = await app.fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: target.id, reason: "duplicate" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(duplicate.status).toBe(409);
+    expect(duplicate.headers.get("content-type")).toContain("application/problem+json");
+    await expect(duplicate.json()).resolves.toMatchObject({
+      code: "ADMIN_LIMIT_OR_DUPLICATE",
+      status: 409,
+    });
+
+    const deletePath = adminMembershipRoutePolicies.delete.route.replace(
+      ":pointsUserId",
+      target.id,
+    );
     const removed = await app.fetch(
-      new Request(`https://points.test/api/admin/admin-memberships/${target.id}`, {
+      new Request(`https://points.test${deletePath}`, {
         body: JSON.stringify({ reason: "delegation ended" }),
         headers: { "Content-Type": "application/json" },
         method: "DELETE",
@@ -191,6 +211,27 @@ describe("Points user and global ADMIN", () => {
       env,
     );
     expect(removed.status).toBe(204);
+
+    const finalAdmin = await app.fetch(
+      new Request(
+        `https://points.test${adminMembershipRoutePolicies.delete.route.replace(
+          ":pointsUserId",
+          owner.id,
+        )}`,
+        {
+          body: JSON.stringify({ reason: "invalid final deletion" }),
+          headers: { "Content-Type": "application/json" },
+          method: "DELETE",
+        },
+      ),
+      env,
+    );
+    expect(finalAdmin.status).toBe(409);
+    expect(finalAdmin.headers.get("content-type")).toContain("application/problem+json");
+    await expect(finalAdmin.json()).resolves.toMatchObject({
+      code: "LAST_ADMIN_REQUIRED",
+      status: 409,
+    });
   });
 
   it("provisions one Points user for one Better Auth user", async () => {
