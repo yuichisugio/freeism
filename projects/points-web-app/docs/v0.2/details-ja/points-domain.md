@@ -248,6 +248,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 - leaseは15分。現在状態は`ACTIVE`、`CAPTURED`、`RELEASED`、`EXPIRED`の単調遷移だけを許可し、条件付きUPDATE 0行へ依存しない。
 - capture後はrelease/refundしない。capture/release/expiryは`evaluationTotal`を変更しない。
 - Markets由来の同一reservation key、plan hash、winnerに対する再送は同じ結果を返す。
+- 利用者Tokenで予約を作る時はACTIVEなPoints–Markets connectionに保存した利用者用Client IDから対応M2M用Client IDを解決し、既存のreservation `marketsClientId`所有列へ保存する。後続status／capture／releaseはこのM2M `client_id`との一致を必須とし、Task 13のschema名は変更しない。
 - capture時は全winnerのACTIVE、未期限、所有Client、plan／vector hashと現在残高をcommand guardで再検査してからCAPTURED eventとledger debitを同じbatchへ入れ、1件でも不正／不足ならevent／state／ledger／account projection／receiptを0件へrollbackする。
 - Marketsのclearing priceが0 tickなら、Pointsが再計算した全component amountが0のvector reservationも有効とする。不変header／0 component vectorとACTIVE stateを作り、captureは`ACTIVE -> CAPTURED`のeventと不変receiptを作るがledgerは0件、`balance`／`evaluationTotal`は不変とする。command postconditionは`expectedLedgerCount=0`と`actualLedgerCount=0`の一致を成功とし、0を欠落または未処理と扱わない。
 

@@ -209,7 +209,8 @@ Marketsだけが次のデータを所有し、更新できる。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
 - Marketsは`pointPackageRevisionId`、`priceTicks`、`quantity`をPointsへ渡し、Pointsが自身の不変package revisionから評価軸vectorを再計算する。
-- Points予約は15分。標準introspectionでpairwise subjectを検証したopaque user delegation Access Tokenで予約し、capture/releaseはgrant／scopeを分離したopaque Client Credentials Tokenで行う。
+- Points予約は15分。標準remote introspectionでpairwise subjectを検証した利用者用Clientのopaque delegation Access Tokenで予約し、capture/releaseは別のM2M用Clientが発行したopaque Client Credentials Tokenで行う。
+- ACTIVE connectionは利用者用Client IDと対応M2M用Client IDを保持する。利用者Tokenで予約を作る時は対応M2M用Client IDを既存reservation所有clientへ保存し、status／capture／releaseはそのM2M `client_id`だけを許可する。
 - 1 winnerの全評価軸予約は1回のPoints D1原子処理とし、部分予約を許可しない。
 - winner確定後、すべてのcapture/releaseを冪等に完了させる。capture後の自動refundやsaga巻き戻しは行わない。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
@@ -246,7 +247,7 @@ staging失敗時はproductionへ進まない。Pointsだけproductionへ進ん�
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Service Binding越しでもOAuth bearer tokenをPoints Worker内のBetter Auth標準Resource Clientによるin-process introspectionへ通し、`active`、issuer、audience/resource、client、scope、利用者Tokenのpairwise subjectを検証する。利用者principalはpairwise `sub`あり＋利用者scopeだけ、M2M principalは利用者`sub`なし＋M2M scopeだけから導出し、独自token-class claim、JWT Access Token、内部Points user IDをcross-app identityにしない。
+- Service Binding越しでもOAuth bearer tokenをBetter Auth標準Resource Clientのconfidential remote introspectionへ通し、`active`、issuer、audience/resource、期待する利用者用またはM2M用Client ID、scope、利用者Tokenのpairwise subjectを検証する。credentialはPoints／Markets Worker Secretだけに置いてbrowserへ出さない。利用者principalは利用者用Client＋pairwise `sub`あり＋利用者scopeだけ、M2M principalはM2M用Client＋利用者`sub`なし＋M2M scopeだけから導出し、独自token-class claim、JWT Access Token、内部Points user IDをcross-app identityにしない。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - URL fetchはHTTPS/443だけを許可し、IP literal／localhost／private・reserved hostnameを入力時に拒否し、manual redirectの各hopを同じ規則で再検証する。`global_fetch_strictly_public`を有効にし、Cloudflareのpublic Internet egress制約をDNS rebinding時の接続防御に使う。Workers `fetch()`が実接続先IPを公開しないため、アプリが「接続直前のIP」を独自検査できるとは規定しない。

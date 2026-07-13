@@ -20,8 +20,8 @@
 - `trustedOrigins`は環境ごとの当該アプリ完全一致originだけとする。
 - OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
 - Points OAuthは環境別pairwise secretと`subject_type=pairwise`を標準pluginで使い、public subjectを発行しない。
-- Points OAuth Providerは`disableJwtPlugin: true`でAccess Tokenをopaqueにし、標準introspectionの`active`、issuer、audience/resource、client、scope、期限と、利用者Tokenだけのpairwise subjectを検証する。Points Resource APIは同一Better Auth instanceの標準Resource Clientでin-process検証し、Marketsのremote introspection credentialを複製しない。JWT Access Tokenの内部Points user IDをMarketsへ公開しない。
-- Client Credentialsもopaqueだが、利用者scopeとM2M scopeを互いに素にする。pairwise `sub`あり＋利用者scopeだけを利用者principal、利用者`sub`なし＋M2M scopeだけをM2M principalへ分類し、独自token-class claim、Service Binding、Tokenの外形、emailを認可根拠にしない。
+- Points OAuth Providerは`disableJwtPlugin: true`でAccess Tokenをopaqueにし、標準confidential remote introspectionの`active`、issuer、audience/resource、client、scope、期限と、利用者Tokenだけのpairwise subjectを検証する。利用者用、M2M用、Settlement retry用Client IDを分け、credentialは利用するWorkerの環境別Secretだけに置いてbrowserへ出さない。JWT Access Tokenの内部Points user IDをMarketsへ公開しない。
+- Client Credentialsもopaqueだが、別Clientの利用者scopeとM2M scopeを互いに素にする。利用者用Client＋pairwise `sub`あり＋利用者scopeだけを利用者principal、M2M用Client＋利用者`sub`なし＋M2M scopeだけをM2M principalへ分類し、独自token-class claim、Service Binding、Tokenの外形、emailを認可根拠にしない。
 - private/認証responseは`Cache-Control: private, no-store`。
 
 Better Authの詳細は[認証仕様](./authentication.md)を正本とする。

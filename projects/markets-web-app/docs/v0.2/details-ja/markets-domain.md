@@ -21,11 +21,13 @@ Markets D1とPoints D1は完全分離し、相手DBを直接queryしない。
 - MarketsアカウントはPointsアカウントから独立して作成する。
 - 利用者が後からPoints OAuth Providerへ明示同意し、Markets–Pointsを1対1で連携する。
 - `status = ACTIVE`行だけを対象にしたpartial unique index `(marketsUserId)`と`(pointsIssuer, pointsSubject)`により、各側に有効な連携を1件だけ許可する。解除・再連携後も過去行は履歴として保持する。
-- Markets user tokenとClient Credentials tokenをbrowserへ出さない。
+- environmentごとにPoints連携の利用者用、M2M用、Settlement retry用OAuth Client IDを分ける。利用者用はAuthorization Code／Refresh、M2M用はClient Credentials、Settlement retry用は専用Authorization Codeだけを許可し、scopeとClient Secretを用途間で共有しない。
+- Markets user token、Client Credentials token、標準remote introspection credentialをbrowserへ出さず、Markets Worker Secretだけで扱う。
 - 入札時には有効なPoints連携を必須とする。
 - 通常unlinkは専用のPoints Authorization Code + PKCEとGoogle freshを経てPointsのapp-owned grantを先に無効化する。Pointsのimmutable receiptを取得する前にMarkets local rowや暗号化user tokenを削除しない。receipt取得後だけlocal rowを`UNLINKED`へCASし、失敗時は同じidempotency keyでreceiptを再取得して収束させる。
 - provider側の外部失効は`REAUTH_REQUIRED`とし、新規balance read／reservationを行わない。unlink前に作成済みのreservationは、user grantと分離したM2M tokenでstatus／capture／releaseを継続する。
 - `/settings/points-connection`は`PENDING_CONFIRMATION`、`ACTIVE`、`REAUTH_REQUIRED`、`UNLINKED`を表示し、明示link、unlink、relinkの唯一の利用者向け画面とする。通常unlinkは15分以内のGoogle freshを確認するAuthorization Code + PKCEを開始し、GET callbackではpending authorizationだけを保存する。同じMarkets SessionからのCSRF保護POSTを利用者が明示実行するまで解除しない。
+- link-attemptは標準OAuth開始前にPointsのapp-owned `PENDING_MARKETS_CONFIRMATION`と1対1 uniqueを確定する。Better Authのcode／token familyとは同一transactionにせず、Markets local保存後のM2M `CONFIRM`でだけACTIVEにする。CONFIRMには利用者用Clientの標準remote introspectionで得たissuer／pairwise subject／Client IDを渡し、Pointsはattemptへ照合して利用者用Client IDと対応M2M用Client IDをconnectionへ保存する。途中失敗・crashは`CANCEL`／10分TTL reaperでapp-owned grantをlive拒否し、Marketsがraw tokenを保持済みの場合だけRFC 7009 revocationをbest-effort outboxへ入れ、未知tokenは自然失効に任せる。
 - unlink confirm時にACTIVE reservationが1件でもあれば`409 ACTIVE_RESERVATION_EXISTS`とし、Points grant、Markets connection、暗号化tokenを一切変更しない。Pointsのimmutable receiptを得た後だけMarketsを`UNLINKED`へ進める。`REAUTH_REQUIRED`は既存Markets userのまま明示relinkを開始し、別user作成やemail一致linkへfallbackしない。
 
 ## 3. Auction作成と不変revision

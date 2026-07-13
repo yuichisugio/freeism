@@ -292,7 +292,7 @@ Marketsは独立アカウントを持ち、利用者がログイン後にPoints�
 - unlink前に作成した予約は、MarketsのM2M権限でcapture、release、status取得できる。
 - unlink履歴は削除しない。
 
-通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが同じClient IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが15分以内のGoogle freshと対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsのconnection deactivation APIを呼ぶ。Pointsは同じD1原子処理でACTIVE reservationが0件であることを再確認し、app-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outboxと監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規balance read／reserveを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
+通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが15分以内のGoogle freshと対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsのconnection deactivation APIを呼ぶ。Pointsは同じD1原子処理でACTIVE reservationが0件であることを再確認し、app-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outboxと監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規balance read／reserveを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
 
 revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Auth 1.7正式版でapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
 
@@ -305,13 +305,13 @@ revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revoca
 Points Better Authのissuer／base URLは`https://points.freeism.app/api/auth`とする。標準endpointは`/api/auth/oauth2/authorize`、`/api/auth/oauth2/token`、`/api/auth/oauth2/introspect`、`/api/auth/oauth2/revoke`、Discoveryはissuer相対の`/api/auth/.well-known/openid-configuration`を使う。これらの独自endpointや互換aliasを作らない。Task 6Aのlive feasibility gateで標準実装との一致を検証し、1つでも一致しなければreleaseを停止する。
 
 1. Marketsがstate、nonce、PKCE verifier／challengeを生成し、Markets SessionとMarkets userへserver-sideで束縛する。
-2. Markets WorkerがClient CredentialsでPointsのlink-attempt APIを呼び、`marketsUserId`、state hash、PKCE challenge、redirect URI、scope、期限へ束縛したopaque `linkAttemptId`を取得する。
+2. Markets WorkerがM2M用Client CredentialsでPointsのlink-attempt APIを呼び、利用者用／M2M用Client ID、`marketsUserId`、state hash、PKCE challenge、redirect URI、scope、期限へ束縛したopaque `linkAttemptId`を取得する。
 3. browser authorization requestは`linkAttemptId`だけを渡し、Pointsはapp-owned attemptを再取得する。request bodyの`marketsUserId`を信用しない。
 4. PointsでGoogle fresh認証を確認し、利用者がscopeを承認する。
-5. Pointsは同じD1 transactionで、Client ID＋Markets userとClient ID＋Points userの1対1 uniqueを検査し、app-owned grantと一回限りAuthorization Codeをattemptへ束縛する。競合時はcode／token familyを発行しない。
-6. Markets WorkerがAuthorization CodeをTokenへ交換する。この時点のapp-owned grantは`PENDING_MARKETS_CONFIRMATION`で、Resource APIは使用できない。
-7. Marketsはlocal connectionを`PENDING`で原子的に保存してから、Client Credentialsでlink-attempt finalizationを`CONFIRM`する。Pointsがgrantを`ACTIVE`へ進めたreceiptを取得後、Markets local rowを`ACTIVE`へ進める。
-8. local保存が失敗した場合は同finalizationを`CANCEL`し、新attempt由来grant／token familyだけをrevocation outboxへ入れる。Marketsがcrashしても10分のattempt TTL reaperが未confirm grantをcancelする。既存connectionを変更しない。
+5. Pointsは標準OAuth開始前のapp-owned D1 transactionで、利用者用Client ID＋Markets userと利用者用Client ID＋Points userの1対1 uniqueを検査し、app-owned grantを`PENDING_MARKETS_CONFIRMATION`でattemptへ束縛する。競合loserは標準authorizationへ進めない。
+6. Better Auth標準Authorization Code flowを実行し、Markets WorkerがCodeをTokenへ交換する。Authorization Code／token family発行をapp-owned transactionへ参加させない。この時点でもapp-owned grantはpendingで、Resource APIは使用できない。
+7. Marketsは利用者用Clientの標準remote introspectionで得たissuer／pairwise subject／Client IDとTokenをlocal connectionへ`PENDING`で原子的に保存してから、M2M用Client Credentialsでそれらを渡してlink-attempt finalizationを`CONFIRM`する。Pointsは期待issuer、利用者用Client、attemptを照合し、connectionへ利用者用Client IDと対応M2M用Client IDを保存してgrantを`ACTIVE`へ進める。Marketsはreceipt取得後だけlocal rowを`ACTIVE`へ進める。
+8. local保存、標準authorization、Token交換、finalizationの途中で失敗またはcrashした場合は、明示`CANCEL`または10分のattempt TTL reaperが新attemptのapp-owned grantを`CANCELLED`へ進め、live status検査で拒否する。TTL reaperはraw tokenを持たないためtoken family完全失効を扱わない。Marketsがraw tokenを保持済みの場合だけRFC 7009 revocationをbest-effort outboxへ入れ、未知tokenは自然失効に任せる。既存connectionを変更せず、Better Auth内部tableを直接操作しない。
 
 Authorization Codeは一回限りとし、PKCE S256、state、nonce、issuer、redirect URI、resourceを検証する。OAuth Clientの動的登録は無効とする。
 
@@ -326,40 +326,39 @@ link、unlink、relink、Settlement手動retryのOAuth stateへ、利用者入�
 
 内部関数にも`returnTo`引数を設けず、flow種別とstateへ束縛済みresource IDから上表のpathを組み立てる。requestにscheme／host／userinfo／fragment、`//`開始、rawまたはpercent-encoded backslash、control文字、二重decodeでpath separatorへ変わる値、queryが含まれていても保存・fallbackしない。callbackはstateから組み立てたpathだけへ`303`し、request queryやOAuth providerの値をredirect先として使わない。
 
-PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers Secretから設定し、Markets clientを`subject_type=pairwise`で静的登録する。public subjectを発行せず、同じPointsユーザーでもClient ID／environmentが違えばsubjectを分離する。pairwise secretは通常rotationしない。漏えい時は全user grantを`REAUTH_REQUIRED`へ進め、秘密を更新し、既存Markets userと新subjectをGoogle freshのcontrolled relinkで再対応させる。旧subjectと履歴を削除しない。
+PointsはBetter Auth OAuth Providerの標準`pairwiseSecret`を環境別Workers Secretから設定し、Markets利用者用ClientとSettlement retry専用Clientを`subject_type=pairwise`で静的登録する。public subjectを発行せず、同じPointsユーザーでもClient ID／environmentが違えばsubjectを分離する。pairwise secretは通常rotationしない。漏えい時は全user grantを`REAUTH_REQUIRED`へ進め、秘密を更新し、既存Markets userと新subjectをGoogle freshのcontrolled relinkで再対応させる。旧subjectと履歴を削除しない。
 
 利用者委任Access TokenはBetter Auth OAuth Providerの標準`disableJwtPlugin: true`でopaqueに固定し、JWT Access Tokenを発行しない。これはJWT Access Tokenの`sub`がPoints内部user IDになる標準挙動を避け、Marketsへ公開する本人識別子を`issuer + pairwise subject`だけに限定するためである。
 
 - confidential clientのID Tokenは`disableJwtPlugin: true`時のBetter Auth標準どおりClient Secretで署名し、OIDC clientだけが検証する。Points Resource APIのBearer Tokenや連携正本には使わない。
 - pairwise `sub`はID Token、UserInfo、標準`/api/auth/oauth2/introspect`の応答にだけ現れる。MarketsはToken文字列をparseせず、標準introspectionの`active=true`、`iss`、`sub`、`client_id`、scope、audience/resource、期限を検証して`issuer + sub`を保存する。
 - `disableJwtPlugin: true`はOAuth Provider全体へ適用されるため、Client Credentials Access Tokenもopaqueになる。ただし標準introspectionに独自`token_class`／`grant_type` claimを追加しない。利用者委任principalは「pairwise `sub`あり＋利用者scopeだけ」、M2M principalは「利用者`sub`なし＋M2M scopeだけ」から導出し、scopeが混在する、`sub`の有無とscope種別が矛盾する、または分類不能なTokenは拒否する。
-- Points Resource APIは同じWorker内のBetter Auth instanceを渡した標準`oauthProviderResourceClient(auth)`／標準server APIでin-process introspectionし、別のResource Server Client Secretや独自HTTP endpointを作らない。Marketsがlink完了等でremote introspectionする場合だけ、同じMarkets confidential Client ID／SecretをMarkets Worker Secretから使う。どちらもopaque Tokenを未検証decodeせず、内部user IDをpairwise `sub`へ上書きするcustom claimを作らない。
-- Marketsのremote introspection credentialはMarkets Worker Secretにだけ置き、browserやPoints Resource API設定へ複製しない。Service Binding経由でも各requestのBearerをPoints内の標準Resource Clientへ渡して検証し、positive resultをrequest境界を越えて無期限cacheしない。
-- Better Auth `1.7.0-rc.1`と正式`1.7.0`の双方で、opaqueなAuthorization Code／Refresh／Client Credentials、pairwise introspection、revocation、audience/resource、scope分離をlive spikeする。標準APIで成立しなければ独自実装へfallbackせずreleaseを停止して再承認する。
+- Points Resource APIとMarkets BFFは標準Resource Clientのconfidential remote verificationで標準`/api/auth/oauth2/introspect`を呼ぶ。同一Better Auth instanceだけに依存するin-process introspectionは使わない。利用者routeは利用者用Client、M2M routeはM2M用Clientのcredentialを選び、introspection結果の`client_id`と一致させる。opaque Tokenを未検証decodeせず、内部user IDをpairwise `sub`へ上書きするcustom claimを作らない。
+- remote introspection credentialは利用するPoints／Markets Workerの環境別Secretにだけ置き、browser、D1、repository、build artifactへ出さない。Service Binding経由でも各requestのBearerを標準remote introspectionへ渡して検証し、positive resultをrequest境界を越えて無期限cacheしない。
+- Better Auth `1.7.0-rc.1`と正式`1.7.0`の双方で、opaqueなAuthorization Code／Refresh／Client Credentials、Client別scope allowlist、pairwise remote introspection、revocation、audience/resourceをlive spikeする。標準APIで成立しなければ独自実装へfallbackせずreleaseを停止して再承認する。
 
-### 8.3 同一Client ID内のgrant分離
+### 8.3 OAuth Client分離
 
-環境ごとに1つのMarkets OAuth Client IDを作り、そのClient ID内でgrantとscopeを分離する。
+環境ごとにMarkets利用者用、M2M用、Settlement retry用の3つのOAuth Client IDを作り、Clientごとにgrantとscopeを分離する。
 
-| Principal／Token用途    | grant                                 | 許可scope・用途                                                                                                                                                                                                       |
-| ----------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 利用者委任opaque Token  | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create`                                                                                                        |
-| Connection unlink       | 専用`authorization_code`              | `points.connection.unlink`だけ。Google fresh後の通常unlinkを一回だけ認可する                                                                                                                                          |
-| Settlement管理assertion | 専用`authorization_code`              | `points.admin.settlement.retry`だけ。対象Auction／Settlementの手動再試行を一回だけ認可する                                                                                                                            |
-| Worker間opaque Token    | `client_credentials`                  | `points.connection.link-attempt.create`、`points.connection.link-attempt.finalize`、`points.packages.auction-eligibility`、`points.reservations.status`、`points.reservations.capture`、`points.reservations.release` |
+| Client／Token用途          | grant                                 | 許可scope・用途                                                                                                                                                                                                       |
+| -------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 利用者用Client             | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.reservations.create`。専用Authorization Codeでは`points.connection.unlink`だけを一回限りで使う                              |
+| M2M用Client                | `client_credentials`                  | `points.connection.link-attempt.create`、`points.connection.link-attempt.finalize`、`points.packages.auction-eligibility`、`points.reservations.status`、`points.reservations.capture`、`points.reservations.release` |
+| Settlement retry専用Client | 専用`authorization_code`              | `points.admin.settlement.retry`だけ。対象Auction／Settlementの手動再試行を一回だけ認可する                                                                                                                            |
 
-link-attempt作成／finalizeには同じClient Credentials grantの`points.connection.link-attempt.create`／`points.connection.link-attempt.finalize`だけを使う。このscopeでbalance、reserve、settlement、unlinkを実行できない。
+link-attempt作成／finalizeにはM2M用Client Credentials grantの`points.connection.link-attempt.create`／`points.connection.link-attempt.finalize`だけを使う。このscopeでbalance、reserve、settlement、unlinkを実行できない。
 
 Client Credentials Tokenは利用者を表すログインTokenではなく、`client_id`とClient Secretで認証されたMarkets Worker自身を表す短命Access Tokenである。既存予約の確定・解放を、利用者が画面を閉じたりPoints連携を外部失効させた後も完了させるために使う。任意ユーザーの残高操作や新規予約には使えない。
 
 - 利用者Tokenではcapture／releaseできない。
 - M2M Tokenでは任意ユーザーの残高参照・新規reserve・直接debitができない。
-- Marketsは同じ`client_id`が作成した予約だけをsettleできる。
+- Marketsは同じM2M `client_id`が所有する予約だけをsettleできる。
 - Refresh TokenからM2M scopeを追加できない。
 - Client Credentialsから利用者scopeを取得できない。
-- 同じClient Secretの漏えいが両grantへ影響する残余リスクを受容し、短命Token、scope強制、Secret rotation、監査で補う。
+- Client Secretを用途間で共有せず、短命Token、scope強制、Secret rotation、監査を併用する。
 
-Settlement手動再試行では、通常の利用者委任TokenやWorker間Tokenへ管理scopeを追加しない。Markets BFFが同じClient IDの専用Authorization Code + PKCE flowを開始し、stateをMarkets Session、Auction ID、Settlement ID、reason hash、return URLへserver-sideで束縛する。Pointsは同意済みの1対1連携、現在の同格ADMIN、15分以内のGoogle freshを再検証してから、次の条件を満たす署名assertionをserver-side交換で発行する。
+Settlement手動再試行では、通常の利用者委任TokenやWorker間Tokenへ管理scopeを追加しない。Markets BFFがSettlement retry専用Client IDのAuthorization Code + PKCE flowを開始し、stateをMarkets Session、Auction ID、Settlement ID、reason hash、return URLへserver-sideで束縛する。Pointsは同意済みの1対1連携、現在の同格ADMIN、15分以内のGoogle freshを再検証してから、次の条件を満たす署名assertionをserver-side交換で発行する。
 
 - audienceはMarketsのSettlement管理resourceだけとする。
 - scopeは`points.admin.settlement.retry`だけとする。
@@ -519,17 +518,21 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 ### 14.5 Points–Markets OAuth
 
 - state、nonce、redirect URI、PKCE verifier、Authorization Code再利用の不正を拒否する。
+- 利用者用、M2M用、Settlement retry用の3 Client IDとscope allowlistが分かれ、別用途のscopeを取得できない。
 - opaque Tokenの未検証decode、introspectionの`active=false`、issuer、audience／resource、期限、`client_id`、Token class、scope不一致を拒否する。
+- Points Resource APIとMarkets BFFがWorker Secretのconfidential credentialで標準remote introspectionを使い、credentialがbrowser／D1／responseへ出ない。
 - 利用者Tokenのintrospectionがpairwise `sub`を返し、Points内部user IDをMarketsへ公開しないことを検証する。
 - Client Credentials Tokenのintrospection結果を利用者subjectとして解釈しない。
 - 利用者Tokenでcapture／releaseできない。
 - M2M Tokenで残高取得・新規reserve・任意debitができない。
 - Client AがClient Bの予約をsettleできない。
-- 同一Client IDでもRefresh TokenからM2M scope、Client Credentialsから利用者scopeを取得できない。
+- 利用者用ClientのRefresh TokenからM2M scope、M2M用Client Credentialsから利用者scopeを取得できない。
 - 通常の利用者grant／Refresh Token／Client Credentialsから`points.admin.settlement.retry`を取得できない。
 - Settlement管理step-upはPointsのADMINとGoogle freshを再検証し、対象へ束縛された60秒assertionを一回だけ使用できる。
 - assertionのAuction／Settlement／reason／Markets Session差し替え、期限切れ、`jti`再利用を拒否する。
 - 1 Marketsユーザー対1 Points subject、1 Points subject対1 Marketsユーザーを強制する。
+- CONFIRM時のissuer、pairwise subject、利用者用Client IDをattemptへ照合し、connectionの対応M2M用Client IDを予約所有clientとしてstatus／capture／releaseまで一致させる。
+- cancel／TTLはapp-owned grantをlive拒否し、raw token保持時だけRFC 7009でbest-effort revokeし、未知tokenは自然失効させる。
 - 有効予約中のunlink・relinkを拒否する。
 - unlink後に新規reserveを拒否し、既存予約のcapture／release／statusは許可する。
 - Access／Refresh Tokenがブラウザへ出ず、Markets D1で暗号化される。
