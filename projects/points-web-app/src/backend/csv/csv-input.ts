@@ -163,12 +163,16 @@ export async function parseAndValidateCsv<Row extends Record<string, string>>(
   const fileHash = await sha256Hex(bytes);
   let text: string;
   try {
-    text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
   } catch {
     const invalid = await resultForError<Row>("CSV_INVALID_UTF8");
     return { ...invalid, fileHash };
   }
   if (text.startsWith("\uFEFF")) text = text.slice(1);
+  if (text.includes("\uFEFF")) {
+    const invalid = await resultForError<Row>("CSV_UNEXPECTED_BOM");
+    return { ...invalid, fileHash };
+  }
 
   let records: string[][];
   try {
@@ -191,7 +195,7 @@ export async function parseAndValidateCsv<Row extends Record<string, string>>(
     );
   }
 
-  const candidates = nonEmptyRecords.slice(0, schema.maxRows).map(({ record, rowNumber }) => {
+  const candidates = nonEmptyRecords.map(({ record, rowNumber }) => {
     const row = Object.fromEntries(
       schema.columns.map((column, columnIndex) => [column.name, record[columnIndex] ?? ""]),
     ) as Row;

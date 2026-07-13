@@ -55,6 +55,32 @@ describe("strict CSV input", () => {
     });
   });
 
+  it("validates every non-empty record after the row limit is exceeded", async () => {
+    const limitedSchema = defineCsvSchema({
+      ...schema,
+      maxRows: 1,
+    });
+    const input = bytes("id,amount,memo\na,1,ok\na,1e3,toolong");
+    const result = await parseAndValidateCsv(input, limitedSchema);
+
+    expect(result.errors).toEqual([
+      { code: "CSV_TOO_MANY_ROWS", column: null, row: 3 },
+      { code: "CSV_DUPLICATE_BUSINESS_KEY", column: "id", row: 2 },
+      { code: "AMOUNT_INVALID_FORMAT", column: "amount", row: 3 },
+      { code: "CSV_CELL_TOO_LONG", column: "memo", row: 3 },
+      { code: "CSV_DUPLICATE_BUSINESS_KEY", column: "id", row: 3 },
+    ]);
+
+    await expect(
+      revalidateCsvForCommit(input, limitedSchema, {
+        expectedFileHash: result.fileHash,
+        expectedValidationHash: result.validationHash,
+        assertAuthorized: () => undefined,
+        assertReferencesCurrent: () => undefined,
+      }),
+    ).rejects.toThrow("CSV_VALIDATION_FAILED");
+  });
+
   it("accepts exactly 5 MiB and rejects the next byte before parsing", async () => {
     const exact = new Uint8Array(CSV_MAX_BYTES);
     exact.set(bytes("id,amount,memo\n"));
@@ -70,6 +96,15 @@ describe("strict CSV input", () => {
     const input = new Uint8Array([...bytes("id,amount,memo\n"), 0xc3, 0x28]);
     const result = await parseAndValidateCsv(input, schema);
     expect(result.errors).toEqual([{ code: "CSV_INVALID_UTF8", column: null, row: 0 }]);
+  });
+
+  it.each([
+    ["two leading BOMs", "\uFEFF\uFEFFid,amount,memo\na,1,ok"],
+    ["a BOM inside the header", "id,\uFEFFamount,memo\na,1,ok"],
+    ["a BOM inside a data record", "id,amount,memo\na,1,\uFEFFok"],
+  ])("rejects %s", async (_label, input) => {
+    const result = await parseAndValidateCsv(bytes(input), schema);
+    expect(result.errors).toEqual([{ code: "CSV_UNEXPECTED_BOM", column: null, row: 0 }]);
   });
 
   it("rejects characters after a closing quote", async () => {
