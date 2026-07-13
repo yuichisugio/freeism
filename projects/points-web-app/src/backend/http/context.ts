@@ -2,6 +2,7 @@ import type { PointsOAuthPrincipal } from "../auth/resource-token-introspection"
 import type { PointsUser } from "../usecases/provision-points-user";
 
 export type Bindings = Omit<Env, "DB"> & {
+  CSV_EXPORT_CURSOR_SECRET: string;
   DB: D1Database;
   INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: string;
   MARKETS_M2M_OAUTH_CLIENT_ID: string;

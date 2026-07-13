@@ -47,16 +47,18 @@ export function encodeCsv(
   headers: readonly string[],
   rows: readonly (readonly CsvExportCell[])[],
 ): string {
-  const records = [headers.map(encodeField).join(",")];
-  for (const row of rows) {
-    if (row.length !== headers.length) throw new Error("CSV_EXPORT_COLUMN_COUNT_MISMATCH");
-    records.push(
-      row
-        .map((cell) =>
-          encodeField(cell.kind === "amount" ? encodeAmount(cell) : encodeText(cell.value)),
-        )
-        .join(","),
-    );
-  }
-  return `${records.join("\r\n")}\r\n`;
+  return `${encodeCsvHeader(headers)}${rows.map((row) => encodeCsvRow(headers, row)).join("")}`;
+}
+
+export function encodeCsvHeader(headers: readonly string[]): string {
+  return `${headers.map(encodeField).join(",")}\r\n`;
+}
+
+export function encodeCsvRow(headers: readonly string[], row: readonly CsvExportCell[]): string {
+  if (row.length !== headers.length) throw new Error("CSV_EXPORT_COLUMN_COUNT_MISMATCH");
+  return `${row
+    .map((cell) =>
+      encodeField(cell.kind === "amount" ? encodeAmount(cell) : encodeText(cell.value)),
+    )
+    .join(",")}\r\n`;
 }

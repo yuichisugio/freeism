@@ -127,6 +127,13 @@
       "when": 1783941897082,
       "tag": "0017_points-oauth-deactivation",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1783943993019,
+      "tag": "0018_csv-export-snapshots",
+      "breakpoints": true
     }
   ]
 }

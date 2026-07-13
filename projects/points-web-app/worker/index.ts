@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { pointsBackendApp } from "../src/backend/app";
+import { cleanupExpiredCsvExports } from "../src/backend/usecases/cleanup-expired-csv-exports";
 import { runDueWebRevalidations } from "../src/backend/usecases/run-due-web-revalidations";
 import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
@@ -53,7 +54,7 @@ export function fetchPointsApi(request: Request, env: Env) {
 
 export async function scheduledPoints(_controller: ScheduledController, env: Env) {
   if (env.DB === undefined) throw new Error("Points D1 binding DB is required");
-  await runDueWebRevalidations(env.DB);
+  await Promise.all([runDueWebRevalidations(env.DB), cleanupExpiredCsvExports(env.DB)]);
 }
 
 export default {
