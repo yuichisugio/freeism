@@ -6,6 +6,6 @@ export default defineConfig({
   plugins: [fixedPagesPlugin()],
   test: {
     environment: "happy-dom",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "test/contract/**/*.test.ts"],
   },
 });
