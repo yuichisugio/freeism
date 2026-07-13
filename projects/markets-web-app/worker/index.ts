@@ -4,6 +4,8 @@ import { marketsBackendApp } from "../src/backend/app";
 import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
 
+export { AuctionRoom } from "../src/backend/auction/auction-room";
+
 const app = new Hono<{ Bindings: Env }>();
 
 app.use("/api/*", async (context, next) => {

@@ -16,13 +16,13 @@
     "APP_ORIGIN": "http://localhost:3001",
   },
   "secrets": {
-    "required": [
-      "BETTER_AUTH_SECRETS",
-      "GOOGLE_CLIENT_ID",
-      "GOOGLE_CLIENT_SECRET",
-    ],
+    "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
   },
   "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+  "durable_objects": {
+    "bindings": [{ "name": "AUCTION_ROOMS", "class_name": "AuctionRoom" }],
+  },
+  "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
   "observability": {
     "enabled": true,
     "logs": { "head_sampling_rate": 1 },
@@ -45,13 +45,13 @@
         "APP_ORIGIN": "https://staging.markets.freeism.app",
       },
       "secrets": {
-        "required": [
-          "BETTER_AUTH_SECRETS",
-          "GOOGLE_CLIENT_ID",
-          "GOOGLE_CLIENT_SECRET",
-        ],
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
       },
       "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "durable_objects": {
+        "bindings": [{ "name": "AUCTION_ROOMS", "class_name": "AuctionRoom" }],
+      },
+      "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
       "routes": [{ "pattern": "staging.markets.freeism.app", "custom_domain": true }],
       "observability": {
         "enabled": true,
@@ -69,13 +69,13 @@
         "APP_ORIGIN": "https://markets.freeism.app",
       },
       "secrets": {
-        "required": [
-          "BETTER_AUTH_SECRETS",
-          "GOOGLE_CLIENT_ID",
-          "GOOGLE_CLIENT_SECRET",
-        ],
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
       },
       "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "durable_objects": {
+        "bindings": [{ "name": "AUCTION_ROOMS", "class_name": "AuctionRoom" }],
+      },
+      "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
       "routes": [{ "pattern": "markets.freeism.app", "custom_domain": true }],
       "observability": {
         "enabled": true,

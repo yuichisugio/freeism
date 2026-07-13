@@ -3,6 +3,7 @@
 // Runtime types generated with workerd@1.20260706.1 2026-07-12 assets_navigation_has_no_effect,global_fetch_strictly_public,nodejs_compat
 interface __BaseEnv_Env {
 	DB: D1Database;
+	AUCTION_ROOMS: DurableObjectNamespace<import("./worker/index").AuctionRoom>;
 	ASSETS: Fetcher;
 	APP_ENV: "staging" | "production" | "local";
 	APP_HOST: "staging.markets.freeism.app" | "markets.freeism.app" | "localhost";
@@ -14,9 +15,11 @@ interface __BaseEnv_Env {
 declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./src/server");
+		durableNamespaces: "AuctionRoom";
 	}
 	interface StagingEnv {
 		DB: D1Database;
+		AUCTION_ROOMS: DurableObjectNamespace<import("./worker/index").AuctionRoom>;
 		ASSETS: Fetcher;
 		APP_ENV: "staging";
 		APP_HOST: "staging.markets.freeism.app";
@@ -27,6 +30,7 @@ declare namespace Cloudflare {
 	}
 	interface ProductionEnv {
 		DB: D1Database;
+		AUCTION_ROOMS: DurableObjectNamespace<import("./worker/index").AuctionRoom>;
 		ASSETS: Fetcher;
 		APP_ENV: "production";
 		APP_HOST: "markets.freeism.app";
