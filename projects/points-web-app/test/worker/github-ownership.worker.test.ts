@@ -161,6 +161,27 @@ async function seedGitHubUnclaimed(input: {
 }
 
 describe("GitHub permanent ownership", () => {
+  it("requires an idempotency key for GitHub deactivation and reactivation", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix, ["google", "github"]);
+    const accountId = `github-subject-${suffix}`;
+    await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
+    const app = appFor(user.authUserId);
+
+    for (const operation of ["deactivate", "reactivate"]) {
+      const response = await app.fetch(
+        new Request(`https://points.test/api/ownership/github/${operation}`, {
+          body: JSON.stringify({ accountId }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        }),
+        env,
+      );
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ code: "IDEMPOTENCY_KEY_REQUIRED" });
+    }
+  });
+
   it("creates immutable provider subjects idempotently and never merges by email", async () => {
     const suffix = crypto.randomUUID();
     const first = await createUser(`${suffix}-first`, ["google", "github"]);
@@ -289,7 +310,10 @@ describe("GitHub permanent ownership", () => {
     }).fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `deactivate-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -331,6 +355,69 @@ describe("GitHub permanent ownership", () => {
     });
   });
 
+  it("replays GitHub deactivation without revoking again and rejects key conflicts", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix, ["google", "github"]);
+    const accountId = `github-subject-${suffix}`;
+    await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
+    let revokeCount = 0;
+    let releaseRevoke!: () => void;
+    let markRevokeStarted!: () => void;
+    const revokeGate = new Promise<void>((resolve) => {
+      releaseRevoke = resolve;
+    });
+    const revokeStarted = new Promise<void>((resolve) => {
+      markRevokeStarted = resolve;
+    });
+    const app = appFor(user.authUserId, {
+      getGitHubAccessToken: async () => `plain-token-${suffix}`,
+      githubRevokeFetch: async () => {
+        revokeCount += 1;
+        markRevokeStarted();
+        await revokeGate;
+        return new Response(null, { status: 204 });
+      },
+    });
+    const idempotencyKey = `deactivate-replay-${suffix}`;
+    const request = () =>
+      new Request("https://points.test/api/ownership/github/deactivate", {
+        body: JSON.stringify({ accountId }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        method: "POST",
+      });
+
+    const firstPending = app.fetch(request(), env);
+    await revokeStarted;
+    const concurrent = await Promise.race([
+      app.fetch(request(), env),
+      new Promise<Response>((resolve) =>
+        setTimeout(() => resolve(new Response(null, { status: 599 })), 250),
+      ),
+    ]);
+    releaseRevoke();
+    expect(concurrent.status).toBe(409);
+    await expect(concurrent.json()).resolves.toMatchObject({ code: "IDEMPOTENCY_IN_PROGRESS" });
+    const first = await firstPending;
+    const firstBody = await first.text();
+    expect(first.status).toBe(200);
+
+    const replay = await app.fetch(request(), env);
+    expect(replay.status).toBe(first.status);
+    expect(await replay.text()).toBe(firstBody);
+    expect(revokeCount).toBe(1);
+
+    const conflict = await app.fetch(
+      new Request("https://points.test/api/ownership/github/deactivate", {
+        body: JSON.stringify({ accountId: `different-${suffix}` }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(conflict.status).toBe(409);
+    await expect(conflict.json()).resolves.toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
+  });
+
   it("does not change ownership or tokens when provider revoke fails", async () => {
     const suffix = crypto.randomUUID();
     const user = await createUser(suffix, ["google", "github"]);
@@ -342,7 +429,10 @@ describe("GitHub permanent ownership", () => {
     }).fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `deactivate-failure-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -363,6 +453,14 @@ describe("GitHub permanent ownership", () => {
         .bind(user.authUserId)
         .first(),
     ).toEqual({ accessToken: `github-encrypted-access-${suffix}` });
+    expect(
+      await env
+        .DB!.prepare(
+          "SELECT count(*) AS count FROM idempotency_results WHERE actor_points_user_id = ? AND operation = 'github-ownership-deactivate'",
+        )
+        .bind(user.pointsUser.id)
+        .first(),
+    ).toEqual({ count: 0 });
   });
 
   it("retries when account linking replaces the token during provider revoke", async () => {
@@ -400,7 +498,10 @@ describe("GitHub permanent ownership", () => {
     }).fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `deactivate-token-race-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -433,7 +534,10 @@ describe("GitHub permanent ownership", () => {
     }).fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `deactivate-token-error-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -474,7 +578,10 @@ describe("GitHub permanent ownership", () => {
     }).fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `deactivate-empty-token-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -553,7 +660,10 @@ describe("GitHub permanent ownership", () => {
     const reactivate = await app.fetch(
       new Request("https://points.test/api/ownership/github/reactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `reactivate-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -589,14 +699,58 @@ describe("GitHub permanent ownership", () => {
     await expect(claim.json()).resolves.toMatchObject({ data: { claimedCount: 2 } });
   });
 
+  it("replays GitHub reactivation without accessing the token again and rejects key conflicts", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix, ["google", "github"]);
+    const accountId = `github-subject-${suffix}`;
+    await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
+    await env
+      .DB!.prepare(
+        "UPDATE identity_ownership SET status = 'INACTIVE' WHERE normalized_identity_key = ?",
+      )
+      .bind(`github:${accountId}`)
+      .run();
+    let tokenAccessCount = 0;
+    const app = appFor(user.authUserId, {
+      getGitHubAccessToken: async () => {
+        tokenAccessCount += 1;
+        return `new-plain-token-${suffix}`;
+      },
+    });
+    const idempotencyKey = `reactivate-replay-${suffix}`;
+    const request = () =>
+      new Request("https://points.test/api/ownership/github/reactivate", {
+        body: JSON.stringify({ accountId }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        method: "POST",
+      });
+
+    const first = await app.fetch(request(), env);
+    const firstBody = await first.text();
+    expect(first.status).toBe(200);
+    const replay = await app.fetch(request(), env);
+    expect(replay.status).toBe(first.status);
+    expect(await replay.text()).toBe(firstBody);
+    expect(tokenAccessCount).toBe(1);
+
+    const conflict = await app.fetch(
+      new Request("https://points.test/api/ownership/github/reactivate", {
+        body: JSON.stringify({ accountId: `different-${suffix}` }),
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(conflict.status).toBe(409);
+    await expect(conflict.json()).resolves.toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
+  });
+
   it("keeps inactive GitHub FIXes unclaimed until explicit reactivation confirmation", async () => {
     const suffix = crypto.randomUUID();
     const user = await createUser(suffix, ["google", "github"]);
     const accountId = String(Math.floor(Math.random() * 1_000_000) + 10_000);
     await env
-      .DB!.prepare(
-        "UPDATE account SET account_id = ? WHERE user_id = ? AND provider_id = 'github'",
-      )
+      .DB!.prepare("UPDATE account SET account_id = ? WHERE user_id = ? AND provider_id = 'github'")
       .bind(accountId, user.authUserId)
       .run();
     await reconcilePermanentOAuthSubjects(env.DB!, user.authUserId, user.pointsUser.id);
@@ -641,7 +795,10 @@ describe("GitHub permanent ownership", () => {
     const deactivate = await app.fetch(
       new Request("https://points.test/api/ownership/github/deactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `inactive-deactivate-${suffix}`,
+        },
         method: "POST",
       }),
       env,
@@ -691,7 +848,10 @@ describe("GitHub permanent ownership", () => {
     const reactivate = await app.fetch(
       new Request("https://points.test/api/ownership/github/reactivate", {
         body: JSON.stringify({ accountId }),
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `inactive-reactivate-${suffix}`,
+        },
         method: "POST",
       }),
       env,

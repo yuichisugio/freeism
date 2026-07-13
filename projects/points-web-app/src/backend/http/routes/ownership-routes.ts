@@ -64,6 +64,76 @@ async function readGitHubAccountId(context: Context<BackendContext>): Promise<st
   return (body as { accountId: string }).accountId;
 }
 
+async function runGitHubOwnershipIdempotently<T>(
+  context: Context<BackendContext>,
+  operation: "github-ownership-deactivate" | "github-ownership-reactivate",
+  accountId: string,
+  execute: (requestId: string) => Promise<T>,
+): Promise<Response> {
+  const pointsUserId = context.get("pointsUser").id;
+  const idempotencyKey = context.req.header("Idempotency-Key")!;
+  const payloadHash = await hashCanonicalPayload({ accountId });
+  const db = requireBindings(context.env).DB;
+  let ownsReservation = false;
+  try {
+    const reservation = await db
+      .prepare(
+        `INSERT OR IGNORE INTO idempotency_results
+           (id, actor_points_user_id, operation, idempotency_key, payload_hash,
+            status, response_body)
+         VALUES (?, ?, ?, ?, ?, 102, '{"pending":true}')`,
+      )
+      .bind(`idemr_${crypto.randomUUID()}`, pointsUserId, operation, idempotencyKey, payloadHash)
+      .run();
+    ownsReservation = (reservation.meta.changes ?? 0) === 1;
+    if (!ownsReservation) {
+      const replay = await db
+        .prepare(
+          `SELECT payload_hash AS payloadHash, status, response_body AS responseBody
+             FROM idempotency_results
+            WHERE actor_points_user_id = ? AND operation = ? AND idempotency_key = ?`,
+        )
+        .bind(pointsUserId, operation, idempotencyKey)
+        .first<{ payloadHash: string; status: number; responseBody: string | object }>();
+      if (!replay || replay.payloadHash !== payloadHash) {
+        return problem(context, 409, "IDEMPOTENCY_KEY_REUSED", "Idempotency key reused");
+      }
+      if (replay.status === 102) {
+        return problem(context, 409, "IDEMPOTENCY_IN_PROGRESS", "Operation in progress");
+      }
+      const responseBody =
+        typeof replay.responseBody === "string"
+          ? (JSON.parse(replay.responseBody) as object)
+          : replay.responseBody;
+      return context.json(responseBody, replay.status as 200);
+    }
+
+    const requestId = `req_${crypto.randomUUID()}`;
+    const responseBody = { data: await execute(requestId), meta: { requestId } };
+    await db
+      .prepare(
+        `UPDATE idempotency_results SET status = 200, response_body = ?
+          WHERE actor_points_user_id = ? AND operation = ? AND idempotency_key = ?
+            AND payload_hash = ? AND status = 102`,
+      )
+      .bind(JSON.stringify(responseBody), pointsUserId, operation, idempotencyKey, payloadHash)
+      .run();
+    return context.json(responseBody);
+  } catch (error) {
+    if (ownsReservation) {
+      await db
+        .prepare(
+          `DELETE FROM idempotency_results
+            WHERE actor_points_user_id = ? AND operation = ? AND idempotency_key = ?
+              AND payload_hash = ? AND status = 102`,
+        )
+        .bind(pointsUserId, operation, idempotencyKey, payloadHash)
+        .run();
+    }
+    throw error;
+  }
+}
+
 export function registerOwnershipRoutes(
   app: Hono<BackendContext>,
   getSession: GetSession,
@@ -170,43 +240,65 @@ export function registerOwnershipRoutes(
       }
     },
   );
-  app.post("/api/ownership/github/deactivate", session, googleFreshMiddleware, async (context) => {
-    const accountId = await readGitHubAccountId(context);
-    if (!accountId) {
-      return problem(context, 422, "GITHUB_OWNERSHIP_BODY_INVALID", "accountId is required");
-    }
-    try {
-      const result = await deactivateGitHubOwnership(requireBindings(context.env), {
-        accountId,
-        authUserId: context.get("authSession").user.id,
-        getAccessToken: dependencies.getGitHubAccessToken,
-        githubFetch: dependencies.githubRevokeFetch,
-        pointsUserId: context.get("pointsUser").id,
-        requestId: `req_${crypto.randomUUID()}`,
-      });
-      return context.json({ data: result, meta: { requestId: `req_${crypto.randomUUID()}` } });
-    } catch (error) {
-      return mapGitHubOwnershipError(context, error);
-    }
-  });
-  app.post("/api/ownership/github/reactivate", session, googleFreshMiddleware, async (context) => {
-    const accountId = await readGitHubAccountId(context);
-    if (!accountId) {
-      return problem(context, 422, "GITHUB_OWNERSHIP_BODY_INVALID", "accountId is required");
-    }
-    try {
-      const result = await reactivateGitHubOwnership(requireBindings(context.env), {
-        accountId,
-        authUserId: context.get("authSession").user.id,
-        getAccessToken: dependencies.getGitHubAccessToken,
-        pointsUserId: context.get("pointsUser").id,
-        requestId: `req_${crypto.randomUUID()}`,
-      });
-      return context.json({ data: result, meta: { requestId: `req_${crypto.randomUUID()}` } });
-    } catch (error) {
-      return mapGitHubOwnershipError(context, error);
-    }
-  });
+  app.post(
+    "/api/ownership/github/deactivate",
+    session,
+    googleFreshMiddleware,
+    idempotencyKeyMiddleware,
+    async (context) => {
+      const accountId = await readGitHubAccountId(context);
+      if (!accountId) {
+        return problem(context, 422, "GITHUB_OWNERSHIP_BODY_INVALID", "accountId is required");
+      }
+      try {
+        return await runGitHubOwnershipIdempotently(
+          context,
+          "github-ownership-deactivate",
+          accountId,
+          (requestId) =>
+            deactivateGitHubOwnership(requireBindings(context.env), {
+              accountId,
+              authUserId: context.get("authSession").user.id,
+              getAccessToken: dependencies.getGitHubAccessToken,
+              githubFetch: dependencies.githubRevokeFetch,
+              pointsUserId: context.get("pointsUser").id,
+              requestId,
+            }),
+        );
+      } catch (error) {
+        return mapGitHubOwnershipError(context, error);
+      }
+    },
+  );
+  app.post(
+    "/api/ownership/github/reactivate",
+    session,
+    googleFreshMiddleware,
+    idempotencyKeyMiddleware,
+    async (context) => {
+      const accountId = await readGitHubAccountId(context);
+      if (!accountId) {
+        return problem(context, 422, "GITHUB_OWNERSHIP_BODY_INVALID", "accountId is required");
+      }
+      try {
+        return await runGitHubOwnershipIdempotently(
+          context,
+          "github-ownership-reactivate",
+          accountId,
+          (requestId) =>
+            reactivateGitHubOwnership(requireBindings(context.env), {
+              accountId,
+              authUserId: context.get("authSession").user.id,
+              getAccessToken: dependencies.getGitHubAccessToken,
+              pointsUserId: context.get("pointsUser").id,
+              requestId,
+            }),
+        );
+      } catch (error) {
+        return mapGitHubOwnershipError(context, error);
+      }
+    },
+  );
   app.get("/api/ownership/:identityOwnershipId/claim-preview", session, async (context) => {
     try {
       const preview = await previewUnclaimedFixes(
