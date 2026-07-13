@@ -208,7 +208,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - Auction終了時、またはAuctionRoomが要求全数量をlockして`BUY_NOW` plan／outboxを確定した時は、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
-- Marketsは`pointPackageRevisionId`、`priceTicks`、`quantity`をPointsへ渡し、Pointsが自身の不変package revisionから評価軸vectorを再計算する。
+- Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
 - Points予約は15分。標準remote introspectionでpairwise subjectを検証した利用者用Clientのopaque delegation Access Tokenで予約し、capture/releaseは別のM2M用Clientが発行したopaque Client Credentials Tokenで行う。
 - ACTIVE connectionは利用者用Client IDと対応M2M用Client IDを保持する。利用者Tokenで予約を作る時は対応M2M用Client IDを既存reservation所有clientへ保存し、status／capture／releaseはそのM2M `client_id`だけを許可する。
 - 1 winnerの全評価軸予約は1回のPoints D1原子処理とし、部分予約を許可しない。

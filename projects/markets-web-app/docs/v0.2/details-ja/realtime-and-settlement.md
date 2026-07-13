@@ -135,7 +135,7 @@ Cloudflare Workflowsの暗黙defaultへ依存せず、Workflow round／外部作
 - Service Bindingを信頼境界の代わりにせず、OAuth bearer token、issuer、audience/resource、client ID、scope、利用者Tokenのpairwise `sub`を検証する。
 - opaque user token: 標準introspectionで`active`、issuer、pairwise subject、audience/resource、client、scopeを検証したbalance read、reservation create。
 - opaque Client Credentials Token: 利用者`sub`が存在せずM2M scopeだけであることを標準introspectionで検証したreservation status、capture、release。利用者scopeと混在させず、利用者subjectとして扱わない。
-- Marketsはcomponent額を正本にせず、`pointPackageRevisionId`、`priceTicks`、`quantity`を送り、Pointsが不変revisionからvectorを再計算する。
+- Marketsはcomponent額を正本にせず、内部の`priceTickCount * packageTick`を安全整数のscale済み`priceTicks`へ変換して`pointPackageRevisionId`、`quantity`とともに送り、Pointsが不変revisionからvectorを再計算する。
 - すべてのwinner/axisは同じPoints D1で1回にcaptureする。
 
 ## 7. 失敗処理

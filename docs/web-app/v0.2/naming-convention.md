@@ -34,7 +34,8 @@
 
 - 表示値文字列: `amount`またはdomain名付き`fixAmount`。
 - scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
-- package価格の整数tick: suffix `Ticks`。例: `priceTicks`、`buyNowPriceTicks`。
+- Markets内部で扱うpackage tickの個数: suffix `TickCount`。例: `priceTickCount`、`buyNowPriceTickCount`。
+- Points wireで扱うscale済みpackage価格は外部契約名`priceTicks`を維持する。
 - Package構成比: 正の整数`weight`と合計`totalWeight`。`ratioScaled`や`rateFloat`へ近似しない。
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
 - duration: unitをsuffixに含める。例: `leaseSeconds`、`freshAgeSeconds`。

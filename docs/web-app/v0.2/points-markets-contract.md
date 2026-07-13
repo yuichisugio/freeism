@@ -168,7 +168,7 @@ Points Resource APIとMarkets BFFは、Better Auth標準Resource Clientのconfid
 ## 6. 金額とvector
 
 - JSONの小数numberを金額contractに使わない。
-- package価格は安全整数の`priceTicks`、数量は安全整数の`quantity`で渡す。
+- Points wireのpackage価格はscale済み安全整数の`priceTicks`、数量は安全整数の`quantity`で渡す。Markets内部の`priceTickCount`は`packageTick`の個数であり、Points境界でだけ`priceTicks = priceTickCount * packageTick`へBigIntで変換し、安全整数を超える場合は呼び出さない。
 - Pointsは`pointPackageRevisionId`から自身のD1にある不変componentと`minimumUnit`を取得し、scale済みvectorを再計算する。
 - Marketsから送られた表示用component snapshotを経済計算の正本にしない。
 - すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。

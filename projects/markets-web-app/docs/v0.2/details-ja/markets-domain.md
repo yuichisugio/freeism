@@ -82,7 +82,7 @@ v0.2は画像を保存・表示しない。Auctionの商材詳細はtextと安�
 
 Package revisionは正規化済みの正の整数`weight`と`totalWeight`を持つ。Points componentへ展開した時、`packageTick * weight / totalWeight`がすべての評価軸の`minimumUnit`倍数になる最小の正の安全整数を`packageTick`としてGCD／LCMで決定する。`1:2`等の比率を固定scaleへ近似しない。
 
-Auctionのbid価格は`packageTick`の個数である安全整数`priceTicks`で表す。component amountは`priceTicks * quantity * packageTick * weight / totalWeight`で決定する。
+Auctionのbid価格は`packageTick`の個数である安全整数`priceTickCount`で表す。component amountは`priceTickCount * quantity * packageTick * weight / totalWeight`で決定する。Points API境界だけはscale済みpackage価格を表す既存wire field `priceTicks`へ`priceTickCount * packageTick`を渡し、BigInt中間値からJavaScript安全整数へ変換できない場合は拒否する。
 
 - Auction revision確定時にtickを計算し、`auctionRevision`へsnapshotする。
 - 計算途中と結果がJavaScript安全整数範囲を超えるpackageはAuctionに使用できない。

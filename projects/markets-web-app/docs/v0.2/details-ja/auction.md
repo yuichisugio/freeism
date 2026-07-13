@@ -93,13 +93,13 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
   "commandId": "cmd_01...",
   "expectedAuctionVersion": 42,
   "quantity": 2,
-  "priceTicks": 15,
-  "autoBidMaxTicks": 30
+  "priceTickCount": 15,
+  "autoBidMaxTickCount": 30
 }
 ```
 
-- manualだけなら`autoBidMaxTicks`を省略する。
-- AutoBidだけでも現在到達値として`priceTicks`をserverが決定できる。
+- manualだけなら`autoBidMaxTickCount`を省略する。
+- AutoBidだけでも現在到達値として`priceTickCount`をserverが決定できる。
 - 金額を小数JSON numberで送らず、package tick数を安全整数で送る。
 
 ### 成功
@@ -110,7 +110,7 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
     "commandId": "cmd_01...",
     "auctionVersion": 43,
     "bidSeq": 108,
-    "acceptedPriceTicks": 16,
+    "acceptedPriceTickCount": 16,
     "quantity": 2
   }
 }
