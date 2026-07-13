@@ -136,7 +136,7 @@ export async function executeAuctionCommand(
   if (!(await repository.hasActivePointsConnection(input.actor.marketsUserId))) {
     throw new AuctionCommandError("POINTS_LINK_REQUIRED");
   }
-  if (input.command.kind === "PLACE_BID" && input.command.quantity > aggregate.quantity) {
+  if (input.command.kind === "PLACE_BID" && input.command.quantity > aggregate.availableQuantity) {
     throw new AuctionCommandError("INVALID_QUANTITY");
   }
 
@@ -196,7 +196,13 @@ export async function executeAuctionCommand(
     });
   } catch (error) {
     const code = error instanceof Error ? error.message : String(error);
-    if (code === "AUTO_BID_PRICE_DECREASED") throw new AuctionCommandError(code);
+    if (
+      code === "AUTO_BID_MAX_DECREASED" ||
+      code === "AUTO_BID_MAX_EXCEEDED" ||
+      code === "AUTO_BID_PRICE_DECREASED"
+    ) {
+      throw new AuctionCommandError(code);
+    }
     if (code.startsWith("INVALID_")) throw new AuctionCommandError("INVALID_PRICE_TICK");
     throw error;
   }

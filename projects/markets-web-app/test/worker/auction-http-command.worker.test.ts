@@ -276,6 +276,36 @@ describe("authenticated auction HTTP commands", () => {
     expect(await counts(seeded.auctionId)).toMatchObject({ commands: 1, events: 1, version: 2 });
   });
 
+  it("rejects replaying a PLACE_BID commandId through the BUY_NOW route", async () => {
+    const seeded = await seedAuction();
+    const app = appFor(seeded.buyerAuthUserId);
+    const body = {
+      commandId: `cmd_${crypto.randomUUID()}`,
+      expectedAuctionVersion: 1,
+      priceTickCount: 2,
+      quantity: 1,
+    };
+    expect((await app.fetch(commandRequest(seeded, "bids", body), env)).status).toBe(200);
+    expect(
+      (
+        await app.fetch(
+          commandRequest(seeded, "buy-now", body, {
+            idempotencyKey: `idem_${crypto.randomUUID()}`,
+          }),
+          env,
+        )
+      ).status,
+    ).toBe(409);
+    expect(await counts(seeded.auctionId)).toMatchObject({
+      commands: 1,
+      events: 1,
+      holds: 0,
+      outbox: 0,
+      plans: 0,
+      version: 2,
+    });
+  });
+
   it("rejects invalid quantity, invalid tick, price decrease, and commands after endAt", async () => {
     const seeded = await seedAuction();
     const app = appFor(seeded.buyerAuthUserId);
@@ -338,6 +368,60 @@ describe("authenticated auction HTTP commands", () => {
         })
       ).status,
     ).toBe(409);
+  });
+
+  it("maps an AutoBid maximum below the requested price to 422", async () => {
+    const seeded = await seedAuction();
+    const response = await appFor(seeded.buyerAuthUserId).fetch(
+      commandRequest(seeded, "bids", {
+        autoBidMaxTickCount: 1,
+        commandId: `cmd_${crypto.randomUUID()}`,
+        expectedAuctionVersion: 1,
+        priceTickCount: 2,
+        quantity: 1,
+      }),
+      env,
+    );
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ code: "AUTO_BID_MAX_EXCEEDED" });
+    expect(await counts(seeded.auctionId)).toMatchObject({
+      commands: 0,
+      events: 0,
+      positions: 0,
+      version: 1,
+    });
+  });
+
+  it("maps lowering an existing AutoBid maximum to 422", async () => {
+    const seeded = await seedAuction();
+    const app = appFor(seeded.buyerAuthUserId);
+    expect(
+      (
+        await app.fetch(
+          commandRequest(seeded, "bids", {
+            autoBidMaxTickCount: 6,
+            commandId: `cmd_${crypto.randomUUID()}`,
+            expectedAuctionVersion: 1,
+            priceTickCount: 2,
+            quantity: 1,
+          }),
+          env,
+        )
+      ).status,
+    ).toBe(200);
+    const response = await app.fetch(
+      commandRequest(seeded, "bids", {
+        autoBidMaxTickCount: 5,
+        commandId: `cmd_${crypto.randomUUID()}`,
+        expectedAuctionVersion: 2,
+        priceTickCount: 3,
+        quantity: 1,
+      }),
+      env,
+    );
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ code: "AUTO_BID_MAX_DECREASED" });
+    expect(await counts(seeded.auctionId)).toMatchObject({ commands: 1, events: 1, version: 2 });
   });
 
   it("keeps seller and Points guards when the HTTP preflight is bypassed", async () => {
@@ -494,5 +578,44 @@ describe("authenticated auction HTTP commands", () => {
     );
     expect(unavailable.status).toBe(409);
     expect(await counts(seeded.auctionId)).toMatchObject({ holds: 1, outbox: 1, plans: 1 });
+  });
+
+  it("rejects PLACE_BID and AutoBid quantities unavailable behind active BUY_NOW holds", async () => {
+    for (const [heldQuantity, bidQuantity] of [
+      [2, 1],
+      [1, 2],
+    ] as const) {
+      const seeded = await seedAuction({ quantity: 2 });
+      const app = appFor(seeded.buyerAuthUserId);
+      const buyNow = await app.fetch(
+        commandRequest(seeded, "buy-now", {
+          commandId: `cmd_${crypto.randomUUID()}`,
+          expectedAuctionVersion: 1,
+          quantity: heldQuantity,
+        }),
+        env,
+      );
+      expect(buyNow.status).toBe(202);
+
+      const bid = await app.fetch(
+        commandRequest(seeded, "bids", {
+          autoBidMaxTickCount: 6,
+          commandId: `cmd_${crypto.randomUUID()}`,
+          expectedAuctionVersion: 2,
+          priceTickCount: 2,
+          quantity: bidQuantity,
+        }),
+        env,
+      );
+      expect(bid.status).toBe(422);
+      expect(await bid.json()).toMatchObject({ code: "INVALID_QUANTITY" });
+      expect(await counts(seeded.auctionId)).toMatchObject({
+        commands: 1,
+        events: 0,
+        holds: 1,
+        positions: 0,
+        version: 2,
+      });
+    }
   });
 });

@@ -38,6 +38,7 @@ type ReplayLookup =
 
 interface ReplayRow {
   actorMarketsUserId?: string;
+  operation?: string;
   payloadHash: string;
   responseBody: string | null;
   state?: string;
@@ -76,7 +77,7 @@ export class D1AuctionCommandRepository {
     const command = await this.db
       .prepare(
         `SELECT actor_markets_user_id AS actorMarketsUserId, payload_hash AS payloadHash,
-                response_body AS responseBody
+                operation, response_body AS responseBody
          FROM auction_commands WHERE auction_id = ? AND command_id = ?`,
       )
       .bind(auctionId, commandId)
@@ -84,6 +85,7 @@ export class D1AuctionCommandRepository {
     if (!command) return { kind: "MISS" };
     if (
       command.actorMarketsUserId !== actorMarketsUserId ||
+      command.operation !== operationName ||
       command.payloadHash !== payloadHash ||
       !command.responseBody
     ) {
