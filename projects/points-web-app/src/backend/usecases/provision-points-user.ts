@@ -1,4 +1,5 @@
 export interface PointsUser {
+  accountStatus: "ACTIVE" | "CLOSED";
   id: string;
   authUserId: string;
 }
@@ -14,7 +15,9 @@ export async function provisionPointsUser(
     .run();
 
   const user = await db
-    .prepare("SELECT id, auth_user_id AS authUserId FROM points_user WHERE auth_user_id = ?")
+    .prepare(
+      "SELECT id, auth_user_id AS authUserId, account_status AS accountStatus FROM points_user WHERE auth_user_id = ?",
+    )
     .bind(authUserId)
     .first<PointsUser>();
   if (!user) {

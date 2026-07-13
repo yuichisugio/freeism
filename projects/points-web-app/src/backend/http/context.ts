@@ -19,6 +19,7 @@ export type Bindings = Omit<Env, "DB"> & {
 export interface AuthenticatedSession {
   session: {
     createdAt: Date;
+    id?: string;
     userId: string;
   };
   user: {

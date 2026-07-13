@@ -186,7 +186,7 @@ const baseFreshOperationPolicies = [
   },
   {
     operation: "reconciliation",
-    route: "/api/admin/reconciliation",
+    route: "/api/reconciliation/run",
     admin: true,
     reason: true,
     idempotency: true,

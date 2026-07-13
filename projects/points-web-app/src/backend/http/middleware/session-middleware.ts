@@ -16,6 +16,12 @@ export function createSessionMiddleware(getSession: GetSession) {
     }
 
     const pointsUser = await provisionPointsUser(env.DB, authSession.session.userId);
+    const isReopenRoute =
+      (context.req.method === "GET" && context.req.path === "/api/account/reopen-preview") ||
+      (context.req.method === "POST" && context.req.path === "/api/account/reopen");
+    if (pointsUser.accountStatus === "CLOSED" && !isReopenRoute) {
+      return problem(context, 403, "ACCOUNT_CLOSED", "Account is closed");
+    }
     context.set("authSession", authSession);
     context.set("pointsUser", pointsUser);
     await next();
