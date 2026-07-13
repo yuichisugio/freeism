@@ -4,5 +4,6 @@ export * from "./audit";
 export * from "./evaluation";
 export * from "./fix-ledger";
 export * from "./idempotency";
+export * from "./ownership";
 export * from "./points-user";
 export * from "./profile";

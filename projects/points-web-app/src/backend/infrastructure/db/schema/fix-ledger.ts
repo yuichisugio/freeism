@@ -163,14 +163,19 @@ export const pointLedgerEntries = sqliteTable(
     sourceFixRevisionId: text("source_fix_revision_id")
       .notNull()
       .references(() => fixRevisions.id, { onDelete: "restrict" }),
+    sourceUnclaimedFixEntryId: text("source_unclaimed_fix_entry_id").references(
+      () => unclaimedFixEntries.id,
+      { onDelete: "restrict" },
+    ),
     createdAt: timestamp("created_at"),
   },
   (table) => [
-    uniqueIndex("point_ledger_entry_fix_subject_criterion_uidx").on(
-      table.sourceFixRevisionId,
-      table.pointsUserId,
-      table.evaluationCriterionId,
-    ),
+    uniqueIndex("point_ledger_entry_direct_fix_subject_criterion_uidx")
+      .on(table.sourceFixRevisionId, table.pointsUserId, table.evaluationCriterionId)
+      .where(sql`${table.sourceUnclaimedFixEntryId} is null`),
+    uniqueIndex("point_ledger_entry_unclaimed_uidx")
+      .on(table.sourceUnclaimedFixEntryId)
+      .where(sql`${table.sourceUnclaimedFixEntryId} is not null`),
     index("point_ledger_entry_account_idx").on(table.pointsUserId, table.evaluationCriterionId),
     check(
       "point_ledger_entry_delta_check",

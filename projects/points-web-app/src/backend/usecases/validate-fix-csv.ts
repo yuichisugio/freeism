@@ -2,6 +2,7 @@ import { parseAndValidateCsv } from "../csv/csv-input";
 import { defineCsvSchema, textColumn } from "../csv/csv-schema";
 import { canonicalJson, sha256Hex, type CsvValidationError } from "../csv/csv-validation-result";
 import { scaledAmountCodec } from "../domain/money/scaled-amount";
+import { normalizeIdentityUrl } from "../domain/ownership/normalize-identity-url";
 import {
   normalizeGitHubProfileUrl,
   resolveGitHubProfileRecipients,
@@ -100,6 +101,43 @@ async function findRegisteredRecipients(
   return new Map(rows.results.map((row) => [row.accountId, row.pointsUserId]));
 }
 
+async function findWebOwnershipRecipients(
+  db: D1Database,
+  rows: ReadonlyArray<{ evaluationAt: string; normalizedRecipientProfileUrl: string }>,
+): Promise<Map<string, string>> {
+  if (rows.length === 0) return new Map();
+  const inputs = rows.map((row) => ({
+    evaluationAt: row.evaluationAt,
+    key: `${row.normalizedRecipientProfileUrl}\u0000${row.evaluationAt}`,
+    normalizedUrl: row.normalizedRecipientProfileUrl,
+  }));
+  const result = await db
+    .prepare(
+      `SELECT json_extract(input.value, '$.key') AS lookupKey,
+              epoch.owner_points_user_id AS pointsUserId
+       FROM json_each(?) input
+       JOIN identity_ownership ownership
+         ON ownership.identity_type = 'WEB_URL'
+        AND ownership.normalized_identity_key = json_extract(input.value, '$.normalizedUrl')
+       JOIN ownership_epoch epoch ON epoch.identity_ownership_id = ownership.id
+       WHERE (epoch.ended_at IS NOT NULL OR ownership.status = 'ACTIVE')
+         AND (CASE length(json_extract(input.value, '$.evaluationAt'))
+           WHEN 7 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || '-01T00:00:00Z') * 1000
+           WHEN 10 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || 'T00:00:00Z') * 1000
+           ELSE unixepoch(json_extract(input.value, '$.evaluationAt')) * 1000
+         END) >= epoch.effective_at
+         AND (epoch.ended_at IS NULL OR (CASE length(json_extract(input.value, '$.evaluationAt'))
+           WHEN 7 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || '-01T00:00:00Z') * 1000
+           WHEN 10 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || 'T00:00:00Z') * 1000
+           ELSE unixepoch(json_extract(input.value, '$.evaluationAt')) * 1000
+         END) < epoch.ended_at
+       ORDER BY lookupKey, epoch.effective_at`,
+    )
+    .bind(canonicalJson(inputs))
+    .all<{ lookupKey: string; pointsUserId: string }>();
+  return new Map(result.results.map((row) => [row.lookupKey, row.pointsUserId]));
+}
+
 async function findFixHeads(db: D1Database, ids: readonly string[]) {
   if (ids.length === 0) return new Map<string, number>();
   const rows = await db
@@ -125,44 +163,12 @@ function validEvaluationAt(value: string): boolean {
   return Number.isFinite(Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value));
 }
 
-const RESERVED_HOST_SUFFIXES = [
-  ".localhost",
-  ".local",
-  ".internal",
-  ".home",
-  ".lan",
-  ".test",
-  ".invalid",
-  ".example",
-] as const;
-
 export function normalizeGenericWebProfileUrl(value: string): string {
-  let url: URL;
   try {
-    url = new URL(value);
+    return normalizeIdentityUrl(value);
   } catch {
     throw new Error("RECIPIENT_PROFILE_URL_INVALID");
   }
-  const hostname = url.hostname.toLowerCase();
-  const hasTerminalDot = hostname.endsWith(".");
-  const isIpLiteral = hostname.startsWith("[") || /^[0-9.]+$/.test(hostname);
-  const isReserved =
-    hostname === "localhost" ||
-    !hostname.includes(".") ||
-    RESERVED_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
-  if (
-    url.protocol !== "https:" ||
-    url.port !== "" ||
-    url.username !== "" ||
-    url.password !== "" ||
-    hasTerminalDot ||
-    isIpLiteral ||
-    isReserved
-  ) {
-    throw new Error("RECIPIENT_PROFILE_URL_INVALID");
-  }
-  url.hash = "";
-  return url.toString();
 }
 
 function normalizeRecipientProfileUrl(value: string): { normalized: string; github: boolean } {
@@ -259,7 +265,7 @@ export async function validateFixCsv(
     db,
     [...resolved.values()].map((value) => value.accountId),
   );
-  const rows = parsed.rows.map((row) => {
+  const provisionalRows = parsed.rows.map((row) => {
     const normalizedRecipientProfileUrl = normalizedUrls.get(row.recipientProfileUrl)!;
     const recipient = resolved.get(normalizedRecipientProfileUrl);
     const criterion = criteria.get(row.evaluationCriterionId)!;
@@ -274,6 +280,17 @@ export async function validateFixCsv(
       recipientProviderId: recipient ? ("github" as const) : null,
     };
   });
+  const webRecipients = await findWebOwnershipRecipients(
+    db,
+    provisionalRows.filter((row) => row.recipientProviderId === null),
+  );
+  const rows = provisionalRows.map((row) => ({
+    ...row,
+    recipientPointsUserId:
+      row.recipientPointsUserId ??
+      webRecipients.get(`${row.normalizedRecipientProfileUrl}\u0000${row.evaluationAt}`) ??
+      null,
+  }));
   const correctionKeys = rows.map((row) =>
     row.fixResultId === ""
       ? null

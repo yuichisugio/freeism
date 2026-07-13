@@ -6,6 +6,7 @@ import { registerAdminRoutes } from "./http/routes/admin-routes";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
 import { registerEvaluationRoutes } from "./http/routes/evaluation-routes";
 import { registerFixRoutes } from "./http/routes/fix-routes";
+import { registerOwnershipRoutes } from "./http/routes/ownership-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
 
@@ -26,6 +27,7 @@ export function createPointsBackendApp(
   registerEvaluationRoutes(app);
   registerAdminRoutes(app, dependencies.getSession);
   registerFixRoutes(app, dependencies.getSession, { githubFetch: dependencies.githubFetch });
+  registerOwnershipRoutes(app, dependencies.getSession);
   registerProfileRoutes(app, dependencies.getSession);
   return app;
 }
