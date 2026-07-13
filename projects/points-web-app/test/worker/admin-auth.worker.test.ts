@@ -59,7 +59,11 @@ describe("Points user and global ADMIN", () => {
     const app = createPointsBackendApp({ getSession: async () => null });
 
     const response = await app.fetch(
-      new Request("https://points.test/api/admin/admin-memberships"),
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: "pusr_target", reason: "unauthenticated" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
       env,
     );
 
@@ -128,7 +132,15 @@ describe("Points user and global ADMIN", () => {
     const app = authenticatedApp("owner");
     const request = () => new Request("https://points.test/api/admin/admin-memberships");
 
-    expect((await app.fetch(request(), env)).status).toBe(403);
+    const forbidden = await app.fetch(
+      new Request("https://points.test/api/admin/admin-memberships", {
+        body: JSON.stringify({ pointsUserId: "pusr_target", reason: "not an admin" }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(forbidden.status).toBe(403);
     const owner = await db
       .prepare(
         "SELECT id, auth_user_id AS authUserId FROM points_user WHERE auth_user_id = 'owner'",

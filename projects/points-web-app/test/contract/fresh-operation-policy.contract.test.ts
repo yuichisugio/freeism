@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { freshOperationPolicies } from "../../src/backend/auth/fresh-operation-policy";
-import { adminMembershipRoutePolicies } from "../../src/backend/http/routes/admin-routes";
+import {
+  freshOperationPolicies,
+  type FreshOperationPolicy,
+} from "../../src/backend/auth/fresh-operation-policy";
+import { adminMiddleware } from "../../src/backend/http/middleware/admin-middleware";
+import { googleFreshMiddleware } from "../../src/backend/http/middleware/google-fresh-middleware";
+import { createSessionMiddleware } from "../../src/backend/http/middleware/session-middleware";
+import {
+  adminMembershipRoutePolicies,
+  getAdminMembershipPolicyMiddlewares,
+} from "../../src/backend/http/routes/admin-routes";
 
 describe("fresh operation policy", () => {
   it("registers every v0.2 critical operation once", () => {
@@ -42,5 +51,23 @@ describe("fresh operation policy", () => {
     expect(adminMembershipRoutePolicies.delete.route).toBe(
       "/api/admin/admin-memberships/:pointsUserId",
     );
+
+    for (const policy of Object.values(adminMembershipRoutePolicies)) {
+      expect(policy).toMatchObject({ admin: true, fresh: true, reason: true, session: true });
+      const sessionMiddleware = createSessionMiddleware(async () => null);
+      expect(getAdminMembershipPolicyMiddlewares(policy, sessionMiddleware)).toEqual([
+        sessionMiddleware,
+        adminMiddleware,
+        googleFreshMiddleware,
+      ]);
+      for (const flag of ["session", "admin", "fresh", "reason"] as const) {
+        expect(() =>
+          getAdminMembershipPolicyMiddlewares(
+            { ...policy, [flag]: false } as unknown as FreshOperationPolicy,
+            sessionMiddleware,
+          ),
+        ).toThrow("ADMIN_MEMBERSHIP_POLICY_REQUIREMENTS_MISSING");
+      }
+    }
   });
 });
