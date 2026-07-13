@@ -54,15 +54,3 @@ export const webReownershipCandidates = sqliteTable("web_reownership_candidate",
   evidenceHash: text("evidence_hash").notNull(),
   updatedAt: timestamp("updated_at"),
 });
-
-export const opsAlerts = sqliteTable("ops_alert", {
-  alertKey: text("alert_key").primaryKey(),
-  type: text("type").notNull(),
-  resourceIdHash: text("resource_id_hash").notNull(),
-  status: text("status", { enum: ["OPEN", "RESOLVED"] }).notNull(),
-  firstObservedAt: integer("first_observed_at", { mode: "timestamp_ms" }).notNull(),
-  lastObservedAt: integer("last_observed_at", { mode: "timestamp_ms" }).notNull(),
-  resolvedAt: integer("resolved_at", { mode: "timestamp_ms" }),
-  repeatCount: integer("repeat_count").notNull(),
-  safeDetailCode: text("safe_detail_code").notNull(),
-});

@@ -13,6 +13,8 @@ import { verifyWebOwnership, WebOwnershipError } from "../../usecases/verify-web
 import type { BackendContext } from "../context";
 import { hashCanonicalPayload } from "../../domain/idempotency/idempotency-result";
 import { requireBindings } from "../context";
+import { consumePointsRateLimit } from "../../security/rate-limit";
+import { enforceAdaptiveTurnstile } from "../../security/turnstile";
 import { googleFreshMiddleware } from "../middleware/google-fresh-middleware";
 import { idempotencyKeyMiddleware } from "../middleware/idempotency-middleware";
 import { createSessionMiddleware, type GetSession } from "../middleware/session-middleware";
@@ -204,6 +206,77 @@ export function registerOwnershipRoutes(
               ? (JSON.parse(replay.responseBody) as object)
               : replay.responseBody;
           return context.json(responseBody, replay.status as 200);
+        }
+        const abandonReservation = async () => {
+          await db
+            .prepare(
+              `DELETE FROM idempotency_results
+               WHERE actor_points_user_id = ? AND operation = 'web-ownership-verify'
+                 AND idempotency_key = ? AND payload_hash = ? AND status = 102`,
+            )
+            .bind(pointsUserId, idempotencyKey, payloadHash)
+            .run();
+          ownsReservation = false;
+        };
+        const [identityLimit, userLimit] = await Promise.all([
+          consumePointsRateLimit({
+            db,
+            operation: "OWNERSHIP_IDENTITY_HOURLY",
+            subjectParts: [normalizedUrl],
+          }),
+          consumePointsRateLimit({
+            db,
+            operation: "OWNERSHIP_USER_DAILY",
+            subjectParts: [pointsUserId],
+          }),
+        ]);
+        const rejectedLimit = [identityLimit, userLimit].find((limit) => !limit.allowed);
+        if (rejectedLimit) {
+          await abandonReservation();
+          return context.json(
+            {
+              code: "RATE_LIMIT_EXCEEDED",
+              requestId,
+              status: 429,
+              title: "Too many ownership verification attempts",
+              type: "https://points.freeism.app/problems/rate-limit-exceeded",
+            },
+            429,
+            {
+              "Content-Type": "application/problem+json",
+              "Retry-After": String(rejectedLimit.retryAfterSeconds),
+            },
+          );
+        }
+        const turnstile = await enforceAdaptiveTurnstile({
+          db,
+          expectedHostname: context.env.APP_HOST,
+          operation: "OWNERSHIP_VERIFY",
+          remoteIp: context.req.header("CF-Connecting-IP"),
+          riskDetected: identityLimit.remaining <= 1 || userLimit.remaining <= 5,
+          secret: context.env.TURNSTILE_SECRET_KEY,
+          siteKey: context.env.TURNSTILE_SITE_KEY,
+          token: context.req.header("X-Turnstile-Token"),
+        });
+        if (turnstile.status === "REQUIRED") {
+          await abandonReservation();
+          return context.json(
+            {
+              action: turnstile.action,
+              code: "TURNSTILE_REQUIRED",
+              requestId,
+              siteKey: turnstile.siteKey,
+              status: 428,
+              title: "Turnstile verification required",
+              type: "https://points.freeism.app/problems/turnstile-required",
+            },
+            428,
+            { "Content-Type": "application/problem+json" },
+          );
+        }
+        if (turnstile.status === "REJECTED") {
+          await abandonReservation();
+          return problem(context, 403, turnstile.code, "Turnstile verification failed");
         }
         const result = await verifyWebOwnership(requireBindings(context.env), {
           fetchImpl: dependencies.webOwnershipFetch,

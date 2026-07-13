@@ -16,6 +16,15 @@
     "build:assert": "node ../../scripts/web-app/assert-worker-build.mjs .",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
+    "db:migrate:staging": "tsx scripts/migrate-d1.ts staging",
+    "db:migrate:production": "tsx scripts/migrate-d1.ts production",
+    "deploy:staging": "tsx scripts/deploy-generated.ts staging",
+    "deploy:production": "tsx scripts/deploy-generated.ts production",
+    "smoke:staging": "tsx scripts/smoke.ts staging",
+    "smoke:production": "tsx scripts/smoke.ts production",
+    "drill:ops-alert:staging": "tsx scripts/drill-ops-alert.ts staging",
+    "verify:empty-d1": "tsx scripts/verify-empty-d1.ts",
+    "verify:runtime-boundaries": "tsx scripts/verify-runtime-dependencies.ts",
     "types:worker": "wrangler types"
   },
   "dependencies": {

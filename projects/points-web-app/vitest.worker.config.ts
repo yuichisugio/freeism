@@ -24,6 +24,9 @@ export default defineConfig({
           MARKETS_SETTLEMENT_OAUTH_CLIENT_ID: "markets-settlement-client",
           MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET:
             "test-markets-settlement-secret-at-least-32-chars",
+          OPS_RESOURCE_HASH_SALT: "test-points-ops-salt",
+          TURNSTILE_SITE_KEY: "test-turnstile-site-key",
+          TURNSTILE_SECRET_KEY: "test-turnstile-secret-key",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
         },
         d1Databases: ["DB"],

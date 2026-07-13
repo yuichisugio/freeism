@@ -10,12 +10,14 @@
   ],
   "workers_dev": false,
   "preview_urls": false,
-  "triggers": { "crons": ["*/15 * * * *"] },
+  "triggers": { "crons": ["*/5 * * * *", "*/15 * * * *"] },
   "vars": {
     "APP_ENV": "local",
     "APP_HOST": "localhost",
     "APP_ORIGIN": "http://localhost:3000",
     "MARKETS_SETTLEMENT_RETRY_RESOURCE": "http://localhost:3001/api/settlements/retry",
+    "OPS_ALERT_FROM": "alerts@example.test",
+    "OPS_ALERT_TO": "ops@example.test",
   },
   "secrets": {
     "required": [
@@ -33,9 +35,14 @@
       "MARKETS_M2M_OAUTH_CLIENT_SECRET",
       "MARKETS_SETTLEMENT_OAUTH_CLIENT_ID",
       "MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET",
+      "OPS_RESOURCE_HASH_SALT",
+      "TURNSTILE_SITE_KEY",
+      "TURNSTILE_SECRET_KEY",
     ],
   },
   "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+  "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "points_ops_local" }],
+  "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@example.test" }],
   "observability": {
     "enabled": true,
     "logs": { "head_sampling_rate": 1 },
@@ -52,12 +59,14 @@
       "name": "points-worker-staging",
       "workers_dev": false,
       "preview_urls": false,
-      "triggers": { "crons": ["*/15 * * * *"] },
+      "triggers": { "crons": ["*/5 * * * *", "*/15 * * * *"] },
       "vars": {
         "APP_ENV": "staging",
         "APP_HOST": "staging.points.freeism.app",
         "APP_ORIGIN": "https://staging.points.freeism.app",
         "MARKETS_SETTLEMENT_RETRY_RESOURCE": "https://staging.markets.freeism.app/api/settlements/retry",
+        "OPS_ALERT_FROM": "alerts@freeism.app",
+        "OPS_ALERT_TO": "ops@freeism.app",
       },
       "secrets": {
         "required": [
@@ -75,8 +84,14 @@
           "MARKETS_M2M_OAUTH_CLIENT_SECRET",
           "MARKETS_SETTLEMENT_OAUTH_CLIENT_ID",
           "MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET",
+          "OPS_RESOURCE_HASH_SALT",
+          "TURNSTILE_SITE_KEY",
+          "TURNSTILE_SECRET_KEY",
         ],
       },
+      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "points_ops_staging" }],
+      "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@freeism.app" }],
       "routes": [{ "pattern": "staging.points.freeism.app", "custom_domain": true }],
       "observability": {
         "enabled": true,
@@ -88,12 +103,14 @@
       "name": "points-worker-production",
       "workers_dev": false,
       "preview_urls": false,
-      "triggers": { "crons": ["*/15 * * * *"] },
+      "triggers": { "crons": ["*/5 * * * *", "*/15 * * * *"] },
       "vars": {
         "APP_ENV": "production",
         "APP_HOST": "points.freeism.app",
         "APP_ORIGIN": "https://points.freeism.app",
         "MARKETS_SETTLEMENT_RETRY_RESOURCE": "https://markets.freeism.app/api/settlements/retry",
+        "OPS_ALERT_FROM": "alerts@freeism.app",
+        "OPS_ALERT_TO": "ops@freeism.app",
       },
       "secrets": {
         "required": [
@@ -111,8 +128,16 @@
           "MARKETS_M2M_OAUTH_CLIENT_SECRET",
           "MARKETS_SETTLEMENT_OAUTH_CLIENT_ID",
           "MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET",
+          "OPS_RESOURCE_HASH_SALT",
+          "TURNSTILE_SITE_KEY",
+          "TURNSTILE_SECRET_KEY",
         ],
       },
+      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "analytics_engine_datasets": [
+        { "binding": "OPS_METRICS", "dataset": "points_ops_production" },
+      ],
+      "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@freeism.app" }],
       "routes": [{ "pattern": "points.freeism.app", "custom_domain": true }],
       "observability": {
         "enabled": true,
