@@ -73,7 +73,7 @@ For remote work, select a workspace matching `environment`. The configuration re
 
 ```bash
 "${TERRAFORM_BIN}" -chdir=infra/cloudflare init -reconfigure
-"${TERRAFORM_BIN}" -chdir=infra/cloudflare workspace select staging
+"${TERRAFORM_BIN}" -chdir=infra/cloudflare workspace select -or-create staging
 "${TERRAFORM_BIN}" -chdir=infra/cloudflare plan -var-file=environments/staging.tfvars.example
 ```
 
