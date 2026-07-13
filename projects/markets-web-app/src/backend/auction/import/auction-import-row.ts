@@ -262,3 +262,42 @@ export function normalizeAuctionImportRows(
   }
   return { errors, rows: errors.length === 0 ? normalized.map((result) => result.row) : [] };
 }
+
+function stringField(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function integerField(value: unknown): string {
+  return typeof value === "number" && Number.isSafeInteger(value) ? String(value) : "invalid";
+}
+
+function optionalIntegerField(value: unknown): string {
+  return value === null ? "" : integerField(value);
+}
+
+/** Reuses the CSV field rules for JSON commit and PATCH payloads. */
+export function revalidateAuctionImportRows(inputs: readonly unknown[]): AuctionImportRowsResult {
+  return normalizeAuctionImportRows(
+    inputs.map((input, index) => {
+      const row = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
+      return {
+        row: index + 2,
+        values: {
+          clientRowId: stringField(row.clientRowId),
+          title: stringField(row.title),
+          description: stringField(row.description),
+          externalUrl: stringField(row.externalUrl),
+          pointPackageId: stringField(row.pointPackageId),
+          pointPackageRevisionId: stringField(row.pointPackageRevisionId),
+          quantity: integerField(row.quantity),
+          startsAt: stringField(row.startsAt),
+          endsAt: stringField(row.endsAt),
+          buyNowPriceTickCount: optionalIntegerField(row.buyNowPriceTickCount),
+          extensionThresholdSeconds: optionalIntegerField(row.extensionThresholdSeconds),
+          extensionDurationSeconds: optionalIntegerField(row.extensionDurationSeconds),
+          maxExtensions: optionalIntegerField(row.maxExtensions),
+        },
+      };
+    }),
+  );
+}

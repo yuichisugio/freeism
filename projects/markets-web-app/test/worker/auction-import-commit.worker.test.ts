@@ -208,4 +208,27 @@ describe("Auction import commit", () => {
       await env.DB!.prepare("SELECT COUNT(*) AS count FROM auctions").first<number>("count"),
     ).toBe(before);
   });
+
+  it.each([
+    ["empty title", { title: "" }],
+    ["http URL", { externalUrl: "http://example.test/item" }],
+    ["reversed dates", { endsAt: "2030-01-01T00:00:00.000Z" }],
+  ])("revalidates client preview fields: %s", async (_label, mutation) => {
+    const original = preview();
+    const candidate = { ...original, rows: [{ ...original.rows[0]!, ...mutation }] };
+    const checkEligibility = vi.fn(dependencies().checkEligibility);
+
+    await expect(
+      commitAuctionImport(
+        {
+          actor,
+          idempotencyKey: `invalid-${crypto.randomUUID()}`,
+          preview: candidate,
+          sellerIdentitySnapshot: actor,
+        },
+        dependencies({ checkEligibility }),
+      ),
+    ).rejects.toMatchObject({ code: "AUCTION_IMPORT_VALIDATION_FAILED" });
+    expect(checkEligibility).not.toHaveBeenCalled();
+  });
 });

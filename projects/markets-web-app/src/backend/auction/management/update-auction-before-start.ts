@@ -3,6 +3,7 @@ import type {
   AuctionImportPreviewRow,
   VerifiedPackageRevision,
 } from "../import/validate-auction-import";
+import { revalidateAuctionImportRows } from "../import/auction-import-row";
 import type { MarketsActor } from "../../http/context";
 import {
   assertEligibilityReceipt,
@@ -66,10 +67,15 @@ export async function updateAuctionBeforeStart(
   input: UpdateAuctionBeforeStartInput,
   dependencies: UpdateAuctionBeforeStartDependencies,
 ): Promise<StoredAuctionResult> {
+  const validation = revalidateAuctionImportRows([input.row]);
+  if (validation.errors.length > 0) {
+    throw new AuctionCommitError("AUCTION_IMPORT_VALIDATION_FAILED");
+  }
+  const row: AuctionImportPreviewRow = { ...input.row, ...validation.rows[0]! };
   const payloadHash = await auctionPayloadHash({
     auctionId: input.auctionId,
     expectedAuctionVersion: input.expectedAuctionVersion,
-    row: input.row,
+    row,
     sellerIdentitySnapshot: input.sellerIdentitySnapshot,
   });
   const replay = await dependencies.repository.lookupIdempotency<StoredAuctionResult>(
@@ -94,10 +100,13 @@ export async function updateAuctionBeforeStart(
     input,
     commitStartedAt,
   );
-  assertFreshPackage(input.row, await dependencies.refreshPackage(input.row));
+  if (Date.parse(row.startsAt) <= commitStartedAt.getTime()) {
+    throw new AuctionCommitError("AUCTION_STARTS_AT_NOT_FUTURE");
+  }
+  assertFreshPackage(row, await dependencies.refreshPackage(row));
   const commandId = `acmd_${crypto.randomUUID()}`;
-  const commandHash = `sha256:${await auctionPayloadHash({ commandId, row: input.row })}`;
-  const request = eligibilityRequest(commandId, commandHash, [input.row]);
+  const commandHash = `sha256:${await auctionPayloadHash({ commandId, row })}`;
+  const request = eligibilityRequest(commandId, commandHash, [row]);
   const receipt = assertEligibilityReceipt(
     request,
     await dependencies.checkEligibility(request, `${input.idempotencyKey}:eligibility`),
@@ -119,7 +128,7 @@ export async function updateAuctionBeforeStart(
   };
   const result = await dependencies.repository.updateBeforeStart(
     auction,
-    { auctionId: input.auctionId, revisionId, row: input.row },
+    { auctionId: input.auctionId, revisionId, row },
     context,
   );
   await dependencies.scheduleAuction(result.auctionId, result.revisionId, result.startsAt);

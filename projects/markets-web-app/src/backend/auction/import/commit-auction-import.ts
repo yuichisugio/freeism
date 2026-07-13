@@ -6,6 +6,7 @@ import {
   type ImportCommitResult,
   type WriteContext,
 } from "../../db/d1-auction-repository";
+import { revalidateAuctionImportRows } from "./auction-import-row";
 import type {
   AuctionImportPreview,
   AuctionImportPreviewRow,
@@ -155,8 +156,16 @@ export async function commitAuctionImport(
   if (input.preview.rows.length < 1 || input.preview.rows.length > 1_000) {
     throw new AuctionCommitError("AUCTION_IMPORT_ROW_COUNT_INVALID");
   }
+  const validation = revalidateAuctionImportRows(input.preview.rows);
+  if (validation.errors.length > 0) {
+    throw new AuctionCommitError("AUCTION_IMPORT_VALIDATION_FAILED");
+  }
+  const preview: AuctionImportPreview = {
+    ...input.preview,
+    rows: validation.rows.map((row, index) => ({ ...input.preview.rows[index]!, ...row })),
+  };
   const payloadHash = await auctionPayloadHash({
-    preview: input.preview,
+    preview,
     sellerIdentitySnapshot: input.sellerIdentitySnapshot,
   });
   const replay = await dependencies.repository.lookupIdempotency<ImportCommitResult>(
@@ -175,30 +184,31 @@ export async function commitAuctionImport(
     return replay.value;
   }
 
-  const fresh = await Promise.all(
-    input.preview.rows.map((row) => dependencies.refreshPackage(row)),
-  );
-  fresh.forEach((revision, index) => assertFreshPackage(input.preview.rows[index]!, revision));
+  const fresh = await Promise.all(preview.rows.map((row) => dependencies.refreshPackage(row)));
+  fresh.forEach((revision, index) => assertFreshPackage(preview.rows[index]!, revision));
   const commitStartedAt = dependencies.now();
+  if (preview.rows.some((row) => Date.parse(row.startsAt) <= commitStartedAt.getTime())) {
+    throw new AuctionCommitError("AUCTION_STARTS_AT_NOT_FUTURE");
+  }
   const request = eligibilityRequest(
-    input.preview.auctionCommandId,
-    input.preview.auctionCommandHash,
-    input.preview.rows,
+    preview.auctionCommandId,
+    preview.auctionCommandHash,
+    preview.rows,
   );
   const receipt = assertEligibilityReceipt(
     request,
     await dependencies.checkEligibility(request, `${input.idempotencyKey}:commit`),
     commitStartedAt,
   );
-  const rows = input.preview.rows.map((row) => ({
+  const rows = preview.rows.map((row) => ({
     auctionId: `auc_${crypto.randomUUID()}`,
     revisionId: `arev_${crypto.randomUUID()}`,
     row,
   }));
   const context: WriteContext = {
     actorMarketsUserId: input.actor.marketsUserId,
-    commandHash: input.preview.auctionCommandHash,
-    commandId: input.preview.auctionCommandId,
+    commandHash: preview.auctionCommandHash,
+    commandId: preview.auctionCommandId,
     commitStartedAt: commitStartedAt.toISOString(),
     environment: dependencies.environment ?? "test",
     idempotencyKey: input.idempotencyKey,

@@ -216,6 +216,81 @@ describe("Auction management", () => {
         { repository, now: () => new Date("2031-01-02T00:00:00.000Z") },
       ),
     ).rejects.toMatchObject({ code: "AUCTION_ALREADY_STARTED" });
+
+    const pastRow = {
+      ...base.row,
+      startsAt: "2030-12-31T23:59:59.000Z",
+      endsAt: "2031-01-01T01:00:00.000Z",
+    };
+    await expect(
+      updateAuctionBeforeStart(
+        {
+          ...base,
+          actor: owner,
+          idempotencyKey: `past-${crypto.randomUUID()}`,
+          row: pastRow,
+        },
+        {
+          ...dependencies,
+          refreshPackage: async () => pastRow.packageSnapshot,
+        },
+      ),
+    ).rejects.toMatchObject({ code: "AUCTION_STARTS_AT_NOT_FUTURE" });
+  });
+
+  it("does not persist success side effects for the loser of concurrent cancellation", async () => {
+    const seeded = await seedAuction("cancel-race");
+    let waiting = 0;
+    let release!: () => void;
+    const bothRead = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    class BarrierRepository extends D1AuctionRepository {
+      override async findForManagement(auctionId: string) {
+        const snapshot = await super.findForManagement(auctionId);
+        waiting += 1;
+        if (waiting === 2) release();
+        await bothRead;
+        return snapshot;
+      }
+    }
+    const repository = new BarrierRepository(env.DB!);
+    const keys = [`race-a-${crypto.randomUUID()}`, `race-b-${crypto.randomUUID()}`];
+
+    const results = await Promise.allSettled(
+      keys.map((idempotencyKey) =>
+        cancelAuction(
+          {
+            actor: owner,
+            auctionId: seeded.auctionId,
+            expectedAuctionVersion: 1,
+            idempotencyKey,
+          },
+          { repository, now: () => now },
+        ),
+      ),
+    );
+
+    expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    expect(
+      await env
+        .DB!.prepare(
+          `SELECT COUNT(*) AS count FROM idempotency_results
+           WHERE operation = 'auction-cancel-before-start' AND idempotency_key IN (?, ?)`,
+        )
+        .bind(...keys)
+        .first<number>("count"),
+    ).toBe(1);
+    expect(
+      await env
+        .DB!.prepare(
+          `SELECT COUNT(*) AS count FROM audit_events
+           WHERE target_id = ? AND event_code IN ('AUCTION_CANCELLED', 'AUCTION_ALARM_CANCEL_REQUESTED')`,
+        )
+        .bind(seeded.auctionId)
+        .first<number>("count"),
+    ).toBe(2);
   });
 
   it("cancels without deleting history and maps bid, auto-bid and buy-now guards to 409 errors", async () => {
@@ -263,9 +338,15 @@ describe("Auction management", () => {
       } else {
         await env
           .DB!.prepare(
-            "INSERT INTO buy_now_holds (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status) VALUES (?, ?, ?, 1, 2, 'PENDING')",
+            "INSERT INTO buy_now_holds (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status) VALUES (?, ?, ?, 1, 2, 'FAILED_RESTORED')",
           )
           .bind(`hold-${crypto.randomUUID()}`, seeded.auctionId, otherId)
+          .run();
+        await env
+          .DB!.prepare(
+            "UPDATE buy_now_holds SET status = 'PENDING' WHERE auction_id = ? AND buyer_markets_user_id = ?",
+          )
+          .bind(seeded.auctionId, otherId)
           .run();
       }
       await expect(

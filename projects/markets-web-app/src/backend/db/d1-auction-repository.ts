@@ -440,6 +440,33 @@ export class D1AuctionRepository {
       status: "CANCELLED" as const,
       version: snapshot.version + 1,
     };
+    const commandMarkerId = `ac_${crypto.randomUUID()}`;
+    const commandId = `cancel_${context.payloadHash.slice(0, 32)}`;
+    const marker = this.db
+      .prepare(
+        `INSERT INTO auction_commands
+         (id, auction_id, command_id, actor_markets_user_id, operation, payload_hash,
+          expected_auction_version, status, response_body)
+         SELECT ?, ?, ?, ?, 'CANCEL', ?, ?, 'COMPLETED', ?
+         WHERE EXISTS (
+           SELECT 1 FROM auctions a JOIN auction_revisions current ON current.id = a.current_revision_id
+           WHERE a.id = ? AND a.seller_markets_user_id = ? AND a.status IN ('DRAFT','SCHEDULED')
+             AND a.version = ? AND current.starts_at > ?
+         )`,
+      )
+      .bind(
+        commandMarkerId,
+        snapshot.auctionId,
+        commandId,
+        context.actorMarketsUserId,
+        context.payloadHash,
+        snapshot.version,
+        JSON.stringify(result),
+        snapshot.auctionId,
+        context.actorMarketsUserId,
+        snapshot.version,
+        context.commitStartedAt,
+      );
     const update = this.db
       .prepare(
         `UPDATE auctions SET status = 'CANCELLED', version = version + 1, updated_at = ?
@@ -447,7 +474,7 @@ export class D1AuctionRepository {
            AND version = ? AND EXISTS (
              SELECT 1 FROM auction_revisions current
              WHERE current.id = auctions.current_revision_id AND current.starts_at > ?
-           )`,
+           ) AND EXISTS (SELECT 1 FROM auction_commands WHERE id = ?)`,
       )
       .bind(
         context.commitStartedAt,
@@ -455,9 +482,11 @@ export class D1AuctionRepository {
         context.actorMarketsUserId,
         snapshot.version,
         context.commitStartedAt,
+        commandMarkerId,
       );
     try {
       const results = await this.db.batch([
+        marker,
         update,
         this.db
           .prepare(
@@ -465,7 +494,10 @@ export class D1AuctionRepository {
              (id, actor_markets_user_id, event_code, target_type, target_id, before_json,
               after_json, reason, request_id, environment, result)
              SELECT ?, ?, 'AUCTION_CANCELLED', 'AUCTION', ?, ?, ?, ?, ?, ?, 'SUCCESS'
-             WHERE EXISTS (SELECT 1 FROM auctions WHERE id = ? AND status = 'CANCELLED')`,
+             WHERE EXISTS (
+               SELECT 1 FROM auctions
+               WHERE id = ? AND status = 'CANCELLED' AND version = ?
+             ) AND EXISTS (SELECT 1 FROM auction_commands WHERE id = ?)`,
           )
           .bind(
             `audit_${crypto.randomUUID()}`,
@@ -477,6 +509,8 @@ export class D1AuctionRepository {
             context.requestId,
             context.environment,
             snapshot.auctionId,
+            snapshot.version + 1,
+            commandMarkerId,
           ),
         this.db
           .prepare(
@@ -484,7 +518,10 @@ export class D1AuctionRepository {
              (id, actor_markets_user_id, event_code, target_type, target_id, after_json,
               request_id, environment, result)
              SELECT ?, ?, 'AUCTION_ALARM_CANCEL_REQUESTED', 'AUCTION', ?, ?, ?, ?, 'SUCCESS'
-             WHERE EXISTS (SELECT 1 FROM auctions WHERE id = ? AND status = 'CANCELLED')`,
+             WHERE EXISTS (
+               SELECT 1 FROM auctions
+               WHERE id = ? AND status = 'CANCELLED' AND version = ?
+             ) AND EXISTS (SELECT 1 FROM auction_commands WHERE id = ?)`,
           )
           .bind(
             `audit_${crypto.randomUUID()}`,
@@ -494,10 +531,12 @@ export class D1AuctionRepository {
             context.requestId,
             context.environment,
             snapshot.auctionId,
+            snapshot.version + 1,
+            commandMarkerId,
           ),
-        this.completedIdempotencyStatement(context, result, snapshot.auctionId),
+        this.completedIdempotencyStatement(context, result, undefined, undefined, commandMarkerId),
       ]);
-      if (results[0]?.meta.changes !== 1) {
+      if (results[1]?.meta.changes !== 1) {
         throw Object.assign(new Error("AUCTION_VERSION_CONFLICT"), {
           code: "AUCTION_VERSION_CONFLICT",
         });
@@ -522,12 +561,15 @@ export class D1AuctionRepository {
     result: unknown,
     requiredAuctionId?: string,
     requiredRevisionId?: string,
+    requiredCommandMarkerId?: string,
   ): D1PreparedStatement {
-    const condition = requiredAuctionId
-      ? `WHERE EXISTS (SELECT 1 FROM auctions WHERE id = ?${
-          requiredRevisionId ? " AND current_revision_id = ?" : " AND status = 'CANCELLED'"
-        })`
-      : "";
+    const condition = requiredCommandMarkerId
+      ? "WHERE EXISTS (SELECT 1 FROM auction_commands WHERE id = ?)"
+      : requiredAuctionId
+        ? `WHERE EXISTS (SELECT 1 FROM auctions WHERE id = ?${
+            requiredRevisionId ? " AND current_revision_id = ?" : " AND status = 'CANCELLED'"
+          })`
+        : "";
     return this.db
       .prepare(
         `INSERT INTO idempotency_results
@@ -543,11 +585,13 @@ export class D1AuctionRepository {
         context.payloadHash,
         JSON.stringify(result),
         context.commitStartedAt,
-        ...(requiredAuctionId
-          ? requiredRevisionId
-            ? [requiredAuctionId, requiredRevisionId]
-            : [requiredAuctionId]
-          : []),
+        ...(requiredCommandMarkerId
+          ? [requiredCommandMarkerId]
+          : requiredAuctionId
+            ? requiredRevisionId
+              ? [requiredAuctionId, requiredRevisionId]
+              : [requiredAuctionId]
+            : []),
       );
   }
 }
