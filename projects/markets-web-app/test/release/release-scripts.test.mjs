@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "node:test";
@@ -86,7 +87,22 @@ test("empty D1の必須schemaとlegacy Listing不在を検査する", async () =
     ["table", "bid_events"],
     ["table", "settlements"],
     ["table", "settlement_outbox"],
+    ["table", "buy_now_holds"],
+    ["table", "auction_close_cutoffs"],
+    ["table", "settlement_plans"],
+    ["table", "settlement_rounds"],
+    ["table", "settlement_round_winners"],
+    ["table", "settlement_exclusions"],
+    ["table", "auction_close_resume_outbox"],
+    ["table", "settlement_capture_receipts"],
+    ["table", "settlement_allocations"],
     ["table", "proofs"],
+    ["table", "settlement_finalize_receipts"],
+    ["table", "settlement_retry_authorizations"],
+    ["table", "settlement_retry_assertion_jtis"],
+    ["table", "settlement_retry_rate_events"],
+    ["table", "settlement_reconciliation_leases"],
+    ["table", "proof_reviews"],
     ["table", "proof_review_revisions"],
     ["table", "watchlist_entries"],
     ["table", "ops_alerts"],
@@ -99,11 +115,63 @@ test("empty D1の必須schemaとlegacy Listing不在を検査する", async () =
     () => assertRequiredSchema([...rows, { type: "table", name: "listings" }]),
     /legacy Listing table/,
   );
+  assert.throws(
+    () => assertRequiredSchema(rows.filter((row) => row.name !== "buy_now_holds")),
+    /buy_now_holds/,
+  );
+  assert.throws(
+    () => assertRequiredSchema(rows.filter((row) => row.name !== "settlement_capture_receipts")),
+    /settlement_capture_receipts/,
+  );
+  assert.throws(
+    () => assertRequiredSchema(rows.filter((row) => row.name !== "auction_close_resume_outbox")),
+    /auction_close_resume_outbox/,
+  );
+  assert.throws(
+    () =>
+      assertRequiredSchema(rows.filter((row) => row.name !== "settlement_retry_authorizations")),
+    /settlement_retry_authorizations/,
+  );
 });
 
 test("empty D1の主要unique/check/append-only triggerを検査する", async () => {
   const { assertSchemaInvariants } = await import("../../scripts/verify-empty-d1.mjs");
   const rows = [
+    {
+      type: "table",
+      name: "buy_now_holds",
+      sql: "CREATE TABLE buy_now_holds (CONSTRAINT \"buy_now_holds_status_check\" CHECK (status IN ('PENDING')))",
+    },
+    {
+      type: "table",
+      name: "auction_close_cutoffs",
+      sql: 'CREATE TABLE auction_close_cutoffs (CONSTRAINT "auction_close_cutoffs_hash_check" CHECK (length(ranking_input_hash) = 64))',
+    },
+    {
+      type: "table",
+      name: "settlement_plans",
+      sql: 'CREATE TABLE settlement_plans (CONSTRAINT "settlement_plans_json_check" CHECK (json_valid(plan_json)))',
+    },
+    {
+      type: "table",
+      name: "settlement_rounds",
+      sql: "CREATE TABLE settlement_rounds (CONSTRAINT \"settlement_rounds_state_check\" CHECK (state IN ('RESERVING')))",
+    },
+    {
+      type: "table",
+      name: "settlement_round_winners",
+      sql: "CREATE TABLE settlement_round_winners (CONSTRAINT \"settlement_round_winners_status_check\" CHECK (status IN ('PENDING')))",
+    },
+    {
+      type: "table",
+      name: "settlement_exclusions",
+      sql: "CREATE TABLE settlement_exclusions (CONSTRAINT \"settlement_exclusions_reason_check\" CHECK (reason IN ('INSUFFICIENT_BALANCE')))",
+    },
+    {
+      type: "table",
+      name: "auction_close_resume_outbox",
+      sql: "CREATE TABLE auction_close_resume_outbox (CONSTRAINT \"auction_close_resume_outbox_status_check\" CHECK (status IN ('PENDING')))",
+    },
     {
       type: "table",
       name: "settlements",
@@ -129,6 +197,41 @@ test("empty D1の主要unique/check/append-only triggerを検査する", async (
       name: "settlement_outbox_attempt_uidx",
       sql: "CREATE UNIQUE INDEX settlement_outbox_attempt_uidx ON settlement_outbox (settlement_id,settlement_revision,workflow_attempt)",
     },
+    {
+      type: "index",
+      name: "buy_now_holds_auction_status_idx",
+      sql: "CREATE INDEX buy_now_holds_auction_status_idx ON buy_now_holds (auction_id,status)",
+    },
+    {
+      type: "index",
+      name: "settlement_plans_revision_uidx",
+      sql: "CREATE UNIQUE INDEX settlement_plans_revision_uidx ON settlement_plans (settlement_id,settlement_revision)",
+    },
+    {
+      type: "index",
+      name: "settlement_rounds_ordinal_uidx",
+      sql: "CREATE UNIQUE INDEX settlement_rounds_ordinal_uidx ON settlement_rounds (settlement_id,round_ordinal)",
+    },
+    {
+      type: "index",
+      name: "settlement_round_winners_user_uidx",
+      sql: "CREATE UNIQUE INDEX settlement_round_winners_user_uidx ON settlement_round_winners (settlement_round_id,markets_user_id)",
+    },
+    {
+      type: "index",
+      name: "settlement_round_winners_key_uidx",
+      sql: "CREATE UNIQUE INDEX settlement_round_winners_key_uidx ON settlement_round_winners (reservation_key)",
+    },
+    {
+      type: "index",
+      name: "settlement_exclusions_user_uidx",
+      sql: "CREATE UNIQUE INDEX settlement_exclusions_user_uidx ON settlement_exclusions (settlement_id,markets_user_id)",
+    },
+    {
+      type: "index",
+      name: "auction_close_resume_outbox_hold_uidx",
+      sql: "CREATE UNIQUE INDEX auction_close_resume_outbox_hold_uidx ON auction_close_resume_outbox (buy_now_hold_id)",
+    },
     ...[
       ["audit_events_append_only_update", "UPDATE"],
       ["audit_events_append_only_delete", "DELETE"],
@@ -138,10 +241,27 @@ test("empty D1の主要unique/check/append-only triggerを検査する", async (
       ["bid_events_append_only_delete", "DELETE"],
       ["settlement_plans_append_only_update", "UPDATE"],
       ["settlement_plans_append_only_delete", "DELETE"],
+      ["auction_close_cutoffs_append_only_update", "UPDATE"],
+      ["auction_close_cutoffs_append_only_delete", "DELETE"],
     ].map(([name, operation]) => ({
       type: "trigger",
       name,
       sql: `CREATE TRIGGER ${name} BEFORE ${operation} ON target BEGIN SELECT RAISE(ABORT, 'IMMUTABLE'); END`,
+    })),
+    ...[
+      ["settlement_rounds_delete_guard", "settlement_rounds", "BEFORE DELETE"],
+      ["settlement_round_winners_delete_guard", "settlement_round_winners", "BEFORE DELETE"],
+      ["settlement_exclusions_delete_guard", "settlement_exclusions", "BEFORE DELETE"],
+      [
+        "settlement_round_winners_status_guard",
+        "settlement_round_winners",
+        "BEFORE UPDATE OF status",
+      ],
+    ].map(([name, tbl_name, operation]) => ({
+      type: "trigger",
+      name,
+      tbl_name,
+      sql: `CREATE TRIGGER ${name} ${operation} ON ${tbl_name} BEGIN SELECT RAISE(ABORT, 'INVALID'); END`,
     })),
   ];
 
@@ -186,6 +306,58 @@ test("empty D1の主要unique/check/append-only triggerを検査する", async (
       ),
     /audit_events_append_only_delete/,
   );
+  assert.throws(
+    () =>
+      assertSchemaInvariants(
+        rows.filter((row) => row.name !== "auction_close_resume_outbox_hold_uidx"),
+      ),
+    /auction_close_resume_outbox_hold_uidx/,
+  );
+  assert.throws(
+    () =>
+      assertSchemaInvariants(
+        rows.filter((row) => row.name !== "settlement_round_winners_status_guard"),
+      ),
+    /settlement_round_winners.*status/i,
+  );
+});
+
+test("実0000〜0006 schema dumpで着地済みinvariant driftを検出する", async () => {
+  const { assertCurrentSchemaInvariants } = await import("../../scripts/verify-empty-d1.mjs");
+  const rows = JSON.parse(
+    await readFile(
+      new URL("../fixtures/release/empty-d1-current-schema.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.doesNotThrow(() => assertCurrentSchemaInvariants(rows));
+  for (const name of [
+    "buy_now_holds_auction_status_idx",
+    "settlement_plans_revision_uidx",
+    "settlement_rounds_ordinal_uidx",
+    "settlement_round_winners_user_uidx",
+    "settlement_round_winners_key_uidx",
+    "settlement_exclusions_user_uidx",
+    "auction_close_resume_outbox_hold_uidx",
+    "auction_close_cutoffs_append_only_delete",
+  ]) {
+    assert.throws(
+      () => assertCurrentSchemaInvariants(rows.filter((row) => row.name !== name)),
+      new RegExp(name),
+    );
+  }
+  assert.throws(
+    () =>
+      assertCurrentSchemaInvariants(
+        rows.map((row) =>
+          row.name === "settlement_round_winners"
+            ? { ...row, sql: row.sql.replace("settlement_round_winners_status_check", "removed") }
+            : row,
+        ),
+      ),
+    /settlement_round_winners_status_check/,
+  );
 });
 
 test("runtime sourceの禁止importとSSEを検出する", async () => {
@@ -197,15 +369,47 @@ test("runtime sourceの禁止importとSSEを検出する", async () => {
       {
         file: "src/server.ts",
         source:
-          'import next from "next";\nimport { headers } from "next/server";\nnew EventSource("/events")',
+          'import next from "next";\nimport { headers } from "next/server";\nimport "next/headers";\nnew EventSource("/events")',
       },
       { file: "worker/index.ts", source: 'import { Hono } from "hono"' },
     ]),
     [
       { file: "src/server.ts", reference: "next" },
       { file: "src/server.ts", reference: "next/server" },
+      { file: "src/server.ts", reference: "next/headers" },
       { file: "src/server.ts", reference: "EventSource" },
     ],
+  );
+});
+
+test("runtime manifestとlock importerを一致させ直前build metadataを要求する", async () => {
+  const { assertManifestLockParity, assertRuntimeArtifactMetadata } =
+    await import("../../scripts/verify-runtime-boundaries.mjs");
+  const manifest = { dependencies: { hono: "4.0.0" }, devDependencies: { vite: "8.0.0" } };
+
+  assert.doesNotThrow(() => assertManifestLockParity(manifest, ["hono", "vite"]));
+  assert.throws(() => assertManifestLockParity(manifest, ["hono"]), /manifest.*lockfile/i);
+  assert.doesNotThrow(() =>
+    assertRuntimeArtifactMetadata(
+      { targetEnvironment: "staging", vars: { APP_ENV: "staging" } },
+      { config: 20, source: 10, worker: 20 },
+    ),
+  );
+  assert.throws(
+    () =>
+      assertRuntimeArtifactMetadata(
+        { targetEnvironment: "production", vars: { APP_ENV: "staging" } },
+        { config: 20, source: 10, worker: 20 },
+      ),
+    /target environment/i,
+  );
+  assert.throws(
+    () =>
+      assertRuntimeArtifactMetadata(
+        { targetEnvironment: "staging", vars: { APP_ENV: "staging" } },
+        { config: 9, source: 10, worker: 20 },
+      ),
+    /stale/i,
   );
 });
 
@@ -308,10 +512,31 @@ test("remote release environmentはstagingとproductionだけ", async () => {
   const duplicate = sourceReleaseConfig();
   duplicate.env.production.d1_databases[0].database_id = "staging-db-id";
   assert.throws(() => releaseTargetFromConfig(duplicate, "staging"), /D1 database IDs must differ/);
+
+  for (const mutate of [
+    (config) =>
+      (config.env.production.d1_databases[0].database_name =
+        config.env.staging.d1_databases[0].database_name),
+    (config) => (config.env.production.name = config.env.staging.name),
+    (config) => (config.env.production.workflows = config.env.staging.workflows),
+    (config) => (config.env.production.services = config.env.staging.services),
+    (config) =>
+      (config.env.production.analytics_engine_datasets =
+        config.env.staging.analytics_engine_datasets),
+    (config) => (config.env.production.vars.POINTS_ISSUER = config.env.staging.vars.POINTS_ISSUER),
+    (config) => (config.env.production.routes = config.env.staging.routes),
+  ]) {
+    const mixed = sourceReleaseConfig();
+    mutate(mixed);
+    assert.throws(
+      () => releaseTargetFromConfig(mixed, "production"),
+      /environment|staging|production/i,
+    );
+  }
 });
 
 test("generated deploy artifactはMarketsの全release bindingを要求する", async () => {
-  const { assertDeployEnvironment, assertGeneratedConfig } =
+  const { assertDeployEnvironment, assertGeneratedConfig, assertSameMigrationDirectory } =
     await import("../../scripts/deploy-generated.mjs");
   const { releaseTargetFromConfig } = await import("../../scripts/migrate-d1.mjs");
   const expected = releaseTargetFromConfig(sourceReleaseConfig(), "staging");
@@ -330,6 +555,7 @@ test("generated deploy artifactはMarketsの全release bindingを要求する", 
       directory: "../client",
       not_found_handling: "none",
       html_handling: "auto-trailing-slash",
+      run_worker_first: ["/api/*", "/.well-known/*"],
     },
     d1_databases: [
       {
@@ -371,6 +597,48 @@ test("generated deploy artifactはMarketsの全release bindingを要求する", 
     /D1 DB/,
   );
   assert.throws(() => assertDeployEnvironment("staging", "production"), /CLOUDFLARE_ENV/);
+  assert.doesNotThrow(() =>
+    assertSameMigrationDirectory(
+      "/repo/projects/markets-web-app/wrangler.jsonc",
+      "drizzle",
+      "/repo/projects/markets-web-app/dist/server/wrangler.json",
+      "../../drizzle",
+    ),
+  );
+  assert.throws(
+    () =>
+      assertSameMigrationDirectory(
+        "/repo/projects/markets-web-app/wrangler.jsonc",
+        "drizzle",
+        "/repo/projects/markets-web-app/dist/server/wrangler.json",
+        "../other",
+      ),
+    /migration/i,
+  );
+  assert.throws(
+    () =>
+      assertGeneratedConfig(
+        { ...config, assets: { ...config.assets, run_worker_first: ["/api/*"] } },
+        "staging",
+        expected,
+      ),
+    /Worker-first/i,
+  );
+  assert.throws(
+    () =>
+      assertGeneratedConfig(
+        {
+          ...config,
+          assets: {
+            ...config.assets,
+            run_worker_first: ["/api/*", "/.well-known/*", "/admin/*"],
+          },
+        },
+        "staging",
+        expected,
+      ),
+    /Worker-first/i,
+  );
 });
 
 test("deploy artifact freshnessはsource/worker/lockfileより古いartifactを拒否する", async () => {
@@ -404,4 +672,34 @@ test("smokeは固定originへのread-only checkだけを持つ", async () => {
   assert.ok(smokeChecks().every((check) => check.method === "GET"));
   assert.ok(smokeChecks().some((check) => check.path === "/api/health"));
   assert.ok(smokeChecks().some((check) => check.path.startsWith("/api/v1/auctions")));
+});
+
+test("Playwright E2Eは旧overrideを含めnon-loopback originを収集前に拒否する", () => {
+  const appRoot = resolve(new URL("../..", import.meta.url).pathname);
+  for (const environment of [
+    {
+      MARKETS_E2E_BASE_URL: "https://markets.freeism.app",
+      MARKETS_E2E_ALLOW_REMOTE: "true",
+    },
+    { MARKETS_E2E_FIXTURE_ORIGIN: "https://fixture.example.test" },
+    { MARKETS_E2E_ISSUER_ORIGIN: "https://issuer.example.test" },
+  ]) {
+    const result = spawnSync(
+      "pnpm",
+      ["exec", "playwright", "test", "-c", "playwright.config.ts", "--list"],
+      {
+        cwd: appRoot,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          MARKETS_E2E_BASE_URL: "http://127.0.0.1:3001",
+          MARKETS_E2E_FIXTURE_ORIGIN: "http://127.0.0.1:3101",
+          MARKETS_E2E_ISSUER_ORIGIN: "http://127.0.0.1:3101",
+          ...environment,
+        },
+      },
+    );
+    assert.notEqual(result.status, 0);
+    assert.match(`${result.stderr}${result.stdout}`, /loopback/i);
+  }
 });

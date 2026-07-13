@@ -10,7 +10,22 @@ const REQUIRED_SCHEMA_OBJECTS = [
   ["table", "bid_events"],
   ["table", "settlements"],
   ["table", "settlement_outbox"],
+  ["table", "buy_now_holds"],
+  ["table", "auction_close_cutoffs"],
+  ["table", "settlement_plans"],
+  ["table", "settlement_rounds"],
+  ["table", "settlement_round_winners"],
+  ["table", "settlement_exclusions"],
+  ["table", "auction_close_resume_outbox"],
+  ["table", "settlement_capture_receipts"],
+  ["table", "settlement_allocations"],
   ["table", "proofs"],
+  ["table", "settlement_finalize_receipts"],
+  ["table", "settlement_retry_authorizations"],
+  ["table", "settlement_retry_assertion_jtis"],
+  ["table", "settlement_retry_rate_events"],
+  ["table", "settlement_reconciliation_leases"],
+  ["table", "proof_reviews"],
   ["table", "proof_review_revisions"],
   ["table", "watchlist_entries"],
   ["table", "ops_alerts"],
@@ -19,6 +34,48 @@ const REQUIRED_SCHEMA_OBJECTS = [
 ];
 
 const REQUIRED_SCHEMA_INVARIANTS = [
+  [
+    "table",
+    "buy_now_holds",
+    /buy_now_holds_status_check["`]?\s+CHECK/i,
+    "check constraint buy_now_holds_status_check",
+  ],
+  [
+    "table",
+    "auction_close_cutoffs",
+    /auction_close_cutoffs_hash_check["`]?\s+CHECK/i,
+    "check constraint auction_close_cutoffs_hash_check",
+  ],
+  [
+    "table",
+    "settlement_plans",
+    /settlement_plans_json_check["`]?\s+CHECK/i,
+    "check constraint settlement_plans_json_check",
+  ],
+  [
+    "table",
+    "settlement_rounds",
+    /settlement_rounds_state_check["`]?\s+CHECK/i,
+    "check constraint settlement_rounds_state_check",
+  ],
+  [
+    "table",
+    "settlement_round_winners",
+    /settlement_round_winners_status_check["`]?\s+CHECK/i,
+    "check constraint settlement_round_winners_status_check",
+  ],
+  [
+    "table",
+    "settlement_exclusions",
+    /settlement_exclusions_reason_check["`]?\s+CHECK/i,
+    "check constraint settlement_exclusions_reason_check",
+  ],
+  [
+    "table",
+    "auction_close_resume_outbox",
+    /auction_close_resume_outbox_status_check["`]?\s+CHECK/i,
+    "check constraint auction_close_resume_outbox_status_check",
+  ],
   [
     "table",
     "settlements",
@@ -44,10 +101,46 @@ const REQUIRED_SCHEMA_INVARIANTS = [
     "unique index settlement_outbox_attempt_uidx",
   ],
   [
-    "table",
-    "ops_alert_cleanup_leases",
-    /lease_key[\s\S]*PRIMARY KEY[\s\S]*lease_expires_at/i,
-    "cleanup lease primary key and expiry",
+    "index",
+    "buy_now_holds_auction_status_idx",
+    /^CREATE INDEX[\s\S]*ON\s+["`]?buy_now_holds["`]?\s*\(\s*["`]?auction_id["`]?\s*,\s*["`]?status["`]?\s*\)/i,
+    "index buy_now_holds_auction_status_idx",
+  ],
+  [
+    "index",
+    "settlement_plans_revision_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?settlement_plans["`]?\s*\(\s*["`]?settlement_id["`]?\s*,\s*["`]?settlement_revision["`]?\s*\)/i,
+    "unique index settlement_plans_revision_uidx",
+  ],
+  [
+    "index",
+    "settlement_rounds_ordinal_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?settlement_rounds["`]?\s*\(\s*["`]?settlement_id["`]?\s*,\s*["`]?round_ordinal["`]?\s*\)/i,
+    "unique index settlement_rounds_ordinal_uidx",
+  ],
+  [
+    "index",
+    "settlement_round_winners_user_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?settlement_round_winners["`]?\s*\(\s*["`]?settlement_round_id["`]?\s*,\s*["`]?markets_user_id["`]?\s*\)/i,
+    "unique index settlement_round_winners_user_uidx",
+  ],
+  [
+    "index",
+    "settlement_round_winners_key_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?settlement_round_winners["`]?\s*\(\s*["`]?reservation_key["`]?\s*\)/i,
+    "unique index settlement_round_winners_key_uidx",
+  ],
+  [
+    "index",
+    "settlement_exclusions_user_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?settlement_exclusions["`]?\s*\(\s*["`]?settlement_id["`]?\s*,\s*["`]?markets_user_id["`]?\s*\)/i,
+    "unique index settlement_exclusions_user_uidx",
+  ],
+  [
+    "index",
+    "auction_close_resume_outbox_hold_uidx",
+    /^CREATE UNIQUE INDEX[\s\S]*ON\s+["`]?auction_close_resume_outbox["`]?\s*\(\s*["`]?buy_now_hold_id["`]?\s*\)/i,
+    "unique index auction_close_resume_outbox_hold_uidx",
   ],
   ...[
     "audit_events_append_only_update",
@@ -58,6 +151,8 @@ const REQUIRED_SCHEMA_INVARIANTS = [
     "bid_events_append_only_delete",
     "settlement_plans_append_only_update",
     "settlement_plans_append_only_delete",
+    "auction_close_cutoffs_append_only_update",
+    "auction_close_cutoffs_append_only_delete",
   ].map((name) => {
     const operation = name.endsWith("_delete") ? "DELETE" : "UPDATE";
     return [
@@ -70,6 +165,21 @@ const REQUIRED_SCHEMA_INVARIANTS = [
       `trigger ${name}`,
     ];
   }),
+];
+
+const REQUIRED_FUTURE_SCHEMA_INVARIANTS = [
+  [
+    "table",
+    "ops_alert_cleanup_leases",
+    /lease_key[\s\S]*PRIMARY KEY[\s\S]*lease_expires_at/i,
+    "cleanup lease primary key and expiry",
+  ],
+];
+
+const REQUIRED_TRIGGER_CONTRACTS = [
+  ["settlement_rounds", "DELETE", "settlement_rounds delete guard"],
+  ["settlement_round_winners", "DELETE", "settlement_round_winners delete guard"],
+  ["settlement_exclusions", "DELETE", "settlement_exclusions delete guard"],
 ];
 
 export function assertMigrationSequence(fileNames) {
@@ -111,11 +221,43 @@ export function assertRequiredSchema(rows) {
   }
 }
 
-export function assertSchemaInvariants(rows) {
+export function assertCurrentSchemaInvariants(rows) {
   const byKey = new Map(rows.map((row) => [`${row.type}:${row.name}`, row.sql ?? ""]));
   for (const [type, name, pattern, label] of REQUIRED_SCHEMA_INVARIANTS) {
     const sql = byKey.get(`${type}:${name}`);
     if (!sql || !pattern.test(sql)) throw new Error(`empty D1 is missing ${label}`);
+  }
+}
+
+export function assertSchemaInvariants(rows) {
+  assertCurrentSchemaInvariants(rows);
+  const byKey = new Map(rows.map((row) => [`${row.type}:${row.name}`, row.sql ?? ""]));
+  for (const [type, name, pattern, label] of REQUIRED_FUTURE_SCHEMA_INVARIANTS) {
+    const sql = byKey.get(`${type}:${name}`);
+    if (!sql || !pattern.test(sql)) throw new Error(`empty D1 is missing ${label}`);
+  }
+  for (const [table, operation, label] of REQUIRED_TRIGGER_CONTRACTS) {
+    const found = rows.some(
+      (row) =>
+        row.type === "trigger" &&
+        row.tbl_name === table &&
+        new RegExp(
+          `BEFORE\\s+${operation}\\s+ON\\s+["\\\`]?${table}["\\\`]?[\\s\\S]*RAISE\\s*\\(\\s*ABORT`,
+          "i",
+        ).test(row.sql ?? ""),
+    );
+    if (!found) throw new Error(`empty D1 is missing ${label}`);
+  }
+  const hasWinnerStatusGuard = rows.some(
+    (row) =>
+      row.type === "trigger" &&
+      row.tbl_name === "settlement_round_winners" &&
+      /BEFORE\s+UPDATE\s+OF\s+["`]?status["`]?\s+ON\s+["`]?settlement_round_winners["`]?[\s\S]*RAISE\s*\(\s*ABORT/i.test(
+        row.sql ?? "",
+      ),
+  );
+  if (!hasWinnerStatusGuard) {
+    throw new Error("empty D1 is missing settlement_round_winners status transition guard");
   }
 }
 

@@ -12,6 +12,7 @@ const REQUIRED_FLAGS = [
   "assets_navigation_has_no_effect",
   "global_fetch_strictly_public",
 ];
+const REQUIRED_WORKER_FIRST = ["/.well-known/*", "/api/*"];
 
 export function expectedWorkerName(environment) {
   return `auction-worker-${environment}`;
@@ -40,6 +41,19 @@ export function assertArtifactFreshness(mtimes) {
   }
 }
 
+export function assertSameMigrationDirectory(
+  sourceConfigPath,
+  sourceDirectory,
+  generatedConfigPath,
+  generatedDirectory,
+) {
+  const sourcePath = resolve(dirname(sourceConfigPath), sourceDirectory);
+  const generatedPath = resolve(dirname(generatedConfigPath), generatedDirectory);
+  if (sourcePath !== generatedPath) {
+    throw new Error("generated config D1 migration directory does not match the source config");
+  }
+}
+
 function sameJson(actual, expected) {
   return isDeepStrictEqual(actual, expected);
 }
@@ -63,8 +77,8 @@ export function assertGeneratedConfig(config, environment, expected) {
     throw new Error("generated Static Assets settings do not match the release contract");
   }
   const workerFirst = config.assets.run_worker_first ?? [];
-  if (workerFirst.some((pattern) => pattern === "/*" || pattern === "*")) {
-    throw new Error("generated Static Assets must remain asset-first");
+  if (!sameJson([...workerFirst].sort(), REQUIRED_WORKER_FIRST)) {
+    throw new Error("generated Static Assets Worker-first routes must match the release contract");
   }
   for (const flag of REQUIRED_FLAGS) {
     if (!config.compatibility_flags?.includes(flag)) {
@@ -76,8 +90,7 @@ export function assertGeneratedConfig(config, environment, expected) {
     (item) =>
       item.binding === expected.database.binding &&
       item.database_id === expected.database.id &&
-      item.database_name === expected.database.name &&
-      item.migrations_dir === expected.database.migrationsDir,
+      item.database_name === expected.database.name,
     "generated config D1 DB does not match the source environment",
   );
   exactlyOne(
@@ -131,6 +144,15 @@ export async function deployGenerated(environment) {
   assertGeneratedConfig(config, environment, expected);
 
   const sourceConfig = resolve(appRoot, "wrangler.jsonc");
+  const generatedDatabase = config.d1_databases.find(
+    (item) => item.binding === expected.database.binding,
+  );
+  assertSameMigrationDirectory(
+    sourceConfig,
+    expected.database.migrationsDir,
+    configPath,
+    generatedDatabase.migrations_dir,
+  );
   if (config.configPath && resolve(config.configPath) !== sourceConfig) {
     throw new Error("generated config points to a different source config");
   }

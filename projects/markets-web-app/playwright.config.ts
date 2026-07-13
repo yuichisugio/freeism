@@ -4,8 +4,14 @@ const baseURL = process.env.MARKETS_E2E_BASE_URL ?? "http://127.0.0.1:3001";
 const parsedBaseURL = new URL(baseURL);
 const isLoopback = ["127.0.0.1", "localhost", "::1"].includes(parsedBaseURL.hostname);
 
-if (!isLoopback && process.env.MARKETS_E2E_ALLOW_REMOTE !== "true") {
-  throw new Error("MARKETS_E2E_BASE_URL must be loopback unless remote E2E is explicitly enabled");
+if (!isLoopback) {
+  throw new Error("MARKETS_E2E_BASE_URL must be loopback");
+}
+for (const name of ["MARKETS_E2E_FIXTURE_ORIGIN", "MARKETS_E2E_ISSUER_ORIGIN"]) {
+  const value = process.env[name];
+  if (value && !["127.0.0.1", "localhost", "::1"].includes(new URL(value).hostname)) {
+    throw new Error(`${name} must be loopback`);
+  }
 }
 
 export default defineConfig({

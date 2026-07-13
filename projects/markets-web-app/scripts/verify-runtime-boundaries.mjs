@@ -1,6 +1,8 @@
-import { readFile, readdir } from "node:fs/promises";
-import { extname, relative, resolve } from "node:path";
+import { readFile, readdir, stat } from "node:fs/promises";
+import { dirname, extname, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+
+import { findGeneratedWorkerConfig } from "../../../scripts/web-app/assert-worker-build.mjs";
 
 const FORBIDDEN_RUNTIME_PACKAGES = [
   "next",
@@ -11,6 +13,7 @@ const FORBIDDEN_RUNTIME_PACKAGES = [
   "@prisma/",
 ];
 const RUNTIME_IMPORT = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*)["']([^"']+)["']/g;
+const SIDE_EFFECT_IMPORT = /\bimport\s*["']([^"']+)["']/g;
 
 function forbiddenPackage(specifier) {
   return FORBIDDEN_RUNTIME_PACKAGES.find((name) => {
@@ -22,9 +25,11 @@ function forbiddenPackage(specifier) {
 export function inspectRuntimeSourceEntries(entries) {
   const violations = [];
   for (const { file, source } of entries) {
-    for (const match of source.matchAll(RUNTIME_IMPORT)) {
-      const specifier = match[1];
-      if (forbiddenPackage(specifier)) violations.push({ file, reference: specifier });
+    for (const pattern of [RUNTIME_IMPORT, SIDE_EFFECT_IMPORT]) {
+      for (const match of source.matchAll(pattern)) {
+        const specifier = match[1];
+        if (forbiddenPackage(specifier)) violations.push({ file, reference: specifier });
+      }
     }
     if (/\bEventSource\s*\(/.test(source)) violations.push({ file, reference: "EventSource" });
     if (/text\/event-stream/.test(source))
@@ -57,14 +62,41 @@ function directImporterPackages(block) {
   );
 }
 
+export function assertManifestLockParity(manifest, lockPackages) {
+  const manifestPackages = Object.keys({
+    ...manifest.dependencies,
+    ...manifest.devDependencies,
+  }).sort();
+  const importedPackages = [...new Set(lockPackages)].sort();
+  if (JSON.stringify(manifestPackages) !== JSON.stringify(importedPackages)) {
+    throw new Error("runtime manifest and lockfile importer dependencies do not match");
+  }
+}
+
+export function assertRuntimeArtifactMetadata(config, mtimes, expectedEnvironment) {
+  const target = config.targetEnvironment;
+  if (
+    (target !== "staging" && target !== "production") ||
+    config.vars?.APP_ENV !== target ||
+    (expectedEnvironment && target !== expectedEnvironment)
+  ) {
+    throw new Error("generated runtime target environment metadata does not match");
+  }
+  if (mtimes.config < mtimes.source || mtimes.worker < mtimes.source) {
+    throw new Error("generated runtime artifact is stale; rebuild before verification");
+  }
+}
+
 export async function inspectRuntimeBoundaries(root) {
   const appRoot = resolve(root);
   const repositoryRoot = resolve(appRoot, "../..");
   const sourceEntries = [];
+  const sourceFiles = [];
   for (const runtimeRoot of [resolve(appRoot, "src"), resolve(appRoot, "worker")]) {
     for (const file of await filesBelow(runtimeRoot)) {
       if (!/[.](?:[cm]?js|tsx?)$/.test(file) || file.endsWith(".d.ts") || /[.]test[.]/.test(file))
         continue;
+      sourceFiles.push(file);
       sourceEntries.push({
         file: relative(repositoryRoot, file),
         source: await readFile(file, "utf8"),
@@ -73,16 +105,54 @@ export async function inspectRuntimeBoundaries(root) {
   }
 
   const violations = inspectRuntimeSourceEntries(sourceEntries);
-  const lockfile = await readFile(resolve(repositoryRoot, "pnpm-lock.yaml"), "utf8");
-  for (const packageName of directImporterPackages(
-    importerBlock(lockfile, "projects/markets-web-app"),
-  )) {
+  const packagePath = resolve(appRoot, "package.json");
+  const lockfilePath = resolve(repositoryRoot, "pnpm-lock.yaml");
+  const sourceConfigPath = resolve(appRoot, "wrangler.jsonc");
+  const [manifest, lockfile] = await Promise.all([
+    readFile(packagePath, "utf8").then(JSON.parse),
+    readFile(lockfilePath, "utf8"),
+  ]);
+  const lockPackages = directImporterPackages(importerBlock(lockfile, "projects/markets-web-app"));
+  assertManifestLockParity(manifest, lockPackages);
+  for (const packageName of lockPackages) {
     if (forbiddenPackage(packageName)) {
       violations.push({ file: "pnpm-lock.yaml#projects/markets-web-app", reference: packageName });
     }
   }
+  for (const packageName of Object.keys({
+    ...manifest.dependencies,
+    ...manifest.devDependencies,
+  })) {
+    if (forbiddenPackage(packageName)) {
+      violations.push({ file: "projects/markets-web-app/package.json", reference: packageName });
+    }
+  }
 
-  const buildRoot = resolve(appRoot, "dist/server");
+  let generatedConfigPath;
+  try {
+    generatedConfigPath = await findGeneratedWorkerConfig(appRoot);
+  } catch (error) {
+    throw new Error(`invalid generated Worker config: ${error.message}`);
+  }
+  const generatedConfig = JSON.parse(await readFile(generatedConfigPath, "utf8"));
+  const buildRoot = dirname(generatedConfigPath);
+  const workerPath = resolve(buildRoot, "index.js");
+  const sourceStats = await Promise.all(
+    [...sourceFiles, packagePath, lockfilePath, sourceConfigPath].map((file) => stat(file)),
+  );
+  const [configStats, workerStats] = await Promise.all([
+    stat(generatedConfigPath),
+    stat(workerPath),
+  ]);
+  assertRuntimeArtifactMetadata(
+    generatedConfig,
+    {
+      config: configStats.mtimeMs,
+      source: Math.max(...sourceStats.map((item) => item.mtimeMs)),
+      worker: workerStats.mtimeMs,
+    },
+    process.env.CLOUDFLARE_ENV,
+  );
   let buildFiles;
   try {
     buildFiles = await filesBelow(buildRoot);

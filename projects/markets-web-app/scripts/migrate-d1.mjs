@@ -94,14 +94,58 @@ export function releaseTargetFromConfig(config, environment) {
     ["staging", stagingDatabase],
     ["production", productionDatabase],
   ]) {
-    if (!database.database_name || !database.database_id || database.migrations_dir !== "drizzle") {
+    if (
+      database.database_name !== `markets-${name}` ||
+      !database.database_id ||
+      database.migrations_dir !== "drizzle"
+    ) {
       throw new Error(
-        `source wrangler ${name} D1 DB must have name, ID, and migrations_dir=drizzle`,
+        `source wrangler ${name} D1 DB must have database_name=markets-${name}, ID, and migrations_dir=drizzle`,
       );
     }
   }
   if (stagingDatabase.database_id === productionDatabase.database_id) {
     throw new Error("staging and production D1 database IDs must differ");
+  }
+
+  for (const [name, source] of [
+    ["staging", staging],
+    ["production", production],
+  ]) {
+    const expectedDomain =
+      name === "production" ? "markets.freeism.app" : "staging.markets.freeism.app";
+    const expectedIssuer =
+      name === "production" ? "https://points.freeism.app" : "https://staging.points.freeism.app";
+    const workflow = oneBinding(
+      source.workflows,
+      (item) => item.binding === "AUCTION_SETTLEMENT",
+      `${name} AUCTION_SETTLEMENT binding`,
+    );
+    const service = oneBinding(
+      source.services,
+      (item) => item.binding === "POINTS_SERVICE",
+      `${name} POINTS_SERVICE binding`,
+    );
+    const analytics = oneBinding(
+      source.analytics_engine_datasets,
+      (item) => item.binding === "OPS_METRICS",
+      `${name} OPS_METRICS binding`,
+    );
+    const route = oneBinding(
+      source.routes,
+      (item) => item.custom_domain === true,
+      `${name} custom domain route`,
+    );
+    if (
+      source.name !== `auction-worker-${name}` ||
+      workflow.name !== `auction-settlement-${name}` ||
+      service.service !== `points-worker-${name}` ||
+      analytics.dataset !== `markets_ops_${name}` ||
+      source.vars?.POINTS_ISSUER !== expectedIssuer ||
+      route.pattern !== expectedDomain
+    ) {
+      throw new Error(`source wrangler ${name} resources do not match the environment`);
+    }
   }
 
   const source = environment === "staging" ? staging : production;
