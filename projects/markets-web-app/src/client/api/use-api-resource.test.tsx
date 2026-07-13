@@ -65,4 +65,33 @@ describe("useApiResource", () => {
     expect(container.textContent).toBe("settlement-data:TEMPORARY_FAILURE");
     await act(async () => root.unmount());
   });
+
+  it("clears private data on an unauthorized response by default", async () => {
+    let unauthorized = false;
+    const load = vi.fn(async () => {
+      if (unauthorized) throw Object.assign(new Error("UNAUTHORIZED"), { status: 401 });
+      return "points-connection-active";
+    });
+    let resource: ApiResource<string> | null = null;
+    const container = document.createElement("div");
+    const root = createRoot(container);
+
+    function Harness() {
+      resource = useApiResource(load);
+      return <output>{`${resource.data ?? "none"}:${resource.error?.message ?? "ok"}`}</output>;
+    }
+
+    await act(async () => {
+      root.render(<Harness />);
+      await Promise.resolve();
+    });
+    unauthorized = true;
+    await act(async () => {
+      resource!.reload();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toBe("none:UNAUTHORIZED");
+    await act(async () => root.unmount());
+  });
 });

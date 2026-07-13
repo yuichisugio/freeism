@@ -212,7 +212,9 @@ export interface MarketsClient {
 export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
   async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (!path.startsWith("/api/")) throw new Error("SAME_ORIGIN_API_PATH_REQUIRED");
-    const response = await fetcher(path, { credentials: "same-origin", ...init });
+    const headers = new Headers(init.headers);
+    headers.set("Accept", "application/json");
+    const response = await fetcher(path, { ...init, credentials: "same-origin", headers });
     const contentType = response.headers.get("Content-Type") ?? "";
     const payload = contentType.includes("json") ? ((await response.json()) as unknown) : null;
     if (!response.ok) {
@@ -229,7 +231,10 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
   }
 
   async function cursorRequest<T>(path: string): Promise<CursorPage<T>> {
-    const response = await fetcher(path, { credentials: "same-origin" });
+    const response = await fetcher(path, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
     const payload = (await response.json()) as Envelope<readonly T[]> & {
       meta?: Partial<CursorMeta>;
     };

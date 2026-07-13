@@ -17,6 +17,16 @@ export function useApiResource<T>(
   const [attempt, setAttempt] = useState(0);
   const reload = useCallback(() => setAttempt((value) => value + 1), []);
 
+  function shouldClear(reason: unknown) {
+    return (
+      options.clearOnError === true ||
+      (typeof reason === "object" &&
+        reason !== null &&
+        "status" in reason &&
+        reason.status === 401)
+    );
+  }
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -29,7 +39,7 @@ export function useApiResource<T>(
       },
       (reason: unknown) => {
         if (!active) return;
-        if (options.clearOnError) setData(null);
+        if (shouldClear(reason)) setData(null);
         setError(reason instanceof Error ? reason : new Error("REQUEST_FAILED"));
         setLoading(false);
       },

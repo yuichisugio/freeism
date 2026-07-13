@@ -86,5 +86,6 @@ describe("same-origin Markets client", () => {
     const [url, init] = fetcher.mock.calls[0]!;
     expect(String(url)).toBe("/api/v1/auctions?limit=20");
     expect(init).toMatchObject({ credentials: "same-origin" });
+    expect(new Headers(init?.headers).get("Accept")).toBe("application/json");
   });
 });
