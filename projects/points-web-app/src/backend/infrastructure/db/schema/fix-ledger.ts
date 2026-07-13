@@ -161,7 +161,16 @@ export const pointLedgerEntries = sqliteTable(
     deltaAmountScaled: integer("delta_amount_scaled").notNull(),
     affectsEvaluationTotal: integer("affects_evaluation_total", { mode: "boolean" }).notNull(),
     sourceType: text("source_type", {
-      enum: ["FIX", "TRANSFER_DEBIT", "TRANSFER_CREDIT", "EXCHANGE_BURN", "EXCHANGE_MINT"],
+      enum: [
+        "FIX",
+        "SUBSTITUTION_FIX",
+        "AUTO_DISTRIBUTION_DEBIT",
+        "AUTO_DISTRIBUTION_CREDIT",
+        "TRANSFER_DEBIT",
+        "TRANSFER_CREDIT",
+        "EXCHANGE_BURN",
+        "EXCHANGE_MINT",
+      ],
     }).notNull(),
     sourceFixRevisionId: text("source_fix_revision_id").references(() => fixRevisions.id, {
       onDelete: "restrict",
@@ -174,6 +183,8 @@ export const pointLedgerEntries = sqliteTable(
       () => pointTransactionItems.id,
       { onDelete: "restrict" },
     ),
+    sourceSubstitutionResultRevisionId: text("source_substitution_result_revision_id"),
+    sourceAutoDistributionRevisionId: text("source_auto_distribution_revision_id"),
     createdAt: timestamp("created_at"),
   },
   (table) => [
@@ -186,6 +197,17 @@ export const pointLedgerEntries = sqliteTable(
     uniqueIndex("point_ledger_entry_transaction_source_uidx")
       .on(table.sourceTransactionItemId, table.sourceType)
       .where(sql`${table.sourceTransactionItemId} is not null`),
+    uniqueIndex("point_ledger_entry_substitution_source_uidx")
+      .on(table.sourceSubstitutionResultRevisionId, table.pointsUserId, table.evaluationCriterionId)
+      .where(sql`${table.sourceSubstitutionResultRevisionId} is not null`),
+    uniqueIndex("point_ledger_entry_auto_distribution_source_uidx")
+      .on(
+        table.sourceAutoDistributionRevisionId,
+        table.pointsUserId,
+        table.evaluationCriterionId,
+        table.sourceType,
+      )
+      .where(sql`${table.sourceAutoDistributionRevisionId} is not null`),
     index("point_ledger_entry_account_idx").on(table.pointsUserId, table.evaluationCriterionId),
     check(
       "point_ledger_entry_delta_check",
@@ -196,12 +218,31 @@ export const pointLedgerEntries = sqliteTable(
       sql`(${table.sourceType} = 'FIX'
              and ${table.sourceFixRevisionId} is not null
              and ${table.sourceTransactionItemId} is null
+             and ${table.sourceSubstitutionResultRevisionId} is null
+             and ${table.sourceAutoDistributionRevisionId} is null
              and ${table.affectsEvaluationTotal} = 1)
           or (${table.sourceType} in
                 ('TRANSFER_DEBIT', 'TRANSFER_CREDIT', 'EXCHANGE_BURN', 'EXCHANGE_MINT')
              and ${table.sourceFixRevisionId} is null
              and ${table.sourceUnclaimedFixEntryId} is null
              and ${table.sourceTransactionItemId} is not null
+             and ${table.sourceSubstitutionResultRevisionId} is null
+             and ${table.sourceAutoDistributionRevisionId} is null
+             and ${table.affectsEvaluationTotal} = 0)
+          or (${table.sourceType} = 'SUBSTITUTION_FIX'
+             and ${table.sourceFixRevisionId} is null
+             and ${table.sourceUnclaimedFixEntryId} is null
+             and ${table.sourceTransactionItemId} is null
+             and ${table.sourceSubstitutionResultRevisionId} is not null
+             and ${table.sourceAutoDistributionRevisionId} is null
+             and ${table.affectsEvaluationTotal} = 1)
+          or (${table.sourceType} in
+                ('AUTO_DISTRIBUTION_DEBIT', 'AUTO_DISTRIBUTION_CREDIT')
+             and ${table.sourceFixRevisionId} is null
+             and ${table.sourceUnclaimedFixEntryId} is null
+             and ${table.sourceTransactionItemId} is null
+             and ${table.sourceSubstitutionResultRevisionId} is null
+             and ${table.sourceAutoDistributionRevisionId} is not null
              and ${table.affectsEvaluationTotal} = 0)`,
     ),
   ],

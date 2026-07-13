@@ -7,6 +7,10 @@ import {
 import { computeFixRevisionDeltas, type FixRevisionValue } from "../../domain/fix/fix-revision";
 import { hashCanonicalPayload } from "../../domain/idempotency/idempotency-result";
 import type { ValidatedFixCsvRow } from "../../usecases/validate-fix-csv";
+import {
+  emptyAutoDistributionPlan,
+  preparePositiveFixDistribution,
+} from "../../usecases/distribute-positive-fix";
 
 interface PreviousEntry extends FixRevisionValue {
   evaluationAt: string;
@@ -155,6 +159,7 @@ export async function commitFixRows(
   >();
   const unclaimed: unknown[] = [];
   const results: CommittedFixResult[] = [];
+  const autoDistribution = emptyAutoDistributionPlan();
 
   for (const [key, rows] of grouped) {
     const first = rows[0]!;
@@ -219,7 +224,7 @@ export async function commitFixRows(
         value,
       ]),
     );
-    const nextByKey = new Map(
+    const nextByKey = new Map<string, ValidatedFixCsvRow>(
       resolvedRows.map((row) => {
         const recipientKey = row.recipientAccountId
           ? `github:${row.recipientAccountId}`
@@ -227,6 +232,34 @@ export async function commitFixRows(
         return [`${recipientKey}\u0000${row.evaluationCriterionId}`, row] as const;
       }),
     );
+    for (const businessKey of new Set([...oldByKey.keys(), ...nextByKey.keys()])) {
+      const next = nextByKey.get(businessKey);
+      const old = oldByKey.get(businessKey);
+      const detail = next ?? old;
+      const pointsUserId = next?.recipientPointsUserId ?? old?.pointsUserId;
+      if (!detail || !pointsUserId) continue;
+      const plan = await preparePositiveFixDistribution(db, {
+        amountScaled: next?.amountScaled ?? 0,
+        createdAt: input.now.getTime(),
+        evaluationAt: detail.evaluationAt,
+        evaluationCriterionId: detail.evaluationCriterionId,
+        evaluationCriterionRevisionId: detail.evaluationCriterionRevisionId,
+        fixResultId,
+        fixRevisionId,
+        minimumUnitScaled: next?.minimumUnitScaled ?? 1,
+        pointsUserId,
+        recipientKey:
+          "recipientKey" in detail
+            ? detail.recipientKey
+            : detail.recipientAccountId
+              ? `github:${detail.recipientAccountId}`
+              : `web:${detail.normalizedRecipientProfileUrl}`,
+      });
+      autoDistribution.ledger.push(...plan.ledger);
+      autoDistribution.revisions.push(...plan.revisions);
+      autoDistribution.snapshots.push(...plan.snapshots);
+      autoDistribution.targets.push(...plan.targets);
+    }
     for (const delta of computeFixRevisionDeltas(oldValues, nextValues)) {
       const detail =
         nextByKey.get(`${delta.recipientKey}\u0000${delta.evaluationCriterionId}`) ??
@@ -268,6 +301,13 @@ export async function commitFixRows(
       heads.push({ expectedRevision: revision - 1, fixResultId, fixRevisionId, revision });
     }
     results.push({ fixResultId, fixRevisionId, revision });
+  }
+
+  if (
+    autoDistribution.ledger.filter((entry) => entry.sourceType === "AUTO_DISTRIBUTION_CREDIT")
+      .length > 1_000
+  ) {
+    throw new Error("AUTO_DISTRIBUTION_TARGET_LIMIT_EXCEEDED");
   }
 
   const responseBody = { data: { results }, meta: { requestId: input.requestId } };
@@ -318,6 +358,51 @@ export async function commitFixRows(
          AND fix_result.current_revision = json_extract(input.value, '$.expectedRevision')`,
       heads.filter((head) => "expectedRevision" in (head as object)),
     ),
+    ...jsonStatements(
+      `INSERT INTO auto_distribution_snapshot
+         (id, source_business_key_hash, source_fix_result_id, source_recipient_key,
+          initial_source_fix_revision_id, source_points_user_id, evaluation_criterion_id,
+          evaluation_criterion_revision_id, setting_revision_id, point_package_revision_id,
+          minimum_unit_scaled, weight_cutoff_exclusive, outcome, created_at)
+       SELECT json_extract(value, '$.id'), json_extract(value, '$.sourceBusinessKeyHash'),
+              json_extract(value, '$.sourceFixResultId'), json_extract(value, '$.sourceRecipientKey'),
+              json_extract(value, '$.initialSourceFixRevisionId'),
+              json_extract(value, '$.sourcePointsUserId'),
+              json_extract(value, '$.evaluationCriterionId'),
+              json_extract(value, '$.evaluationCriterionRevisionId'),
+              json_extract(value, '$.settingRevisionId'),
+              json_extract(value, '$.pointPackageRevisionId'),
+              json_extract(value, '$.minimumUnitScaled'),
+              json_extract(value, '$.weightCutoffExclusive'), json_extract(value, '$.outcome'),
+              json_extract(value, '$.createdAt') FROM json_each(?)`,
+      autoDistribution.snapshots,
+    ),
+    ...jsonStatements(
+      `INSERT INTO auto_distribution_snapshot_target
+         (id, snapshot_id, points_user_id, score, component_snapshot, tie_order)
+       SELECT json_extract(value, '$.id'), json_extract(value, '$.snapshotId'),
+              json_extract(value, '$.pointsUserId'), json_extract(value, '$.score'),
+              json(json_extract(value, '$.componentSnapshot')), json_extract(value, '$.tieOrder')
+       FROM json_each(?)`,
+      autoDistribution.targets,
+    ),
+    ...jsonStatements(
+      `INSERT INTO auto_distribution_revision
+         (id, snapshot_id, source_fix_revision_id, source_amount_scaled,
+          retained_amount_scaled, distribution_amount_scaled, source_debit_delta_scaled,
+          allocation_snapshot, credit_delta_snapshot, created_at)
+       SELECT json_extract(value, '$.id'), json_extract(value, '$.snapshotId'),
+              json_extract(value, '$.sourceFixRevisionId'),
+              json_extract(value, '$.sourceAmountScaled'),
+              json_extract(value, '$.retainedAmountScaled'),
+              json_extract(value, '$.distributionAmountScaled'),
+              json_extract(value, '$.sourceDebitDeltaScaled'),
+              json(json_extract(value, '$.allocationSnapshot')),
+              json(json_extract(value, '$.creditDeltaSnapshot')),
+              json_extract(value, '$.createdAt')
+       FROM json_each(?)`,
+      autoDistribution.revisions,
+    ),
   ];
   const ledgerWrites = [
     ...jsonStatements(
@@ -344,6 +429,19 @@ export async function commitFixRows(
               json_extract(value, '$.deltaAmountScaled'), json_extract(value, '$.evaluationAt'),
               json_extract(value, '$.createdAt') FROM json_each(?)`,
       unclaimed,
+    ),
+    ...jsonStatements(
+      `INSERT INTO point_ledger_entry
+         (id, points_user_id, evaluation_criterion_id, evaluation_criterion_revision_id,
+          delta_amount_scaled, affects_evaluation_total, source_type,
+          source_auto_distribution_revision_id, created_at)
+       SELECT json_extract(value, '$.id'), json_extract(value, '$.pointsUserId'),
+              json_extract(value, '$.evaluationCriterionId'),
+              json_extract(value, '$.evaluationCriterionRevisionId'),
+              json_extract(value, '$.deltaAmountScaled'), 0, json_extract(value, '$.sourceType'),
+              json_extract(value, '$.revisionId'), json_extract(value, '$.createdAt')
+       FROM json_each(?)`,
+      autoDistribution.ledger,
     ),
   ];
   const sealWrites = jsonStatements(

@@ -78,6 +78,13 @@
       "when": 1783926217190,
       "tag": "0010_transfer-exchange-ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1783928708833,
+      "tag": "0011_substitution-auto-distribution",
+      "breakpoints": true
     }
   ]
 }
