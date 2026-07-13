@@ -28,6 +28,14 @@ async function createUser(suffix: string) {
   return { authUserId, pointsUserId: `pusr_${suffix}` };
 }
 
+async function lapseForTest(ownershipId: string, epochId: string, now: number) {
+  await env
+    .DB!.prepare("UPDATE identity_ownership SET status = 'REVERIFYING' WHERE id = ?")
+    .bind(ownershipId)
+    .run();
+  expect(await lapseWebOwnership(env.DB!, ownershipId, epochId, now)).toBe(true);
+}
+
 async function seedUnclaimedWebFix(input: {
   actorPointsUserId: string;
   evaluationAt: string;
@@ -304,6 +312,40 @@ describe("Web ownership verification", () => {
     expect(Date.now() - startedAt).toBeLessThan(6_000);
   }, 7_000);
 
+  it("audits a failed Web verification without storing the fetched page body", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const requestId = `req-${suffix}-failed-audit`;
+    const secretBody = `PRIVATE_PAGE_BODY_${suffix}`;
+    await expect(
+      verifyWebOwnership(
+        { DB: env.DB! },
+        {
+          fetchImpl: async () =>
+            new Response(`<p>${secretBody}</p>`, {
+              headers: { "Content-Type": "text/html" },
+            }),
+          pointsUserId: user.pointsUserId,
+          requestId,
+          url: `https://failed-audit.example.net/${suffix}`,
+        },
+      ),
+    ).rejects.toMatchObject({ code: "WEB_PROFILE_LINK_NOT_FOUND" });
+
+    const audits = await env
+      .DB!.prepare(
+        `SELECT action, reason, result FROM audit_event
+         WHERE request_id = ? ORDER BY rowid`,
+      )
+      .bind(requestId)
+      .all<{ action: string; reason: string | null; result: string }>();
+    expect(audits.results.map(({ action }) => action)).toEqual([
+      "WEB_OWNERSHIP_VERIFICATION_STARTED",
+      "WEB_OWNERSHIP_VERIFICATION_FAILED",
+    ]);
+    expect(JSON.stringify(audits.results)).not.toContain(secretBody);
+  });
+
   it("replays the same key and rejects a different payload without verifying twice", async () => {
     const suffix = crypto.randomUUID();
     const user = await createUser(suffix);
@@ -352,8 +394,7 @@ describe("Web ownership verification", () => {
         url,
       },
     );
-    await lapseWebOwnership(
-      env.DB!,
+    await lapseForTest(
       initial.identityOwnershipId,
       initial.ownershipEpochId!,
       Date.now() - 10 * 86_400_000,
@@ -438,6 +479,19 @@ describe("Web ownership lifecycle", () => {
       .bind(data.identityOwnershipId)
       .first<{ status: string; epochId: string }>();
     expect(ownership).toEqual({ status: "ACTIVE", epochId: data.ownershipEpochId });
+    const successAudit = await env
+      .DB!.prepare(
+        `SELECT reason, result FROM audit_event
+         WHERE action = 'WEB_OWNERSHIP_CRON_SUCCEEDED' AND target = ?`,
+      )
+      .bind(data.identityOwnershipId)
+      .first<{ reason: string; result: string }>();
+    expect(successAudit?.result).toBe("ACTIVE");
+    expect(JSON.parse(successAudit!.reason)).toMatchObject({
+      contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      finalUrl: `https://profiles.example.net/${suffix}`,
+      method: "WEB_LINK",
+    });
     expect(
       (await env.DB!.prepare("SELECT count(*) AS count FROM fix_claim").first<{ count: number }>())!
         .count,
@@ -504,9 +558,65 @@ describe("Web ownership lifecycle", () => {
       .bind(data.identityOwnershipId)
       .first<{ status: string }>();
     expect(ownership?.status).toBe("LAPSED");
+    const cronAudits = await env
+      .DB!.prepare(
+        `SELECT action FROM audit_event
+         WHERE target = ? AND action IN ('WEB_OWNERSHIP_CRON_FAILED', 'WEB_OWNERSHIP_LAPSED')
+         ORDER BY created_at, id`,
+      )
+      .bind(data.identityOwnershipId)
+      .all<{ action: string }>();
+    expect(
+      cronAudits.results.filter(({ action }) => action === "WEB_OWNERSHIP_CRON_FAILED"),
+    ).toHaveLength(3);
+    expect(
+      cronAudits.results.filter(({ action }) => action === "WEB_OWNERSHIP_LAPSED"),
+    ).toHaveLength(1);
   });
 
-  it("opens a lag alert after fifteen minutes and resolves it on the next success", async () => {
+  it("lapses when verification succeeds after the seven-day retry window", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const firstFailureAt = Date.parse("2026-07-13T00:00:00Z");
+    const url = `https://expired-revalidation.example.net/${suffix}`;
+    const proof = () =>
+      new Response(
+        `<a href="https://points.freeism.app/profiles/${user.pointsUserId}">profile</a>`,
+        { headers: { "Content-Type": "text/html" } },
+      );
+    const initial = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: async () => proof(),
+        now: firstFailureAt - 30 * 86_400_000,
+        pointsUserId: user.pointsUserId,
+        requestId: `req-${suffix}-initial`,
+        url,
+      },
+    );
+    await env
+      .DB!.prepare(
+        `UPDATE ownership_revalidation_job
+         SET attempt = 2, cycle_started_at = ?, due_at = ?
+         WHERE identity_ownership_id = ? AND status = 'PENDING'`,
+      )
+      .bind(firstFailureAt, firstFailureAt + 3 * 86_400_000, initial.identityOwnershipId)
+      .run();
+
+    const result = await runDueWebRevalidations(
+      env.DB!,
+      firstFailureAt + 8 * 86_400_000,
+      async () => proof(),
+    );
+    expect(result).toMatchObject({ failed: 1, lapsed: 1, succeeded: 0 });
+    const ownership = await env
+      .DB!.prepare("SELECT status FROM identity_ownership WHERE id = ?")
+      .bind(initial.identityOwnershipId)
+      .first<{ status: string }>();
+    expect(ownership?.status).toBe("LAPSED");
+  });
+
+  it("resolves a lag alert after a delayed failed attempt schedules its retry", async () => {
     const suffix = crypto.randomUUID();
     const user = await createUser(suffix);
     const due = Date.parse("2026-07-13T00:00:00Z");
@@ -536,7 +646,7 @@ describe("Web ownership lifecycle", () => {
           )
           .first<{ status: string }>()
       )?.status,
-    ).toBe("OPEN");
+    ).toBe("RESOLVED");
     await runDueWebRevalidations(
       env.DB!,
       due + 15 * 60_000 + 1 + 3 * 86_400_000,
@@ -577,8 +687,7 @@ describe("Web ownership lifecycle", () => {
         url,
       },
     );
-    await lapseWebOwnership(
-      env.DB!,
+    await lapseForTest(
       initial.identityOwnershipId,
       initial.ownershipEpochId!,
       start + 30 * 86_400_000,
@@ -669,12 +778,7 @@ describe("Web ownership lifecycle", () => {
         url,
       },
     );
-    await lapseWebOwnership(
-      env.DB!,
-      initial.identityOwnershipId,
-      initial.ownershipEpochId!,
-      start + 86_400_000,
-    );
+    await lapseForTest(initial.identityOwnershipId, initial.ownershipEpochId!, start + 86_400_000);
     const firstAt = start + 2 * 86_400_000;
     await verifyWebOwnership(
       { DB: env.DB! },
@@ -705,6 +809,68 @@ describe("Web ownership lifecycle", () => {
       .bind(initial.identityOwnershipId)
       .first<{ firstSuccessAt: number }>();
     expect(candidate?.firstSuccessAt).toBe(resetAt);
+  });
+
+  it("audits a pending reownership success with only safe fetch evidence", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const start = Date.parse("2026-07-01T00:00:00Z");
+    const url = `https://pending-audit.example.net/${suffix}`;
+    const secretBody = `PRIVATE_PENDING_BODY_${suffix}`;
+    const fetcher: typeof fetch = async () =>
+      new Response(
+        `<a href="https://points.freeism.app/profiles/${user.pointsUserId}">profile</a>${secretBody}`,
+        { headers: { "Content-Type": "text/html" } },
+      );
+    const initial = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: fetcher,
+        now: start,
+        pointsUserId: user.pointsUserId,
+        requestId: `req-${suffix}-initial`,
+        url,
+      },
+    );
+    await env
+      .DB!.prepare("UPDATE identity_ownership SET status = 'REVERIFYING' WHERE id = ?")
+      .bind(initial.identityOwnershipId)
+      .run();
+    expect(
+      await lapseWebOwnership(
+        env.DB!,
+        initial.identityOwnershipId,
+        initial.ownershipEpochId!,
+        start + 30 * 86_400_000,
+      ),
+    ).toBe(true);
+    const requestId = `req-${suffix}-pending`;
+    const pending = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: fetcher,
+        now: start + 31 * 86_400_000,
+        pointsUserId: user.pointsUserId,
+        requestId,
+        url,
+      },
+    );
+    expect(pending.status).toBe("PENDING_REOWNERSHIP");
+
+    const audit = await env
+      .DB!.prepare(
+        `SELECT action, reason, result FROM audit_event
+         WHERE request_id = ? AND action = 'WEB_OWNERSHIP_REOWNERSHIP_PENDING'`,
+      )
+      .bind(requestId)
+      .first<{ action: string; reason: string; result: string }>();
+    expect(audit?.result).toBe("PENDING_REOWNERSHIP");
+    expect(JSON.parse(audit!.reason)).toMatchObject({
+      contentHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      finalUrl: url,
+      method: "WEB_LINK",
+    });
+    expect(audit?.reason).not.toContain(secretBody);
   });
 
   it("leases at most fifty due ownerships per scheduler run", async () => {
@@ -802,5 +968,221 @@ describe("Web ownership lifecycle", () => {
       runDueWebRevalidations(env.DB!, due, fetcher),
     ]);
     expect(results[0]!.leased + results[1]!.leased).toBe(1);
+  });
+
+  it("does not lapse an ownership after a leased job was superseded by manual revalidation", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const due = Date.parse("2026-07-13T00:00:00Z");
+    const url = `https://superseded-lease.example.net/${suffix}`;
+    const proof = () =>
+      new Response(
+        `<a href="https://points.freeism.app/profiles/${user.pointsUserId}">profile</a>`,
+        { headers: { "Content-Type": "text/html" } },
+      );
+    const initial = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: async () => proof(),
+        now: due - 30 * 86_400_000,
+        pointsUserId: user.pointsUserId,
+        requestId: `req-${suffix}-initial`,
+        url,
+      },
+    );
+    await env
+      .DB!.prepare(
+        `UPDATE ownership_revalidation_job
+         SET attempt = 3, cycle_started_at = ?, due_at = ?
+         WHERE identity_ownership_id = ? AND status = 'PENDING'`,
+      )
+      .bind(due - 7 * 86_400_000, due, initial.identityOwnershipId)
+      .run();
+
+    await runDueWebRevalidations(env.DB!, due, async () => {
+      await verifyWebOwnership(
+        { DB: env.DB! },
+        {
+          fetchImpl: async () => proof(),
+          now: due + 1,
+          pointsUserId: user.pointsUserId,
+          requestId: `req-${suffix}-manual`,
+          url,
+        },
+      );
+      throw new Error("stale cron result");
+    });
+
+    const ownership = await env
+      .DB!.prepare(
+        `SELECT ownership.status, epoch.ended_at AS endedAt
+         FROM identity_ownership ownership
+         JOIN ownership_epoch epoch ON epoch.id = ownership.current_ownership_epoch_id
+         WHERE ownership.id = ?`,
+      )
+      .bind(initial.identityOwnershipId)
+      .first<{ endedAt: number | null; status: string }>();
+    expect(ownership).toEqual({ endedAt: null, status: "ACTIVE" });
+  });
+
+  it("does not reactivate a lapsed epoch when ownership changes after the manual revalidation read", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const now = Date.parse("2026-07-13T00:00:00Z");
+    const url = `https://manual-cas.example.net/${suffix}`;
+    const proof = () =>
+      new Response(
+        `<a href="https://points.freeism.app/profiles/${user.pointsUserId}">profile</a>`,
+        { headers: { "Content-Type": "text/html" } },
+      );
+    const initial = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: async () => proof(),
+        now: now - 30 * 86_400_000,
+        pointsUserId: user.pointsUserId,
+        requestId: `req-${suffix}-initial`,
+        url,
+      },
+    );
+    let changedAfterRead = false;
+    const wrapStatement = (
+      statement: D1PreparedStatement,
+      interceptFirst: boolean,
+    ): D1PreparedStatement =>
+      new Proxy(statement, {
+        get(target, property) {
+          if (property === "bind") {
+            return (...values: unknown[]) => wrapStatement(target.bind(...values), interceptFirst);
+          }
+          if (property === "first" && interceptFirst) {
+            return async <T>() => {
+              const row = await target.first<T>();
+              if (!changedAfterRead) {
+                changedAfterRead = true;
+                await env.DB!.batch([
+                  env
+                    .DB!.prepare(
+                      "UPDATE identity_ownership SET status = 'REVERIFYING' WHERE id = ?",
+                    )
+                    .bind(initial.identityOwnershipId),
+                  env
+                    .DB!.prepare(
+                      "UPDATE ownership_epoch SET ended_at = ? WHERE id = ? AND ended_at IS NULL",
+                    )
+                    .bind(now, initial.ownershipEpochId),
+                  env
+                    .DB!.prepare(
+                      "UPDATE identity_ownership SET status = 'LAPSED', next_verification_at = NULL WHERE id = ?",
+                    )
+                    .bind(initial.identityOwnershipId),
+                ]);
+              }
+              return row;
+            };
+          }
+          const value = Reflect.get(target, property, target) as unknown;
+          return typeof value === "function" ? value.bind(target) : value;
+        },
+      });
+    const racingDb = new Proxy(env.DB!, {
+      get(target, property) {
+        if (property === "prepare") {
+          return (query: string) =>
+            wrapStatement(
+              target.prepare(query),
+              query.includes("FROM identity_ownership") &&
+                query.includes("normalized_identity_key = ?"),
+            );
+        }
+        const value = Reflect.get(target, property, target) as unknown;
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+
+    await expect(
+      verifyWebOwnership(
+        { DB: racingDb },
+        {
+          fetchImpl: async () => proof(),
+          now: now + 1,
+          pointsUserId: user.pointsUserId,
+          requestId: `req-${suffix}-manual`,
+          url,
+        },
+      ),
+    ).rejects.toMatchObject({ code: "WEB_OWNERSHIP_CHANGED" });
+    const ownership = await env
+      .DB!.prepare("SELECT status FROM identity_ownership WHERE id = ?")
+      .bind(initial.identityOwnershipId)
+      .first<{ status: string }>();
+    expect(ownership?.status).toBe("LAPSED");
+  });
+
+  it("does not report success when ownership lapses between manual activation and job superseding", async () => {
+    const suffix = crypto.randomUUID();
+    const user = await createUser(suffix);
+    const now = Date.parse("2026-07-13T00:00:00Z");
+    const url = `https://manual-batch-cas.example.net/${suffix}`;
+    const proof = () =>
+      new Response(
+        `<a href="https://points.freeism.app/profiles/${user.pointsUserId}">profile</a>`,
+        { headers: { "Content-Type": "text/html" } },
+      );
+    const initial = await verifyWebOwnership(
+      { DB: env.DB! },
+      {
+        fetchImpl: async () => proof(),
+        now: now - 30 * 86_400_000,
+        pointsUserId: user.pointsUserId,
+        requestId: `req-${suffix}-initial`,
+        url,
+      },
+    );
+    let raced = false;
+    const racingDb = new Proxy(env.DB!, {
+      get(target, property) {
+        if (property === "batch") {
+          return async (statements: D1PreparedStatement[]) => {
+            if (!raced) {
+              raced = true;
+              await env
+                .DB!.prepare("UPDATE identity_ownership SET status = 'REVERIFYING' WHERE id = ?")
+                .bind(initial.identityOwnershipId)
+                .run();
+              expect(
+                await lapseWebOwnership(
+                  env.DB!,
+                  initial.identityOwnershipId,
+                  initial.ownershipEpochId!,
+                  now,
+                ),
+              ).toBe(true);
+            }
+            return target.batch(statements);
+          };
+        }
+        const value = Reflect.get(target, property, target) as unknown;
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+
+    await expect(
+      verifyWebOwnership(
+        { DB: racingDb },
+        {
+          fetchImpl: async () => proof(),
+          now: now + 1,
+          pointsUserId: user.pointsUserId,
+          requestId: `req-${suffix}-manual`,
+          url,
+        },
+      ),
+    ).rejects.toMatchObject({ code: "WEB_OWNERSHIP_CHANGED" });
+    const ownership = await env
+      .DB!.prepare("SELECT status FROM identity_ownership WHERE id = ?")
+      .bind(initial.identityOwnershipId)
+      .first<{ status: string }>();
+    expect(ownership?.status).toBe("LAPSED");
   });
 });

@@ -58,14 +58,23 @@ async function audit(
   target: string,
   requestId: string,
   result: string,
+  safeDetails?: Record<string, number | string>,
 ): Promise<void> {
   await db
     .prepare(
       `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, request_id, result)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+         (id, actor_points_user_id, action, target, reason, request_id, result)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
-    .bind(`audit_${crypto.randomUUID()}`, pointsUserId, action, target, requestId, result)
+    .bind(
+      `audit_${crypto.randomUUID()}`,
+      pointsUserId,
+      action,
+      target,
+      safeDetails ? JSON.stringify(safeDetails) : null,
+      requestId,
+      result,
+    )
     .run();
 }
 
@@ -104,13 +113,37 @@ export async function verifyWebOwnership(
   } catch {
     throw new WebOwnershipError("WEB_URL_UNSAFE");
   }
+  await audit(
+    env.DB,
+    input.pointsUserId,
+    "WEB_OWNERSHIP_VERIFICATION_STARTED",
+    normalizedUrl,
+    input.requestId,
+    "STARTED",
+    { method: "WEB_LINK", normalizedUrl },
+  );
   let page;
   try {
     page = await fetchSafePage(normalizedUrl, input.fetchImpl);
   } catch (error) {
-    if (error instanceof SafePageFetchError) throw new WebOwnershipError(error.code);
-    throw error;
+    const code = error instanceof SafePageFetchError ? error.code : "WEB_PAGE_FETCH_FAILED";
+    await audit(
+      env.DB,
+      input.pointsUserId,
+      "WEB_OWNERSHIP_VERIFICATION_FAILED",
+      normalizedUrl,
+      input.requestId,
+      code,
+      { errorCode: code, method: "WEB_LINK", normalizedUrl },
+    );
+    throw new WebOwnershipError(code);
   }
+  const verificationDetails = {
+    contentHash: page.contentHash,
+    finalUrl: page.finalUrl,
+    method: "WEB_LINK",
+    normalizedUrl,
+  };
   if (
     !(await hasProfileLinkEvidence({
       documentUrl: page.finalUrl,
@@ -120,6 +153,15 @@ export async function verifyWebOwnership(
       profileUrl: profileUrl(input.pointsUserId),
     }))
   ) {
+    await audit(
+      env.DB,
+      input.pointsUserId,
+      "WEB_OWNERSHIP_VERIFICATION_FAILED",
+      normalizedUrl,
+      input.requestId,
+      "WEB_PROFILE_LINK_NOT_FOUND",
+      verificationDetails,
+    );
     throw new WebOwnershipError("WEB_PROFILE_LINK_NOT_FOUND");
   }
 
@@ -164,6 +206,7 @@ export async function verifyWebOwnership(
       ownershipId,
       input.requestId,
       "ACTIVE",
+      verificationDetails,
     );
     return {
       claimPreview: await claimPreview(ownershipId),
@@ -178,14 +221,76 @@ export async function verifyWebOwnership(
   if (existing.status === "ACTIVE" || existing.status === "REVERIFYING") {
     if (existing.pointsUserId !== input.pointsUserId)
       throw new WebOwnershipError("WEB_OWNERSHIP_ALREADY_ACTIVE");
-    await env.DB.prepare(
-      `UPDATE identity_ownership
-       SET status = 'ACTIVE', verified_at = ?, next_verification_at = ?
-       WHERE id = ?`,
-    )
-      .bind(now, now + REVALIDATION_INTERVAL, existing.id)
-      .run();
-    await scheduleNextCycle(env.DB, existing.id, existing.epochId, now);
+    const nextVerificationAt = now + REVALIDATION_INTERVAL;
+    const cycleId = `ovc_${crypto.randomUUID()}`;
+    const jobId = `ovj_${crypto.randomUUID()}`;
+    const reverified = await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE identity_ownership
+         SET status = 'ACTIVE', verified_at = ?, next_verification_at = ?
+         WHERE id = ? AND points_user_id = ? AND current_ownership_epoch_id = ?
+           AND status = ?`,
+      ).bind(
+        now,
+        nextVerificationAt,
+        existing.id,
+        input.pointsUserId,
+        existing.epochId,
+        existing.status,
+      ),
+      env.DB.prepare(
+        `UPDATE ownership_revalidation_job
+         SET status = 'FAILED', completed_at = ?, lease_until = NULL,
+             error_code = 'SUPERSEDED'
+         WHERE identity_ownership_id = ? AND status IN ('PENDING', 'LEASED')
+           AND EXISTS (
+             SELECT 1 FROM identity_ownership ownership
+             WHERE ownership.id = ? AND ownership.points_user_id = ?
+               AND ownership.current_ownership_epoch_id = ? AND ownership.status = 'ACTIVE'
+               AND ownership.verified_at = ? AND ownership.next_verification_at = ?
+           )`,
+      ).bind(
+        now,
+        existing.id,
+        existing.id,
+        input.pointsUserId,
+        existing.epochId,
+        now,
+        nextVerificationAt,
+      ),
+      env.DB.prepare(
+        `INSERT INTO ownership_revalidation_job
+           (id, identity_ownership_id, ownership_epoch_id, verification_cycle_id,
+            attempt, due_at, status)
+         SELECT ?, ?, ?, ?, 1, ?, 'PENDING'
+         WHERE EXISTS (
+           SELECT 1 FROM identity_ownership ownership
+           WHERE ownership.id = ? AND ownership.points_user_id = ?
+             AND ownership.current_ownership_epoch_id = ? AND ownership.status = 'ACTIVE'
+             AND ownership.verified_at = ? AND ownership.next_verification_at = ?
+         )`,
+      ).bind(
+        jobId,
+        existing.id,
+        existing.epochId,
+        cycleId,
+        nextVerificationAt,
+        existing.id,
+        input.pointsUserId,
+        existing.epochId,
+        now,
+        nextVerificationAt,
+      ),
+    ]);
+    if ((reverified[0]?.meta.changes ?? 0) !== 1 || (reverified[2]?.meta.changes ?? 0) !== 1) {
+      await env.DB.prepare(
+        `SELECT status, current_ownership_epoch_id AS epochId
+         FROM identity_ownership WHERE id = ?`,
+      )
+        .bind(existing.id)
+        .first();
+      throw new WebOwnershipError("WEB_OWNERSHIP_CHANGED");
+    }
     await audit(
       env.DB,
       input.pointsUserId,
@@ -193,6 +298,7 @@ export async function verifyWebOwnership(
       existing.id,
       input.requestId,
       "ACTIVE",
+      verificationDetails,
     );
     return {
       claimPreview: await claimPreview(existing.id),
@@ -257,6 +363,15 @@ export async function verifyWebOwnership(
         now,
       )
       .run();
+    await audit(
+      env.DB,
+      input.pointsUserId,
+      "WEB_OWNERSHIP_REOWNERSHIP_PENDING",
+      existing.id,
+      input.requestId,
+      "PENDING_REOWNERSHIP",
+      { ...verificationDetails, successCount: count },
+    );
     return {
       claimPreview: null,
       effectiveAt: null,
@@ -296,6 +411,7 @@ export async function verifyWebOwnership(
     existing.id,
     input.requestId,
     "ACTIVE",
+    verificationDetails,
   );
   return {
     claimPreview: await claimPreview(existing.id),

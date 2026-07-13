@@ -1,5 +1,5 @@
 import { hasProfileLinkEvidence } from "../ownership/profile-link-evidence";
-import { fetchSafePage } from "../ownership/safe-page-fetcher";
+import { fetchSafePage, SafePageFetchError } from "../ownership/safe-page-fetcher";
 import { lapseWebOwnership } from "./lapse-web-ownership";
 
 const DAY = 86_400_000;
@@ -52,6 +52,30 @@ async function resolveLagAlert(db: D1Database, ownershipId: string, now: number)
        WHERE alert_key = ? AND status = 'OPEN'`,
     )
     .bind(now, now, `ownership-scheduler-lag:${resourceHash}`)
+    .run();
+}
+
+async function auditCron(
+  db: D1Database,
+  job: DueJob,
+  action: string,
+  result: string,
+  safeDetails: Record<string, number | string>,
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO audit_event
+         (id, actor_points_user_id, action, target, reason, request_id, result)
+       VALUES (?, NULL, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      `audit_${crypto.randomUUID()}`,
+      action,
+      job.identityOwnershipId,
+      JSON.stringify(safeDetails),
+      `cron_${job.id}_${job.attempt}`,
+      result,
+    )
     .run();
 }
 
@@ -120,6 +144,7 @@ export async function runDueWebRevalidations(
         )
         .bind(now, job.id)
         .run();
+      await resolveLagAlert(db, job.identityOwnershipId, now);
       continue;
     }
     const ownership = await db
@@ -127,9 +152,20 @@ export async function runDueWebRevalidations(
       .bind(job.identityOwnershipId)
       .first<{ url: string }>();
     let verified = false;
+    let verificationFailureCode = "WEB_PROFILE_LINK_NOT_FOUND";
+    let verificationDetails: Record<string, number | string> = {
+      method: "WEB_LINK",
+      normalizedUrl: ownership?.url ?? "OWNERSHIP_NOT_FOUND",
+    };
     try {
       if (!ownership) throw new Error("OWNERSHIP_NOT_FOUND");
       const page = await fetchSafePage(ownership.url, fetchImpl);
+      verificationDetails = {
+        contentHash: page.contentHash,
+        finalUrl: page.finalUrl,
+        method: "WEB_LINK",
+        normalizedUrl: ownership.url,
+      };
       verified = await hasProfileLinkEvidence({
         documentUrl: page.finalUrl,
         html: page.text,
@@ -137,8 +173,48 @@ export async function runDueWebRevalidations(
         parseHtml: page.mediaType === "text/html",
         profileUrl: profileUrl(job.pointsUserId),
       });
-    } catch {
+    } catch (error) {
       verified = false;
+      verificationFailureCode =
+        error instanceof SafePageFetchError ? error.code : "WEB_PAGE_FETCH_FAILED";
+      verificationDetails = { ...verificationDetails, errorCode: verificationFailureCode };
+    }
+    const revalidationWindowExpired =
+      job.cycleStartedAt !== null && now > job.cycleStartedAt + 7 * DAY;
+    if (verified && revalidationWindowExpired) {
+      const expiredJob = await db
+        .prepare(
+          `UPDATE ownership_revalidation_job
+           SET status = 'FAILED', completed_at = ?, lease_until = NULL,
+               error_code = 'REVALIDATION_WINDOW_EXPIRED'
+           WHERE id = ? AND status = 'LEASED'`,
+        )
+        .bind(now, job.id)
+        .run();
+      if ((expiredJob.meta.changes ?? 0) !== 1) {
+        await resolveLagAlert(db, job.identityOwnershipId, now);
+        continue;
+      }
+      failed += 1;
+      await auditCron(db, job, "WEB_OWNERSHIP_CRON_FAILED", "REVALIDATION_WINDOW_EXPIRED", {
+        ...verificationDetails,
+        errorCode: "REVALIDATION_WINDOW_EXPIRED",
+      });
+      const didLapse = await lapseWebOwnership(
+        db,
+        job.identityOwnershipId,
+        job.ownershipEpochId,
+        now,
+      );
+      await resolveLagAlert(db, job.identityOwnershipId, now);
+      if (didLapse) {
+        lapsed += 1;
+        await auditCron(db, job, "WEB_OWNERSHIP_LAPSED", "LAPSED", {
+          ...verificationDetails,
+          errorCode: "REVALIDATION_WINDOW_EXPIRED",
+        });
+      }
+      continue;
     }
     if (verified) {
       const nextCycleId = `ovc_${crypto.randomUUID()}`;
@@ -161,6 +237,7 @@ export async function runDueWebRevalidations(
           )
           .bind(now, job.id)
           .run();
+        await resolveLagAlert(db, job.identityOwnershipId, now);
         continue;
       }
       await db.batch([
@@ -187,13 +264,14 @@ export async function runDueWebRevalidations(
           ),
       ]);
       await resolveLagAlert(db, job.identityOwnershipId, now);
+      await auditCron(db, job, "WEB_OWNERSHIP_CRON_SUCCEEDED", "ACTIVE", verificationDetails);
       succeeded += 1;
       continue;
     }
 
     failed += 1;
     const cycleStartedAt = job.cycleStartedAt ?? now;
-    await db
+    const failedJob = await db
       .prepare(
         `UPDATE ownership_revalidation_job
          SET status = 'FAILED', completed_at = ?, lease_until = NULL,
@@ -202,10 +280,29 @@ export async function runDueWebRevalidations(
       )
       .bind(now, cycleStartedAt, job.id)
       .run();
-    if (job.attempt >= 3) {
-      await lapseWebOwnership(db, job.identityOwnershipId, job.ownershipEpochId, now);
+    if ((failedJob.meta.changes ?? 0) !== 1) {
       await resolveLagAlert(db, job.identityOwnershipId, now);
-      lapsed += 1;
+      continue;
+    }
+    await auditCron(db, job, "WEB_OWNERSHIP_CRON_FAILED", verificationFailureCode, {
+      ...verificationDetails,
+      errorCode: verificationFailureCode,
+    });
+    if (job.attempt >= 3) {
+      const didLapse = await lapseWebOwnership(
+        db,
+        job.identityOwnershipId,
+        job.ownershipEpochId,
+        now,
+      );
+      await resolveLagAlert(db, job.identityOwnershipId, now);
+      if (didLapse) {
+        lapsed += 1;
+        await auditCron(db, job, "WEB_OWNERSHIP_LAPSED", "LAPSED", {
+          ...verificationDetails,
+          errorCode: verificationFailureCode,
+        });
+      }
       continue;
     }
     const nextAttempt = job.attempt + 1;
@@ -227,6 +324,7 @@ export async function runDueWebRevalidations(
         cycleStartedAt,
       )
       .run();
+    await resolveLagAlert(db, job.identityOwnershipId, now);
   }
   return { failed, lapsed, leased: jobs.length, succeeded };
 }
