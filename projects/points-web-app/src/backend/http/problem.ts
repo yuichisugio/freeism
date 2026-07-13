@@ -2,7 +2,7 @@ import type { Context } from "hono";
 
 import type { BackendContext } from "./context";
 
-type ProblemStatus = 400 | 401 | 403 | 409 | 422;
+type ProblemStatus = 400 | 401 | 403 | 409 | 413 | 422;
 
 export function problem(
   context: Context<BackendContext>,
