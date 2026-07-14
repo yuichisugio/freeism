@@ -55,7 +55,17 @@ describe("Blume production build contract", () => {
         expect(html, route).not.toMatch(
           /href="\/?(?:en\/)?(?:freeism|note\/note)\/?(?:[#?"])/u,
         );
+        expect(html, route).not.toMatch(
+          /href="(?:\.\/)?freeism\.(?:ja|en)\.md"/u,
+        );
       }
+
+      expect(await readFile(new URL("index.html", dist), "utf8")).toContain(
+        'href="/en/"',
+      );
+      expect(await readFile(new URL("en/index.html", dist), "utf8")).toContain(
+        'href="/"',
+      );
 
       for (const alias of generatedAliases) {
         await expect(access(new URL(alias, dist))).rejects.toThrow();

@@ -17,15 +17,31 @@ const documentByRef = new Map<
   canonicalDocuments.map((document) => [document.ref, document]),
 );
 
+const canonicalLocaleLinks = new Map<string, readonly [string, string]>([
+  ["index.ja.md", ["(freeism.en.md)", "(/en/)"]],
+  ["index.en.md", ["(freeism.ja.md)", "(/)"]],
+] as const);
+
+const prepareRenderedSource = (source: string, ref: string) => {
+  const localeLink = canonicalLocaleLinks.get(ref);
+  if (!localeLink) {
+    return source;
+  }
+
+  const [legacyTarget, publicTarget] = localeLink;
+  return source.replace(legacyTarget, publicTarget);
+};
+
 const loadEntry = async (
   document: (typeof canonicalDocuments)[number],
 ): Promise<SourceEntry> => {
   const source = await readFile(document.file, "utf8");
+  const renderedSource = prepareRenderedSource(source, document.ref);
 
   return {
-    body: { format: "md", text: source },
+    body: { format: "md", text: renderedSource },
     data: {},
-    raw: source,
+    raw: renderedSource,
     ref: document.ref,
     sourcePath: fileURLToPath(document.file),
   };

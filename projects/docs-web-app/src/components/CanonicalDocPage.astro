@@ -77,6 +77,23 @@ const canonical = data.config.site
   <BlumePage collection="staged" id={contentRoute.entryId} />
 </RootLayout>
 
+<style is:global>
+  .prose {
+    overflow-wrap: anywhere;
+  }
+
+  .prose pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .prose pre code {
+    width: max-content;
+    min-width: 100%;
+    overflow: visible;
+  }
+</style>
+
 <script>
   import { normalizeMermaidSource } from "../normalize-mermaid-source";
 
