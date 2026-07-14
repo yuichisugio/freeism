@@ -6,9 +6,6 @@ on:
       - main
     paths:
       - "projects/web-app/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
       - ".github/workflows/web-app/**"
       - ".github/actions/web-app-setup/**"
 

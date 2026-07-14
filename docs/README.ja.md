@@ -24,6 +24,7 @@ freeism/
 ├── docs/                     # リポジトリ用ドキュメント
 └── projects/                 # モノレポ管理対象のプロジェクト
     ├── docs-web-app/         # 無料主義の仕様
+    ├── main-web-app/         # freeism.app ポータル
     ├── points-web-app/       # points.freeism.app
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # v0.2切替まで保持する旧実装
@@ -33,7 +34,8 @@ freeism/
 
 | パス(README.md)                                                      | 説明                              |
 | -------------------------------------------------------------------- | --------------------------------- |
-| [`projects/docs-web-app/`](../projects/docs-web-app/README.md)       | 無料主義の仕様                    |
+| [`projects/main-web-app/`](../projects/main-web-app/)                | freeism.app ポータル              |
+| [`projects/docs-web-app/`](../projects/docs-web-app/README.md)       | docs.freeism.app と無料主義の仕様 |
 | [`projects/points-web-app/`](../projects/points-web-app/README.md)   | Points Web アプリ                 |
 | [`projects/markets-web-app/`](../projects/markets-web-app/README.md) | Markets Web アプリ                |
 | [`docs/web-app/`](./web-app/README.md)                               | Web アプリ横断仕様                |

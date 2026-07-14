@@ -17,7 +17,8 @@
 
 | Path                                                       | Description                                                                                     |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [`projects/docs-web-app/`](./projects/docs-web-app/)       | Freeism specification                                                                           |
+| [`projects/main-web-app/`](./projects/main-web-app/)       | `freeism.app` portal                                                                            |
+| [`projects/docs-web-app/`](./projects/docs-web-app/)       | `docs.freeism.app` Blume documentation site and Freeism specification                           |
 | [`docs/`](./docs/)                                         | Markdown for the repository root (this README in Japanese, the Japanese code of conduct, etc.). |
 | [`projects/points-web-app/`](./projects/points-web-app/)   | `points.freeism.app` frontend/backend specs and implementation plan                             |
 | [`projects/markets-web-app/`](./projects/markets-web-app/) | `markets.freeism.app` frontend/backend specs and implementation plan                            |
@@ -34,6 +35,7 @@ freeism/
 ├── docs/                     # Documentation for this repository
 └── projects/                 # Monorepo projects
     ├── docs-web-app/         # Freeism specification
+    ├── main-web-app/         # freeism.app portal
     ├── points-web-app/       # points.freeism.app
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # Legacy app until v0.2 cutover

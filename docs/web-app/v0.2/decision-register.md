@@ -284,7 +284,7 @@
 | DEC-187 | 採用       | D1 migrationは新規chainを0000から開始し、forward-only／expand-contractとする。                                                                      | Prisma／Supabase migration移植を禁止。                  | ARCH       |
 | DEC-188 | 採用       | ProductionはWorkers PaidとD1 Time Travel 30日をrelease条件とし、通常rollbackにTime Travelを使わない。                                               | Free plan 7日を不採用。                                 | ARCH       |
 | DEC-189 | 採用       | v0.2では定期D1 export→R2 backupを導入しない。                                                                                                       | `other.md`の長期backup案を対象外。                      | ARCH       |
-| DEC-190 | 採用       | apexと`www`は旧path／queryを保持せず`https://points.freeism.app/`へ恒久redirectする。                                                               | 旧Auction URL互換を作らない。                           | ARCH       |
+| DEC-190 | 上書き済み | apexと`www`は旧path／queryを保持せず`https://points.freeism.app/`へ恒久redirectする。                                                               | DEC-262が上書き。                                       | 本書       |
 | DEC-191 | 採用       | Cloudflare acceptance後にVercel、Supabase、Upstash、旧画像R2、旧Secret／workflowを確認のうえ撤去する。                                              | 旧基盤併用を不採用。                                    | ARCH       |
 
 ## 16. Security・Rate Limit・Audit・Test
@@ -380,6 +380,7 @@
 | DEC-259 | 承認対象 | 貢献評価代用は有向method revisionとUTC月別result revisionを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。                                                                                                  | cycle／二重付与／負値の丸め／訂正先落ちを一意にする補完方式。                                                                                                        | POINTS                |
 | DEC-260 | 承認対象 | 自動分配は正FIXだけを対象に、PERCENT 0.001〜100%または固定保持額をminimumUnitへ切下げ、Package componentごとの`max(evaluationTotal,0) × weight`をscoreとする最大剰余方式で配り切る。対象者とcreditは各1,000上限、訂正は初回snapshotの同じ対象へ差分だけを追加する。                                                                                 | 浮動小数、非決定tie、暗黙上位切捨て、訂正時の対象差替えを防ぐ補完方式。                                                                                              | POINTS                |
 | DEC-261 | 承認対象 | Account closeは永久OAuth ownershipをINACTIVE、ACTIVEな汎用Web epochを`endedAt`で終了し、close中の正負FIXを未受領で保留する。再開は永久主体の全保留FIXを選択不可previewし、Google fresh＋`reopenSetHash`でACTIVE化、永久ownership再有効化、正負一括claim／ledger、Session rotationを原子的に行い、汎用Webと匿名化属性は復元しない。                  | 永久主体で元userへ戻す既存方針と、close中FIX／負残高／Web再所有の扱いを閉じる補完方式。                                                                              | AUTH, POINTS          |
+| DEC-262 | 採用     | apex `freeism.app`は独立ポータルを配信し、Docs／Points／Marketsへ通常のHTTPSリンクで案内する。`www`はapexへ正規化し、apexからPointsへの恒久redirectは行わない。                                                                                                                                                                                     | DEC-190を上書きし、4つの公開サイトの境界を分離する。                                                                                                                 | ARCH                  |
 
 ## 20. 文書適用規則
 
