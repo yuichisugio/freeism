@@ -380,7 +380,7 @@ test("Task 12〜15とopsの将来schema invariantを構造で固定する", asyn
       type: "table",
       name: "settlement_allocations",
       tbl_name: "settlement_allocations",
-      sql: 'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length("settlement_allocations"."vector_hash") = 64))',
+      sql: 'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length("settlement_allocations"."vector_hash") = 64 or (length("settlement_allocations"."vector_hash") = 71 and substr("settlement_allocations"."vector_hash", 1, 7) = \'sha256:\')))',
     },
     {
       type: "table",
@@ -531,6 +531,19 @@ test("Task 12〜15とopsの将来schema invariantを構造で固定する", asyn
   ];
 
   assert.doesNotThrow(() => assertFutureSchemaInvariants(rows));
+  for (const sql of [
+    'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length("settlement_allocations"."vector_hash") = 64))',
+    'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length("settlement_allocations"."vector_hash") = 64 or (length("settlement_allocations"."vector_hash") = 71 and substr("settlement_allocations"."vector_hash", 1, 7) = \'SHA256:\')))',
+    'CREATE TABLE settlement_allocations (CONSTRAINT "settlement_allocations_vector_hash_check" CHECK (length("settlement_allocations"."vector_hash") = 64 or (length("settlement_allocations"."vector_hash") = 70 and substr("settlement_allocations"."vector_hash", 1, 7) = \'sha256:\')))',
+  ]) {
+    assert.throws(
+      () =>
+        assertFutureSchemaInvariants(
+          rows.map((row) => (row.name === "settlement_allocations" ? { ...row, sql } : row)),
+        ),
+      /missing allocation vector hash check/i,
+    );
+  }
   for (const [table, constraint] of [
     ["settlement_capture_receipts", "settlement_capture_receipts_plan_hash_check"],
     ["settlement_allocations", "settlement_allocations_vector_hash_check"],

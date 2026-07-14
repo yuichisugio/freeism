@@ -167,17 +167,20 @@ const REQUIRED_SCHEMA_INVARIANTS = [
   }),
 ];
 
+function matchesAllocationVectorHashCheck(sql) {
+  const match = sql.match(
+    /settlement_allocations_vector_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_allocations["`]?\s*\.\s*)?["`]?vector_hash["`]?\s*\)\s*=\s*64\s+or\s*\(\s*length\s*\(\s*(?:["`]?settlement_allocations["`]?\s*\.\s*)?["`]?vector_hash["`]?\s*\)\s*=\s*71\s+and\s+substr\s*\(\s*(?:["`]?settlement_allocations["`]?\s*\.\s*)?["`]?vector_hash["`]?\s*,\s*1\s*,\s*7\s*\)\s*=\s*'sha256:'\s*\)\s*\)/i,
+  );
+  return match !== null && match[0].includes("'sha256:'");
+}
+
 const REQUIRED_FUTURE_TABLE_INVARIANTS = [
   [
     "settlement_capture_receipts",
     /settlement_capture_receipts_plan_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_capture_receipts["`]?\s*\.\s*)?["`]?plan_hash["`]?\s*\)\s*=\s*64\s*\)/i,
     "capture receipt plan hash check",
   ],
-  [
-    "settlement_allocations",
-    /settlement_allocations_vector_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_allocations["`]?\s*\.\s*)?["`]?vector_hash["`]?\s*\)\s*=\s*64\s*\)/i,
-    "allocation vector hash check",
-  ],
+  ["settlement_allocations", matchesAllocationVectorHashCheck, "allocation vector hash check"],
   [
     "proofs",
     /proofs_content_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?proofs["`]?\s*\.\s*)?["`]?content_hash["`]?\s*\)\s*=\s*64\s*\)/i,
@@ -399,9 +402,11 @@ function hasAbortTrigger(rows, table, operation) {
 
 export function assertFutureSchemaInvariants(rows) {
   const byKey = new Map(rows.map((row) => [`${row.type}:${row.name}`, row.sql ?? ""]));
-  for (const [name, pattern, label] of REQUIRED_FUTURE_TABLE_INVARIANTS) {
+  for (const [name, invariant, label] of REQUIRED_FUTURE_TABLE_INVARIANTS) {
     const sql = byKey.get(`table:${name}`);
-    if (!sql || !pattern.test(sql)) throw new Error(`empty D1 is missing ${label}`);
+    const matches =
+      typeof invariant === "function" ? invariant(sql ?? "") : invariant.test(sql ?? "");
+    if (!sql || !matches) throw new Error(`empty D1 is missing ${label}`);
   }
   for (const [table, columns, unique, label] of REQUIRED_FUTURE_INDEX_CONTRACTS) {
     const pattern = indexColumnsPattern(table, columns, unique);
