@@ -94,17 +94,23 @@ export function releaseTargetFromConfig(config, environment) {
     ["staging", stagingDatabase],
     ["production", productionDatabase],
   ]) {
+    const mustBeConfigured = name === environment;
     if (
-      database.database_name !== `markets-${name}` ||
-      !database.database_id ||
-      database.migrations_dir !== "drizzle"
+      (mustBeConfigured || database.database_id) &&
+      (database.database_name !== `markets-${name}` ||
+        !database.database_id ||
+        database.migrations_dir !== "drizzle")
     ) {
       throw new Error(
         `source wrangler ${name} D1 DB must have database_name=markets-${name}, ID, and migrations_dir=drizzle`,
       );
     }
   }
-  if (stagingDatabase.database_id === productionDatabase.database_id) {
+  if (
+    stagingDatabase.database_id &&
+    productionDatabase.database_id &&
+    stagingDatabase.database_id === productionDatabase.database_id
+  ) {
     throw new Error("staging and production D1 database IDs must differ");
   }
 

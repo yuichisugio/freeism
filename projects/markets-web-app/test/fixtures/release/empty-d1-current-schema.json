@@ -669,7 +669,7 @@
     "type": "trigger",
     "name": "auction_commands_market_command_guard",
     "tbl_name": "auction_commands",
-    "sql": "CREATE TRIGGER `auction_commands_market_command_guard`\nBEFORE INSERT ON `auction_commands`\nWHEN NEW.`operation` IN ('PLACE_BID', 'CANCEL_AUTO_BID', 'BUY_NOW')\nBEGIN\n\tSELECT CASE WHEN NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `status` = 'OPEN'\n\t) THEN RAISE(ABORT, 'AUCTION_NOT_OPEN') END;\n\tSELECT CASE WHEN EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `seller_markets_user_id` = NEW.`actor_markets_user_id`\n\t) THEN RAISE(ABORT, 'SELLER_CANNOT_BID') END;\n\tSELECT CASE WHEN NOT EXISTS (\n\t\tSELECT 1 FROM `points_connection`\n\t\tWHERE `markets_user_id` = NEW.`actor_markets_user_id` AND `status` = 'ACTIVE'\n\t) THEN RAISE(ABORT, 'POINTS_LINK_REQUIRED') END;\n\tSELECT CASE WHEN NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `version` = NEW.`expected_auction_version`\n\t) THEN RAISE(ABORT, 'AUCTION_VERSION_CONFLICT') END;\nEND"
+    "sql": "CREATE TRIGGER `auction_commands_market_command_guard`\nBEFORE INSERT ON `auction_commands`\nWHEN NEW.`operation` IN ('PLACE_BID', 'CANCEL_AUTO_BID', 'BUY_NOW')\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_NOT_OPEN') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `status` = 'OPEN'\n\t);\n\tSELECT RAISE(ABORT, 'SELLER_CANNOT_BID') WHERE EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `seller_markets_user_id` = NEW.`actor_markets_user_id`\n\t);\n\tSELECT RAISE(ABORT, 'POINTS_LINK_REQUIRED') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `points_connection`\n\t\tWHERE `markets_user_id` = NEW.`actor_markets_user_id` AND `status` = 'ACTIVE'\n\t);\n\tSELECT RAISE(ABORT, 'AUCTION_VERSION_CONFLICT') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `version` = NEW.`expected_auction_version`\n\t);\nEND"
   },
   {
     "type": "trigger",
@@ -687,7 +687,7 @@
     "type": "trigger",
     "name": "auctions_cancellation_guard",
     "tbl_name": "auctions",
-    "sql": "CREATE TRIGGER `auctions_cancellation_guard`\nBEFORE UPDATE OF `status` ON `auctions`\nWHEN NEW.`status` = 'CANCELLED' AND OLD.`status` <> 'CANCELLED'\nBEGIN\n\tSELECT CASE\n\t\tWHEN OLD.`status` NOT IN ('DRAFT', 'SCHEDULED')\n\t\tTHEN RAISE(ABORT, 'AUCTION_CANCELLATION_INVALID_STATE')\n\tEND;\n\tSELECT CASE\n\t\tWHEN EXISTS (SELECT 1 FROM `bid_events` WHERE `auction_id` = OLD.`id`)\n\t\t  OR EXISTS (SELECT 1 FROM `auto_bid_rules` WHERE `auction_id` = OLD.`id` AND `active` = 1)\n\t\t  OR EXISTS (SELECT 1 FROM `buy_now_holds` WHERE `auction_id` = OLD.`id` AND `status` <> 'FAILED_RESTORED')\n\t\tTHEN RAISE(ABORT, 'AUCTION_CANCELLATION_BLOCKED')\n\tEND;\nEND"
+    "sql": "CREATE TRIGGER `auctions_cancellation_guard`\nBEFORE UPDATE OF `status` ON `auctions`\nWHEN NEW.`status` = 'CANCELLED' AND OLD.`status` <> 'CANCELLED'\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_CANCELLATION_INVALID_STATE')\n\tWHERE OLD.`status` NOT IN ('DRAFT', 'SCHEDULED');\n\tSELECT RAISE(ABORT, 'AUCTION_CANCELLATION_BLOCKED')\n\tWHERE EXISTS (SELECT 1 FROM `bid_events` WHERE `auction_id` = OLD.`id`)\n\t   OR EXISTS (SELECT 1 FROM `auto_bid_rules` WHERE `auction_id` = OLD.`id` AND `active` = 1)\n\t   OR EXISTS (SELECT 1 FROM `buy_now_holds` WHERE `auction_id` = OLD.`id` AND `status` <> 'FAILED_RESTORED');\nEND"
   },
   {
     "type": "trigger",

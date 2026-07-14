@@ -42,6 +42,16 @@ describe("Points OAuth client bootstrap", () => {
     });
     expect(persistedKinds).toEqual(["USER", "M2M", "SETTLEMENT"]);
 
+    const userRegistration = await db
+      .prepare("SELECT redirect_uris AS redirectUris FROM oauth_client WHERE name = ?")
+      .bind("Markets User")
+      .first<{ redirectUris: string }>();
+    expect(userRegistration).not.toBeNull();
+    expect(JSON.parse(JSON.parse(userRegistration!.redirectUris))).toEqual([
+      `${marketsOrigin}/api/points-connection/callback`,
+      `${marketsOrigin}/api/points-connection/unlink/callback`,
+    ]);
+
     const rows = await db
       .prepare(
         `SELECT client_id AS clientId, client_secret AS clientSecret, grant_types AS grantTypes,

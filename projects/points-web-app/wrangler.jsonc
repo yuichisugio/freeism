@@ -91,7 +91,14 @@
           "POINTS_OPS_DRILL_TOKEN",
         ],
       },
-      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "points-staging",
+          "database_id": "c3859cf6-2786-4191-bffe-cd04331c228e",
+          "migrations_dir": "drizzle",
+        },
+      ],
       "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "points_ops_staging" }],
       "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@freeism.app" }],
       "routes": [{ "pattern": "staging.points.freeism.app", "custom_domain": true }],

@@ -341,11 +341,11 @@ CREATE TRIGGER `point_settlement_capture_validate_guard`
 BEFORE UPDATE OF `status` ON `point_settlement_capture`
 WHEN OLD.`status` = 'PENDING' AND NEW.`status` = 'VALIDATED'
 BEGIN
-  SELECT CASE WHEN (SELECT COUNT(*) FROM `point_settlement_capture_item` item
+  SELECT RAISE(ABORT, 'CAPTURE_STATE_CHANGED') WHERE
+    (SELECT COUNT(*) FROM `point_settlement_capture_item` item
                     WHERE item.`point_settlement_capture_id` = OLD.`id`)
-                    <> OLD.`expected_reservation_count`
-    THEN RAISE(ABORT, 'CAPTURE_STATE_CHANGED') END;
-  SELECT CASE WHEN EXISTS (
+                    <> OLD.`expected_reservation_count`;
+  SELECT RAISE(ABORT, 'CAPTURE_STATE_CHANGED') WHERE EXISTS (
     SELECT 1 FROM `point_settlement_capture_item` item
     LEFT JOIN `point_reservation` reservation ON reservation.`id` = item.`point_reservation_id`
     LEFT JOIN `point_reservation_state` state
@@ -357,14 +357,14 @@ BEGIN
         OR reservation.`plan_hash` <> OLD.`plan_hash`
         OR reservation.`vector_hash` <> item.`expected_vector_hash`
         OR state.`status` <> 'ACTIVE' OR reservation.`expires_at` <= OLD.`captured_at`)
-  ) THEN RAISE(ABORT, 'CAPTURE_STATE_CHANGED') END;
-  SELECT CASE WHEN OLD.`expected_ledger_count` <> (
+  );
+  SELECT RAISE(ABORT, 'CAPTURE_STATE_CHANGED') WHERE OLD.`expected_ledger_count` <> (
     SELECT COUNT(*) FROM `point_settlement_capture_item` item
     JOIN `point_reservation_component` component
       ON component.`point_reservation_id` = item.`point_reservation_id`
     WHERE item.`point_settlement_capture_id` = OLD.`id` AND component.`amount_scaled` <> 0
-  ) THEN RAISE(ABORT, 'CAPTURE_STATE_CHANGED') END;
-  SELECT CASE WHEN EXISTS (
+  );
+  SELECT RAISE(ABORT, 'INSUFFICIENT_BALANCE') WHERE EXISTS (
     SELECT 1 FROM `point_settlement_capture_item` item
     JOIN `point_reservation` reservation ON reservation.`id` = item.`point_reservation_id`
     JOIN `point_reservation_component` component
@@ -374,23 +374,23 @@ BEGIN
      AND account.`evaluation_criterion_id` = component.`evaluation_criterion_id`
     WHERE item.`point_settlement_capture_id` = OLD.`id`
       AND COALESCE(account.`balance`, 0) < component.`amount_scaled`
-  ) THEN RAISE(ABORT, 'INSUFFICIENT_BALANCE') END;
+  );
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_settlement_capture_commit_guard`
 BEFORE UPDATE OF `status` ON `point_settlement_capture`
 WHEN OLD.`status` = 'VALIDATED' AND NEW.`status` = 'COMMITTED'
 BEGIN
-  SELECT CASE WHEN (SELECT COUNT(*) FROM `point_reservation_event` event
+  SELECT RAISE(ABORT, 'CAPTURE_EVENT_COUNT_MISMATCH') WHERE
+    (SELECT COUNT(*) FROM `point_reservation_event` event
                     WHERE event.`point_settlement_capture_id` = OLD.`id`
-                      AND event.`event_type` = 'CAPTURED') <> OLD.`expected_event_count`
-    THEN RAISE(ABORT, 'CAPTURE_EVENT_COUNT_MISMATCH') END;
-  SELECT CASE WHEN (SELECT COUNT(*) FROM `point_ledger_entry` ledger
+                      AND event.`event_type` = 'CAPTURED') <> OLD.`expected_event_count`;
+  SELECT RAISE(ABORT, 'CAPTURE_LEDGER_COUNT_MISMATCH') WHERE
+    (SELECT COUNT(*) FROM `point_ledger_entry` ledger
                     JOIN `point_reservation_event` event
                       ON event.`id` = ledger.`source_reservation_event_id`
                     WHERE event.`point_settlement_capture_id` = OLD.`id`)
-                    <> OLD.`expected_ledger_count`
-    THEN RAISE(ABORT, 'CAPTURE_LEDGER_COUNT_MISMATCH') END;
+                    <> OLD.`expected_ledger_count`;
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_settlement_capture_no_delete`
@@ -491,7 +491,7 @@ BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_POINT_LEDGER_ENTRY'); END;
 CREATE TRIGGER `point_ledger_entry_safe_integer_before_insert`
 BEFORE INSERT ON `point_ledger_entry`
 BEGIN
-  SELECT CASE WHEN
+  SELECT RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') WHERE
     typeof(COALESCE((SELECT `balance` FROM `point_account`
       WHERE `points_user_id` = NEW.`points_user_id`
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
@@ -508,8 +508,7 @@ BEGIN
       WHERE `points_user_id` = NEW.`points_user_id`
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
       + CASE WHEN NEW.`affects_evaluation_total` = 1 THEN NEW.`delta_amount_scaled` ELSE 0 END
-      NOT BETWEEN -9007199254740991 AND 9007199254740991
-  THEN RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') END;
+      NOT BETWEEN -9007199254740991 AND 9007199254740991;
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_ledger_entry_project_after_insert`
@@ -548,12 +547,11 @@ CREATE TRIGGER `point_transaction_batch_validate_guard`
 BEFORE UPDATE OF `status` ON `point_transaction_batch`
 WHEN OLD.`status` = 'PENDING' AND NEW.`status` = 'VALIDATED'
 BEGIN
-  SELECT CASE WHEN (
+  SELECT RAISE(ABORT, 'POINT_TRANSACTION_ITEM_COUNT_MISMATCH') WHERE (
     SELECT COUNT(*) FROM `point_transaction_item` item WHERE item.`batch_id` = OLD.`id`
-  ) <> OLD.`expected_item_count`
-  THEN RAISE(ABORT, 'POINT_TRANSACTION_ITEM_COUNT_MISMATCH') END;
+  ) <> OLD.`expected_item_count`;
 
-  SELECT CASE WHEN EXISTS (
+  SELECT RAISE(ABORT, 'POINT_TRANSACTION_REFERENCE_INVALID') WHERE EXISTS (
     SELECT 1 FROM `point_transaction_item` item
     JOIN `evaluation_criterion` source_head
       ON source_head.`id` = item.`source_evaluation_criterion_id`
@@ -587,9 +585,9 @@ BEGIN
               AND item.`target_amount_scaled` % target_revision.`minimum_unit_scaled` = 0
               AND rate_revision.`id` = item.`exchange_rate_revision_id`
               AND rate_revision.`status` = 'ACTIVE'))))
-  ) THEN RAISE(ABORT, 'POINT_TRANSACTION_REFERENCE_INVALID') END;
+  );
 
-  SELECT CASE WHEN EXISTS (
+  SELECT RAISE(ABORT, 'INSUFFICIENT_BALANCE') WHERE EXISTS (
     SELECT 1 FROM (
       SELECT item.`sender_points_user_id` AS points_user_id,
              item.`source_evaluation_criterion_id` AS evaluation_criterion_id,
@@ -612,5 +610,5 @@ BEGIN
         AND state.`status` = 'ACTIVE'
         AND reservation.`expires_at` > cast(unixepoch('subsecond') * 1000 as integer)
     ), 0) < debit.`debit_amount`
-  ) THEN RAISE(ABORT, 'INSUFFICIENT_BALANCE') END;
+  );
 END;

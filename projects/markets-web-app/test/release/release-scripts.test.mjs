@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { test } from "node:test";
@@ -81,6 +81,33 @@ test("migration番号は0000から欠番なく並ぶ", async () => {
       }),
     /migration journal order/,
   );
+});
+
+test("D1 remoteで分割不能なSELECT CASEをmigrationへ含めない", async () => {
+  const migrationDirectory = resolve(import.meta.dirname, "../../drizzle");
+  const migrationFiles = (await readdir(migrationDirectory))
+    .filter((fileName) => /^\d{4}_.+\.sql$/.test(fileName))
+    .sort();
+  const expectedGuardCodes = {
+    "0002_markets-domain.sql": [
+      "AUCTION_CANCELLATION_INVALID_STATE",
+      "AUCTION_CANCELLATION_BLOCKED",
+    ],
+    "0003_auction-command-guards.sql": [
+      "AUCTION_NOT_OPEN",
+      "SELLER_CANNOT_BID",
+      "POINTS_LINK_REQUIRED",
+      "AUCTION_VERSION_CONFLICT",
+    ],
+  };
+
+  for (const fileName of migrationFiles) {
+    const source = await readFile(resolve(migrationDirectory, fileName), "utf8");
+    assert.doesNotMatch(source, /\bSELECT\s+CASE\b/i, fileName);
+    for (const code of expectedGuardCodes[fileName] ?? []) {
+      assert.match(source, new RegExp(`RAISE\\s*\\(\\s*ABORT\\s*,\\s*'${code}'\\s*\\)`), fileName);
+    }
+  }
 });
 
 test("empty D1の必須schemaとlegacy Listing不在を検査する", async () => {
@@ -760,11 +787,21 @@ test("remote release environmentはstagingとproductionだけ", async () => {
   }
 });
 
+test("staging migrationは未作成のproduction D1 IDに依存しない", async () => {
+  const { releaseTargetFromConfig } = await import("../../scripts/migrate-d1.mjs");
+  const stagingOnly = sourceReleaseConfig();
+  delete stagingOnly.env.production.d1_databases[0].database_id;
+
+  assert.equal(releaseTargetFromConfig(stagingOnly, "staging").database.id, "staging-db-id");
+  assert.throws(
+    () => releaseTargetFromConfig(stagingOnly, "production"),
+    /production D1 DB must have .* ID/,
+  );
+});
+
 test("実wranglerのPoints issuerは全環境でBetter Auth pathを含む", async () => {
   const source = await readFile(resolve(import.meta.dirname, "../../wrangler.jsonc"), "utf8");
-  const issuers = [...source.matchAll(/"POINTS_ISSUER":\s*"([^"]+)"/g)].map(
-    (match) => match[1],
-  );
+  const issuers = [...source.matchAll(/"POINTS_ISSUER":\s*"([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(issuers, [
     "http://localhost:3000/api/auth",
     "https://staging.points.freeism.app/api/auth",

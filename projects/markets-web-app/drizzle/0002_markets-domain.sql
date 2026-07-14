@@ -296,14 +296,10 @@ CREATE TRIGGER `auctions_cancellation_guard`
 BEFORE UPDATE OF `status` ON `auctions`
 WHEN NEW.`status` = 'CANCELLED' AND OLD.`status` <> 'CANCELLED'
 BEGIN
-	SELECT CASE
-		WHEN OLD.`status` NOT IN ('DRAFT', 'SCHEDULED')
-		THEN RAISE(ABORT, 'AUCTION_CANCELLATION_INVALID_STATE')
-	END;
-	SELECT CASE
-		WHEN EXISTS (SELECT 1 FROM `bid_events` WHERE `auction_id` = OLD.`id`)
-		  OR EXISTS (SELECT 1 FROM `auto_bid_rules` WHERE `auction_id` = OLD.`id` AND `active` = 1)
-		  OR EXISTS (SELECT 1 FROM `buy_now_holds` WHERE `auction_id` = OLD.`id` AND `status` <> 'FAILED_RESTORED')
-		THEN RAISE(ABORT, 'AUCTION_CANCELLATION_BLOCKED')
-	END;
+	SELECT RAISE(ABORT, 'AUCTION_CANCELLATION_INVALID_STATE')
+	WHERE OLD.`status` NOT IN ('DRAFT', 'SCHEDULED');
+	SELECT RAISE(ABORT, 'AUCTION_CANCELLATION_BLOCKED')
+	WHERE EXISTS (SELECT 1 FROM `bid_events` WHERE `auction_id` = OLD.`id`)
+	   OR EXISTS (SELECT 1 FROM `auto_bid_rules` WHERE `auction_id` = OLD.`id` AND `active` = 1)
+	   OR EXISTS (SELECT 1 FROM `buy_now_holds` WHERE `auction_id` = OLD.`id` AND `status` <> 'FAILED_RESTORED');
 END;

@@ -85,4 +85,5 @@ test("smoke checks are read-only and use fixed custom domains", () => {
   expect(smokeOrigin("production")).toBe("https://points.freeism.app");
   expect(smokeChecks()).toHaveLength(9);
   expect(smokeChecks().every((check) => check.path.startsWith("/"))).toBe(true);
+  expect(smokeChecks()).toContainEqual({ path: "/search", expected: "navigation" });
 });

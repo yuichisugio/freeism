@@ -12,6 +12,9 @@ describe("Web ownership Worker release contract", () => {
     ]);
     expect(wrangler).toContain('"global_fetch_strictly_public"');
     expect(wrangler).toContain('"crons": ["*/5 * * * *", "*/15 * * * *"]');
+    expect(server).toMatch(
+      /url\.hostname === "localhost"\s*&&[\s\S]*isSpaNavigationRequest\(request\)/,
+    );
     expect(server).toContain("scheduled(");
     expect(worker).toContain("scheduled(");
   });

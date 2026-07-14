@@ -257,12 +257,11 @@ CREATE TRIGGER `point_transaction_batch_validate_guard`
 BEFORE UPDATE OF `status` ON `point_transaction_batch`
 WHEN OLD.`status` = 'PENDING' AND NEW.`status` = 'VALIDATED'
 BEGIN
-  SELECT CASE WHEN (
+  SELECT RAISE(ABORT, 'POINT_TRANSACTION_ITEM_COUNT_MISMATCH') WHERE (
     SELECT COUNT(*) FROM `point_transaction_item` item WHERE item.`batch_id` = OLD.`id`
-  ) <> OLD.`expected_item_count`
-  THEN RAISE(ABORT, 'POINT_TRANSACTION_ITEM_COUNT_MISMATCH') END;
+  ) <> OLD.`expected_item_count`;
 
-  SELECT CASE WHEN EXISTS (
+  SELECT RAISE(ABORT, 'POINT_TRANSACTION_REFERENCE_INVALID') WHERE EXISTS (
     SELECT 1 FROM `point_transaction_item` item
     JOIN `evaluation_criterion` source_head
       ON source_head.`id` = item.`source_evaluation_criterion_id`
@@ -302,9 +301,9 @@ BEGIN
           )
         ))
       )
-  ) THEN RAISE(ABORT, 'POINT_TRANSACTION_REFERENCE_INVALID') END;
+  );
 
-  SELECT CASE WHEN EXISTS (
+  SELECT RAISE(ABORT, 'INSUFFICIENT_BALANCE') WHERE EXISTS (
     SELECT 1
     FROM (
       SELECT item.`sender_points_user_id` AS points_user_id,
@@ -318,7 +317,7 @@ BEGIN
       ON account.`points_user_id` = debit.`points_user_id`
      AND account.`evaluation_criterion_id` = debit.`evaluation_criterion_id`
     WHERE COALESCE(account.`balance`, 0) < debit.`debit_amount`
-  ) THEN RAISE(ABORT, 'INSUFFICIENT_BALANCE') END;
+  );
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_ledger_entry_transaction_guard`
@@ -401,7 +400,7 @@ BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_POINT_LEDGER_ENTRY'); END;
 CREATE TRIGGER `point_ledger_entry_safe_integer_before_insert`
 BEFORE INSERT ON `point_ledger_entry`
 BEGIN
-  SELECT CASE WHEN
+  SELECT RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') WHERE
     typeof(COALESCE((SELECT `balance` FROM `point_account`
       WHERE `points_user_id` = NEW.`points_user_id`
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
@@ -420,8 +419,7 @@ BEGIN
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
       + CASE WHEN NEW.`affects_evaluation_total` = 1
         THEN NEW.`delta_amount_scaled` ELSE 0 END
-      NOT BETWEEN -9007199254740991 AND 9007199254740991
-  THEN RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') END;
+      NOT BETWEEN -9007199254740991 AND 9007199254740991;
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_ledger_entry_project_after_insert`

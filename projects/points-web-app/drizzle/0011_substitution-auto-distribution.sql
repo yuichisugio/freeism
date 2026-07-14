@@ -460,7 +460,7 @@ BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_POINT_LEDGER_ENTRY'); END;
 CREATE TRIGGER `point_ledger_entry_safe_integer_before_insert`
 BEFORE INSERT ON `point_ledger_entry`
 BEGIN
-  SELECT CASE WHEN
+  SELECT RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') WHERE
     typeof(COALESCE((SELECT `balance` FROM `point_account`
       WHERE `points_user_id` = NEW.`points_user_id`
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
@@ -479,8 +479,7 @@ BEGIN
         AND `evaluation_criterion_id` = NEW.`evaluation_criterion_id`), 0)
       + CASE WHEN NEW.`affects_evaluation_total` = 1
         THEN NEW.`delta_amount_scaled` ELSE 0 END
-      NOT BETWEEN -9007199254740991 AND 9007199254740991
-  THEN RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW') END;
+      NOT BETWEEN -9007199254740991 AND 9007199254740991;
 END;
 --> statement-breakpoint
 CREATE TRIGGER `point_ledger_entry_project_after_insert`

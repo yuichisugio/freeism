@@ -97,7 +97,7 @@ failureはretryable、`SETTLEMENT_MANUAL_ACTION_REQUIRED`、またはBUY_NOW専�
 
 ### Paid plan上限と1,000 winner処理
 
-- Settlement WorkflowはWorkers Paidを前提とし、Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。deploy前testはflattened staging／production configの値を検証し、Free/default limitへ暗黙fallbackしない。
+- Settlement Workflowのproduction運用はWorkers Paidを前提とし、Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。Free planで検証するlocal／stagingは非対応のWorker-level CPU／subrequest limitを設定せず、Workflowの`limits.steps=25000`と以下のアプリ内上限を維持する。deploy前testはflattened staging／production configがこの差を保つことを検証する。
 - winnerごとにWorkflow stepを作らず、1 reservation roundを1つの決定的stepにする。step名は`reserve-round-{roundOrdinal}`、`status-round-{roundOrdinal}`、`release-round-{roundOrdinal}`のようにappend-only ordinalを含め、同一instance内で別処理へ再利用しない。`reserve-round`のWorkflow step timeoutは5分、総attemptは3、1秒exponentialとするが、D1のround `retryDeadlineAt=firstAttemptAt+5分`をretry間で引き継ぐため総経過を5分より延長しない。
 - 1 roundは最大1,000 winner。Points Service Bindingへの同時外向き接続は1 invocationあたり6件というWorkers制約に合わせて最大6件のpoolで処理し、response bodyを必ず読取またはcancelする。7件目以降を無制限`Promise.all`へ積まない。
 - step resultへToken、response body、全vectorを保存せず、reservation ID、Markets user参照、status、request ID、hashだけを決定的sortで返し、1 MiBのstep result上限を超えない。詳細はMarkets D1を正本にする。

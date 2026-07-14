@@ -41,22 +41,22 @@ CREATE TRIGGER `auction_commands_market_command_guard`
 BEFORE INSERT ON `auction_commands`
 WHEN NEW.`operation` IN ('PLACE_BID', 'CANCEL_AUTO_BID', 'BUY_NOW')
 BEGIN
-	SELECT CASE WHEN NOT EXISTS (
+	SELECT RAISE(ABORT, 'AUCTION_NOT_OPEN') WHERE NOT EXISTS (
 		SELECT 1 FROM `auctions`
 		WHERE `id` = NEW.`auction_id` AND `status` = 'OPEN'
-	) THEN RAISE(ABORT, 'AUCTION_NOT_OPEN') END;
-	SELECT CASE WHEN EXISTS (
+	);
+	SELECT RAISE(ABORT, 'SELLER_CANNOT_BID') WHERE EXISTS (
 		SELECT 1 FROM `auctions`
 		WHERE `id` = NEW.`auction_id` AND `seller_markets_user_id` = NEW.`actor_markets_user_id`
-	) THEN RAISE(ABORT, 'SELLER_CANNOT_BID') END;
-	SELECT CASE WHEN NOT EXISTS (
+	);
+	SELECT RAISE(ABORT, 'POINTS_LINK_REQUIRED') WHERE NOT EXISTS (
 		SELECT 1 FROM `points_connection`
 		WHERE `markets_user_id` = NEW.`actor_markets_user_id` AND `status` = 'ACTIVE'
-	) THEN RAISE(ABORT, 'POINTS_LINK_REQUIRED') END;
-	SELECT CASE WHEN NOT EXISTS (
+	);
+	SELECT RAISE(ABORT, 'AUCTION_VERSION_CONFLICT') WHERE NOT EXISTS (
 		SELECT 1 FROM `auctions`
 		WHERE `id` = NEW.`auction_id` AND `version` = NEW.`expected_auction_version`
-	) THEN RAISE(ABORT, 'AUCTION_VERSION_CONFLICT') END;
+	);
 END;
 --> statement-breakpoint
 CREATE TRIGGER `settlement_plans_append_only_update`

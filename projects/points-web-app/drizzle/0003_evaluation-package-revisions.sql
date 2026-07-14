@@ -281,14 +281,12 @@ END;
 CREATE TRIGGER `point_package_auction_eligibility_finalize_guard`
 BEFORE UPDATE OF `status` ON `point_package_auction_eligibility_idempotency`
 WHEN OLD.status = 0 AND NEW.status = 201
+  AND (
+    SELECT COUNT(*)
+    FROM point_package_auction_eligibility_item item
+    JOIN point_package_auction_eligibility_receipt receipt ON receipt.id = item.receipt_id
+    WHERE receipt.idempotency_id = NEW.id
+  ) <> NEW.expected_item_count
 BEGIN
-  SELECT CASE
-    WHEN (
-      SELECT COUNT(*)
-      FROM point_package_auction_eligibility_item item
-      JOIN point_package_auction_eligibility_receipt receipt ON receipt.id = item.receipt_id
-      WHERE receipt.idempotency_id = NEW.id
-    ) <> NEW.expected_item_count
-    THEN RAISE(ABORT, 'POINT_PACKAGE_AUCTION_INELIGIBLE')
-  END;
+  SELECT RAISE(ABORT, 'POINT_PACKAGE_AUCTION_INELIGIBLE');
 END;

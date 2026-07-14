@@ -22,6 +22,7 @@
     "deploy:production": "tsx scripts/deploy-generated.ts production",
     "smoke:staging": "tsx scripts/smoke.ts staging",
     "smoke:production": "tsx scripts/smoke.ts production",
+    "oauth:bootstrap:staging": "tsx scripts/bootstrap-oauth-clients.ts",
     "drill:ops-alert:staging": "tsx scripts/drill-ops-alert.ts staging",
     "verify:empty-d1": "tsx scripts/verify-empty-d1.ts",
     "verify:runtime-boundaries": "tsx scripts/verify-runtime-dependencies.ts",

@@ -34,7 +34,10 @@ export function pointsOAuthBootstrapRegistrations(input: {
     {
       client_name: "Markets User",
       grant_types: ["authorization_code", "refresh_token"],
-      redirect_uris: [`${input.marketsOrigin}/api/points-connections/callback`],
+      redirect_uris: [
+        `${input.marketsOrigin}/api/points-connection/callback`,
+        `${input.marketsOrigin}/api/points-connection/unlink/callback`,
+      ],
       resources: [input.pointsResource],
       response_types: ["code"],
       scope: pointsOAuthScopes.USER.join(" "),

@@ -48,7 +48,6 @@
       "limits": { "steps": 25000 },
     },
   ],
-  "limits": { "cpu_ms": 300000, "subrequests": 10000000 },
   "triggers": { "crons": ["*/5 * * * *"] },
   "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
   "observability": {
@@ -90,7 +89,14 @@
           "POINTS_SETTLEMENT_CLIENT_SECRET",
         ],
       },
-      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "markets-staging",
+          "database_id": "fdc6af14-8638-429c-baa3-3d25707d6e9c",
+          "migrations_dir": "drizzle",
+        },
+      ],
       "services": [{ "binding": "POINTS_SERVICE", "service": "points-worker-staging" }],
       "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "markets_ops_staging" }],
       "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@freeism.app" }],
@@ -105,7 +111,6 @@
           "limits": { "steps": 25000 },
         },
       ],
-      "limits": { "cpu_ms": 300000, "subrequests": 10000000 },
       "triggers": { "crons": ["*/5 * * * *"] },
       "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
       "routes": [{ "pattern": "staging.markets.freeism.app", "custom_domain": true }],
