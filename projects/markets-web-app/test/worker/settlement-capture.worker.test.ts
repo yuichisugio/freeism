@@ -1,6 +1,7 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
+import { settleBuyNowHold } from "../../src/backend/auction/settle-buy-now-hold";
 import { D1SettlementCaptureRepository } from "../../src/backend/db/d1-settlement-capture-repository";
 import {
   captureAllWinners,
@@ -529,7 +530,10 @@ describe("settlement capture", () => {
           return {
             async settleBuyNowHold(input: { captureReceiptId: string; finalizeReceiptId: string }) {
               settleAttempts.push(input);
-              if (settleAttempts.length === 1) throw new Error("TEST_BUY_NOW_DO_UNAVAILABLE");
+              if (settleAttempts.length === 1) {
+                await settleBuyNowHold(env.DB, input as Parameters<typeof settleBuyNowHold>[1]);
+                throw new Error("TEST_BUY_NOW_CLOSE_RESUME_DISPATCH_UNAVAILABLE");
+              }
               return room.settleBuyNowHold(input as Parameters<typeof room.settleBuyNowHold>[0]);
             },
           };
@@ -545,7 +549,7 @@ describe("settlement capture", () => {
       POINTS_USER_CLIENT_SECRET: "markets-user-secret",
     } as Env;
     await expect(runScheduledSettlementMaintenance(scheduledEnv)).rejects.toThrow(
-      "TEST_BUY_NOW_DO_UNAVAILABLE",
+      "TEST_BUY_NOW_CLOSE_RESUME_DISPATCH_UNAVAILABLE",
     );
     expect(
       await env.DB.prepare("SELECT saga_state FROM settlements WHERE id = ?")
@@ -556,7 +560,14 @@ describe("settlement capture", () => {
       await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
         .bind(holdId)
         .first<string>("status"),
-    ).toBe("CAPTURED_PENDING_FINALIZE");
+    ).toBe("SETTLED");
+    expect(
+      await env.DB.prepare(
+        "SELECT status FROM auction_close_resume_outbox WHERE buy_now_hold_id = ?",
+      )
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("PENDING");
 
     await runScheduledSettlementMaintenance(scheduledEnv);
     expect(
@@ -564,21 +575,150 @@ describe("settlement capture", () => {
         .bind(holdId)
         .first<string>("status"),
     ).toBe("SETTLED");
-    expect(settleAttempts).toHaveLength(2);
-    expect(settleAttempts[1]).toMatchObject({
-      captureReceiptId: settleAttempts[0]!.captureReceiptId,
-      finalizeReceiptId: settleAttempts[0]!.finalizeReceiptId,
-    });
+    expect(settleAttempts).toHaveLength(1);
+    expect(
+      await env.DB.prepare(
+        "SELECT status FROM auction_close_resume_outbox WHERE buy_now_hold_id = ?",
+      )
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("DISPATCHED");
     expect(
       await env.DB.prepare(
         `SELECT
           (SELECT COUNT(*) FROM settlements
             WHERE auction_id = ? AND source_key = ?) AS settlements,
           (SELECT COUNT(*) FROM settlement_outbox o JOIN settlements s ON s.id = o.settlement_id
-            WHERE s.auction_id = ? AND s.source_key = ?) AS outbox`,
+            WHERE s.auction_id = ? AND s.source_key = ?) AS outbox,
+          (SELECT o.status FROM settlement_outbox o JOIN settlements s ON s.id = o.settlement_id
+            WHERE s.auction_id = ? AND s.source_key = ?) AS outboxStatus`,
       )
-        .bind(auctionId, `end:${revisionId}:${now}`, auctionId, `end:${revisionId}:${now}`)
+        .bind(
+          auctionId,
+          `end:${revisionId}:${now}`,
+          auctionId,
+          `end:${revisionId}:${now}`,
+          auctionId,
+          `end:${revisionId}:${now}`,
+        )
         .first(),
-    ).toMatchObject({ outbox: 1, settlements: 1 });
+    ).toMatchObject({ outbox: 1, outboxStatus: "DISPATCHED", settlements: 1 });
+  });
+
+  it("finalized holdの1件失敗後も後続retryとsettlement outboxを処理する", async () => {
+    const closeResumeAttempts: string[] = [];
+    const settledHoldIds: string[] = [];
+    let settlementOutboxDispatched = false;
+    const buyNowRows = {
+      failed: {
+        auctionId: "auction_failed",
+        auctionVersion: 1,
+        captureContentHash: `sha256:${"1".repeat(64)}`,
+        captureReceiptId: "capture_failed",
+        finalizeReceiptId: "finalize_failed",
+        holdId: "hold_failed",
+        proofContentHash: "2".repeat(64),
+        proofId: "proof_failed",
+      },
+      next: {
+        auctionId: "auction_next",
+        auctionVersion: 1,
+        captureContentHash: `sha256:${"3".repeat(64)}`,
+        captureReceiptId: "capture_next",
+        finalizeReceiptId: "finalize_next",
+        holdId: "hold_next",
+        proofContentHash: "4".repeat(64),
+        proofId: "proof_next",
+      },
+    };
+    const db = {
+      prepare(sql: string) {
+        let values: unknown[] = [];
+        const statement = {
+          bind(...bound: unknown[]) {
+            values = bound;
+            return statement;
+          },
+          async all() {
+            if (sql.includes("FROM auction_close_resume_outbox")) {
+              return { results: [{ id: "close_failed" }, { id: "close_next" }] };
+            }
+            if (sql.includes("JOIN buy_now_holds h") && sql.includes("ORDER BY s.updated_at")) {
+              return { results: [{ id: "failed" }, { id: "next" }] };
+            }
+            if (sql.includes("FROM settlements WHERE saga_state <> 'SETTLED'")) {
+              return { results: [] };
+            }
+            if (sql.includes("FROM settlement_outbox") && sql.includes("ORDER BY created_at")) {
+              return { results: [{ id: "outbox_1" }] };
+            }
+            throw new Error(`UNEXPECTED_ALL:${sql}`);
+          },
+          async first() {
+            if (sql.includes("SELECT auction_id AS auctionId, status")) {
+              const outboxId = values[0] as string;
+              closeResumeAttempts.push(outboxId);
+              if (outboxId === "close_failed") throw new Error("TEST_FIRST_CLOSE_RESUME_FAILED");
+              return { auctionId: "auction_closed", status: "DISPATCHED" };
+            }
+            if (sql.includes("JOIN settlement_finalize_receipts f")) {
+              return buyNowRows[values[0] as keyof typeof buyNowRows] ?? null;
+            }
+            if (sql.includes("FROM settlement_outbox o JOIN settlements s")) {
+              return {
+                auctionId: "auction_outbox",
+                id: "outbox_1",
+                planHash,
+                settlementId: "settlement_outbox",
+                settlementRevision: 1,
+                status: "PENDING",
+                workflowAttempt: 0,
+                workflowInstanceId: null,
+              };
+            }
+            throw new Error(`UNEXPECTED_FIRST:${sql}`);
+          },
+          async run() {
+            if (sql.includes("UPDATE settlement_outbox") && sql.includes("status = 'DISPATCHED'")) {
+              settlementOutboxDispatched = true;
+            }
+            return { meta: { changes: 1 } };
+          },
+        };
+        return statement;
+      },
+    } as unknown as D1Database;
+    const scheduledEnv = {
+      AUCTION_ROOMS: {
+        getByName(auctionId: string) {
+          return {
+            async settleBuyNowHold(input: { holdId: string }) {
+              if (auctionId === "auction_failed") throw new Error("TEST_FIRST_HOLD_FAILED");
+              settledHoldIds.push(input.holdId);
+            },
+          };
+        },
+      },
+      AUCTION_SETTLEMENT: {
+        async create() {
+          return undefined;
+        },
+      },
+      DB: db,
+      POINTS_AUDIENCE: "https://points.example.test",
+      POINTS_ISSUER: "https://points.example.test/api/auth",
+      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
+      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
+      POINTS_SERVICE: { fetch: vi.fn() },
+      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
+      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
+      POINTS_USER_CLIENT_ID: "markets-user-client",
+      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
+    } as unknown as Env;
+
+    await expect(runScheduledSettlementMaintenance(scheduledEnv)).resolves.toBeUndefined();
+    expect(closeResumeAttempts).toEqual(["close_failed", "close_next"]);
+    expect(settledHoldIds).toEqual(["hold_next"]);
+    expect(settlementOutboxDispatched).toBe(true);
   });
 });

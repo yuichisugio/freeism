@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 
 import { marketsBackendApp } from "../src/backend/app";
+import { dispatchAuctionCloseResumeOutbox } from "../src/backend/db/d1-settlement-repository";
 import { requireBindings } from "../src/backend/http/context";
 import { PointsApiClient } from "../src/backend/points/points-api-client";
 import { PointsOAuthClient } from "../src/backend/points/points-oauth-client";
@@ -122,7 +123,34 @@ async function retryFinalizedBuyNowHolds(bindings: ReturnType<typeof requireBind
        AND h.auction_id = s.auction_id AND h.status = 'CAPTURED_PENDING_FINALIZE'
      ORDER BY s.updated_at LIMIT 25`,
   ).all<{ id: string }>();
-  for (const row of rows.results) await settleFinalizedBuyNowHold(bindings, row.id);
+  for (const row of rows.results) {
+    try {
+      await settleFinalizedBuyNowHold(bindings, row.id);
+    } catch (error) {
+      console.error("BUY_NOW_HOLD_SETTLE_RETRY_FAILED", { error, settlementId: row.id });
+    }
+  }
+}
+
+async function dispatchPendingAuctionCloseResumeOutboxes(
+  bindings: ReturnType<typeof requireBindings>,
+) {
+  const rows = await bindings.DB.prepare(
+    `SELECT id FROM auction_close_resume_outbox
+     WHERE status = 'PENDING' ORDER BY created_at LIMIT 25`,
+  ).all<{ id: string }>();
+  for (const row of rows.results) {
+    try {
+      await dispatchAuctionCloseResumeOutbox(
+        bindings.DB,
+        bindings.AUCTION_SETTLEMENT,
+        row.id,
+        new Date().toISOString(),
+      );
+    } catch (error) {
+      console.error("AUCTION_CLOSE_RESUME_RETRY_FAILED", { error, outboxId: row.id });
+    }
+  }
 }
 
 export async function runScheduledSettlementMaintenance(env: Env) {
@@ -140,6 +168,7 @@ export async function runScheduledSettlementMaintenance(env: Env) {
   const points = new PointsApiClient(bindings.POINTS_SERVICE, (scopes) =>
     oauth.getM2MAccessToken(scopes),
   );
+  await dispatchPendingAuctionCloseResumeOutboxes(bindings);
   await retryFinalizedBuyNowHolds(bindings);
   await reconcilePendingSettlements({
     db: bindings.DB,
