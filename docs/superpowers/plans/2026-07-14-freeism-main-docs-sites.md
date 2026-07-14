@@ -4,15 +4,16 @@
 
 **Goal:** `freeism.app` の静的ポータルと、既存日英Markdownを掲載する `docs.freeism.app` 向けAstroドキュメントサイトをmonorepoへ追加する。
 
-**Architecture:** `projects/main-web-app` は依存を抑えた素のAstroサイト、`projects/docs-web-app` はAstro Starlightサイトとする。両者は別成果物としてbuildし、Points／MarketsとはHTTPSリンクだけで接続する。
+**Architecture:** `projects/main-web-app` は依存を抑えた素のAstroサイト、`projects/docs-web-app` はAstro製のBlumeサイトとする。両者は別成果物としてbuildし、Points／MarketsとはHTTPSリンクだけで接続する。
 
-**Tech Stack:** pnpm 10.33.3 workspace、Astro 6、Astro Starlight、TypeScript、Vitest、Playwright（既存repo tooling）、textlint。
+**Tech Stack:** pnpm 10.33.3 workspace、Astro 6、Blume、TypeScript、Vitest、Playwright（既存repo tooling）、textlint。
 
 ## Global Constraints
 
 - 既存24ファイルの未コミット変更は元のmain worktreeへ残し、このブランチへ含めない。
 - branchは `codex/freeism-main-docs-sites`、worktreeは `/private/tmp/freeism-main-docs-sites` を使う。
 - `projects/documentation` の本文内容と日英の対応を保ち、初回移行で章分割しない。
+- `origin/main:projects/documentation` のMarkdownと移動後ファイルをSHA-256で照合し、canonical本文へfrontmatterを含む一切の変更を加えない。
 - `freeism.app`、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app` は独立した公開境界とする。
 - 既存主色 `#4880FF` を使い、モバイル、キーボード、reduced motionに対応する。
 - 既存Vercel previewのテストDB migrationを、今回のlockfile変更だけで発火させない。
@@ -119,40 +120,39 @@ Run: `pnpm --filter main-web-app check && pnpm --filter main-web-app build`
 
 Expected: both commands exit 0 and `dist/index.html` contains the three destination URLs.
 
-### Task 3: Build the Starlight documentation site
+### Task 3: Build the Blume documentation site without changing canonical Markdown
 
 **Files:**
-- Create: `projects/docs-web-app/astro.config.mjs`
-- Create: `projects/docs-web-app/tsconfig.json`
-- Create: `projects/docs-web-app/src/content.config.ts`
-- Move: `projects/docs-web-app/src/freeism.ja.md` → `projects/docs-web-app/src/content/docs/index.md`
-- Move: `projects/docs-web-app/src/freeism.en.md` → `projects/docs-web-app/src/content/docs/en/index.md`
-- Move: `projects/docs-web-app/src/note/note.ja.md` → `projects/docs-web-app/src/content/docs/notes.md`
-- Move: `projects/docs-web-app/src/note/note.en.md` → `projects/docs-web-app/src/content/docs/en/notes.md`
-- Create: `projects/docs-web-app/src/styles/custom.css`
+- Create: `projects/docs-web-app/blume.config.ts`
+- Modify: `projects/docs-web-app/tsconfig.json`
+- Keep byte-identical: `projects/docs-web-app/src/freeism.ja.md`
+- Keep byte-identical: `projects/docs-web-app/src/freeism.en.md`
+- Keep byte-identical: `projects/docs-web-app/src/note/note.ja.md`
+- Keep byte-identical: `projects/docs-web-app/src/note/note.en.md`
+- Create: Blume metadata/custom page files outside the canonical Markdown paths as required by current Blume documentation.
 - Create: `projects/docs-web-app/src/content-contract.test.ts`
 
 **Interfaces:**
 - Japanese docs resolve at `/`, English at `/en/`, Japanese notes at `/notes/`, English notes at `/en/notes/`.
-- Starlight navigation links back to all four public Freeism sites.
+- Blume navigation links back to all four public Freeism sites.
 
 - [ ] **Step 1: Write the failing content-preservation test**
 
-The test reads the four destination Markdown files and asserts that Japanese and English main documents retain `無料主義 v3` / `Freeism v3`, at least 140 headings each, and at least five Mermaid fences each.
+The test reads the canonical Markdown files, compares SHA-256 with the corresponding `origin/main:projects/documentation` blobs, and asserts that Japanese and English main documents retain `無料主義 v3` / `Freeism v3`, at least 140 headings each, and at least five Mermaid fences each.
 
 - [ ] **Step 2: Run the test and verify RED**
 
 Run: `pnpm --filter docs-web-app test`
 
-Expected: FAIL because the new content paths do not exist.
+Expected: FAIL until the immutable hash contract and Blume route metadata are implemented.
 
-- [ ] **Step 3: Move the Markdown and add only required frontmatter**
+- [ ] **Step 3: Keep canonical Markdown byte-identical and configure Blume sources**
 
-Add Starlight title/description/sidebar metadata without rewriting body content. Keep the existing page-local table of contents and anchors for this first migration.
+Do not move, rewrite, or add frontmatter to canonical Markdown. Configure Blume filesystem content sources or custom pages to read the existing files and provide title/navigation metadata separately.
 
-- [ ] **Step 4: Configure Starlight and Mermaid rendering**
+- [ ] **Step 4: Configure Blume, i18n, and Mermaid rendering**
 
-Set `site: 'https://docs.freeism.app'`, root Japanese locale, `/en/` English locale, Pagefind search, custom CSS, and a maintained remark Mermaid integration compatible with the selected Astro version.
+Set the production URL, Japanese default locale, `/en/` English locale, search/navigation, and Mermaid rendering using current Blume-supported configuration without modifying canonical Markdown.
 
 - [ ] **Step 5: Run test, textlint, check, and build**
 
@@ -229,4 +229,3 @@ Review the complete `origin/main...HEAD` diff for content loss, broken anchors, 
 - [ ] **Step 6: Commit and push**
 
 Commit the verified branch with descriptive commits, then run `git push -u origin codex/freeism-main-docs-sites` and confirm the upstream branch and remote Actions state.
-

@@ -3,15 +3,15 @@
 ## 目的
 
 - `https://freeism.app/` を無料主義全体の入口にし、思想・仕組みの概要を伝えたうえで、ドキュメント、ポイント管理、マーケットの各独立サイトへ案内する。
-- 既存の `projects/documentation` を `projects/docs-web-app` へ移し、`https://docs.freeism.app/` で公開できる Astro 製の静的ドキュメントサイトにする。
+- 既存の `projects/documentation` を `projects/docs-web-app` へ移し、`https://docs.freeism.app/` で公開できる Blume（Astro製）ドキュメントサイトにする。
 - `points.freeism.app` と `markets.freeism.app` の独立した責務は変更しない。
 
 ## 採用方針
 
 ### 検討したアプローチ
 
-1. **両サイトを Astro で構築する（採用）**
-   - メインサイトは素の Astro、ドキュメントサイトは Astro Starlight とする。
+1. **メインサイトをAstro、ドキュメントサイトをBlumeで構築する（採用）**
+   - メインサイトは素のAstro、ドキュメントサイトはAstro製のBlumeとする。
    - 静的HTML中心で、認証・API・Cookieを持たない入口として境界が明確になる。
    - 2サイトでビルド基盤を共有できるが、デプロイ成果物と公開ドメインは分離する。
 2. **メインサイトだけ既存 Next.js に追加する**
@@ -56,9 +56,11 @@
 
 ## ドキュメントサイト
 
-- Astro Starlightを使用し、日本語をroot locale、英語を `/en/` に置く。
+- Blumeを使用し、日本語をroot locale、英語を `/en/` に置く。
+- `origin/main` の `projects/documentation` にあるMarkdownをcanonical sourceとし、移動後も全対象ファイルをバイト単位で変更しない。
+- Blumeのfilesystem content sourceまたはcustom pageからcanonical Markdownを読み込み、metadataやrouteは別設定で与える。canonical Markdownへfrontmatterを追加しない。
 - 初回移行では `freeism.ja.md` と `freeism.en.md` を単一ページのまま保持し、既存見出しとアンカーへの影響を抑える。
-- `note.ja.md` と `note.en.md` は各言語の「図解・ノート」ページにする。
+- `note.ja.md` と `note.en.md` は各言語の「図解・ノート」ページとして読み込む。
 - 既存textlint、lint-staged、Husky設定を `docs-web-app` に移す。
 - Mermaidの20図、raw HTML、表、外部リンクを静的ビルドで確認する。
 - 既存本文の内容修正や大規模な章分割は今回行わない。
@@ -73,7 +75,6 @@
 ## 検証
 
 - メインサイト：構造テスト、リンク先テスト、アクセシビリティの静的検査、Astro check、production build。
-- ドキュメントサイト：日英ページ、言語切替、Mermaid、既存見出し・アンカー、Astro check、production build、textlint。
+- ドキュメントサイト：origin/main blobとのSHA-256一致、日英ページ、言語切替、Mermaid、既存見出し・アンカー、Blume check、production build、textlint。
 - workspace：frozen lockfile install、対象packageのlint/test/build、`git diff --check`。
 - ブラウザ：desktop/mobile screenshot、主要リンク、console error、reduced motionを確認する。
-
