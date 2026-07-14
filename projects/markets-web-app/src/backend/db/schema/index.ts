@@ -5,5 +5,6 @@ export * from "./markets-user";
 export * from "./ops";
 export * from "./points-connection";
 export * from "./proof";
+export * from "./proof-review";
 export * from "./settlement";
 export * from "./settlement-admin";
