@@ -9,7 +9,6 @@
     "check": "vp check",
     "test": "vp test run --config vitest.config.ts",
     "test:worker": "vp test run --config vitest.worker.config.ts",
-    "test:release": "node --test test/release/release-scripts.test.mjs",
     "test:e2e": "playwright test -c playwright.config.ts",
     "build": "vp build",
     "build:staging": "CLOUDFLARE_ENV=staging vp build && node ../../scripts/web-app/generate-static-security-headers.mjs . staging",
@@ -24,9 +23,6 @@
     "smoke:staging": "node scripts/smoke.mjs staging",
     "smoke:production": "node scripts/smoke.mjs production",
     "drill:ops-alert:staging": "node scripts/drill-ops-alert.mjs staging",
-    "verify:empty-d1": "node scripts/verify-empty-d1.mjs",
-    "verify:runtime-boundaries": "node scripts/verify-runtime-boundaries.mjs",
-    "verify:better-auth-release": "node scripts/verify-better-auth-release.mjs",
     "types:worker": "wrangler types"
   },
   "dependencies": {

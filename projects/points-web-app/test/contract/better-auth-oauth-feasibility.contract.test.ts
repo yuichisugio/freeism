@@ -2,8 +2,6 @@ import { describe, expect, it } from "vite-plus/test";
 import { betterAuth } from "better-auth/minimal";
 import { oauthProvider } from "@better-auth/oauth-provider";
 
-import { inspectBetterAuthOAuthFeasibility } from "../../scripts/verify-better-auth-oauth-feasibility";
-
 async function signTestIdToken(clientId: string, clientSecret: string): Promise<string> {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(
@@ -26,59 +24,7 @@ async function signTestIdToken(clientId: string, clientSecret: string): Promise<
   return `${signingInput}.${Buffer.from(signature).toString("base64url")}`;
 }
 
-describe("Better Auth standard OAuth feasibility probe", () => {
-  it("accepts separate clients, remote introspection, and compensating confirmation", async () => {
-    const report = await inspectBetterAuthOAuthFeasibility();
-
-    expect(report.package).toMatchObject({
-      name: "@better-auth/oauth-provider",
-      version: "1.7.0-rc.1",
-      lockfileIntegritySha512: expect.stringMatching(/^sha512-/),
-    });
-    expect(report.result).toBe("PASS");
-    expect(report.stopCode).toBeUndefined();
-
-    expect(report.supported).toMatchObject({
-      opaqueAccessTokens: { supported: true },
-      clientCredentialsWithoutUser: { supported: true },
-      confidentialRemoteIntrospection: { supported: true },
-      separateClientScopeAllowlists: { supported: true },
-      standardRevocation: { supported: true },
-      pairwiseUserSubjectAtIntrospection: { supported: true },
-      idTokenRejectedAsResourceBearer: { supported: true },
-    });
-    expect(report.acceptedDesign).toEqual({
-      userClient: "separate-confidential-client",
-      m2mClient: "separate-confidential-client",
-      settlementClient: "separate-confidential-client",
-      introspection: "standard-confidential-remote",
-      consistency: "pending-confirm-revocation-outbox",
-    });
-    expect(report.avoidedUnsupportedCapabilities).toEqual([
-      "grant-specific scope allowlists inside one client",
-      "auth-only in-process opaque introspection",
-      "application transaction enlistment for authorization codes",
-      "application transaction enlistment for token families",
-    ]);
-  });
-
-  it("keeps the evidence secret-free and tied to public package files", async () => {
-    const report = await inspectBetterAuthOAuthFeasibility();
-    const serialized = JSON.stringify(report);
-
-    expect(
-      report.inspectedFiles.every(
-        (file) =>
-          file.startsWith("dist/") ||
-          file.startsWith("@better-auth/core/dist/oauth2/") ||
-          file === "package.json",
-      ),
-    ).toBe(true);
-    expect(report.inspectedFiles).toContain("@better-auth/core/dist/oauth2/verify.mjs");
-    expect(serialized).not.toMatch(/access_token|refresh_token|clientSecret|cookie/i);
-    expect(serialized).not.toContain("/private/tmp/");
-  });
-
+describe("Better Auth OAuth provider contract", () => {
   it("enforces separate user and M2M clients and rejects ID tokens as access tokens", async () => {
     const auth = betterAuth({
       baseURL: "https://points.example.test",

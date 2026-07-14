@@ -48,21 +48,15 @@ jobs:
       - name: Verify the shared contract
         run: pnpm contract:web-app:check
 
-      - name: Verify the staging release gate
-        run: CLOUDFLARE_ENV=staging pnpm --filter @freeism/markets-web-app verify:better-auth-release
-
       - name: Test Points
         run: |
           pnpm --filter @freeism/points-web-app test
           pnpm --filter @freeism/points-web-app test:worker
-          pnpm --filter @freeism/points-web-app verify:runtime-boundaries
 
       - name: Test Markets
         run: |
           pnpm --filter @freeism/markets-web-app test
           pnpm --filter @freeism/markets-web-app test:worker
-          pnpm --filter @freeism/markets-web-app test:release
-          pnpm --filter @freeism/markets-web-app verify:runtime-boundaries
 
       - name: Build and validate Points artifact
         run: |

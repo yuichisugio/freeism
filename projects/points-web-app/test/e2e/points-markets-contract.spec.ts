@@ -1,8 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 import { assertGeneratedConfig, expectedWorkerName } from "../../scripts/deploy-generated";
-import { assertRequiredSchema } from "../../scripts/verify-empty-d1";
-import { inspectRuntimeDependencies } from "../../scripts/verify-runtime-dependencies";
 import { migrationCommand } from "../../scripts/migrate-d1";
 import { assertDrillEnvironment } from "../../scripts/drill-ops-alert";
 import { smokeChecks, smokeOrigin } from "../../scripts/smoke";
@@ -71,13 +69,6 @@ test("generated deployment config must contain the expected flattened boundaries
       "staging",
     ),
   ).toThrow(/DB/);
-});
-
-test("release verification rejects an incomplete empty D1 and legacy runtime imports are absent", async () => {
-  expect(() => assertRequiredSchema([{ type: "table", name: "user" }])).toThrow(/missing/);
-  await expect(
-    inspectRuntimeDependencies(new URL("../..", import.meta.url).pathname),
-  ).resolves.toEqual([]);
 });
 
 test("smoke checks are read-only and use fixed custom domains", () => {

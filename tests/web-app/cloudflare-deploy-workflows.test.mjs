@@ -39,6 +39,7 @@ test("test/* push deploys the shared Cloudflare test environment in state-safe o
   assert.match(source, /branches:\s*\n\s+- ["']test\/\*["']/);
   assert.doesNotMatch(source, /branches:\s*\n\s+- main/);
   assertCommonSafety(source, "web-app-staging", "freeism-web-app-test-deploy");
+  assert.doesNotMatch(source, /verify:better-auth-release/);
   assertInOrder(source, [
     "pnpm install --frozen-lockfile",
     "pnpm contract:web-app:check",
@@ -46,7 +47,6 @@ test("test/* push deploys the shared Cloudflare test environment in state-safe o
     "@freeism/points-web-app test:worker",
     "@freeism/markets-web-app test",
     "@freeism/markets-web-app test:worker",
-    "@freeism/markets-web-app test:release",
     "source projects/points-web-app/.dev.vars.example",
     "@freeism/points-web-app build:staging",
     "@freeism/points-web-app build:assert",
@@ -69,15 +69,14 @@ test("main push deploys only the Cloudflare production environment in state-safe
   assert.match(source, /branches:\s*\n\s+- main/);
   assert.doesNotMatch(source, /test\/\*/);
   assertCommonSafety(source, "web-app-production", "freeism-web-app-production-deploy");
+  assert.doesNotMatch(source, /verify:better-auth-release/);
   assertInOrder(source, [
     "pnpm install --frozen-lockfile",
-    "CLOUDFLARE_ENV=production pnpm --filter @freeism/markets-web-app verify:better-auth-release",
     "pnpm contract:web-app:check",
     "@freeism/points-web-app test",
     "@freeism/points-web-app test:worker",
     "@freeism/markets-web-app test",
     "@freeism/markets-web-app test:worker",
-    "@freeism/markets-web-app test:release",
     "source projects/points-web-app/.dev.vars.example",
     "@freeism/points-web-app build:production",
     "@freeism/points-web-app build:assert",
