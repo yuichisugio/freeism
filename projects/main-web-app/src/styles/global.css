@@ -53,7 +53,7 @@ a {
 }
 
 a:focus-visible {
-  outline: 3px solid var(--color-signal-cyan);
+  outline: 3px solid var(--color-freeism-blue);
   outline-offset: 4px;
 }
 
