@@ -531,6 +531,24 @@ test("Task 12〜15とopsの将来schema invariantを構造で固定する", asyn
   ];
 
   assert.doesNotThrow(() => assertFutureSchemaInvariants(rows));
+  for (const [table, constraint] of [
+    ["settlement_capture_receipts", "settlement_capture_receipts_plan_hash_check"],
+    ["settlement_allocations", "settlement_allocations_vector_hash_check"],
+    ["proofs", "proofs_content_hash_check"],
+    ["settlement_finalize_receipts", "settlement_finalize_receipts_proof_set_hash_check"],
+  ]) {
+    assert.throws(
+      () =>
+        assertFutureSchemaInvariants(
+          rows.map((row) =>
+            row.name === table
+              ? { ...row, sql: `CREATE TABLE ${table} (CONSTRAINT "${constraint}" CHECK (1))` }
+              : row,
+          ),
+        ),
+      /missing.*hash check/i,
+    );
+  }
   for (const name of [
     "settlement_capture_receipts_settlement_uidx",
     "test_proofs_update",
