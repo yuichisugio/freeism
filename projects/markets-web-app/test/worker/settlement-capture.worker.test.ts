@@ -440,10 +440,7 @@ describe("settlement capture", () => {
     const buySettlementId = `buy_settlement_${suffix}`;
     const buyRoundId = `buy_round_${suffix}`;
     const buyCaptureId = `buy_capture_${suffix}`;
-    const buyAllocationId = `buy_allocation_${suffix}`;
-    const buyProofId = `buy_proof_${suffix}`;
-    const buyFinalizeId = `buy_finalize_${suffix}`;
-    const buyProofHash = "4".repeat(64);
+    const buyPointReservationId = `buy_reservation_${suffix}`;
     const buyCaptureHash = `sha256:${"3".repeat(64)}`;
     const auctionVersion = await env.DB.prepare("SELECT version FROM auctions WHERE id = ?")
       .bind(auctionId)
@@ -494,76 +491,50 @@ describe("settlement capture", () => {
         `INSERT INTO settlement_capture_receipts
          (capture_receipt_id, settlement_id, settlement_round_id, auction_id,
           plan_hash, captured_at, content_hash, reservations_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, '[]')`,
-      ).bind(buyCaptureId, buySettlementId, buyRoundId, auctionId, planHash, now, buyCaptureHash),
-      env.DB.prepare(
-        `INSERT INTO settlement_allocations
-         (id, settlement_id, settlement_round_id, allocation_ordinal, auction_id,
-          buyer_markets_user_id, point_reservation_id, quantity,
-          uniform_price_tick_count, price_ticks, vector_hash, settled_at)
-         VALUES (?, ?, ?, 1, ?, ?, ?, 1, 1, 1, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       ).bind(
-        buyAllocationId,
+        buyCaptureId,
         buySettlementId,
         buyRoundId,
         auctionId,
+        planHash,
+        now,
+        buyCaptureHash,
+        JSON.stringify([
+          { pointReservationId: buyPointReservationId, status: "CAPTURED", vectorHash },
+        ]),
+      ),
+      env.DB.prepare(
+        `INSERT INTO settlement_round_winners
+         (id, settlement_round_id, markets_user_id, allocation_quantity,
+          price_tick_count, price_ticks, reservation_key, status,
+          point_reservation_id, vector_hash, component_vector_json)
+         VALUES (?, ?, ?, 1, 0, 0, ?, 'CAPTURED', ?, ?, ?)`,
+      ).bind(
+        `buy_winner_${suffix}`,
+        buyRoundId,
         buyerId,
-        `buy_reservation_${suffix}`,
+        `${buySettlementId}:${buyerId}:revision_1`,
+        buyPointReservationId,
         vectorHash,
-        now,
-      ),
-      env.DB.prepare(
-        `INSERT INTO proofs
-         (id, allocation_id, settlement_id, auction_id, auction_revision_id,
-          buyer_markets_user_id, point_package_revision_id, item_snapshot_json,
-          seller_identity_snapshot_json, buyer_identity_snapshot_json,
-          allocation_quantity, uniform_price_tick_count, price_ticks,
-          component_vector_json, completion_status, settled_at, plan_hash, content_hash)
-         VALUES (?, ?, ?, ?, ?, ?, ?, '{}', '{}', '{}', 1, 1, 1, ?,
-          'SETTLED', ?, ?, ?)`,
-      ).bind(
-        buyProofId,
-        buyAllocationId,
-        buySettlementId,
-        auctionId,
-        revisionId,
-        buyerId,
-        plan.pointPackageRevisionId,
         componentVectorJson,
-        now,
-        planHash,
-        buyProofHash,
-      ),
-      env.DB.prepare(
-        `INSERT INTO settlement_finalize_receipts
-         (id, settlement_id, capture_receipt_id, plan_hash, proof_ids_json,
-          proof_set_hash, finalized_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(
-        buyFinalizeId,
-        buySettlementId,
-        buyCaptureId,
-        planHash,
-        JSON.stringify([buyProofId]),
-        "1".repeat(64),
-        now,
       ),
     ]);
-    const settleInput = {
-      auctionId,
-      captureContentHash: buyCaptureHash,
-      captureReceiptId: buyCaptureId,
-      expectedAuctionVersion: auctionVersion!,
-      finalizeReceiptId: buyFinalizeId,
-      holdId,
-      proofContentHash: buyProofHash,
-      proofId: buyProofId,
-      serverNow: now,
-      settlementId: buySettlementId,
-    };
     const room = env.AUCTION_ROOMS.getByName(auctionId);
-    await runScheduledSettlementMaintenance({
+    const settleAttempts: Array<{ captureReceiptId: string; finalizeReceiptId: string }> = [];
+    const scheduledEnv = {
       ...env,
+      AUCTION_ROOMS: {
+        getByName() {
+          return {
+            async settleBuyNowHold(input: { captureReceiptId: string; finalizeReceiptId: string }) {
+              settleAttempts.push(input);
+              if (settleAttempts.length === 1) throw new Error("TEST_BUY_NOW_DO_UNAVAILABLE");
+              return room.settleBuyNowHold(input as Parameters<typeof room.settleBuyNowHold>[0]);
+            },
+          };
+        },
+      },
       POINTS_AUDIENCE: "https://points.example.test",
       POINTS_ISSUER: "https://points.example.test/api/auth",
       POINTS_M2M_CLIENT_ID: "markets-m2m-client",
@@ -572,24 +543,32 @@ describe("settlement capture", () => {
       POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
       POINTS_USER_CLIENT_ID: "markets-user-client",
       POINTS_USER_CLIENT_SECRET: "markets-user-secret",
-    } as Env);
+    } as Env;
+    await expect(runScheduledSettlementMaintenance(scheduledEnv)).rejects.toThrow(
+      "TEST_BUY_NOW_DO_UNAVAILABLE",
+    );
+    expect(
+      await env.DB.prepare("SELECT saga_state FROM settlements WHERE id = ?")
+        .bind(buySettlementId)
+        .first<string>("saga_state"),
+    ).toBe("SETTLED");
+    expect(
+      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("CAPTURED_PENDING_FINALIZE");
+
+    await runScheduledSettlementMaintenance(scheduledEnv);
     expect(
       await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
         .bind(holdId)
         .first<string>("status"),
     ).toBe("SETTLED");
-    const settledHold = await room.settleBuyNowHold(settleInput);
-    expect(
-      await room.settleBuyNowHold({
-        ...settleInput,
-        serverNow: "2026-07-14T01:00:01.000Z",
-      }),
-    ).toEqual(settledHold);
-    expect(
-      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
-        .bind(holdId)
-        .first<string>("status"),
-    ).toBe("SETTLED");
+    expect(settleAttempts).toHaveLength(2);
+    expect(settleAttempts[1]).toMatchObject({
+      captureReceiptId: settleAttempts[0]!.captureReceiptId,
+      finalizeReceiptId: settleAttempts[0]!.finalizeReceiptId,
+    });
     expect(
       await env.DB.prepare(
         `SELECT

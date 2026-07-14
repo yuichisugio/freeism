@@ -65,6 +65,66 @@ export function fetchMarketsApi(request: Request, env: Env) {
   return app.fetch(request, env);
 }
 
+async function settleFinalizedBuyNowHold(
+  bindings: ReturnType<typeof requireBindings>,
+  settlementId: string,
+) {
+  const buyNow = await bindings.DB.prepare(
+    `SELECT s.auction_id AS auctionId,
+            json_extract(p.plan_json, '$.buyNowHoldId') AS holdId,
+            a.version AS auctionVersion, c.content_hash AS captureContentHash,
+            c.capture_receipt_id AS captureReceiptId,
+            f.id AS finalizeReceiptId,
+            pr.id AS proofId, pr.content_hash AS proofContentHash
+     FROM settlements s
+     JOIN settlement_plans p ON p.id = s.current_plan_id
+     JOIN auctions a ON a.id = s.auction_id
+     JOIN settlement_capture_receipts c ON c.settlement_id = s.id
+     JOIN settlement_finalize_receipts f ON f.settlement_id = s.id
+     JOIN proofs pr ON pr.settlement_id = s.id
+     JOIN buy_now_holds h
+       ON h.id = json_extract(p.plan_json, '$.buyNowHoldId')
+      AND h.status = 'CAPTURED_PENDING_FINALIZE'
+     WHERE s.id = ? AND s.kind = 'BUY_NOW' AND s.saga_state = 'SETTLED'`,
+  )
+    .bind(settlementId)
+    .first<{
+      auctionId: string;
+      auctionVersion: number;
+      captureContentHash: string;
+      captureReceiptId: string;
+      finalizeReceiptId: string;
+      holdId: string;
+      proofContentHash: string;
+      proofId: string;
+    }>();
+  if (!buyNow) return;
+  await bindings.AUCTION_ROOMS.getByName(buyNow.auctionId).settleBuyNowHold({
+    auctionId: buyNow.auctionId,
+    captureContentHash: buyNow.captureContentHash,
+    captureReceiptId: buyNow.captureReceiptId,
+    expectedAuctionVersion: buyNow.auctionVersion,
+    finalizeReceiptId: buyNow.finalizeReceiptId,
+    holdId: buyNow.holdId,
+    proofContentHash: buyNow.proofContentHash,
+    proofId: buyNow.proofId,
+    serverNow: new Date().toISOString(),
+    settlementId,
+  });
+}
+
+async function retryFinalizedBuyNowHolds(bindings: ReturnType<typeof requireBindings>) {
+  const rows = await bindings.DB.prepare(
+    `SELECT s.id FROM settlements s
+     JOIN settlement_plans p ON p.id = s.current_plan_id
+     JOIN buy_now_holds h ON h.id = json_extract(p.plan_json, '$.buyNowHoldId')
+     WHERE s.kind = 'BUY_NOW' AND s.saga_state = 'SETTLED'
+       AND h.auction_id = s.auction_id AND h.status = 'CAPTURED_PENDING_FINALIZE'
+     ORDER BY s.updated_at LIMIT 25`,
+  ).all<{ id: string }>();
+  for (const row of rows.results) await settleFinalizedBuyNowHold(bindings, row.id);
+}
+
 export async function runScheduledSettlementMaintenance(env: Env) {
   const bindings = requireBindings(env);
   const oauth = new PointsOAuthClient(bindings.POINTS_SERVICE, {
@@ -80,6 +140,7 @@ export async function runScheduledSettlementMaintenance(env: Env) {
   const points = new PointsApiClient(bindings.POINTS_SERVICE, (scopes) =>
     oauth.getM2MAccessToken(scopes),
   );
+  await retryFinalizedBuyNowHolds(bindings);
   await reconcilePendingSettlements({
     db: bindings.DB,
     async finalizeCaptured(settlementId) {
@@ -97,44 +158,7 @@ export async function runScheduledSettlementMaintenance(env: Env) {
         { db: bindings.DB, now: () => new Date() },
         { ...row, settlementId },
       );
-      const buyNow = await bindings.DB.prepare(
-        `SELECT s.auction_id AS auctionId,
-                json_extract(p.plan_json, '$.buyNowHoldId') AS holdId,
-                a.version AS auctionVersion, c.content_hash AS captureContentHash,
-                pr.id AS proofId, pr.content_hash AS proofContentHash
-         FROM settlements s
-         JOIN settlement_plans p ON p.id = s.current_plan_id
-         JOIN auctions a ON a.id = s.auction_id
-         JOIN settlement_capture_receipts c ON c.settlement_id = s.id
-         JOIN proofs pr ON pr.settlement_id = s.id
-         JOIN buy_now_holds h
-           ON h.id = json_extract(p.plan_json, '$.buyNowHoldId')
-          AND h.status = 'CAPTURED_PENDING_FINALIZE'
-         WHERE s.id = ? AND s.kind = 'BUY_NOW'`,
-      )
-        .bind(settlementId)
-        .first<{
-          auctionId: string;
-          auctionVersion: number;
-          captureContentHash: string;
-          holdId: string;
-          proofContentHash: string;
-          proofId: string;
-        }>();
-      if (buyNow) {
-        await bindings.AUCTION_ROOMS.getByName(buyNow.auctionId).settleBuyNowHold({
-          auctionId: buyNow.auctionId,
-          captureContentHash: buyNow.captureContentHash,
-          captureReceiptId: row.captureReceiptId,
-          expectedAuctionVersion: buyNow.auctionVersion,
-          finalizeReceiptId: finalized.finalizeReceiptId,
-          holdId: buyNow.holdId,
-          proofContentHash: buyNow.proofContentHash,
-          proofId: buyNow.proofId,
-          serverNow: new Date().toISOString(),
-          settlementId,
-        });
-      }
+      await settleFinalizedBuyNowHold(bindings, settlementId);
       return finalized;
     },
     async getStatuses(reservationKeys) {
