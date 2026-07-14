@@ -147,7 +147,14 @@
           "POINTS_SETTLEMENT_CLIENT_SECRET",
         ],
       },
-      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "markets-production",
+          "database_id": "cf035280-de48-47fc-b634-e58469732469",
+          "migrations_dir": "drizzle",
+        },
+      ],
       "services": [{ "binding": "POINTS_SERVICE", "service": "points-worker-production" }],
       "analytics_engine_datasets": [
         { "binding": "OPS_METRICS", "dataset": "markets_ops_production" },

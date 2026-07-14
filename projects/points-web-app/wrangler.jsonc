@@ -143,7 +143,14 @@
           "POINTS_OPS_DRILL_TOKEN",
         ],
       },
-      "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "points-production",
+          "database_id": "636cc2cc-0ba3-4b44-88c7-025e83ca4437",
+          "migrations_dir": "drizzle",
+        },
+      ],
       "analytics_engine_datasets": [
         { "binding": "OPS_METRICS", "dataset": "points_ops_production" },
       ],
