@@ -7,7 +7,11 @@ settings.local.json
 
 # Husky generated stub (see documentation toolchain)
 .husky/_
-projects/documentation/.husky/_
+projects/docs-web-app/.husky/_
+projects/docs-web-app/.astro/
+projects/docs-web-app/dist/
+projects/main-web-app/.astro/
+projects/main-web-app/dist/
 
 # --- calc-contrib, depchecker ---
 projects/calc-contrib/results/

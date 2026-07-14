@@ -7,9 +7,12 @@ This project contains the Freeism documentation. Markdown sources live under `sr
 ## Build, Test, and Development Commands
 
 - `pnpm install`: install dependencies for the root workspace, including this documentation package.
-- `pnpm --filter documentation lint`: run textlint with the project's `.textlintrc` rules.
+- `pnpm --filter docs-web-app lint`: run textlint with the project's `.textlintrc` rules.
+- `pnpm --filter docs-web-app check`: run Astro and TypeScript diagnostics.
+- `pnpm --filter docs-web-app test`: run the package's current test entry point.
+- `pnpm --filter docs-web-app build`: build the static documentation site.
 
-There is no `pnpm start` command or local application server in this repository.
+Use `pnpm --filter docs-web-app dev` to run the local Astro development server.
 
 ## Coding Style & Naming Conventions
 
@@ -17,7 +20,7 @@ Use Markdown for content and CommonJS JavaScript for build configuration. Keep J
 
 ## Testing Guidelines
 
-No dedicated automated test framework or coverage target is defined. For documentation changes, run `pnpm --filter documentation lint` before committing.
+No dedicated automated test framework or coverage target is defined. For documentation changes, run `pnpm --filter docs-web-app lint` before committing.
 
 ## Commit & Pull Request Guidelines
 

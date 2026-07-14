@@ -23,7 +23,7 @@ freeism/
 ├── LICENSE                   # ライセンス
 ├── docs/                     # リポジトリ用ドキュメント
 └── projects/                 # モノレポ管理対象のプロジェクト
-    ├── documentation/        # 無料主義の仕様
+    ├── docs-web-app/         # 無料主義の仕様
     ├── points-web-app/       # points.freeism.app
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # v0.2切替まで保持する旧実装
@@ -33,7 +33,7 @@ freeism/
 
 | パス(README.md)                                                      | 説明                              |
 | -------------------------------------------------------------------- | --------------------------------- |
-| [`projects/documentation/`](../projects/documentation/README.md)     | 無料主義の仕様                    |
+| [`projects/docs-web-app/`](../projects/docs-web-app/README.md)       | 無料主義の仕様                    |
 | [`projects/points-web-app/`](../projects/points-web-app/README.md)   | Points Web アプリ                 |
 | [`projects/markets-web-app/`](../projects/markets-web-app/README.md) | Markets Web アプリ                |
 | [`docs/web-app/`](./web-app/README.md)                               | Web アプリ横断仕様                |

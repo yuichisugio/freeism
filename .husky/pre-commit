@@ -3,5 +3,5 @@ set -e
 
 [ "$HUSKY" = "0" ] && exit 0
 
-(cd projects/documentation && ./.husky/pre-commit)
+(cd projects/docs-web-app && ./.husky/pre-commit)
 (cd projects/web-app && ./.husky/pre-commit)

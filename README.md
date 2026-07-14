@@ -17,7 +17,7 @@
 
 | Path                                                       | Description                                                                                     |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| [`projects/documentation/`](./projects/documentation/)     | Freeism specification                                                                           |
+| [`projects/docs-web-app/`](./projects/docs-web-app/)       | Freeism specification                                                                           |
 | [`docs/`](./docs/)                                         | Markdown for the repository root (this README in Japanese, the Japanese code of conduct, etc.). |
 | [`projects/points-web-app/`](./projects/points-web-app/)   | `points.freeism.app` frontend/backend specs and implementation plan                             |
 | [`projects/markets-web-app/`](./projects/markets-web-app/) | `markets.freeism.app` frontend/backend specs and implementation plan                            |
@@ -33,7 +33,7 @@ freeism/
 ├── LICENSE                   # License
 ├── docs/                     # Documentation for this repository
 └── projects/                 # Monorepo projects
-    ├── documentation/        # Freeism specification
+    ├── docs-web-app/         # Freeism specification
     ├── points-web-app/       # points.freeism.app
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # Legacy app until v0.2 cutover
