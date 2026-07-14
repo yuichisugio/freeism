@@ -219,7 +219,7 @@ Marketsだけが次のデータを所有し、更新できる。
 ## 8. 環境、ドメイン、デプロイ
 
 - `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
-- stagingは`staging.points.freeism.app`と`staging.markets.freeism.app`、productionは`points.freeism.app`と`markets.freeism.app`を使う。
+- 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
 - apex `freeism.app`と`www.freeism.app`は`points.freeism.app`へredirectする。
 - publicなper-PR preview環境はv0.2で作らない。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
@@ -227,19 +227,27 @@ Marketsだけが次のデータを所有し、更新できる。
 - v0.2では定期R2 backupを作らず、D1 Time Travelと復旧runbookを用意する。
 - Vercel、Supabase、Upstashは受入完了後にdomain、env、cron、projectを撤去する。
 
-### main pushの本番pipeline
+### branch pushのdeploy pipeline
 
-`main`へのpushだけをproduction deployの起点とする。手動production承認は置かない。
+`test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する。testからproductionへの自動昇格と手動production承認は置かない。
 
-1. validate、typecheck、unit/integration test、supply-chain検査
-2. Points staging deploy
-3. Markets staging deploy
-4. staging E2Eと精算reconciliation
-5. Points production deploy
-6. Markets production deploy
-7. production smoke test
+`test/*` pipeline:
 
-staging失敗時はproductionへ進まない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。production concurrencyは直列queueとし、実行中deployをcancelしない。
+1. validate、contract、unit/integration test
+2. `CLOUDFLARE_ENV=staging`でPoints／Markets artifactを個別build・検証
+3. Points staging D1 migration、Markets staging D1 migration
+4. Points staging deploy、Markets staging deploy
+5. Points／Markets staging smoke
+
+`main` pipeline:
+
+1. production release gate、validate、contract、unit/integration test
+2. `CLOUDFLARE_ENV=production`でPoints／Markets artifactを個別build・検証
+3. Points production D1 migration、Markets production D1 migration
+4. Points production deploy、Markets production deploy
+5. Points／Markets production smoke
+
+両pipelineは別の固定concurrency groupで直列queueにし、`queue: max`かつ`cancel-in-progress: false`として実行中migrationをcancelしない。test artifact／credentialをproductionへ流用しない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。
 
 ## 9. セキュリティ、品質、release gate
 

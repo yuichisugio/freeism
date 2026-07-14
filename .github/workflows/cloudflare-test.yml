@@ -1,0 +1,99 @@
+name: Deploy Cloudflare test
+
+on:
+  push:
+    branches:
+      - "test/*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: freeism-web-app-test-deploy
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  deploy:
+    name: Deploy shared test environment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: web-app-staging
+    env:
+      CI: "true"
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      WRANGLER_SEND_METRICS: "false"
+
+    steps:
+      - name: Check out the pushed commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.33.3
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify the shared contract
+        run: pnpm contract:web-app:check
+
+      - name: Verify the staging release gate
+        run: CLOUDFLARE_ENV=staging pnpm --filter @freeism/markets-web-app verify:better-auth-release
+
+      - name: Test Points
+        run: |
+          pnpm --filter @freeism/points-web-app test
+          pnpm --filter @freeism/points-web-app test:worker
+          pnpm --filter @freeism/points-web-app verify:runtime-boundaries
+
+      - name: Test Markets
+        run: |
+          pnpm --filter @freeism/markets-web-app test
+          pnpm --filter @freeism/markets-web-app test:worker
+          pnpm --filter @freeism/markets-web-app test:release
+          pnpm --filter @freeism/markets-web-app verify:runtime-boundaries
+
+      - name: Build and validate Points artifact
+        run: |
+          set -a
+          source projects/points-web-app/.dev.vars.example
+          set +a
+          pnpm --filter @freeism/points-web-app build:staging
+          pnpm --filter @freeism/points-web-app build:assert
+
+      - name: Build and validate Markets artifact
+        run: |
+          set -a
+          source projects/markets-web-app/.dev.vars.example
+          set +a
+          pnpm --filter @freeism/markets-web-app build:staging
+          pnpm --filter @freeism/markets-web-app build:assert
+
+      - name: Apply Points D1 migrations
+        run: pnpm --filter @freeism/points-web-app db:migrate:staging
+
+      - name: Apply Markets D1 migrations
+        run: pnpm --filter @freeism/markets-web-app db:migrate:staging
+
+      - name: Deploy Points Worker
+        run: pnpm --filter @freeism/points-web-app deploy:staging
+
+      - name: Deploy Markets Worker
+        run: pnpm --filter @freeism/markets-web-app deploy:staging
+
+      - name: Smoke test Points
+        run: pnpm --filter @freeism/points-web-app smoke:staging
+
+      - name: Smoke test Markets
+        run: pnpm --filter @freeism/markets-web-app smoke:staging

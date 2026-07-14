@@ -5,6 +5,7 @@
 - Terraform `1.15.7` and `cloudflare/cloudflare` `5.21.1` are exact pins.
 - `production` workspace alone owns zone-wide apex/www DNS, root redirect, managed WAF, IP/path rate limit, and Email Routing enablement. `staging` must never create those resources.
 - `staging` owns only staging Access resources. Turnstile, native notification policies, and verified destination inventory are environment-specific.
+- `staging` is the internal Cloudflare name of the shared test environment. Only pushes to `test/*` deploy it; pushes to `main` deploy `production` directly and never promote a staging artifact.
 - Worker, custom domain, D1, Durable Object, Workflow, Service Binding, and Worker Secret resources remain Wrangler/application-owned. Terraform must not add them.
 - The `freeism-terraform-state` R2 bucket is a one-time bootstrap resource, not part of normal Terraform state and not a D1 backup.
 - Staging may be deployed on Workers Free. Its flattened Worker configuration must omit paid-only per-Worker `limits.cpu_ms` and `limits.subrequests` and run within the Free-plan defaults. Workers Paid remains a production release gate; do not weaken the production limits or release gate to match staging.

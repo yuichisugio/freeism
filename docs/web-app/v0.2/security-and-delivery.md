@@ -289,6 +289,8 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Actionsはfull commit SHAへ固定し、permissionsはjob最小にする。
 - fork/PR由来cache、artifact、environment値をproduction deployへ流用しない。
 - production secretsはmain push workflowのproduction jobだけが参照する。
+- `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
+- prerender buildは追跡済み`.dev.vars.example`のdummy値だけをbuild step内へ読み込み、実Worker Secretをartifactへ渡さない。deployは別stepで実行し、dummy環境変数を引き継がない。
 - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
 ## 15. main ruleset
@@ -314,27 +316,31 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 6. build、Static Assets routing検証
 7. dependency/advisory/license policy
 
-### main push
+### `test/*` push
 
 1. validate
 2. staging artifact build (`CLOUDFLARE_ENV=staging`)
 3. Points staging migration/deploy
 4. Markets staging migration/deploy
-5. staging E2E/reconciliation
-6. production artifact build (`CLOUDFLARE_ENV=production`)
-7. Points production migration/deploy
-8. Markets production migration/deploy
-9. production smoke
+5. staging smoke
+
+### `main` push
+
+1. production release gateとvalidate
+2. production artifact build (`CLOUDFLARE_ENV=production`)
+3. Points production migration/deploy
+4. Markets production migration/deploy
+5. production smoke
 
 - production手動approvalを置かない。
-- staging failure時はproductionを変更しない。
-- `cancel-in-progress=false`、productionは直列queue、後続run上限を設定する。
-- unrelated projectだけの変更ではweb appsをdeployしない。
+- testとproductionは独立workflowとし、test workflowからproductionへ昇格しない。
+- 両workflowは固定concurrency group、`queue: max`、`cancel-in-progress=false`で直列化し、実行中migrationをcancelしない。
+- branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
 - public per-PR previewは作らない。
 
 ## 17. 環境とIaC所有権
 
-- `local`、`staging`、`production`でWorker、D1、DO namespace、Workflow、OAuth app/client、Secretsを分離する。
+- `local`、`staging`、`production`でWorker、D1、DO namespace、Workflow、OAuth app/client、Secretsを分離する。`staging`は共有test環境のCloudflare内部名である。
 - Wrangler/Vite plugin: Worker binding、named environment、Static Assets、custom domain route、migration tag。
 - Terraform: zone DNS、apex/www redirect、WAF、rate limit、Access等のedge設定。
 - 同じresourceをTerraformとWranglerで二重管理しない。
