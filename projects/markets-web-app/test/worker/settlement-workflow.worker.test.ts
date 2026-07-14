@@ -303,6 +303,48 @@ describe("settlement close and Workflow", () => {
     expect(quantity).toBe(2);
   });
 
+  it("finishes a delayed sold-out close without an empty END plan", async () => {
+    const seeded = await seedDueAuction();
+    const buyerId = await env.DB.prepare(
+      "SELECT bidder_markets_user_id FROM bid_positions WHERE id = ?",
+    )
+      .bind(seeded.earlyBidId)
+      .first<string>("bidder_markets_user_id");
+    const holdId = `hold_${crypto.randomUUID()}`;
+    await env.DB.prepare(
+      `INSERT INTO buy_now_holds
+       (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status)
+       VALUES (?, ?, ?, 2, 20, 'PENDING')`,
+    )
+      .bind(holdId, seeded.auctionId, buyerId)
+      .run();
+    await closeAuctionAndPlan(env.DB, {
+      auctionId: seeded.auctionId,
+      expectedAuctionVersion: 4,
+      expectedRevisionId: seeded.revisionId,
+      serverNow: seeded.serverNow,
+    });
+    await env.DB.prepare("UPDATE buy_now_holds SET status = 'SETTLED' WHERE id = ?")
+      .bind(holdId)
+      .run();
+
+    const resume = () =>
+      resumeAuctionCloseFromCutoff(env.DB, {
+        auctionId: seeded.auctionId,
+        serverNow: new Date(Date.parse(seeded.serverNow) + 1_000).toISOString(),
+      });
+    await expect(resume()).resolves.toEqual({ cutoffId: seeded.auctionId, kind: "SOLD_OUT" });
+    await expect(resume()).resolves.toEqual({ cutoffId: seeded.auctionId, kind: "SOLD_OUT" });
+    expect(await settlementCounts(seeded.auctionId)).toEqual({
+      cutoffs: 1,
+      outbox: 0,
+      plans: 0,
+      settlements: 0,
+      status: "SETTLED",
+      version: 5,
+    });
+  });
+
   it("rolls back the close CAS and cutoff when the outbox insert fails", async () => {
     const seeded = await seedDueAuction();
     await env.DB.exec(
@@ -410,6 +452,32 @@ describe("settlement close and Workflow", () => {
     } finally {
       await introspector.dispose();
     }
+  });
+
+  it("recreates a retained DISPATCHED outbox when its deterministic Workflow instance is gone", async () => {
+    const seeded = await seedDueAuction();
+    const planned = await closeAuctionAndPlan(env.DB, {
+      auctionId: seeded.auctionId,
+      expectedAuctionVersion: 4,
+      expectedRevisionId: seeded.revisionId,
+      serverNow: seeded.serverNow,
+    });
+    if (planned.kind !== "PLANNED") throw new Error("Expected planned settlement");
+    const instanceId = settlementWorkflowInstanceId(planned.params);
+    await env.DB.prepare(
+      `UPDATE settlement_outbox SET status = 'DISPATCHED', workflow_instance_id = ?
+       WHERE id = ?`,
+    )
+      .bind(instanceId, planned.outboxId)
+      .run();
+    await expect(env.AUCTION_SETTLEMENT.get(instanceId)).rejects.toThrow("instance.not_found");
+
+    await expect(
+      dispatchSettlementOutbox(env.DB, env.AUCTION_SETTLEMENT, planned.outboxId),
+    ).resolves.toEqual({ instanceId, status: "DISPATCHED" });
+    expect((await (await env.AUCTION_SETTLEMENT.get(instanceId)).status()).status).not.toBe(
+      "unknown",
+    );
   });
 
   it("uses distinct retry IDs, rejects oversized IDs, and defines every explicit policy", () => {

@@ -2,7 +2,6 @@ import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import { D1SettlementCaptureRepository } from "../../src/backend/db/d1-settlement-capture-repository";
-import { settleBuyNowHold } from "../../src/backend/auction/settle-buy-now-hold";
 import {
   captureAllWinners,
   type CaptureRound,
@@ -332,7 +331,7 @@ describe("settlement capture", () => {
           auction_command_hash, package_eligibility_version, eligibility_checked_at,
           eligibility_valid_until, commit_started_at)
          VALUES (?, ?, 1, 'Item', 'Description', 'https://example.test/item', ?,
-          'points.freeism.app', ?, 1, ?, ?, 1, ?, ?, ?, 1, ?, ?, ?)`,
+          'points.freeism.app', ?, 2, ?, ?, 1, ?, ?, ?, 1, ?, ?, ?)`,
       ).bind(
         revisionId,
         auctionId,
@@ -449,6 +448,21 @@ describe("settlement capture", () => {
       .bind(auctionId)
       .first<number>("version");
     await env.DB.batch([
+      env.DB.prepare("UPDATE auctions SET status = 'CLOSING' WHERE id = ?").bind(auctionId),
+      env.DB.prepare(
+        `INSERT INTO auction_close_cutoffs
+         (auction_id, auction_revision_id, closed_auction_version, cutoff_at, max_bid_seq,
+          eligible_bid_ids_json, ranking_input_hash, available_quantity,
+          point_package_revision_id, package_tick, algorithm_version)
+         VALUES (?, ?, ?, ?, 0, '[]', ?, 1, ?, 1, 'uniform-price-v1')`,
+      ).bind(
+        auctionId,
+        revisionId,
+        auctionVersion,
+        now,
+        "9".repeat(64),
+        plan.pointPackageRevisionId,
+      ),
       env.DB.prepare(
         `INSERT INTO buy_now_holds
          (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status)
@@ -546,9 +560,10 @@ describe("settlement capture", () => {
       serverNow: now,
       settlementId: buySettlementId,
     };
-    const settledHold = await settleBuyNowHold(env.DB, settleInput);
+    const room = env.AUCTION_ROOMS.getByName(auctionId);
+    const settledHold = await room.settleBuyNowHold(settleInput);
     expect(
-      await settleBuyNowHold(env.DB, {
+      await room.settleBuyNowHold({
         ...settleInput,
         serverNow: "2026-07-14T01:00:01.000Z",
       }),
@@ -558,5 +573,16 @@ describe("settlement capture", () => {
         .bind(holdId)
         .first<string>("status"),
     ).toBe("SETTLED");
+    expect(
+      await env.DB.prepare(
+        `SELECT
+          (SELECT COUNT(*) FROM settlements
+            WHERE auction_id = ? AND source_key = ?) AS settlements,
+          (SELECT COUNT(*) FROM settlement_outbox o JOIN settlements s ON s.id = o.settlement_id
+            WHERE s.auction_id = ? AND s.source_key = ?) AS outbox`,
+      )
+        .bind(auctionId, `end:${revisionId}:${now}`, auctionId, `end:${revisionId}:${now}`)
+        .first(),
+    ).toMatchObject({ outbox: 1, settlements: 1 });
   });
 });

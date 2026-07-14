@@ -77,15 +77,26 @@ export async function settleBuyNowHold(
     throw new Error("BUY_NOW_HOLD_ALREADY_RESTORED");
   }
   const settledAt = row.holdStatus === "SETTLED" ? row.settledAt : input.serverNow;
-  if (row.holdStatus !== "SETTLED") {
-    const changed = await db
+  const [changed] = await db.batch([
+    db
       .prepare(
         `UPDATE buy_now_holds SET status = 'SETTLED', updated_at = ?
          WHERE id = ? AND status = 'CAPTURED_PENDING_FINALIZE'`,
       )
-      .bind(input.serverNow, input.holdId)
-      .run();
-    if (changed.meta.changes !== 1) throw new Error("BUY_NOW_HOLD_SETTLE_CONFLICT");
+      .bind(input.serverNow, input.holdId),
+    db
+      .prepare(
+        `INSERT OR IGNORE INTO auction_close_resume_outbox
+         (id, auction_id, buy_now_hold_id, status, created_at)
+         SELECT ?, h.auction_id, h.id, 'PENDING', ?
+         FROM buy_now_holds h JOIN auctions a ON a.id = h.auction_id
+         WHERE h.id = ? AND h.status = 'SETTLED' AND a.status = 'CLOSING'
+           AND EXISTS (SELECT 1 FROM auction_close_cutoffs c WHERE c.auction_id = h.auction_id)`,
+      )
+      .bind(`close_resume_${input.holdId}`, input.serverNow, input.holdId),
+  ]);
+  if (row.holdStatus !== "SETTLED" && changed?.meta.changes !== 1) {
+    throw new Error("BUY_NOW_HOLD_SETTLE_CONFLICT");
   }
   return {
     holdId: input.holdId,

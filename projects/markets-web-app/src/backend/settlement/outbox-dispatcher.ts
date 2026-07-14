@@ -18,6 +18,30 @@ export function settlementWorkflowInstanceId(params: SettlementWorkflowParams): 
   return id;
 }
 
+async function workflowInstanceExists(
+  workflow: Workflow<SettlementWorkflowParams>,
+  instanceId: string,
+): Promise<boolean> {
+  try {
+    const instance = await workflow.get(instanceId);
+    return (await instance.status()).status !== "unknown";
+  } catch {
+    return false;
+  }
+}
+
+async function createOrConfirmWorkflowInstance(
+  workflow: Workflow<SettlementWorkflowParams>,
+  instanceId: string,
+  params: SettlementWorkflowParams,
+): Promise<void> {
+  try {
+    await workflow.create({ id: instanceId, params });
+  } catch (error) {
+    if (!(await workflowInstanceExists(workflow, instanceId))) throw error;
+  }
+}
+
 export async function dispatchSettlementOutbox(
   db: D1Database,
   workflow: Workflow<SettlementWorkflowParams>,
@@ -46,26 +70,25 @@ export async function dispatchSettlementOutbox(
   if (row.status === "DISPATCHED") {
     if (row.workflowInstanceId !== instanceId)
       throw new Error("SETTLEMENT_OUTBOX_INSTANCE_MISMATCH");
+    if (!(await workflowInstanceExists(workflow, instanceId))) {
+      await createOrConfirmWorkflowInstance(workflow, instanceId, params);
+    }
     return { instanceId, status: "DISPATCHED" };
   }
 
   try {
-    await workflow.create({ id: instanceId, params });
+    await createOrConfirmWorkflowInstance(workflow, instanceId, params);
   } catch (error) {
-    const existing = await workflow.get(instanceId);
-    const existingStatus = await existing.status();
-    if (existingStatus.status === "unknown") {
-      await db
-        .prepare(
-          `UPDATE settlement_outbox
-           SET delivery_attempt_count = delivery_attempt_count + 1,
-               last_error_code = 'WORKFLOW_CREATE_FAILED'
-           WHERE id = ? AND status = 'PENDING'`,
-        )
-        .bind(outboxId)
-        .run();
-      throw error;
-    }
+    await db
+      .prepare(
+        `UPDATE settlement_outbox
+         SET delivery_attempt_count = delivery_attempt_count + 1,
+             last_error_code = 'WORKFLOW_CREATE_FAILED'
+         WHERE id = ? AND status = 'PENDING'`,
+      )
+      .bind(outboxId)
+      .run();
+    throw error;
   }
   await db
     .prepare(

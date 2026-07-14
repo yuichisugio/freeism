@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 
 import { D1AuctionTransitionRepository } from "../db/d1-auction-transition-repository";
+import { dispatchAuctionCloseResumeOutbox } from "../db/d1-settlement-repository";
 import { closeAuctionAndPlan } from "../db/d1-settlement-plan-repository";
 import { D1WebSocketLeaseRepository } from "../db/d1-websocket-lease-repository";
 import { dispatchSettlementOutbox } from "../settlement/outbox-dispatcher";
@@ -63,7 +64,21 @@ export class AuctionRoom extends DurableObject<Env> {
   }
 
   async settleBuyNowHold(input: SettleBuyNowHoldInput): Promise<BuyNowTerminalReceipt> {
-    return settleBuyNowHold(this.env.DB, input);
+    const receipt = await settleBuyNowHold(this.env.DB, input);
+    const resumeOutboxId = await this.env.DB.prepare(
+      "SELECT id FROM auction_close_resume_outbox WHERE buy_now_hold_id = ?",
+    )
+      .bind(input.holdId)
+      .first<string>("id");
+    if (resumeOutboxId) {
+      await dispatchAuctionCloseResumeOutbox(
+        this.env.DB,
+        this.env.AUCTION_SETTLEMENT,
+        resumeOutboxId,
+        input.serverNow,
+      );
+    }
+    return receipt;
   }
 
   async fetch(request: Request): Promise<Response> {
