@@ -78,6 +78,13 @@
       "when": 1784001608545,
       "tag": "0010_watchlist",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1784004699607,
+      "tag": "0011_ops-alert-maintenance",
+      "breakpoints": true
     }
   ]
 }

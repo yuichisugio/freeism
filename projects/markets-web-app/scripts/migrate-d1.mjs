@@ -116,7 +116,9 @@ export function releaseTargetFromConfig(config, environment) {
       name === "production" ? "markets.freeism.app" : "staging.markets.freeism.app";
     const expectedOrigin = `https://${expectedDomain}`;
     const expectedIssuer =
-      name === "production" ? "https://points.freeism.app" : "https://staging.points.freeism.app";
+      name === "production"
+        ? "https://points.freeism.app/api/auth"
+        : "https://staging.points.freeism.app/api/auth";
     const expectedTraceSamplingRate = name === "production" ? 0.05 : 1;
     const workflow = oneBinding(
       source.workflows,

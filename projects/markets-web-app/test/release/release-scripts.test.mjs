@@ -13,7 +13,9 @@ function sourceReleaseConfig() {
       APP_HOST: `${name === "production" ? "" : "staging."}markets.freeism.app`,
       APP_ORIGIN: `https://${name === "production" ? "" : "staging."}markets.freeism.app`,
       POINTS_ISSUER:
-        name === "production" ? "https://points.freeism.app" : "https://staging.points.freeism.app",
+        name === "production"
+          ? "https://points.freeism.app/api/auth"
+          : "https://staging.points.freeism.app/api/auth",
     },
     d1_databases: [
       {
@@ -758,6 +760,18 @@ test("remote release environmentはstagingとproductionだけ", async () => {
   }
 });
 
+test("実wranglerのPoints issuerは全環境でBetter Auth pathを含む", async () => {
+  const source = await readFile(resolve(import.meta.dirname, "../../wrangler.jsonc"), "utf8");
+  const issuers = [...source.matchAll(/"POINTS_ISSUER":\s*"([^"]+)"/g)].map(
+    (match) => match[1],
+  );
+  assert.deepEqual(issuers, [
+    "http://localhost:3000/api/auth",
+    "https://staging.points.freeism.app/api/auth",
+    "https://points.freeism.app/api/auth",
+  ]);
+});
+
 test("generated deploy artifactはMarketsの全release bindingを要求する", async () => {
   const { assertDeployEnvironment, assertGeneratedConfig, assertSameMigrationDirectory } =
     await import("../../scripts/deploy-generated.mjs");
@@ -777,7 +791,7 @@ test("generated deploy artifactはMarketsの全release bindingを要求する", 
       APP_ENV: "staging",
       APP_HOST: "staging.markets.freeism.app",
       APP_ORIGIN: "https://staging.markets.freeism.app",
-      POINTS_ISSUER: "https://staging.points.freeism.app",
+      POINTS_ISSUER: "https://staging.points.freeism.app/api/auth",
     },
     assets: {
       directory: "../client",

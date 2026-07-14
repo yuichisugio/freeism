@@ -3,6 +3,13 @@ import { Hono } from "hono";
 import { marketsBackendApp } from "../src/backend/app";
 import { dispatchAuctionCloseResumeOutbox } from "../src/backend/db/d1-settlement-repository";
 import { requireBindings } from "../src/backend/http/context";
+import { cleanupResolvedOpsAlerts } from "../src/backend/observability/cleanup-ops-alerts";
+import { deliverOpsAlert } from "../src/backend/observability/deliver-ops-alert";
+import {
+  inspectMarketsOpsAlerts,
+  monitorMarketsOpsAlerts,
+} from "../src/backend/observability/ops-monitor";
+import { emitOpsMetric, hashOpsResourceId } from "../src/backend/observability/ops-metrics";
 import { PointsApiClient } from "../src/backend/points/points-api-client";
 import { PointsOAuthClient } from "../src/backend/points/points-oauth-client";
 import { finalizeSettlement } from "../src/backend/settlement/finalize-settlement";
@@ -241,11 +248,56 @@ export async function runScheduledSettlementMaintenance(env: Env) {
   await dispatchPendingSettlementOutboxes(bindings.DB, bindings.AUCTION_SETTLEMENT);
 }
 
+export function runMarketsCronJobs(jobs: ReadonlyArray<() => Promise<unknown>>) {
+  return Promise.allSettled(jobs.map((job) => job()));
+}
+
+export async function runScheduledMarkets(controller: ScheduledController, env: Env) {
+  if (controller.cron !== "*/5 * * * *") return;
+  const startedAt = Date.now();
+  const results = await runMarketsCronJobs([
+    () => runScheduledSettlementMaintenance(env),
+    () =>
+      monitorMarketsOpsAlerts(env.DB, {
+        environment: env.APP_ENV,
+        inspect: (db, now) => inspectMarketsOpsAlerts(db, now, env.OPS_RESOURCE_HASH_SALT),
+        notify: (alert) =>
+          deliverOpsAlert(env.OPS_ALERT_EMAIL, alert, {
+            from: env.OPS_ALERT_FROM,
+            to: env.OPS_ALERT_TO,
+          }),
+        resourceHashSalt: env.OPS_RESOURCE_HASH_SALT,
+      }),
+    () => cleanupResolvedOpsAlerts(env.DB, new Date(), env.APP_ENV),
+  ]);
+  for (const [index, result] of results.entries()) {
+    const succeeded = result.status === "fulfilled";
+    const resourceIdHash = await hashOpsResourceId(
+      `*/5 * * * *:${index}`,
+      env.OPS_RESOURCE_HASH_SALT,
+    );
+    emitOpsMetric(env.OPS_METRICS, {
+      app: "markets",
+      attempt: 1,
+      code: succeeded ? "CRON_JOB_OK" : "CRON_JOB_FAILED",
+      count: 1,
+      durationMs: Date.now() - startedAt,
+      environment: env.APP_ENV,
+      event: "cron_job",
+      lagSeconds: 0,
+      outcome: succeeded ? "SUCCEEDED" : "FAILED",
+      resourceIdHash,
+      resourceState: `job-${index}`,
+    });
+    if (!succeeded) console.error("MARKETS_CRON_JOB_FAILED", { jobIndex: index });
+  }
+}
+
 export default {
   fetch(request, env, _context) {
     return fetchMarketsApi(request, env);
   },
-  scheduled(_controller, env, context) {
-    context.waitUntil(runScheduledSettlementMaintenance(env));
+  scheduled(controller, env, context) {
+    context.waitUntil(runScheduledMarkets(controller, env));
   },
 } satisfies ExportedHandler<Env>;

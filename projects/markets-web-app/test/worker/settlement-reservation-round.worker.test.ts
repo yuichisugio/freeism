@@ -52,7 +52,7 @@ async function insertConnection(suffix: string, user: { authId: string; marketsU
      (id, markets_user_id, auth_user_id, status, link_attempt_id, attempt_payload_hash,
       points_issuer, points_subject, user_client_id, m2m_client_id, granted_scopes,
       session_id, expires_at)
-     VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'https://points.example.test', ?,
+     VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'https://points.example.test/api/auth', ?,
       'markets-user-client', 'markets-m2m-client', 'points.reservations.create', ?, ?)`,
   )
     .bind(
@@ -479,7 +479,7 @@ describe("settlement reservation round", () => {
             aud: "https://points.example.test/api",
             client_id: "markets-user-client",
             exp: Math.floor(Date.now() / 1000) + 3_600,
-            iss: "https://points.example.test",
+            iss: "https://points.example.test/api/auth",
             scope: "offline_access points.reservations.create",
             sub: `subject_${marketsUserId}`,
           });
@@ -521,7 +521,7 @@ describe("settlement reservation round", () => {
     const deps = createSettlementReservationDependencies({
       ...authEnv,
       POINTS_AUDIENCE: "https://points.example.test/api",
-      POINTS_ISSUER: "https://points.example.test",
+      POINTS_ISSUER: "https://points.example.test/api/auth",
       POINTS_M2M_CLIENT_ID: "markets-m2m-client",
       POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
       POINTS_SERVICE: service,
