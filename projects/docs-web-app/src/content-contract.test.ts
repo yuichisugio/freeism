@@ -57,7 +57,7 @@ const countMermaidFences = (markdown: string) =>
 
 describe("Blume canonical content", () => {
   it.each(canonicalFiles)(
-    "keeps $name byte-identical to origin/main",
+    "keeps $name byte-identical to branch base origin/main a8659964",
     async ({ file, originMainSha256 }) => {
       const contents = await readFile(file);
       const actualSha256 = createHash("sha256").update(contents).digest("hex");

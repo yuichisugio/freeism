@@ -14,15 +14,16 @@ interface Props {
 }
 
 const { description, locale, localePaths, publicPath, sourcePath } = Astro.props;
-const contentRoute = getBlumeCollection(data, { locale }).find(
-  (route) => route.path === sourcePath,
-);
+const contentRoute = getBlumeCollection(data, {
+  collection: "staged",
+  locale,
+}).find((route) => route.path === sourcePath);
 
 if (!contentRoute) {
   throw new Error(`Canonical Blume content route not found: ${sourcePath}`);
 }
 
-const entry = await getEntry("docs", contentRoute.entryId);
+const entry = await getEntry("staged", contentRoute.entryId);
 if (!entry) {
   throw new Error(`Canonical Blume content entry not found: ${contentRoute.entryId}`);
 }
@@ -73,7 +74,7 @@ const canonical = data.config.site
   toc={data.config.toc}
   ui={ui}
 >
-  <BlumePage id={contentRoute.entryId} />
+  <BlumePage collection="staged" id={contentRoute.entryId} />
 </RootLayout>
 
 <script>

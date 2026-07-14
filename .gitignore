@@ -9,6 +9,7 @@ settings.local.json
 .husky/_
 projects/docs-web-app/.husky/_
 projects/docs-web-app/.astro/
+projects/docs-web-app/.blume/
 projects/docs-web-app/dist/
 projects/main-web-app/.astro/
 projects/main-web-app/dist/

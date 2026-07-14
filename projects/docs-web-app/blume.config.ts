@@ -1,12 +1,14 @@
 import { defineConfig } from "blume";
 
+import { canonicalContentSource } from "./src/canonical-content-source";
+
 export default defineConfig({
   title: "Freeism Docs",
   description: "無料主義 v3 の日本語・英語ドキュメント",
   content: {
-    root: "src",
-    include: ["freeism.*.md", "note/note.*.md"],
     pages: "pages",
+    root: "src",
+    sources: [{ type: "custom", source: canonicalContentSource }],
   },
   i18n: {
     defaultLocale: "ja",
