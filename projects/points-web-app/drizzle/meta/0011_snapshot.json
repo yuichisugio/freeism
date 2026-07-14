@@ -1,0 +1,5308 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "73db9d1d-1a89-4c6a-a62a-e79c85b58984",
+  "prevId": "1b783b3f-b013-497c-9ca4-d9000d330600",
+  "tables": {
+    "account": {
+      "name": "account",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "access_token_expires_at": {
+          "name": "access_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "refresh_token_expires_at": {
+          "name": "refresh_token_expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "account_userId_idx": {
+          "name": "account_userId_idx",
+          "columns": ["user_id"],
+          "isUnique": false
+        },
+        "account_provider_account_uidx": {
+          "name": "account_provider_account_uidx",
+          "columns": ["provider_id", "account_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "account_user_id_user_id_fk": {
+          "name": "account_user_id_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "rate_limit": {
+      "name": "rate_limit",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_request": {
+          "name": "last_request",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "rate_limit_key_unique": {
+          "name": "rate_limit_key_unique",
+          "columns": ["key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "session": {
+      "name": "session",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "token": {
+          "name": "token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "session_token_unique": {
+          "name": "session_token_unique",
+          "columns": ["token"],
+          "isUnique": true
+        },
+        "session_userId_idx": {
+          "name": "session_userId_idx",
+          "columns": ["user_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "session_user_id_user_id_fk": {
+          "name": "session_user_id_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "user": {
+      "name": "user",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "email_verified": {
+          "name": "email_verified",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "image": {
+          "name": "image",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "columns": ["email"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "verification": {
+      "name": "verification",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identifier": {
+          "name": "identifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": ["identifier"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "admin_membership": {
+      "name": "admin_membership",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'ADMIN'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "admin_membership_points_user_id_uidx": {
+          "name": "admin_membership_points_user_id_uidx",
+          "columns": ["points_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "admin_membership_points_user_id_points_user_id_fk": {
+          "name": "admin_membership_points_user_id_points_user_id_fk",
+          "tableFrom": "admin_membership",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "admin_membership_role_check": {
+          "name": "admin_membership_role_check",
+          "value": "\"admin_membership\".\"role\" = 'ADMIN'"
+        }
+      }
+    },
+    "audit_event": {
+      "name": "audit_event",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target": {
+          "name": "target",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "result": {
+          "name": "result",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_event_actor_points_user_id_points_user_id_fk": {
+          "name": "audit_event_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "audit_event",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auto_distribution_revision": {
+      "name": "auto_distribution_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_id": {
+          "name": "snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_fix_revision_id": {
+          "name": "source_fix_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_amount_scaled": {
+          "name": "source_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "retained_amount_scaled": {
+          "name": "retained_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "distribution_amount_scaled": {
+          "name": "distribution_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_debit_delta_scaled": {
+          "name": "source_debit_delta_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "allocation_snapshot": {
+          "name": "allocation_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "credit_delta_snapshot": {
+          "name": "credit_delta_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "auto_distribution_revision_source_uidx": {
+          "name": "auto_distribution_revision_source_uidx",
+          "columns": ["snapshot_id", "source_fix_revision_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auto_distribution_revision_snapshot_id_auto_distribution_snapshot_id_fk": {
+          "name": "auto_distribution_revision_snapshot_id_auto_distribution_snapshot_id_fk",
+          "tableFrom": "auto_distribution_revision",
+          "tableTo": "auto_distribution_snapshot",
+          "columnsFrom": ["snapshot_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auto_distribution_revision_allocation_check": {
+          "name": "auto_distribution_revision_allocation_check",
+          "value": "json_valid(\"auto_distribution_revision\".\"allocation_snapshot\")"
+        },
+        "auto_distribution_revision_credit_delta_check": {
+          "name": "auto_distribution_revision_credit_delta_check",
+          "value": "json_valid(\"auto_distribution_revision\".\"credit_delta_snapshot\")"
+        }
+      }
+    },
+    "auto_distribution_setting_revision": {
+      "name": "auto_distribution_setting_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "retention_type": {
+          "name": "retention_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "retention_rate_ppm": {
+          "name": "retention_rate_ppm",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "retention_amount_scaled": {
+          "name": "retention_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "auto_distribution_setting_revision_number_uidx": {
+          "name": "auto_distribution_setting_revision_number_uidx",
+          "columns": ["points_user_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auto_distribution_setting_revision_points_user_id_points_user_id_fk": {
+          "name": "auto_distribution_setting_revision_points_user_id_points_user_id_fk",
+          "tableFrom": "auto_distribution_setting_revision",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "auto_distribution_setting_revision_point_package_revision_id_point_package_revision_id_fk": {
+          "name": "auto_distribution_setting_revision_point_package_revision_id_point_package_revision_id_fk",
+          "tableFrom": "auto_distribution_setting_revision",
+          "tableTo": "point_package_revision",
+          "columnsFrom": ["point_package_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auto_distribution_setting_revision_number_check": {
+          "name": "auto_distribution_setting_revision_number_check",
+          "value": "\"auto_distribution_setting_revision\".\"revision\" >= 1"
+        },
+        "auto_distribution_setting_revision_value_check": {
+          "name": "auto_distribution_setting_revision_value_check",
+          "value": "(\"auto_distribution_setting_revision\".\"status\" = 'OFF' and \"auto_distribution_setting_revision\".\"point_package_revision_id\" is null\n            and \"auto_distribution_setting_revision\".\"retention_type\" is null and \"auto_distribution_setting_revision\".\"retention_rate_ppm\" is null\n            and \"auto_distribution_setting_revision\".\"retention_amount_scaled\" is null)\n        or (\"auto_distribution_setting_revision\".\"status\" = 'ON' and \"auto_distribution_setting_revision\".\"point_package_revision_id\" is not null and (\n          (\"auto_distribution_setting_revision\".\"retention_type\" = 'PERCENT' and \"auto_distribution_setting_revision\".\"retention_rate_ppm\" between 10 and 1000000\n            and \"auto_distribution_setting_revision\".\"retention_amount_scaled\" is null)\n          or (\"auto_distribution_setting_revision\".\"retention_type\" = 'FIXED' and \"auto_distribution_setting_revision\".\"retention_rate_ppm\" is null\n            and typeof(\"auto_distribution_setting_revision\".\"retention_amount_scaled\") = 'integer'\n            and \"auto_distribution_setting_revision\".\"retention_amount_scaled\" between 0 and 9007199254740991)))"
+        }
+      }
+    },
+    "auto_distribution_setting": {
+      "name": "auto_distribution_setting",
+      "columns": {
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "auto_distribution_setting_points_user_id_points_user_id_fk": {
+          "name": "auto_distribution_setting_points_user_id_points_user_id_fk",
+          "tableFrom": "auto_distribution_setting",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "auto_distribution_snapshot_target": {
+      "name": "auto_distribution_snapshot_target",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "snapshot_id": {
+          "name": "snapshot_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "score": {
+          "name": "score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "component_snapshot": {
+          "name": "component_snapshot",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tie_order": {
+          "name": "tie_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "auto_distribution_snapshot_target_user_uidx": {
+          "name": "auto_distribution_snapshot_target_user_uidx",
+          "columns": ["snapshot_id", "points_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auto_distribution_snapshot_target_snapshot_id_auto_distribution_snapshot_id_fk": {
+          "name": "auto_distribution_snapshot_target_snapshot_id_auto_distribution_snapshot_id_fk",
+          "tableFrom": "auto_distribution_snapshot_target",
+          "tableTo": "auto_distribution_snapshot",
+          "columnsFrom": ["snapshot_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auto_distribution_snapshot_target_score_check": {
+          "name": "auto_distribution_snapshot_target_score_check",
+          "value": "\"auto_distribution_snapshot_target\".\"score\" between 1 and 9007199254740991"
+        },
+        "auto_distribution_snapshot_target_component_check": {
+          "name": "auto_distribution_snapshot_target_component_check",
+          "value": "json_valid(\"auto_distribution_snapshot_target\".\"component_snapshot\")"
+        }
+      }
+    },
+    "auto_distribution_snapshot": {
+      "name": "auto_distribution_snapshot",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_business_key_hash": {
+          "name": "source_business_key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_fix_result_id": {
+          "name": "source_fix_result_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_recipient_key": {
+          "name": "source_recipient_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "initial_source_fix_revision_id": {
+          "name": "initial_source_fix_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_points_user_id": {
+          "name": "source_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "setting_revision_id": {
+          "name": "setting_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "minimum_unit_scaled": {
+          "name": "minimum_unit_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weight_cutoff_exclusive": {
+          "name": "weight_cutoff_exclusive",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "auto_distribution_snapshot_source_uidx": {
+          "name": "auto_distribution_snapshot_source_uidx",
+          "columns": ["source_business_key_hash"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "auto_distribution_snapshot_setting_revision_id_auto_distribution_setting_revision_id_fk": {
+          "name": "auto_distribution_snapshot_setting_revision_id_auto_distribution_setting_revision_id_fk",
+          "tableFrom": "auto_distribution_snapshot",
+          "tableTo": "auto_distribution_setting_revision",
+          "columnsFrom": ["setting_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "auto_distribution_snapshot_hash_check": {
+          "name": "auto_distribution_snapshot_hash_check",
+          "value": "length(\"auto_distribution_snapshot\".\"source_business_key_hash\") = 64"
+        }
+      }
+    },
+    "substitution_method_revision": {
+      "name": "substitution_method_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_revision_id": {
+          "name": "source_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_revision_id": {
+          "name": "target_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "similarity_numerator": {
+          "name": "similarity_numerator",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "similarity_denominator": {
+          "name": "similarity_denominator",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange_rate_revision_id": {
+          "name": "exchange_rate_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "substitution_method_revision_pair_number_uidx": {
+          "name": "substitution_method_revision_pair_number_uidx",
+          "columns": [
+            "source_evaluation_criterion_id",
+            "target_evaluation_criterion_id",
+            "revision"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "substitution_method_revision_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "substitution_method_revision_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "substitution_method_revision",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["source_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_method_revision_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "substitution_method_revision_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "substitution_method_revision",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["target_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_method_revision_exchange_rate_revision_id_exchange_rate_revision_id_fk": {
+          "name": "substitution_method_revision_exchange_rate_revision_id_exchange_rate_revision_id_fk",
+          "tableFrom": "substitution_method_revision",
+          "tableTo": "exchange_rate_revision",
+          "columnsFrom": ["exchange_rate_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_method_revision_actor_points_user_id_points_user_id_fk": {
+          "name": "substitution_method_revision_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "substitution_method_revision",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "substitution_method_revision_number_check": {
+          "name": "substitution_method_revision_number_check",
+          "value": "\"substitution_method_revision\".\"revision\" >= 1"
+        },
+        "substitution_method_revision_value_check": {
+          "name": "substitution_method_revision_value_check",
+          "value": "(\"substitution_method_revision\".\"status\" = 'ACTIVE'\n          and typeof(\"substitution_method_revision\".\"similarity_numerator\") = 'integer'\n          and \"substitution_method_revision\".\"similarity_numerator\" between 1 and 9007199254740991\n          and typeof(\"substitution_method_revision\".\"similarity_denominator\") = 'integer'\n          and \"substitution_method_revision\".\"similarity_denominator\" between \"substitution_method_revision\".\"similarity_numerator\" and 9007199254740991\n          and \"substitution_method_revision\".\"exchange_rate_revision_id\" is not null)\n        or (\"substitution_method_revision\".\"status\" = 'DISABLED'\n          and \"substitution_method_revision\".\"similarity_numerator\" is null\n          and \"substitution_method_revision\".\"similarity_denominator\" is null\n          and \"substitution_method_revision\".\"exchange_rate_revision_id\" is null)"
+        }
+      }
+    },
+    "substitution_method": {
+      "name": "substitution_method",
+      "columns": {
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "substitution_method_current_revision_uidx": {
+          "name": "substitution_method_current_revision_uidx",
+          "columns": ["current_revision_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "substitution_method_source_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "substitution_method_source_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "substitution_method",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["source_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_method_target_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "substitution_method_target_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "substitution_method",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["target_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "substitution_method_source_evaluation_criterion_id_target_evaluation_criterion_id_pk": {
+          "columns": ["source_evaluation_criterion_id", "target_evaluation_criterion_id"],
+          "name": "substitution_method_source_evaluation_criterion_id_target_evaluation_criterion_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "substitution_method_distinct_check": {
+          "name": "substitution_method_distinct_check",
+          "value": "\"substitution_method\".\"source_evaluation_criterion_id\" <> \"substitution_method\".\"target_evaluation_criterion_id\""
+        },
+        "substitution_method_revision_check": {
+          "name": "substitution_method_revision_check",
+          "value": "\"substitution_method\".\"current_revision\" >= 1"
+        }
+      }
+    },
+    "substitution_result_item": {
+      "name": "substitution_result_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "substitution_result_revision_id": {
+          "name": "substitution_result_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_total_scaled": {
+          "name": "source_total_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "theoretical_numerator": {
+          "name": "theoretical_numerator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "theoretical_denominator": {
+          "name": "theoretical_denominator",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "rounded_amount_scaled": {
+          "name": "rounded_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_delta_amount_scaled": {
+          "name": "expected_delta_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "substitution_result_item_user_uidx": {
+          "name": "substitution_result_item_user_uidx",
+          "columns": ["substitution_result_revision_id", "points_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "substitution_result_item_substitution_result_revision_id_substitution_result_revision_id_fk": {
+          "name": "substitution_result_item_substitution_result_revision_id_substitution_result_revision_id_fk",
+          "tableFrom": "substitution_result_item",
+          "tableTo": "substitution_result_revision",
+          "columnsFrom": ["substitution_result_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_result_item_points_user_id_points_user_id_fk": {
+          "name": "substitution_result_item_points_user_id_points_user_id_fk",
+          "tableFrom": "substitution_result_item",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "substitution_result_revision": {
+      "name": "substitution_result_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "substitution_result_id": {
+          "name": "substitution_result_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "substitution_method_revision_id": {
+          "name": "substitution_method_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_revision_id": {
+          "name": "source_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_revision_id": {
+          "name": "target_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exchange_rate_revision_id": {
+          "name": "exchange_rate_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_month": {
+          "name": "evaluation_month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month_start_inclusive": {
+          "name": "month_start_inclusive",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month_end_exclusive": {
+          "name": "month_end_exclusive",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "execution_cutoff": {
+          "name": "execution_cutoff",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "source_fix_set_hash": {
+          "name": "source_fix_set_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "substitution_result_revision_number_uidx": {
+          "name": "substitution_result_revision_number_uidx",
+          "columns": ["substitution_result_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "substitution_result_revision_substitution_result_id_substitution_result_id_fk": {
+          "name": "substitution_result_revision_substitution_result_id_substitution_result_id_fk",
+          "tableFrom": "substitution_result_revision",
+          "tableTo": "substitution_result",
+          "columnsFrom": ["substitution_result_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "substitution_result_revision_substitution_method_revision_id_substitution_method_revision_id_fk": {
+          "name": "substitution_result_revision_substitution_method_revision_id_substitution_method_revision_id_fk",
+          "tableFrom": "substitution_result_revision",
+          "tableTo": "substitution_method_revision",
+          "columnsFrom": ["substitution_method_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "substitution_result_revision_number_check": {
+          "name": "substitution_result_revision_number_check",
+          "value": "\"substitution_result_revision\".\"revision\" >= 1"
+        },
+        "substitution_result_revision_hash_check": {
+          "name": "substitution_result_revision_hash_check",
+          "value": "length(\"substitution_result_revision\".\"source_fix_set_hash\") = 64"
+        },
+        "substitution_result_revision_month_check": {
+          "name": "substitution_result_revision_month_check",
+          "value": "\"substitution_result_revision\".\"month_start_inclusive\" < \"substitution_result_revision\".\"month_end_exclusive\""
+        }
+      }
+    },
+    "substitution_result": {
+      "name": "substitution_result",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_month": {
+          "name": "evaluation_month",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "substitution_result_business_uidx": {
+          "name": "substitution_result_business_uidx",
+          "columns": [
+            "source_evaluation_criterion_id",
+            "target_evaluation_criterion_id",
+            "evaluation_month"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "substitution_result_revision_check": {
+          "name": "substitution_result_revision_check",
+          "value": "\"substitution_result\".\"current_revision\" >= 1"
+        }
+      }
+    },
+    "evaluation_criterion": {
+      "name": "evaluation_criterion",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "evaluation_criterion_normalized_name_uidx": {
+          "name": "evaluation_criterion_normalized_name_uidx",
+          "columns": ["normalized_name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "evaluation_criterion_revision_check": {
+          "name": "evaluation_criterion_revision_check",
+          "value": "\"evaluation_criterion\".\"current_revision\" >= 1"
+        }
+      }
+    },
+    "evaluation_criterion_related_url": {
+      "name": "evaluation_criterion_related_url",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "evaluation_criterion_related_url_order_uidx": {
+          "name": "evaluation_criterion_related_url_order_uidx",
+          "columns": ["evaluation_criterion_revision_id", "display_order"],
+          "isUnique": true
+        },
+        "evaluation_criterion_related_url_value_uidx": {
+          "name": "evaluation_criterion_related_url_value_uidx",
+          "columns": ["evaluation_criterion_revision_id", "url"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "evaluation_criterion_related_url_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "evaluation_criterion_related_url_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "evaluation_criterion_related_url",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "evaluation_criterion_related_url_order_check": {
+          "name": "evaluation_criterion_related_url_order_check",
+          "value": "\"evaluation_criterion_related_url\".\"display_order\" >= 0"
+        }
+      }
+    },
+    "evaluation_criterion_revision_seal": {
+      "name": "evaluation_criterion_revision_seal",
+      "columns": {
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sealed_at": {
+          "name": "sealed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "evaluation_criterion_revision_seal_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "evaluation_criterion_revision_seal_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "evaluation_criterion_revision_seal",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "evaluation_criterion_revision": {
+      "name": "evaluation_criterion_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minimum_unit_scaled": {
+          "name": "minimum_unit_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transfer_enabled": {
+          "name": "transfer_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exchange_enabled": {
+          "name": "exchange_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "balance_visible_by_default": {
+          "name": "balance_visible_by_default",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buy_now_enabled": {
+          "name": "buy_now_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "evaluation_criterion_revision_number_uidx": {
+          "name": "evaluation_criterion_revision_number_uidx",
+          "columns": ["evaluation_criterion_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "evaluation_criterion_revision_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "evaluation_criterion_revision_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "evaluation_criterion_revision",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "evaluation_criterion_revision_revision_check": {
+          "name": "evaluation_criterion_revision_revision_check",
+          "value": "\"evaluation_criterion_revision\".\"revision\" >= 1"
+        },
+        "evaluation_criterion_revision_status_check": {
+          "name": "evaluation_criterion_revision_status_check",
+          "value": "\"evaluation_criterion_revision\".\"status\" in ('ACTIVE', 'ARCHIVED')"
+        },
+        "evaluation_criterion_revision_name_check": {
+          "name": "evaluation_criterion_revision_name_check",
+          "value": "length(\"evaluation_criterion_revision\".\"name\") between 1 and 30"
+        },
+        "evaluation_criterion_revision_description_check": {
+          "name": "evaluation_criterion_revision_description_check",
+          "value": "length(\"evaluation_criterion_revision\".\"description\") between 1 and 200"
+        },
+        "evaluation_criterion_revision_minimum_unit_check": {
+          "name": "evaluation_criterion_revision_minimum_unit_check",
+          "value": "\"evaluation_criterion_revision\".\"minimum_unit_scaled\" between 1 and 9007199254740991"
+        }
+      }
+    },
+    "point_package_auction_eligibility_idempotency": {
+      "name": "point_package_auction_eligibility_idempotency",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_client_id": {
+          "name": "markets_client_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_item_count": {
+          "name": "expected_item_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "response_body": {
+          "name": "response_body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checked_at": {
+          "name": "checked_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "valid_until": {
+          "name": "valid_until",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "point_package_auction_eligibility_idempotency_key_uidx": {
+          "name": "point_package_auction_eligibility_idempotency_key_uidx",
+          "columns": ["markets_client_id", "idempotency_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_auction_eligibility_idempotency_item_count_check": {
+          "name": "point_package_auction_eligibility_idempotency_item_count_check",
+          "value": "\"point_package_auction_eligibility_idempotency\".\"expected_item_count\" between 1 and 1000"
+        },
+        "point_package_auction_eligibility_idempotency_status_check": {
+          "name": "point_package_auction_eligibility_idempotency_status_check",
+          "value": "\"point_package_auction_eligibility_idempotency\".\"status\" in (0, 201, 409)"
+        },
+        "point_package_auction_eligibility_idempotency_body_check": {
+          "name": "point_package_auction_eligibility_idempotency_body_check",
+          "value": "json_valid(\"point_package_auction_eligibility_idempotency\".\"response_body\")"
+        }
+      }
+    },
+    "point_package_auction_eligibility_item": {
+      "name": "point_package_auction_eligibility_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "receipt_id": {
+          "name": "receipt_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_item_id": {
+          "name": "auction_item_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_id": {
+          "name": "point_package_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "package_eligibility_version": {
+          "name": "package_eligibility_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "point_package_auction_eligibility_item_uidx": {
+          "name": "point_package_auction_eligibility_item_uidx",
+          "columns": ["receipt_id", "auction_item_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_auction_eligibility_item_receipt_id_point_package_auction_eligibility_receipt_id_fk": {
+          "name": "point_package_auction_eligibility_item_receipt_id_point_package_auction_eligibility_receipt_id_fk",
+          "tableFrom": "point_package_auction_eligibility_item",
+          "tableTo": "point_package_auction_eligibility_receipt",
+          "columnsFrom": ["receipt_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_auction_eligibility_item_version_check": {
+          "name": "point_package_auction_eligibility_item_version_check",
+          "value": "\"point_package_auction_eligibility_item\".\"package_eligibility_version\" >= 1"
+        }
+      }
+    },
+    "point_package_auction_eligibility_receipt": {
+      "name": "point_package_auction_eligibility_receipt",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_id": {
+          "name": "idempotency_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "markets_client_id": {
+          "name": "markets_client_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_command_id": {
+          "name": "auction_command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auction_command_hash": {
+          "name": "auction_command_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "checked_at": {
+          "name": "checked_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "valid_until": {
+          "name": "valid_until",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "point_package_auction_eligibility_receipt_idempotency_id_unique": {
+          "name": "point_package_auction_eligibility_receipt_idempotency_id_unique",
+          "columns": ["idempotency_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_auction_eligibility_receipt_idempotency_id_point_package_auction_eligibility_idempotency_id_fk": {
+          "name": "point_package_auction_eligibility_receipt_idempotency_id_point_package_auction_eligibility_idempotency_id_fk",
+          "tableFrom": "point_package_auction_eligibility_receipt",
+          "tableTo": "point_package_auction_eligibility_idempotency",
+          "columnsFrom": ["idempotency_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_auction_eligibility_receipt_lease_check": {
+          "name": "point_package_auction_eligibility_receipt_lease_check",
+          "value": "\"point_package_auction_eligibility_receipt\".\"valid_until\" = \"point_package_auction_eligibility_receipt\".\"checked_at\" + 30000"
+        }
+      }
+    },
+    "point_package_component": {
+      "name": "point_package_component",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_name": {
+          "name": "evaluation_criterion_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "minimum_unit_scaled": {
+          "name": "minimum_unit_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "buy_now_enabled": {
+          "name": "buy_now_enabled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weight": {
+          "name": "weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "point_package_component_criterion_uidx": {
+          "name": "point_package_component_criterion_uidx",
+          "columns": ["point_package_revision_id", "evaluation_criterion_id"],
+          "isUnique": true
+        },
+        "point_package_component_order_uidx": {
+          "name": "point_package_component_order_uidx",
+          "columns": ["point_package_revision_id", "display_order"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_component_point_package_revision_id_point_package_revision_id_fk": {
+          "name": "point_package_component_point_package_revision_id_point_package_revision_id_fk",
+          "tableFrom": "point_package_component",
+          "tableTo": "point_package_revision",
+          "columnsFrom": ["point_package_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_package_component_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "point_package_component_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "point_package_component",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_package_component_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "point_package_component_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "point_package_component",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_component_order_check": {
+          "name": "point_package_component_order_check",
+          "value": "\"point_package_component\".\"display_order\" >= 0"
+        },
+        "point_package_component_minimum_unit_check": {
+          "name": "point_package_component_minimum_unit_check",
+          "value": "\"point_package_component\".\"minimum_unit_scaled\" between 1 and 9007199254740991"
+        },
+        "point_package_component_weight_check": {
+          "name": "point_package_component_weight_check",
+          "value": "\"point_package_component\".\"weight\" between 1 and 9007199254740991"
+        }
+      }
+    },
+    "point_package_lifecycle_event": {
+      "name": "point_package_lifecycle_event",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_id": {
+          "name": "point_package_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eligibility_version": {
+          "name": "eligibility_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_package_lifecycle_event_version_uidx": {
+          "name": "point_package_lifecycle_event_version_uidx",
+          "columns": ["point_package_id", "eligibility_version"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_lifecycle_event_point_package_id_point_package_id_fk": {
+          "name": "point_package_lifecycle_event_point_package_id_point_package_id_fk",
+          "tableFrom": "point_package_lifecycle_event",
+          "tableTo": "point_package",
+          "columnsFrom": ["point_package_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_package_lifecycle_event_point_package_revision_id_point_package_revision_id_fk": {
+          "name": "point_package_lifecycle_event_point_package_revision_id_point_package_revision_id_fk",
+          "tableFrom": "point_package_lifecycle_event",
+          "tableTo": "point_package_revision",
+          "columnsFrom": ["point_package_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_lifecycle_event_status_check": {
+          "name": "point_package_lifecycle_event_status_check",
+          "value": "\"point_package_lifecycle_event\".\"status\" in ('ACTIVE', 'INACTIVE')"
+        },
+        "point_package_lifecycle_event_version_check": {
+          "name": "point_package_lifecycle_event_version_check",
+          "value": "\"point_package_lifecycle_event\".\"eligibility_version\" >= 1"
+        }
+      }
+    },
+    "point_package_revision_seal": {
+      "name": "point_package_revision_seal",
+      "columns": {
+        "point_package_revision_id": {
+          "name": "point_package_revision_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sealed_at": {
+          "name": "sealed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "point_package_revision_seal_point_package_revision_id_point_package_revision_id_fk": {
+          "name": "point_package_revision_seal_point_package_revision_id_point_package_revision_id_fk",
+          "tableFrom": "point_package_revision_seal",
+          "tableTo": "point_package_revision",
+          "columnsFrom": ["point_package_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "point_package_revision": {
+      "name": "point_package_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_id": {
+          "name": "point_package_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "related_url": {
+          "name": "related_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "total_weight": {
+          "name": "total_weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "package_tick": {
+          "name": "package_tick",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_package_revision_number_uidx": {
+          "name": "point_package_revision_number_uidx",
+          "columns": ["point_package_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_package_revision_point_package_id_point_package_id_fk": {
+          "name": "point_package_revision_point_package_id_point_package_id_fk",
+          "tableFrom": "point_package_revision",
+          "tableTo": "point_package",
+          "columnsFrom": ["point_package_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_revision_revision_check": {
+          "name": "point_package_revision_revision_check",
+          "value": "\"point_package_revision\".\"revision\" >= 1"
+        },
+        "point_package_revision_status_check": {
+          "name": "point_package_revision_status_check",
+          "value": "\"point_package_revision\".\"status\" in ('ACTIVE', 'INACTIVE')"
+        },
+        "point_package_revision_total_weight_check": {
+          "name": "point_package_revision_total_weight_check",
+          "value": "\"point_package_revision\".\"total_weight\" between 1 and 9007199254740991"
+        },
+        "point_package_revision_package_tick_check": {
+          "name": "point_package_revision_package_tick_check",
+          "value": "\"point_package_revision\".\"package_tick\" between 1 and 9007199254740991"
+        },
+        "point_package_revision_content_hash_check": {
+          "name": "point_package_revision_content_hash_check",
+          "value": "length(\"point_package_revision\".\"content_hash\") = 71 and substr(\"point_package_revision\".\"content_hash\", 1, 7) = 'sha256:'"
+        }
+      }
+    },
+    "point_package": {
+      "name": "point_package",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lifecycle_status": {
+          "name": "lifecycle_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "eligibility_version": {
+          "name": "eligibility_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_package_normalized_name_uidx": {
+          "name": "point_package_normalized_name_uidx",
+          "columns": ["normalized_name"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_package_revision_check": {
+          "name": "point_package_revision_check",
+          "value": "\"point_package\".\"current_revision\" >= 1"
+        },
+        "point_package_lifecycle_status_check": {
+          "name": "point_package_lifecycle_status_check",
+          "value": "\"point_package\".\"lifecycle_status\" in ('ACTIVE', 'INACTIVE')"
+        },
+        "point_package_eligibility_version_check": {
+          "name": "point_package_eligibility_version_check",
+          "value": "\"point_package\".\"eligibility_version\" >= 1"
+        }
+      }
+    },
+    "profile_evaluation_visibility": {
+      "name": "profile_evaluation_visibility",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "balance_visibility": {
+          "name": "balance_visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_total_visibility": {
+          "name": "evaluation_total_visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fix_visibility": {
+          "name": "fix_visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transfer_visibility": {
+          "name": "transfer_visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "exchange_visibility": {
+          "name": "exchange_visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "profile_evaluation_visibility_criterion_uidx": {
+          "name": "profile_evaluation_visibility_criterion_uidx",
+          "columns": ["points_user_id", "evaluation_criterion_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "profile_evaluation_visibility_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "profile_evaluation_visibility_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "profile_evaluation_visibility",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "profile_evaluation_visibility_balance_check": {
+          "name": "profile_evaluation_visibility_balance_check",
+          "value": "\"profile_evaluation_visibility\".\"balance_visibility\" in ('PUBLIC', 'PRIVATE')"
+        },
+        "profile_evaluation_visibility_evaluation_total_check": {
+          "name": "profile_evaluation_visibility_evaluation_total_check",
+          "value": "\"profile_evaluation_visibility\".\"evaluation_total_visibility\" in ('PUBLIC', 'PRIVATE')"
+        },
+        "profile_evaluation_visibility_fix_check": {
+          "name": "profile_evaluation_visibility_fix_check",
+          "value": "\"profile_evaluation_visibility\".\"fix_visibility\" in ('PUBLIC', 'PRIVATE')"
+        },
+        "profile_evaluation_visibility_transfer_check": {
+          "name": "profile_evaluation_visibility_transfer_check",
+          "value": "\"profile_evaluation_visibility\".\"transfer_visibility\" in ('PUBLIC', 'PRIVATE')"
+        },
+        "profile_evaluation_visibility_exchange_check": {
+          "name": "profile_evaluation_visibility_exchange_check",
+          "value": "\"profile_evaluation_visibility\".\"exchange_visibility\" in ('PUBLIC', 'PRIVATE')"
+        }
+      }
+    },
+    "profile_point_package": {
+      "name": "profile_point_package",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "point_package_id": {
+          "name": "point_package_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_order": {
+          "name": "display_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "profile_point_package_package_uidx": {
+          "name": "profile_point_package_package_uidx",
+          "columns": ["points_user_id", "point_package_id"],
+          "isUnique": true
+        },
+        "profile_point_package_order_uidx": {
+          "name": "profile_point_package_order_uidx",
+          "columns": ["points_user_id", "display_order"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "profile_point_package_point_package_id_point_package_id_fk": {
+          "name": "profile_point_package_point_package_id_point_package_id_fk",
+          "tableFrom": "profile_point_package",
+          "tableTo": "point_package",
+          "columnsFrom": ["point_package_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "profile_point_package_order_check": {
+          "name": "profile_point_package_order_check",
+          "value": "\"profile_point_package\".\"display_order\" >= 0"
+        }
+      }
+    },
+    "fix_result": {
+      "name": "fix_result",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "fix_result_revision_check": {
+          "name": "fix_result_revision_check",
+          "value": "\"fix_result\".\"current_revision\" >= 1"
+        }
+      }
+    },
+    "fix_revision_entry": {
+      "name": "fix_revision_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fix_revision_id": {
+          "name": "fix_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "recipient_provider_id": {
+          "name": "recipient_provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recipient_account_id": {
+          "name": "recipient_account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recipient_profile_url": {
+          "name": "recipient_profile_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identity_resolved_at": {
+          "name": "identity_resolved_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_scaled": {
+          "name": "amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_at": {
+          "name": "evaluation_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "management_id": {
+          "name": "management_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "memo": {
+          "name": "memo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "fix_revision_entry_subject_criterion_uidx": {
+          "name": "fix_revision_entry_subject_criterion_uidx",
+          "columns": ["fix_revision_id", "recipient_profile_url", "evaluation_criterion_id"],
+          "isUnique": true
+        },
+        "fix_revision_entry_github_subject_idx": {
+          "name": "fix_revision_entry_github_subject_idx",
+          "columns": ["recipient_provider_id", "recipient_account_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "fix_revision_entry_fix_revision_id_fix_revision_id_fk": {
+          "name": "fix_revision_entry_fix_revision_id_fix_revision_id_fk",
+          "tableFrom": "fix_revision_entry",
+          "tableTo": "fix_revision",
+          "columnsFrom": ["fix_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_revision_entry_points_user_id_points_user_id_fk": {
+          "name": "fix_revision_entry_points_user_id_points_user_id_fk",
+          "tableFrom": "fix_revision_entry",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_revision_entry_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "fix_revision_entry_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "fix_revision_entry",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_revision_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "fix_revision_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "fix_revision_entry",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "fix_revision_entry_amount_check": {
+          "name": "fix_revision_entry_amount_check",
+          "value": "typeof(\"fix_revision_entry\".\"amount_scaled\") = 'integer' and \"fix_revision_entry\".\"amount_scaled\" between -9007199254740991 and 9007199254740991"
+        },
+        "fix_revision_entry_memo_check": {
+          "name": "fix_revision_entry_memo_check",
+          "value": "\"fix_revision_entry\".\"memo\" is null or length(\"fix_revision_entry\".\"memo\") <= 200"
+        }
+      }
+    },
+    "fix_revision_seal": {
+      "name": "fix_revision_seal",
+      "columns": {
+        "fix_revision_id": {
+          "name": "fix_revision_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sealed_at": {
+          "name": "sealed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fix_revision_seal_fix_revision_id_fix_revision_id_fk": {
+          "name": "fix_revision_seal_fix_revision_id_fix_revision_id_fk",
+          "tableFrom": "fix_revision_seal",
+          "tableTo": "fix_revision",
+          "columnsFrom": ["fix_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "fix_revision": {
+      "name": "fix_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fix_result_id": {
+          "name": "fix_result_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "file_hash": {
+          "name": "file_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "validation_hash": {
+          "name": "validation_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_hash": {
+          "name": "content_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "fix_revision_result_number_uidx": {
+          "name": "fix_revision_result_number_uidx",
+          "columns": ["fix_result_id", "revision"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "fix_revision_fix_result_id_fix_result_id_fk": {
+          "name": "fix_revision_fix_result_id_fix_result_id_fk",
+          "tableFrom": "fix_revision",
+          "tableTo": "fix_result",
+          "columnsFrom": ["fix_result_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_revision_actor_points_user_id_points_user_id_fk": {
+          "name": "fix_revision_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "fix_revision",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "fix_revision_revision_check": {
+          "name": "fix_revision_revision_check",
+          "value": "\"fix_revision\".\"revision\" >= 1"
+        },
+        "fix_revision_file_hash_check": {
+          "name": "fix_revision_file_hash_check",
+          "value": "length(\"fix_revision\".\"file_hash\") = 64"
+        },
+        "fix_revision_validation_hash_check": {
+          "name": "fix_revision_validation_hash_check",
+          "value": "length(\"fix_revision\".\"validation_hash\") = 64"
+        },
+        "fix_revision_content_hash_check": {
+          "name": "fix_revision_content_hash_check",
+          "value": "length(\"fix_revision\".\"content_hash\") = 64"
+        },
+        "fix_revision_reason_check": {
+          "name": "fix_revision_reason_check",
+          "value": "length(trim(\"fix_revision\".\"reason\")) > 0"
+        }
+      }
+    },
+    "github_api_budget": {
+      "name": "github_api_budget",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "remaining": {
+          "name": "remaining",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reset_at": {
+          "name": "reset_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "point_account": {
+      "name": "point_account",
+      "columns": {
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "balance": {
+          "name": "balance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_total": {
+          "name": "evaluation_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "point_account_points_user_id_points_user_id_fk": {
+          "name": "point_account_points_user_id_points_user_id_fk",
+          "tableFrom": "point_account",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_account_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "point_account_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "point_account",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "point_account_points_user_id_evaluation_criterion_id_pk": {
+          "columns": ["points_user_id", "evaluation_criterion_id"],
+          "name": "point_account_points_user_id_evaluation_criterion_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_account_balance_check": {
+          "name": "point_account_balance_check",
+          "value": "typeof(\"point_account\".\"balance\") = 'integer' and \"point_account\".\"balance\" between -9007199254740991 and 9007199254740991"
+        },
+        "point_account_evaluation_total_check": {
+          "name": "point_account_evaluation_total_check",
+          "value": "typeof(\"point_account\".\"evaluation_total\") = 'integer' and \"point_account\".\"evaluation_total\" between -9007199254740991 and 9007199254740991"
+        }
+      }
+    },
+    "point_ledger_entry": {
+      "name": "point_ledger_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "delta_amount_scaled": {
+          "name": "delta_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "affects_evaluation_total": {
+          "name": "affects_evaluation_total",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_type": {
+          "name": "source_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_fix_revision_id": {
+          "name": "source_fix_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_unclaimed_fix_entry_id": {
+          "name": "source_unclaimed_fix_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_transaction_item_id": {
+          "name": "source_transaction_item_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_substitution_result_revision_id": {
+          "name": "source_substitution_result_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_auto_distribution_revision_id": {
+          "name": "source_auto_distribution_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_ledger_entry_direct_fix_subject_criterion_uidx": {
+          "name": "point_ledger_entry_direct_fix_subject_criterion_uidx",
+          "columns": ["source_fix_revision_id", "points_user_id", "evaluation_criterion_id"],
+          "isUnique": true,
+          "where": "\"point_ledger_entry\".\"source_unclaimed_fix_entry_id\" is null"
+        },
+        "point_ledger_entry_unclaimed_uidx": {
+          "name": "point_ledger_entry_unclaimed_uidx",
+          "columns": ["source_unclaimed_fix_entry_id"],
+          "isUnique": true,
+          "where": "\"point_ledger_entry\".\"source_unclaimed_fix_entry_id\" is not null"
+        },
+        "point_ledger_entry_transaction_source_uidx": {
+          "name": "point_ledger_entry_transaction_source_uidx",
+          "columns": ["source_transaction_item_id", "source_type"],
+          "isUnique": true,
+          "where": "\"point_ledger_entry\".\"source_transaction_item_id\" is not null"
+        },
+        "point_ledger_entry_substitution_source_uidx": {
+          "name": "point_ledger_entry_substitution_source_uidx",
+          "columns": [
+            "source_substitution_result_revision_id",
+            "points_user_id",
+            "evaluation_criterion_id"
+          ],
+          "isUnique": true,
+          "where": "\"point_ledger_entry\".\"source_substitution_result_revision_id\" is not null"
+        },
+        "point_ledger_entry_auto_distribution_source_uidx": {
+          "name": "point_ledger_entry_auto_distribution_source_uidx",
+          "columns": [
+            "source_auto_distribution_revision_id",
+            "points_user_id",
+            "evaluation_criterion_id",
+            "source_type"
+          ],
+          "isUnique": true,
+          "where": "\"point_ledger_entry\".\"source_auto_distribution_revision_id\" is not null"
+        },
+        "point_ledger_entry_account_idx": {
+          "name": "point_ledger_entry_account_idx",
+          "columns": ["points_user_id", "evaluation_criterion_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "point_ledger_entry_points_user_id_points_user_id_fk": {
+          "name": "point_ledger_entry_points_user_id_points_user_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_ledger_entry_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "point_ledger_entry_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_ledger_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "point_ledger_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_ledger_entry_source_fix_revision_id_fix_revision_id_fk": {
+          "name": "point_ledger_entry_source_fix_revision_id_fix_revision_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "fix_revision",
+          "columnsFrom": ["source_fix_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_ledger_entry_source_unclaimed_fix_entry_id_unclaimed_fix_entry_id_fk": {
+          "name": "point_ledger_entry_source_unclaimed_fix_entry_id_unclaimed_fix_entry_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "unclaimed_fix_entry",
+          "columnsFrom": ["source_unclaimed_fix_entry_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_ledger_entry_source_transaction_item_id_point_transaction_item_id_fk": {
+          "name": "point_ledger_entry_source_transaction_item_id_point_transaction_item_id_fk",
+          "tableFrom": "point_ledger_entry",
+          "tableTo": "point_transaction_item",
+          "columnsFrom": ["source_transaction_item_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_ledger_entry_delta_check": {
+          "name": "point_ledger_entry_delta_check",
+          "value": "typeof(\"point_ledger_entry\".\"delta_amount_scaled\") = 'integer' and \"point_ledger_entry\".\"delta_amount_scaled\" between -9007199254740991 and 9007199254740991"
+        },
+        "point_ledger_entry_source_check": {
+          "name": "point_ledger_entry_source_check",
+          "value": "(\"point_ledger_entry\".\"source_type\" = 'FIX'\n             and \"point_ledger_entry\".\"source_fix_revision_id\" is not null\n             and \"point_ledger_entry\".\"source_transaction_item_id\" is null\n             and \"point_ledger_entry\".\"source_substitution_result_revision_id\" is null\n             and \"point_ledger_entry\".\"source_auto_distribution_revision_id\" is null\n             and \"point_ledger_entry\".\"affects_evaluation_total\" = 1)\n          or (\"point_ledger_entry\".\"source_type\" in\n                ('TRANSFER_DEBIT', 'TRANSFER_CREDIT', 'EXCHANGE_BURN', 'EXCHANGE_MINT')\n             and \"point_ledger_entry\".\"source_fix_revision_id\" is null\n             and \"point_ledger_entry\".\"source_unclaimed_fix_entry_id\" is null\n             and \"point_ledger_entry\".\"source_transaction_item_id\" is not null\n             and \"point_ledger_entry\".\"source_substitution_result_revision_id\" is null\n             and \"point_ledger_entry\".\"source_auto_distribution_revision_id\" is null\n             and \"point_ledger_entry\".\"affects_evaluation_total\" = 0)\n          or (\"point_ledger_entry\".\"source_type\" = 'SUBSTITUTION_FIX'\n             and \"point_ledger_entry\".\"source_fix_revision_id\" is null\n             and \"point_ledger_entry\".\"source_unclaimed_fix_entry_id\" is null\n             and \"point_ledger_entry\".\"source_transaction_item_id\" is null\n             and \"point_ledger_entry\".\"source_substitution_result_revision_id\" is not null\n             and \"point_ledger_entry\".\"source_auto_distribution_revision_id\" is null\n             and \"point_ledger_entry\".\"affects_evaluation_total\" = 1)\n          or (\"point_ledger_entry\".\"source_type\" in\n                ('AUTO_DISTRIBUTION_DEBIT', 'AUTO_DISTRIBUTION_CREDIT')\n             and \"point_ledger_entry\".\"source_fix_revision_id\" is null\n             and \"point_ledger_entry\".\"source_unclaimed_fix_entry_id\" is null\n             and \"point_ledger_entry\".\"source_transaction_item_id\" is null\n             and \"point_ledger_entry\".\"source_substitution_result_revision_id\" is null\n             and \"point_ledger_entry\".\"source_auto_distribution_revision_id\" is not null\n             and \"point_ledger_entry\".\"affects_evaluation_total\" = 0)"
+        }
+      }
+    },
+    "unclaimed_fix_entry": {
+      "name": "unclaimed_fix_entry",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_fix_revision_id": {
+          "name": "source_fix_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "recipient_provider_id": {
+          "name": "recipient_provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recipient_account_id": {
+          "name": "recipient_account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recipient_profile_url": {
+          "name": "recipient_profile_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_id": {
+          "name": "evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_criterion_revision_id": {
+          "name": "evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "delta_amount_scaled": {
+          "name": "delta_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evaluation_at": {
+          "name": "evaluation_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "unclaimed_fix_entry_source_subject_criterion_uidx": {
+          "name": "unclaimed_fix_entry_source_subject_criterion_uidx",
+          "columns": [
+            "source_fix_revision_id",
+            "recipient_provider_id",
+            "recipient_account_id",
+            "recipient_profile_url",
+            "evaluation_criterion_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "unclaimed_fix_entry_source_fix_revision_id_fix_revision_id_fk": {
+          "name": "unclaimed_fix_entry_source_fix_revision_id_fix_revision_id_fk",
+          "tableFrom": "unclaimed_fix_entry",
+          "tableTo": "fix_revision",
+          "columnsFrom": ["source_fix_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "unclaimed_fix_entry_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "unclaimed_fix_entry_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "unclaimed_fix_entry",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "unclaimed_fix_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "unclaimed_fix_entry_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "unclaimed_fix_entry",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "unclaimed_fix_entry_delta_check": {
+          "name": "unclaimed_fix_entry_delta_check",
+          "value": "typeof(\"unclaimed_fix_entry\".\"delta_amount_scaled\") = 'integer' and \"unclaimed_fix_entry\".\"delta_amount_scaled\" between -9007199254740991 and 9007199254740991"
+        }
+      }
+    },
+    "idempotency_results": {
+      "name": "idempotency_results",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "operation": {
+          "name": "operation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "payload_hash": {
+          "name": "payload_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "response_body": {
+          "name": "response_body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "idempotency_results_actor_operation_key_uidx": {
+          "name": "idempotency_results_actor_operation_key_uidx",
+          "columns": ["actor_points_user_id", "operation", "idempotency_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "idempotency_results_actor_points_user_id_points_user_id_fk": {
+          "name": "idempotency_results_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "idempotency_results",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "idempotency_results_key_check": {
+          "name": "idempotency_results_key_check",
+          "value": "length(\"idempotency_results\".\"idempotency_key\") > 0"
+        },
+        "idempotency_results_payload_hash_check": {
+          "name": "idempotency_results_payload_hash_check",
+          "value": "length(\"idempotency_results\".\"payload_hash\") = 64"
+        },
+        "idempotency_results_status_check": {
+          "name": "idempotency_results_status_check",
+          "value": "\"idempotency_results\".\"status\" between 100 and 599"
+        },
+        "idempotency_results_response_body_check": {
+          "name": "idempotency_results_response_body_check",
+          "value": "json_valid(\"idempotency_results\".\"response_body\")"
+        }
+      }
+    },
+    "fix_claim_command": {
+      "name": "fix_claim_command",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identity_ownership_id": {
+          "name": "identity_ownership_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ownership_epoch_id": {
+          "name": "ownership_epoch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_entry_ids": {
+          "name": "expected_entry_ids",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "claim_set_hash": {
+          "name": "claim_set_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fix_claim_command_identity_ownership_id_identity_ownership_id_fk": {
+          "name": "fix_claim_command_identity_ownership_id_identity_ownership_id_fk",
+          "tableFrom": "fix_claim_command",
+          "tableTo": "identity_ownership",
+          "columnsFrom": ["identity_ownership_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_claim_command_ownership_epoch_id_ownership_epoch_id_fk": {
+          "name": "fix_claim_command_ownership_epoch_id_ownership_epoch_id_fk",
+          "tableFrom": "fix_claim_command",
+          "tableTo": "ownership_epoch",
+          "columnsFrom": ["ownership_epoch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_claim_command_actor_points_user_id_points_user_id_fk": {
+          "name": "fix_claim_command_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "fix_claim_command",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "fix_claim_command_hash_check": {
+          "name": "fix_claim_command_hash_check",
+          "value": "length(\"fix_claim_command\".\"claim_set_hash\") = 64"
+        },
+        "fix_claim_command_entries_check": {
+          "name": "fix_claim_command_entries_check",
+          "value": "json_array_length(\"fix_claim_command\".\"expected_entry_ids\") > 0"
+        }
+      }
+    },
+    "fix_claim_item": {
+      "name": "fix_claim_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fix_claim_id": {
+          "name": "fix_claim_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "unclaimed_fix_entry_id": {
+          "name": "unclaimed_fix_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ledger_entry_id": {
+          "name": "ledger_entry_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "fix_claim_item_unclaimed_fix_entry_id_unique": {
+          "name": "fix_claim_item_unclaimed_fix_entry_id_unique",
+          "columns": ["unclaimed_fix_entry_id"],
+          "isUnique": true
+        },
+        "fix_claim_item_ledger_entry_id_unique": {
+          "name": "fix_claim_item_ledger_entry_id_unique",
+          "columns": ["ledger_entry_id"],
+          "isUnique": true
+        },
+        "fix_claim_item_claim_idx": {
+          "name": "fix_claim_item_claim_idx",
+          "columns": ["fix_claim_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "fix_claim_item_fix_claim_id_fix_claim_id_fk": {
+          "name": "fix_claim_item_fix_claim_id_fix_claim_id_fk",
+          "tableFrom": "fix_claim_item",
+          "tableTo": "fix_claim",
+          "columnsFrom": ["fix_claim_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_claim_item_unclaimed_fix_entry_id_unclaimed_fix_entry_id_fk": {
+          "name": "fix_claim_item_unclaimed_fix_entry_id_unclaimed_fix_entry_id_fk",
+          "tableFrom": "fix_claim_item",
+          "tableTo": "unclaimed_fix_entry",
+          "columnsFrom": ["unclaimed_fix_entry_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "fix_claim": {
+      "name": "fix_claim",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "command_id": {
+          "name": "command_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ownership_epoch_id": {
+          "name": "ownership_epoch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "claim_set_hash": {
+          "name": "claim_set_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "item_count": {
+          "name": "item_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "claimed_at": {
+          "name": "claimed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "fix_claim_command_id_unique": {
+          "name": "fix_claim_command_id_unique",
+          "columns": ["command_id"],
+          "isUnique": true
+        },
+        "fix_claim_actor_idempotency_uidx": {
+          "name": "fix_claim_actor_idempotency_uidx",
+          "columns": ["points_user_id", "idempotency_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "fix_claim_command_id_fix_claim_command_id_fk": {
+          "name": "fix_claim_command_id_fix_claim_command_id_fk",
+          "tableFrom": "fix_claim",
+          "tableTo": "fix_claim_command",
+          "columnsFrom": ["command_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_claim_ownership_epoch_id_ownership_epoch_id_fk": {
+          "name": "fix_claim_ownership_epoch_id_ownership_epoch_id_fk",
+          "tableFrom": "fix_claim",
+          "tableTo": "ownership_epoch",
+          "columnsFrom": ["ownership_epoch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "fix_claim_points_user_id_points_user_id_fk": {
+          "name": "fix_claim_points_user_id_points_user_id_fk",
+          "tableFrom": "fix_claim",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "fix_claim_hash_check": {
+          "name": "fix_claim_hash_check",
+          "value": "length(\"fix_claim\".\"claim_set_hash\") = 64"
+        },
+        "fix_claim_item_count_check": {
+          "name": "fix_claim_item_count_check",
+          "value": "\"fix_claim\".\"item_count\" > 0"
+        }
+      }
+    },
+    "identity_ownership": {
+      "name": "identity_ownership",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identity_type": {
+          "name": "identity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "normalized_identity_key": {
+          "name": "normalized_identity_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_ownership_epoch_id": {
+          "name": "current_ownership_epoch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "next_verification_at": {
+          "name": "next_verification_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "permanent_correspondence": {
+          "name": "permanent_correspondence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        }
+      },
+      "indexes": {
+        "identity_ownership_type_key_uidx": {
+          "name": "identity_ownership_type_key_uidx",
+          "columns": ["identity_type", "normalized_identity_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "identity_ownership_points_user_id_points_user_id_fk": {
+          "name": "identity_ownership_points_user_id_points_user_id_fk",
+          "tableFrom": "identity_ownership",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "identity_ownership_key_check": {
+          "name": "identity_ownership_key_check",
+          "value": "length(\"identity_ownership\".\"normalized_identity_key\") > 0"
+        }
+      }
+    },
+    "ownership_epoch": {
+      "name": "ownership_epoch",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identity_ownership_id": {
+          "name": "identity_ownership_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_points_user_id": {
+          "name": "owner_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "effective_at": {
+          "name": "effective_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "verification_method": {
+          "name": "verification_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evidence_hash": {
+          "name": "evidence_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "success_count": {
+          "name": "success_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "ownership_epoch_ownership_effective_idx": {
+          "name": "ownership_epoch_ownership_effective_idx",
+          "columns": ["identity_ownership_id", "effective_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ownership_epoch_identity_ownership_id_identity_ownership_id_fk": {
+          "name": "ownership_epoch_identity_ownership_id_identity_ownership_id_fk",
+          "tableFrom": "ownership_epoch",
+          "tableTo": "identity_ownership",
+          "columnsFrom": ["identity_ownership_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "ownership_epoch_owner_points_user_id_points_user_id_fk": {
+          "name": "ownership_epoch_owner_points_user_id_points_user_id_fk",
+          "tableFrom": "ownership_epoch",
+          "tableTo": "points_user",
+          "columnsFrom": ["owner_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ownership_epoch_evidence_hash_check": {
+          "name": "ownership_epoch_evidence_hash_check",
+          "value": "length(\"ownership_epoch\".\"evidence_hash\") = 64"
+        },
+        "ownership_epoch_success_count_check": {
+          "name": "ownership_epoch_success_count_check",
+          "value": "\"ownership_epoch\".\"success_count\" >= 1"
+        }
+      }
+    },
+    "ops_alert": {
+      "name": "ops_alert",
+      "columns": {
+        "alert_key": {
+          "name": "alert_key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resource_id_hash": {
+          "name": "resource_id_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_observed_at": {
+          "name": "first_observed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_observed_at": {
+          "name": "last_observed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "repeat_count": {
+          "name": "repeat_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "safe_detail_code": {
+          "name": "safe_detail_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "ownership_revalidation_job": {
+      "name": "ownership_revalidation_job",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "identity_ownership_id": {
+          "name": "identity_ownership_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ownership_epoch_id": {
+          "name": "ownership_epoch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "verification_cycle_id": {
+          "name": "verification_cycle_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempt": {
+          "name": "attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "due_at": {
+          "name": "due_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cycle_started_at": {
+          "name": "cycle_started_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lease_until": {
+          "name": "lease_until",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "error_code": {
+          "name": "error_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "ownership_revalidation_cycle_attempt_uidx": {
+          "name": "ownership_revalidation_cycle_attempt_uidx",
+          "columns": ["ownership_epoch_id", "verification_cycle_id", "attempt"],
+          "isUnique": true
+        },
+        "ownership_revalidation_due_idx": {
+          "name": "ownership_revalidation_due_idx",
+          "columns": ["status", "due_at"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "ownership_revalidation_job_identity_ownership_id_identity_ownership_id_fk": {
+          "name": "ownership_revalidation_job_identity_ownership_id_identity_ownership_id_fk",
+          "tableFrom": "ownership_revalidation_job",
+          "tableTo": "identity_ownership",
+          "columnsFrom": ["identity_ownership_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "ownership_revalidation_job_ownership_epoch_id_ownership_epoch_id_fk": {
+          "name": "ownership_revalidation_job_ownership_epoch_id_ownership_epoch_id_fk",
+          "tableFrom": "ownership_revalidation_job",
+          "tableTo": "ownership_epoch",
+          "columnsFrom": ["ownership_epoch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "ownership_revalidation_attempt_check": {
+          "name": "ownership_revalidation_attempt_check",
+          "value": "\"ownership_revalidation_job\".\"attempt\" BETWEEN 1 AND 3"
+        }
+      }
+    },
+    "web_reownership_candidate": {
+      "name": "web_reownership_candidate",
+      "columns": {
+        "identity_ownership_id": {
+          "name": "identity_ownership_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "candidate_points_user_id": {
+          "name": "candidate_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "first_success_at": {
+          "name": "first_success_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_success_at": {
+          "name": "last_success_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "next_eligible_at": {
+          "name": "next_eligible_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "success_count": {
+          "name": "success_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "evidence_hash": {
+          "name": "evidence_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "web_reownership_candidate_identity_ownership_id_identity_ownership_id_fk": {
+          "name": "web_reownership_candidate_identity_ownership_id_identity_ownership_id_fk",
+          "tableFrom": "web_reownership_candidate",
+          "tableTo": "identity_ownership",
+          "columnsFrom": ["identity_ownership_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "web_reownership_candidate_candidate_points_user_id_points_user_id_fk": {
+          "name": "web_reownership_candidate_candidate_points_user_id_points_user_id_fk",
+          "tableFrom": "web_reownership_candidate",
+          "tableTo": "points_user",
+          "columnsFrom": ["candidate_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "permanent_oauth_subject": {
+      "name": "permanent_oauth_subject",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "permanent_oauth_subject_provider_account_uidx": {
+          "name": "permanent_oauth_subject_provider_account_uidx",
+          "columns": ["provider_id", "account_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "permanent_oauth_subject_points_user_id_points_user_id_fk": {
+          "name": "permanent_oauth_subject_points_user_id_points_user_id_fk",
+          "tableFrom": "permanent_oauth_subject",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "permanent_oauth_subject_provider_check": {
+          "name": "permanent_oauth_subject_provider_check",
+          "value": "\"permanent_oauth_subject\".\"provider_id\" in ('google', 'github')"
+        },
+        "permanent_oauth_subject_account_check": {
+          "name": "permanent_oauth_subject_account_check",
+          "value": "length(\"permanent_oauth_subject\".\"account_id\") > 0"
+        }
+      }
+    },
+    "exchange_rate_revision": {
+      "name": "exchange_rate_revision",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_revision_id": {
+          "name": "source_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_revision_id": {
+          "name": "target_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "numerator": {
+          "name": "numerator",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "denominator": {
+          "name": "denominator",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "exchange_rate_revision_pair_number_uidx": {
+          "name": "exchange_rate_revision_pair_number_uidx",
+          "columns": [
+            "source_evaluation_criterion_id",
+            "target_evaluation_criterion_id",
+            "revision"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "exchange_rate_revision_source_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "exchange_rate_revision_source_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "exchange_rate_revision",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["source_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "exchange_rate_revision_target_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "exchange_rate_revision_target_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "exchange_rate_revision",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["target_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "exchange_rate_revision_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "exchange_rate_revision_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "exchange_rate_revision",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["source_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "exchange_rate_revision_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "exchange_rate_revision_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "exchange_rate_revision",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["target_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "exchange_rate_revision_actor_points_user_id_points_user_id_fk": {
+          "name": "exchange_rate_revision_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "exchange_rate_revision",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "exchange_rate_revision_distinct_criteria_check": {
+          "name": "exchange_rate_revision_distinct_criteria_check",
+          "value": "\"exchange_rate_revision\".\"source_evaluation_criterion_id\" <> \"exchange_rate_revision\".\"target_evaluation_criterion_id\""
+        },
+        "exchange_rate_revision_number_check": {
+          "name": "exchange_rate_revision_number_check",
+          "value": "\"exchange_rate_revision\".\"revision\" >= 1"
+        },
+        "exchange_rate_revision_value_check": {
+          "name": "exchange_rate_revision_value_check",
+          "value": "(\"exchange_rate_revision\".\"status\" = 'ACTIVE'\n             and typeof(\"exchange_rate_revision\".\"numerator\") = 'integer'\n             and \"exchange_rate_revision\".\"numerator\" between 1 and 9007199254740991\n             and typeof(\"exchange_rate_revision\".\"denominator\") = 'integer'\n             and \"exchange_rate_revision\".\"denominator\" between 1 and 9007199254740991)\n          or (\"exchange_rate_revision\".\"status\" = 'DISABLED'\n             and \"exchange_rate_revision\".\"numerator\" is null and \"exchange_rate_revision\".\"denominator\" is null)"
+        },
+        "exchange_rate_revision_reason_check": {
+          "name": "exchange_rate_revision_reason_check",
+          "value": "length(trim(\"exchange_rate_revision\".\"reason\")) > 0"
+        }
+      }
+    },
+    "exchange_rate": {
+      "name": "exchange_rate",
+      "columns": {
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision_id": {
+          "name": "current_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "current_revision": {
+          "name": "current_revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "exchange_rate_current_revision_uidx": {
+          "name": "exchange_rate_current_revision_uidx",
+          "columns": ["current_revision_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "exchange_rate_source_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "exchange_rate_source_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "exchange_rate",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["source_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "exchange_rate_target_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "exchange_rate_target_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "exchange_rate",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["target_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "exchange_rate_source_evaluation_criterion_id_target_evaluation_criterion_id_pk": {
+          "columns": ["source_evaluation_criterion_id", "target_evaluation_criterion_id"],
+          "name": "exchange_rate_source_evaluation_criterion_id_target_evaluation_criterion_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "exchange_rate_distinct_criteria_check": {
+          "name": "exchange_rate_distinct_criteria_check",
+          "value": "\"exchange_rate\".\"source_evaluation_criterion_id\" <> \"exchange_rate\".\"target_evaluation_criterion_id\""
+        },
+        "exchange_rate_revision_check": {
+          "name": "exchange_rate_revision_check",
+          "value": "\"exchange_rate\".\"current_revision\" >= 1"
+        }
+      }
+    },
+    "point_transaction_batch": {
+      "name": "point_transaction_batch",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transaction_type": {
+          "name": "transaction_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_points_user_id": {
+          "name": "actor_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expected_item_count": {
+          "name": "expected_item_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "file_hash": {
+          "name": "file_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "validation_hash": {
+          "name": "validation_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_transaction_batch_idempotency_uidx": {
+          "name": "point_transaction_batch_idempotency_uidx",
+          "columns": ["actor_points_user_id", "transaction_type", "idempotency_key"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "point_transaction_batch_actor_points_user_id_points_user_id_fk": {
+          "name": "point_transaction_batch_actor_points_user_id_points_user_id_fk",
+          "tableFrom": "point_transaction_batch",
+          "tableTo": "points_user",
+          "columnsFrom": ["actor_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_transaction_batch_status_check": {
+          "name": "point_transaction_batch_status_check",
+          "value": "\"point_transaction_batch\".\"status\" in ('PENDING', 'VALIDATED', 'COMMITTED')"
+        },
+        "point_transaction_batch_item_count_check": {
+          "name": "point_transaction_batch_item_count_check",
+          "value": "\"point_transaction_batch\".\"expected_item_count\" between 1 and 1000"
+        },
+        "point_transaction_batch_file_hash_check": {
+          "name": "point_transaction_batch_file_hash_check",
+          "value": "length(\"point_transaction_batch\".\"file_hash\") = 64"
+        },
+        "point_transaction_batch_validation_hash_check": {
+          "name": "point_transaction_batch_validation_hash_check",
+          "value": "length(\"point_transaction_batch\".\"validation_hash\") = 64"
+        },
+        "point_transaction_batch_idempotency_key_check": {
+          "name": "point_transaction_batch_idempotency_key_check",
+          "value": "length(trim(\"point_transaction_batch\".\"idempotency_key\")) > 0"
+        }
+      }
+    },
+    "point_transaction_item": {
+      "name": "point_transaction_item",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "batch_id": {
+          "name": "batch_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "row_number": {
+          "name": "row_number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "transaction_type": {
+          "name": "transaction_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sender_points_user_id": {
+          "name": "sender_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "recipient_points_user_id": {
+          "name": "recipient_points_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_id": {
+          "name": "source_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_evaluation_criterion_revision_id": {
+          "name": "source_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_amount_scaled": {
+          "name": "source_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_id": {
+          "name": "target_evaluation_criterion_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "target_evaluation_criterion_revision_id": {
+          "name": "target_evaluation_criterion_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "target_amount_scaled": {
+          "name": "target_amount_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "exchange_rate_revision_id": {
+          "name": "exchange_rate_revision_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rounding_rule": {
+          "name": "rounding_rule",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rate_division_remainder": {
+          "name": "rate_division_remainder",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "minimum_unit_remainder_scaled": {
+          "name": "minimum_unit_remainder_scaled",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "point_transaction_item_batch_row_uidx": {
+          "name": "point_transaction_item_batch_row_uidx",
+          "columns": ["batch_id", "row_number"],
+          "isUnique": true
+        },
+        "point_transaction_item_source_account_idx": {
+          "name": "point_transaction_item_source_account_idx",
+          "columns": ["batch_id", "sender_points_user_id", "source_evaluation_criterion_id"],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "point_transaction_item_batch_id_point_transaction_batch_id_fk": {
+          "name": "point_transaction_item_batch_id_point_transaction_batch_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "point_transaction_batch",
+          "columnsFrom": ["batch_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_sender_points_user_id_points_user_id_fk": {
+          "name": "point_transaction_item_sender_points_user_id_points_user_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "points_user",
+          "columnsFrom": ["sender_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_recipient_points_user_id_points_user_id_fk": {
+          "name": "point_transaction_item_recipient_points_user_id_points_user_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "points_user",
+          "columnsFrom": ["recipient_points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_source_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "point_transaction_item_source_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["source_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "point_transaction_item_source_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["source_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_target_evaluation_criterion_id_evaluation_criterion_id_fk": {
+          "name": "point_transaction_item_target_evaluation_criterion_id_evaluation_criterion_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "evaluation_criterion",
+          "columnsFrom": ["target_evaluation_criterion_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk": {
+          "name": "point_transaction_item_target_evaluation_criterion_revision_id_evaluation_criterion_revision_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "evaluation_criterion_revision",
+          "columnsFrom": ["target_evaluation_criterion_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        },
+        "point_transaction_item_exchange_rate_revision_id_exchange_rate_revision_id_fk": {
+          "name": "point_transaction_item_exchange_rate_revision_id_exchange_rate_revision_id_fk",
+          "tableFrom": "point_transaction_item",
+          "tableTo": "exchange_rate_revision",
+          "columnsFrom": ["exchange_rate_revision_id"],
+          "columnsTo": ["id"],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "point_transaction_item_row_check": {
+          "name": "point_transaction_item_row_check",
+          "value": "\"point_transaction_item\".\"row_number\" between 2 and 1001"
+        },
+        "point_transaction_item_source_amount_check": {
+          "name": "point_transaction_item_source_amount_check",
+          "value": "typeof(\"point_transaction_item\".\"source_amount_scaled\") = 'integer'\n          and \"point_transaction_item\".\"source_amount_scaled\" between 1 and 9007199254740991"
+        },
+        "point_transaction_item_shape_check": {
+          "name": "point_transaction_item_shape_check",
+          "value": "(\"point_transaction_item\".\"transaction_type\" = 'TRANSFER'\n             and \"point_transaction_item\".\"recipient_points_user_id\" is not null\n             and \"point_transaction_item\".\"target_evaluation_criterion_id\" is null\n             and \"point_transaction_item\".\"target_evaluation_criterion_revision_id\" is null\n             and \"point_transaction_item\".\"target_amount_scaled\" is null\n             and \"point_transaction_item\".\"exchange_rate_revision_id\" is null\n             and \"point_transaction_item\".\"rounding_rule\" is null\n             and \"point_transaction_item\".\"rate_division_remainder\" is null\n             and \"point_transaction_item\".\"minimum_unit_remainder_scaled\" is null)\n          or (\"point_transaction_item\".\"transaction_type\" = 'EXCHANGE'\n             and \"point_transaction_item\".\"recipient_points_user_id\" is null\n             and \"point_transaction_item\".\"target_evaluation_criterion_id\" is not null\n             and \"point_transaction_item\".\"target_evaluation_criterion_revision_id\" is not null\n             and typeof(\"point_transaction_item\".\"target_amount_scaled\") = 'integer'\n             and \"point_transaction_item\".\"target_amount_scaled\" between 1 and 9007199254740991\n             and \"point_transaction_item\".\"exchange_rate_revision_id\" is not null\n             and \"point_transaction_item\".\"rounding_rule\" = 'FLOOR'\n             and typeof(\"point_transaction_item\".\"rate_division_remainder\") = 'integer'\n             and \"point_transaction_item\".\"rate_division_remainder\" >= 0\n             and typeof(\"point_transaction_item\".\"minimum_unit_remainder_scaled\") = 'integer'\n             and \"point_transaction_item\".\"minimum_unit_remainder_scaled\" >= 0)"
+        }
+      }
+    },
+    "points_user": {
+      "name": "points_user",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "auth_user_id": {
+          "name": "auth_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "account_status": {
+          "name": "account_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'ACTIVE'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {
+        "points_user_auth_user_id_uidx": {
+          "name": "points_user_auth_user_id_uidx",
+          "columns": ["auth_user_id"],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "points_user_auth_user_id_user_id_fk": {
+          "name": "points_user_auth_user_id_user_id_fk",
+          "tableFrom": "points_user",
+          "tableTo": "user",
+          "columnsFrom": ["auth_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "points_user_account_status_check": {
+          "name": "points_user_account_status_check",
+          "value": "\"points_user\".\"account_status\" in ('ACTIVE', 'CLOSED')"
+        }
+      }
+    },
+    "profiles": {
+      "name": "profiles",
+      "columns": {
+        "points_user_id": {
+          "name": "points_user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "''"
+        },
+        "external_urls": {
+          "name": "external_urls",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'[]'"
+        },
+        "visibility": {
+          "name": "visibility",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'PUBLIC'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(cast(unixepoch('subsecond') * 1000 as integer))"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "profiles_points_user_id_points_user_id_fk": {
+          "name": "profiles_points_user_id_points_user_id_fk",
+          "tableFrom": "profiles",
+          "tableTo": "points_user",
+          "columnsFrom": ["points_user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "profiles_display_name_length_check": {
+          "name": "profiles_display_name_length_check",
+          "value": "length(\"profiles\".\"display_name\") between 1 and 100"
+        },
+        "profiles_description_length_check": {
+          "name": "profiles_description_length_check",
+          "value": "length(\"profiles\".\"description\") <= 500"
+        },
+        "profiles_external_urls_check": {
+          "name": "profiles_external_urls_check",
+          "value": "json_valid(\"profiles\".\"external_urls\") and json_type(\"profiles\".\"external_urls\") = 'array' and json_array_length(\"profiles\".\"external_urls\") <= 30"
+        },
+        "profiles_visibility_check": {
+          "name": "profiles_visibility_check",
+          "value": "\"profiles\".\"visibility\" in ('PUBLIC', 'PRIVATE')"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

@@ -1,0 +1,734 @@
+[
+  {
+    "type": "index",
+    "name": "account_provider_account_uidx",
+    "tbl_name": "account",
+    "sql": "CREATE UNIQUE INDEX `account_provider_account_uidx` ON `account` (`provider_id`,`account_id`)"
+  },
+  {
+    "type": "index",
+    "name": "account_userId_idx",
+    "tbl_name": "account",
+    "sql": "CREATE INDEX `account_userId_idx` ON `account` (`user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "auction_blacklist_events_user_uidx",
+    "tbl_name": "auction_blacklist_events",
+    "sql": "CREATE UNIQUE INDEX `auction_blacklist_events_user_uidx` ON `auction_blacklist_events` (`auction_id`,`markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "auction_close_resume_outbox_hold_uidx",
+    "tbl_name": "auction_close_resume_outbox",
+    "sql": "CREATE UNIQUE INDEX `auction_close_resume_outbox_hold_uidx` ON `auction_close_resume_outbox` (`buy_now_hold_id`)"
+  },
+  {
+    "type": "index",
+    "name": "auction_close_resume_outbox_status_idx",
+    "tbl_name": "auction_close_resume_outbox",
+    "sql": "CREATE INDEX `auction_close_resume_outbox_status_idx` ON `auction_close_resume_outbox` (`status`,`created_at`)"
+  },
+  {
+    "type": "index",
+    "name": "auction_commands_auction_command_uidx",
+    "tbl_name": "auction_commands",
+    "sql": "CREATE UNIQUE INDEX `auction_commands_auction_command_uidx` ON `auction_commands` (`auction_id`,`command_id`)"
+  },
+  {
+    "type": "index",
+    "name": "auction_revisions_number_uidx",
+    "tbl_name": "auction_revisions",
+    "sql": "CREATE UNIQUE INDEX `auction_revisions_number_uidx` ON `auction_revisions` (`auction_id`,`revision_number`)"
+  },
+  {
+    "type": "index",
+    "name": "auctions_seller_status_idx",
+    "tbl_name": "auctions",
+    "sql": "CREATE INDEX `auctions_seller_status_idx` ON `auctions` (`seller_markets_user_id`,`status`)"
+  },
+  {
+    "type": "index",
+    "name": "audit_events_target_idx",
+    "tbl_name": "audit_events",
+    "sql": "CREATE INDEX `audit_events_target_idx` ON `audit_events` (`target_type`,`target_id`,`created_at`)"
+  },
+  {
+    "type": "index",
+    "name": "auto_bid_rules_auction_user_uidx",
+    "tbl_name": "auto_bid_rules",
+    "sql": "CREATE UNIQUE INDEX `auto_bid_rules_auction_user_uidx` ON `auto_bid_rules` (`auction_id`,`bidder_markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "bid_events_auction_sequence_uidx",
+    "tbl_name": "bid_events",
+    "sql": "CREATE UNIQUE INDEX `bid_events_auction_sequence_uidx` ON `bid_events` (`auction_id`,`bid_seq`)"
+  },
+  {
+    "type": "index",
+    "name": "bid_positions_active_user_uidx",
+    "tbl_name": "bid_positions",
+    "sql": "CREATE UNIQUE INDEX `bid_positions_active_user_uidx` ON `bid_positions` (`auction_id`,`bidder_markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "buy_now_holds_auction_status_idx",
+    "tbl_name": "buy_now_holds",
+    "sql": "CREATE INDEX `buy_now_holds_auction_status_idx` ON `buy_now_holds` (`auction_id`,`status`)"
+  },
+  {
+    "type": "index",
+    "name": "idempotency_results_actor_operation_key_uidx",
+    "tbl_name": "idempotency_results",
+    "sql": "CREATE UNIQUE INDEX `idempotency_results_actor_operation_key_uidx` ON `idempotency_results` (`actor_markets_user_id`,`operation`,`idempotency_key`)"
+  },
+  {
+    "type": "index",
+    "name": "markets_user_auth_user_id_uidx",
+    "tbl_name": "markets_user",
+    "sql": "CREATE UNIQUE INDEX `markets_user_auth_user_id_uidx` ON `markets_user` (`auth_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "ops_alerts_status_seen_idx",
+    "tbl_name": "ops_alerts",
+    "sql": "CREATE INDEX `ops_alerts_status_seen_idx` ON `ops_alerts` (`status`,`last_seen_at`)"
+  },
+  {
+    "type": "index",
+    "name": "point_package_snapshot_components_criterion_uidx",
+    "tbl_name": "point_package_snapshot_components",
+    "sql": "CREATE UNIQUE INDEX `point_package_snapshot_components_criterion_uidx` ON `point_package_snapshot_components` (`point_package_snapshot_id`,`evaluation_criterion_id`)"
+  },
+  {
+    "type": "index",
+    "name": "point_package_snapshot_components_order_uidx",
+    "tbl_name": "point_package_snapshot_components",
+    "sql": "CREATE UNIQUE INDEX `point_package_snapshot_components_order_uidx` ON `point_package_snapshot_components` (`point_package_snapshot_id`,`display_order`)"
+  },
+  {
+    "type": "index",
+    "name": "point_package_snapshots_revision_uidx",
+    "tbl_name": "point_package_snapshots",
+    "sql": "CREATE UNIQUE INDEX `point_package_snapshots_revision_uidx` ON `point_package_snapshots` (`point_package_revision_id`)"
+  },
+  {
+    "type": "index",
+    "name": "points_connection_auth_user_idx",
+    "tbl_name": "points_connection",
+    "sql": "CREATE INDEX `points_connection_auth_user_idx` ON `points_connection` (`auth_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "points_connection_link_attempt_uidx",
+    "tbl_name": "points_connection",
+    "sql": "CREATE UNIQUE INDEX `points_connection_link_attempt_uidx` ON `points_connection` (`link_attempt_id`)"
+  },
+  {
+    "type": "index",
+    "name": "points_connection_live_markets_user_uidx",
+    "tbl_name": "points_connection",
+    "sql": "CREATE UNIQUE INDEX `points_connection_live_markets_user_uidx` ON `points_connection` (`markets_user_id`) WHERE \"points_connection\".\"status\" IN ('PENDING_CONFIRMATION', 'ACTIVE')"
+  },
+  {
+    "type": "index",
+    "name": "points_connection_live_subject_uidx",
+    "tbl_name": "points_connection",
+    "sql": "CREATE UNIQUE INDEX `points_connection_live_subject_uidx` ON `points_connection` (`points_issuer`,`points_subject`) WHERE \"points_connection\".\"status\" IN ('PENDING_CONFIRMATION', 'ACTIVE')"
+  },
+  {
+    "type": "index",
+    "name": "points_oauth_state_hash_uidx",
+    "tbl_name": "points_oauth_state",
+    "sql": "CREATE UNIQUE INDEX `points_oauth_state_hash_uidx` ON `points_oauth_state` (`state_hash`)"
+  },
+  {
+    "type": "index",
+    "name": "points_oauth_state_markets_user_idx",
+    "tbl_name": "points_oauth_state",
+    "sql": "CREATE INDEX `points_oauth_state_markets_user_idx` ON `points_oauth_state` (`markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "points_unlink_authorization_state_uidx",
+    "tbl_name": "points_unlink_authorization",
+    "sql": "CREATE UNIQUE INDEX `points_unlink_authorization_state_uidx` ON `points_unlink_authorization` (`state_hash`)"
+  },
+  {
+    "type": "index",
+    "name": "rate_limit_key_unique",
+    "tbl_name": "rate_limit",
+    "sql": "CREATE UNIQUE INDEX `rate_limit_key_unique` ON `rate_limit` (`key`)"
+  },
+  {
+    "type": "index",
+    "name": "session_token_unique",
+    "tbl_name": "session",
+    "sql": "CREATE UNIQUE INDEX `session_token_unique` ON `session` (`token`)"
+  },
+  {
+    "type": "index",
+    "name": "session_userId_idx",
+    "tbl_name": "session",
+    "sql": "CREATE INDEX `session_userId_idx` ON `session` (`user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_exclusions_user_uidx",
+    "tbl_name": "settlement_exclusions",
+    "sql": "CREATE UNIQUE INDEX `settlement_exclusions_user_uidx` ON `settlement_exclusions` (`settlement_id`,`markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_outbox_attempt_uidx",
+    "tbl_name": "settlement_outbox",
+    "sql": "CREATE UNIQUE INDEX `settlement_outbox_attempt_uidx` ON `settlement_outbox` (`settlement_id`,`settlement_revision`,`workflow_attempt`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_outbox_status_idx",
+    "tbl_name": "settlement_outbox",
+    "sql": "CREATE INDEX `settlement_outbox_status_idx` ON `settlement_outbox` (`status`,`created_at`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_plans_revision_uidx",
+    "tbl_name": "settlement_plans",
+    "sql": "CREATE UNIQUE INDEX `settlement_plans_revision_uidx` ON `settlement_plans` (`settlement_id`,`settlement_revision`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_round_winners_key_uidx",
+    "tbl_name": "settlement_round_winners",
+    "sql": "CREATE UNIQUE INDEX `settlement_round_winners_key_uidx` ON `settlement_round_winners` (`reservation_key`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_round_winners_user_uidx",
+    "tbl_name": "settlement_round_winners",
+    "sql": "CREATE UNIQUE INDEX `settlement_round_winners_user_uidx` ON `settlement_round_winners` (`settlement_round_id`,`markets_user_id`)"
+  },
+  {
+    "type": "index",
+    "name": "settlement_rounds_ordinal_uidx",
+    "tbl_name": "settlement_rounds",
+    "sql": "CREATE UNIQUE INDEX `settlement_rounds_ordinal_uidx` ON `settlement_rounds` (`settlement_id`,`round_ordinal`)"
+  },
+  {
+    "type": "index",
+    "name": "settlements_auction_state_idx",
+    "tbl_name": "settlements",
+    "sql": "CREATE INDEX `settlements_auction_state_idx` ON `settlements` (`auction_id`,`saga_state`)"
+  },
+  {
+    "type": "index",
+    "name": "settlements_source_uidx",
+    "tbl_name": "settlements",
+    "sql": "CREATE UNIQUE INDEX `settlements_source_uidx` ON `settlements` (`auction_id`,`kind`,`source_key`)"
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_account_1",
+    "tbl_name": "account",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auction_blacklist_events_1",
+    "tbl_name": "auction_blacklist_events",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auction_close_cutoffs_1",
+    "tbl_name": "auction_close_cutoffs",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auction_close_resume_outbox_1",
+    "tbl_name": "auction_close_resume_outbox",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auction_commands_1",
+    "tbl_name": "auction_commands",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auction_revisions_1",
+    "tbl_name": "auction_revisions",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auctions_1",
+    "tbl_name": "auctions",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_audit_events_1",
+    "tbl_name": "audit_events",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_auto_bid_rules_1",
+    "tbl_name": "auto_bid_rules",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_bid_events_1",
+    "tbl_name": "bid_events",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_bid_positions_1",
+    "tbl_name": "bid_positions",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_buy_now_holds_1",
+    "tbl_name": "buy_now_holds",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_d1_migrations_1",
+    "tbl_name": "d1_migrations",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_idempotency_results_1",
+    "tbl_name": "idempotency_results",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_markets_user_1",
+    "tbl_name": "markets_user",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_ops_alerts_1",
+    "tbl_name": "ops_alerts",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_point_package_snapshot_components_1",
+    "tbl_name": "point_package_snapshot_components",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_point_package_snapshots_1",
+    "tbl_name": "point_package_snapshots",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_points_connection_1",
+    "tbl_name": "points_connection",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_points_oauth_state_1",
+    "tbl_name": "points_oauth_state",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_points_unlink_authorization_1",
+    "tbl_name": "points_unlink_authorization",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_rate_limit_1",
+    "tbl_name": "rate_limit",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_session_1",
+    "tbl_name": "session",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_settlement_outbox_1",
+    "tbl_name": "settlement_outbox",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_settlement_plans_1",
+    "tbl_name": "settlement_plans",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_settlement_round_winners_1",
+    "tbl_name": "settlement_round_winners",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_settlement_rounds_1",
+    "tbl_name": "settlement_rounds",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_settlements_1",
+    "tbl_name": "settlements",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_turnstile_token_replays_1",
+    "tbl_name": "turnstile_token_replays",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_user_1",
+    "tbl_name": "user",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_verification_1",
+    "tbl_name": "verification",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "sqlite_autoindex_websocket_slot_leases_1",
+    "tbl_name": "websocket_slot_leases",
+    "sql": null
+  },
+  {
+    "type": "index",
+    "name": "turnstile_token_replays_expiry_idx",
+    "tbl_name": "turnstile_token_replays",
+    "sql": "CREATE INDEX `turnstile_token_replays_expiry_idx` ON `turnstile_token_replays` (`expires_at`)"
+  },
+  {
+    "type": "index",
+    "name": "verification_identifier_idx",
+    "tbl_name": "verification",
+    "sql": "CREATE INDEX `verification_identifier_idx` ON `verification` (`identifier`)"
+  },
+  {
+    "type": "index",
+    "name": "websocket_slot_leases_auction_slot_uidx",
+    "tbl_name": "websocket_slot_leases",
+    "sql": "CREATE UNIQUE INDEX `websocket_slot_leases_auction_slot_uidx` ON `websocket_slot_leases` (`markets_user_id`,`auction_id`,`auction_slot`)"
+  },
+  {
+    "type": "index",
+    "name": "websocket_slot_leases_user_slot_uidx",
+    "tbl_name": "websocket_slot_leases",
+    "sql": "CREATE UNIQUE INDEX `websocket_slot_leases_user_slot_uidx` ON `websocket_slot_leases` (`markets_user_id`,`user_slot`)"
+  },
+  {
+    "type": "table",
+    "name": "_cf_METADATA",
+    "tbl_name": "_cf_METADATA",
+    "sql": "CREATE TABLE _cf_METADATA (\n        key INTEGER PRIMARY KEY,\n        value BLOB\n      )"
+  },
+  {
+    "type": "table",
+    "name": "account",
+    "tbl_name": "account",
+    "sql": "CREATE TABLE `account` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`account_id` text NOT NULL,\n\t`provider_id` text NOT NULL,\n\t`user_id` text NOT NULL,\n\t`access_token` text,\n\t`refresh_token` text,\n\t`id_token` text,\n\t`access_token_expires_at` integer,\n\t`refresh_token_expires_at` integer,\n\t`scope` text,\n\t`password` text,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\t`updated_at` integer NOT NULL,\n\tFOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "auction_blacklist_events",
+    "tbl_name": "auction_blacklist_events",
+    "sql": "CREATE TABLE `auction_blacklist_events` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`reason_code` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action\n)"
+  },
+  {
+    "type": "table",
+    "name": "auction_close_cutoffs",
+    "tbl_name": "auction_close_cutoffs",
+    "sql": "CREATE TABLE `auction_close_cutoffs` (\n\t`auction_id` text PRIMARY KEY NOT NULL,\n\t`auction_revision_id` text NOT NULL,\n\t`closed_auction_version` integer NOT NULL,\n\t`cutoff_at` text NOT NULL,\n\t`max_bid_seq` integer NOT NULL,\n\t`eligible_bid_ids_json` text NOT NULL,\n\t`ranking_input_hash` text NOT NULL,\n\t`available_quantity` integer NOT NULL,\n\t`point_package_revision_id` text NOT NULL,\n\t`package_tick` integer NOT NULL,\n\t`algorithm_version` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`auction_revision_id`) REFERENCES `auction_revisions`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auction_close_cutoffs_version_check\" CHECK(\"auction_close_cutoffs\".\"closed_auction_version\" between 1 and 9007199254740991),\n\tCONSTRAINT \"auction_close_cutoffs_bid_seq_check\" CHECK(\"auction_close_cutoffs\".\"max_bid_seq\" between 0 and 9007199254740991),\n\tCONSTRAINT \"auction_close_cutoffs_quantity_check\" CHECK(\"auction_close_cutoffs\".\"available_quantity\" between 0 and 1000),\n\tCONSTRAINT \"auction_close_cutoffs_package_tick_check\" CHECK(\"auction_close_cutoffs\".\"package_tick\" between 1 and 9007199254740991),\n\tCONSTRAINT \"auction_close_cutoffs_eligible_json_check\" CHECK(json_valid(\"auction_close_cutoffs\".\"eligible_bid_ids_json\")),\n\tCONSTRAINT \"auction_close_cutoffs_hash_check\" CHECK(length(\"auction_close_cutoffs\".\"ranking_input_hash\") = 64)\n)"
+  },
+  {
+    "type": "table",
+    "name": "auction_close_resume_outbox",
+    "tbl_name": "auction_close_resume_outbox",
+    "sql": "CREATE TABLE `auction_close_resume_outbox` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`buy_now_hold_id` text NOT NULL,\n\t`status` text DEFAULT 'PENDING' NOT NULL,\n\t`settlement_outbox_id` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`dispatched_at` text,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`buy_now_hold_id`) REFERENCES `buy_now_holds`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auction_close_resume_outbox_status_check\" CHECK(\"auction_close_resume_outbox\".\"status\" in ('PENDING', 'DISPATCHED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "auction_commands",
+    "tbl_name": "auction_commands",
+    "sql": "CREATE TABLE `auction_commands` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`command_id` text NOT NULL,\n\t`actor_markets_user_id` text NOT NULL,\n\t`operation` text NOT NULL,\n\t`payload_hash` text NOT NULL,\n\t`expected_auction_version` integer NOT NULL,\n\t`status` text NOT NULL,\n\t`response_body` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`actor_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auction_commands_payload_hash_check\" CHECK(length(\"auction_commands\".\"payload_hash\") = 64),\n\tCONSTRAINT \"auction_commands_expected_version_check\" CHECK(\"auction_commands\".\"expected_auction_version\" between 1 and 9007199254740991)\n)"
+  },
+  {
+    "type": "table",
+    "name": "auction_revisions",
+    "tbl_name": "auction_revisions",
+    "sql": "CREATE TABLE `auction_revisions` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`revision_number` integer NOT NULL,\n\t`title` text NOT NULL,\n\t`description` text NOT NULL,\n\t`external_url` text NOT NULL,\n\t`seller_identity_snapshot` text NOT NULL,\n\t`points_issuer` text NOT NULL,\n\t`point_package_snapshot_id` text NOT NULL,\n\t`quantity` integer NOT NULL,\n\t`starts_at` text NOT NULL,\n\t`ends_at` text NOT NULL,\n\t`package_tick` integer NOT NULL,\n\t`buy_now_price_tick_count` integer,\n\t`extension_rule_json` text,\n\t`eligibility_receipt_id` text NOT NULL,\n\t`auction_command_id` text NOT NULL,\n\t`auction_command_hash` text NOT NULL,\n\t`package_eligibility_version` integer NOT NULL,\n\t`eligibility_checked_at` text NOT NULL,\n\t`eligibility_valid_until` text NOT NULL,\n\t`commit_started_at` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`point_package_snapshot_id`) REFERENCES `point_package_snapshots`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auction_revisions_revision_check\" CHECK(\"auction_revisions\".\"revision_number\" between 1 and 9007199254740991),\n\tCONSTRAINT \"auction_revisions_quantity_check\" CHECK(\"auction_revisions\".\"quantity\" between 1 and 1000),\n\tCONSTRAINT \"auction_revisions_package_tick_check\" CHECK(\"auction_revisions\".\"package_tick\" between 1 and 9007199254740991),\n\tCONSTRAINT \"auction_revisions_buy_now_tick_count_check\" CHECK(\"auction_revisions\".\"buy_now_price_tick_count\" is null or \"auction_revisions\".\"buy_now_price_tick_count\" between 1 and 9007199254740991),\n\tCONSTRAINT \"auction_revisions_seller_snapshot_check\" CHECK(json_valid(\"auction_revisions\".\"seller_identity_snapshot\")),\n\tCONSTRAINT \"auction_revisions_extension_rule_check\" CHECK(\"auction_revisions\".\"extension_rule_json\" is null or json_valid(\"auction_revisions\".\"extension_rule_json\"))\n)"
+  },
+  {
+    "type": "table",
+    "name": "auctions",
+    "tbl_name": "auctions",
+    "sql": "CREATE TABLE `auctions` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`seller_markets_user_id` text NOT NULL,\n\t`current_revision_id` text,\n\t`status` text DEFAULT 'DRAFT' NOT NULL,\n\t`version` integer DEFAULT 1 NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`seller_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auctions_status_check\" CHECK(\"auctions\".\"status\" in ('DRAFT', 'SCHEDULED', 'OPEN', 'CLOSING', 'SETTLING', 'SETTLED', 'CANCELLED', 'SETTLEMENT_RETRYABLE', 'SETTLEMENT_MANUAL_ACTION_REQUIRED')),\n\tCONSTRAINT \"auctions_version_check\" CHECK(\"auctions\".\"version\" between 1 and 9007199254740991)\n)"
+  },
+  {
+    "type": "table",
+    "name": "audit_events",
+    "tbl_name": "audit_events",
+    "sql": "CREATE TABLE `audit_events` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`actor_markets_user_id` text,\n\t`event_code` text NOT NULL,\n\t`target_type` text NOT NULL,\n\t`target_id` text NOT NULL,\n\t`before_json` text,\n\t`after_json` text,\n\t`reason` text,\n\t`request_id` text NOT NULL,\n\t`environment` text NOT NULL,\n\t`result` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`actor_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"audit_events_before_json_check\" CHECK(\"audit_events\".\"before_json\" is null or json_valid(\"audit_events\".\"before_json\")),\n\tCONSTRAINT \"audit_events_after_json_check\" CHECK(\"audit_events\".\"after_json\" is null or json_valid(\"audit_events\".\"after_json\"))\n)"
+  },
+  {
+    "type": "table",
+    "name": "auto_bid_rules",
+    "tbl_name": "auto_bid_rules",
+    "sql": "CREATE TABLE `auto_bid_rules` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`bidder_markets_user_id` text NOT NULL,\n\t`quantity` integer NOT NULL,\n\t`auto_bid_max_tick_count` integer NOT NULL,\n\t`active` integer DEFAULT true NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`bidder_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"auto_bid_rules_quantity_check\" CHECK(\"auto_bid_rules\".\"quantity\" between 1 and 1000),\n\tCONSTRAINT \"auto_bid_rules_max_tick_count_check\" CHECK(\"auto_bid_rules\".\"auto_bid_max_tick_count\" between 0 and 9007199254740991),\n\tCONSTRAINT \"auto_bid_rules_active_check\" CHECK(\"auto_bid_rules\".\"active\" in (0, 1))\n)"
+  },
+  {
+    "type": "table",
+    "name": "bid_events",
+    "tbl_name": "bid_events",
+    "sql": "CREATE TABLE `bid_events` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`bid_seq` integer NOT NULL,\n\t`bidder_markets_user_id` text NOT NULL,\n\t`command_id` text NOT NULL,\n\t`event_type` text NOT NULL,\n\t`quantity` integer NOT NULL,\n\t`price_tick_count` integer NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`bidder_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"bid_events_bid_seq_check\" CHECK(\"bid_events\".\"bid_seq\" between 1 and 9007199254740991),\n\tCONSTRAINT \"bid_events_quantity_check\" CHECK(\"bid_events\".\"quantity\" between 1 and 1000),\n\tCONSTRAINT \"bid_events_price_tick_count_check\" CHECK(\"bid_events\".\"price_tick_count\" between 0 and 9007199254740991)\n)"
+  },
+  {
+    "type": "table",
+    "name": "bid_positions",
+    "tbl_name": "bid_positions",
+    "sql": "CREATE TABLE `bid_positions` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`bidder_markets_user_id` text NOT NULL,\n\t`quantity` integer NOT NULL,\n\t`price_tick_count` integer NOT NULL,\n\t`reached_sequence` integer NOT NULL,\n\t`status` text DEFAULT 'ACTIVE' NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`bidder_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"bid_positions_quantity_check\" CHECK(\"bid_positions\".\"quantity\" between 1 and 1000),\n\tCONSTRAINT \"bid_positions_price_tick_count_check\" CHECK(\"bid_positions\".\"price_tick_count\" between 0 and 9007199254740991),\n\tCONSTRAINT \"bid_positions_reached_sequence_check\" CHECK(\"bid_positions\".\"reached_sequence\" between 1 and 9007199254740991),\n\tCONSTRAINT \"bid_positions_status_check\" CHECK(\"bid_positions\".\"status\" in ('ACTIVE', 'INACTIVE'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "buy_now_holds",
+    "tbl_name": "buy_now_holds",
+    "sql": "CREATE TABLE `buy_now_holds` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`buyer_markets_user_id` text NOT NULL,\n\t`quantity` integer NOT NULL,\n\t`buy_now_price_tick_count` integer NOT NULL,\n\t`status` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`buyer_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"buy_now_holds_quantity_check\" CHECK(\"buy_now_holds\".\"quantity\" between 1 and 1000),\n\tCONSTRAINT \"buy_now_holds_price_tick_count_check\" CHECK(\"buy_now_holds\".\"buy_now_price_tick_count\" between 1 and 9007199254740991),\n\tCONSTRAINT \"buy_now_holds_status_check\" CHECK(\"buy_now_holds\".\"status\" in ('PENDING', 'CAPTURED_PENDING_FINALIZE', 'SETTLED', 'FAILED_RESTORED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "d1_migrations",
+    "tbl_name": "d1_migrations",
+    "sql": "CREATE TABLE \"d1_migrations\"(\n\t\tid         INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\tname       TEXT UNIQUE,\n\t\tapplied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL\n)"
+  },
+  {
+    "type": "table",
+    "name": "idempotency_results",
+    "tbl_name": "idempotency_results",
+    "sql": "CREATE TABLE `idempotency_results` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`actor_markets_user_id` text NOT NULL,\n\t`operation` text NOT NULL,\n\t`idempotency_key` text NOT NULL,\n\t`payload_hash` text NOT NULL,\n\t`state` text DEFAULT 'PENDING' NOT NULL,\n\t`response_status` integer,\n\t`response_body` text,\n\t`response_content_type` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`completed_at` text,\n\tFOREIGN KEY (`actor_markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"idempotency_results_key_check\" CHECK(length(\"idempotency_results\".\"idempotency_key\") between 1 and 200),\n\tCONSTRAINT \"idempotency_results_payload_hash_check\" CHECK(length(\"idempotency_results\".\"payload_hash\") = 64),\n\tCONSTRAINT \"idempotency_results_state_check\" CHECK(\"idempotency_results\".\"state\" in ('PENDING', 'COMPLETED')),\n\tCONSTRAINT \"idempotency_results_response_status_check\" CHECK(\"idempotency_results\".\"response_status\" is null or \"idempotency_results\".\"response_status\" between 100 and 599)\n)"
+  },
+  {
+    "type": "table",
+    "name": "markets_user",
+    "tbl_name": "markets_user",
+    "sql": "CREATE TABLE `markets_user` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auth_user_id` text NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\tFOREIGN KEY (`auth_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "ops_alerts",
+    "tbl_name": "ops_alerts",
+    "sql": "CREATE TABLE `ops_alerts` (\n\t`dedupe_key` text PRIMARY KEY NOT NULL,\n\t`signal` text NOT NULL,\n\t`severity` text NOT NULL,\n\t`first_seen_at` text NOT NULL,\n\t`last_seen_at` text NOT NULL,\n\t`resolved_at` text,\n\t`status` text NOT NULL,\n\t`delivery_attempt_count` integer DEFAULT 0 NOT NULL,\n\t`safe_detail_code` text NOT NULL,\n\tCONSTRAINT \"ops_alerts_severity_check\" CHECK(\"ops_alerts\".\"severity\" in ('INFO', 'WARNING', 'CRITICAL')),\n\tCONSTRAINT \"ops_alerts_status_check\" CHECK(\"ops_alerts\".\"status\" in ('OPEN', 'RESOLVED')),\n\tCONSTRAINT \"ops_alerts_delivery_attempt_check\" CHECK(\"ops_alerts\".\"delivery_attempt_count\" >= 0)\n)"
+  },
+  {
+    "type": "table",
+    "name": "point_package_snapshot_components",
+    "tbl_name": "point_package_snapshot_components",
+    "sql": "CREATE TABLE `point_package_snapshot_components` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`point_package_snapshot_id` text NOT NULL,\n\t`evaluation_criterion_id` text NOT NULL,\n\t`evaluation_criterion_revision_id` text NOT NULL,\n\t`evaluation_criterion_name` text NOT NULL,\n\t`weight` integer NOT NULL,\n\t`minimum_unit_scaled` integer NOT NULL,\n\t`display_order` integer NOT NULL,\n\tFOREIGN KEY (`point_package_snapshot_id`) REFERENCES `point_package_snapshots`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"point_package_snapshot_components_weight_check\" CHECK(\"point_package_snapshot_components\".\"weight\" between 1 and 9007199254740991),\n\tCONSTRAINT \"point_package_snapshot_components_unit_check\" CHECK(\"point_package_snapshot_components\".\"minimum_unit_scaled\" between 1 and 9007199254740991),\n\tCONSTRAINT \"point_package_snapshot_components_order_check\" CHECK(\"point_package_snapshot_components\".\"display_order\" >= 0)\n)"
+  },
+  {
+    "type": "table",
+    "name": "point_package_snapshots",
+    "tbl_name": "point_package_snapshots",
+    "sql": "CREATE TABLE `point_package_snapshots` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`point_package_id` text NOT NULL,\n\t`point_package_revision_id` text NOT NULL,\n\t`name` text NOT NULL,\n\t`total_weight` integer NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tCONSTRAINT \"point_package_snapshots_total_weight_check\" CHECK(\"point_package_snapshots\".\"total_weight\" between 1 and 9007199254740991)\n)"
+  },
+  {
+    "type": "table",
+    "name": "points_connection",
+    "tbl_name": "points_connection",
+    "sql": "CREATE TABLE `points_connection` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`auth_user_id` text NOT NULL,\n\t`status` text NOT NULL,\n\t`link_attempt_id` text NOT NULL,\n\t`attempt_payload_hash` text NOT NULL,\n\t`points_issuer` text NOT NULL,\n\t`points_subject` text NOT NULL,\n\t`user_client_id` text NOT NULL,\n\t`m2m_client_id` text NOT NULL,\n\t`granted_scopes` text NOT NULL,\n\t`session_id` text NOT NULL,\n\t`points_grant_id` text,\n\t`points_grant_version` integer,\n\t`confirmation_receipt_id` text,\n\t`deactivation_receipt_id` text,\n\t`better_auth_account_id` text,\n\t`token_version` integer DEFAULT 1 NOT NULL,\n\t`refresh_lease_owner` text,\n\t`refresh_lease_expires_at` integer,\n\t`expires_at` integer NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\t`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`auth_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "points_oauth_state",
+    "tbl_name": "points_oauth_state",
+    "sql": "CREATE TABLE `points_oauth_state` (\n\t`link_attempt_id` text PRIMARY KEY NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`auth_user_id` text NOT NULL,\n\t`session_id` text NOT NULL,\n\t`state_hash` text NOT NULL,\n\t`pkce_verifier` text NOT NULL,\n\t`nonce` text NOT NULL,\n\t`callback_uri` text NOT NULL,\n\t`return_url_hash` text NOT NULL,\n\t`requested_scopes` text NOT NULL,\n\t`attempt_payload_hash` text NOT NULL,\n\t`status` text DEFAULT 'STARTED' NOT NULL,\n\t`expires_at` integer NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`auth_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "points_unlink_authorization",
+    "tbl_name": "points_unlink_authorization",
+    "sql": "CREATE TABLE `points_unlink_authorization` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`points_connection_id` text NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`auth_user_id` text NOT NULL,\n\t`session_id` text NOT NULL,\n\t`state_hash` text NOT NULL,\n\t`pkce_verifier` text NOT NULL,\n\t`nonce` text NOT NULL,\n\t`callback_uri` text NOT NULL,\n\t`reason` text NOT NULL,\n\t`status` text DEFAULT 'STARTED' NOT NULL,\n\t`expires_at` integer NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\tFOREIGN KEY (`points_connection_id`) REFERENCES `points_connection`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`auth_user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "rate_limit",
+    "tbl_name": "rate_limit",
+    "sql": "CREATE TABLE `rate_limit` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`key` text NOT NULL,\n\t`count` integer NOT NULL,\n\t`last_request` integer NOT NULL\n)"
+  },
+  {
+    "type": "table",
+    "name": "session",
+    "tbl_name": "session",
+    "sql": "CREATE TABLE `session` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`expires_at` integer NOT NULL,\n\t`token` text NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\t`updated_at` integer NOT NULL,\n\t`ip_address` text,\n\t`user_agent` text,\n\t`user_id` text NOT NULL,\n\tFOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlement_exclusions",
+    "tbl_name": "settlement_exclusions",
+    "sql": "CREATE TABLE `settlement_exclusions` (\n\t`settlement_id` text NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`first_round_ordinal` integer NOT NULL,\n\t`reason` text NOT NULL,\n\t`blacklist_event_id` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`settlement_id`) REFERENCES `settlements`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlement_exclusions_round_check\" CHECK(\"settlement_exclusions\".\"first_round_ordinal\" between 1 and 9007199254740991),\n\tCONSTRAINT \"settlement_exclusions_reason_check\" CHECK(\"settlement_exclusions\".\"reason\" in ('INSUFFICIENT_BALANCE', 'REAUTH_REQUIRED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlement_outbox",
+    "tbl_name": "settlement_outbox",
+    "sql": "CREATE TABLE `settlement_outbox` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`settlement_id` text NOT NULL,\n\t`settlement_revision` integer NOT NULL,\n\t`workflow_attempt` integer DEFAULT 0 NOT NULL,\n\t`plan_hash` text NOT NULL,\n\t`workflow_instance_id` text,\n\t`status` text DEFAULT 'PENDING' NOT NULL,\n\t`delivery_attempt_count` integer DEFAULT 0 NOT NULL,\n\t`last_error_code` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`dispatched_at` text,\n\tFOREIGN KEY (`settlement_id`) REFERENCES `settlements`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlement_outbox_revision_check\" CHECK(\"settlement_outbox\".\"settlement_revision\" between 1 and 9007199254740991),\n\tCONSTRAINT \"settlement_outbox_attempt_check\" CHECK(\"settlement_outbox\".\"workflow_attempt\" between 0 and 9007199254740991),\n\tCONSTRAINT \"settlement_outbox_plan_hash_check\" CHECK(length(\"settlement_outbox\".\"plan_hash\") = 64),\n\tCONSTRAINT \"settlement_outbox_status_check\" CHECK(\"settlement_outbox\".\"status\" in ('PENDING', 'DISPATCHED')),\n\tCONSTRAINT \"settlement_outbox_delivery_attempt_check\" CHECK(\"settlement_outbox\".\"delivery_attempt_count\" >= 0)\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlement_plans",
+    "tbl_name": "settlement_plans",
+    "sql": "CREATE TABLE `settlement_plans` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`settlement_id` text NOT NULL,\n\t`settlement_revision` integer NOT NULL,\n\t`plan_json` text NOT NULL,\n\t`plan_hash` text NOT NULL,\n\t`algorithm_version` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`settlement_id`) REFERENCES `settlements`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlement_plans_revision_check\" CHECK(\"settlement_plans\".\"settlement_revision\" between 1 and 9007199254740991),\n\tCONSTRAINT \"settlement_plans_json_check\" CHECK(json_valid(\"settlement_plans\".\"plan_json\")),\n\tCONSTRAINT \"settlement_plans_hash_check\" CHECK(length(\"settlement_plans\".\"plan_hash\") = 64)\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlement_round_winners",
+    "tbl_name": "settlement_round_winners",
+    "sql": "CREATE TABLE \"settlement_round_winners\" (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`settlement_round_id` text NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`points_connection_id` text,\n\t`allocation_quantity` integer NOT NULL,\n\t`price_tick_count` integer NOT NULL,\n\t`price_ticks` integer NOT NULL,\n\t`reservation_key` text NOT NULL,\n\t`attempt_count` integer DEFAULT 0 NOT NULL,\n\t`status` text DEFAULT 'PENDING' NOT NULL,\n\t`point_reservation_id` text,\n\t`vector_hash` text,\n\t`expires_at` text,\n\t`failure_class` text,\n\t`failure_code` text,\n\t`failure_hash` text,\n\t`release_receipt_id` text,\n\t`release_content_hash` text,\n\t`released_at` text,\n\t`points_request_id` text,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`settlement_round_id`) REFERENCES `settlement_rounds`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`points_connection_id`) REFERENCES `points_connection`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlement_round_winners_quantity_check\" CHECK(\"settlement_round_winners\".\"allocation_quantity\" between 1 and 1000),\n\tCONSTRAINT \"settlement_round_winners_attempt_check\" CHECK(\"settlement_round_winners\".\"attempt_count\" between 0 and 9007199254740991),\n\tCONSTRAINT \"settlement_round_winners_status_check\" CHECK(\"settlement_round_winners\".\"status\" in ('PENDING', 'ACTIVE', 'REJECTED', 'UNKNOWN', 'RELEASED', 'EXPIRED', 'CAPTURED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlement_rounds",
+    "tbl_name": "settlement_rounds",
+    "sql": "CREATE TABLE `settlement_rounds` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`settlement_id` text NOT NULL,\n\t`round_ordinal` integer NOT NULL,\n\t`plan_hash` text NOT NULL,\n\t`cutoff_hash` text NOT NULL,\n\t`state` text DEFAULT 'RESERVING' NOT NULL,\n\t`excluded_user_ids_json` text DEFAULT '[]' NOT NULL,\n\t`first_attempt_at` text NOT NULL,\n\t`retry_deadline_at` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`settlement_id`) REFERENCES `settlements`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlement_rounds_ordinal_check\" CHECK(\"settlement_rounds\".\"round_ordinal\" between 1 and 9007199254740991),\n\tCONSTRAINT \"settlement_rounds_plan_hash_check\" CHECK(length(\"settlement_rounds\".\"plan_hash\") = 64),\n\tCONSTRAINT \"settlement_rounds_cutoff_hash_check\" CHECK(length(\"settlement_rounds\".\"cutoff_hash\") = 64),\n\tCONSTRAINT \"settlement_rounds_excluded_json_check\" CHECK(json_valid(\"settlement_rounds\".\"excluded_user_ids_json\")),\n\tCONSTRAINT \"settlement_rounds_deadline_check\" CHECK(\"settlement_rounds\".\"retry_deadline_at\" >= \"settlement_rounds\".\"first_attempt_at\"),\n\tCONSTRAINT \"settlement_rounds_state_check\" CHECK(\"settlement_rounds\".\"state\" in ('RESERVING', 'RELEASING', 'RELEASED', 'RESERVED', 'FAILED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "settlements",
+    "tbl_name": "settlements",
+    "sql": "CREATE TABLE `settlements` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`kind` text NOT NULL,\n\t`source_key` text NOT NULL,\n\t`settlement_revision` integer DEFAULT 1 NOT NULL,\n\t`workflow_attempt` integer DEFAULT 0 NOT NULL,\n\t`saga_state` text DEFAULT 'PLANNED' NOT NULL,\n\t`current_plan_id` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\t`updated_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"settlements_kind_check\" CHECK(\"settlements\".\"kind\" in ('END_OF_AUCTION', 'BUY_NOW')),\n\tCONSTRAINT \"settlements_revision_check\" CHECK(\"settlements\".\"settlement_revision\" between 1 and 9007199254740991),\n\tCONSTRAINT \"settlements_attempt_check\" CHECK(\"settlements\".\"workflow_attempt\" between 0 and 9007199254740991),\n\tCONSTRAINT \"settlements_state_check\" CHECK(\"settlements\".\"saga_state\" in ('PLANNED', 'RESERVING', 'RESERVED', 'CAPTURING', 'CAPTURED', 'FINALIZING', 'SETTLED', 'MANUAL_ACTION_REQUIRED'))\n)"
+  },
+  {
+    "type": "table",
+    "name": "sqlite_sequence",
+    "tbl_name": "sqlite_sequence",
+    "sql": "CREATE TABLE sqlite_sequence(name,seq)"
+  },
+  {
+    "type": "table",
+    "name": "turnstile_token_replays",
+    "tbl_name": "turnstile_token_replays",
+    "sql": "CREATE TABLE `turnstile_token_replays` (\n\t`token_hash` text PRIMARY KEY NOT NULL,\n\t`operation` text NOT NULL,\n\t`hostname` text NOT NULL,\n\t`action` text NOT NULL,\n\t`expires_at` text NOT NULL,\n\t`used_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tCONSTRAINT \"turnstile_token_replays_hash_check\" CHECK(length(\"turnstile_token_replays\".\"token_hash\") = 64)\n)"
+  },
+  {
+    "type": "table",
+    "name": "user",
+    "tbl_name": "user",
+    "sql": "CREATE TABLE `user` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`name` text NOT NULL,\n\t`email` text NOT NULL,\n\t`email_verified` integer DEFAULT false NOT NULL,\n\t`image` text,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\t`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL\n)"
+  },
+  {
+    "type": "table",
+    "name": "verification",
+    "tbl_name": "verification",
+    "sql": "CREATE TABLE `verification` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`identifier` text NOT NULL,\n\t`value` text NOT NULL,\n\t`expires_at` integer NOT NULL,\n\t`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,\n\t`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL\n)"
+  },
+  {
+    "type": "table",
+    "name": "websocket_slot_leases",
+    "tbl_name": "websocket_slot_leases",
+    "sql": "CREATE TABLE `websocket_slot_leases` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`markets_user_id` text NOT NULL,\n\t`auction_id` text NOT NULL,\n\t`user_slot` integer NOT NULL,\n\t`auction_slot` integer NOT NULL,\n\t`lease_expires_at` text NOT NULL,\n\t`created_at` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,\n\tFOREIGN KEY (`markets_user_id`) REFERENCES `markets_user`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,\n\tCONSTRAINT \"websocket_slot_leases_user_slot_check\" CHECK(\"websocket_slot_leases\".\"user_slot\" between 1 and 20),\n\tCONSTRAINT \"websocket_slot_leases_auction_slot_check\" CHECK(\"websocket_slot_leases\".\"auction_slot\" between 1 and 3)\n)"
+  },
+  {
+    "type": "trigger",
+    "name": "auction_close_cutoffs_append_only_delete",
+    "tbl_name": "auction_close_cutoffs",
+    "sql": "CREATE TRIGGER `auction_close_cutoffs_append_only_delete`\nBEFORE DELETE ON `auction_close_cutoffs`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_CLOSE_CUTOFF_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auction_close_cutoffs_append_only_update",
+    "tbl_name": "auction_close_cutoffs",
+    "sql": "CREATE TRIGGER `auction_close_cutoffs_append_only_update`\nBEFORE UPDATE ON `auction_close_cutoffs`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_CLOSE_CUTOFF_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auction_commands_market_command_guard",
+    "tbl_name": "auction_commands",
+    "sql": "CREATE TRIGGER `auction_commands_market_command_guard`\nBEFORE INSERT ON `auction_commands`\nWHEN NEW.`operation` IN ('PLACE_BID', 'CANCEL_AUTO_BID', 'BUY_NOW')\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_NOT_OPEN') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `status` = 'OPEN'\n\t);\n\tSELECT RAISE(ABORT, 'SELLER_CANNOT_BID') WHERE EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `seller_markets_user_id` = NEW.`actor_markets_user_id`\n\t);\n\tSELECT RAISE(ABORT, 'POINTS_LINK_REQUIRED') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `points_connection`\n\t\tWHERE `markets_user_id` = NEW.`actor_markets_user_id` AND `status` = 'ACTIVE'\n\t);\n\tSELECT RAISE(ABORT, 'AUCTION_VERSION_CONFLICT') WHERE NOT EXISTS (\n\t\tSELECT 1 FROM `auctions`\n\t\tWHERE `id` = NEW.`auction_id` AND `version` = NEW.`expected_auction_version`\n\t);\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auction_revisions_append_only_delete",
+    "tbl_name": "auction_revisions",
+    "sql": "CREATE TRIGGER `auction_revisions_append_only_delete`\nBEFORE DELETE ON `auction_revisions`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_REVISION_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auction_revisions_append_only_update",
+    "tbl_name": "auction_revisions",
+    "sql": "CREATE TRIGGER `auction_revisions_append_only_update`\nBEFORE UPDATE ON `auction_revisions`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_REVISION_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auctions_cancellation_guard",
+    "tbl_name": "auctions",
+    "sql": "CREATE TRIGGER `auctions_cancellation_guard`\nBEFORE UPDATE OF `status` ON `auctions`\nWHEN NEW.`status` = 'CANCELLED' AND OLD.`status` <> 'CANCELLED'\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_CANCELLATION_INVALID_STATE')\n\tWHERE OLD.`status` NOT IN ('DRAFT', 'SCHEDULED');\n\tSELECT RAISE(ABORT, 'AUCTION_CANCELLATION_BLOCKED')\n\tWHERE EXISTS (SELECT 1 FROM `bid_events` WHERE `auction_id` = OLD.`id`)\n\t   OR EXISTS (SELECT 1 FROM `auto_bid_rules` WHERE `auction_id` = OLD.`id` AND `active` = 1)\n\t   OR EXISTS (SELECT 1 FROM `buy_now_holds` WHERE `auction_id` = OLD.`id` AND `status` <> 'FAILED_RESTORED');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "auctions_cancelled_terminal",
+    "tbl_name": "auctions",
+    "sql": "CREATE TRIGGER `auctions_cancelled_terminal`\nBEFORE UPDATE OF `status` ON `auctions`\nWHEN OLD.`status` = 'CANCELLED' AND NEW.`status` <> 'CANCELLED'\nBEGIN\n\tSELECT RAISE(ABORT, 'AUCTION_CANCELLED_TERMINAL');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "audit_events_append_only_delete",
+    "tbl_name": "audit_events",
+    "sql": "CREATE TRIGGER `audit_events_append_only_delete`\nBEFORE DELETE ON `audit_events`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUDIT_EVENT_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "audit_events_append_only_update",
+    "tbl_name": "audit_events",
+    "sql": "CREATE TRIGGER `audit_events_append_only_update`\nBEFORE UPDATE ON `audit_events`\nBEGIN\n\tSELECT RAISE(ABORT, 'AUDIT_EVENT_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "bid_events_append_only_delete",
+    "tbl_name": "bid_events",
+    "sql": "CREATE TRIGGER `bid_events_append_only_delete`\nBEFORE DELETE ON `bid_events`\nBEGIN\n\tSELECT RAISE(ABORT, 'BID_EVENT_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "bid_events_append_only_update",
+    "tbl_name": "bid_events",
+    "sql": "CREATE TRIGGER `bid_events_append_only_update`\nBEFORE UPDATE ON `bid_events`\nBEGIN\n\tSELECT RAISE(ABORT, 'BID_EVENT_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "settlement_plans_append_only_delete",
+    "tbl_name": "settlement_plans",
+    "sql": "CREATE TRIGGER `settlement_plans_append_only_delete`\nBEFORE DELETE ON `settlement_plans`\nBEGIN\n\tSELECT RAISE(ABORT, 'SETTLEMENT_PLAN_IMMUTABLE');\nEND"
+  },
+  {
+    "type": "trigger",
+    "name": "settlement_plans_append_only_update",
+    "tbl_name": "settlement_plans",
+    "sql": "CREATE TRIGGER `settlement_plans_append_only_update`\nBEFORE UPDATE ON `settlement_plans`\nBEGIN\n\tSELECT RAISE(ABORT, 'SETTLEMENT_PLAN_IMMUTABLE');\nEND"
+  }
+]

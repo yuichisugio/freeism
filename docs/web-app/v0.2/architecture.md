@@ -13,10 +13,10 @@
 
 ### 1.1 アプリケーション
 
-| プロジェクト               | 公開ドメイン          | Worker名         | 責務                                                          |
-| -------------------------- | --------------------- | ---------------- | ------------------------------------------------------------- |
-| `projects/points-web-app`  | `points.freeism.app`  | `points-worker`  | 認証、評価軸、FIX、残高、台帳、予約、capture/release          |
-| `projects/markets-web-app` | `markets.freeism.app` | `auction-worker` | 独立認証、商材出品、Auction、入札、リアルタイム配信、精算saga |
+| プロジェクト               | 公開ドメイン          | Worker名         | 責務                                                              |
+| -------------------------- | --------------------- | ---------------- | ----------------------------------------------------------------- |
+| `projects/points-web-app`  | `points.freeism.app`  | `points-worker`  | 認証、評価軸、FIX、残高、台帳、予約、capture/release              |
+| `projects/markets-web-app` | `markets.freeism.app` | `auction-worker` | 独立認証、商材情報を含むAuction、入札、リアルタイム配信、精算saga |
 
 両プロジェクトは、それぞれフロントエンドとバックエンドを同じプロジェクト内で管理する。旧 `projects/web-app` は移行完了後に削除する。
 
@@ -51,7 +51,7 @@ Marketsはこれらを複製して正本にしない。Auction表示に必要な
 Marketsだけが次のデータを所有し、更新できる。
 
 - Marketsユーザーと独立したBetter Authセッション
-- 商材、出品、Auction設定と公開snapshot
+- 商材情報とAuction設定を統合したAuction／不変Auction revisionと公開snapshot
 - bid command、bid sequence、AutoBid状態、watchlist
 - AuctionRoom Durable Objectの接続状態と配信用状態
 - Auctionの終了判定、winner計算、clearing price
@@ -134,11 +134,11 @@ Marketsだけが次のデータを所有し、更新できる。
 
 ## 5. Marketsドメイン
 
-### 5.1 商材とAuction
+### 5.1 Auction作成
 
-- Marketsで作成するのは商材の出品とAuctionだけである。
-- 出品はCSV-onlyを基本とし、登録前に全件previewとvalidation結果を確認できるようにする。
-- listing cardと詳細には、Pointsの公式パッケージ名・ID、不変revision、構成評価軸、比率を表示する。
+- Marketsで作成するのは、商材情報を内包するAuctionだけである。独立したListing aggregate、ID、revision、routeは作らない。
+- Auction作成はCSV-onlyを基本とし、登録前に全件previewとvalidation結果を確認できるようにする。
+- Auction cardと詳細には、Pointsの公式パッケージ名・ID、不変revision、構成評価軸、比率を表示する。
 - Auctionは販売数量を持つmulti-unit方式とする。
 - 入札は価格の高い順、同額は`reachedSequence`が早い順に順位付けする。
 - 最後のwinnerだけ部分割当を許可し、全winnerは同じuniform clearing priceを支払う。
@@ -147,7 +147,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - AutoBidを取り消しても、すでに到達・確定した入札額は巻き戻さない。
 - sellerの自己入札、終了後の入札、価格tick不一致、数量不正を拒否する。
 - server時刻を正とし、clientでは利用者local timeへ変換して表示する。
-- 最初の有効bid以後、価格・数量・package revisionなど結果に影響するlisting項目を変更できない。
+- 最初の有効bid以後、価格・数量・package revisionなど結果に影響するAuction項目を変更できない。
 
 ### 5.2 入札時のPoints扱い
 
@@ -158,9 +158,9 @@ Marketsだけが次のデータを所有し、更新できる。
 
 ### 5.3 履歴・証明・評価
 
-- bid、出品、落札履歴とwatchlistを提供するが、通知は送らない。
+- bid、作成したAuction、落札履歴とwatchlistを提供するが、通知は送らない。
 - 落札証明は公開read APIで永続的に検証できる。
-- 証明にはAuction/listing/package revision、seller/buyer identity snapshot、winner、数量、clearing price、完了状態を含める。
+- 証明にはAuction ID／Auction revision／Package revision、seller/buyer identity snapshot、winner、数量、clearing price、完了状態を含める。
 - sellerとbuyerは相互に1〜5の評価、comment、`completionProofUrl`を記録できる。
 - 外部EC claim token、匿名配送、対面決済の詳細はv0.2の実装確定事項ではなく将来候補として保持する。
 
@@ -186,7 +186,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - API namespaceは`auth`、`app`、`public`、`resource`、`internal`、`oauth`、`well-known`へ分ける。
 - 日本語・英語、WCAG 2.1 AA、keyboard操作、screen reader対応を両アプリ共通要件とする。固定公開ページはlocaleごとのcanonical Markdown content hash、両言語のsemantic content、`lang`境界、言語toggleのaccessible name／状態通知を回帰testで保証する。
 
-2026-07-11の調査baselineは、`@tanstack/react-start@1.168.27`、`vite-plus@0.2.4`、`hono@4.12.29`、`drizzle-orm@0.45.2`、`wrangler@4.110.0`である。実装では`^`や`latest`を使わず、このbaselineまたは安全性を再確認した新しい1バージョンへ完全固定する。
+2026-07-12の実装baselineは、`@tanstack/react-start@1.168.27`、`vite-plus@0.2.4`、`hono@4.12.28`、`drizzle-orm@0.45.2`、`wrangler@4.108.0`である。実装では`^`や`latest`を使わず、このbaselineまたは安全性を再確認した新しい1バージョンへ完全固定する。
 
 ## 7. リアルタイムと精算
 
@@ -205,19 +205,21 @@ Marketsだけが次のデータを所有し、更新できる。
 
 ### 7.2 Settlement Workflow
 
-- Auction終了時はCloudflare WorkflowsのSettlement Workflowを1件開始する。
+- Auction終了時、またはAuctionRoomが要求全数量をlockして`BUY_NOW` plan／outboxを確定した時は、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
-- Marketsは`pointPackageRevisionId`、`priceTicks`、`quantity`をPointsへ渡し、Pointsが自身の不変package revisionから評価軸vectorを再計算する。
-- Points予約は15分。user delegation tokenで予約し、capture/releaseはClient Credentials Tokenで行う。
+- Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
+- Points予約は15分。標準remote introspectionでpairwise subjectを検証した利用者用Clientのopaque delegation Access Tokenで予約し、capture/releaseは別のM2M用Clientが発行したopaque Client Credentials Tokenで行う。
+- ACTIVE connectionは利用者用Client IDと対応M2M用Client IDを保持する。利用者Tokenで予約を作る時は対応M2M用Client IDを既存reservation所有clientへ保存し、status／capture／releaseはそのM2M `client_id`だけを許可する。
 - 1 winnerの全評価軸予約は1回のPoints D1原子処理とし、部分予約を許可しない。
 - winner確定後、すべてのcapture/releaseを冪等に完了させる。capture後の自動refundやsaga巻き戻しは行わない。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
+- `BUY_NOW`のrestoreは、外部作用開始前、決定的reservation作成拒否でID 0件、または全reservation未capture＋ACTIVE分release完了という3種の証拠だけを受ける内部RPCで全数量を`FAILED_RESTORED`へ進める。結果不明はholdを維持してmanual actionとする。capture後はproof migration適用後の別内部RPCで`CAPTURED_PENDING_FINALIZE`からproofへforward finalizeし、restore／refundしない。endAt時の未終端holdは終了時planを遅延し、全hold終端後の復元済み残数で収束する。
 
 ## 8. 環境、ドメイン、デプロイ
 
 - `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
-- stagingは`staging.points.freeism.app`と`staging.markets.freeism.app`、productionは`points.freeism.app`と`markets.freeism.app`を使う。
+- 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
 - apex `freeism.app`と`www.freeism.app`は`points.freeism.app`へredirectする。
 - publicなper-PR preview環境はv0.2で作らない。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
@@ -225,19 +227,27 @@ Marketsだけが次のデータを所有し、更新できる。
 - v0.2では定期R2 backupを作らず、D1 Time Travelと復旧runbookを用意する。
 - Vercel、Supabase、Upstashは受入完了後にdomain、env、cron、projectを撤去する。
 
-### main pushの本番pipeline
+### branch pushのdeploy pipeline
 
-`main`へのpushだけをproduction deployの起点とする。手動production承認は置かない。
+`test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する。testからproductionへの自動昇格と手動production承認は置かない。
 
-1. validate、typecheck、unit/integration test、supply-chain検査
-2. Points staging deploy
-3. Markets staging deploy
-4. staging E2Eと精算reconciliation
-5. Points production deploy
-6. Markets production deploy
-7. production smoke test
+`test/*` pipeline:
 
-staging失敗時はproductionへ進まない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。production concurrencyは直列queueとし、実行中deployをcancelしない。
+1. validate、contract、unit/integration test
+2. `CLOUDFLARE_ENV=staging`でPoints／Markets artifactを個別build・検証
+3. Points staging D1 migration、Markets staging D1 migration
+4. Points staging deploy、Markets staging deploy
+5. Points／Markets staging smoke
+
+`main` pipeline:
+
+1. production release gate、validate、contract、unit/integration test
+2. `CLOUDFLARE_ENV=production`でPoints／Markets artifactを個別build・検証
+3. Points production D1 migration、Markets production D1 migration
+4. Points production deploy、Markets production deploy
+5. Points／Markets production smoke
+
+両pipelineは別の固定concurrency groupで直列queueにし、`queue: max`かつ`cancel-in-progress: false`として実行中migrationをcancelしない。test artifact／credentialをproductionへ流用しない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。
 
 ## 9. セキュリティ、品質、release gate
 
@@ -245,7 +255,7 @@ staging失敗時はproductionへ進まない。Pointsだけproductionへ進ん�
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Service Binding越しでもOAuth bearer token、audience、client、grant、scopeを検証する。
+- Service Binding越しでもOAuth bearer tokenをBetter Auth標準Resource Clientのconfidential remote introspectionへ通し、`active`、issuer、audience/resource、期待する利用者用またはM2M用Client ID、scope、利用者Tokenのpairwise subjectを検証する。credentialはPoints／Markets Worker Secretだけに置いてbrowserへ出さない。利用者principalは利用者用Client＋pairwise `sub`あり＋利用者scopeだけ、M2M principalはM2M用Client＋利用者`sub`なし＋M2M scopeだけから導出し、独自token-class claim、JWT Access Token、内部Points user IDをcross-app identityにしない。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - URL fetchはHTTPS/443だけを許可し、IP literal／localhost／private・reserved hostnameを入力時に拒否し、manual redirectの各hopを同じ規則で再検証する。`global_fetch_strictly_public`を有効にし、Cloudflareのpublic Internet egress制約をDNS rebinding時の接続防御に使う。Workers `fetch()`が実接続先IPを公開しないため、アプリが「接続直前のIP」を独自検査できるとは規定しない。

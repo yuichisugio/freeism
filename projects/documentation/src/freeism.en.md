@@ -10606,7 +10606,7 @@ We want to draw on the methods below as references for the "right to non-interfe
    - `points.freeism.app` for point grants, evaluation criteria, and balances
 4. `markets-web-app`
    - `projects/markets-web-app` in the `freeism` repository
-   - `markets.freeism.app` for listings and auctions
+   - `markets.freeism.app` for Auctions containing item details
 5. `web-app` (legacy)
    - `projects/web-app` in the `freeism` repository
    - Legacy monolith retained until the v0.2 cutover

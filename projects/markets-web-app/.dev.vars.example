@@ -1,0 +1,10 @@
+BETTER_AUTH_SECRETS=2:replace-with-current-secret-at-least-32-characters,1:replace-with-previous-secret-at-least-32-characters
+GOOGLE_CLIENT_ID=replace-with-google-fixture-client-id
+GOOGLE_CLIENT_SECRET=replace-with-google-fixture-client-secret
+OPS_RESOURCE_HASH_SALT=replace-with-environment-specific-random-salt-at-least-32-characters
+POINTS_USER_CLIENT_ID=replace-with-markets-user-client-id
+POINTS_USER_CLIENT_SECRET=replace-with-markets-user-client-secret
+POINTS_M2M_CLIENT_ID=replace-with-markets-m2m-client-id
+POINTS_M2M_CLIENT_SECRET=replace-with-markets-m2m-client-secret
+POINTS_SETTLEMENT_CLIENT_ID=replace-with-markets-settlement-client-id
+POINTS_SETTLEMENT_CLIENT_SECRET=replace-with-markets-settlement-client-secret

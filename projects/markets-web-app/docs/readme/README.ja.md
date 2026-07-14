@@ -4,13 +4,12 @@
 
 ## 責務
 
-- 商材の出品
-- Auctionの作成、入札、落札、落札証明
+- 商材情報を含むAuctionの作成、入札、落札、落札証明
 - Auction単位のDurable ObjectとHibernation WebSocket
 - Settlement WorkflowによるPoints予約、確定、解放の連携
 - Markets自身の独立アカウントとPointsアカウントの明示連携
 
-Marketsはポイント残高、評価軸、FIX、ポイント台帳を所有しません。Taskとグループ機能はv0.2では実装しません。
+出品はAuction作成を意味し、独立したListing resourceは持ちません。Marketsはポイント残高、評価軸、FIX、ポイント台帳を所有しません。Taskとグループ機能はv0.2では実装しません。
 
 ## 技術方針
 

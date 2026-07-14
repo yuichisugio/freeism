@@ -1,6 +1,6 @@
 # Points Web App v0.2 仕様
 
-`points.freeism.app`は、ポイント付与とポイント管理だけを責務とする。商材、出品、Auction、入札、落札証明は`markets.freeism.app`が所有する。
+`points.freeism.app`は、ポイント付与とポイント管理だけを責務とする。商材情報を含むAuction、入札、落札証明は`markets.freeism.app`が所有する。
 
 ## 正本
 

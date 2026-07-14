@@ -13,7 +13,7 @@ Freeism v0.2は、ポイントを扱うPointsと、商材・Auctionを扱うMark
 
 - `markets.freeism.app`ではGoogleだけでログインします。Pointsとは別アカウントです。
 - ログイン後にPointsへ明示同意して1対1で連携します。
-- 商材の出品とAuction作成、入札、落札結果、proof、reviewを扱います。
+- 商材情報を含むAuction作成、入札、落札結果、proof、reviewを扱います。
 - Points残高、FIX、評価軸をMarkets自身では管理しません。
 
 ## セキュリティ上の確認

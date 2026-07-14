@@ -28,7 +28,7 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 
 ## 3. パッケージ
 
-> 本節の文字／URL境界、名前正規化、content hash field集合はDEC-257の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節の文字／URL境界、名前正規化、content hash field集合はDEC-257で確定している。
 
 ### CSV列
 
@@ -50,14 +50,14 @@ Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnic
 
 Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、`relatedUrl | null`、`totalWeight`、`packageTick`と、`displayOrder`順のcomponentごとの評価軸ID／revision ID／name／`displayOrder`／`minimumUnitScaled`／`buyNowEnabled`／weightを対象にする。作成時刻、ADMIN ID、audit IDは対象外とする。hash対象fieldのいずれか、component構成／順序／weight、または参照評価軸revisionが変わる時は新しい不変Package Revisionを作る。profileのPackage登録・解除・並べ替えはPackage内容ではないためrevisionを作らない。
 
-`pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規出品可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`、現在の`lifecycleStatus`、Package commandごとに単調増加する`eligibilityVersion`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
+`pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`、現在の`lifecycleStatus`、Package commandごとに単調増加する`eligibilityVersion`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
 
 ## 4. lifecycle
 
 - IDは永久に再利用しない。
 - 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
-- Marketsの新規listing／開始前PATCHはPublic Revisionの履歴`status=ACTIVE`だけでは確定できず、PointsのM2M listing eligibility checkで現在の`lifecycleStatus=ACTIVE`を確認した30秒receiptを必須とする。現在ACTIVEなら過去の`status=ACTIVE` revisionも利用でき、`currentRevisionId`一致は要求しない。過去の`status=INACTIVE` revisionは利用できない。
-- 最初のbidがあるMarkets listingが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
+- Marketsの新規Auction／開始前PATCHはPublic Revisionの履歴`status=ACTIVE`だけでは確定できず、PointsのM2M Point Package Auction eligibility checkで現在の`lifecycleStatus=ACTIVE`を確認した30秒receiptを必須とする。現在ACTIVEなら過去の`status=ACTIVE` revisionも利用でき、`currentRevisionId`一致は要求しない。過去の`status=INACTIVE` revisionは利用できない。
+- 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
 - 別revisionへ自動差し替えしない。
 
 ## 5. 交換比率
@@ -89,8 +89,8 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 - content hash対象fieldの変更で新revision、順序を入れ替えたcomponentのhash変化、timestamp／audit差のhash不変
 - 既存revision不変、expectedRevision競合409
 - inactive後も過去FIX/Auctionから参照できる
-- 不変revisionの`status=ACTIVE`だけでは現在INACTIVEなPackageの新規listing receiptを取得できず、再ACTIVE化後は過去ACTIVE revisionも新しいreceiptで利用できる
-- 1〜1,000件のlisting eligibility check、1件不適格時receipt 0件、30秒境界、同一Idempotency-Keyの期限非延長、期限後の新key再検査
+- 不変revisionの`status=ACTIVE`だけでは現在INACTIVEなPackageの新規Auction receiptを取得できず、再ACTIVE化後は過去ACTIVE revisionも新しいreceiptで利用できる
+- 1〜1,000件のPoint Package Auction eligibility check、1件不適格時receipt 0件、30秒境界、同一Idempotency-Keyの期限非延長、期限後の新key再検査
 - 最後のADMIN削除拒否
 - 交換比率の有向性、初回／expectedRevision競合、正規化、ACTIVE／DISABLED、0／負数／範囲超過
 - 交換出力のtarget `minimumUnit`切り下げ、余り記録、丸め後0の拒否

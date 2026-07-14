@@ -19,6 +19,17 @@ projects/depchecker/*/results/*
 projects/depchecker/*/results/
 
 # --- web-app ---
+projects/*-web-app/.wrangler/
+projects/*-web-app/dist/
+
+# Terraform local data and generated plans (lock files remain tracked)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
 projects/web-app/.pnp
 projects/web-app/.pnp.*
 projects/web-app/.yarn/*

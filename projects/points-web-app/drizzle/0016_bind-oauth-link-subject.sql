@@ -1,0 +1,3 @@
+ALTER TABLE `points_oauth_link_attempt` ADD `state_hash` text NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX `points_oauth_link_attempt_state_uidx` ON `points_oauth_link_attempt` (`user_client_id`,`state_hash`);--> statement-breakpoint
+CREATE UNIQUE INDEX `points_oauth_link_attempt_pending_points_user_uidx` ON `points_oauth_link_attempt` (`user_client_id`,`points_user_id`) WHERE "points_oauth_link_attempt"."status" = 'PENDING_MARKETS_CONFIRMATION' and "points_oauth_link_attempt"."points_user_id" is not null;
