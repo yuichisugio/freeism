@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
@@ -984,6 +985,45 @@ test("deploy artifact freshnessはsource/worker/lockfileより古いartifactを�
     const { findGeneratedWorkerConfig } =
       await import("../../../../scripts/web-app/assert-worker-build.mjs");
     await assert.rejects(() => findGeneratedWorkerConfig(root), /found 2/);
+  } finally {
+    await rm(root, { force: true, recursive: true });
+  }
+});
+
+test("CSP hashはNULをブラウザ解析後の文字へ置換して生成する", async () => {
+  const root = await mkdtemp(resolve(tmpdir(), "markets-static-headers-"));
+  try {
+    const serverDirectory = resolve(root, "dist/server");
+    const assetsDirectory = resolve(root, "dist/client");
+    await mkdir(serverDirectory, { recursive: true });
+    await mkdir(assetsDirectory, { recursive: true });
+    await writeFile(
+      resolve(serverDirectory, "wrangler.json"),
+      JSON.stringify({
+        assets: { directory: "../client" },
+        vars: { APP_ENV: "staging", APP_HOST: "staging.markets.freeism.app" },
+      }),
+    );
+
+    const generatedScript = "window.$_TSR={id:'root\0index'}";
+    for (const artifact of ["index.html", "terms.html", "privacy.html", "help.html", "docs.html"]) {
+      await writeFile(
+        resolve(assetsDirectory, artifact),
+        `<!doctype html><script>${generatedScript}</script>`,
+      );
+    }
+
+    const { generateStaticSecurityHeaders } =
+      await import("../../../../scripts/web-app/generate-static-security-headers.mjs");
+    await generateStaticSecurityHeaders(root, "staging");
+
+    const headers = await readFile(resolve(assetsDirectory, "_headers"), "utf8");
+    const browserHash = createHash("sha256")
+      .update(generatedScript.replaceAll("\0", "\uFFFD"))
+      .digest("base64");
+    const rawHash = createHash("sha256").update(generatedScript).digest("base64");
+    assert.ok(headers.includes(`'sha256-${browserHash}'`));
+    assert.ok(!headers.includes(`'sha256-${rawHash}'`));
   } finally {
     await rm(root, { force: true, recursive: true });
   }
