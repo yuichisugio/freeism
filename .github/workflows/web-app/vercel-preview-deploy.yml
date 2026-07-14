@@ -6,8 +6,6 @@ on:
       - main
     paths:
       - "projects/web-app/**"
-      - ".github/workflows/web-app/**"
-      - ".github/actions/web-app-setup/**"
 
 env:
   NODE_VERSION: "20.11.1"

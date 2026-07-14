@@ -171,17 +171,18 @@ Expected: all exit 0; build output contains Japanese, English, notes, search ass
 
 **Interfaces:**
 - Canonical documents state that apex Freeism is a portal, not a redirect to Points.
-- Legacy Vercel preview jobs run only for changes under `projects/web-app/**` or the workflow itself.
+- Legacy Vercel preview and production deploy jobs run only for changes under `projects/web-app/**`.
+- Legacy CI still runs for changes to its workflow or the shared setup action.
 
 - [ ] **Step 1: Add a failing workflow contract test**
 
-Create a small Node/Vitest test that parses the workflow YAML text and asserts its pull-request paths do not include root `package.json` or `pnpm-lock.yaml` without a `projects/web-app/**` guard.
+Create a small Node/Vitest test that parses the workflow YAML text and asserts deploy paths are limited to `projects/web-app/**`, while CI still observes workflow and shared setup changes.
 
 - [ ] **Step 2: Verify RED**
 
 Run the targeted test and confirm it fails against the current broad trigger.
 
-- [ ] **Step 3: Narrow the workflow trigger and internal diff guard**
+- [ ] **Step 3: Narrow the deployment workflow triggers**
 
 Keep legacy preview behavior unchanged for actual legacy app changes, while preventing docs/main-only branches from reaching test DB migration and deploy jobs.
 

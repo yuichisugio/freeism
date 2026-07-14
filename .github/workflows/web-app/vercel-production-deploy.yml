@@ -5,8 +5,6 @@ on:
     branches: [main]
     paths:
       - "projects/web-app/**"
-      - ".github/workflows/web-app/**"
-      - ".github/actions/web-app-setup/**"
 
 # 常に最新1本のみ残す
 concurrency:
