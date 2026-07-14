@@ -38,6 +38,12 @@ export function validateSettlementRetryAssertionClaims(
 ): SettlementRetryAssertionClaims {
   if (!signatureValid) throw new Error("ADMIN_ASSERTION_SIGNATURE_INVALID");
   if (!claims.admin) throw new Error("ADMIN_ASSERTION_ADMIN_REQUIRED");
+  if (
+    ![claims.authTime, claims.exp, claims.iat].every(Number.isSafeInteger) ||
+    claims.iat > claims.exp
+  ) {
+    throw new Error("ADMIN_ASSERTION_LIFETIME_INVALID");
+  }
   if (expected.nowSeconds - claims.authTime > 900 || claims.authTime > expected.nowSeconds) {
     throw new Error("ADMIN_ASSERTION_NOT_FRESH");
   }
@@ -467,9 +473,32 @@ export async function readSafeSettlementStatus(
                JOIN settlement_plans p2 ON p2.id = s.current_plan_id
                WHERE h.id = json_extract(p2.plan_json, '$.buyNowHoldId')) AS buyNowHoldStatus
      FROM settlements s JOIN auctions a ON a.id = s.auction_id
-     WHERE s.id = ? AND a.seller_markets_user_id = ?`,
+     WHERE s.id = ? AND (
+       a.seller_markets_user_id = ?
+       OR EXISTS (
+         SELECT 1 FROM settlement_rounds r
+         JOIN settlement_round_winners w ON w.settlement_round_id = r.id
+         WHERE r.settlement_id = s.id AND w.markets_user_id = ?
+       )
+       OR EXISTS (
+         SELECT 1 FROM settlement_allocations sa
+         WHERE sa.settlement_id = s.id AND sa.buyer_markets_user_id = ?
+       )
+       OR EXISTS (
+         SELECT 1 FROM settlement_plans bp
+         JOIN buy_now_holds bh ON bh.id = json_extract(bp.plan_json, '$.buyNowHoldId')
+         WHERE bp.id = s.current_plan_id AND bh.auction_id = s.auction_id
+           AND bh.buyer_markets_user_id = ?
+       )
+     )`,
     )
-    .bind(input.settlementId, input.marketsUserId)
+    .bind(
+      input.settlementId,
+      input.marketsUserId,
+      input.marketsUserId,
+      input.marketsUserId,
+      input.marketsUserId,
+    )
     .first<{
       buyNowHoldStatus: string | null;
       kind: "END_OF_AUCTION" | "BUY_NOW";

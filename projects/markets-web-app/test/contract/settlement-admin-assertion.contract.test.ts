@@ -121,6 +121,21 @@ describe("settlement admin assertion contract", () => {
     ).toThrow("ADMIN_ASSERTION_ADMIN_REQUIRED");
   });
 
+  it("rejects missing, non-finite, and fractional temporal claims", () => {
+    for (const claims of [
+      { ...baseClaims, authTime: Number.NaN },
+      { ...baseClaims, iat: Number.NaN },
+      { ...baseClaims, exp: Number.NaN },
+      { ...baseClaims, authTime: nowSeconds - 899.5 },
+      { ...baseClaims, iat: nowSeconds - 0.5 },
+      { ...baseClaims, exp: nowSeconds + 59.5 },
+    ]) {
+      expect(() => validateSettlementRetryAssertionClaims(claims, expected, true)).toThrow(
+        "ADMIN_ASSERTION_LIFETIME_INVALID",
+      );
+    }
+  });
+
   it("normalizes reason hashing and never accepts a caller-controlled return path", async () => {
     const first = await normalizeSettlementRetryReason("  Balance\tstatus  unknown ");
     const second = await normalizeSettlementRetryReason("Balance status unknown");

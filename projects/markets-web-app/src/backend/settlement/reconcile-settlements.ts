@@ -18,6 +18,7 @@ export interface SettlementReconciliationDependencies {
   getStatuses(
     reservationKeys: readonly string[],
   ): Promise<readonly ReconciliationReservationStatus[]>;
+  hasCaptureReceipt(settlementId: string): Promise<boolean>;
   now(): Date;
   releaseBeforeCapture(
     settlementId: string,
@@ -26,9 +27,45 @@ export interface SettlementReconciliationDependencies {
 }
 
 interface ReconciliationRow {
+  buyNowHoldStatus: string | null;
   kind: "BUY_NOW" | "END_OF_AUCTION";
   sagaState: string;
   settlementId: string;
+}
+
+async function markManualAction(
+  dependencies: SettlementReconciliationDependencies,
+  settlementId: string,
+) {
+  await dependencies.db
+    .prepare(
+      `UPDATE settlements SET saga_state = 'MANUAL_ACTION_REQUIRED', updated_at = ?
+       WHERE id = ? AND saga_state != 'SETTLED'
+         AND NOT EXISTS (
+           SELECT 1 FROM settlement_capture_receipts c WHERE c.settlement_id = settlements.id
+         )`,
+    )
+    .bind(dependencies.now().toISOString(), settlementId)
+    .run();
+}
+
+async function forwardCapturedOrRequireManual(
+  dependencies: SettlementReconciliationDependencies,
+  settlementId: string,
+): Promise<ReconciliationResult> {
+  if (!(await dependencies.hasCaptureReceipt(settlementId))) {
+    await markManualAction(dependencies, settlementId);
+    return { action: "MANUAL_ACTION_REQUIRED", settlementId };
+  }
+  await dependencies.db
+    .prepare(
+      `UPDATE settlements SET saga_state = 'CAPTURED', updated_at = ?
+       WHERE id = ? AND saga_state NOT IN ('CAPTURED', 'FINALIZING', 'SETTLED')`,
+    )
+    .bind(dependencies.now().toISOString(), settlementId)
+    .run();
+  await dependencies.finalizeCaptured(settlementId);
+  return { action: "FORWARD_FINALIZE", settlementId };
 }
 
 export async function reconcileSettlement(
@@ -37,17 +74,26 @@ export async function reconcileSettlement(
 ): Promise<ReconciliationResult> {
   const row = await dependencies.db
     .prepare(
-      `SELECT id AS settlementId, kind, saga_state AS sagaState
-     FROM settlements WHERE id = ?`,
+      `SELECT s.id AS settlementId, s.kind, s.saga_state AS sagaState,
+              (SELECT h.status FROM buy_now_holds h
+               JOIN settlement_plans p ON p.id = s.current_plan_id
+               WHERE h.id = json_extract(p.plan_json, '$.buyNowHoldId')
+                 AND h.auction_id = s.auction_id) AS buyNowHoldStatus
+       FROM settlements s WHERE s.id = ?`,
     )
     .bind(settlementId)
     .first<ReconciliationRow>();
   if (!row) throw new Error("SETTLEMENT_NOT_FOUND");
   if (row.sagaState === "SETTLED") return { action: "ALREADY_TERMINAL", settlementId };
+  if (
+    row.kind === "BUY_NOW" &&
+    (row.buyNowHoldStatus === "FAILED_RESTORED" || row.buyNowHoldStatus === "SETTLED")
+  ) {
+    return { action: "ALREADY_TERMINAL", settlementId };
+  }
 
   if (row.sagaState === "CAPTURED" || row.sagaState === "FINALIZING") {
-    await dependencies.finalizeCaptured(settlementId);
-    return { action: "FORWARD_FINALIZE", settlementId };
+    return forwardCapturedOrRequireManual(dependencies, settlementId);
   }
 
   const reservationKeys = (
@@ -69,15 +115,7 @@ export async function reconcileSettlement(
         statuses.length === reservationKeys.length &&
         statuses.every((item) => item.status === "CAPTURED")
       ) {
-        await dependencies.db
-          .prepare(
-            `UPDATE settlements SET saga_state = 'CAPTURED', updated_at = ?
-           WHERE id = ? AND saga_state = 'MANUAL_ACTION_REQUIRED'`,
-          )
-          .bind(dependencies.now().toISOString(), settlementId)
-          .run();
-        await dependencies.finalizeCaptured(settlementId);
-        return { action: "FORWARD_FINALIZE", settlementId };
+        return forwardCapturedOrRequireManual(dependencies, settlementId);
       }
     }
     return { action: "MANUAL_ACTION_REQUIRED", settlementId };
@@ -85,18 +123,15 @@ export async function reconcileSettlement(
 
   const statuses = await dependencies.getStatuses(reservationKeys);
   if (statuses.some((item) => item.status === "CAPTURED")) {
-    await dependencies.db
-      .prepare(
-        `UPDATE settlements SET saga_state = 'CAPTURED', updated_at = ?
-       WHERE id = ? AND saga_state NOT IN ('CAPTURED', 'FINALIZING', 'SETTLED')`,
-      )
-      .bind(dependencies.now().toISOString(), settlementId)
-      .run();
-    await dependencies.finalizeCaptured(settlementId);
-    return { action: "FORWARD_FINALIZE", settlementId };
+    return forwardCapturedOrRequireManual(dependencies, settlementId);
   }
   await dependencies.releaseBeforeCapture(settlementId, statuses);
-  return { action: "PRE_CAPTURE_RELEASE", settlementId };
+  const verifiedStatuses = await dependencies.getStatuses(reservationKeys);
+  if (verifiedStatuses.some((item) => item.status === "CAPTURED")) {
+    return forwardCapturedOrRequireManual(dependencies, settlementId);
+  }
+  await markManualAction(dependencies, settlementId);
+  return { action: "MANUAL_ACTION_REQUIRED", settlementId };
 }
 
 export async function reconcilePendingSettlements(

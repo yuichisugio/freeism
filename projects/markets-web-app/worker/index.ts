@@ -108,6 +108,15 @@ export async function runScheduledSettlementMaintenance(env: Env) {
         status: item.status,
       }));
     },
+    async hasCaptureReceipt(settlementId) {
+      return (
+        (await bindings.DB.prepare(
+          "SELECT 1 AS found FROM settlement_capture_receipts WHERE settlement_id = ?",
+        )
+          .bind(settlementId)
+          .first<number>("found")) === 1
+      );
+    },
     now: () => new Date(),
     async releaseBeforeCapture(settlementId, statuses) {
       for (const item of statuses) {

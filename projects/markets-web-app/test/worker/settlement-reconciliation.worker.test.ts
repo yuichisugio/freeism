@@ -15,14 +15,21 @@ const expiresAt = Date.parse(now) + 60_000;
 const planHash = "1".repeat(64);
 const reasonHash = `sha256:${"2".repeat(64)}` as const;
 
-async function seedSettlement(kind: "BUY_NOW" | "END_OF_AUCTION" = "END_OF_AUCTION") {
+async function seedSettlement(
+  kind: "BUY_NOW" | "END_OF_AUCTION" = "END_OF_AUCTION",
+  buyNow?: {
+    buyerMarketsUserId: string;
+    status: "FAILED_RESTORED" | "PENDING" | "SETTLED";
+  },
+) {
   const suffix = crypto.randomUUID();
   const authUserId = `auth_${suffix}`;
   const marketsUserId = `market_${suffix}`;
   const auctionId = `auction_${suffix}`;
   const settlementId = `settlement_${suffix}`;
   const planId = `plan_${suffix}`;
-  await db.batch([
+  const holdId = buyNow ? `hold_${suffix}` : null;
+  const statements = [
     db
       .prepare("INSERT INTO user (id, name, email) VALUES (?, 'Admin', ?)")
       .bind(authUserId, `${suffix}@example.test`),
@@ -48,8 +55,73 @@ async function seedSettlement(kind: "BUY_NOW" | "END_OF_AUCTION" = "END_OF_AUCTI
        VALUES (?, ?, 1, '{}', ?, 'uniform-price-v1')`,
       )
       .bind(planId, settlementId, planHash),
+  ];
+  if (buyNow && holdId) {
+    statements.splice(
+      3,
+      0,
+      db
+        .prepare(
+          `INSERT INTO buy_now_holds
+           (id, auction_id, buyer_markets_user_id, quantity, buy_now_price_tick_count, status)
+           VALUES (?, ?, ?, 1, 1, ?)`,
+        )
+        .bind(holdId, auctionId, buyNow.buyerMarketsUserId, buyNow.status),
+    );
+    statements[5] = db
+      .prepare(
+        `INSERT INTO settlement_plans
+         (id, settlement_id, settlement_revision, plan_json, plan_hash, algorithm_version)
+         VALUES (?, ?, 1, ?, ?, 'uniform-price-v1')`,
+      )
+      .bind(planId, settlementId, JSON.stringify({ buyNowHoldId: holdId }), planHash);
+  }
+  await db.batch(statements);
+  return { auctionId, authUserId, holdId, marketsUserId, planId, settlementId };
+}
+
+async function seedMarketsUser(label: string) {
+  const suffix = crypto.randomUUID();
+  const authUserId = `auth_${label}_${suffix}`;
+  const marketsUserId = `market_${label}_${suffix}`;
+  await db.batch([
+    db
+      .prepare("INSERT INTO user (id, name, email) VALUES (?, ?, ?)")
+      .bind(authUserId, label, `${suffix}@example.test`),
+    db
+      .prepare("INSERT INTO markets_user (id, auth_user_id) VALUES (?, ?)")
+      .bind(marketsUserId, authUserId),
   ]);
-  return { auctionId, authUserId, marketsUserId, settlementId };
+  return marketsUserId;
+}
+
+async function seedRoundWinner(
+  settlement: Awaited<ReturnType<typeof seedSettlement>>,
+  marketsUserId: string,
+  status: "ACTIVE" | "CAPTURED" = "ACTIVE",
+) {
+  const suffix = crypto.randomUUID();
+  const roundId = `round_${suffix}`;
+  const reservationKey = `reservation_${suffix}`;
+  await db.batch([
+    db
+      .prepare(
+        `INSERT INTO settlement_rounds
+         (id, settlement_id, round_ordinal, plan_hash, cutoff_hash, state,
+          first_attempt_at, retry_deadline_at)
+         VALUES (?, ?, 1, ?, ?, 'RESERVED', ?, ?)`,
+      )
+      .bind(roundId, settlement.settlementId, planHash, "4".repeat(64), now, now),
+    db
+      .prepare(
+        `INSERT INTO settlement_round_winners
+         (id, settlement_round_id, markets_user_id, allocation_quantity,
+          price_tick_count, price_ticks, reservation_key, status, point_reservation_id)
+         VALUES (?, ?, ?, 1, 1, 1, ?, ?, ?)`,
+      )
+      .bind(`winner_${suffix}`, roundId, marketsUserId, reservationKey, status, `pres_${suffix}`),
+  ]);
+  return { reservationKey, roundId };
 }
 
 async function authorize(settlement: Awaited<ReturnType<typeof seedSettlement>>, jti: string) {
@@ -155,8 +227,13 @@ describe("settlement admin retry", () => {
     ).rejects.toThrow("ADMIN_ASSERTION_TARGET_CHANGED");
   });
 
-  it("returns only the safe same-origin settlement status fields", async () => {
-    const settlement = await seedSettlement("BUY_NOW");
+  it("returns safe status to the seller and related buyer without disclosing existence", async () => {
+    const buyerMarketsUserId = await seedMarketsUser("Buyer");
+    const settlement = await seedSettlement("BUY_NOW", {
+      buyerMarketsUserId,
+      status: "PENDING",
+    });
+    const strangerMarketsUserId = await seedMarketsUser("Stranger");
     const result = await readSafeSettlementStatus(db, {
       marketsUserId: settlement.marketsUserId,
       settlementId: settlement.settlementId,
@@ -170,6 +247,27 @@ describe("settlement admin retry", () => {
       updatedAt: now,
     });
     expect(JSON.stringify(result)).not.toMatch(/reservation|balance|criteria|token|failure/i);
+    await expect(
+      readSafeSettlementStatus(db, {
+        marketsUserId: buyerMarketsUserId,
+        settlementId: settlement.settlementId,
+      }),
+    ).resolves.toEqual(result);
+    await expect(
+      readSafeSettlementStatus(db, {
+        marketsUserId: strangerMarketsUserId,
+        settlementId: settlement.settlementId,
+      }),
+    ).rejects.toThrow("SETTLEMENT_NOT_FOUND");
+
+    const endSettlement = await seedSettlement();
+    await seedRoundWinner(endSettlement, buyerMarketsUserId);
+    await expect(
+      readSafeSettlementStatus(db, {
+        marketsUserId: buyerMarketsUserId,
+        settlementId: endSettlement.settlementId,
+      }),
+    ).resolves.toMatchObject({ settlementId: endSettlement.settlementId });
   });
 });
 
@@ -188,6 +286,7 @@ describe("settlement reconciliation", () => {
         db,
         finalizeCaptured: finalize,
         getStatuses: vi.fn(),
+        hasCaptureReceipt: vi.fn(async () => true),
         now: () => new Date(now),
         releaseBeforeCapture: release,
       },
@@ -206,6 +305,7 @@ describe("settlement reconciliation", () => {
         db,
         finalizeCaptured: vi.fn(),
         getStatuses: vi.fn(async () => [{ reservationKey: "key_1", status: "ACTIVE" as const }]),
+        hasCaptureReceipt: vi.fn(async () => false),
         now: () => new Date(now),
         releaseBeforeCapture: vi.fn(),
       },
@@ -226,6 +326,7 @@ describe("settlement reconciliation", () => {
           db,
           finalizeCaptured: vi.fn(),
           getStatuses: vi.fn(),
+          hasCaptureReceipt: vi.fn(async () => false),
           now: () => new Date(now),
           releaseBeforeCapture: vi.fn(),
         },
@@ -235,5 +336,115 @@ describe("settlement reconciliation", () => {
       action: "ALREADY_TERMINAL",
       settlementId: settlement.settlementId,
     });
+  });
+
+  it("never forward-finalizes a restored or settled BUY_NOW hold", async () => {
+    for (const holdStatus of ["FAILED_RESTORED", "SETTLED"] as const) {
+      const buyerMarketsUserId = await seedMarketsUser(`Buyer ${holdStatus}`);
+      const settlement = await seedSettlement("BUY_NOW", {
+        buyerMarketsUserId,
+        status: holdStatus,
+      });
+      const winner = await seedRoundWinner(settlement, buyerMarketsUserId, "CAPTURED");
+      const finalize = vi.fn();
+
+      await expect(
+        reconcileSettlement(
+          {
+            db,
+            finalizeCaptured: finalize,
+            getStatuses: vi.fn(async () => [
+              { reservationKey: winner.reservationKey, status: "CAPTURED" as const },
+            ]),
+            hasCaptureReceipt: vi.fn(async () => true),
+            now: () => new Date(now),
+            releaseBeforeCapture: vi.fn(),
+          },
+          settlement.settlementId,
+        ),
+      ).resolves.toEqual({
+        action: "ALREADY_TERMINAL",
+        settlementId: settlement.settlementId,
+      });
+      expect(finalize).not.toHaveBeenCalled();
+    }
+  });
+
+  it("keeps a remotely captured settlement manual when its local capture receipt is absent", async () => {
+    const settlement = await seedSettlement();
+    const buyerMarketsUserId = await seedMarketsUser("Captured buyer");
+    const winner = await seedRoundWinner(settlement, buyerMarketsUserId, "CAPTURED");
+    const finalize = vi.fn();
+
+    await expect(
+      reconcileSettlement(
+        {
+          db,
+          finalizeCaptured: finalize,
+          getStatuses: vi.fn(async () => [
+            { reservationKey: winner.reservationKey, status: "CAPTURED" as const },
+          ]),
+          hasCaptureReceipt: vi.fn(async () => false),
+          now: () => new Date(now),
+          releaseBeforeCapture: vi.fn(),
+        },
+        settlement.settlementId,
+      ),
+    ).resolves.toEqual({
+      action: "MANUAL_ACTION_REQUIRED",
+      settlementId: settlement.settlementId,
+    });
+    expect(finalize).not.toHaveBeenCalled();
+    expect(
+      await db
+        .prepare("SELECT saga_state FROM settlements WHERE id = ?")
+        .bind(settlement.settlementId)
+        .first<string>("saga_state"),
+    ).toBe("MANUAL_ACTION_REQUIRED");
+  });
+
+  it("rechecks pre-capture release and converges to manual action without releasing again", async () => {
+    for (const kind of ["END_OF_AUCTION", "BUY_NOW"] as const) {
+      const buyerMarketsUserId = await seedMarketsUser(`Active ${kind}`);
+      const settlement = await seedSettlement(
+        kind,
+        kind === "BUY_NOW" ? { buyerMarketsUserId, status: "PENDING" } : undefined,
+      );
+      const winner = await seedRoundWinner(settlement, buyerMarketsUserId);
+      await db
+        .prepare("UPDATE settlements SET saga_state = 'RESERVED' WHERE id = ?")
+        .bind(settlement.settlementId)
+        .run();
+      const getStatuses = vi
+        .fn()
+        .mockResolvedValueOnce([{ reservationKey: winner.reservationKey, status: "ACTIVE" }])
+        .mockResolvedValueOnce([{ reservationKey: winner.reservationKey, status: "RELEASED" }])
+        .mockResolvedValue([{ reservationKey: winner.reservationKey, status: "RELEASED" }]);
+      const release = vi.fn(async () => undefined);
+      const dependencies = {
+        db,
+        finalizeCaptured: vi.fn(),
+        getStatuses,
+        hasCaptureReceipt: vi.fn(async () => false),
+        now: () => new Date(now),
+        releaseBeforeCapture: release,
+      };
+
+      await expect(reconcileSettlement(dependencies, settlement.settlementId)).resolves.toEqual({
+        action: "MANUAL_ACTION_REQUIRED",
+        settlementId: settlement.settlementId,
+      });
+      await expect(reconcileSettlement(dependencies, settlement.settlementId)).resolves.toEqual({
+        action: "MANUAL_ACTION_REQUIRED",
+        settlementId: settlement.settlementId,
+      });
+      expect(release).toHaveBeenCalledOnce();
+      expect(
+        await db
+          .prepare("SELECT saga_state FROM settlements WHERE id = ?")
+          .bind(settlement.settlementId)
+          .first<string>("saga_state"),
+      ).toBe("MANUAL_ACTION_REQUIRED");
+    }
   });
 });
