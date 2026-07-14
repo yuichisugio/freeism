@@ -4,6 +4,7 @@ GOOGLE_CLIENT_SECRET=replace-with-google-fixture-client-secret
 GITHUB_CLIENT_ID=replace-with-github-fixture-client-id
 GITHUB_CLIENT_SECRET=replace-with-github-fixture-client-secret
 INITIAL_ADMIN_GOOGLE_ACCOUNT_ID=replace-with-initial-admin-google-account-id
+CSV_EXPORT_CURSOR_SECRET=replace-with-environment-specific-csv-cursor-secret-at-least-32-characters
 POINTS_OAUTH_PAIRWISE_SECRET=replace-with-environment-specific-pairwise-secret-at-least-32-characters
 # Set only during the one-time OAuth client bootstrap, then delete and redeploy.
 # POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN=replace-with-one-time-random-token
@@ -13,3 +14,7 @@ MARKETS_M2M_OAUTH_CLIENT_ID=replace-with-markets-m2m-client-id
 MARKETS_M2M_OAUTH_CLIENT_SECRET=replace-with-markets-m2m-client-secret
 MARKETS_SETTLEMENT_OAUTH_CLIENT_ID=replace-with-markets-settlement-client-id
 MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET=replace-with-markets-settlement-client-secret
+OPS_RESOURCE_HASH_SALT=replace-with-environment-specific-random-salt-at-least-32-characters
+TURNSTILE_SITE_KEY=replace-with-cloudflare-turnstile-site-key
+TURNSTILE_SECRET_KEY=replace-with-cloudflare-turnstile-secret-key
+POINTS_OPS_DRILL_TOKEN=replace-with-staging-only-random-drill-token
