@@ -9,13 +9,16 @@ import {
   requestSecurityMiddleware,
 } from "./http/middleware/request-security-middleware";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
+import { registerHistoryRoutes } from "./http/routes/history-routes";
 import { registerAuctionEventRoutes } from "./http/routes/auction-event-routes";
 import { registerAuctionCommandRoutes } from "./http/routes/auction-command-routes";
 import { registerAuctionImportRoutes } from "./http/routes/auction-import-routes";
 import { registerAuctionManagementRoutes } from "./http/routes/auction-management-routes";
+import { registerAuctionReadRoutes } from "./http/routes/auction-read-routes";
 import { registerPointsConnectionRoutes } from "./http/routes/points-connection-routes";
 import { registerProofRoutes } from "./http/routes/proof-routes";
 import { registerSettlementAdminRoutes } from "./http/routes/settlement-admin-routes";
+import { registerWatchlistRoutes } from "./http/routes/watchlist-routes";
 import type { PointsConnectionService } from "./points/points-link-saga";
 import type { PointsUnlinkAuthorizationService } from "./points/points-unlink-authorization";
 
@@ -34,6 +37,7 @@ export function createMarketsBackendApp(
   app.use("/api/auctions/:auctionId/bids", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use("/api/auctions/:auctionId/auto-bid", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use("/api/auctions/:auctionId/buy-now", jsonMutationBodyLimit, requestSecurityMiddleware);
+  app.use("/api/watchlist/:auctionId", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use(
     "/api/settlements/:settlementId/retry-authorizations",
     jsonMutationBodyLimit,
@@ -46,10 +50,12 @@ export function createMarketsBackendApp(
   );
   app.use("/api/settlements/:settlementId/retry", jsonMutationBodyLimit, requestSecurityMiddleware);
   registerAuthRoutes(app, getSession);
+  registerHistoryRoutes(app, getSession);
   registerAuctionCommandRoutes(app, getSession);
   registerAuctionEventRoutes(app, getSession);
   registerAuctionImportRoutes(app, getSession);
   registerAuctionManagementRoutes(app, getSession);
+  registerAuctionReadRoutes(app, getSession);
   registerPointsConnectionRoutes(
     app,
     getSession,
@@ -58,6 +64,7 @@ export function createMarketsBackendApp(
   );
   registerProofRoutes(app, getSession);
   registerSettlementAdminRoutes(app, getSession);
+  registerWatchlistRoutes(app, getSession);
   return app;
 }
 

@@ -49,7 +49,7 @@ async function uniqueIndexColumns(tableName: string) {
 }
 
 describe("Markets greenfield domain schema", () => {
-  it("applies the ten greenfield migrations in sequence", async () => {
+  it("applies the eleven greenfield migrations in sequence", async () => {
     await expect(appliedMigrationNames()).resolves.toEqual([
       "0000_markets-auth.sql",
       "0001_points-oauth-connection.sql",
@@ -61,7 +61,22 @@ describe("Markets greenfield domain schema", () => {
       "0007_settlement-proof.sql",
       "0008_settlement-admin-retry.sql",
       "0009_proof-review.sql",
+      "0010_watchlist.sql",
     ]);
+  });
+
+  it("keeps one watchlist entry per user and indexes cursor listing", async () => {
+    await expect(uniqueIndexColumns("watchlist_entries")).resolves.toContainEqual([
+      "markets_user_id",
+      "auction_id",
+    ]);
+    const index = await db
+      .prepare(
+        `SELECT sql FROM sqlite_master
+         WHERE type = 'index' AND name = 'watchlist_entries_user_created_idx'`,
+      )
+      .first<string>("sql");
+    expect(index).toMatch(/markets_user_id[^)]*created_at[^)]*auction_id/i);
   });
 
   it("keeps settlement retry state target-bound, rate-limited, and append-only", async () => {

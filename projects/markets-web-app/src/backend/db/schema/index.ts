@@ -8,3 +8,4 @@ export * from "./proof";
 export * from "./proof-review";
 export * from "./settlement";
 export * from "./settlement-admin";
+export * from "./watchlist";
