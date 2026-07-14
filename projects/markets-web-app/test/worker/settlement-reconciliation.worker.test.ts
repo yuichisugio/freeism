@@ -347,26 +347,39 @@ describe("settlement reconciliation", () => {
       });
       const winner = await seedRoundWinner(settlement, buyerMarketsUserId, "CAPTURED");
       const finalize = vi.fn();
+      let terminalNow = "2033-05-18T03:34:20.000Z";
+      const dependencies = {
+        db,
+        finalizeCaptured: finalize,
+        getStatuses: vi.fn(async () => [
+          { reservationKey: winner.reservationKey, status: "CAPTURED" as const },
+        ]),
+        hasCaptureReceipt: vi.fn(async () => true),
+        now: () => new Date(terminalNow),
+        releaseBeforeCapture: vi.fn(),
+      };
 
-      await expect(
-        reconcileSettlement(
-          {
-            db,
-            finalizeCaptured: finalize,
-            getStatuses: vi.fn(async () => [
-              { reservationKey: winner.reservationKey, status: "CAPTURED" as const },
-            ]),
-            hasCaptureReceipt: vi.fn(async () => true),
-            now: () => new Date(now),
-            releaseBeforeCapture: vi.fn(),
-          },
-          settlement.settlementId,
-        ),
-      ).resolves.toEqual({
+      await expect(reconcileSettlement(dependencies, settlement.settlementId)).resolves.toEqual({
         action: "ALREADY_TERMINAL",
         settlementId: settlement.settlementId,
       });
       expect(finalize).not.toHaveBeenCalled();
+      expect(
+        await db
+          .prepare(
+            "SELECT saga_state AS sagaState, updated_at AS updatedAt FROM settlements WHERE id = ?",
+          )
+          .bind(settlement.settlementId)
+          .first(),
+      ).toEqual({ sagaState: "SETTLED", updatedAt: terminalNow });
+      terminalNow = "2033-05-18T03:35:20.000Z";
+      await reconcileSettlement(dependencies, settlement.settlementId);
+      expect(
+        await db
+          .prepare("SELECT updated_at FROM settlements WHERE id = ?")
+          .bind(settlement.settlementId)
+          .first<string>("updated_at"),
+      ).toBe("2033-05-18T03:34:20.000Z");
     }
   });
 

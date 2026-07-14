@@ -13,6 +13,7 @@ import {
   calculateStoredVectorHash,
   finalizeSettlement,
 } from "../../src/backend/settlement/finalize-settlement";
+import { runScheduledSettlementMaintenance } from "../../worker";
 
 const planHash = "a".repeat(64);
 const capturedAt = "2026-07-14T00:00:00.000Z";
@@ -471,7 +472,7 @@ describe("settlement capture", () => {
       env.DB.prepare(
         `INSERT INTO settlements
          (id, auction_id, kind, source_key, saga_state, current_plan_id)
-         VALUES (?, ?, 'BUY_NOW', ?, 'SETTLED', ?)`,
+         VALUES (?, ?, 'BUY_NOW', ?, 'CAPTURED', ?)`,
       ).bind(buySettlementId, auctionId, `buy:${holdId}`, `buy_plan_${suffix}`),
       env.DB.prepare(
         `INSERT INTO settlement_plans
@@ -561,6 +562,22 @@ describe("settlement capture", () => {
       settlementId: buySettlementId,
     };
     const room = env.AUCTION_ROOMS.getByName(auctionId);
+    await runScheduledSettlementMaintenance({
+      ...env,
+      POINTS_AUDIENCE: "https://points.example.test",
+      POINTS_ISSUER: "https://points.example.test/api/auth",
+      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
+      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
+      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
+      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
+      POINTS_USER_CLIENT_ID: "markets-user-client",
+      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
+    } as Env);
+    expect(
+      await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
+        .bind(holdId)
+        .first<string>("status"),
+    ).toBe("SETTLED");
     const settledHold = await room.settleBuyNowHold(settleInput);
     expect(
       await room.settleBuyNowHold({

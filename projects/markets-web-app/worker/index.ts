@@ -93,10 +93,49 @@ export async function runScheduledSettlementMaintenance(env: Env) {
         .bind(settlementId)
         .first<{ captureReceiptId: string; planHash: string }>();
       if (!row) throw new Error("SETTLEMENT_CAPTURE_RECEIPT_MISSING");
-      return finalizeSettlement(
+      const finalized = await finalizeSettlement(
         { db: bindings.DB, now: () => new Date() },
         { ...row, settlementId },
       );
+      const buyNow = await bindings.DB.prepare(
+        `SELECT s.auction_id AS auctionId,
+                json_extract(p.plan_json, '$.buyNowHoldId') AS holdId,
+                a.version AS auctionVersion, c.content_hash AS captureContentHash,
+                pr.id AS proofId, pr.content_hash AS proofContentHash
+         FROM settlements s
+         JOIN settlement_plans p ON p.id = s.current_plan_id
+         JOIN auctions a ON a.id = s.auction_id
+         JOIN settlement_capture_receipts c ON c.settlement_id = s.id
+         JOIN proofs pr ON pr.settlement_id = s.id
+         JOIN buy_now_holds h
+           ON h.id = json_extract(p.plan_json, '$.buyNowHoldId')
+          AND h.status = 'CAPTURED_PENDING_FINALIZE'
+         WHERE s.id = ? AND s.kind = 'BUY_NOW'`,
+      )
+        .bind(settlementId)
+        .first<{
+          auctionId: string;
+          auctionVersion: number;
+          captureContentHash: string;
+          holdId: string;
+          proofContentHash: string;
+          proofId: string;
+        }>();
+      if (buyNow) {
+        await bindings.AUCTION_ROOMS.getByName(buyNow.auctionId).settleBuyNowHold({
+          auctionId: buyNow.auctionId,
+          captureContentHash: buyNow.captureContentHash,
+          captureReceiptId: row.captureReceiptId,
+          expectedAuctionVersion: buyNow.auctionVersion,
+          finalizeReceiptId: finalized.finalizeReceiptId,
+          holdId: buyNow.holdId,
+          proofContentHash: buyNow.proofContentHash,
+          proofId: buyNow.proofId,
+          serverNow: new Date().toISOString(),
+          settlementId,
+        });
+      }
+      return finalized;
     },
     async getStatuses(reservationKeys) {
       const response = await points.getPointReservationStatus({

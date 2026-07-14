@@ -89,6 +89,20 @@ export async function reconcileSettlement(
     row.kind === "BUY_NOW" &&
     (row.buyNowHoldStatus === "FAILED_RESTORED" || row.buyNowHoldStatus === "SETTLED")
   ) {
+    await dependencies.db
+      .prepare(
+        `UPDATE settlements SET saga_state = 'SETTLED', updated_at = ?
+         WHERE id = ? AND kind = 'BUY_NOW' AND saga_state != 'SETTLED'
+           AND EXISTS (
+             SELECT 1 FROM settlement_plans p
+             JOIN buy_now_holds h ON h.id = json_extract(p.plan_json, '$.buyNowHoldId')
+             WHERE p.id = settlements.current_plan_id
+               AND h.auction_id = settlements.auction_id
+               AND h.status IN ('FAILED_RESTORED', 'SETTLED')
+           )`,
+      )
+      .bind(dependencies.now().toISOString(), settlementId)
+      .run();
     return { action: "ALREADY_TERMINAL", settlementId };
   }
 
