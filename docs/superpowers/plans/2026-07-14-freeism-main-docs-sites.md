@@ -160,13 +160,13 @@ Run: `pnpm --filter docs-web-app test && pnpm --filter docs-web-app lint && pnpm
 
 Expected: all exit 0; build output contains Japanese, English, notes, search assets, and rendered Mermaid diagrams.
 
-### Task 4: Align canonical documentation and guard legacy preview deploy
+### Task 4: Align canonical documentation and guard legacy deploys
 
 **Files:**
 - Modify: `docs/web-app/v0.2/architecture.md`
 - Modify: `docs/web-app/v0.2/decision-register.md`
 - Modify: `plan/web-app/v0.2-migration.md`
-- Modify: affected `.github/workflows/*vercel*preview*.yml`
+- Modify: affected `.github/workflows/web-app/*.yml`
 - Modify: active READMEs that describe the project/domain map
 
 **Interfaces:**
@@ -184,7 +184,7 @@ Run the targeted test and confirm it fails against the current broad trigger.
 
 - [ ] **Step 3: Narrow the deployment workflow triggers**
 
-Keep legacy preview behavior unchanged for actual legacy app changes, while preventing docs/main-only branches from reaching test DB migration and deploy jobs.
+Keep legacy preview and production behavior unchanged for actual legacy app changes, while preventing docs/main-only branches from reaching DB migration and deploy jobs.
 
 - [ ] **Step 4: Add a new decision that supersedes DEC-190**
 

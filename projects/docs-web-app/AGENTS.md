@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This project contains the Freeism documentation. Markdown sources live under `src/`: `src/readme/` contains localized README pages, and `src/freeism/` contains the main Freeism documents and slide material. GitHub Actions workflows are in the repository root under `.github/workflows/`, and this project's Husky pre-commit hook is in `.husky/pre-commit`.
+This project contains the Freeism documentation site. Canonical Markdown sources live under `src/`: `freeism.{ja,en}.md` contains the main documents, `note/` contains localized notes, and `readme/` contains the Japanese README. Astro pages live under `pages/`, with Blume configuration in `blume.config.ts`. GitHub Actions workflows are in the repository root under `.github/workflows/`.
 
 ## Build, Test, and Development Commands
 
@@ -16,11 +16,11 @@ Use `pnpm --filter docs-web-app dev` to run the local Astro development server.
 
 ## Coding Style & Naming Conventions
 
-Use Markdown for content and CommonJS JavaScript for build configuration. Keep Japanese prose in `ですます` style unless a document intentionally uses another tone. Follow `.textlintrc`: prefer Japanese technical-writing rules, keep sentences concise, use `。` as the Japanese period, and preserve spacing between half-width and full-width text. Use lowercase, descriptive directory names such as `readme`, `freeism`, and `slide`. Keep language variants explicit with suffixes like `.ja.md` and `.en.md`.
+Use Markdown for canonical content and TypeScript/Astro for the site implementation. Keep Japanese prose in `ですます` style unless a document intentionally uses another tone. Follow `.textlintrc`: prefer Japanese technical-writing rules, keep sentences concise, use `。` as the Japanese period, and preserve spacing between half-width and full-width text. Use lowercase, descriptive directory names. Keep language variants explicit with suffixes like `.ja.md` and `.en.md`.
 
 ## Testing Guidelines
 
-No dedicated automated test framework or coverage target is defined. For documentation changes, run `pnpm --filter docs-web-app lint` before committing.
+Vitest contract tests verify canonical source integrity and the production route/search output. For documentation-site changes, run `pnpm --filter docs-web-app test`, `lint`, `check`, and `build` before committing.
 
 ## Commit & Pull Request Guidelines
 
