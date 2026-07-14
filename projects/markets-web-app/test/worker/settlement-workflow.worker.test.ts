@@ -480,6 +480,79 @@ describe("settlement close and Workflow", () => {
     );
   });
 
+  it("propagates transient Workflow lookups without creating another instance", async () => {
+    const seeded = await seedDueAuction();
+    const planned = await closeAuctionAndPlan(env.DB, {
+      auctionId: seeded.auctionId,
+      expectedAuctionVersion: 4,
+      expectedRevisionId: seeded.revisionId,
+      serverNow: seeded.serverNow,
+    });
+    if (planned.kind !== "PLANNED") throw new Error("Expected planned settlement");
+    const instanceId = settlementWorkflowInstanceId(planned.params);
+    await env.DB.prepare(
+      `UPDATE settlement_outbox SET status = 'DISPATCHED', workflow_instance_id = ?
+       WHERE id = ?`,
+    )
+      .bind(instanceId, planned.outboxId)
+      .run();
+
+    for (const get of [
+      async () => {
+        throw new Error("TEMPORARY_UNAVAILABLE");
+      },
+      async () => ({
+        status: async () => {
+          throw new Error("TEMPORARY_UNAVAILABLE");
+        },
+      }),
+    ]) {
+      let createCalls = 0;
+      const workflow = {
+        create: async () => {
+          createCalls += 1;
+        },
+        get,
+      } as unknown as Parameters<typeof dispatchSettlementOutbox>[1];
+
+      await expect(dispatchSettlementOutbox(env.DB, workflow, planned.outboxId)).rejects.toThrow(
+        "TEMPORARY_UNAVAILABLE",
+      );
+      expect(createCalls).toBe(0);
+    }
+  });
+
+  it("confirms an existing instance after a create conflict", async () => {
+    const seeded = await seedDueAuction();
+    const planned = await closeAuctionAndPlan(env.DB, {
+      auctionId: seeded.auctionId,
+      expectedAuctionVersion: 4,
+      expectedRevisionId: seeded.revisionId,
+      serverNow: seeded.serverNow,
+    });
+    if (planned.kind !== "PLANNED") throw new Error("Expected planned settlement");
+    const instanceId = settlementWorkflowInstanceId(planned.params);
+    let createCalls = 0;
+    let getCalls = 0;
+    const workflow = {
+      async create() {
+        createCalls += 1;
+        throw new Error("instance ID is already in use");
+      },
+      async get() {
+        getCalls += 1;
+        return { status: async () => ({ status: "running" }) };
+      },
+    } as unknown as Parameters<typeof dispatchSettlementOutbox>[1];
+
+    await expect(dispatchSettlementOutbox(env.DB, workflow, planned.outboxId)).resolves.toEqual({
+      instanceId,
+      status: "DISPATCHED",
+    });
+    expect(createCalls).toBe(1);
+    expect(getCalls).toBe(1);
+  });
+
   it("uses distinct retry IDs, rejects oversized IDs, and defines every explicit policy", () => {
     const base = {
       auctionId: "auc_1",

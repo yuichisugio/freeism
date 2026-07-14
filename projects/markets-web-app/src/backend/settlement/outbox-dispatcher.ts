@@ -12,6 +12,10 @@ interface OutboxRow extends SettlementWorkflowParams {
   workflowInstanceId: string | null;
 }
 
+function isWorkflowInstanceNotFound(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("instance.not_found");
+}
+
 export function settlementWorkflowInstanceId(params: SettlementWorkflowParams): string {
   const id = `settlement-${params.settlementId}-revision-${params.settlementRevision}-attempt-${params.workflowAttempt}`;
   if (id.length > 100) throw new Error("SETTLEMENT_WORKFLOW_ID_TOO_LONG");
@@ -25,8 +29,9 @@ async function workflowInstanceExists(
   try {
     const instance = await workflow.get(instanceId);
     return (await instance.status()).status !== "unknown";
-  } catch {
-    return false;
+  } catch (error) {
+    if (isWorkflowInstanceNotFound(error)) return false;
+    throw error;
   }
 }
 
