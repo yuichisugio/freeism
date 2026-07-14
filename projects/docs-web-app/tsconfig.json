@@ -1,5 +1,15 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "include": [".blume/.astro/types.d.ts", ".blume/src/env.d.ts", "**/*"],
+  "exclude": [
+    "dist",
+    "diffs",
+    "examples",
+    "e2e",
+    "playwright.config.ts",
+    ".blume/src/pages",
+    ".blume/src/generated",
+    ".blume/cache"
+  ]
 }

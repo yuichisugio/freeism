@@ -1,0 +1,99 @@
+---
+import { getEntry, render } from "astro:content";
+import BlumePage from "blume/components/BlumePage.astro";
+import RootLayout from "blume/components/layout/RootLayout.astro";
+import data from "blume:data";
+import { getBlumeCollection } from "blume/runtime";
+
+interface Props {
+  description: string;
+  locale: "ja" | "en";
+  localePaths: Record<"ja" | "en", string>;
+  publicPath: string;
+  sourcePath: string;
+}
+
+const { description, locale, localePaths, publicPath, sourcePath } = Astro.props;
+const contentRoute = getBlumeCollection(data, { locale }).find(
+  (route) => route.path === sourcePath,
+);
+
+if (!contentRoute) {
+  throw new Error(`Canonical Blume content route not found: ${sourcePath}`);
+}
+
+const entry = await getEntry("docs", contentRoute.entryId);
+if (!entry) {
+  throw new Error(`Canonical Blume content entry not found: ${contentRoute.entryId}`);
+}
+
+const { headings } = await render(entry);
+const navigation = data.navigationByLocale[locale] ?? data.navigation;
+const ui = data.uiByLocale[locale] ?? data.ui;
+const localeSwitch = (data.config.i18n?.locales ?? []).map((configuredLocale) => ({
+  code: configuredLocale.code,
+  current: configuredLocale.code === locale,
+  dir: configuredLocale.dir,
+  href: localePaths[configuredLocale.code as "ja" | "en"],
+  label: configuredLocale.label,
+  untranslated: false,
+}));
+const site = {
+  title: data.config.title,
+  description: data.config.description,
+};
+const canonical = data.config.site
+  ? `${data.config.site.replace(/\/$/u, "")}${publicPath === "/" ? "" : publicPath}`
+  : null;
+---
+
+<RootLayout
+  analytics={data.config.analytics}
+  appleIcon={data.config.appleIcon}
+  banner={data.config.banner}
+  canonical={canonical}
+  codeWrap={data.config.codeWrap}
+  contentDir="ltr"
+  dir="ltr"
+  favicon={data.config.favicon}
+  fontCssVars={data.fontCssVars}
+  headings={headings}
+  imageZoom={data.config.imageZoom}
+  indexable={true}
+  locale={locale}
+  localeSwitch={localeSwitch}
+  logo={data.config.logo}
+  navigation={navigation}
+  page={{ title: contentRoute.title, description, route: publicPath }}
+  searchEnabled={data.config.search.enabled}
+  site={site}
+  siteUrl={data.config.site}
+  structuredDataEnabled={data.config.structuredData}
+  themeMode={data.config.theme.mode}
+  toc={data.config.toc}
+  ui={ui}
+>
+  <BlumePage id={contentRoute.entryId} />
+</RootLayout>
+
+<script>
+  import { normalizeMermaidSource } from "../normalize-mermaid-source";
+
+  for (const codeBlock of document.querySelectorAll<HTMLPreElement>(
+    ".prose pre[data-language]",
+  )) {
+    if (codeBlock.dataset.language?.toLowerCase() !== "mermaid") {
+      continue;
+    }
+
+    const source = codeBlock.querySelector("code")?.textContent;
+    if (!source) {
+      continue;
+    }
+
+    const diagram = document.createElement("blume-mermaid");
+    diagram.className = "not-prose my-6 flex justify-center overflow-x-auto";
+    diagram.dataset.source = normalizeMermaidSource(source);
+    codeBlock.replaceWith(diagram);
+  }
+</script>
