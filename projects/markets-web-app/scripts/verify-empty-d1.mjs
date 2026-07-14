@@ -170,22 +170,22 @@ const REQUIRED_SCHEMA_INVARIANTS = [
 const REQUIRED_FUTURE_TABLE_INVARIANTS = [
   [
     "settlement_capture_receipts",
-    /settlement_capture_receipts_plan_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*["`]?plan_hash["`]?\s*\)\s*=\s*64\s*\)/i,
+    /settlement_capture_receipts_plan_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_capture_receipts["`]?\s*\.\s*)?["`]?plan_hash["`]?\s*\)\s*=\s*64\s*\)/i,
     "capture receipt plan hash check",
   ],
   [
     "settlement_allocations",
-    /settlement_allocations_vector_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*["`]?vector_hash["`]?\s*\)\s*=\s*64\s*\)/i,
+    /settlement_allocations_vector_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_allocations["`]?\s*\.\s*)?["`]?vector_hash["`]?\s*\)\s*=\s*64\s*\)/i,
     "allocation vector hash check",
   ],
   [
     "proofs",
-    /proofs_content_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*["`]?content_hash["`]?\s*\)\s*=\s*64\s*\)/i,
+    /proofs_content_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?proofs["`]?\s*\.\s*)?["`]?content_hash["`]?\s*\)\s*=\s*64\s*\)/i,
     "proof content hash check",
   ],
   [
     "settlement_finalize_receipts",
-    /settlement_finalize_receipts_proof_set_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*["`]?proof_set_hash["`]?\s*\)\s*=\s*64\s*\)/i,
+    /settlement_finalize_receipts_proof_set_hash_check["`]?\s+CHECK\s*\(\s*length\s*\(\s*(?:["`]?settlement_finalize_receipts["`]?\s*\.\s*)?["`]?proof_set_hash["`]?\s*\)\s*=\s*64\s*\)/i,
     "finalize receipt proof set hash check",
   ],
   [
