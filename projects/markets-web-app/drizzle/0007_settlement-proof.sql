@@ -78,7 +78,7 @@ CREATE TABLE `settlement_capture_receipts` (
 	FOREIGN KEY (`settlement_round_id`) REFERENCES `settlement_rounds`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`auction_id`) REFERENCES `auctions`(`id`) ON UPDATE no action ON DELETE no action,
 	CONSTRAINT "settlement_capture_receipts_plan_hash_check" CHECK(length("settlement_capture_receipts"."plan_hash") = 64),
-	CONSTRAINT "settlement_capture_receipts_content_hash_check" CHECK(length("settlement_capture_receipts"."content_hash") = 64),
+	CONSTRAINT "settlement_capture_receipts_content_hash_check" CHECK(length("settlement_capture_receipts"."content_hash") = 71 and substr("settlement_capture_receipts"."content_hash", 1, 7) = 'sha256:'),
 	CONSTRAINT "settlement_capture_receipts_reservations_json_check" CHECK(json_valid("settlement_capture_receipts"."reservations_json"))
 );
 --> statement-breakpoint

@@ -50,7 +50,7 @@ function receipt(input: CaptureRound): CapturedSettlementReceipt {
     auctionId: input.auctionId,
     capturedAt,
     captureReceiptId: "capture_1",
-    contentHash: "f".repeat(64),
+    contentHash: `sha256:${"f".repeat(64)}`,
     planHash,
     reservations: input.winners.map((winner) => ({
       pointReservationId: winner.pointReservationId,
@@ -368,7 +368,7 @@ describe("settlement capture", () => {
         auctionId,
         capturedAt: now,
         captureReceiptId,
-        contentHash: "5".repeat(64),
+        contentHash: `sha256:${"5".repeat(64)}`,
         planHash,
         reservations: [{ pointReservationId, status: "CAPTURED", vectorHash }],
         settlementId,
@@ -407,7 +407,7 @@ describe("settlement capture", () => {
     const buyProofId = `buy_proof_${suffix}`;
     const buyFinalizeId = `buy_finalize_${suffix}`;
     const buyProofHash = "4".repeat(64);
-    const buyCaptureHash = "3".repeat(64);
+    const buyCaptureHash = `sha256:${"3".repeat(64)}`;
     const auctionVersion = await env.DB.prepare("SELECT version FROM auctions WHERE id = ?")
       .bind(auctionId)
       .first<number>("version");
@@ -510,7 +510,12 @@ describe("settlement capture", () => {
       settlementId: buySettlementId,
     };
     const settledHold = await settleBuyNowHold(env.DB, settleInput);
-    expect(await settleBuyNowHold(env.DB, settleInput)).toEqual(settledHold);
+    expect(
+      await settleBuyNowHold(env.DB, {
+        ...settleInput,
+        serverNow: "2026-07-14T01:00:01.000Z",
+      }),
+    ).toEqual(settledHold);
     expect(
       await env.DB.prepare("SELECT status FROM buy_now_holds WHERE id = ?")
         .bind(holdId)

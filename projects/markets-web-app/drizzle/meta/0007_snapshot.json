@@ -3041,7 +3041,7 @@
         },
         "settlement_capture_receipts_content_hash_check": {
           "name": "settlement_capture_receipts_content_hash_check",
-          "value": "length(\"settlement_capture_receipts\".\"content_hash\") = 64"
+          "value": "length(\"settlement_capture_receipts\".\"content_hash\") = 71 and substr(\"settlement_capture_receipts\".\"content_hash\", 1, 7) = 'sha256:'"
         },
         "settlement_capture_receipts_reservations_json_check": {
           "name": "settlement_capture_receipts_reservations_json_check",

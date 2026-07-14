@@ -30,7 +30,10 @@ export const settlementCaptureReceipts = sqliteTable(
   (table) => [
     uniqueIndex("settlement_capture_receipts_settlement_uidx").on(table.settlementId),
     check("settlement_capture_receipts_plan_hash_check", sql`length(${table.planHash}) = 64`),
-    check("settlement_capture_receipts_content_hash_check", sql`length(${table.contentHash}) = 64`),
+    check(
+      "settlement_capture_receipts_content_hash_check",
+      sql`length(${table.contentHash}) = 71 and substr(${table.contentHash}, 1, 7) = 'sha256:'`,
+    ),
     check(
       "settlement_capture_receipts_reservations_json_check",
       sql`json_valid(${table.reservationsJson})`,

@@ -31,6 +31,7 @@ interface SettleRow {
   proofQuantity: number;
   proofTickCount: number;
   quantity: number;
+  settledAt: string;
   settlementId: string;
 }
 
@@ -41,6 +42,7 @@ export async function settleBuyNowHold(
   const row = await db
     .prepare(
       `SELECT h.status AS holdStatus, h.quantity, h.buy_now_price_tick_count AS proofTickCount,
+              h.updated_at AS settledAt,
               h.buyer_markets_user_id AS buyerMarketsUserId, a.version AS auctionVersion,
               s.id AS settlementId, c.capture_receipt_id AS captureReceiptId,
               c.content_hash AS captureContentHash, f.id AS finalizeReceiptId,
@@ -74,6 +76,7 @@ export async function settleBuyNowHold(
   if (row.holdStatus === "FAILED_RESTORED") {
     throw new Error("BUY_NOW_HOLD_ALREADY_RESTORED");
   }
+  const settledAt = row.holdStatus === "SETTLED" ? row.settledAt : input.serverNow;
   if (row.holdStatus !== "SETTLED") {
     const changed = await db
       .prepare(
@@ -87,7 +90,7 @@ export async function settleBuyNowHold(
   return {
     holdId: input.holdId,
     receiptId: `buy-now-settle:${input.holdId}:${input.proofId}`,
-    settledAt: input.serverNow,
+    settledAt,
     settlementId: input.settlementId,
     status: "SETTLED",
   };
