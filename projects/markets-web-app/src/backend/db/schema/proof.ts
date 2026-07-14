@@ -32,7 +32,7 @@ export const settlementCaptureReceipts = sqliteTable(
     check("settlement_capture_receipts_plan_hash_check", sql`length(${table.planHash}) = 64`),
     check(
       "settlement_capture_receipts_content_hash_check",
-      sql`length(${table.contentHash}) = 71 and substr(${table.contentHash}, 1, 7) = 'sha256:'`,
+      sql`length(${table.contentHash}) = 71 and substr(${table.contentHash}, 1, 7) = 'sha256:' and substr(${table.contentHash}, 8) not glob '*[^0-9a-f]*'`,
     ),
     check(
       "settlement_capture_receipts_reservations_json_check",

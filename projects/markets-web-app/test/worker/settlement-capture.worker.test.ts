@@ -119,6 +119,28 @@ describe("settlement capture", () => {
     expect(saved).toHaveLength(1);
   });
 
+  it("prefixなしのcapture receiptは保存せずmanual actionにする", async () => {
+    const current = round();
+    const { gateway, repository } = setup(current);
+    gateway.capture.mockResolvedValueOnce({
+      ...receipt(current),
+      contentHash: "f".repeat(64),
+    });
+
+    const result = await captureAllWinners(
+      { gateway, now: () => new Date(capturedAt), repository },
+      {
+        planHash,
+        roundOrdinal: 1,
+        settlementId: "settlement_1",
+        settlementRevision: 1,
+      },
+    );
+
+    expect(result).toEqual({ kind: "MANUAL_ACTION", reason: "CAPTURE_RECEIPT_MISMATCH" });
+    expect(repository.recordCaptureReceipt).not.toHaveBeenCalled();
+  });
+
   it("capture直前の1件不整合ではcaptureもreceipt保存も行わない", async () => {
     const current = round();
     const { gateway, repository } = setup(current);
@@ -362,6 +384,21 @@ describe("settlement capture", () => {
       ),
     ]);
     const captureRepository = new D1SettlementCaptureRepository(env.DB);
+    await expect(
+      captureRepository.recordCaptureReceipt({
+        now,
+        receipt: {
+          auctionId,
+          capturedAt: now,
+          captureReceiptId,
+          contentHash: `sha256:${"z".repeat(64)}`,
+          planHash,
+          reservations: [{ pointReservationId, status: "CAPTURED", vectorHash }],
+          settlementId,
+        },
+        roundId: settlementRoundId,
+      }),
+    ).rejects.toThrow(/settlement_capture_receipts_content_hash_check/);
     await captureRepository.recordCaptureReceipt({
       now,
       receipt: {

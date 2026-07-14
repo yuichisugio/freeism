@@ -115,6 +115,7 @@ export type CaptureAllWinnersResult =
   | { kind: "MANUAL_ACTION"; reason: string };
 
 const SHA256 = /^(?:sha256:)?[0-9a-f]{64}$/;
+const PREFIXED_SHA256 = /^sha256:[0-9a-f]{64}$/;
 
 function sorted<T extends { pointReservationId: string }>(values: readonly T[]): T[] {
   return [...values].sort((left, right) =>
@@ -161,7 +162,7 @@ function receiptMatches(
     receipt.planHash !== planHash ||
     !receipt.captureReceiptId ||
     !Number.isFinite(Date.parse(receipt.capturedAt)) ||
-    !SHA256.test(receipt.contentHash) ||
+    !PREFIXED_SHA256.test(receipt.contentHash) ||
     receipt.reservations.length !== round.winners.length
   ) {
     return false;
