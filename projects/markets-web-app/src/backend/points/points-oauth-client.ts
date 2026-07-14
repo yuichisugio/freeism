@@ -8,6 +8,7 @@ const M2M_SCOPES = new Set([
   "points.reservations.release",
   "points.reservations.status",
 ]);
+const SETTLEMENT_RETRY_SCOPE = "points.admin.settlement.retry";
 
 export interface PointsOAuthClientConfig {
   audience: string;
@@ -118,6 +119,52 @@ export class PointsOAuthClient {
       state: input.state,
     }).toString();
     return url.toString();
+  }
+
+  settlementAuthorizationUrl(input: {
+    callbackUri: string;
+    nonce: string;
+    pkceChallenge: string;
+    resource: string;
+    state: string;
+  }) {
+    const url = new URL(`${this.config.issuer}/oauth2/authorize`);
+    url.search = new URLSearchParams({
+      client_id: this.config.settlementClientId,
+      code_challenge: input.pkceChallenge,
+      code_challenge_method: "S256",
+      nonce: input.nonce,
+      redirect_uri: input.callbackUri,
+      resource: input.resource,
+      response_type: "code",
+      scope: SETTLEMENT_RETRY_SCOPE,
+      state: input.state,
+    }).toString();
+    return url.toString();
+  }
+
+  async exchangeSettlementAuthorizationCode(input: {
+    callbackUri: string;
+    code: string;
+    pkceVerifier: string;
+    resource: string;
+  }) {
+    const token = await this.token(
+      this.config.settlementClientId,
+      this.config.settlementClientSecret,
+      new URLSearchParams({
+        client_id: this.config.settlementClientId,
+        code: input.code,
+        code_verifier: input.pkceVerifier,
+        grant_type: "authorization_code",
+        redirect_uri: input.callbackUri,
+        resource: input.resource,
+      }),
+    );
+    if (token.scope !== SETTLEMENT_RETRY_SCOPE || token.refresh_token) {
+      throw new Error("POINTS_SETTLEMENT_ASSERTION_INVALID");
+    }
+    return token.access_token;
   }
 
   async exchangeAuthorizationCode(input: {

@@ -14,6 +14,7 @@ import { registerAuctionCommandRoutes } from "./http/routes/auction-command-rout
 import { registerAuctionImportRoutes } from "./http/routes/auction-import-routes";
 import { registerAuctionManagementRoutes } from "./http/routes/auction-management-routes";
 import { registerPointsConnectionRoutes } from "./http/routes/points-connection-routes";
+import { registerSettlementAdminRoutes } from "./http/routes/settlement-admin-routes";
 import type { PointsConnectionService } from "./points/points-link-saga";
 import type { PointsUnlinkAuthorizationService } from "./points/points-unlink-authorization";
 
@@ -32,6 +33,12 @@ export function createMarketsBackendApp(
   app.use("/api/auctions/:auctionId/bids", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use("/api/auctions/:auctionId/auto-bid", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use("/api/auctions/:auctionId/buy-now", jsonMutationBodyLimit, requestSecurityMiddleware);
+  app.use(
+    "/api/settlements/:settlementId/retry-authorizations",
+    jsonMutationBodyLimit,
+    requestSecurityMiddleware,
+  );
+  app.use("/api/settlements/:settlementId/retry", jsonMutationBodyLimit, requestSecurityMiddleware);
   registerAuthRoutes(app, getSession);
   registerAuctionCommandRoutes(app, getSession);
   registerAuctionEventRoutes(app, getSession);
@@ -43,6 +50,7 @@ export function createMarketsBackendApp(
     pointsConnectionService,
     pointsUnlinkAuthorizationService,
   );
+  registerSettlementAdminRoutes(app, getSession);
   return app;
 }
 

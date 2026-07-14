@@ -57,6 +57,13 @@
       "when": 1783961075522,
       "tag": "0007_settlement-proof",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1783994780416,
+      "tag": "0008_settlement-admin-retry",
+      "breakpoints": true
     }
   ]
 }

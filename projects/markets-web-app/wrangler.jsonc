@@ -31,6 +31,7 @@
     },
   ],
   "limits": { "cpu_ms": 300000, "subrequests": 10000000 },
+  "triggers": { "crons": ["*/5 * * * *"] },
   "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
   "observability": {
     "enabled": true,
@@ -69,6 +70,7 @@
         },
       ],
       "limits": { "cpu_ms": 300000, "subrequests": 10000000 },
+      "triggers": { "crons": ["*/5 * * * *"] },
       "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
       "routes": [{ "pattern": "staging.markets.freeism.app", "custom_domain": true }],
       "observability": {
@@ -102,6 +104,7 @@
         },
       ],
       "limits": { "cpu_ms": 300000, "subrequests": 10000000 },
+      "triggers": { "crons": ["*/5 * * * *"] },
       "migrations": [{ "tag": "auction-room-v1", "new_sqlite_classes": ["AuctionRoom"] }],
       "routes": [{ "pattern": "markets.freeism.app", "custom_domain": true }],
       "observability": {

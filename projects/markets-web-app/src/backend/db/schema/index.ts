@@ -6,3 +6,4 @@ export * from "./ops";
 export * from "./points-connection";
 export * from "./proof";
 export * from "./settlement";
+export * from "./settlement-admin";

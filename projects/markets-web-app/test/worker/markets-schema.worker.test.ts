@@ -49,7 +49,7 @@ async function uniqueIndexColumns(tableName: string) {
 }
 
 describe("Markets greenfield domain schema", () => {
-  it("applies the eight greenfield migrations in sequence", async () => {
+  it("applies the nine greenfield migrations in sequence", async () => {
     await expect(appliedMigrationNames()).resolves.toEqual([
       "0000_markets-auth.sql",
       "0001_points-oauth-connection.sql",
@@ -59,7 +59,24 @@ describe("Markets greenfield domain schema", () => {
       "0005_settlement-reservation-rounds.sql",
       "0006_buy-now-restore-outbox.sql",
       "0007_settlement-proof.sql",
+      "0008_settlement-admin-retry.sql",
     ]);
+  });
+
+  it("keeps settlement retry state target-bound, rate-limited, and append-only", async () => {
+    await expect(uniqueIndexColumns("settlement_retry_authorizations")).resolves.toEqual(
+      expect.arrayContaining([["state_hash"], ["assertion_jti"]]),
+    );
+    await expect(uniqueIndexColumns("settlement_retry_assertion_jtis")).resolves.toContainEqual([
+      "authorization_id",
+    ]);
+    await expect(uniqueIndexColumns("settlement_retry_rate_events")).resolves.toContainEqual([
+      "jti",
+    ]);
+    const rateSql = await schemaObjectSql("settlement_retry_rate_events");
+    expect(rateSql).toMatch(/before update/i);
+    expect(rateSql).toMatch(/before delete/i);
+    expect(rateSql).toMatch(/SETTLEMENT_RETRY_RATE_LIMITED/);
   });
 
   it("keeps capture receipts, allocations, proofs, and finalize receipts append-only", async () => {

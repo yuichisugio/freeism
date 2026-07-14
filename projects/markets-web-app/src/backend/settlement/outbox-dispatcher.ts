@@ -108,3 +108,22 @@ export async function dispatchSettlementOutbox(
     .run();
   return { instanceId, status: "DISPATCHED" };
 }
+
+export async function dispatchPendingSettlementOutboxes(
+  db: D1Database,
+  workflow: Workflow<SettlementWorkflowParams>,
+  limit = 25,
+) {
+  const rows = await db
+    .prepare(
+      `SELECT id FROM settlement_outbox
+       WHERE status = 'PENDING' ORDER BY created_at LIMIT ?`,
+    )
+    .bind(limit)
+    .all<{ id: string }>();
+  const results = [];
+  for (const row of rows.results) {
+    results.push(await dispatchSettlementOutbox(db, workflow, row.id));
+  }
+  return results;
+}
