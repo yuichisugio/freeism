@@ -34,16 +34,12 @@ locals {
   }
 }
 
-resource "cloudflare_dns_record" "apex" {
-  count = local.manage_zone_shared ? 1 : 0
+removed {
+  from = cloudflare_dns_record.apex
 
-  zone_id = var.zone_id
-  name    = "freeism.app"
-  type    = "A"
-  content = "192.0.2.1"
-  ttl     = 1
-  proxied = true
-  comment = "Terraform-owned redirect endpoint"
+  lifecycle {
+    destroy = false
+  }
 }
 
 resource "cloudflare_dns_record" "www" {
@@ -63,20 +59,20 @@ resource "cloudflare_ruleset" "root_redirect" {
 
   zone_id     = var.zone_id
   name        = "freeism-root-redirect"
-  description = "Redirect apex and www to the Points root"
+  description = "Redirect www to the portal root"
   kind        = "zone"
   phase       = "http_request_dynamic_redirect"
 
   rules = [{
-    ref         = "redirect_apex_and_www_to_points"
+    ref         = "redirect_www_to_portal"
     description = "Discard source path and query"
-    expression  = "http.host in {\"freeism.app\" \"www.freeism.app\"}"
+    expression  = "http.host eq \"www.freeism.app\""
     action      = "redirect"
     action_parameters = {
       from_value = {
         status_code = 301
         target_url = {
-          value = "https://points.freeism.app/"
+          value = "https://freeism.app/"
         }
         preserve_query_string = false
       }
