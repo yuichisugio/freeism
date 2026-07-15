@@ -1,0 +1,46 @@
+---
+import type { FreeismSite } from "../data/sites";
+
+type Props = {
+  sites: readonly FreeismSite[];
+};
+
+const { sites } = Astro.props;
+const serviceNames = ["Docs", "Points", "Markets"] as const;
+---
+
+<div class="project-orbit">
+  <svg
+    class="orbit-lines"
+    viewBox="0 0 1000 620"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+    <path class="orbit-ring" d="M175 310C175 145 338 62 500 62s325 83 325 248-163 248-325 248-325-83-325-248Z"></path>
+    <path class="orbit-route orbit-route--docs" pathLength="1" d="M500 310H175"></path>
+    <path class="orbit-route orbit-route--points" pathLength="1" d="M500 310 825 168"></path>
+    <path class="orbit-route orbit-route--markets" pathLength="1" d="M500 310 825 452"></path>
+  </svg>
+
+  <div class="orbit-core">
+    <span>価値の起点</span>
+    <strong>Freeism</strong>
+    <small>思想と実装をつなぐ</small>
+  </div>
+
+  <nav class="orbit-destinations" aria-label="Freeism 関連プロジェクト">
+    {
+      sites.map((site, index) => (
+        <a
+          class:list={["orbit-destination", `orbit-destination--${index + 1}`]}
+          href={site.url}
+        >
+          <span class="orbit-destination__code">{serviceNames[index]}</span>
+          <strong>{site.label}</strong>
+          <span class="orbit-destination__responsibility">{site.responsibility}</span>
+          <span class="orbit-destination__action" aria-hidden="true">開く ↗</span>
+        </a>
+      ))
+    }
+  </nav>
+</div>

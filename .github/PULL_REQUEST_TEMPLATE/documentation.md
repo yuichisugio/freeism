@@ -11,7 +11,7 @@
 
 ## 品質チェック
 
-<!-- 例: `pnpm --filter documentation lint` の結果 -->
+<!-- 例: `pnpm --filter docs-web-app lint` の結果 -->
 
 ## PDF・レイアウト
 

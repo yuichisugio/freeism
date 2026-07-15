@@ -256,7 +256,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 2026-07-11調査baseline:
 
-- Node `24.18.0`
+- Node `26.x`（minimum `>=24.11.0`）
 - pnpm `10.33.3`
 - Vite Plus `0.2.4`
 - TanStack Start `1.168.27`
@@ -342,7 +342,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - `local`、`staging`、`production`でWorker、D1、DO namespace、Workflow、OAuth app/client、Secretsを分離する。`staging`は共有test環境のCloudflare内部名である。
 - Wrangler/Vite plugin: Worker binding、named environment、Static Assets、custom domain route、migration tag。
-- Terraform: zone DNS、apex/www redirect、WAF、rate limit、Access等のedge設定。
+- Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
 - 同じresourceをTerraformとWranglerで二重管理しない。
 - Cloudflare Vite pluginはbuild時に`CLOUDFLARE_ENV`を選び、flatten済み設定をdeployする。
 - Terraform stateは専用Cloudflare R2 bucketのS3 backendへ保存し、`use_lockfile=true`でlockingする。bucketは本体IaCとは別のbootstrapで作り、bucket-scoped Object Read & Write credentialをGitHub Environment Secretに保存する。HCL、repository、artifactへcredentialやstateを入れない。

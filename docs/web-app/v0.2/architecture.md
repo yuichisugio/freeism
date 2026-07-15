@@ -220,7 +220,8 @@ Marketsだけが次のデータを所有し、更新できる。
 
 - `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
 - 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
-- apex `freeism.app`と`www.freeism.app`は`points.freeism.app`へredirectする。
+- apex `freeism.app`は`projects/main-web-app`の独立ポータルを配信し、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app`へ通常のHTTPSリンクで案内する。`www.freeism.app`はapexへ正規化する。
+- ポータルとドキュメントのhosting／DNSはPoints／Markets v0.2 migrationのdeploy対象に含めず、それぞれの独立した公開境界として扱う。既存apex redirectの撤去とDNS切替はポータル公開作業で行う。
 - publicなper-PR preview環境はv0.2で作らない。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
 - D1 migrationは前方互換の段階migrationにし、状態migrationを伴う自動rollbackを行わない。

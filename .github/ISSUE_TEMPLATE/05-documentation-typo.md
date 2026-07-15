@@ -1,6 +1,6 @@
 ---
 name: 誤字脱字・表記の修正依頼（documentation）
-about: projects/documentation 内の誤字・脱字・表現の指摘
+about: projects/docs-web-app 内の誤字・脱字・表現の指摘
 title: '[documentation][表記] '
 labels: ['bug', 'documentation']
 assignees: ''

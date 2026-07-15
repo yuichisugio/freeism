@@ -1,0 +1,127 @@
+---
+import ProjectOrbit from "../components/ProjectOrbit.astro";
+import { FREEISM_SITES } from "../data/sites";
+import "../styles/global.css";
+
+const roles = [
+  {
+    name: "供給者",
+    caption: "価値を提供する",
+    description: "商品を提供する役割です。",
+  },
+  {
+    name: "評価者",
+    caption: "貢献を評価する",
+    description: "供給者を評価し、評価結果の分だけポイントを付与する役割です。",
+  },
+  {
+    name: "需要者",
+    caption: "価値を受け取る",
+    description: "供給者が販売する商品を購入する役割です。",
+  },
+] as const;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="description"
+      content="無料主義の思想と、Docs・Points・Markets の役割を案内するポータルです。"
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Freeism | 貢献へ報いる仕組み</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">本文へ移動</a>
+
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="brand" href="/" aria-label="Freeism ホーム">
+          <span class="brand__mark" aria-hidden="true">F</span>
+          <span>Freeism</span>
+        </a>
+        <nav class="site-nav" aria-label="主要サイト">
+          {FREEISM_SITES.map((site) => <a href={site.url}>{site.label}</a>)}
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <p class="eyebrow">Freeism / Public value infrastructure</p>
+            <h1 id="hero-title">
+              価値を受け取る人<wbr />ではなく、<em>価値を生み出した<wbr />貢献</em>へ報いる<wbr />仕組み。
+            </h1>
+            <p class="hero__lead">
+              無料主義は、受益者の支払い能力から報酬を切り離し、社会への貢献を評価して報いるための構想です。
+            </p>
+            <a class="text-link" href={FREEISM_SITES[0].url}>無料主義の仕様を読む <span aria-hidden="true">→</span></a>
+          </div>
+
+          <aside class="hero__legend" aria-label="このサイトの見方">
+            <span class="hero__legend-label">この案内図でわかること</span>
+            <p>ひとつの思想を、読む・評価する・交換するという独立した実装へ。</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="roles section-shell" aria-labelledby="roles-title">
+        <div class="section-heading">
+          <p class="eyebrow">Three roles</p>
+          <h2 id="roles-title">受益と報酬を分ける、3つの役割。</h2>
+          <p>評価者が需要者とは別に貢献を評価することで、供給者への報酬を組み立てます。</p>
+        </div>
+
+        <div class="role-map">
+          {roles.map((role) => (
+            <article class="role">
+              <span class="role__caption">{role.caption}</span>
+              <h3>{role.name}</h3>
+              <p>{role.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="projects section-shell" aria-labelledby="projects-title">
+        <div class="section-heading section-heading--split">
+          <div>
+            <p class="eyebrow">Project orbit</p>
+            <h2 id="projects-title">思想から、3つの実装へ。</h2>
+          </div>
+          <p>各サイトは独立した責務を持ち、Freeism という共通の構想につながっています。</p>
+        </div>
+
+        <ProjectOrbit sites={FREEISM_SITES} />
+      </section>
+
+      <section class="goal section-shell" aria-labelledby="goal-title">
+        <p class="eyebrow">Our destination</p>
+        <h2 id="goal-title">この世の全ての人が<br />満足度の高い人生を送れる社会。</h2>
+        <p>Freeism は、価値を生み出す人と、その価値を必要とする人の双方が報われる社会を目指します。</p>
+        <a class="text-link text-link--light" href={FREEISM_SITES[0].url}>考え方を詳しく読む <span aria-hidden="true">→</span></a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-footer__inner">
+        <div>
+          <a class="brand brand--footer" href="/">
+            <span class="brand__mark" aria-hidden="true">F</span>
+            <span>Freeism</span>
+          </a>
+          <p>貢献に報いる、公共価値のインフラ。</p>
+        </div>
+        <nav class="footer-nav" aria-label="フッター">
+          {FREEISM_SITES.map((site) => <a href={site.url}>{site.label}</a>)}
+          <a href="https://github.com/yuichisugio/freeism">GitHub</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -54,13 +54,13 @@ function normalizeText(contents) {
   return `${contents.replaceAll("\r\n", "\n").trimEnd()}\n`;
 }
 
-test("root Node and pnpm versions are pinned exactly", async () => {
-  assert.equal(normalizeText(await readRepoFile(".node-version")), "24.18.0\n");
+test("root Node tracks the current major and pnpm stays exact", async () => {
+  assert.equal(normalizeText(await readRepoFile(".node-version")), "26\n");
 
   const manifest = JSON.parse(await readRepoFile("package.json"));
   assert.equal(manifest.packageManager, "pnpm@10.33.3");
   assert.deepEqual(manifest.engines, {
-    node: "24.18.0",
+    node: ">=24.11.0",
     pnpm: "10.33.3",
   });
 });
