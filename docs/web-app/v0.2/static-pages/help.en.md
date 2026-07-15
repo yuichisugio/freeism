@@ -13,7 +13,7 @@ Freeism v0.2 is divided into Points, which handles points, and Markets, which ha
 
 - You sign in to `markets.freeism.app` with Google only. Its account is separate from your Points account.
 - After signing in, you explicitly consent to a one-to-one connection with Points.
-- Markets handles listing items, creating Auctions, bidding, winning results, proofs, and reviews.
+- Markets handles Auctions with item details, bidding, winning results, proofs, and reviews.
 - Markets does not itself manage Points balances, FIX results, or evaluation axes.
 
 ## Security Checks

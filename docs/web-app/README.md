@@ -16,9 +16,9 @@
 | サービス | ドメイン              | 責務                                                              |
 | -------- | --------------------- | ----------------------------------------------------------------- |
 | Points   | `points.freeism.app`  | 評価軸、パッケージ、FIX評価、ポイント付与、残高・台帳・予約の管理 |
-| Markets  | `markets.freeism.app` | 商材の出品、Auctionの作成・入札・落札、Pointsとの決済連携         |
+| Markets  | `markets.freeism.app` | 商材情報を含むAuctionの作成・入札・落札、Pointsとの決済連携       |
 
-Taskとグループ機能はv0.2では廃止済みです。MarketsはPointsの残高や台帳を所有せず、Pointsは商材やAuctionを所有しません。
+Taskとグループ機能はv0.2では廃止済みです。Marketsの出品はAuction作成を意味し、独立したListing resourceはありません。MarketsはPointsの残高や台帳を所有せず、Pointsは商材やAuctionを所有しません。
 
 ## 現行の横断仕様
 

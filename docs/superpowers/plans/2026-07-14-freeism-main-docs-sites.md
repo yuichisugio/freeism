@@ -162,6 +162,8 @@ Expected: all exit 0; build output contains Japanese, English, notes, search ass
 
 ### Task 4: Align canonical documentation and guard legacy deploys
 
+> **2026-07-15 merge note:** 最新mainではlegacy Vercel deploy workflowが削除済みのため、競合解消では削除を優先する。workflow境界testは、旧deploy workflowの不在とlegacy CIの限定scopeを検証する形へ更新する。
+
 **Files:**
 - Modify: `docs/web-app/v0.2/architecture.md`
 - Modify: `docs/web-app/v0.2/decision-register.md`

@@ -1,0 +1,3005 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Freeism Points–Markets API",
+    "version": "0.2.0",
+    "description": "Points-owned canonical contract for the eleven APIs consumed by Markets. Better Auth discovery, authorization, token, introspection and revocation endpoints remain standard provider endpoints and are intentionally not duplicated as application operations."
+  },
+  "servers": [
+    {
+      "url": "https://points.freeism.app"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Point Packages"
+    },
+    {
+      "name": "OAuth Link"
+    },
+    {
+      "name": "Connection"
+    },
+    {
+      "name": "Balance"
+    },
+    {
+      "name": "Reservations"
+    },
+    {
+      "name": "Settlements"
+    }
+  ],
+  "x-freeism-oauth-contract": {
+    "issuer": "https://points.freeism.app/api/auth",
+    "introspectionEndpoint": "https://points.freeism.app/api/auth/oauth2/introspect",
+    "opaqueAccessTokens": true,
+    "disableJwtPlugin": true,
+    "accessTokenJwtDecodeForbidden": true,
+    "accessTokenJwksVerificationForbidden": true,
+    "idTokenAcceptedAsResourceBearer": false,
+    "userPrincipal": "active pairwise sub, client, audience/resource, scope, expiry and saved connection must match",
+    "m2mPrincipal": "active token without user sub and with only M2M scopes; client and owned resources must match",
+    "rejectCrossClientEnvironmentInactiveOrInsufficientScope": true
+  },
+  "x-freeism-standard-oauth-endpoints": {
+    "issuer": "https://points.freeism.app/api/auth",
+    "authorization": "https://points.freeism.app/api/auth/oauth2/authorize",
+    "token": "https://points.freeism.app/api/auth/oauth2/token",
+    "introspection": "https://points.freeism.app/api/auth/oauth2/introspect",
+    "revocation": "https://points.freeism.app/api/auth/oauth2/revoke",
+    "discovery": "https://points.freeism.app/api/auth/.well-known/openid-configuration",
+    "customFallbackForbidden": true,
+    "liveFeasibilityGate": "Task 6A"
+  },
+  "paths": {
+    "/api/v1/point-package-revisions/{pointPackageRevisionId}": {
+      "get": {
+        "operationId": "getPublicPointPackageRevision",
+        "summary": "Get an immutable public Point Package Revision",
+        "description": "Returns the immutable revision. The strong ETag is the quoted contentHash. If-None-Match equality returns 304 without a body.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "pointPackageRevisionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Immutable revision",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: public, max-age=31536000, immutable",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "public, max-age=31536000, immutable"
+                }
+              },
+              "ETag": {
+                "description": "Strong ETag containing the quoted sha256 content hash",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"sha256:[0-9a-f]{64}\"$"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPointPackageRevisionResponse"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "The If-None-Match strong ETag matched",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: public, max-age=31536000, immutable",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "public, max-age=31536000, immutable"
+                }
+              },
+              "ETag": {
+                "description": "The matching strong ETag",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^\"sha256:[0-9a-f]{64}\"$"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-cache-control": "public, max-age=31536000, immutable",
+        "x-freeism-content-hash": {
+          "algorithm": "SHA-256",
+          "encoding": "sha256:lowercase-hex",
+          "canonicalization": "RFC 8785 JSON Canonicalization Scheme over UTF-8",
+          "excludes": ["contentHash", "response-envelope"],
+          "componentSort": ["displayOrder:asc", "evaluationCriterionId:asc"],
+          "unknownFieldsIncluded": false
+        }
+      }
+    },
+    "/api/v1/point-package-auction-eligibility-checks": {
+      "post": {
+        "operationId": "checkPointPackageAuctionEligibility",
+        "summary": "Check Point Package auction eligibility atomically",
+        "description": "Checks all items in one Points D1 transaction. One ineligible item produces zero receipts and a safe sorted error list.",
+        "security": [
+          {
+            "m2mOAuth": ["points.packages.auction-eligibility"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuctionEligibilityRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuctionEligibilityResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Auction ineligibility or idempotency-key reuse conflict. No eligibility receipt is issued.",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/AuctionEligibilityProblem"
+                    },
+                    {
+                      "$ref": "#/components/schemas/IdempotencyKeyReusedProblem"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 1048576,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-receipt": {
+          "leaseSeconds": 30,
+          "validUntilExclusive": true,
+          "boundTo": [
+            "clientId",
+            "auctionCommandId",
+            "auctionCommandHash",
+            "allItems.auctionItemId",
+            "allItems.pointPackageId",
+            "allItems.pointPackageRevisionId",
+            "allItems.contentHash"
+          ],
+          "allOrNothing": true,
+          "failureReceiptCount": 0,
+          "idempotentReplayExtendsLease": false
+        }
+      }
+    },
+    "/api/v1/oauth/link-attempts": {
+      "post": {
+        "operationId": "createPointsLinkAttempt",
+        "summary": "Create a client-authenticated OAuth link attempt",
+        "security": [
+          {
+            "m2mOAuth": ["points.connection.link-attempt.create"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkAttemptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateLinkAttemptResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 65536,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-link-attempt": {
+          "maxTtlSeconds": 600,
+          "boundTo": [
+            "clientId",
+            "marketsUserId",
+            "stateHash",
+            "pkceChallenge",
+            "redirectUri",
+            "requestedScopes",
+            "expiresAt",
+            "returnUrlHash"
+          ],
+          "opaqueAttemptId": true
+        }
+      }
+    },
+    "/api/v1/oauth/link-attempts/{linkAttemptId}/finalizations": {
+      "post": {
+        "operationId": "finalizePointsLinkAttempt",
+        "summary": "Confirm or cancel a pending OAuth link attempt",
+        "security": [
+          {
+            "m2mOAuth": ["points.connection.link-attempt.finalize"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "linkAttemptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizeLinkAttemptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinalizeLinkAttemptResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 65536,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-link-finalization": {
+          "tokenExchangeGrantStatus": "PENDING_MARKETS_CONFIRMATION",
+          "confirmGrantStatus": "ACTIVE",
+          "cancelGrantStatus": "CANCELLED",
+          "confirmAfterMarketsLocalPendingSave": true,
+          "cancelOrTtlRevokesOnlyNewAttemptGrant": true,
+          "sameOutcomeReturnsSameReceipt": true,
+          "oppositeOutcomeStatus": 409
+        }
+      }
+    },
+    "/api/v1/me/connection": {
+      "get": {
+        "operationId": "getPointsConnection",
+        "summary": "Get the active user's Points connection",
+        "security": [
+          {
+            "userOAuth": ["points.connection.read"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointsConnectionResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-cache-control": "private, no-store"
+      }
+    },
+    "/api/v1/me/connection-deactivations": {
+      "post": {
+        "operationId": "deactivatePointsConnection",
+        "summary": "Deactivate a Points connection after unlink step-up",
+        "security": [
+          {
+            "connectionUnlinkOAuth": ["points.connection.unlink"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeactivateConnectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeactivateConnectionResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 65536,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-unlink": {
+          "googleFreshRequired": true,
+          "activeReservationCountMustEqual": 0,
+          "appOwnedGrantStatus": "UNLINKED",
+          "createsRevocationOutbox": true,
+          "marketsClosesAfterReceipt": true
+        }
+      }
+    },
+    "/api/v1/me/balance-checks": {
+      "post": {
+        "operationId": "checkPointBalance",
+        "summary": "Check whether a point vector can be reserved",
+        "description": "Read-only balance check. Components are sorted by evaluationCriterionId and no balance is reserved.",
+        "security": [
+          {
+            "userOAuth": ["points.balance.read"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BalanceCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceCheckResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 65536,
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-read-only": true
+      }
+    },
+    "/api/v1/me/point-reservations": {
+      "post": {
+        "operationId": "createPointReservation",
+        "summary": "Create a 900 second point-vector reservation",
+        "security": [
+          {
+            "userOAuth": ["points.reservations.create"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReservationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateReservationResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 65536,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-lease-seconds": 900,
+        "x-freeism-atomicity": {
+          "scope": "all-components",
+          "partialSuccessAllowed": false
+        },
+        "x-freeism-zero-vector-reservation": true
+      }
+    },
+    "/api/v1/point-reservations/status": {
+      "post": {
+        "operationId": "getPointReservationStatus",
+        "summary": "Get statuses for owned point reservations",
+        "security": [
+          {
+            "m2mOAuth": ["points.reservations.status"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationStatusResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 1048576,
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-ownership": {
+          "onlyCallingClientOwnedResources": true,
+          "unknownOrOtherClientStatus": 404,
+          "unknownOrOtherClientCode": "RESOURCE_NOT_FOUND"
+        }
+      }
+    },
+    "/api/v1/settlements/{settlementId}/capture": {
+      "post": {
+        "operationId": "capturePointSettlement",
+        "summary": "Atomically capture every winner reservation",
+        "security": [
+          {
+            "m2mOAuth": ["points.reservations.capture"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "settlementId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureSettlementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureSettlementResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Reservation, plan, vector, state, or balance conflict",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientBalanceProblem"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CaptureConflictProblem"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 1048576,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-atomicity": {
+          "scope": "all-winner-reservations-in-request",
+          "partialSuccessAllowed": false,
+          "responseSort": "pointReservationId:asc",
+          "pathSettlementIdMustMatchRequestReservations": true
+        },
+        "x-freeism-ownership": {
+          "onlyCallingClientOwnedResources": true
+        },
+        "x-freeism-state-transition": {
+          "from": "ACTIVE",
+          "to": "CAPTURED"
+        }
+      }
+    },
+    "/api/v1/point-reservations/release": {
+      "post": {
+        "operationId": "releasePointReservation",
+        "summary": "Release an active owned reservation",
+        "security": [
+          {
+            "m2mOAuth": ["points.reservations.release"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Opaque idempotency key. The same key and canonical payload replay the initial HTTP status and domain result.",
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          },
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReleaseReservationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseReservationResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-request-body-max-bytes": 1048576,
+        "x-freeism-idempotency": {
+          "replayHttpStatus": "preserve-initial",
+          "replayDomainResult": true,
+          "requestIdMayBeRegenerated": true,
+          "sameKeyDifferentPayloadStatus": 409,
+          "sameKeyDifferentPayloadCode": "IDEMPOTENCY_KEY_REUSED"
+        },
+        "x-freeism-cache-control": "private, no-store",
+        "x-freeism-state-transition": {
+          "from": "ACTIVE",
+          "to": "RELEASED",
+          "capturedReleaseAllowed": false,
+          "onlyCallingClientOwnedResource": true
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "userOAuth": {
+        "type": "oauth2",
+        "description": "Opaque Authorization Code + PKCE access tokens for ordinary user operations. Refresh tokens may renew only this user scope set.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://points.freeism.app/api/auth/oauth2/authorize",
+            "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
+            "refreshUrl": "https://points.freeism.app/api/auth/oauth2/token",
+            "scopes": {
+              "openid": "OpenID Connect identity",
+              "profile": "Basic profile",
+              "offline_access": "Refresh token access",
+              "points.connection.read": "Read the active Points connection",
+              "points.balance.read": "Check point balances",
+              "points.reservations.create": "Create point reservations"
+            },
+            "x-freeism-pkce": {
+              "required": true,
+              "method": "S256"
+            }
+          }
+        },
+        "x-freeism-access-token-format": "opaque",
+        "x-freeism-principal-class": "user"
+      },
+      "connectionUnlinkOAuth": {
+        "type": "oauth2",
+        "description": "One-time Authorization Code + PKCE token after Google fresh authentication for normal unlink only.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://points.freeism.app/api/auth/oauth2/authorize",
+            "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
+            "scopes": {
+              "points.connection.unlink": "Deactivate exactly one active Points connection"
+            },
+            "x-freeism-pkce": {
+              "required": true,
+              "method": "S256"
+            }
+          }
+        },
+        "x-freeism-access-token-format": "opaque",
+        "x-freeism-principal-class": "connection-unlink",
+        "x-freeism-google-fresh-required": true
+      },
+      "settlementAdminOAuth": {
+        "type": "oauth2",
+        "description": "Dedicated Authorization Code + PKCE step-up for a 60 second, target-bound, one-use settlement retry assertion. It is not a resource Bearer for the eleven operations.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://points.freeism.app/api/auth/oauth2/authorize",
+            "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
+            "scopes": {
+              "points.admin.settlement.retry": "Authorize one target-bound settlement retry"
+            },
+            "x-freeism-pkce": {
+              "required": true,
+              "method": "S256"
+            }
+          }
+        },
+        "x-freeism-principal-class": "settlement-admin-step-up",
+        "x-freeism-assertion": {
+          "pointsAdminRequired": true,
+          "googleFreshRequired": true,
+          "boundTo": [
+            "auctionId",
+            "settlementId",
+            "reasonHash",
+            "marketsSession",
+            "pairwiseSubject"
+          ],
+          "maxTtlSeconds": 60,
+          "jtiSingleUse": true,
+          "refreshTokenAllowed": false
+        }
+      },
+      "m2mOAuth": {
+        "type": "oauth2",
+        "description": "Opaque Client Credentials access tokens for Markets Worker M2M operations only. No user subject, user scope, refresh token, redirect URI, connection read, balance read, reservation create, unlink, or admin step-up.",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
+            "scopes": {
+              "points.connection.link-attempt.create": "Create a link attempt",
+              "points.connection.link-attempt.finalize": "Finalize a link attempt",
+              "points.packages.auction-eligibility": "Check Point Package auction eligibility",
+              "points.reservations.status": "Read owned reservation statuses",
+              "points.reservations.capture": "Capture owned reservations",
+              "points.reservations.release": "Release an owned reservation"
+            }
+          }
+        },
+        "x-freeism-access-token-format": "opaque",
+        "x-freeism-principal-class": "m2m",
+        "x-freeism-user-subject-required": false
+      }
+    },
+    "responses": {
+      "RateLimited": {
+        "description": "RFC 9457 rate limit Problem Details",
+        "headers": {
+          "Cache-Control": {
+            "description": "Exact cache policy: private, no-store",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "private, no-store"
+            }
+          },
+          "Retry-After": {
+            "description": "Non-empty HTTP Retry-After value",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/RateLimitedProblem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "OpaqueId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255
+      },
+      "ReservationKey": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      },
+      "Sha256Hash": {
+        "type": "string",
+        "pattern": "^sha256:[0-9a-f]{64}$"
+      },
+      "UtcInstant": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "PriceTicks": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "PositiveSafeInteger": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 9007199254740991
+      },
+      "NonNegativeSafeInteger": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "SignedIntegerString": {
+        "type": "string",
+        "pattern": "^-?(0|[1-9][0-9]*)$",
+        "x-freeism-parse-safe-integer-required": true
+      },
+      "NonNegativeIntegerString": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)$",
+        "x-freeism-parse-safe-integer-required": true
+      },
+      "RequestMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": ["requestId"]
+      },
+      "ValidationError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "row": {
+            "$ref": "#/components/schemas/NonNegativeSafeInteger"
+          },
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": ["code"]
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "MALFORMED_REQUEST",
+              "AUTHENTICATION_REQUIRED",
+              "INVALID_ACCESS_TOKEN",
+              "INSUFFICIENT_SCOPE",
+              "RESOURCE_NOT_FOUND",
+              "CONTENT_TYPE_UNSUPPORTED",
+              "REQUEST_BODY_TOO_LARGE",
+              "VALIDATION_FAILED",
+              "IDEMPOTENCY_KEY_REQUIRED",
+              "IDEMPOTENCY_KEY_REUSED",
+              "RATE_LIMITED",
+              "INTERNAL_ERROR",
+              "DEPENDENCY_UNAVAILABLE",
+              "POINT_PACKAGE_AUCTION_INELIGIBLE",
+              "LINK_ATTEMPT_ALREADY_FINALIZED",
+              "ACTIVE_RESERVATION_EXISTS",
+              "INSUFFICIENT_BALANCE",
+              "POINT_RESERVATION_NOT_ACTIVE",
+              "POINT_RESERVATION_EXPIRED",
+              "RESERVATION_VECTOR_HASH_MISMATCH",
+              "SETTLEMENT_PLAN_HASH_MISMATCH"
+            ]
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
+      "RateLimitedProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 429
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "code": {
+            "type": "string",
+            "const": "RATE_LIMITED"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
+      "PublicPointPackageRevisionComponent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evaluationCriterionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "evaluationCriterionRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "displayOrder": {
+            "$ref": "#/components/schemas/NonNegativeSafeInteger"
+          },
+          "weight": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "minimumUnitScaled": {
+            "$ref": "#/components/schemas/SignedIntegerString"
+          },
+          "buyNowEnabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "evaluationCriterionId",
+          "evaluationCriterionRevisionId",
+          "name",
+          "displayOrder",
+          "weight",
+          "minimumUnitScaled",
+          "buyNowEnabled"
+        ]
+      },
+      "PublicPointPackageRevisionData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointPackageId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE"]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": ["string", "null"]
+          },
+          "relatedUrl": {
+            "type": ["string", "null"],
+            "format": "uri"
+          },
+          "totalWeight": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "packageTick": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "contentHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicPointPackageRevisionComponent"
+            },
+            "minItems": 1,
+            "x-freeism-sort": ["displayOrder:asc", "evaluationCriterionId:asc"]
+          }
+        },
+        "required": [
+          "pointPackageId",
+          "pointPackageRevisionId",
+          "status",
+          "name",
+          "description",
+          "relatedUrl",
+          "totalWeight",
+          "packageTick",
+          "contentHash",
+          "components"
+        ]
+      },
+      "PublicPointPackageRevisionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PublicPointPackageRevisionData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "AuctionEligibilityRequestItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "auctionItemId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointPackageId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "contentHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": [
+          "auctionItemId",
+          "pointPackageId",
+          "pointPackageRevisionId",
+          "contentHash"
+        ]
+      },
+      "AuctionEligibilityRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "auctionCommandId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "auctionCommandHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuctionEligibilityRequestItem"
+            },
+            "minItems": 1,
+            "maxItems": 1000,
+            "x-freeism-unique-by": "auctionItemId"
+          }
+        },
+        "required": ["auctionCommandId", "auctionCommandHash", "items"]
+      },
+      "AuctionEligibilityReceiptItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "auctionItemId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointPackageId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "contentHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "packageEligibilityVersion": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          }
+        },
+        "required": [
+          "auctionItemId",
+          "pointPackageId",
+          "pointPackageRevisionId",
+          "contentHash",
+          "packageEligibilityVersion"
+        ]
+      },
+      "AuctionEligibilityData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointPackageAuctionEligibilityReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "auctionCommandId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "auctionCommandHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuctionEligibilityReceiptItem"
+            },
+            "minItems": 1,
+            "maxItems": 1000,
+            "x-freeism-sort": ["auctionItemId:asc"]
+          },
+          "checkedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "validUntil": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "pointPackageAuctionEligibilityReceiptId",
+          "auctionCommandId",
+          "auctionCommandHash",
+          "items",
+          "checkedAt",
+          "validUntil"
+        ]
+      },
+      "AuctionEligibilityResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AuctionEligibilityData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "AuctionEligibilityItemError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "auctionItemId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "POINT_PACKAGE_NOT_FOUND",
+              "POINT_PACKAGE_REVISION_NOT_FOUND",
+              "POINT_PACKAGE_REVISION_MISMATCH",
+              "POINT_PACKAGE_REVISION_INACTIVE",
+              "POINT_PACKAGE_INACTIVE",
+              "CONTENT_HASH_MISMATCH"
+            ]
+          }
+        },
+        "required": ["auctionItemId", "code"]
+      },
+      "AuctionEligibilityProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 409
+          },
+          "code": {
+            "type": "string",
+            "const": "POINT_PACKAGE_AUCTION_INELIGIBLE"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuctionEligibilityItemError"
+            },
+            "minItems": 1,
+            "x-freeism-sort": ["auctionItemId:asc"]
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId", "errors"]
+      },
+      "IdempotencyKeyReusedProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 409
+          },
+          "code": {
+            "type": "string",
+            "const": "IDEMPOTENCY_KEY_REUSED"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
+      "CreateLinkAttemptRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "marketsUserId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "stateHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "pkceChallenge": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$"
+          },
+          "redirectUri": {
+            "type": "string",
+            "format": "uri"
+          },
+          "requestedScopes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "openid",
+                "profile",
+                "offline_access",
+                "points.connection.read",
+                "points.balance.read",
+                "points.reservations.create"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "returnUrlHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": [
+          "marketsUserId",
+          "stateHash",
+          "pkceChallenge",
+          "redirectUri",
+          "requestedScopes",
+          "expiresAt",
+          "returnUrlHash"
+        ]
+      },
+      "CreateLinkAttemptData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "linkAttemptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": ["linkAttemptId", "expiresAt"]
+      },
+      "CreateLinkAttemptResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateLinkAttemptData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "FinalizeLinkAttemptRequest": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": { "type": "string", "const": "CONFIRM" },
+              "marketsPointsConnectionId": { "$ref": "#/components/schemas/OpaqueId" },
+              "attemptPayloadHash": { "$ref": "#/components/schemas/Sha256Hash" },
+              "pointsIssuer": { "type": "string", "format": "uri" },
+              "pointsSubject": { "$ref": "#/components/schemas/OpaqueId" },
+              "userClientId": { "$ref": "#/components/schemas/OpaqueId" }
+            },
+            "required": [
+              "outcome",
+              "marketsPointsConnectionId",
+              "attemptPayloadHash",
+              "pointsIssuer",
+              "pointsSubject",
+              "userClientId"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "outcome": { "type": "string", "const": "CANCEL" },
+              "marketsPointsConnectionId": { "$ref": "#/components/schemas/OpaqueId" },
+              "attemptPayloadHash": { "$ref": "#/components/schemas/Sha256Hash" }
+            },
+            "required": ["outcome", "marketsPointsConnectionId", "attemptPayloadHash"]
+          }
+        ]
+      },
+      "FinalizeLinkAttemptData": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FinalizeLinkAttemptConfirmedData"
+          },
+          {
+            "$ref": "#/components/schemas/FinalizeLinkAttemptCancelledData"
+          }
+        ]
+      },
+      "FinalizeLinkAttemptConfirmedData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "linkAttemptFinalizationReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "linkAttemptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "marketsPointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "outcome": {
+            "type": "string",
+            "const": "CONFIRM"
+          },
+          "grantStatus": {
+            "type": "string",
+            "const": "ACTIVE"
+          },
+          "finalizedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "linkAttemptFinalizationReceiptId",
+          "linkAttemptId",
+          "marketsPointsConnectionId",
+          "outcome",
+          "grantStatus",
+          "finalizedAt"
+        ]
+      },
+      "FinalizeLinkAttemptCancelledData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "linkAttemptFinalizationReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "linkAttemptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "marketsPointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "outcome": {
+            "type": "string",
+            "const": "CANCEL"
+          },
+          "grantStatus": {
+            "type": "string",
+            "const": "CANCELLED"
+          },
+          "finalizedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "linkAttemptFinalizationReceiptId",
+          "linkAttemptId",
+          "marketsPointsConnectionId",
+          "outcome",
+          "grantStatus",
+          "finalizedAt"
+        ]
+      },
+      "FinalizeLinkAttemptResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FinalizeLinkAttemptData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "PointsConnectionData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "issuer": {
+            "type": "string",
+            "format": "uri"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "REAUTH_REQUIRED"]
+          },
+          "grantedScopes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "openid",
+                "profile",
+                "offline_access",
+                "points.connection.read",
+                "points.balance.read",
+                "points.reservations.create"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "grantVersion": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "linkedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "pointsConnectionId",
+          "issuer",
+          "subject",
+          "status",
+          "grantedScopes",
+          "grantVersion",
+          "linkedAt"
+        ]
+      },
+      "PointsConnectionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PointsConnectionData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "DeactivateConnectionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "deactivationKey": {
+            "$ref": "#/components/schemas/OpaqueId",
+            "x-freeism-must-equal-header": "Idempotency-Key"
+          }
+        },
+        "required": ["pointsConnectionId", "reason", "deactivationKey"]
+      },
+      "DeactivateConnectionData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "connectionDeactivationReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointsConnectionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "status": {
+            "type": "string",
+            "const": "UNLINKED"
+          },
+          "grantVersion": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "deactivatedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "connectionDeactivationReceiptId",
+          "pointsConnectionId",
+          "status",
+          "grantVersion",
+          "reason",
+          "deactivatedAt"
+        ]
+      },
+      "DeactivateConnectionResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeactivateConnectionData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "BalanceCheckRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "priceTicks": {
+            "$ref": "#/components/schemas/PriceTicks"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          }
+        },
+        "required": ["pointPackageRevisionId", "priceTicks", "quantity"]
+      },
+      "BalanceCheckComponent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evaluationCriterionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "evaluationCriterionRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "requiredAmountScaled": {
+            "$ref": "#/components/schemas/NonNegativeIntegerString"
+          },
+          "availableBalanceScaled": {
+            "$ref": "#/components/schemas/SignedIntegerString"
+          },
+          "sufficient": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "evaluationCriterionId",
+          "evaluationCriterionRevisionId",
+          "requiredAmountScaled",
+          "availableBalanceScaled",
+          "sufficient"
+        ]
+      },
+      "BalanceCheckData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "priceTicks": {
+            "$ref": "#/components/schemas/PriceTicks"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceCheckComponent"
+            },
+            "minItems": 1,
+            "x-freeism-sort": ["evaluationCriterionId:asc"]
+          },
+          "canReserve": {
+            "type": "boolean"
+          },
+          "checkedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "pointPackageRevisionId",
+          "priceTicks",
+          "quantity",
+          "vectorHash",
+          "components",
+          "canReserve",
+          "checkedAt"
+        ]
+      },
+      "BalanceCheckResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BalanceCheckData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "CreateReservationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "marketsUserId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "priceTicks": {
+            "$ref": "#/components/schemas/PriceTicks"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "leaseSeconds": {
+            "type": "integer",
+            "const": 900
+          }
+        },
+        "required": [
+          "reservationKey",
+          "marketsUserId",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "pointPackageRevisionId",
+          "priceTicks",
+          "quantity",
+          "leaseSeconds"
+        ]
+      },
+      "ReservationComponent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evaluationCriterionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "evaluationCriterionRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "amountScaled": {
+            "$ref": "#/components/schemas/NonNegativeIntegerString"
+          }
+        },
+        "required": [
+          "evaluationCriterionId",
+          "evaluationCriterionRevisionId",
+          "amountScaled"
+        ]
+      },
+      "CreateReservationData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "ACTIVE"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "pointPackageRevisionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "priceTicks": {
+            "$ref": "#/components/schemas/PriceTicks"
+          },
+          "quantity": {
+            "$ref": "#/components/schemas/PositiveSafeInteger"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "components": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservationComponent"
+            },
+            "minItems": 1
+          },
+          "leaseSeconds": {
+            "type": "integer",
+            "const": 900
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "pointPackageRevisionId",
+          "priceTicks",
+          "quantity",
+          "vectorHash",
+          "components",
+          "leaseSeconds",
+          "createdAt",
+          "expiresAt"
+        ]
+      },
+      "CreateReservationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CreateReservationData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "ReservationStatusByIdRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lookupBy": {
+            "type": "string",
+            "const": "POINT_RESERVATION_ID"
+          },
+          "pointReservationIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpaqueId"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": ["lookupBy", "pointReservationIds"]
+      },
+      "ReservationStatusByKeyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lookupBy": {
+            "type": "string",
+            "const": "RESERVATION_KEY"
+          },
+          "reservationKeys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservationKey"
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": ["lookupBy", "reservationKeys"]
+      },
+      "ReservationStatusRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ReservationStatusByIdRequest"
+          },
+          {
+            "$ref": "#/components/schemas/ReservationStatusByKeyRequest"
+          }
+        ]
+      },
+      "ReservationStatusItem": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ActiveReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/CapturedReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/ReleasedReservationStatusItem"
+          },
+          {
+            "$ref": "#/components/schemas/ExpiredReservationStatusItem"
+          }
+        ]
+      },
+      "ActiveReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "ACTIVE"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "type": "null"
+          },
+          "terminalReceiptId": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "CapturedReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "CAPTURED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "ReleasedReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "RELEASED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "ExpiredReservationStatusItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reservationKey": {
+            "$ref": "#/components/schemas/ReservationKey"
+          },
+          "status": {
+            "type": "string",
+            "const": "EXPIRED"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "terminalReceiptId": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpaqueId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "pointReservationId",
+          "reservationKey",
+          "status",
+          "auctionId",
+          "settlementId",
+          "planHash",
+          "vectorHash",
+          "createdAt",
+          "expiresAt",
+          "terminalAt",
+          "terminalReceiptId"
+        ]
+      },
+      "ReservationStatusData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservationStatusItem"
+            }
+          }
+        },
+        "required": ["items"]
+      },
+      "ReservationStatusResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReservationStatusData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "CaptureReservationRequestItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "expectedVectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": ["pointReservationId", "expectedVectorHash"]
+      },
+      "CaptureSettlementRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "reservations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaptureReservationRequestItem"
+            },
+            "minItems": 1,
+            "x-freeism-unique-by": "pointReservationId"
+          }
+        },
+        "required": ["auctionId", "planHash", "reservations"]
+      },
+      "CaptureReservationResponseItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "vectorHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "status": {
+            "type": "string",
+            "const": "CAPTURED"
+          }
+        },
+        "required": ["pointReservationId", "vectorHash", "status"]
+      },
+      "CaptureSettlementData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "captureReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "settlementId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "auctionId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "status": {
+            "type": "string",
+            "const": "CAPTURED"
+          },
+          "reservations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaptureReservationResponseItem"
+            },
+            "minItems": 1,
+            "x-freeism-sort": ["pointReservationId:asc"]
+          },
+          "capturedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "contentHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": [
+          "captureReceiptId",
+          "settlementId",
+          "auctionId",
+          "planHash",
+          "status",
+          "reservations",
+          "capturedAt",
+          "contentHash"
+        ]
+      },
+      "CaptureSettlementResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CaptureSettlementData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      },
+      "InsufficientBalanceProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 409
+          },
+          "code": {
+            "type": "string",
+            "const": "INSUFFICIENT_BALANCE"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "insufficientReservationIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpaqueId"
+            },
+            "minItems": 1,
+            "uniqueItems": true,
+            "x-freeism-sort": ["value:asc"]
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "requestId",
+          "insufficientReservationIds"
+        ]
+      },
+      "CaptureConflictProblem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "const": 409
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "IDEMPOTENCY_KEY_REUSED",
+              "POINT_RESERVATION_NOT_ACTIVE",
+              "POINT_RESERVATION_EXPIRED",
+              "RESERVATION_VECTOR_HASH_MISMATCH",
+              "SETTLEMENT_PLAN_HASH_MISMATCH"
+            ]
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          }
+        },
+        "required": ["type", "title", "status", "code", "requestId"]
+      },
+      "ReleaseReservationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": ["pointReservationId", "reason", "planHash"]
+      },
+      "ReleaseReservationData": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "releaseReceiptId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "pointReservationId": {
+            "$ref": "#/components/schemas/OpaqueId"
+          },
+          "status": {
+            "type": "string",
+            "const": "RELEASED"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "planHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          },
+          "releasedAt": {
+            "$ref": "#/components/schemas/UtcInstant"
+          },
+          "contentHash": {
+            "$ref": "#/components/schemas/Sha256Hash"
+          }
+        },
+        "required": [
+          "releaseReceiptId",
+          "pointReservationId",
+          "status",
+          "reason",
+          "planHash",
+          "releasedAt",
+          "contentHash"
+        ]
+      },
+      "ReleaseReservationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReleaseReservationData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        },
+        "required": ["data", "meta"]
+      }
+    }
+  }
+}

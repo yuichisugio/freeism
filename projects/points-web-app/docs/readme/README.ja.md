@@ -10,7 +10,7 @@
 - 未受領FIXと外部URL・外部アカウント所有権の検証
 - Pointsの認証とMarketsへのOAuth Provider/API提供
 
-商材の出品、Auctionの作成・入札・落札はMarketsの責務です。Taskとグループ機能はv0.2では実装しません。
+商材情報を含むAuctionの作成・入札・落札はMarketsの責務です。Marketsは独立したListing resourceを持ちません。Taskとグループ機能はv0.2では実装しません。
 
 ## 技術方針
 

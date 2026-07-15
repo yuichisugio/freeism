@@ -20,6 +20,8 @@
 - `trustedOrigins`は環境ごとの当該アプリ完全一致originだけとする。
 - OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
 - Points OAuthは環境別pairwise secretと`subject_type=pairwise`を標準pluginで使い、public subjectを発行しない。
+- Points OAuth Providerは`disableJwtPlugin: true`でAccess Tokenをopaqueにし、標準confidential remote introspectionの`active`、issuer、audience/resource、client、scope、期限と、利用者Tokenだけのpairwise subjectを検証する。利用者用、M2M用、Settlement retry用Client IDを分け、credentialは利用するWorkerの環境別Secretだけに置いてbrowserへ出さない。JWT Access Tokenの内部Points user IDをMarketsへ公開しない。
+- Client Credentialsもopaqueだが、別Clientの利用者scopeとM2M scopeを互いに素にする。利用者用Client＋pairwise `sub`あり＋利用者scopeだけを利用者principal、M2M用Client＋利用者`sub`なし＋M2M scopeだけをM2M principalへ分類し、独自token-class claim、Service Binding、Tokenの外形、emailを認可根拠にしない。
 - private/認証responseは`Cache-Control: private, no-store`。
 
 Better Authの詳細は[認証仕様](./authentication.md)を正本とする。
@@ -53,7 +55,7 @@ Settlement手動retryはMarkets内に別ADMIN roleを作らない。Marketsか�
 
 - browserは各アプリの同一origin`/api/*`だけを呼ぶ。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
-- mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、Points–MarketsのM2M listing eligibility／reservation status／一括capture／release requestだけ1MiBとする。listing eligibilityの追加はDEC-256承認対象である。
+- mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、Points–MarketsのM2M Point Package Auction eligibility／reservation status／一括capture／release requestだけ1MiBとする。Auction eligibilityの1MiB上限はDEC-256で確定している。
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
 - important mutationは`Idempotency-Key`必須。
 - 同じkey・同じpayloadは同じ結果、異なるpayloadは409。
@@ -121,7 +123,7 @@ URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/
 - attachmentはIDとlast sequenceだけ。secret、AutoBid上限、sessionを保存しない。
 - heartbeat timerを使わない。
 - D1 CAS commit後だけbroadcastし、version/seq gapはHTTP snapshotでresyncする。
-- seller自己入札、終了後bid、listing economic field変更をserver/DO/D1で拒否する。
+- seller自己入札、終了後bid、Auction economic field変更をserver/DO/D1で拒否する。
 
 ## 8. 初期rate limit
 
@@ -139,7 +141,7 @@ URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/
 | URL検証               | user + normalized URL                 | 1時間5回                                   |
 | URL検証               | user                                  | 1日30回                                    |
 | CSV validation/commit | ADMIN + 評価軸                        | 1分2回、1時間10回                          |
-| listing／Auction CSV  | Markets user + operation              | 1分2回、1時間10回                          |
+| Auction CSV           | Markets user + operation              | 1分2回、1時間10回                          |
 | settlement手動retry   | Points ADMIN + Markets user + Auction | 1時間5回、single-flight、assertion 1回消費 |
 
 idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
@@ -160,7 +162,7 @@ PointsとMarketsはenvironment別のSite Key／Secretとtoken replay tableをそ
 | Points  | CSV validate／commit                  | `points_csv`               |
 | Points  | 未受領FIX claim confirm               | `points_claim`             |
 | Markets | Google OAuth／Points link・unlink開始 | `markets_oauth_start`      |
-| Markets | listing／Auction CSV validate／commit | `markets_csv`              |
+| Markets | Auction CSV validate／commit          | `markets_csv`              |
 | Markets | bid／buy-now                          | `markets_bid`              |
 | Markets | WebSocket upgrade                     | `markets_ws_upgrade`       |
 | Markets | Settlement手動retry confirm           | `markets_settlement_retry` |
@@ -230,7 +232,7 @@ ADMINによる不正FIX、複数アカウントの談合、seller/buyerの虚偽
 - `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、非個人のresource ID hashをindexに使う。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
 - app D1に`ops_alerts`を持ち、`alertKey`、type、resource ID hash、`OPEN|RESOLVED`、first／last observed、last notified、repeat count、safe detail codeを保存する。`OPEN`は期間で削除せず、`RESOLVED`だけを`resolvedAt`から180日保持する。5分monitor内の1日1回leaseで期限到来行を削除し、cutoff、削除件数、実行結果をappend-only auditへ残す。179日23:59:59は保持し、180日ちょうどを削除対象とする。
 - 各Workerの5分Cron monitorがD1の正本状態を照会し、同じ`alertKey`へ冪等upsertする。`OPEN`遷移時、継続1時間ごと、`RESOLVED`遷移時だけ固定destinationの`OPS_ALERT_EMAIL` Email Routing bindingへ通知する。宛先はverified destinationとしてWrangler/IaCで固定し、request入力から選ばない。送信失敗はalert rowを未通知のまま保持し次回再送する。
-- Cloudflare native NotificationはWorker runtime error／5xx率／usage threshold用とし、app固有D1状態のalertを代替しない。custom条件はCron monitorが判定する。
+- Cloudflare native Notificationは、公式alert typeで確認できるincident／5xx率／usage threshold用とする。Worker runtime exception専用typeは捏造せずWorkers Logs／Tracesと相関し、app固有D1状態のalertはCron monitorが判定する。
 
 初期alert条件は次を正本とする。durationはD1/server時刻で判定し、単発metric欠落だけでalertを閉じない。
 
@@ -254,16 +256,16 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 2026-07-11調査baseline:
 
-- Node `24.18.0`
+- Node `26.x`（minimum `>=24.11.0`）
 - pnpm `10.33.3`
 - Vite Plus `0.2.4`
 - TanStack Start `1.168.27`
-- Hono `4.12.29`
+- Hono `4.12.28`
 - Drizzle ORM `0.45.2`
 - Drizzle Kit `0.31.10`
-- Wrangler `4.110.0`
-- `@cloudflare/vite-plugin` `1.44.0`
-- `@cloudflare/vitest-pool-workers` `0.18.4`
+- Wrangler `4.108.0`
+- `@cloudflare/vite-plugin` `1.43.2`
+- `@cloudflare/vitest-pool-workers` `0.18.2`
 - Better Auth一式 `1.7.0-rc.1`は開発/stagingだけ
 
 直接dependencyは`^`、`~`、`latest`を使わず完全固定する。lockfileをcommitし、同じpackage群のBetter Auth versionを混在させない。
@@ -287,6 +289,8 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Actionsはfull commit SHAへ固定し、permissionsはjob最小にする。
 - fork/PR由来cache、artifact、environment値をproduction deployへ流用しない。
 - production secretsはmain push workflowのproduction jobだけが参照する。
+- `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
+- prerender buildは追跡済み`.dev.vars.example`のdummy値だけをbuild step内へ読み込み、実Worker Secretをartifactへ渡さない。deployは別stepで実行し、dummy環境変数を引き継がない。
 - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
 ## 15. main ruleset
@@ -312,27 +316,31 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 6. build、Static Assets routing検証
 7. dependency/advisory/license policy
 
-### main push
+### `test/*` push
 
 1. validate
 2. staging artifact build (`CLOUDFLARE_ENV=staging`)
 3. Points staging migration/deploy
 4. Markets staging migration/deploy
-5. staging E2E/reconciliation
-6. production artifact build (`CLOUDFLARE_ENV=production`)
-7. Points production migration/deploy
-8. Markets production migration/deploy
-9. production smoke
+5. staging smoke
+
+### `main` push
+
+1. production release gateとvalidate
+2. production artifact build (`CLOUDFLARE_ENV=production`)
+3. Points production migration/deploy
+4. Markets production migration/deploy
+5. production smoke
 
 - production手動approvalを置かない。
-- staging failure時はproductionを変更しない。
-- `cancel-in-progress=false`、productionは直列queue、後続run上限を設定する。
-- unrelated projectだけの変更ではweb appsをdeployしない。
+- testとproductionは独立workflowとし、test workflowからproductionへ昇格しない。
+- 両workflowは固定concurrency group、`queue: max`、`cancel-in-progress=false`で直列化し、実行中migrationをcancelしない。
+- branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
 - public per-PR previewは作らない。
 
 ## 17. 環境とIaC所有権
 
-- `local`、`staging`、`production`でWorker、D1、DO namespace、Workflow、OAuth app/client、Secretsを分離する。
+- `local`、`staging`、`production`でWorker、D1、DO namespace、Workflow、OAuth app/client、Secretsを分離する。`staging`は共有test環境のCloudflare内部名である。
 - Wrangler/Vite plugin: Worker binding、named environment、Static Assets、custom domain route、migration tag。
 - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
 - 同じresourceをTerraformとWranglerで二重管理しない。
@@ -373,7 +381,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Google/GitHub Points login/linkとGoogle fresh
 - Markets Google login、Points明示link
 - FIX CSVから未受領claim
-- listing/Auction/bid/AutoBid/WS resync
+- Auction/bid/AutoBid/WS resync
 - settlement/proof/review
 - public/private profile
 

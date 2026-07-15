@@ -69,7 +69,7 @@
 
 - package名を `docs-web-app` に変更し、root script、lockfile importer、Husky、CODEOWNERS、README、Issue/PR templateの参照を更新する。
 - `freeism.app` と `www.freeism.app` をPointsへ恒久転送する現行仕様は、新しいポータルを正本とする決定で上書きする。
-- 既存のVercel preview workflowはlockfile変更だけで旧WebアプリのデプロイとテストDB migrationを実行し得るため、`projects/web-app` の実変更時だけ発火するpath guardへ狭める。
+- 実装時点では既存Vercel workflowを`projects/web-app`の実変更時だけ発火するpath guardへ狭める。最新mainとの統合時はlegacy workflow自体が削除済みのため、削除を優先して復活させない。
 - DNS、Cloudflare custom domain、ホスティングプロジェクトの外部設定はこのブランチの対象外とする。
 
 ## 検証

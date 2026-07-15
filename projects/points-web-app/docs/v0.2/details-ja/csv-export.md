@@ -33,7 +33,7 @@ Task、Group、Analytics draft、通知データはv0.2に存在しないため�
 
 ## 4. Snapshotとcursor contract
 
-> 本節の50,000行／50MiB、8KiB row、1,000行／8MiB page、30分cursor、100行read／2MiB bufferはDEC-258の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節の50,000行／50MiB、8KiB row、1,000行／8MiB page、30分cursor、100行read／2MiB bufferはDEC-258で確定している。
 
 ### 4.1 API
 

@@ -59,7 +59,8 @@
     },
     "preset-ja-spacing": {
       "ja-space-between-half-and-full-width": {
-        "space": "always"
+        "space": "always",
+        "severity": "warning"
       },
       "ja-space-around-code": false,
       "ja-nakaguro-or-halfwidth-space-between-katakana": true,

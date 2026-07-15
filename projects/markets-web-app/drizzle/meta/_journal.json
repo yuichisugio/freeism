@@ -1,0 +1,90 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1783947875982,
+      "tag": "0000_markets-auth",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1783949488672,
+      "tag": "0001_points-oauth-connection",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783950355485,
+      "tag": "0002_markets-domain",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1783953675926,
+      "tag": "0003_auction-command-guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783955285757,
+      "tag": "0004_settlement-saga",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783957059888,
+      "tag": "0005_settlement-reservation-rounds",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1783958937176,
+      "tag": "0006_buy-now-restore-outbox",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1783961075522,
+      "tag": "0007_settlement-proof",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1783994780416,
+      "tag": "0008_settlement-admin-retry",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1783999398840,
+      "tag": "0009_proof-review",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1784001608545,
+      "tag": "0010_watchlist",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1784004699607,
+      "tag": "0011_ops-alert-maintenance",
+      "breakpoints": true
+    }
+  ]
+}

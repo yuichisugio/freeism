@@ -67,11 +67,11 @@
 - profileまたは評価軸別設定の`PRIVATE -> PUBLIC`を含む公開範囲拡大
 - ADMIN、FIX、評価軸、パッケージ、OAuth clientに関する管理操作
 
-GitHubだけで作成したユーザーが重要操作を始める場合、同じsessionからGoogleを明示linkし、署名済みID Tokenの`sub`、`nonce`、`iss`、`aud`、`auth_time`を検証できた時だけstep-upを成立させる。
+GitHubだけで作成したユーザーが重要操作を始める場合、同じsessionからGoogleを明示linkし、署名済みID Tokenの`sub`、`iss`、`aud`、`auth_time`を検証できた時だけstep-upを成立させる。`nonce`はBetter Auth 1.7正式版の標準対応をstaging live gateで再確認し、独自hookでは補わない。
 
 ## 6. Account closeと再開
 
-> 本節のclose中FIX保留、永久ownership再有効化、`reopenSetHash`、正負一括claim、汎用Web非復元はDEC-261の承認対象であり、`採用`へ変わるまで実装しない。
+> 本節のclose中FIX保留、永久ownership再有効化、`reopenSetHash`、正負一括claim、汎用Web非復元はDEC-261で確定している。
 
 - `POST /api/account/close`はGoogle freshを要求し、ACTIVE reservationが1件でもあれば`409 ACCOUNT_CLOSE_ACTIVE_RESERVATION`、対象が最後のADMINなら`409 ACCOUNT_CLOSE_LAST_ADMIN`で何も変更しない。
 - closeはSessionとconsentを失効し公開属性を匿名化するが、不変`pointsUserId`、経済台帳、残高、永久OAuth主体対応を削除しない。永久OAuth主体のownership利用は`INACTIVE`へ進め、close中に到着した正負の新規FIXをledgerへ入れず未受領で保留する。

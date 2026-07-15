@@ -10,13 +10,13 @@ const canonicalFiles = [
     name: "Japanese main document",
     file: new URL("./freeism.ja.md", import.meta.url),
     originMainSha256:
-      "87350f6bc9d5f5b334c620bcc1ee7371cd7e4e96529291107d45753d7c9635c8",
+      "842f1e243dbb229cada8bf52b220b60f3c68b76b7bb711890bbb8d19405d2bf4",
   },
   {
     name: "English main document",
     file: new URL("./freeism.en.md", import.meta.url),
     originMainSha256:
-      "334dc29c17d75763f3b12734824eaf2e4fd12c7665325b0f0a39b22285efba4d",
+      "7fa2ac28062b8b5f2acb6d637891d0e0032a2498ac36074bba40e445be743dc5",
   },
   {
     name: "Japanese notes",
@@ -57,7 +57,7 @@ const countMermaidFences = (markdown: string) =>
 
 describe("Blume canonical content", () => {
   it.each(canonicalFiles)(
-    "keeps $name byte-identical to branch base origin/main a8659964",
+    "keeps $name byte-identical to the latest merged origin/main source",
     async ({ file, originMainSha256 }) => {
       const contents = await readFile(file);
       const actualSha256 = createHash("sha256").update(contents).digest("hex");
