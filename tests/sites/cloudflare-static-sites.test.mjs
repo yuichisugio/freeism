@@ -74,9 +74,9 @@ const SITE_CONTRACTS = [
       "deploy:staging": "wrangler deploy --env staging",
       "deploy:production": "wrangler deploy --env production",
       "smoke:staging":
-        'node ../../scripts/sites/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text "無料主義 v3" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes/ --link https://docs.freeism.app/en/notes/',
+        'node ../../scripts/sites/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text "無料主義 v3" --link https://staging.docs.freeism.app/en/ --link https://staging.docs.freeism.app/notes',
       "smoke:production":
-        'node ../../scripts/sites/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text "無料主義 v3" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes/ --link https://docs.freeism.app/en/notes/',
+        'node ../../scripts/sites/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text "無料主義 v3" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes',
     },
   },
 ];
@@ -114,11 +114,14 @@ test("validates representative portal and docs HTML", async () => {
       html: `<!doctype html><html><head><link href="https://freeism.app/" rel="canonical"></head><body><h1>Freeism</h1><a href="https://docs.freeism.app/">Docs</a><a href="https://points.freeism.app/">Points</a></body></html>`,
     },
     {
-      baseUrl: "https://docs.freeism.app/",
+      baseUrl: "https://staging.docs.freeism.app/",
       canonicalUrl: "https://docs.freeism.app/",
       requiredText: ["無料主義 v3"],
-      requiredLinks: ["https://docs.freeism.app/en/", "https://docs.freeism.app/notes/"],
-      html: `<!doctype html><html><head><link rel='canonical' href='/'></head><body><h1>無料主義 v3</h1><a href="https://docs.freeism.app/en/">English</a><a href="https://docs.freeism.app/notes/">Notes</a></body></html>`,
+      requiredLinks: [
+        "https://staging.docs.freeism.app/en/",
+        "https://staging.docs.freeism.app/notes",
+      ],
+      html: `<!doctype html><html><head><link rel='canonical' href='https://docs.freeism.app/'></head><body><h1>無料主義 v3</h1><a href="/en/">English</a><a href="/notes">Notes</a></body></html>`,
     },
   ];
 
@@ -200,6 +203,37 @@ test("rejects a missing required link", async () => {
         new Response('<link rel="canonical" href="/"><a href="/other/">Other</a>', {
           status: 200,
         }),
+    }),
+    /missing required link/,
+  );
+});
+
+test("resolves actual anchor hrefs against the requested environment URL", async () => {
+  await validateStaticSite({
+    baseUrl: "https://staging.example.test/",
+    canonicalUrl: "https://example.test/",
+    requiredText: [],
+    requiredLinks: ["https://staging.example.test/notes"],
+    fetchImpl: async () =>
+      new Response(
+        '<link rel="canonical" href="https://example.test/"><a href="/notes">Notes</a>',
+        { status: 200 },
+      ),
+  });
+});
+
+test("does not treat text or script fragments as anchor links", async () => {
+  await assert.rejects(
+    validateStaticSite({
+      baseUrl: "https://example.test/",
+      canonicalUrl: "https://example.test/",
+      requiredText: [],
+      requiredLinks: ["https://example.test/required/"],
+      fetchImpl: async () =>
+        new Response(
+          '<link rel="canonical" href="/"><script>const link = "https://example.test/required/";</script>',
+          { status: 200 },
+        ),
     }),
     /missing required link/,
   );

@@ -4,20 +4,38 @@ const ATTEMPTS = 3;
 const RETRY_DELAY_MS = 1_000;
 const REQUEST_TIMEOUT_MS = 10_000;
 
+function tagAttributes(tag) {
+  const attributes = new Map();
+  const pattern = /\b([a-z][\w:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/giu;
+  for (const match of tag.matchAll(pattern)) {
+    attributes.set(match[1].toLowerCase(), match[2] ?? match[3] ?? match[4]);
+  }
+  return attributes;
+}
+
 function canonicalHref(html) {
   for (const tag of html.match(/<link\b[^>]*>/giu) ?? []) {
-    const attributes = new Map();
-    const pattern = /\b([a-z][\w:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/giu;
-    for (const match of tag.matchAll(pattern)) {
-      attributes.set(match[1].toLowerCase(), match[2] ?? match[3] ?? match[4]);
-    }
-
+    const attributes = tagAttributes(tag);
     const rel = attributes.get("rel")?.toLowerCase().split(/\s+/u) ?? [];
     if (rel.includes("canonical")) {
       return attributes.get("href");
     }
   }
   return undefined;
+}
+
+function resolvedAnchorHrefs(html, baseUrl) {
+  const hrefs = new Set();
+  for (const tag of html.match(/<a\b[^>]*>/giu) ?? []) {
+    const href = tagAttributes(tag).get("href");
+    if (!href) continue;
+    try {
+      hrefs.add(new URL(href, baseUrl).href);
+    } catch {
+      // Ignore invalid links; they cannot satisfy a required URL.
+    }
+  }
+  return hrefs;
 }
 
 export async function validateStaticSite({
@@ -50,8 +68,9 @@ export async function validateStaticSite({
       throw new Error("missing required text");
     }
   }
+  const anchorHrefs = resolvedAnchorHrefs(html, baseUrl);
   for (const link of requiredLinks) {
-    if (!html.includes(link)) {
+    if (!anchorHrefs.has(new URL(link).href)) {
       throw new Error("missing required link");
     }
   }
