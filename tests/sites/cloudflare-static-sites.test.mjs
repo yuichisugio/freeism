@@ -238,3 +238,26 @@ test("does not treat text or script fragments as anchor links", async () => {
     /missing required link/,
   );
 });
+
+for (const [location, fragment] of [
+  [
+    "raw text",
+    '<script>const template = \'<a href="/required/">Required</a>\';</script>',
+  ],
+  ["a style element", '<style><a href="/required/">Required</a></style>'],
+  ["an HTML comment", '<!-- <a href="/required/">Required</a> -->'],
+]) {
+  test(`does not treat a complete anchor fragment in ${location} as a link`, async () => {
+    await assert.rejects(
+      validateStaticSite({
+        baseUrl: "https://example.test/",
+        canonicalUrl: "https://example.test/",
+        requiredText: [],
+        requiredLinks: ["https://example.test/required/"],
+        fetchImpl: async () =>
+          new Response(`<link rel="canonical" href="/">${fragment}`, { status: 200 }),
+      }),
+      /missing required link/,
+    );
+  });
+}

@@ -26,7 +26,11 @@ function canonicalHref(html) {
 
 function resolvedAnchorHrefs(html, baseUrl) {
   const hrefs = new Set();
-  for (const tag of html.match(/<a\b[^>]*>/giu) ?? []) {
+  const activeMarkup = html.replace(
+    /<!--[\s\S]*?(?:-->|$)|<(script|style)\b[^>]*>[\s\S]*?(?:<\/\1\s*>|$)/giu,
+    "",
+  );
+  for (const tag of activeMarkup.match(/<a\b[^>]*>/giu) ?? []) {
     const href = tagAttributes(tag).get("href");
     if (!href) continue;
     try {
