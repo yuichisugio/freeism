@@ -131,6 +131,8 @@ git commit -m "feat: configure portal and docs Workers delivery"
 - Create: `.github/workflows/main-docs-cloudflare-production.yml`
 - Create: `.github/workflows/main-docs-ci.yml`
 - Create: `tests/sites/cloudflare-site-workflows.test.mjs`
+- Modify: `.github/workflows/cloudflare-test.yml`
+- Modify: `.github/workflows/cloudflare-production.yml`
 
 **Interfaces:**
 - Consumes the eight package scripts from Task 1.
@@ -154,6 +156,8 @@ pnpm-workspace.yaml
 the corresponding workflow file itself
 ```
 
+Assert the existing Points/Markets deploy workflows use `paths-ignore` so a push containing only portal/docs delivery files cannot run their D1 migrations or Worker deploys. The ignored set must cover `projects/main-web-app/**`, `projects/docs-web-app/**`, `scripts/sites/**`, `tests/sites/**`, `docs/superpowers/**`, the three Task 3 documentation paths, the two Task 3 Terraform module paths, `pnpm-lock.yaml`, every `main-docs-*.yml` workflow, and the corresponding existing deploy workflow itself. A push that also changes any Points/Markets or shared runtime path remains eligible to run.
+
 For deploy workflows assert order: frozen install; both package tests/checks/builds; main deploy; docs deploy; main smoke; docs smoke. For PR validation assert frozen install followed by both package tests/checks/builds and both contract tests, with no Environment, secret, deploy, or smoke reference. Assert no Points/Markets package name, migration command, Terraform apply, `pull_request_target`, `workflow_dispatch`, or global install appears.
 
 - [ ] **Step 2: Verify RED**
@@ -170,6 +174,8 @@ Expected: FAIL because the three workflows do not exist.
 
 Use `ubuntu-24.04`, `timeout-minutes: 30`, and `CI: "true"` in all workflows. Set `WRANGLER_SEND_METRICS: "false"` only in deploy workflows. Use concurrency groups `freeism-main-docs-staging-deploy` and `freeism-main-docs-production-deploy`. Build/test/check each package before any deploy. Deploy and smoke portal before docs so the portal never points to a newly failed docs build. The PR workflow runs `node --test tests/sites/*.test.mjs` after the package builds and has no Cloudflare credentials.
 
+Add the tested `paths-ignore` list to the existing Points/Markets staging and production workflows without changing any job, migration, deploy, secret, or concurrency behavior.
+
 - [ ] **Step 4: Verify GREEN**
 
 Run:
@@ -183,7 +189,7 @@ Expected: PASS with all workflow safety and order assertions.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add .github/workflows/main-docs-ci.yml .github/workflows/main-docs-cloudflare-test.yml .github/workflows/main-docs-cloudflare-production.yml tests/sites/cloudflare-site-workflows.test.mjs
+git add .github/workflows/main-docs-ci.yml .github/workflows/main-docs-cloudflare-test.yml .github/workflows/main-docs-cloudflare-production.yml .github/workflows/cloudflare-test.yml .github/workflows/cloudflare-production.yml tests/sites/cloudflare-site-workflows.test.mjs
 git commit -m "ci: deploy portal and docs to Cloudflare"
 ```
 
