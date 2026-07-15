@@ -23,7 +23,7 @@ run "staging_edge_contract" {
   }
 
   assert {
-    condition     = length(cloudflare_dns_record.apex) == 0 && length(cloudflare_dns_record.www) == 0 && length(cloudflare_ruleset.root_redirect) == 0 && length(cloudflare_ruleset.managed_waf) == 0 && length(cloudflare_ruleset.edge_rate_limit) == 0
+    condition     = length(cloudflare_dns_record.www) == 0 && length(cloudflare_ruleset.root_redirect) == 0 && length(cloudflare_ruleset.managed_waf) == 0 && length(cloudflare_ruleset.edge_rate_limit) == 0
     error_message = "the staging workspace must not own zone-wide resources"
   }
 
@@ -50,13 +50,13 @@ run "production_shared_edge_contract" {
   }
 
   assert {
-    condition     = cloudflare_dns_record.apex[0].name == "freeism.app" && cloudflare_dns_record.apex[0].proxied && cloudflare_dns_record.www[0].name == "www.freeism.app" && cloudflare_dns_record.www[0].proxied
-    error_message = "production must canonically own the proxied apex and www records"
+    condition     = length(cloudflare_dns_record.www) == 1 && cloudflare_dns_record.www[0].name == "www.freeism.app" && cloudflare_dns_record.www[0].proxied
+    error_message = "production Terraform must own only the proxied www redirect endpoint; Wrangler owns the apex"
   }
 
   assert {
-    condition     = cloudflare_ruleset.root_redirect[0].rules[0].action == "redirect" && cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.status_code == 301 && !cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.preserve_query_string && cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.target_url.value == "https://points.freeism.app/"
-    error_message = "apex and www must permanently redirect to the canonical Points root without retaining path or query"
+    condition     = cloudflare_ruleset.root_redirect[0].rules[0].action == "redirect" && cloudflare_ruleset.root_redirect[0].rules[0].expression == "http.host eq \"www.freeism.app\"" && cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.status_code == 301 && !cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.preserve_query_string && cloudflare_ruleset.root_redirect[0].rules[0].action_parameters.from_value.target_url.value == "https://freeism.app/"
+    error_message = "www must permanently redirect to the canonical portal root without retaining path or query"
   }
 
   assert {
