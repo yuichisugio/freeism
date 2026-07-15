@@ -43,6 +43,30 @@ const WORKFLOWS = {
   },
 };
 
+const APP_DEPLOY_WORKFLOWS = {
+  staging: {
+    path: ".github/workflows/cloudflare-test.yml",
+  },
+  production: {
+    path: ".github/workflows/cloudflare-production.yml",
+  },
+};
+
+const PORTAL_DOCS_DELIVERY_PATHS = [
+  "projects/main-web-app/**",
+  "projects/docs-web-app/**",
+  "scripts/sites/**",
+  "tests/sites/**",
+  "docs/superpowers/**",
+  "docs/web-app/v0.2/architecture.md",
+  "docs/web-app/v0.2/decision-register.md",
+  "plan/web-app/v0.2-migration.md",
+  "infra/cloudflare/modules/web-app-edge/main.tf",
+  "infra/cloudflare/modules/web-app-edge/edge.tftest.hcl",
+  "pnpm-lock.yaml",
+  ".github/workflows/main-docs-*.yml",
+];
+
 async function readWorkflow(path) {
   return readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 }
@@ -56,6 +80,12 @@ function onSection(workflow) {
 function listedPaths(triggerSection) {
   const paths = triggerSection.match(/    paths:\n((?:      - .+\n)+)/);
   assert.ok(paths, "trigger must define a paths allowlist");
+  return paths[1].trim().split("\n").map((line) => line.replace(/^\s*-\s*/, ""));
+}
+
+function listedIgnoredPaths(triggerSection) {
+  const paths = triggerSection.match(/    paths-ignore:\n((?:      - .+\n)+)/);
+  assert.ok(paths, "trigger must define a paths-ignore list");
   return paths[1].trim().split("\n").map((line) => line.replace(/^\s*-\s*/, ""));
 }
 
@@ -138,6 +168,18 @@ for (const name of ["staging", "production"]) {
       `pnpm --filter docs-web-app deploy:${contract.suffix}`,
       `pnpm --filter main-web-app smoke:${contract.suffix}`,
       `pnpm --filter docs-web-app smoke:${contract.suffix}`,
+    ]);
+  });
+}
+
+for (const [name, contract] of Object.entries(APP_DEPLOY_WORKFLOWS)) {
+  test(`${name} Points/Markets deployment ignores portal/docs-only delivery pushes`, async () => {
+    const workflow = await readWorkflow(contract.path);
+    const trigger = onSection(workflow);
+
+    assert.deepEqual(listedIgnoredPaths(trigger), [
+      ...PORTAL_DOCS_DELIVERY_PATHS,
+      contract.path,
     ]);
   });
 }
