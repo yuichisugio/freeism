@@ -115,7 +115,7 @@ mise x node@26 -- pnpm --dir projects/main-web-app test
 mise x node@26 -- pnpm --dir projects/docs-web-app test
 ```
 
-Expected: the new contract, main 5 tests, and docs 11 tests PASS; frozen install does not modify the lockfile.
+Expected: the new contract, main 6 tests, and docs 11 tests PASS; frozen install does not modify the lockfile.
 
 - [ ] **Step 5: Commit**
 
