@@ -29,6 +29,8 @@
 - Create: `scripts/sites/smoke-static-site.mjs`
 - Create: `projects/main-web-app/wrangler.jsonc`
 - Create: `projects/docs-web-app/wrangler.jsonc`
+- Create: `projects/main-web-app/src/build-contract.test.ts`
+- Modify: `projects/main-web-app/src/pages/index.astro`
 - Modify: `projects/main-web-app/package.json`
 - Modify: `projects/docs-web-app/package.json`
 - Modify: `pnpm-lock.yaml`
@@ -40,7 +42,7 @@
 
 - [ ] **Step 1: Write the failing static deployment contract**
 
-Create `tests/sites/cloudflare-static-sites.test.mjs`. Read both package manifests and both future `wrangler.jsonc` files. Assert the exact Worker/domain matrix, global asset policy, exact Wrangler dependency, and four package scripts. Import `validateStaticSite` and test it with an injected `fetchImpl` returning representative portal/docs HTML; assert rejection for a non-2xx response, wrong canonical URL, missing required text, and missing required link.
+Create `tests/sites/cloudflare-static-sites.test.mjs`. Read both package manifests and both future `wrangler.jsonc` files. Assert the exact Worker/domain matrix, global asset policy, exact Wrangler dependency, and four package scripts. Import `validateStaticSite` and test it with an injected `fetchImpl` returning representative portal/docs HTML; assert rejection for a non-2xx response, wrong canonical URL, missing required text, and missing required anchor link. Required links must be resolved from actual `<a href>` attributes against the requested environment URL; text or script fragments must not satisfy a link assertion.
 
 The required Wrangler shape is:
 
@@ -98,7 +100,7 @@ Create both JSON-compatible `.jsonc` files with the exact shape above. Add exact
 }
 ```
 
-The docs scripts use the same command with staging/production URLs, production canonical `https://docs.freeism.app/`, text `無料主義 v3`, and links to `https://docs.freeism.app/en/`, `https://docs.freeism.app/notes/`, and `https://docs.freeism.app/en/notes/`. The smoke module retries three times with one-second gaps, sets a ten-second timeout per request, requires a 2xx response, resolves `<link rel="canonical">`, and checks text/link fragments without logging response bodies or credentials.
+The docs staging script uses production canonical `https://docs.freeism.app/`, text `無料主義 v3`, and the root page's actual environment-resolved links `https://staging.docs.freeism.app/en/` and `https://staging.docs.freeism.app/notes`. The production script uses `https://docs.freeism.app/en/` and `https://docs.freeism.app/notes`. Task 4 separately requests all four docs routes, including `/en/notes/`; a link absent from the root navigation is not fabricated. Add `projects/main-web-app/src/build-contract.test.ts` first to require the built portal root to contain `<link rel="canonical" href="https://freeism.app/">`, verify RED, then add that canonical link to `src/pages/index.astro`. The smoke module retries three times with one-second gaps, sets a ten-second timeout per request, requires a 2xx response, resolves `<link rel="canonical">`, and checks text/anchor links without logging response bodies or credentials.
 
 Update only the two importer blocks and necessary package/snapshot entries in `pnpm-lock.yaml`; preserve all other workspace importers.
 
@@ -118,7 +120,7 @@ Expected: the new contract, main 5 tests, and docs 11 tests PASS; frozen install
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tests/sites/cloudflare-static-sites.test.mjs scripts/sites/smoke-static-site.mjs projects/main-web-app/wrangler.jsonc projects/docs-web-app/wrangler.jsonc projects/main-web-app/package.json projects/docs-web-app/package.json pnpm-lock.yaml
+git add tests/sites/cloudflare-static-sites.test.mjs scripts/sites/smoke-static-site.mjs projects/main-web-app/wrangler.jsonc projects/docs-web-app/wrangler.jsonc projects/main-web-app/package.json projects/docs-web-app/package.json projects/main-web-app/src/build-contract.test.ts projects/main-web-app/src/pages/index.astro pnpm-lock.yaml
 git commit -m "feat: configure portal and docs Workers delivery"
 ```
 
