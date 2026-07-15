@@ -12,6 +12,10 @@
 		"check": "blume check",
 		"test": "vitest run --passWithNoTests",
 		"build": "blume build",
+		"deploy:staging": "wrangler deploy --env staging",
+		"deploy:production": "wrangler deploy --env production",
+		"smoke:staging": "node ../../scripts/sites/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes/ --link https://docs.freeism.app/en/notes/",
+		"smoke:production": "node ../../scripts/sites/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes/ --link https://docs.freeism.app/en/notes/",
 		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md",
 		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md",
 		"lint-staged": "lint-staged"
@@ -46,7 +50,8 @@
 		"textlint-rule-prh": "^5.3.0",
 		"textlint-rule-spellcheck-tech-word": "^5.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^3.2.4"
+		"vitest": "^3.2.4",
+		"wrangler": "4.108.0"
 	},
 	"author": "yuichisugio",
 	"license": "ISC",
