@@ -98,6 +98,12 @@ function assertInOrder(workflow, commands) {
   }
 }
 
+function namedStep(workflow, name) {
+  const match = workflow.match(new RegExp(`      - name: ${name}\\n([\\s\\S]*?)(?=      - name:)`));
+  assert.ok(match, `${name} step must exist`);
+  return match[0];
+}
+
 test("all portal/docs workflows are pinned, read-only, and narrowly path-filtered", async () => {
   for (const contract of Object.values(WORKFLOWS)) {
     const workflow = await readWorkflow(contract.path);
@@ -153,8 +159,22 @@ for (const name of ["staging", "production"]) {
     assert.match(workflow, /cancel-in-progress: false/);
     assert.match(workflow, /^\s+WRANGLER_SEND_METRICS: "false"$/m);
 
+    const portalDeploy = namedStep(workflow, "Deploy portal");
+    const docsDeploy = namedStep(workflow, "Deploy docs");
+    for (const deployStep of [portalDeploy, docsDeploy]) {
+      assert.match(deployStep, /env:\n          CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}\n          CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
+    }
+
+    const withoutDeploySteps = workflow.replace(portalDeploy, "").replace(docsDeploy, "");
+    assert.doesNotMatch(withoutDeploySteps, /secrets\.|CLOUDFLARE_/);
+
     const secrets = [...workflow.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((match) => match[1]);
-    assert.deepEqual(secrets, ["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN"]);
+    assert.deepEqual(secrets, [
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_API_TOKEN",
+    ]);
 
     assertInOrder(workflow, [
       "pnpm install --frozen-lockfile",
@@ -164,9 +184,10 @@ for (const name of ["staging", "production"]) {
       "pnpm --filter docs-web-app check",
       "pnpm --filter main-web-app build",
       "pnpm --filter docs-web-app build",
+      "node --test tests/sites/*.test.mjs",
       `pnpm --filter main-web-app deploy:${contract.suffix}`,
-      `pnpm --filter docs-web-app deploy:${contract.suffix}`,
       `pnpm --filter main-web-app smoke:${contract.suffix}`,
+      `pnpm --filter docs-web-app deploy:${contract.suffix}`,
       `pnpm --filter docs-web-app smoke:${contract.suffix}`,
     ]);
   });

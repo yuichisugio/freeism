@@ -30,8 +30,6 @@ jobs:
     environment: web-app-production
     env:
       CI: "true"
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       WRANGLER_SEND_METRICS: "false"
 
     steps:
@@ -72,14 +70,23 @@ jobs:
       - name: Build docs
         run: pnpm --filter docs-web-app build
 
+      - name: Test site delivery contracts
+        run: node --test tests/sites/*.test.mjs
+
       - name: Deploy portal
         run: pnpm --filter main-web-app deploy:production
-
-      - name: Deploy docs
-        run: pnpm --filter docs-web-app deploy:production
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Smoke test portal
         run: pnpm --filter main-web-app smoke:production
+
+      - name: Deploy docs
+        run: pnpm --filter docs-web-app deploy:production
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Smoke test docs
         run: pnpm --filter docs-web-app smoke:production
