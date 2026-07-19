@@ -9,7 +9,7 @@
 		"url": "git+https://github.com/yuichisugio/freeism-documentation.git"
 	},
 	"scripts": {
-		"dev": "blume dev",
+		"dev": "pnpm --filter @freeism/legacy-typescript-tools run docs:dev",
 		"check": "pnpm --filter @freeism/legacy-typescript-tools run docs:check",
 		"test": "vitest run --passWithNoTests",
 		"build": "pnpm --filter @freeism/legacy-typescript-tools run docs:build",

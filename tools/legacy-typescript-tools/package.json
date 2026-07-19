@@ -6,8 +6,9 @@
   "scripts": {
     "openapi:web-app:generate": "openapi-typescript ../../docs/web-app/v0.2/points-markets.openapi.json -o ../../projects/points-web-app/src/generated/points-markets-api.ts && openapi-typescript ../../docs/web-app/v0.2/points-markets.openapi.json -o ../../projects/markets-web-app/src/generated/points-markets-api.ts",
     "main:check": "astro check --root ../../projects/main-web-app --tsconfig ../../projects/main-web-app/tsconfig.json",
-    "docs:check": "cd ../../projects/docs-web-app && blume check",
-    "docs:build": "cd ../../projects/docs-web-app && blume build",
+    "docs:dev": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume dev",
+    "docs:check": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume check",
+    "docs:build": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume build",
     "web:lint": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs .",
     "web:lint:files": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs",
     "web:knip": "knip --directory ../../projects/web-app --config ../../projects/web-app/knip.json"
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@astrojs/check": "0.9.9",
     "@eslint/eslintrc": "3.3.5",
+    "@shikijs/twoslash": "4.3.1",
     "@tanstack/eslint-plugin-query": "5.100.6",
     "@types/node": "20.19.39",
     "@typescript-eslint/eslint-plugin": "8.59.1",
