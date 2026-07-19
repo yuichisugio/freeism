@@ -13,12 +13,17 @@
     "lint:documentation": "pnpm --filter docs-web-app lint",
     "lint:documentation:ja": "pnpm --filter docs-web-app lint:ja",
     "lint:documentation:en": "pnpm --filter docs-web-app lint:en",
-    "lint:web-app": "pnpm --filter web-app lint"
+    "lint:web-app": "pnpm --filter web-app lint",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "2.31.1",
+    "@typescript/native": "npm:typescript@7.0.2",
     "openapi-typescript": "7.13.0",
     "tsx": "4.23.0",
-    "typescript": "6.0.3",
+    "typescript": "npm:@typescript/typescript6@6.0.2",
     "vite-plus": "0.2.4"
   }
 }

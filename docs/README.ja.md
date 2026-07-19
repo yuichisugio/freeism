@@ -5,6 +5,7 @@
   - [概要](#概要)
   - [フォルダ構造](#フォルダ構造)
   - [初期設定](#初期設定)
+  - [リリース運用](#リリース運用)
 
 ## 言語
 
@@ -52,3 +53,9 @@ mise trust
 ```shell
 mise run init
 ```
+
+## リリース運用
+
+リリース対象の変更では、`pnpm changeset` を実行し、対象アプリ、semver の更新種別、利用者向けの要約を入力します。生成された `.changeset/*.md` を通常のプルリクエストに含めてください。`main` へのマージ後、Changesets が Version PR を作成または更新します。Version PR をマージすると、パッケージのバージョンと `CHANGELOG.md` が確定します。文書のみ、CI のみ、Changesets 設定のみの変更では Changeset は不要です。
+
+このワークフローは npm 公開、Git タグ、GitHub Release を作成しません。

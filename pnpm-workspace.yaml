@@ -2,6 +2,7 @@ packages:
   - projects/*
 minimumReleaseAge: 4320
 blockExoticSubdeps: true
+resolvePeersFromWorkspaceRoot: false
 onlyBuiltDependencies:
   - esbuild
   - workerd
