@@ -31,6 +31,7 @@ test("each compiler API consumer resolves its supported TypeScript compiler", as
   const expectedVersions = {
     "openapi-typescript": "5.9.3",
     "@astrojs/check": "5.9.3",
+    "@shikijs/twoslash": "5.9.3",
     "@typescript-eslint/parser": "5.9.3",
     knip: "5.9.3",
     blume: "6.0.3",

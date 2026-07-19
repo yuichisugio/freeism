@@ -165,12 +165,39 @@ test("the legacy compiler API tools are isolated in one private workspace", asyn
   assert.equal(manifest.type, "module");
   assert.equal(manifest.devDependencies.typescript, "5.9.3");
   assert.equal(manifest.devDependencies["openapi-typescript"], "7.13.0");
+  assert.equal(manifest.devDependencies["@shikijs/twoslash"], "4.3.1");
   assert.equal(Object.hasOwn(manifest, "publishConfig"), false);
   assertNoTypeScriptCompatibilityAliases(manifest, relativePath);
 
   for (const [scriptName, command] of Object.entries(manifest.scripts ?? {})) {
     assert.doesNotMatch(`${scriptName} ${command}`, /publish/i);
   }
+});
+
+test("docs commands delegate through the legacy tool dependency bridge", async () => {
+  const toolManifest = JSON.parse(
+    await readRepoFile("tools/legacy-typescript-tools/package.json"),
+  );
+  const docsManifest = JSON.parse(await readRepoFile("projects/docs-web-app/package.json"));
+
+  for (const command of ["dev", "check", "build"]) {
+    assert.equal(
+      toolManifest.scripts[`docs:${command}`],
+      `node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume ${command}`,
+      `docs:${command} must link the docs tool dependencies before running blume ${command}`,
+    );
+    assert.equal(
+      docsManifest.scripts[command],
+      `pnpm --filter @freeism/legacy-typescript-tools run docs:${command}`,
+      `docs-web-app ${command} must delegate to the legacy tool workspace`,
+    );
+  }
+
+  assert.equal(
+    existsSync(repoPath("tools/legacy-typescript-tools/link-docs-tool-dependencies.mjs")),
+    true,
+    "the docs tool dependency bridge helper must exist",
+  );
 });
 
 test("pnpm uses only the minimal standard workspace policy", async () => {
