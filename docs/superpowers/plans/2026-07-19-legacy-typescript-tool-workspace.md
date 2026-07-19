@@ -144,7 +144,7 @@ Use this exact manifest dependency set, all taken from the currently resolved gr
     "docs:build": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume build",
     "web:lint": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs .",
     "web:lint:files": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs",
-    "web:knip": "knip --directory ../../projects/web-app --config ../../projects/web-app/knip.json"
+    "web:knip": "cd ../../projects/web-app && knip --config knip.json"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",
