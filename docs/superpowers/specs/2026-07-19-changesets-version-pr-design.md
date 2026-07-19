@@ -21,6 +21,17 @@ pnpm workspace に含まれる5アプリをChangesetsでバージョン管理し
 - すべてのPull Requestに対するChangeset追加の強制
 - Changesets導入と無関係なCIやパッケージ構成の整理
 
+## TypeScriptバージョン
+
+TypeScript 7のネイティブCLIを導入しつつ、TypeScript compiler APIを使う既存toolにはMicrosoft公式のTypeScript 6互換packageを提供する。範囲指定は使わず、次のaliasを固定する。
+
+- rootの`@typescript/native`: `npm:typescript@7.0.2`
+- rootと5アプリの`typescript`: `npm:@typescript/typescript6@6.0.2`
+
+`pnpm-workspace.yaml`に`resolvePeersFromWorkspaceRoot: false`を設定し、各アプリのAstro、Twoslash、OpenAPI型生成、Vite等がrootのTypeScript 7をpeer dependencyとして誤解決せず、各アプリのTypeScript 6互換APIを使うようにする。rootまたはworkspace packageを実行位置とする`pnpm exec tsc`は、rootのネイティブTypeScript 7 CLIを解決する。
+
+TypeScript 7で削除されたcompiler optionに対しては、既存のmodule resolutionやpath aliasの意味を変えない最小限のtsconfig修正を行う。該当する`projects/web-app/tsconfig.scripts.json`の`baseUrl`は削除し、config file基準で解決される既存`paths`を維持する。TypeScript更新を理由とするアプリコードのrefactorや、TypeScript以外の依存packageの一括更新は行わない。
+
 ## 現状
 
 - workspaceは`pnpm-workspace.yaml`の`projects/*`で構成される。
@@ -65,28 +76,27 @@ workflowは次の順で動作する。
 1. repositoryをcheckoutする。
 2. repositoryで固定されているpnpmとNode.jsを設定する。
 3. `pnpm install --frozen-lockfile`を実行する。
-4. publish機能を持たない`changesets/action/version` v2 standalone actionを実行する。
-5. 未反映Changesetがある場合、standalone actionの`script`へ指定した`pnpm version-packages`を使ってVersion PRを作成または更新する。
+4. 安定版`changesets/action` v1.9.0の検証済みcommit SHAを実行する。
+5. 未反映Changesetがある場合、actionの`version`へ指定した`pnpm version-packages`を使ってVersion PRを作成または更新する。
 6. 未反映Changesetがない場合、packageのpublish、タグ作成、Release作成は行わず終了する。
 
-`changesets/action/version`は次の入力を明示する。
+`changesets/action`は次の入力を明示する。
 
 - `github-token`: `${{ secrets.GITHUB_TOKEN }}`
-- `script`: `pnpm version-packages`
-- `commit-message`: Version PR専用の固定メッセージ
-- `pr-title`: Version PR専用の固定タイトル
-- `pr-base-branch`: `main`
+- `version`: `pnpm version-packages`
+- `commit`: Version PR専用の固定メッセージ
+- `title`: Version PR専用の固定タイトル
 
-publish機能を含むmain actionは使用しない。version専用standalone actionにはpublish、タグ作成、GitHub Release作成の処理と入力がないため、npm認証情報も渡さない。
+`publish`入力は設定せず、公式のWithout Publishing構成を使う。`NPM_TOKEN`を含むnpm認証情報も渡さない。v2はpre-releaseしか公開されていないため使用しない。
 
 workflow権限は専用jobにだけ次を付与する。
 
 - `contents: write`
 - `pull-requests: write`
 
-既存のCloudflare deploy workflowへwrite権限は追加しない。`changesets/action/version`を含むActionsは既存workflowの規約に合わせ、リリースタグではなくv2系の検証済みcommit SHAで固定する。
+既存のCloudflare deploy workflowへwrite権限は追加しない。`changesets/action`を含むActionsは既存workflowの規約に合わせ、リリースタグではなくv1.9.0の検証済みcommit SHAで固定する。
 
-GitHubの再帰的workflow実行防止により、標準`GITHUB_TOKEN`で作成・更新されたVersion PRの`pull_request`イベントは、既存PR CIを新たに起動しない。専用workflow内のdependency installとversion処理をVersion PR生成時の機械検証とし、Version PRでは生成差分をレビューしてからマージする。GitHub AppやPersonal Access Tokenの追加は今回のscopeに含めない。将来branch protectionでPR CIを必須にする場合は、bot作成PRでもCIを安全に起動できる認証方式を別途設計する。
+標準`GITHUB_TOKEN`で作成・更新されたVersion PRでは、GitHubの再帰的workflow実行防止やrepository policyにより、既存PR CIが自動完了することを前提にしない。workflow runがapproval待ちとして表示された場合は、write権限を持つ管理者が内容を確認して実行を承認する。専用workflow内のdependency installとversion処理もVersion PR生成時の機械検証とし、Version PRでは生成差分をレビューしてからマージする。GitHub AppやPersonal Access Tokenの追加は今回のscopeに含めない。将来bot作成PRのCI完全自動化が必要になった場合は、認証方式を別途設計する。
 
 ## Cloudflareデプロイとの関係
 
@@ -123,7 +133,7 @@ package間に内部依存がないため、あるpackageのbumpによって別pa
 - dependency installが失敗した場合はVersion PRを更新せず、workflowを失敗させる。
 - Changeset設定やMarkdownが不正な場合はVersion PRを更新せず、workflowログにCLIのエラーを残す。
 - GitHub権限不足でPRを作成できない場合、Cloudflare workflowの権限を広げず、専用workflowの権限またはrepositoryのActions設定を確認する。
-- 標準`GITHUB_TOKEN`で作成されたVersion PRでは既存PR CIが自動起動しないため、生成差分をレビューせずにマージしない。
+- 標準`GITHUB_TOKEN`で作成されたVersion PRでは既存PR CIの自動完了を前提にせず、必要なworkflow approvalと生成差分レビューを終えずにマージしない。
 - `docs-web-app`を含む全packageはprivateのため、npm認証情報をworkflowへ渡さない。
 
 ## 検証
@@ -131,12 +141,15 @@ package間に内部依存がないため、あるpackageのbumpによって別pa
 実装後に次を確認する。
 
 - `pnpm install --frozen-lockfile`が成功する。
+- rootと5アプリを実行位置とする`pnpm exec tsc --version`がすべて`7.0.2`を報告する。
+- 各アプリのcompiler API依存toolが`typescript` aliasの`@typescript/typescript6@6.0.2`を解決する。
+- TypeScript 7 CLIとTypeScript 6互換APIの併用状態で、rootと5アプリのtypecheckまたはframework固有checkを実行する。
 - Changesets CLIがrootから実行できる。
 - `.changeset/config.json`が`main`とprivate package versioningを正しく参照する。
 - 一時Changesetを使った`changeset status`で対象packageとbump種別を認識できる。
 - `version-packages`がpackage versionと`CHANGELOG.md`を更新し、Changesetを消費することを隔離した検証環境で確認する。
 - 全packageがprivateであり、npm publish用scriptやtoken参照が追加されていないことを確認する。
-- GitHub Actions workflowのYAML構文、standalone version actionの入力、権限、SHA固定、pnpm/Node設定を確認する。
+- GitHub Actions workflowのYAML構文、version-only actionの入力、権限、SHA固定、pnpm/Node設定を確認する。
 - workflowにpublish action、publish script、npm token、タグ・Release作成処理が存在しないことを確認する。
 - `.changeset/**`だけの変更が既存Cloudflare deploy workflowの対象外になることをpaths条件で確認する。
 - 既存の関連するpackage test、check、buildを実行し、導入による回帰がないことを確認する。
