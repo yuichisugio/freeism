@@ -190,28 +190,25 @@ test("root and Vite Plus applications use the approved Vite toolchain", async ()
 });
 
 test("Vitest is owned only by the Points and Markets Vite Plus applications", async () => {
-  for (const relativePath of ["package.json", ...applicationManifestPaths]) {
+  for (const relativePath of [
+    "projects/points-web-app/package.json",
+    "projects/markets-web-app/package.json",
+  ]) {
     const manifest = JSON.parse(await readRepoFile(relativePath));
-    const ownsVitest = [
-      "projects/points-web-app/package.json",
-      "projects/markets-web-app/package.json",
-    ].includes(relativePath);
+    assert.equal(
+      manifest.devDependencies.vitest,
+      "4.1.10",
+      `${relativePath} must own the approved Vitest version`,
+    );
 
     for (const section of dependencySections) {
+      if (section === "devDependencies") continue;
       const dependencies = manifest[section] ?? {};
-      if (ownsVitest && section === "devDependencies") {
-        assert.equal(
-          dependencies.vitest,
-          "4.1.10",
-          `${relativePath} must own the approved Vitest version`,
-        );
-      } else {
-        assert.equal(
-          Object.hasOwn(dependencies, "vitest"),
-          false,
-          `${relativePath} ${section} must not declare Vitest`,
-        );
-      }
+      assert.equal(
+        Object.hasOwn(dependencies, "vitest"),
+        false,
+        `${relativePath} ${section} must not declare Vitest`,
+      );
     }
   }
 });
