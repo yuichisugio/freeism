@@ -1,6 +1,9 @@
 packages:
   - projects/*
 minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - "vite-plus@0.2.5"
+  - "@voidzero-dev/vite-plus-core@0.2.5"
 blockExoticSubdeps: true
 resolvePeersFromWorkspaceRoot: false
 onlyBuiltDependencies:
