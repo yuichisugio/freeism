@@ -18,11 +18,19 @@ async function readJson(relativePath) {
 
 test("Changesets versions only the five private application packages", async () => {
   const rootManifest = await readJson("package.json");
+  const toolManifest = await readJson("tools/legacy-typescript-tools/package.json");
 
   assert.equal(rootManifest.scripts.changeset, "changeset");
   assert.equal(rootManifest.scripts["changeset:status"], "changeset status");
   assert.equal(rootManifest.scripts["version-packages"], "changeset version");
   assert.equal(rootManifest.devDependencies["@changesets/cli"], "2.31.1");
+
+  assert.equal(toolManifest.name, "@freeism/legacy-typescript-tools");
+  assert.equal(toolManifest.private, true);
+  assert.equal(Object.hasOwn(toolManifest, "publishConfig"), false);
+  for (const [scriptName, command] of Object.entries(toolManifest.scripts ?? {})) {
+    assert.doesNotMatch(`${scriptName} ${command}`, /publish/i);
+  }
 
   for (const [relativePath, name, version] of expectedPackages) {
     const manifest = await readJson(relativePath);
@@ -47,6 +55,6 @@ test("Changesets config versions private applications without tags", async () =>
   assert.equal(config.access, "restricted");
   assert.equal(config.baseBranch, "main");
   assert.equal(config.updateInternalDependencies, "patch");
-  assert.deepEqual(config.ignore, []);
+  assert.deepEqual(config.ignore, ["@freeism/legacy-typescript-tools"]);
   assert.deepEqual(config.privatePackages, { version: true, tag: false });
 });

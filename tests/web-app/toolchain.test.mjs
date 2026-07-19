@@ -13,6 +13,7 @@ save-exact=true
 
 const expectedWorkspace = `packages:
   - projects/*
+  - tools/*
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - "vite-plus@0.2.5"
@@ -26,7 +27,6 @@ onlyBuiltDependencies:
 
 const expectedDevDependencies = {
   "@changesets/cli": "2.31.1",
-  "openapi-typescript": "7.13.0",
   tsx: "4.23.0",
   typescript: "7.0.2",
   vite: "npm:@voidzero-dev/vite-plus-core@0.2.5",
@@ -131,11 +131,46 @@ test("root tool dependencies are the exact approved set", async () => {
   const manifest = JSON.parse(await readRepoFile("package.json"));
 
   assert.deepEqual(manifest.devDependencies, expectedDevDependencies);
+  assert.ok(
+    manifest.scripts["contract:web-app:generate"].startsWith(
+      "pnpm --filter @freeism/legacy-typescript-tools run openapi:web-app:generate",
+    ),
+    "contract:web-app:generate must delegate OpenAPI generation to the legacy tool workspace",
+  );
+  assert.doesNotMatch(
+    manifest.scripts["contract:web-app:generate"],
+    /(?:^|&&\s*)openapi-typescript(?:\s|$)/,
+    "contract:web-app:generate must not invoke a root openapi-typescript binary",
+  );
   assert.equal(
     Object.hasOwn(manifest, "pnpm"),
     false,
     "root package.json must not contain a pnpm block",
   );
+});
+
+test("the legacy compiler API tools are isolated in one private workspace", async () => {
+  const relativePath = "tools/legacy-typescript-tools/package.json";
+  const manifest = JSON.parse(await readRepoFile(relativePath));
+  const toolWorkspaceManifests = (await readdir(repoPath("tools"), { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `tools/${entry.name}/package.json`)
+    .filter((manifestPath) => existsSync(repoPath(manifestPath)))
+    .sort();
+
+  assert.deepEqual(toolWorkspaceManifests, [relativePath]);
+  assert.equal(manifest.name, "@freeism/legacy-typescript-tools");
+  assert.equal(manifest.version, "0.0.0");
+  assert.equal(manifest.private, true);
+  assert.equal(manifest.type, "module");
+  assert.equal(manifest.devDependencies.typescript, "5.9.3");
+  assert.equal(manifest.devDependencies["openapi-typescript"], "7.13.0");
+  assert.equal(Object.hasOwn(manifest, "publishConfig"), false);
+  assertNoTypeScriptCompatibilityAliases(manifest, relativePath);
+
+  for (const [scriptName, command] of Object.entries(manifest.scripts ?? {})) {
+    assert.doesNotMatch(`${scriptName} ${command}`, /publish/i);
+  }
 });
 
 test("pnpm uses only the minimal standard workspace policy", async () => {
