@@ -25,6 +25,7 @@ TypeScript 7は従来のJavaScript compiler APIをbare `typescript` exportから
 - 専用workspaceの直接`typescript`は、`openapi-typescript@7.13.0`が対応する`5.9.3`へ固定する。Blumeが自身の通常依存として解決するTypeScript 6系は許容し、非対応のTypeScript 5へoverrideしない。
 - 外部ツール用TypeScriptを、アプリの`tsc`、source import、またはrepositoryの汎用scriptから利用しない。
 - rootと5アプリの既存public script名を維持し、専用workspaceのscriptを呼ぶ薄いwrapperへ置き換える。
+- Blumeがdocs配下へ生成する`.blume/astro.config.mjs`は`@shikijs/twoslash`を生成file基準で解決する。専用workspaceのTwoslashだけを`.blume/node_modules`へ明示的にlinkし、tool workspace全体や旧TypeScriptをroot/docsの通常解決へ公開しない。
 
 実測でTS7 compiler API不足により失敗した境界は、`openapi-typescript@7.13.0`、`@astrojs/check@0.9.9`、`blume@1.0.3`経由のTwoslash、typescript-eslint、Knipである。これらのCLI実行依存とESLint設定が直接importするplugin/configを専用workspaceに置き、アプリのruntime/build/test依存は各アプリに残す。Blumeのcomponent/runtime importなど、アプリsourceから必要な依存はアプリにも維持する。`ts-prune`など未実証の候補は一括で移動しない。
 
@@ -67,7 +68,7 @@ main/docs/legacy `web-app`のVite・Vitest構成は、今回のVite Plus統一�
 - npm publish、Git tag、GitHub Releaseは引き続き作成しない。
 - アプリの業務sourceをTypeScript migrationのためにrefactorしない。TS7が新たに検出する局所がある場合は、検出された局所だけを最小修正する。
 - Points/Marketsのbuild、test、worker test、Cloudflare deploy commandの意味は変更しない。
-- Astro/Blume/OpenAPI生成/legacy lint/Knipは、専用tool workspaceでの旧compiler解決を許容し、既存のpublic script名、検査範囲、生成出力を維持する。
+- Astro/Blume/OpenAPI生成/legacy lint/Knipは、専用tool workspaceでの旧compiler解決を許容し、既存のpublic script名、検査範囲、生成出力を維持する。Blumeの`dev`、`check`、`build`は同じ専用境界を通す。
 
 ## エラー時の扱い
 

@@ -110,6 +110,7 @@ git commit -m "test: require dedicated legacy tool workspace"
 **Files:**
 - Create: `tools/legacy-typescript-tools/package.json`
 - Create: `tools/legacy-typescript-tools/eslint.web-app.config.mjs`
+- Create: `tools/legacy-typescript-tools/link-docs-tool-dependencies.mjs`
 - Modify: `pnpm-workspace.yaml`
 - Modify: `.changeset/config.json`
 - Modify: `package.json`
@@ -138,8 +139,9 @@ Use this exact manifest dependency set, all taken from the currently resolved gr
   "scripts": {
     "openapi:web-app:generate": "openapi-typescript ../../docs/web-app/v0.2/points-markets.openapi.json -o ../../projects/points-web-app/src/generated/points-markets-api.ts && openapi-typescript ../../docs/web-app/v0.2/points-markets.openapi.json -o ../../projects/markets-web-app/src/generated/points-markets-api.ts",
     "main:check": "astro check --root ../../projects/main-web-app --tsconfig ../../projects/main-web-app/tsconfig.json",
-    "docs:check": "cd ../../projects/docs-web-app && blume check",
-    "docs:build": "cd ../../projects/docs-web-app && blume build",
+    "docs:dev": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume dev",
+    "docs:check": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume check",
+    "docs:build": "node ./link-docs-tool-dependencies.mjs && cd ../../projects/docs-web-app && blume build",
     "web:lint": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs .",
     "web:lint:files": "cd ../../projects/web-app && eslint --config ../../tools/legacy-typescript-tools/eslint.web-app.config.mjs",
     "web:knip": "knip --directory ../../projects/web-app --config ../../projects/web-app/knip.json"
@@ -147,6 +149,7 @@ Use this exact manifest dependency set, all taken from the currently resolved gr
   "devDependencies": {
     "@astrojs/check": "0.9.9",
     "@eslint/eslintrc": "3.3.5",
+    "@shikijs/twoslash": "4.3.1",
     "@tanstack/eslint-plugin-query": "5.100.6",
     "@types/node": "20.19.39",
     "@typescript-eslint/eslint-plugin": "8.59.1",
@@ -190,7 +193,9 @@ Remove `@astrojs/check` from `main-web-app`, and change only `check` to:
 
 Remove the redundant direct `@astrojs/check` and `@shikijs/twoslash` entries from docs; Blume already owns supported TypeScript 6 instances of both. Keep `blume`, Astro, MDX, Tailwind, and other runtime/build dependencies in docs because application source and config import them.
 
-Change docs `check` and `build` to the tool wrappers. Update `src/build-contract.test.ts` to execute `pnpm run build` instead of bypassing the public script with `pnpm exec blume build`.
+Blumeが生成する`.blume/astro.config.mjs`は生成fileの位置から`@shikijs/twoslash`を解決するため、tool workspace全体を公開せず、専用workspaceのTwoslashだけを`.blume/node_modules/@shikijs/twoslash`へlinkする`link-docs-tool-dependencies.mjs`を追加する。既に同じtargetを指すlinkは再利用し、それ以外のfile/linkが存在する場合は削除せず明示的に失敗する。
+
+Change docs `dev`, `check`, and `build` to the tool wrappers. Update `src/build-contract.test.ts` to execute `pnpm run build` instead of bypassing the public script with `pnpm exec blume build`.
 
 - [ ] **Step 5: Move the ESLint execution graph and Knip**
 
