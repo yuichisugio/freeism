@@ -40,7 +40,7 @@ root、Points、MarketsではVite Plus公式のmigration ruleに合わせ、次�
 - config entry fileの`defineConfig`: `vite-plus`からimportする。
 - config entry file以外のVite type import: `vite`を維持する。このspecifierはVite Plus core aliasを解決する。
 - `vitest` / `vitest/*` import: `vite-plus/test*`へ置き換える。
-- packageがVitestの直接依存を必要としないことを確認した後、Points/Marketsの`vitest` devDependencyを削除する。
+- Points/Marketsの`vitest` devDependencyは`4.1.10`で維持する。`@cloudflare/vitest-pool-workers@0.18.2`がVitest 4.1系をnon-optional peerとして要求し、Vite Plus 0.2.5が内包するVitestも`4.1.10`であるため、Vite Plus公式migration ruleの「直接必要な場合」に該当する。
 
 pnpmでVite Plusだけを宣言して`vite`の直接edgeを持たないと、Vitestのpeer解決でupstream Viteが自動installされる。そのためroot、Points、Marketsの`vite` key自体は削除せず、Vite Plus core aliasとして明示する。既存の`resolvePeersFromWorkspaceRoot: false`は維持し、rootのaliasをmain/docs/legacy `web-app`のpeer解決へ波及させない。
 
@@ -50,8 +50,8 @@ main/docs/legacy `web-app`のVite・Vitest構成は、今回のVite Plus統一�
 
 `vite-plus@0.2.5`と`@voidzero-dev/vite-plus-core@0.2.5`は2026年7月17日公開で、実装開始時点でrepositoryの`minimumReleaseAge: 4320`分を満たさない。そのため、次の2固定versionだけを`minimumReleaseAgeExclude`に追加する。
 
-- `vite-plus@0.2.5`
-- `@voidzero-dev/vite-plus-core@0.2.5`
+- `"vite-plus@0.2.5"`
+- `"@voidzero-dev/vite-plus-core@0.2.5"`
 
 範囲指定、package全体の例外、または他の新規依存への例外は追加しない。72時間経過後の別changeで例外を削除できるよう、理由と対象を契約テストで固定する。
 
@@ -84,16 +84,17 @@ main/docs/legacy `web-app`のVite・Vitest構成は、今回のVite Plus統一�
 - 6 manifestに`@typescript/typescript6`、`npm:typescript`のalias、TypeScript 5/6の直接依存がない。
 - root、Points、Marketsの`vite-plus`が`0.2.5`である。
 - root、Points、Marketsの`vite`が`npm:@voidzero-dev/vite-plus-core@0.2.5`である。
-- Points/Marketsに不要な直接`vitest`がない。
+- Points/Marketsの直接`vitest`がVite Plus 0.2.5内包版と同じ`4.1.10`である。
 - Points/Marketsのsource/configに`vitest` module importが残っていない。
+- Points/Marketsの`build/fixed-pages-plugin.ts`が`Plugin` typeを`vite` aliasからimportし、config entry以外でVite typeを`vite-plus`から直接importしない。
 - `minimumReleaseAgeExclude`が上記2固定versionだけを含む。
 
 ### RED/GREEN検証
 
-1. 契約テストを先に書き、現在のTS6 alias、Vite Plus 0.2.4、upstream Vite、直接Vitestに対して失敗することを確認する。
+1. 契約テストを先に書き、現在のTS6 alias、Vite Plus 0.2.4、upstream Vite、未移行のVitest importに対して失敗することを確認する。
 2. manifest、import、workspace policyを最小更新する。
 3. lockfileを更新し、frozen installで整合を確認する。
-4. rootと5アプリの`pnpm exec tsc --version`がすべて`7.0.2`であることを確認する。
+4. rootと5アプリの`pnpm exec tsc --version`に加え、各packageからbare `typescript`をimportした`version`がすべて`7.0.2`であることを確認する。
 5. `pnpm why typescript`とlockfile検査で、repository-ownedの直接TypeScriptが7だけであり、旧versionが許可した外部ツール境界に限定されることを確認する。
 
 ### package別回帰検証
@@ -112,7 +113,8 @@ Points/MarketsのTS7直接`tsc --noEmit`で、Vite Plus統一前に確認した`
 - rootと5アプリの直接TypeScriptが`7.0.2`だけである。
 - `@typescript/native`と`@typescript/typescript6`のworkspace aliasが存在しない。
 - rootと5アプリの`tsc --version`がすべて`7.0.2`である。
-- root、Points、MarketsがVite Plus 0.2.5と対応するVite Plus core aliasを使い、Points/Marketsがupstream ViteとVitestの別インスタンスを解決しない。
+- rootと5アプリのbare `typescript` importがすべてTypeScript 7.0.2を解決する。
+- root、Points、MarketsがVite Plus 0.2.5と対応するVite Plus core aliasを使い、Points/Marketsの直接VitestがVite Plus内包版と同じ`4.1.10`へ解決される。
 - Points/MarketsのVite型重複診断が消え、既存のbuild/test/worker testが維持される。
 - Astro/Blume/OpenAPI生成/legacy lintの現行機能が維持され、旧compilerはそれら外部ツールの境界だけに限定される。
 - Changesets/Version PR/npm非公開の既存契約に回帰がない。
