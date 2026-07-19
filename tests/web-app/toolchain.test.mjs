@@ -174,6 +174,18 @@ test("the legacy compiler API tools are isolated in one private workspace", asyn
   }
 });
 
+test("Knip runs from the web application directory", async () => {
+  const toolManifest = JSON.parse(
+    await readRepoFile("tools/legacy-typescript-tools/package.json"),
+  );
+
+  assert.equal(
+    toolManifest.scripts["web:knip"],
+    "cd ../../projects/web-app && knip --config knip.json",
+    "web:knip must report diagnostics relative to projects/web-app",
+  );
+});
+
 test("docs commands delegate through the legacy tool dependency bridge", async () => {
   const toolManifest = JSON.parse(
     await readRepoFile("tools/legacy-typescript-tools/package.json"),
