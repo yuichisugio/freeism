@@ -82,7 +82,10 @@ test("links the pnpm consumer relatively and restores it after managed cleanup",
 
   await rm(fixture.managedRoot, { recursive: true });
   await linkFixture(fixture);
-  assert.equal(await realpath(fixture.destination), fixture.physicalPackage);
+  assert.equal(
+    await realpath(fixture.destination),
+    await realpath(fixture.physicalPackage),
+  );
 
   const requireFromDestination = createRequire(path.join(fixture.destination, "package.json"));
   const typeScriptManifest = JSON.parse(
@@ -130,7 +133,7 @@ test("rejects a destination symlink to another target without changing it", asyn
 
   await assert.rejects(() => linkFixture(fixture));
   assert.equal(await readlink(fixture.destination), relativeTarget);
-  assert.equal(await realpath(fixture.destination), otherTarget);
+  assert.equal(await realpath(fixture.destination), await realpath(otherTarget));
 });
 
 for (const ancestor of ["managedRoot", "node_modules", "@shikijs"]) {
