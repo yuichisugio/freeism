@@ -32,7 +32,7 @@ describe("Blume production build contract", () => {
   it(
     "publishes and indexes only the four supported documentation routes",
     async () => {
-      await execFileAsync("pnpm", ["exec", "blume", "build"], {
+      await execFileAsync("pnpm", ["run", "build"], {
         cwd: projectRoot,
       });
 
