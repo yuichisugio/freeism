@@ -209,7 +209,7 @@ Set scripts to:
 ```json
 {
   "lint": "pnpm --filter @freeism/legacy-typescript-tools run web:lint",
-  "lint:fix": "pnpm --filter @freeism/legacy-typescript-tools run web:lint -- --fix && prisma validate",
+  "lint:fix": "pnpm --filter @freeism/legacy-typescript-tools run web:lint --fix && prisma validate",
   "unused:check": "pnpm --filter @freeism/legacy-typescript-tools run web:knip",
   "knip": "pnpm --filter @freeism/legacy-typescript-tools run web:knip"
 }
@@ -218,7 +218,7 @@ Set scripts to:
 Change the TypeScript lint-staged command to:
 
 ```json
-"*.{ts,tsx}": ["pnpm --filter @freeism/legacy-typescript-tools run web:lint:files -- --fix"]
+"*.{ts,tsx}": ["pnpm --filter @freeism/legacy-typescript-tools run web:lint:files --fix"]
 ```
 
 - [ ] **Step 6: Run static contracts before lock regeneration**
