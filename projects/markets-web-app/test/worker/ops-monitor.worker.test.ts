@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { cleanupResolvedOpsAlerts } from "../../src/backend/observability/cleanup-ops-alerts";
 import { deliverOpsAlert } from "../../src/backend/observability/deliver-ops-alert";

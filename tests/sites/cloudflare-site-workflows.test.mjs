@@ -64,6 +64,7 @@ const PORTAL_DOCS_DELIVERY_PATHS = [
   "infra/cloudflare/modules/web-app-edge/main.tf",
   "infra/cloudflare/modules/web-app-edge/edge.tftest.hcl",
   "pnpm-lock.yaml",
+  ".changeset/**",
   ".github/workflows/main-docs-*.yml",
 ];
 

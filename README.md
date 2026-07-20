@@ -4,6 +4,7 @@
   - [Language](#language)
   - [Overview](#overview)
   - [Folder structure](#folder-structure)
+  - [Release workflow](#release-workflow)
 
 ## Language
 
@@ -42,3 +43,9 @@ freeism/
     ├── calc-contrib/         # Contribution calculation
     └── depchecker/           # Dependency fetching
 ```
+
+## Release workflow
+
+For release-relevant changes, run `pnpm changeset`, select the affected application and semver bump, then add the generated `.changeset/*.md` with a user-facing summary to the usual pull request. After it merges to `main`, Changesets creates or updates a Version PR. Merging that PR finalizes package versions and `CHANGELOG.md` files. Documentation-only, CI-only, and Changesets-configuration changes do not need a Changeset.
+
+This workflow does not publish to npm or create Git tags or GitHub Releases.

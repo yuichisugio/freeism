@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-import type { Plugin } from "vite-plus";
+import type { Plugin } from "vite";
 
 const VIRTUAL_MODULE_ID = "virtual:fixed-pages";
 const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`;

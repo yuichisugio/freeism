@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "check": "astro check",
+    "check": "pnpm --filter @freeism/legacy-typescript-tools run main:check",
     "test": "vitest run --passWithNoTests",
     "build": "astro build",
     "deploy:staging": "wrangler deploy --env staging",
@@ -14,9 +14,8 @@
     "smoke:production": "node ../../scripts/sites/smoke-static-site.mjs --url https://freeism.app/ --canonical https://freeism.app/ --text Freeism --link https://docs.freeism.app/ --link https://points.freeism.app/ --link https://markets.freeism.app/"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
     "astro": "^6.3.1",
-    "typescript": "^5.9.3",
+    "typescript": "7.0.2",
     "vitest": "^3.2.4",
     "wrangler": "4.108.0"
   }
