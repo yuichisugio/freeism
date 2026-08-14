@@ -8,7 +8,7 @@ import {
   monitorMarketsOpsAlerts,
 } from "../../src/backend/observability/ops-monitor";
 import { OpsAlertRepository } from "../../src/backend/observability/ops-alert-repository";
-import { runMarketsCronJobs } from "../../worker/index";
+import { runMarketsCronJobs } from "../../src/server";
 
 declare global {
   namespace Cloudflare {

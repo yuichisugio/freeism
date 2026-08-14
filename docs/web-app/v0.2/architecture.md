@@ -277,6 +277,68 @@ Marketsだけが次のデータを所有し、更新できる。
 - email一致によるaccount merge、暗黙link、手動審査
 - PostgreSQL型、RLS、PGroonga、`REAL`による金額計算
 - 複数Points serviceを選ぶ実装、独立accounts service、`api.points.*`の別公開domain
+調査した結果、DEC-018は「PointsとMarketsは分離するが、各アプリ内部のUI/APIまでは分割しない」という判断です。
+
+セッションでは2026年7月11日に3案を比較し、推奨案1をユーザーが明示的に採用しています。[提案ログ](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2143) [採用回答](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2153)
+
+採用理由として明記されていたのは次の6点です。
+
+1. ブラウザから同一originのAPIを利用できる  
+   `points.freeism.app/api/*`、`markets.freeism.app/api/*`という構成にでき、UIから別サブドメインへ通信する必要がありません。
+
+2. CORSとCookie共有を前提にしなくてよい  
+   `points.freeism.app`から`api.points.freeism.app`を呼ぶ構成では、CORS、Origin許可、credential付きrequestなどの管理が増えます。1 Workerならhost-only session Cookieのまま同一origin BFFを利用できます。現在の仕様にも「browserから別subdomainのAPIを直接呼ばない」と明記されています。[architecture.md](/Users/sugio_yuuichi/Documents/code/other/freeism/docs/web-app/v0.2/architecture.md:181)
+
+3. PointsとMarketsの独立性は維持できる  
+   一体化するのは各アプリ内部のUIとAPIだけです。PointsとMarketsのD1、Better Auth session、Secrets、Worker、デプロイは引き続き別です。[architecture.md](/Users/sugio_yuuichi/Documents/code/other/freeism/docs/web-app/v0.2/architecture.md:16)
+
+4. UIとAPIを同時にデプロイできる  
+   フロントエンドとAPIのcontract変更を1つのWorker versionとして反映できるため、「新UIが旧APIを呼ぶ」といった一時的なversion不整合を避けやすくなります。
+
+5. MarketsのWebSocket／Durable Object接続が単純になる  
+   MarketsのHTTP API、WebSocket upgrade、Auction単位のDurable Objectを同じWorker側で扱えます。別API Workerや別Gatewayを経由させる構成を増やす必要がありません。
+
+6. 現在の規模では分割による運用負担が利点を上回る  
+   UI/API分割案では最低でも以下が必要になると評価されました。
+
+   - `points-web`
+   - `points-api`
+   - `markets-web`
+   - `markets-api`
+   - 必要に応じてAuction DO境界
+   - Worker間のService Binding
+   - CORS・Cookie・Origin設定
+   - UI/APIのversion整合管理
+   - Workerごとの設定・監視・デプロイ
+
+   セッションでは「現在の規模では運用負担が先行する」と明記されています。
+
+また、共通Gateway Worker案も比較されましたが、PointsとMarketsの独立性が下がり、Gatewayが共通障害点になるため不採用でした。
+
+重要な補足として、旧`other.md`には確かに`api.points.freeism.app`案があり、「疎結合にしたい」と記載されています。[旧検討メモ](/Users/sugio_yuuichi/Documents/code/other/freeism/docs/web-app/archive/v0.2/consideration-notes.md:788) しかしこれは未確定の検討案でした。最終設計では疎結合の境界を次のように引き直しています。
+
+```text
+Pointsアプリ
+├── points.freeism.app
+├── UI
+├── Hono API
+├── Better Auth
+└── points-db
+
+Marketsアプリ
+├── markets.freeism.app
+├── UI
+├── Hono API
+├── Better Auth
+├── AuctionRoom DO
+└── markets-db
+```
+
+つまり、疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」です。アプリ間はOAuth・OpenAPI契約・Service Bindingなどの明示的契約で連携し、各アプリ内部はFull-stack Workerとして簡潔に保つ、という整理です。
+
+なおDEC-018は外部公開APIの廃止を意味しません。`public`、`resource`、`internal`、`oauth`などのAPI namespaceは同じWorker内に置けます。別APIドメインと別デプロイ単位を作らない、という決定です。[decision-register.md](/Users/sugio_yuuichi/Documents/code/other/freeism/docs/web-app/v0.2/decision-register.md:57)
+
+
 - reverse auction、VCG、pay-as-bid、借入、refund、外部向けwrite transaction API
 
 ## 参照した公式資料

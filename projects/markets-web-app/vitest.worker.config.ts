@@ -1,10 +1,13 @@
 import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-workers";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { defineConfig } from "vite-plus";
+
+import { fixedPagesPlugin } from "./build/fixed-pages-plugin";
 
 export default defineConfig({
   plugins: [
     cloudflareTest(async () => ({
-      main: "./worker/index.ts",
+      main: "./src/server.ts",
       miniflare: {
         bindings: {
           APP_ORIGIN: "https://markets.example.test",
@@ -56,6 +59,15 @@ export default defineConfig({
         configPath: "./wrangler.jsonc",
       },
     })),
+    fixedPagesPlugin(),
+    tanstackStart({
+      router: {
+        routeFileIgnorePattern: "\\.test\\.",
+      },
+      server: {
+        entry: "./src/server.ts",
+      },
+    }),
   ],
   test: {
     include: ["worker/**/*.worker.test.ts", "test/worker/**/*.worker.test.ts"],

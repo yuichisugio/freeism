@@ -14,7 +14,7 @@ import {
   calculateStoredVectorHash,
   finalizeSettlement,
 } from "../../src/backend/settlement/finalize-settlement";
-import { runScheduledSettlementMaintenance } from "../../worker";
+import { runScheduledSettlementMaintenance } from "../../src/server";
 
 const planHash = "a".repeat(64);
 const capturedAt = "2026-07-14T00:00:00.000Z";

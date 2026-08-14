@@ -82,6 +82,10 @@ const canonical = data.config.site
     overflow-wrap: anywhere;
   }
 
+  .prose li > :where(ul, ol) {
+    margin-block: 0;
+  }
+
   .prose pre {
     max-width: 100%;
     overflow-x: auto;
@@ -97,9 +101,7 @@ const canonical = data.config.site
 <script>
   import { normalizeMermaidSource } from "../normalize-mermaid-source";
 
-  for (const codeBlock of document.querySelectorAll<HTMLPreElement>(
-    ".prose pre[data-language]",
-  )) {
+  for (const codeBlock of document.querySelectorAll<HTMLPreElement>(".prose pre[data-language]")) {
     if (codeBlock.dataset.language?.toLowerCase() !== "mermaid") {
       continue;
     }
