@@ -1260,8 +1260,8 @@ flowchart TB
       - 「外部性」の解決方法は、後述
 
 42. **中立な報道機関**
-    - 無料主義ではスポンサーが消えるため報道は中立へ寄り、都合の悪い事実も伝えやすい
-      - 今までは中立の報道機関の収益源を募金などでしか作れていなかったため規模が小さかったが、無料主義では貢献度に応じた対価が得られるため、中立を保ちやすい
+      - 無料主義ではスポンサーが消えるため報道は中立へ寄り、都合の悪い事実も伝えやすい
+        - 今までは中立の報道機関の収益源を募金などでしか作れていなかったため規模が小さかったが、無料主義では貢献度に応じた対価が得られるため、中立を保ちやすい
 
 43. **汎用的な法律により事件を発見できる**
     - 「幸福度の向上」評価軸の算出過程で、悪影響を与える行為を把握しやすい
@@ -7689,1004 +7689,979 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 ### 感情分析
 
-1. happiness planet
-   - 参考
-     - [https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html](https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html)
-     - [https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/](https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/)
-     - [https://happiness-planet.org/](https://happiness-planet.org/)
-   - 説明
-     - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」
-     - 社員の幸福度を定量化し働く前向きさを後押しする狙い
-     - 無意識下で起きる身体の動きをウェアラブルセンサーで記録。その身体の動きと、別途実施する被験者へのアンケート形式の心理検査を組み合わせる
-2. 電子情報通信学会
-   - 参考
-     - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F)
-   - 説明
-     - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術
-3. CCAPS-iQAS
-   - 参考
-     - [https://univ-journal.jp/204656/](https://univ-journal.jp/204656/)
-   - 説明
-     - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」
-     - CCAPS とは Counseling Center Assessment of Psychological Symptoms の略称です
-     - 大学生の心理・精神症状へ特化した国際標準指標であり、米国では 750 超の大学で採用実績があります
-     - 信頼性と妥当性が示されており、日本語版は堀田准教授が研究代表として開発しました
-4. 世界幸福度報告
-   - 参考
-     - [https://twitter.com/monopole0001/status/1108670399993151488](https://twitter.com/monopole0001/status/1108670399993151488)
-   - 説明
-     - 1 人あたり GDP、社会的支援、健康寿命、人生選択の自由度、寛容さ、腐敗の認識という 6 つの説明変数で、幸福度を定量的に表現しようという試み
-5. 日立ハイテクが「組織活性度」
-   - 参考
-     - [popnews.wpblog.jp/-/63746](http://t.co/tzSSD4hROW)
-     - [https://twitter.com/newstrendbot/status/564930790904320000](https://twitter.com/newstrendbot/status/564930790904320000)
-   - 説明
-     - 集団の幸福度を定量化する技術、日立ハイテクが「組織活性度」を計測する新ウェアラブルセンサーを開発 – インターネットコム
-6. 「幸福度の定量化に関する調査研究」中間報告書 (pdf)
-   - 参考
-     - [http://www.kasseiken.jp/pdf/news/120516_press.pdf](http://www.kasseiken.jp/pdf/news/120516_press.pdf)
-7. 「幸福度の定量化に関する調査研究」中間報告書
-   - 参考
-     - [https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf](https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf)
-8. 「幸せになる行動」を AI で幸福感と結びつけて予測する研究（PACJPA）
-   - 参考
-     - [論文ページ（jstage）](https://www.jstage.jst.go.jp/article/pacjpa/82/0/82_3EV-009/_article/-char/ja/)
-9. 生活満足度指数（LSI）を用いた生活満足度を計測する方法
-   - 説明
-     - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
-10. デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
-    - 説明
-      - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
-11. GNH
-    - 説明
-      - Gross National Happiness（国民総幸福量）の略で、ブータン発祥の、経済成長だけでなく文化・環境・ガバナンスなど多面的な幸福を測る指標です
-12. HDI
-    - 説明
-      - Human Development Index（人間開発指数）の略で、アマルティア・センらが開発した、所得・平均余命・教育から成る国の開発水準を示す UN 系の指標です
-13. MEW
-    - 説明
-      - Measure of Economic Welfare（経済的福祉尺度）の略で、ノードハウスとトービンが GNP を家事・余暇・環境破壊などで補正して福祉を測ろうとした指標です
-14. GPI
-    - 説明
-      - GPI
-15. SNS ログからの幸福度推定
-    - 説明
-      - SNS ログからの幸福度推定にも言及があります
-16. 汗
-    - 参考
-      - [https://www.itmedia.co.jp/news/articles/2310/05/news052.html](https://www.itmedia.co.jp/news/articles/2310/05/news052.html)
-    - 説明
-      - 論文では薄型の汗センサで女性ホルモン検出アイデアを示しています
-      - センサは汗成分から排卵や月経時期の推定へ使えるとの報告です
-17. 脳信号
-    - 参考
-      - [In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat](https://www.nature.com/articles/s41551-023-01095-1)
-      - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
-    - 説明
-      - \*\*AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できる
-      - スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
-18. 空気中のミリ波・血圧
-    - 参考
-      - [airBP: Monitor Your Blood Pressure with Millimeter-Wave in the Air](https://dl.acm.org/doi/10.1145/3614439)
-      - [https://www.itmedia.co.jp/news/articles/2310/12/news042.html](https://www.itmedia.co.jp/news/articles/2310/12/news042.html)
-    - 説明
-      - **空気中のミリ波で“血圧”を測り監視する手法　気が付かれず血圧測定　中国の研究者らが開発**
-      - ミリ波（mmWave）を用いた非接触での血圧測定方法を提案した研究報告です
-19. 文章
-    - 参考
-      - [https://wef.ch/2JOUCvW](https://t.co/RDF9FqKXIX)
-      - [https://wef.ch/2JOUCvW](https://www.weforum.org/agenda/2018/02/people-with-depression-use-language-differently-heres-how-to-spot-it/)
-    - 説明
-      - うつ病の言語があり、解析され始めている。孤独や悲しいという否定感情の語が多いことよりも、私、自分といった一人称代名詞が多く、その他の人称は極端に少ないことが特徴。絶対、常に、決してないという絶対的表現を過剰に用いる
-20. タイピング行動
-    - 参考
-      - [https://t.co/4i7ISGv7m5](https://t.co/4i7ISGv7m5)
-    - 説明
-      - Google がユーザーの普段のタイピング行動を理解して感情を読み取るキーボードの特許申請を出した
-21. Amazon・感情認識
-    - 参考
-      - [https://t.co/xPliMU0mDJ](https://t.co/xPliMU0mDJ)
-      - [https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073](https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073)
-    - 説明
-      - Amazon が感情認識を活用して動画の予告を生成する技術の特許申請を出した
-22. 個人データ
-    - 参考
-      - [https://t.co/Vi2lbQUeDy](https://t.co/Vi2lbQUeDy)
-      - [https://www.cos.io/gfs](https://www.cos.io/gfs)
-      - [https://twitter.com/koro485/status/1757426995292454927](https://twitter.com/koro485/status/1757426995292454927)
-    - 説明
-      - ウェルビーイング研究では縦断的な因果検証向けデータが不足していました
-      - 複数国・20 万人規模・5 年追跡のコーホートが公開され、初年波から利用でき今後フル無料化も予告されています
-23. ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
-    - 参考
-      - [https://twitter.com/nobi/status/1352405640501596160](https://twitter.com/nobi/status/1352405640501596160)
-    - 説明
-      - Apple Watch の ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
-24. 人間の脳のセンシング
-    - 参考
-      - [https://www.emotionhelper.com/](https://www.emotionhelper.com/)
-      - [https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)
-      - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
-    - 説明
-      - 脳センシングを AI で処理し、感情をデータ化
-      - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
-25. Mappiness
-    - 参考
-      - [Are You Happy While You Work? Alex Bryson, George MacKerron](https://sole-jole.org/assets/docs/13058.pdf)
-    - 説明
-      - スマートフォンアプリ「Mappiness」
-      - このアプリは、ランダムな時刻にユーザーへ通知を送ります
-      - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
-
-26. 感情分析
-    - 参考
-      - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-      - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-      - [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
-      - [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
-      - [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
-      - [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
-      - [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
-      - [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
-      - [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
-      - [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
-      - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
-      - [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
-      - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
-      - [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
-      - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
-      - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
-      - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
-      - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
-      - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
-      - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
-      - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
-      - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
-
-27. ユーザーローカル「テキスト感情認識 AI」
-    - 参考
-      - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
-    - 説明
-      - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
-
-28. Amazon Comprehend
-    - 説明
-      - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
-
-29. エモスタ「エモリーダー」
-    - 説明
-      - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
-
-30. VITALIFY Asia「MAL FaceEmotion」
-    - 説明
-      - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
-
-31. Empath（エンパス）
-    - 参考
-      - [https://webempath.com/](https://webempath.com/)
-      - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)（日本語サイト）
-      - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/)（英語サイト）
-    - 説明
-      - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
-      - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
-      - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
-
-32. iMotions Voice Analysis
-    - 参考
-      - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
-    - 説明
-      - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
-
-33. Vokaturi
-    - 参考
-      - [https://vokaturi.com/](https://vokaturi.com/)
-      - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
-    - 説明
-      - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
-      - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
-
-34. COTOHA API（感情分析）
-    - 参考
-      - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
-      - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
-      - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
-
-35. リッカート尺度
-    - 参考
-      - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
-    - 説明
-      - トピックに対する感情の強さを聞く一般的な設問形式
-
-36. Firebase: Sentiment Analysis 拡張
-    - 参考
-      - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
-      - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
-    - 説明
-      - テキストから感情スコア
-
-37. 日本語感情表現辞書
-    - 参考
-      - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
-      - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
-      - [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/)
-    - 説明
-      - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
-      - メモ： 夏目漱石「こころ」× 青空文庫で試す想定
-
-38. 東北大： 日本語極性辞書（公開リソース）
-    - 参考
-      - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
-
-39. carely
-    - 説明
-      - 「ストレスチェック」等を感情・幸福度分析の参考に
-
-40. 理論
-    - テキスト
-      1. Sentiment Analysis
-         - ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現・主観的幸福感（SWB）・生活満足度キーワードを重視し、VADER・TextBlob 等も
-      2. Lexicon-based Analysis
-         - 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
-      3. Machine Learning-based Analysis
-         - SVM、ランダムフォレスト等の機械学習による感情分類。大規模なトレーニングデータが必要
-      4. Deep Learning-based Analysis
-         - BERT、LSTM 等のニューラルネットワークによる感情推定。文脈を深く理解できる
-      5. Latent Semantic Analysis (LSA)
-         - 文の意味的な関係性を解析し感情を推定する文脈感知型の分析
-      6. Topic Modeling with Sentiment
-         - LDA 等でトピックごとの感情を解析し、感情とテーマを同時に分析。幸福テーマ（LDA with Happiness Themes）も同系
-      7. Valence Arousal Dominance (VAD) Models
-         - 評価・覚醒・支配の 3 次元で感情を分析し、テキストの微細な感情ニュアンスを捉える
-      8. Emotion Annotated Corpus Analysis
-         - EmoLex、GoEmotions、LIWC 等の感情注釈コーパスによる感情予測。幸福感の注釈データセットでの分類にも
-      9. Cognitive Appraisal Theory Analysis
-         - 認知評価理論に基づき文章中の感情を構造的に評価。幸福に関する記述の特定にも
-      10. Pragmatic Analysis / Hedonic Tone
-          - 文脈や社会的ニュアンスを取り入れた言語学的アプローチ。幸福度では快楽的トーンや PERMA 等のポジティブ心理学フレームワークも
-    - 動画
-      1. Facial Expression Analysis
-         - 顔の表情変化を捉え感情を推定（OpenFace、Affectiva、Ekman）。幸福では笑顔の持続時間・強度（Smile Dynamics）にも注目
-      2. Action Unit Analysis
-         - Paul Ekman の表情モデルに基づきアクションユニットを解析。幸福寄りでは口角上昇等
-      3. Multimodal Analysis
-         - 音声・テキスト・映像を統合して感情を推定（Multimodal Happiness Analysis を含む）。動画内のポジティブ感情の時間変化の追跡も
-      4. Body Gesture Analysis
-         - Kinect 等でジェスチャーや姿勢の変化を解析。幸福感に関連するポジティブなジェスチャー（軽快な動き等）も
-      5. Eye Movement Analysis
-         - 視線トラッキングや凝視パターンで感情を推定。瞳孔の拡張や目の輝きが幸福感を示す分析も
-      6. Deep Learning for Video Analysis
-         - 3D CNN や RNN（I3D、C3D 等）で動画全体の感情を解析
-      7. Physiological Signal Integration
-         - 心拍・皮膚電位をセンサーと連携し、映像に同期させて感情・幸福度と関連付け
-      8. Semantic Scene Analysis
-         - シーン・雰囲気・情景理解で感情を推定。明るい色・自然の風景等を幸福感の指標としても
-      9. Audio-Visual Sentiment Analysis
-         - 音声と映像を組み合わせたマルチモーダルな感情分析
-      10. Cultural Context Analysis
-          - 文化的背景・文脈を考慮した感情分析。社会的交流（笑い声や肯定的反応）による幸福度評価も
-    - 音声
-      1. Prosodic Feature Analysis
-         - ピッチ・強度・テンポ・リズムで感情を推定（Praat 等）。幸福感ではトーンや強調が要因になる分析も
-      2. Spectral Feature Analysis
-         - フォルマント、MFCC 等のスペクトル特性による感情推定。ポジティブ感情・幸福感向けのスペクトル解析も
-      3. Speech Emotion Recognition (SER)
-         - EmoVoice 等で音声を感情分類。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
-      4. Acoustic Modeling
-         - GMM、HMM 等の音響モデルで感情特性を分類。幸福感を示す音声特徴に基づくモデル構築も
-      5. Deep Learning in Audio
-         - Wavenet や CNN・RNN 等で音声データを解析。幸福度検出に特化したモデルも
-      6. Pitch Contour Analysis
-         - 声の音調変化を追跡して感情を分類。幸福感では明るい音調や上昇トーンを検出
-      7. Valence-Arousal Modeling
-         - Russell’s Circumplex 等で評価軸と覚醒軸による感情・幸福感のモデル化
-      8. Emotion Annotation on Audio Dataset
-         - IEMOCAP 等の感情ラベル付き音声データセットを利用したモデル学習
-      9. Context-Aware Audio Analysis
-         - 音声中の文脈情報を利用した感情推定。NLP 技術を補完
-      10. Cross-linguistic Emotional Analysis / Cultural Audio Cues
-          - 複数言語間の音声感情の共通点・相違点を分析。笑い検出・高エネルギー発話・言語間の笑いの違い等の文化的音声手がかりも
-
-41. 毎日の幸福度アンケート・いじめ早期発見
-    - 参考
-      - [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html)
-      - [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる連携協力に関する協定](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf)
-      - [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
-    - 説明
-      - 毎日の幸福度アンケートの参考
-      - 児童や生徒同士の関係性を可視化する。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握する
-      - タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもある。SOS を早期発見し、問題が深刻化する前に対処するのが狙い
-
-42. リストバンド・カメラ・眼球運動
-    - 参考
-      - [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
-    - 説明
-      - 感情の算出の参考にしたい
-      - リストバンド端末で脈拍を計測して集中を測定
-      - カメラで頬の血管の血流を測定
-      - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
-      - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
-
-43. 経験サンプリング研究
-    - 参考
-      - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
-    - 説明
-      - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
-      - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
-
-44. 取得データの種類
-    - 説明
-      - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
-      - 感情の算出の参考にしたい
-
-45. Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
-    - 参考
-      - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
-    - 説明
-      - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
-
-46. From Happiness Data to Economic Conclusions
-    - 参考
-      - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
-    - 説明
-      - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
-
-47. 潜在的連合テスト
-    - 説明
-      - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
-
-48. 幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
-    - 参考
-      - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
-
-49. 幸福度を測る方法の参考にしたい対象
-    - 説明
-      - ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
-
-50. センサー「エモコアイ」
-    - 参考
-      - [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
-    - 説明
-      - センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する
-      - 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する
-
-51. Thymia
-    - 参考
-      - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
-    - 説明
-      - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービス
-      - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられる
-
-52. Web カメラだけで心拍数と心拍変動
-    - 参考
-      - [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136)
-      - [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
-    - 説明
-      - Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい
-
-53. GPT-4 が性格診断・感情分析
-    - 参考
-      - [https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend)
-      - [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
-    - 説明
-      - 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した
-      - その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた
-
-54. iOS 17 の「心の健康状態」
-    - 参考
-      - [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
-      - [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d)
-      - [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
-    - 説明
-      - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
-      - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
-      - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
-      - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
-      - 「自動感情日誌」になる
-      - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
-      - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
-      - ヘルスケアのデータ取得ができる API がある。HealthKit
-      - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
-
-55. TherapeiaVR
-    - 説明
-      - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
-
-56. 感性アナライザ
-    - 参考
-      - [https://realsound.jp/tech/2023/05/post-1337515.html](https://realsound.jp/tech/2023/05/post-1337515.html)
-    - 説明
-      - 電通サイエンスジャムの技術である「感性アナライザ」によって体験中の脳波を測定し、ハグ時の幸福度に関連する感情変化を計測・可視化する取り組みも行われており、ハグによって脳の働きが変化していく様子を視覚的にとらえることも可能だ
-
-57. 脈拍の変動
-    - 説明
-      - スマートウォッチが脈拍の変動からストレスを推定する仕組み
-
-58. wellday
-    - 参考
-      - [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
-    - 説明
-      - 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない
-
-59. 皮膚電気活動（EDA）
-    - 参考
-      - [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
-    - 説明
-      - Google Pixel Watch 2 は Fitbit のストレス管理や皮膚温センサ追加、緊急 SOS 機能も強化のうわさ
-      - 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです
-      - Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです
-
-60. テキストから病気を見つける技術
-    - 参考
-      - [https://togetter.com/li/2226111](https://togetter.com/li/2226111)
-      - [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155)
-      - [https://academic.oup.com/dsh/article/26/4/435/1052059?login=false](https://academic.oup.com/dsh/article/26/4/435/1052059?login=false)
-    - 説明
-      - 文章を数値解析して、感情を算出
-      - アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう
-      - アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と
-
-61. Apple Mood Tracking
-    - 参考
-      - [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
-    - 説明
-      - Apple watch から通知
-      - Watch から直で感情ログ
-      - そのまま音声入力で状況記録
-      - アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる
-      - ジャーナルアプリが出たら写真と感情の紐付けも
-
-62. 「非侵襲型」の血糖値計測
-    - 参考
-      - [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
-    - 説明
-      - 「非侵襲型」の血糖値計測で健康の測定や感情の算出
-
-63. Google 音声アシスタント
-    - 参考
-      - [http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ)
-      - [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
-    - 説明
-      - Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した
-
-64. Empath
-    - 参考
-      - [https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/)
-      - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)
-      - [https://chizaizukan.com/property/005](https://chizaizukan.com/property/005)
-    - 説明
-      - 音声感情解析 AI を提供する株式会社 Empath。「DeepEmo」は、同社の音声感情解析 AI「Empath」でセリフ音声を解析し、0.32 秒ごとに変化する感情値を生成する技術。Empath が保有する感情表出音声をもとに、ディープラーニングを使用して 9 つの感情（平常・怒り・恐怖・嫌悪・喜び・悲嘆・信頼・興味・驚き）を推定するアルゴリズムだ
-      - 株式会社 Empath
-      - 商願 2014-35949：「Empath」
-      - 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）
-
-65. Hugtics
-    - 参考
-      - [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
-    - 説明
-      - 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する
-
-66. アイトラッキング
-    - 参考
-      - [https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
-    - 説明
-      - Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許
-      - 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる
-
-67. 非接触型の脈拍測定
-    - 説明
-      - カメラを使った非接触型の脈拍測定ができるらしい
-      - この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
-
-68. 可食ワイヤレス生体情報センサ
-    - 参考
-      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
-    - 説明
-      - 「可食ワイヤレス生体情報センサ」がもたらす未来とは？
-      - 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」
-      - 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した
-
-69. 感情認識技術
-    - 説明
-      - 感情認識技術
-      - 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
-
-70. 失言検出課題、チーズケーキ課題
-    - 説明
-      - 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
-
-71. 脳活動解読
-    - 参考
-      - [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/)
-      - [【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full)
-      - [https://univ-journal.jp/159335/](https://univ-journal.jp/159335/)
-    - 説明
-      - ブラックボックスな脳活動解読器の動作が深層学習の応用で説明可能に
-      - 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる
-      - 論文情報：
-
-72. ストレスチェックと生活習慣等の分析
-    - 参考
-      - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
-    - 説明
-      - 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている
-
-73. ANBAI
-    - 参考
-      - [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/)
-      - [https://anbai.team/](https://anbai.team/)
-      - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
-    - 説明
-      - 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」
-
-74. Mappiness
-    - 参考
-      - [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html)
-      - [Mappiness](https://www.mappinessapp.com/)
-      - [https://www.sussex.ac.uk/research/full-news-list?id=44576](https://www.sussex.ac.uk/research/full-news-list?id=44576)
-      - [https://nazology.net/archives/8656](https://nazology.net/archives/8656)
-    - 説明
-      - “” というスマートフォンアプリを用いて、32,000 人からデータを抽出
-      - “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ
-      - 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました
-
-75. 汗からストレスレベル
-    - 参考
-      - [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
-    - 説明
-      - 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表
-      - 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました
-
-76. 動きから感情
-    - 参考
-      - [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
-    - 説明
-      - スマホで使えるモーションキャプチャー、ソニー「mocopi」
-
-77. ChatGPT に聞いた幸福度を測定する方法
-    - 説明
-      - アンケート調査以外で幸福度を測定する方法として、次のようなものがあります
-      - 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法
-      - ネットワーク分析を用いた社会的支援や支援受けの多さを計測する方法
-      - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
-      - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
-      - ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です
-      - ChatGPT
-
-78. 赤ちゃんの泣き声を分析
-    - 参考
-      - [https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)
-      - [https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying)
-      - [https://twitter.com/christianna-j/status/1610735317262139416](https://twitter.com/christianna-j/status/1610735317262139416)
-    - 説明
-      - 赤ちゃんの泣き声を分析し、「不快指数」から 4 つのニーズ (空腹、汚れたおむつ、眠気、眠気）のいずれかを判断する AI プロダクト\*\*
-      - CES 2023: The device that tells you why your baby is crying
-      - \*\*
-
-79. うつ病を定量化して分析
-    - 参考
-      - [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
-    - 説明
-      - 「新型うつ」とは何だったのか
-
-80. VR の視線の動きで ADHD 診断
-    - 参考
-      - [Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)
-      - [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
-    - 説明
-      - 「VR ゲーム」の視線の動きで ADHD 診断する！
-      - フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました
-      - 研究の詳細は、2022 年 11 月 24 日付の科学誌『』に掲載されました
-
-81. 中国で共産党員の忠誠心を判定する AI
-    - 参考
-      - [サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)
-      - [https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
-    - 説明
-      - 中国で共産党員の忠誠心を判定する AI を開発。表情や脳波から「思想教育」の程度を読み取る
-      - AI は合肥総合国家科学センターで開発されたもので、対象者の表情や脳波から共産党の「思想教育」がどの程度浸透しているのか判断するのだという
-      - 人民の監視を強める中国 なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている
-      - それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった
-
-82. SOXAI Ring
-    - 参考
-      - [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring)
-      - [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
-    - 説明
-      - 「ヘルスケアをライフスタイルに」をビジョンに掲げる日本のヘルステック企業「株式会社 SOXAI」が開発・販売を進める日本発のスマートリング「SOXAI Ring（ソクサイリング）」に注目が集まっている
-      - 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス
-      - 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという
-
-83. 非接触型睡眠トラッカー「Halo Rise」
-    - 参考
-      - [https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
-    - 説明
-      - Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです
-      - 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する
-
-84. 感情の算出にアンケート調査を使う場合の懸念点
-    - 説明
-      - アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
-      - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
-
-85. 光学式センサ、3 軸加速度センサ
-    - 参考
-      - [https://36kr.jp/9669/](https://36kr.jp/9669/)
-    - 説明
-      - スマートウォッチは何をもとにユーザーの睡眠状態を判定するのか？
-      - 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる
-      - 光学式センサで心拍数を計測できるデバイスもある
-
-86. うつ病治療 VR 製品
-    - 参考
-      - [https://techable.jp/archives/177646](https://techable.jp/archives/177646)
-      - [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html)
-      - [BiPSEE ホームページはこちら](https://bipsee.co.jp/)
-      - [Meiji Seika ファルマ ホームページはこちら](https://www.meiji-seika-pharma.co.jp/)
-      - [https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/](https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/)
-    - 説明
-      - 株式会社 BiPSEE（以下、BiPSEE）と Meiji Seika ファルマ株式会社（以下、Meiji Seika ファルマ）は、BiPSEE が開発する「うつ病治療 VR 製品」の事業化へ向け業務提携契約を締結しました
-      - 「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です
-      - 「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている
-
-87. ミキワメウェルビーイング
-    - 参考
-      - [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
-      - [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
-    - 説明
-      - \*\*<span style="text-decoration:underline;">
-      - </span>\*\*
-      - 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる
-      - 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している
-
-88. 機能的近赤外分光分析法（fNIRS）
-    - 参考
-      - [https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
-    - 説明
-      - 英国の神経科学者ソフィー・スコットは、機能的近赤外分光分析法（fNIRS）を使うことで、会話中に脳でいったい何が起こっているのかを解明できると言う
-      - 頭皮に光を当てて反射光を分析する「オプトード」と呼ばれる光検出型化学センサーを通じて fMRI と同じ神経活動指標を測定する機能的近赤外分光分析法（fNIRS）は、人の自然な動きを妨げることなく使用できる
-      - 実際、ロンドンの中心部にある屋外で被験者たちに事前に定めたタスクをこなしてもらい、その様子を fNIRS で測定したところ、動作データや音声データと並行して神経データもこの方法で収集できることが証明された
-      - 神経反応や生理反応を捉えることができる最新の測定技術を使う\*\*
-      - \*\*
-      - NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
-
-89. アンケート調査による幸福度の算出
-    - 説明
-      - 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
-
-90. KDDI 総研の人間心理理解 AI の共同研究プロジェクト
-    - 参考
-      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
-    - 説明
-      - KDDI 総研は、カーネギーメロン大学の Peter Spirtes 教授および Kun Zhang 准教授とともに、人の心を深く理解し共感できる人間心理理解 AI の共同研究プロジェクトを開始した
-      - カーネギーメロン大学の 2 名の教員は、因果推論分野の世界的な権威だ。因果推論とは、インプットとアウトプットから、その因果関係を統計的に推定していく考え方のこと。KDDI 総研は、この因果推論技術を活用することで、人の心を深く理解し共感する AI の実現を目指しているのだ
-      - KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ
-      - KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ
-
-91. 直近 1 か月のひきこもり傾向を簡便に把握できる質問票
-    - 参考
-      - [詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
-    - 説明
-      - 直近 1 か月のひきこもり傾向を簡便に把握できる質問票、九大などが開発
-      - 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した
-      - 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの
-
-92. 産後うつを身体症状を基に早期発見する調査尺度
-    - 参考
-      - [精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
-    - 説明
-      - 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した
-      - 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は
-
-93. うつ尺度「BDI-II」
-    - 参考
-      - [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
-    - 説明
-      - 世界的に広く使われているうつ尺度「BDI-II」
-
-94. 使える API
-    - 参考
-      - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
-      - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
-      - [アクセス許可](https://developers.facebook.com/docs/permissions/reference)
-      - [https://zenn.dev/nameless-sn/articles/recommended-api-for-development](https://zenn.dev/nameless-sn/articles/recommended-api-for-development)
-    - 説明
-      - Microsoft Face API
-      - 人間の顔認識に特化している顔認識の AI を活用し、顔の識別や特徴・感情の分析などを取得できる
-      - 顔認識をアプリケーションに組み込める
-      - Facebook Graph API
-      - Facebook のユーザや Facebook の情報の読み取り・更新など、Facebook を使った様々な処理を実装できる
-      - が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
-      - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
-
-95. モニター調査・アンケート調査
-    - 説明
-      - モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る
-      - そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる
-      - 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る
-      - でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
-
-96. 文脈依存型推薦エンジン(Context based recommendation system)
-    - 参考
-      - [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
-    - 説明
-      - 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています
-
-97. ギャラップ社・Glassdoor の調査
-    - 参考
-      - [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
-    - 説明
-      - ギャラップ社が 250 万人のアメリカ人を対象に行った調査
-
-98. 多属性評価
-    - 参考
-      - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
-    - 説明
-      - アンケート調査、心拍数や皮膚抵抗や発汗量などのデータ、アンケート調査の中でも複数の設問内容の種類
-      - 多属性評価とは、購買や消費に際して、複数の属性を同時に考慮して、評価を行うこと
-      - 統計的指標
-      - 様々な指標・指数で使われている要素（統計的指標）を、 網羅的に統計的指標を書き出すときの参考にしたい
-      - The Global Gender Gap Index（世界男女格差指数）
-      - Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）
-      - A simplified approach to measuring national gender inequality
-
-99. 毎日簡単なアンケートに答える方法
-    - 参考
-      - [https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html)
-      - [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
-    - 説明
-      - アンケートの設問内容は何？
-      - 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました
+1.   happiness planet
+     - 参考
+       - [https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html](https://www.itmedia.co.jp/business/articles/2007/17/news015_2.html)
+       - [https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/](https://www.hitachi.com/ja-jp/insights/articles/people-happinessplanet/)
+       - [https://happiness-planet.org/](https://happiness-planet.org/)
+     - 説明
+       - 日立製作所は研究を継続してきた事業をスピンアウトし、新社「ハピネスプラネット」
+       - 社員の幸福度を定量化し働く前向きさを後押しする狙い
+       - 無意識下で起きる身体の動きをウェアラブルセンサーで記録。その身体の動きと、別途実施する被験者へのアンケート形式の心理検査を組み合わせる
+2.   電子情報通信学会
+     - 参考
+       - [https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F](https://www.ieice.org/publications/conferences/summary.php?id=FIT0000012963&expandable=2&ConfCd=F&session_num=109&lecture_number=A-9-6&year=2017&conf_type=F)
+     - 説明
+       - ウェアラブルセンサを用いて人々の幸福感（ハピネス度）を計測する技術
+3.   CCAPS-iQAS
+     - 参考
+       - [https://univ-journal.jp/204656/](https://univ-journal.jp/204656/)
+     - 説明
+       - 大学生のメンタルヘルスを可視化して学生自身の自己理解や要支援学生の早期発見、早期支援に活用できる Web システム「CCAPS-iQAS（シーキャップスアイキャス）」
+       - CCAPS とは Counseling Center Assessment of Psychological Symptoms の略称です
+       - 大学生の心理・精神症状へ特化した国際標準指標であり、米国では 750 超の大学で採用実績があります
+       - 信頼性と妥当性が示されており、日本語版は堀田准教授が研究代表として開発しました
+4.   世界幸福度報告
+     - 参考
+       - [https://twitter.com/monopole0001/status/1108670399993151488](https://twitter.com/monopole0001/status/1108670399993151488)
+     - 説明
+       - 1 人あたり GDP、社会的支援、健康寿命、人生選択の自由度、寛容さ、腐敗の認識という 6 つの説明変数で、幸福度を定量的に表現しようという試み
+5.   日立ハイテクが「組織活性度」
+     - 参考
+       - [popnews.wpblog.jp/-/63746](http://t.co/tzSSD4hROW)
+       - [https://twitter.com/newstrendbot/status/564930790904320000](https://twitter.com/newstrendbot/status/564930790904320000)
+     - 説明
+       - 集団の幸福度を定量化する技術、日立ハイテクが「組織活性度」を計測する新ウェアラブルセンサーを開発 – インターネットコム
+6.   「幸福度の定量化に関する調査研究」中間報告書 (pdf)
+     - 参考
+       - [http://www.kasseiken.jp/pdf/news/120516_press.pdf](http://www.kasseiken.jp/pdf/news/120516_press.pdf)
+7.   「幸福度の定量化に関する調査研究」中間報告書
+     - 参考
+       - [https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf](https://www.kasseiken.jp/pdf/library/guide/23fy-09.pdf)
+8.   「幸せになる行動」を AI で幸福感と結びつけて予測する研究（PACJPA）
+     - 参考
+       - [論文ページ（jstage）](https://www.jstage.jst.go.jp/article/pacjpa/82/0/82_3EV-009/_article/-char/ja/)
+9.   生活満足度指数（LSI）を用いた生活満足度を計測する方法
+     - 説明
+       - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
+10.  デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
+     - 説明
+       - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
+11.  GNH
+     - 説明
+       - Gross National Happiness（国民総幸福量）の略で、ブータン発祥の、経済成長だけでなく文化・環境・ガバナンスなど多面的な幸福を測る指標です
+12.  HDI
+     - 説明
+       - Human Development Index（人間開発指数）の略で、アマルティア・センらが開発した、所得・平均余命・教育から成る国の開発水準を示す UN 系の指標です
+13.  MEW
+     - 説明
+       - Measure of Economic Welfare（経済的福祉尺度）の略で、ノードハウスとトービンが GNP を家事・余暇・環境破壊などで補正して福祉を測ろうとした指標です
+14.  GPI
+     - 説明
+       - GPI
+15.  SNS ログからの幸福度推定
+     - 説明
+       - SNS ログからの幸福度推定にも言及があります
+16.  汗
+     - 参考
+       - [https://www.itmedia.co.jp/news/articles/2310/05/news052.html](https://www.itmedia.co.jp/news/articles/2310/05/news052.html)
+     - 説明
+       - 論文では薄型の汗センサで女性ホルモン検出アイデアを示しています
+       - センサは汗成分から排卵や月経時期の推定へ使えるとの報告です
+17.  脳信号
+     - 参考
+       - [In-ear integrated sensor array for the continuous monitoring of brain activity and of lactate in sweat](https://www.nature.com/articles/s41551-023-01095-1)
+       - [https://www.itmedia.co.jp/news/articles/2310/10/news023.html](https://www.itmedia.co.jp/news/articles/2310/10/news023.html)
+     - 説明
+       - \*\*AirPods で脳信号を記録するイヤフォン貼り付け型センサーを米研究者らが開発し、ストレスや集中度を監視できる
+       - スクリーン印刷された柔軟なセンサーで記録される脳波（EEG）信号と汗中の乳酸データは、健康モニタリングや神経変性疾患の診断に活用可能です
+18.  空気中のミリ波・血圧
+     - 参考
+       - [airBP: Monitor Your Blood Pressure with Millimeter-Wave in the Air](https://dl.acm.org/doi/10.1145/3614439)
+       - [https://www.itmedia.co.jp/news/articles/2310/12/news042.html](https://www.itmedia.co.jp/news/articles/2310/12/news042.html)
+     - 説明
+       - **空気中のミリ波で“血圧”を測り監視する手法　気が付かれず血圧測定　中国の研究者らが開発**
+       - ミリ波（mmWave）を用いた非接触での血圧測定方法を提案した研究報告です
+19.  文章
+     - 参考
+       - [https://wef.ch/2JOUCvW](https://t.co/RDF9FqKXIX)
+       - [https://wef.ch/2JOUCvW](https://www.weforum.org/agenda/2018/02/people-with-depression-use-language-differently-heres-how-to-spot-it/)
+     - 説明
+       - うつ病の言語があり、解析され始めている。孤独や悲しいという否定感情の語が多いことよりも、私、自分といった一人称代名詞が多く、その他の人称は極端に少ないことが特徴。絶対、常に、決してないという絶対的表現を過剰に用いる
+20.  タイピング行動
+     - 参考
+       - [https://t.co/4i7ISGv7m5](https://t.co/4i7ISGv7m5)
+     - 説明
+       - Google がユーザーの普段のタイピング行動を理解して感情を読み取るキーボードの特許申請を出した
+21.  Amazon・感情認識
+     - 参考
+       - [https://t.co/xPliMU0mDJ](https://t.co/xPliMU0mDJ)
+       - [https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073](https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11910073)
+     - 説明
+       - Amazon が感情認識を活用して動画の予告を生成する技術の特許申請を出した
+22.  個人データ
+     - 参考
+       - [https://t.co/Vi2lbQUeDy](https://t.co/Vi2lbQUeDy)
+       - [https://www.cos.io/gfs](https://www.cos.io/gfs)
+       - [https://twitter.com/koro485/status/1757426995292454927](https://twitter.com/koro485/status/1757426995292454927)
+     - 説明
+       - ウェルビーイング研究では縦断的な因果検証向けデータが不足していました
+       - 複数国・20 万人規模・5 年追跡のコーホートが公開され、初年波から利用でき今後フル無料化も予告されています
+23.  ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
+     - 参考
+       - [https://twitter.com/nobi/status/1352405640501596160](https://twitter.com/nobi/status/1352405640501596160)
+     - 説明
+       - Apple Watch の ECG(簡易心電図）と不規則な心拍の通知機能（IRN)
+24.  人間の脳のセンシング
+     - 参考
+       - [https://www.emotionhelper.com/](https://www.emotionhelper.com/)
+       - [https://www.rjlwh.com.cn/Department/27.html](https://www.rjlwh.com.cn/Department/27.html)
+       - [https://tamakino.hatenablog.com/entry/2023/08/24/080000](https://tamakino.hatenablog.com/entry/2023/08/24/080000)
+     - 説明
+       - 脳センシングを AI で処理し、感情をデータ化
+       - 瑞金医院は上海交通大学附属の研究機関であり企業組織ではありません
+25.  Mappiness
+     - 参考
+       - [Are You Happy While You Work? Alex Bryson, George MacKerron](https://sole-jole.org/assets/docs/13058.pdf)
+     - 説明
+       - スマートフォンアプリ「Mappiness」
+       - このアプリは、ランダムな時刻にユーザーへ通知を送ります
+       - 幸福度・リラックス度・覚醒度の 3 側面について、その瞬間の気持ちを評価するよう求めます
+
+26.  感情分析
+     - 参考
+       - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+       - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+       - [https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573](https://qiita.com/WE1CH-KAZU/items/3bc2abebaf148e132573)
+       - [https://zenn.dev/koshin/articles/6b27acdf8bbe01](https://zenn.dev/koshin/articles/6b27acdf8bbe01)
+       - [https://qiita.com/Mizuiro\_\_sakura/items/aa13593b239f91a51486](https://qiita.com/Mizuiro__sakura/items/aa13593b239f91a51486)
+       - [https://note.com/daichi_mu/n/n7e91b9bbe038](https://note.com/daichi_mu/n/n7e91b9bbe038)
+       - [https://ja.getdocs.org/cs-sentiment-analysis-training-data](https://ja.getdocs.org/cs-sentiment-analysis-training-data)
+       - [https://zenn.dev/robes/articles/a7ba6e172f3a14](https://zenn.dev/robes/articles/a7ba6e172f3a14)
+       - [https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6](https://qiita.com/izaki_shin/items/2b4573ee7fbea5ec8ed6)
+       - [https://webbigdata.jp/post-11973/](https://webbigdata.jp/post-11973/)
+       - [https://www.tis.co.jp/news/2018/tis_news/20180410_1.html](https://www.tis.co.jp/news/2018/tis_news/20180410_1.html)
+       - [https://cloud.watch.impress.co.jp/docs/news/1116199.html](https://cloud.watch.impress.co.jp/docs/news/1116199.html)
+       - [https://github.com/ids-cv/wrime](https://github.com/ids-cv/wrime)
+       - [https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/\_pdf/-char/ja](https://www.jstage.jst.go.jp/article/jnlp/28/3/28_907/_pdf/-char/ja)
+       - [https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices](https://zenn.dev/mnao46/articles/20240406-lyrics-sentiment-analytices)
+       - [https://zenn.dev/mizuiro\_\_sakura/articles/4226070bdd6309](https://zenn.dev/mizuiro__sakura/articles/4226070bdd6309)
+       - [https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html](https://www.cloud-contactcenter.jp/blog/sentiment-analysis-in-business.html)
+       - [https://zenn.dev/tableau_misaki/articles/01a750badd8d5d](https://zenn.dev/tableau_misaki/articles/01a750badd8d5d)
+       - [https://zenn.dev/tbpgr/books/07517cad8c76b5](https://zenn.dev/tbpgr/books/07517cad8c76b5)
+       - [https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90](https://qiita.com/shngt/items/966799cc3f7c77a6fa17#jetrun-%E6%84%9F%E6%83%85%E5%88%86%E6%9E%90)
+       - [https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03](https://qiita.com/JMP_Japan/items/e71766280a6954bfdf03)
+       - [https://qiita.com/yn887/items/8a0e7ab3bbd515daff27](https://qiita.com/yn887/items/8a0e7ab3bbd515daff27)
+
+27.  ユーザーローカル「テキスト感情認識 AI」
+     - 参考
+       - [https://emotion-ai.userlocal.jp/](https://emotion-ai.userlocal.jp/)
+     - 説明
+       - 日本語の文章を入力すると、喜び、好き、恐れ、悲しみ、怒りの 5 つの感情要素をチャート形式で表示します
+
+28.  Amazon Comprehend
+     - 説明
+       - 機械学習を用いてテキストから感情や意見を分析し、インサイトを抽出するサービス
+
+29.  エモスタ「エモリーダー」
+     - 説明
+       - 映像に写った表情から 7 つの基礎感情（怒り、軽蔑、嫌悪、恐れ、喜び、悲しみ、驚き）を検出し、グラフで表示します
+
+30.  VITALIFY Asia「MAL FaceEmotion」
+     - 説明
+       - 映像から場の雰囲気や感情を分析し、喜び、悲しみ、驚き、怒り、真顔の 5 種類の感情を検出します
+
+31.  Empath（エンパス）
+     - 参考
+       - [https://webempath.com/](https://webempath.com/)
+       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)（日本語サイト）
+       - [https://webempath.net/lp-eng/](https://webempath.net/lp-eng/)（英語サイト）
+     - 説明
+       - 声の物理的特性（ピッチ、トーン、スピード、パワー）を分析し、怒り、喜び、悲しみ、落ち着き、活力などの感情を検出します
+       - Empath は怒り、喜び、悲しみ、落ち着き、活力などの感情を検出でき、Web API を通じて開発者が使えるようになっています
+       - 「言葉」ではなく、「声」の状態から感情を解析するので、言語を選ばずに、分析結果を出すことが出来るとのこと
+
+32.  iMotions Voice Analysis
+     - 参考
+       - [https://imotions.com/products/imotions-lab/modules/voice-analysis/](https://imotions.com/products/imotions-lab/modules/voice-analysis/)
+     - 説明
+       - 音声の基本的な特徴（ピッチ、音量、話す速度、イントネーション）を分析し、感情や感情の価値（興奮、支配、価値）を提供します
+
+33.  Vokaturi
+     - 参考
+       - [https://vokaturi.com/](https://vokaturi.com/)
+       - [https://developers.vokaturi.com/getting-started/overview](https://developers.vokaturi.com/getting-started/overview)
+     - 説明
+       - リアルタイムおよび事後分析に対応し、オフラインでの動作が可能です
+       - 価格は、OSS 版は無料（精度 67％・3 層ネットワーク）、ニューラルネットワーク版は要問合せ
+
+34.  COTOHA API（感情分析）
+     - 参考
+       - [https://api.ce-cotoha.com/contents/api-all.html](https://api.ce-cotoha.com/contents/api-all.html)
+       - [https://www.ntt.com/business/services/application/ai/cotoha-nlp.html](https://www.ntt.com/business/services/application/ai/cotoha-nlp.html)
+       - [https://zenn.dev/ken_11/articles/8f37dea8f93221](https://zenn.dev/ken_11/articles/8f37dea8f93221)
+
+35.  リッカート尺度
+     - 参考
+       - [https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/](https://help.surveymonkey.com/ja/surveymonkey/create/likert-scales/)
+     - 説明
+       - トピックに対する感情の強さを聞く一般的な設問形式
+
+36.  Firebase: Sentiment Analysis 拡張
+     - 参考
+       - [https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis](https://github.com/FirebaseExtended/experimental-extensions/tree/next/firestore-sentiment-analysis#sentiment-analysis)
+       - [https://zenn.dev/mogmet/articles/592ba1e75d4d4a](https://zenn.dev/mogmet/articles/592ba1e75d4d4a)
+     - 説明
+       - テキストから感情スコア
+
+37.  日本語感情表現辞書
+     - 参考
+       - [https://www.jnlp.org/GengoHouse/snow/d18](https://www.jnlp.org/GengoHouse/snow/d18)
+       - [https://zenn.dev/mizuiro\_\_sakura/articles/7e8373a759ef1b](https://zenn.dev/mizuiro__sakura/articles/7e8373a759ef1b)
+       - [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/)
+     - 説明
+       - 単語ごとに 48 感情の注釈があり、文の主感情の特定に使える
+       - メモ： 夏目漱石「こころ」× 青空文庫で試す想定
+
+38.  東北大： 日本語極性辞書（公開リソース）
+     - 参考
+       - [https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html](https://www.cl.ecei.tohoku.ac.jp/Open_Resources-Japanese_Sentiment_Polarity_Dictionary.html)
+
+39.  carely
+     - 説明
+       - 「ストレスチェック」等を感情・幸福度分析の参考に
+
+40.  理論
+     - テキスト
+       1. Sentiment Analysis
+          - ポジ／ネガ／ニュートラル分類（NLP）。幸福度寄りではポジティブ表現・主観的幸福感（SWB）・生活満足度キーワードを重視し、VADER・TextBlob 等も
+       2. Lexicon-based Analysis
+          - 感情辞書（SentiWordNet、AFINN）。幸福度は ANEW、Hedonometer 等の「幸福指数」辞書
+       3. Machine Learning-based Analysis
+          - SVM、ランダムフォレスト等の機械学習による感情分類。大規模なトレーニングデータが必要
+       4. Deep Learning-based Analysis
+          - BERT、LSTM 等のニューラルネットワークによる感情推定。文脈を深く理解できる
+       5. Latent Semantic Analysis (LSA)
+          - 文の意味的な関係性を解析し感情を推定する文脈感知型の分析
+       6. Topic Modeling with Sentiment
+          - LDA 等でトピックごとの感情を解析し、感情とテーマを同時に分析。幸福テーマ（LDA with Happiness Themes）も同系
+       7. Valence Arousal Dominance (VAD) Models
+          - 評価・覚醒・支配の 3 次元で感情を分析し、テキストの微細な感情ニュアンスを捉える
+       8. Emotion Annotated Corpus Analysis
+          - EmoLex、GoEmotions、LIWC 等の感情注釈コーパスによる感情予測。幸福感の注釈データセットでの分類にも
+       9. Cognitive Appraisal Theory Analysis
+          - 認知評価理論に基づき文章中の感情を構造的に評価。幸福に関する記述の特定にも
+       10. Pragmatic Analysis / Hedonic Tone
+           - 文脈や社会的ニュアンスを取り入れた言語学的アプローチ。幸福度では快楽的トーンや PERMA 等のポジティブ心理学フレームワークも
+     - 動画
+       1. Facial Expression Analysis
+          - 顔の表情変化を捉え感情を推定（OpenFace、Affectiva、Ekman）。幸福では笑顔の持続時間・強度（Smile Dynamics）にも注目
+       2. Action Unit Analysis
+          - Paul Ekman の表情モデルに基づきアクションユニットを解析。幸福寄りでは口角上昇等
+       3. Multimodal Analysis
+          - 音声・テキスト・映像を統合して感情を推定（Multimodal Happiness Analysis を含む）。動画内のポジティブ感情の時間変化の追跡も
+       4. Body Gesture Analysis
+          - Kinect 等でジェスチャーや姿勢の変化を解析。幸福感に関連するポジティブなジェスチャー（軽快な動き等）も
+       5. Eye Movement Analysis
+          - 視線トラッキングや凝視パターンで感情を推定。瞳孔の拡張や目の輝きが幸福感を示す分析も
+       6. Deep Learning for Video Analysis
+          - 3D CNN や RNN（I3D、C3D 等）で動画全体の感情を解析
+       7. Physiological Signal Integration
+          - 心拍・皮膚電位をセンサーと連携し、映像に同期させて感情・幸福度と関連付け
+       8. Semantic Scene Analysis
+          - シーン・雰囲気・情景理解で感情を推定。明るい色・自然の風景等を幸福感の指標としても
+       9. Audio-Visual Sentiment Analysis
+          - 音声と映像を組み合わせたマルチモーダルな感情分析
+       10. Cultural Context Analysis
+           - 文化的背景・文脈を考慮した感情分析。社会的交流（笑い声や肯定的反応）による幸福度評価も
+     - 音声
+       1. Prosodic Feature Analysis
+          - ピッチ・強度・テンポ・リズムで感情を推定（Praat 等）。幸福感ではトーンや強調が要因になる分析も
+       2. Spectral Feature Analysis
+          - フォルマント、MFCC 等のスペクトル特性による感情推定。ポジティブ感情・幸福感向けのスペクトル解析も
+       3. Speech Emotion Recognition (SER)
+          - EmoVoice 等で音声を感情分類。幸福寄りは RAVDESS、IEMOCAP 等のデータセット利用も
+       4. Acoustic Modeling
+          - GMM、HMM 等の音響モデルで感情特性を分類。幸福感を示す音声特徴に基づくモデル構築も
+       5. Deep Learning in Audio
+          - Wavenet や CNN・RNN 等で音声データを解析。幸福度検出に特化したモデルも
+       6. Pitch Contour Analysis
+          - 声の音調変化を追跡して感情を分類。幸福感では明るい音調や上昇トーンを検出
+       7. Valence-Arousal Modeling
+          - Russell’s Circumplex 等で評価軸と覚醒軸による感情・幸福感のモデル化
+       8. Emotion Annotation on Audio Dataset
+          - IEMOCAP 等の感情ラベル付き音声データセットを利用したモデル学習
+       9. Context-Aware Audio Analysis
+          - 音声中の文脈情報を利用した感情推定。NLP 技術を補完
+       10. Cross-linguistic Emotional Analysis / Cultural Audio Cues
+           - 複数言語間の音声感情の共通点・相違点を分析。笑い検出・高エネルギー発話・言語間の笑いの違い等の文化的音声手がかりも
+
+41.  毎日の幸福度アンケート・いじめ早期発見
+     - 参考
+       - [いじめや不登校の早期発見 デジタル技術活用 コメントなど分析](https://www3.nhk.or.jp/news/html/20220705/k10013702161000.html)
+       - [大垣市、大垣市教育委員会、NTT Com、WEBQU 教育サポートによる連携協力に関する協定](https://www.ntt.com/content/dam/nttcom/hq/jp/about-us/press-releases/pdf/2020/1028.pdf)
+       - [https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal](https://tabi-labo.com/304040/wt-digital-bullying-schoolrefusal)
+     - 説明
+       - 毎日の幸福度アンケートの参考
+       - 児童や生徒同士の関係性を可視化する。タブレット上に提出された課題を全員で共有し、コメントの内容やいいねの数をもとに子どもたちの関係性を把握する
+       - タブレット端末で子どもたちに気分や体調を毎日報告してもらったり、いじめのアンケートを実施したりするシステムもある。SOS を早期発見し、問題が深刻化する前に対処するのが狙い
+
+42.  リストバンド・カメラ・眼球運動
+     - 参考
+       - [https://univ-journal.jp/234230/](https://univ-journal.jp/234230/)
+     - 説明
+       - 感情の算出の参考にしたい
+       - リストバンド端末で脈拍を計測して集中を測定
+       - カメラで頬の血管の血流を測定
+       - 心の中の意思決定を眼球運動から可視化できる可能性を発見（東北大学）
+       - 論文: Perceptual decisions interfere more with eye movements than with reach movements（Communications Biology）
+
+43.  経験サンプリング研究
+     - 参考
+       - [https://yuchrszk.blogspot.com/2022/07/google.html](https://yuchrszk.blogspot.com/2022/07/google.html)
+     - 説明
+       - 経験サンプリング・プロジェクトでは、研究者が参加者の iPhone へ定期的に連絡をして簡単な質問を行う（誰と一緒にいるのか、何をしているのか、など）
+       - この手法で 300 万点のデータセットを作成した研究によれば、たいていの人は自然の中、特に湖の近くにいるほうが幸せであることがわかった
+
+44.  取得データの種類
+     - 説明
+       - 動画、GPS、ウェアラブルデバイス、生物力学装置、モーションキャプチャなどを通じて取り込んだ追跡データ、監視カメラ、ブラウザなどの履歴、SNS の投稿テキスト
+       - 感情の算出の参考にしたい
+
+45.  Adjusting for Scale-Use Heterogeneity in Self-Reported Well-Being
+     - 参考
+       - [https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB](https://himaginary.hatenablog.com/entry/20231003/Adjusting-for-Scale-Use-Heterogeneity-in-SWB)
+     - 説明
+       - 自己申告の厚生のサーベイデータの分析は、各人が回答のスケールを異なる形で使うと混乱したものとなりかねない
+
+46.  From Happiness Data to Economic Conclusions
+     - 参考
+       - [https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions](https://himaginary.hatenablog.com/entry/20231004/From-Happiness-Data-to-Economic-Conclusions)
+     - 説明
+       - 幸福データ（サーベイ回答者の自己申告の厚生）は経済学研究でますます一般的なものとなってきており、最近では政策策定に用いる話も出てきている
+
+47.  潜在的連合テスト
+     - 説明
+       - 無意識の差別度を計測する「潜在的連合テスト（Implicit Association Test)」を利用して、その人の幸福度を算出しても良い
+
+48.  幸福度の推奨アンケート（SWLS、幸せの 4 因子など）
+     - 参考
+       - [http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html](http://lab.sdm.keio.ac.jp/maenolab/questionnaire.html)
+
+49.  幸福度を測る方法の参考にしたい対象
+     - 説明
+       - ストレスと気分のトラッキングするデバイス（指輪など）、SNS の投稿、どのアプリをどれだけ使ったか、など
+
+50.  センサー「エモコアイ」
+     - 参考
+       - [https://newswitch.jp/p/34054](https://newswitch.jp/p/34054)
+     - 説明
+       - センサーは人体からの微弱な電波の反射を捉えて、脈波を計測する。センサー内のマイコンが計測した脈波形状や脈拍間隔のゆらぎ方を解析する。集中度やリラックス度、眠気度、そして疲労度といった感情を数値化する
+       - 近距離から 6 メートルまで非接触で感情を計測できるため、天井にある照明器具にセンサーを取り付けて使える。事業所の照明にセンサーを設置することで従業員の感情を把握可能なため、労務管理への展開も検討する
+
+51.  Thymia
+     - 参考
+       - [https://ideasforgood.jp/2022/11/04/thymia/](https://ideasforgood.jp/2022/11/04/thymia/)
+     - 説明
+       - イギリスのスタートアップ・Thymia が開発したのは、ビデオゲームを通して、患者の細かな精神状態を把握しやすくするサービス
+       - まず、患者はビデオゲームをプレーする。その際、プレー中の顔の表情の変化や話し方のパターン、反応時間などは記録され、その記録は AI により分析され、患者の精神状態を調べられる
+
+52.  Web カメラだけで心拍数と心拍変動
+     - 参考
+       - [https://twitter.com/AiBreakfast/status/1613991323929051136](https://twitter.com/AiBreakfast/status/1613991323929051136)
+       - [https://aibreakfast.beehiiv.com/](https://aibreakfast.beehiiv.com/)
+     - 説明
+       - Web カメラだけで心拍数と心拍変動を捉えることができたんだ。知らなかった。2020 年の論文で出てたみたい
+
+53.  GPT-4 が性格診断・感情分析
+     - 参考
+       - [https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend](https://every.to/chain-of-thought/does-gpt-4-know-me-better-than-my-girlfriend)
+       - [https://twitter.com/tmiyatake1/status/1657538967997218816](https://twitter.com/tmiyatake1/status/1657538967997218816)
+     - 説明
+       - 個人が書いたオンラインコンテンツを GPT-4 に提供して、その個人に成り切って性格診断を受けるように要求した
+       - その性格診断を彼女と同じことをお願いした結果、GPT-4 の方が性格を当てられた
+
+54.  iOS 17 の「心の健康状態」
+     - 参考
+       - [https://forbesjapan.com/articles/detail/66089](https://forbesjapan.com/articles/detail/66089)
+       - [https://zenn.dev/ueshun/articles/dd700cdbb61f8d](https://zenn.dev/ueshun/articles/dd700cdbb61f8d)
+       - [https://qiita.com/subutakahiro/items/40bcec516e77853ce45c](https://qiita.com/subutakahiro/items/40bcec516e77853ce45c)
+     - 説明
+       - iPhone の新 OS「iOS 17」でアプリ「ヘルスケア」に加わった新機能「心の健康状態」
+       - あなたは見知らぬ都市で休暇を過ごしている。1 日の始まりに、ヘルスケアアプリが、あなたの気分を記録するよう促す
+       - あわただしい観光スポットに遭遇すると、あなたの不安が心拍数を徐々に高めていく。その変化を検知したヘルスケアアプリは、もう一度あなたの気分を登録するよう促す
+       - ヘルスケアアプリのユーザーは、PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）を 24 時間利用できるようになった
+       - 「自動感情日誌」になる
+       - PHQ-9 スクリーニングツール（うつ病リスクに関する質問票）と GAD-7 スクリーニングツール（不安障害リスクに関する質問票）
+       - iOS の「ヘルスケア」アプリの「感情と気分を記録」「心の状態」機能で、その日の感情と気分を記録するように、毎日の気分を報告して、データ提供する
+       - ヘルスケアのデータ取得ができる API がある。HealthKit
+       - HealthKit は iPhone と AppleWatch によって収集されたヘルスデータ（心拍数や睡眠 etc.）とフィットネスデータ（ランニングや水泳 etc.）の読み書きを行うための API を提供しています
+
+55.  TherapeiaVR
+     - 説明
+       - VR で治療中の痛み・不安を軽減するデジタル鎮痛アプリ「TherapeiaVR」
+
+56.  感性アナライザ
+     - 参考
+       - [https://realsound.jp/tech/2023/05/post-1337515.html](https://realsound.jp/tech/2023/05/post-1337515.html)
+     - 説明
+       - 電通サイエンスジャムの技術である「感性アナライザ」によって体験中の脳波を測定し、ハグ時の幸福度に関連する感情変化を計測・可視化する取り組みも行われており、ハグによって脳の働きが変化していく様子を視覚的にとらえることも可能だ
+
+57.  脈拍の変動
+     - 説明
+       - スマートウォッチが脈拍の変動からストレスを推定する仕組み
+
+58.  wellday
+     - 参考
+       - [https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/](https://www.nikkei.com/article/DGXZQOUC041W50U3A001C2000000/)
+     - 説明
+       - 人事管理クラウドソフトを手掛ける HRBrain（HR ブレイン、東京・品川）は会社が毎月 1 回の意識調査を繰り返して社員の満足度や健康状態を把握する「パルスサーベイ」事業に参入する。wellday（ウェルデイ、東京・中央）より同事業を買収した。買収金額は明らかにしていない
+
+59.  皮膚電気活動（EDA）
+     - 参考
+       - [https://www.techno-edge.net/article/2023/09/19/1944.html](https://www.techno-edge.net/article/2023/09/19/1944.html)
+     - 説明
+       - Google Pixel Watch 2 は Fitbit のストレス管理や皮膚温センサ追加、緊急 SOS 機能も強化のうわさ
+       - 金属部分への刻印には「IP68」や「Water Resistant 50m」「SPO2」に混じって「EDA」も確認できますが、おそらく Fitbit にあった皮膚電気活動（EDA）機能のこと。要は、ストレス管理や記録に使われるものです
+       - Fitbit Sense 2 から引き継がれるもう 1 つの機能は、皮膚温センサーの追加。ユーザーは皮膚温を手動でチェックできるようになり、過去の測定記録は Fitbit モバイルアプリで確認できるそうです。Sense 2 は夜間の体温変化のみを追跡できるため、それを超えるものです
+
+60.  テキストから病気を見つける技術
+     - 参考
+       - [https://togetter.com/li/2226111](https://togetter.com/li/2226111)
+       - [https://twitter.com/fladdict/status/1703619949414265155](https://twitter.com/fladdict/status/1703619949414265155)
+       - [https://academic.oup.com/dsh/article/26/4/435/1052059?login=false](https://academic.oup.com/dsh/article/26/4/435/1052059?login=false)
+     - 説明
+       - 文章を数値解析して、感情を算出
+       - アルツハイマーになった作家の文章を分析する。これ応用すれば、自分のツイートやブログからアルツハイマーの兆候を見つけられそう
+       - アルツハイマーになった英作家の文章がどのように変化していくのかを定量的に示したもの。語彙の多様性や文章の複雑性が減少するのは予想できそうだけど、他にもさまざまな特徴が、しかも 40 代からそれは始まっている、と
+
+61.  Apple Mood Tracking
+     - 参考
+       - [https://x.com/kagayakimann/status/1705086257989296506](https://x.com/kagayakimann/status/1705086257989296506)
+     - 説明
+       - Apple watch から通知
+       - Watch から直で感情ログ
+       - そのまま音声入力で状況記録
+       - アクティビティトラッカーで瞑想時間、睡眠時間、運動との相関も見れる
+       - ジャーナルアプリが出たら写真と感情の紐付けも
+
+62.  「非侵襲型」の血糖値計測
+     - 参考
+       - [https://iphone-mania.jp/news-552985/](https://iphone-mania.jp/news-552985/)
+     - 説明
+       - 「非侵襲型」の血糖値計測で健康の測定や感情の算出
+
+63.  Google 音声アシスタント
+     - 参考
+       - [http://image-ppubs.uspto.gov/dirsearch-publ](http://image-ppubs.uspto.gov/dirsearch-publ)
+       - [https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg](https://x.com/tmiyatake1/status/1706459667831070927?s=46&t=royD-lxgrtGVl-4d09tcFg)
+     - 説明
+       - Google 音声アシスタントにユーザーが支持した際にそのユーザーの言葉だけではなく、感情も認識して適切な回答を行う技術の特許申請を出した
+
+64.  Empath
+     - 参考
+       - [https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/](https://chizaizukan.com/news/6YLvSXrfymWv0.13XKbB74fQ/)
+       - [https://webempath.net/lp-jpn/](https://webempath.net/lp-jpn/)
+       - [https://chizaizukan.com/property/005](https://chizaizukan.com/property/005)
+     - 説明
+       - 音声感情解析 AI を提供する株式会社 Empath。「DeepEmo」は、同社の音声感情解析 AI「Empath」でセリフ音声を解析し、0.32 秒ごとに変化する感情値を生成する技術。Empath が保有する感情表出音声をもとに、ディープラーニングを使用して 9 つの感情（平常・怒り・恐怖・嫌悪・喜び・悲嘆・信頼・興味・驚き）を推定するアルゴリズムだ
+       - 株式会社 Empath
+       - 商願 2014-35949：「Empath」
+       - 特開 2019-28732：「音声等から気分を解析して動作を制御する装置」（特許出願中）
+
+65.  Hugtics
+     - 参考
+       - [https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/](https://chizaizukan.com/news/70X32NHodyEdWWcAzg3x7P/)
+     - 説明
+       - 「Hugtics」では、ハプティクスの研究者である髙橋宣裕氏とコラボレーション。電通サイエンスジャムが開発を推進する「感性アナライザ」を搭載し、利用者の脳波をセンシングして幸福度に関連する複数の感情変化を独自のアルゴリズムで可視化し、ベスト型ウェアに内蔵した LED に反映・感情に応じて LED の光が変化する
+
+66.  アイトラッキング
+     - 参考
+       - [https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg](https://twitter.com/goando/status/1667524637784444928?s=46&t=royD-lxgrtGVl-4d09tcFg)
+     - 説明
+       - Apple Vision Pro を構成する 5000 の特許のひとつ、米 SMI の買収後に取得したアイトラッキングの特許
+       - 目の動きを精緻にセンシングすることでユーザーの意図による入力だけでなく、ユーザーの精神状態の観測も可能になる
+
+67.  非接触型の脈拍測定
+     - 説明
+       - カメラを使った非接触型の脈拍測定ができるらしい
+       - この技術を使って感情や幸福度を測定して、評価軸に貢献しているかどうかの仕組みとして使う
+
+68.  可食ワイヤレス生体情報センサ
+     - 参考
+       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-106/)
+     - 説明
+       - 「可食ワイヤレス生体情報センサ」がもたらす未来とは？
+       - 経口摂取型電子デバイスは、口から体内へ飲み込むことができるデバイスで、体内の消化器官の病理診断や治療に活用できるとても小型な機器で、その経口摂取型電子デバイスを大幅に進化させたのが「可食ワイヤレス生体情報センサ」
+       - 慶應義塾大学の尾上弘晃教授らの研究グループは、完全に体内で分解でき、ワイヤレスでバッテリー入らずの経口摂取型電子デバイスを開発した
+
+69.  感情認識技術
+     - 説明
+       - 感情認識技術
+       - 2022 年には、Microsoft が感情を検出する人工知能（AI）ツールを開発したけど停止した
+
+70.  失言検出課題、チーズケーキ課題
+     - 説明
+       - 心理学の失言検出課題、チーズケーキ課題を参考にその人の幸福度や感情を算出したい
+
+71.  脳活動解読
+     - 参考
+       - [BMI 深層学習生理学研究所脳活動解読岡山大学慶應義塾大学立教大学](https://univ-journal.jp/tag/bmi/)
+       - [【Frontiers in Neuroinformatics】Counterfactual Explanation of Brain Activity ClassifiersUsing Image-To-Image Transfer by Generative Adversarial Network](https://www.frontiersin.org/articles/10.3389/fninf.2021.802938/full)
+       - [https://univ-journal.jp/159335/](https://univ-journal.jp/159335/)
+     - 説明
+       - ブラックボックスな脳活動解読器の動作が深層学習の応用で説明可能に
+       - 脳活動解読とは、MRI や脳波により計測した脳活動データからその人が何をやっていたのかを推定する技術で、将来的な Brain Machine Interface；計測した脳活動をもとに義手や義足を動かす技術（BMI）への応用を見据えた研究が進んでいる
+       - 論文情報：
+
+72.  ストレスチェックと生活習慣等の分析
+     - 参考
+       - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
+     - 説明
+       - 東京医科大学とこどもみらいという企業で運営している、100 社ぐらいの方がジョインしているストレスチェックと生活習慣等の分析をやっている
+
+73.  ANBAI
+     - 参考
+       - [https://www.marubeni-sys.com/anbai/](https://www.marubeni-sys.com/anbai/)
+       - [https://anbai.team/](https://anbai.team/)
+       - [https://logmi.jp/business/articles/327784](https://logmi.jp/business/articles/327784)
+     - 説明
+       - 自律神経を測定することで、無自覚のストレスも可視化するアプリ「ANBAI」
+
+74.  Mappiness
+     - 参考
+       - [http://www.mappiness.org.uk/index.html](http://www.mappiness.org.uk/index.html)
+       - [Mappiness](https://www.mappinessapp.com/)
+       - [https://www.sussex.ac.uk/research/full-news-list?id=44576](https://www.sussex.ac.uk/research/full-news-list?id=44576)
+       - [https://nazology.net/archives/8656](https://nazology.net/archives/8656)
+     - 説明
+       - “” というスマートフォンアプリを用いて、32,000 人からデータを抽出
+       - “Mappiness” は、ユーザーに定期的に感情や行動について報告してもらうアプリ
+       - 3 年間で集められた感情データは 300 万以上にも渡り、これにより感情について分析することが可能となりました
+
+75.  汗からストレスレベル
+     - 参考
+       - [https://nazology.net/archives/82884/](https://nazology.net/archives/82884/)
+     - 説明
+       - 最近、スイス連邦工科大学ローザンヌ校に所属するナノテクノロジー研究者エイドリアン・イオネスク氏ら研究チームは、**汗からストレスレベルを測定するパッチを開発した**と発表
+       - 研究チームは、**汗からコルチゾールを検知できるパッチを開発し、身体に貼り付けることでコルチゾールレベルを定量化・追跡することに成功**しました
+
+76.  動きから感情
+     - 参考
+       - [https://business.nikkei.com/atcl/gen/19/00297/122100107/](https://business.nikkei.com/atcl/gen/19/00297/122100107/)
+     - 説明
+       - スマホで使えるモーションキャプチャー、ソニー「mocopi」
+
+77.  ChatGPT に聞いた幸福度を測定する方法
+     - 説明
+       - アンケート調査以外で幸福度を測定する方法として、次のようなものがあります
+       - 自動車運転やコンピューターを使用する際の行動や生理的な反応を計測する方法
+       - ネットワーク分析を用いた社会的支援や支援受けの多さを計測する方法
+       - 生活満足度指数（LSI）を用いた生活満足度を計測する方法
+       - デイリーライフログ（日常生活の記録）を用いた日常生活の満足度を計測する方法
+       - ただし、これらの方法でも、幸福度を定量的に測ることは、個人差が大きく、また、幸福感を感じるために必要な要因も個人によって異なるため、一概に定量的に測ることはできません。さらに、幸福度を測る方法には、測定のバイアス（例えば、記憶バイアスやレポーティングバイアス）が存在する場合があるため、注意が必要です
+       - ChatGPT
+
+78.  赤ちゃんの泣き声を分析
+     - 参考
+       - [https://twitter.com/bioshok3/status/1610891262416285697](https://twitter.com/bioshok3/status/1610891262416285697)
+       - [https://mashable.com/article/ces-2023-why-is-my-baby-crying](https://mashable.com/article/ces-2023-why-is-my-baby-crying)
+       - [https://twitter.com/christianna-j/status/1610735317262139416](https://twitter.com/christianna-j/status/1610735317262139416)
+     - 説明
+       - 赤ちゃんの泣き声を分析し、「不快指数」から 4 つのニーズ (空腹、汚れたおむつ、眠気、眠気）のいずれかを判断する AI プロダクト\*\*
+       - CES 2023: The device that tells you why your baby is crying
+       - \*\*
+
+79.  うつ病を定量化して分析
+     - 参考
+       - [&#12300;新型うつ&#12301;とは何だったのか&#9472;&#9472;新しい抑うつへの心理学アプローチ](https://af.moshimo.com/af/c/click?a-id=790466&p-id=170&pc-id=185&pl-id=27060&url=https%3A%2F%2Fwww.amazon.co.jp%2Fdp%2F4866161515)
+     - 説明
+       - 「新型うつ」とは何だったのか
+
+80.  VR の視線の動きで ADHD 診断
+     - 参考
+       - [Scientific Reports](https://www.nature.com/articles/s41598-022-24552-4)
+       - [https://nazology.net/archives/119547](https://nazology.net/archives/119547)
+     - 説明
+       - 「VR ゲーム」の視線の動きで ADHD 診断する！
+       - フィンランド・アールト大学（Aalto University）神経科学・生体工学部に所属するユハ・サルミタイヴァル氏ら研究チームは、**ADHD の症状を評価できるゲーム「EPELI」を開発。ゲーム中の視線から子供の ADHD を客観的に検出できる**と発表しました
+       - 研究の詳細は、2022 年 11 月 24 日付の科学誌『』に掲載されました
+
+81.  中国で共産党員の忠誠心を判定する AI
+     - 参考
+       - [サウスチャイナ・モーニング・ポスト](https://www.scmp.com/news/china/society/article/2143899/forget-facebook-leak-china-mining-data-directly-workers-brains)
+       - [https://www.excite.co.jp/news/article/Karapaia-52314191/](https://www.excite.co.jp/news/article/Karapaia-52314191/)
+     - 説明
+       - 中国で共産党員の忠誠心を判定する AI を開発。表情や脳波から「思想教育」の程度を読み取る
+       - AI は合肥総合国家科学センターで開発されたもので、対象者の表情や脳波から共産党の「思想教育」がどの程度浸透しているのか判断するのだという
+       - 人民の監視を強める中国 なお中国では、脳波スキャンによる監視の前例がすでにある。2018 年、誌は、杭州市にある工場で作業員を監視する脳スキャン技術について報じている
+       - それはヘルメットで感情を読み取り、うつ・不安・怒りといった感情を AI が検出するというシステムだった
+
+82.  SOXAI Ring
+     - 参考
+       - [https://soxai.co.jp/products/soxai-ring](https://soxai.co.jp/products/soxai-ring)
+       - [https://tabi-labo.com/304565/wt-soxai-ring](https://tabi-labo.com/304565/wt-soxai-ring)
+     - 説明
+       - 「ヘルスケアをライフスタイルに」をビジョンに掲げる日本のヘルステック企業「株式会社 SOXAI」が開発・販売を進める日本発のスマートリング「SOXAI Ring（ソクサイリング）」に注目が集まっている
+       - 同プロダクトは、心拍数・心拍変動・血中酸素レベル・体表面温度・活動量などが精度高く測定可能なウェラブルデバイス
+       - 情報は独自のアルゴリズムによる分析で、睡眠状態、活動状態、ストレス状態、憂鬱レベルなどをモバイルアプリ上に表示。さまざまな健康指標を分かりやすくスコア化することで、ユーザーの特性にパーソナライズされた生活習慣や睡眠の質の改善に繋げるという
+
+83.  非接触型睡眠トラッカー「Halo Rise」
+     - 参考
+       - [https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/](https://gigazine.net/news/20220929-amazon-halo-rise-bedside-sleep-tracker/)
+     - 説明
+       - Amazon が現地時間の 2022 年 9 月 28 日、非接触型の睡眠トラッカー「**Halo Rise**」を発表しました。Halo Rise は体に装着するのではなくベッドの脇に設置するタイプの睡眠トラッカーであり、レーダーを使って寝ている人の動きや呼吸を検知し、臨床データで訓練された機械学習アルゴリズムに基づいて入眠のタイミングや睡眠段階を追跡するとのことです
+       - 周囲の明るさや室内温度、湿度といった睡眠に影響するデータも収集し、ユーザーに科学的裏付けのある睡眠アドバイスを提供する
+
+84.  感情の算出にアンケート調査を使う場合の懸念点
+     - 説明
+       - アンケート調査による幸福度の測定では、正しい幸福度の測定は不可能な場合がある
+       - 例えば、ポジティブシンキングを無理やり意識していっている人は、本当の幸福度は低いのに、高いことを自分に言い聞かせたいために幸福度は高いと回答してしまう
+
+85.  光学式センサ、3 軸加速度センサ
+     - 参考
+       - [https://36kr.jp/9669/](https://36kr.jp/9669/)
+     - 説明
+       - スマートウォッチは何をもとにユーザーの睡眠状態を判定するのか？
+       - 最近、市販されているウェアラブルデバイスの睡眠計測機能は、デバイス内に埋め込まれた 3 軸加速度センサを通して計測されている。センサで、デバイスの動きや動いた方向を感知できる
+       - 光学式センサで心拍数を計測できるデバイスもある
+
+86.  うつ病治療 VR 製品
+     - 参考
+       - [https://techable.jp/archives/177646](https://techable.jp/archives/177646)
+       - [ニュース原文はこちら](https://prtimes.jp/main/html/rd/p/000000014.000033812.html)
+       - [BiPSEE ホームページはこちら](https://bipsee.co.jp/)
+       - [Meiji Seika ファルマ ホームページはこちら](https://www.meiji-seika-pharma.co.jp/)
+       - [https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/](https://chizaizukan.com/news/5jgurNwUyyregExUfk6HPh/)
+     - 説明
+       - 株式会社 BiPSEE（以下、BiPSEE）と Meiji Seika ファルマ株式会社（以下、Meiji Seika ファルマ）は、BiPSEE が開発する「うつ病治療 VR 製品」の事業化へ向け業務提携契約を締結しました
+       - 「うつ病治療 VR 製品」は、VR による高度な視覚シミュレーションを応用した新たな治療法の確立を目指した製品です
+       - 「うつ病治療 VR 製品」は、VR 空間による視覚シミュレーションを応用し、抗うつ気分を持続させる自分の感情・考え方と距離を置く、新たな治療法の確立を目指した製品だ。人はときに「なぜあのタイミングで、なぜ私に起きたのだろう」といったネガティブな思考を繰り返す「反すう思考」にとらわれることがあり、抑うつや不安の原因になっている
+
+87.  ミキワメウェルビーイング
+     - 参考
+       - [社員の適性見える化 SaaS「ミキワメ」](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
+       - [https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding](https://thebridge.jp/2022/12/leading-mark-jpy760m-round-funding)
+     - 説明
+       - \*\*<span style="text-decoration:underline;">
+       - </span>\*\*
+       - 2020 年 4 月にローンチした「ミキワメ適性検査」は、10 分間のアンケートに答えるだけで自社社員の性格特徴を見える化できる
+       - 同社ではミキワメ適性検査を活用し、社員の心の**幸福度**を可視化・改善する「ミキワメウェルビーイング」を展開している
+
+88.  機能的近赤外分光分析法（fNIRS）
+     - 参考
+       - [https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/](https://wired.jp/article/vol47-the-world-in-2023-revealing-the-steps-in-conversations-dance/)
+     - 説明
+       - 英国の神経科学者ソフィー・スコットは、機能的近赤外分光分析法（fNIRS）を使うことで、会話中に脳でいったい何が起こっているのかを解明できると言う
+       - 頭皮に光を当てて反射光を分析する「オプトード」と呼ばれる光検出型化学センサーを通じて fMRI と同じ神経活動指標を測定する機能的近赤外分光分析法（fNIRS）は、人の自然な動きを妨げることなく使用できる
+       - 実際、ロンドンの中心部にある屋外で被験者たちに事前に定めたタスクをこなしてもらい、その様子を fNIRS で測定したところ、動作データや音声データと並行して神経データもこの方法で収集できることが証明された
+       - 神経反応や生理反応を捉えることができる最新の測定技術を使う\*\*
+       - \*\*
+       - NIRS（近赤外分光法）で計測して、1/1000 秒刻みで蓄積されていく膨大なデータを使って、脳の状態を分析する
+
+89.  アンケート調査による幸福度の算出
+     - 説明
+       - 聞き取り調査で、客観的なストレス評価と、同レベルの精度で、ストレスや幸福度を測定できる仕組みを作って、数百 10,000 人単位で聞き取り調査や Google フォームなどのアンケートをとって、その性質と似ている人は、同じ幸福度だと算出して、アンケートに答えていない人のストレスも評価する仕組み
+
+90.  KDDI 総研の人間心理理解 AI の共同研究プロジェクト
+     - 参考
+       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-251/)
+     - 説明
+       - KDDI 総研は、カーネギーメロン大学の Peter Spirtes 教授および Kun Zhang 准教授とともに、人の心を深く理解し共感できる人間心理理解 AI の共同研究プロジェクトを開始した
+       - カーネギーメロン大学の 2 名の教員は、因果推論分野の世界的な権威だ。因果推論とは、インプットとアウトプットから、その因果関係を統計的に推定していく考え方のこと。KDDI 総研は、この因果推論技術を活用することで、人の心を深く理解し共感する AI の実現を目指しているのだ
+       - KDDI 総研が考える課題は、次のものだ。AI は、人の表面的な行動に基づいて、センシングによる測定や観測などによりデータを統計処理することは可能だが、人間がその行動に至った契機や人の欲求、性格などの心理的背景は考慮できていない。そのため、AI からの提案に対して必ずしも人が共感できないという課題があるのだ
+       - KDDI 総研では、表面に表れる行動と、直接センシングできない複雑な人の心理や感情における因果関係を、人の表情・ジェスチャー・対話の内容などから因果推論により推測することを目指すというのだ。これによって、人間の心理を理解する AI からの提案が人から共感を得やすいものになり、解決策となり得るのだ
+
+91.  直近 1 か月のひきこもり傾向を簡便に把握できる質問票
+     - 参考
+       - [詳細は、精神医学とそれに関連する学問を扱う学術誌「Psychiatry and Clinical Neurosciences」に掲載された。https://news.mynavi.jp/techplus/article/20221201-2527076/](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
+     - 説明
+       - 直近 1 か月のひきこもり傾向を簡便に把握できる質問票、九大などが開発
+       - 九州大学（九大）と日本大学（日大）は 11 月 30 日、リスクの早期発見による、社会的ひきこもり（以下、ひきこもり）予防システム構築のために、直近 1 か月間のひきこもり傾向を簡便に把握できる自記式質問票「1 か月版ひきこもり度評価尺度」(以下、HQ-25M)の開発に成功したと発表した
+       - 同成果は、九大大学院医学研究院の加藤隆弘准教授、日大文理学部心理学科の坂本真士教授、米・オレゴン健康科学大学のアラン・テオ准教授らの国際共同研究チームによるもの
+
+92.  産後うつを身体症状を基に早期発見する調査尺度
+     - 参考
+       - [精神医学に関連する幅広い分野を扱う学術誌「Frontiers in Psychiatry」に掲載された。](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.969833/full)
+     - 説明
+       - 大阪大学（阪大）と京都大学（京大）の両者は 12 月 16 日、産後・子育て世代の女性の身体症状から、うつ症状をスクリーニングする自己記入型スケール「Multidimensional Physical Scale(MDPS)」を開発したことを共同で発表した
+       - 同成果は、阪大大学院 医学系研究科の先進融合医学共同研究講座（共同研究講座：ツムラ）の竹内麻里子医員、同・萩原圭祐特任教授（常勤）、京大大学院 教育学研究科の明和政子教授らの共同研究チームによるもの。詳細は
+
+93.  うつ尺度「BDI-II」
+     - 参考
+       - [https://news.mynavi.jp/techplus/article/20221219-2541561/](https://news.mynavi.jp/techplus/article/20221219-2541561/)
+     - 説明
+       - 世界的に広く使われているうつ尺度「BDI-II」
+
+94.  使える API
+     - 参考
+       - [https://azure.microsoft.com/ja-jp/products/cognitive-services/face/](https://azure.microsoft.com/ja-jp/products/cognitive-services/face/)
+       - [https://developers.facebook.com/docs/graph-api](https://developers.facebook.com/docs/graph-api)
+       - [アクセス許可](https://developers.facebook.com/docs/permissions/reference)
+       - [https://zenn.dev/nameless-sn/articles/recommended-api-for-development](https://zenn.dev/nameless-sn/articles/recommended-api-for-development)
+     - 説明
+       - Microsoft Face API
+       - 人間の顔認識に特化している顔認識の AI を活用し、顔の識別や特徴・感情の分析などを取得できる
+       - 顔認識をアプリケーションに組み込める
+       - Facebook Graph API
+       - Facebook のユーザや Facebook の情報の読み取り・更新など、Facebook を使った様々な処理を実装できる
+       - が細かく分けられているので、使うにはデモアプリを作って個別に申請しなければならない
+       - アクセストークンにも様々な種類があり、延長処理をしないとすぐに期限が切れてしまう
+
+95.  モニター調査・アンケート調査
+     - 説明
+       - モニター調査では、適当に答えても報酬がもらえてしまうから、ちゃんと考えてモニター調査で正しい回答をするインセンティブを作る
+       - そのために、 その人のモニター調査以外の簡単に取得できるデータを取得して、すでに研究からそのデータと回答がどれだけ同じになるかを確かめておき、本当は取得したデータと解答が同じになるはずの回答が、モニター調査の回答が別の回答になっていた場合は適当に回答していると判断して、その人に払う報酬を下げる
+       - 逆に、自分の本当に、その質問に対して考えて回答してくれる人には、報酬を高めるような仕組みを作る
+       - でもそんなことをするのが面倒くさいと言う人には、Cookie でデータを取得するのを許可するように勝手にデータを取得して、モニター調査をしているのと同じ報酬が得られるようにしておく
+
+96.  文脈依存型推薦エンジン(Context based recommendation system)
+     - 参考
+       - [https://note.com/ryuichiro/n/nf73bce425ba4](https://note.com/ryuichiro/n/nf73bce425ba4)
+     - 説明
+       - 文脈依存型推薦エンジン（Context based recommendation system)などの研究が進んでいますが、自然な流れだと思います。SciDe Lab。でも文脈に応じたいアンケート調査の考案を進めています
+
+97.  ギャラップ社・Glassdoor の調査
+     - 参考
+       - [https://hbr.org/2019/01/time-for-happiness](https://hbr.org/2019/01/time-for-happiness)
+     - 説明
+       - ギャラップ社が 250 万人のアメリカ人を対象に行った調査
+
+98.  多属性評価
+     - 参考
+       - [https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0205349)
+     - 説明
+       - アンケート調査、心拍数や皮膚抵抗や発汗量などのデータ、アンケート調査の中でも複数の設問内容の種類
+       - 多属性評価とは、購買や消費に際して、複数の属性を同時に考慮して、評価を行うこと
+       - 統計的指標
+       - 様々な指標・指数で使われている要素（統計的指標）を、 網羅的に統計的指標を書き出すときの参考にしたい
+       - The Global Gender Gap Index（世界男女格差指数）
+       - Basic Index of Gender Inequality (BIGI)（男女不平等基本指数）
+       - A simplified approach to measuring national gender inequality
+
+99.  毎日簡単なアンケートに答える方法
+     - 参考
+       - [https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html](https://www.psychologicalscience.org/news/releases/the-joy-of-giving.html)
+       - [https://nazology.net/archives/27446](https://nazology.net/archives/27446)
+     - 説明
+       - アンケートの設問内容は何？
+       - 被験者らは、自分の消費体験と総合的な幸福度についての振り返りを毎日行いました
 
 100. オンライン測定
 
-
-    - 参考
-      - [https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
-    - 説明
-      - オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた
+     - 参考
+       - [https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world](https://www.psychologytoday.com/au/blog/fulfillment-any-age/201812/how-introverts-can-make-it-in-extraverted-world)
+     - 説明
+       - オンライン測定では、内向性-外向性と幸福感を評価する標準的な質問紙が用いられた
 
 101. 尿検査できるセンサー Withings の「U-Scan」
 
-
-    - 説明
-      - 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
+     - 説明
+       - 自宅のトイレに設置するだけで自動で尿検査できるセンサー Withings の「U-Scan」
 
 102. 心拍変動（HRV）
 
-
-    - 参考
-      - [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
-    - 説明
-      - 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する
-      - iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる
+     - 参考
+       - [https://www.axion.zone/tim-culpan-4/](https://www.axion.zone/tim-culpan-4/)
+     - 説明
+       - 心拍変動（HRV）は、病気や怪我、運動からの回復を見極め、肉体的・精神的ストレスのレベルを追跡し、さらには心不全の予測因子として機能する
+       - iPhone のカメラと Flash を使って、指先の血流を感知し、正確に脈拍を記録できる
 
 103. ツイート分析
 
-
-    - 参考
-      - [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/)
-      - [【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en)
-      - [https://univ-journal.jp/203351/](https://univ-journal.jp/203351/)
-    - 説明
-      - ツイートなどの文章から、マクロの幸福度を算出したい。それを評価軸に貢献しているかどうかの判断基準にしたい
-      - 心理的苦痛や不安の兆候を表現する際に用いられる用語があるらしいから、それから幸福度を算出してみたい
-      - 東北大学災害科学国際研究所の藤井進准教授らの研究チームは、ウクライナ語で発信された約 9,850 万件のツイートを分析することで、戦禍にみまわれたウクライナの医療ニーズやメンタルヘルスに関する状況を把握する研究を実施した
-      - メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された
-      - 論文情報：
+     - 参考
+       - [SNS ウクライナメンタルヘルス東北大学](https://univ-journal.jp/tag/sns/)
+       - [【The Tohoku Journal of Experimental Medicine】Real-Time Prediction of Medical Demand and Mental Health Status in Ukraine under Russian Invasion Using Tweet Analysis](https://www.jstage.jst.go.jp/article/tjem/advpub/0/advpub-2022.J111/-article/-char/en)
+       - [https://univ-journal.jp/203351/](https://univ-journal.jp/203351/)
+     - 説明
+       - ツイートなどの文章から、マクロの幸福度を算出したい。それを評価軸に貢献しているかどうかの判断基準にしたい
+       - 心理的苦痛や不安の兆候を表現する際に用いられる用語があるらしいから、それから幸福度を算出してみたい
+       - 東北大学災害科学国際研究所の藤井進准教授らの研究チームは、ウクライナ語で発信された約 9,850 万件のツイートを分析することで、戦禍にみまわれたウクライナの医療ニーズやメンタルヘルスに関する状況を把握する研究を実施した
+       - メンタルヘルスに関しては、心理的苦痛や不安の兆候を表現する際に用いられる用語を含むツイート数が侵攻後の急性期に急上昇したほか、侵攻が長引くにつれ、抑うつ状態や PTSR（心的外傷後ストレス反応）の兆候を表現する際に用いられる用語を含むツイートが増加していた。これらから、軍事侵攻によりウクライナの人々の精神面の不調増加が危惧される状況も示された
+       - 論文情報：
 
 104. 脳波を可視化するイヤホン型脳波計 VIE ZONE（ヴィーゾーン）
 
-
-    - 参考
-      - [https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
-    - 説明
-      - 「VIE ZONE（ヴィーゾーン）」とは、イヤーチップが電極となり、耳から脳波を取得できるウェアラブルデバイス。これまで、脳波の計測には装着のための手順が多く煩雑なつくりのデバイスが多かったが、VIE ZONE は通常のイヤホンと同様に耳に装着するだけで簡易に脳波を測ることができる
-      - VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ
-      - VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している
+     - 参考
+       - [https://chizaizukan.com/property/402](https://chizaizukan.com/property/402)
+     - 説明
+       - 「VIE ZONE（ヴィーゾーン）」とは、イヤーチップが電極となり、耳から脳波を取得できるウェアラブルデバイス。これまで、脳波の計測には装着のための手順が多く煩雑なつくりのデバイスが多かったが、VIE ZONE は通常のイヤホンと同様に耳に装着するだけで簡易に脳波を測ることができる
+       - VIE ZONE から得られた脳波信号は、ディスプレイに映し出されたりアプリと連携したりすることによって、視覚的に精神状態を認識できる仕組みだ
+       - VIE ZONE は、東京大学と共同でイヤホンから得られた脳波を AI で解析するシステムを開発し、フロー状態を推定することに成功している
 
 105. 思想教育の効果を可視化
 
-
-    - 参考
-      - [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
-    - 説明
-      - 「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した
-      - 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた
+     - 参考
+       - [https://mainichi.jp/articles/20221216/k00/00m/040/278000c](https://mainichi.jp/articles/20221216/k00/00m/040/278000c)
+     - 説明
+       - 「（中国共産党員の）政治思想教育の受け入れ度を把握し、学習効果を評価できます」。中国東部・安徽（あんき）省の合肥総合国家科学センターの人工知能研究院は、思想教育の効果を可視化できるとうたう装置を、そう宣伝した
+       - 中国の学術界の総本山「中国科学院」の指揮を受けている国家科学センター。装置は、脳波や皮膚から感知できる電気的な特徴を計測して人工知能（AI）で解析し、思想教育を受ける際の集中力などを判定する、と説明されていた
 
 106. アンケート調査以外の要素
 
-
-    - 説明
-      - 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている
-      - 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
+     - 説明
+       - 現在は、不安症や好奇心やうつ病度合いも多くはアンケート調査に頼っている
+       - 他の方法 → 例えば、皮膚抵抗、心拍数、発汗量、 視線の動き、SNS やその他のその人の文章の分析
 
 107. ツイート分析
 
-
-    - 参考
-      - [https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7)
-      - [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
-    - 説明
-      - 現在、男女共同参画でツイートしているアカウントを調べると、なんと海乱鬼がもっとも拡散に関与している
-      - このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの
-      - Hoaxy: How claims spread online
+     - 参考
+       - [https://hoaxy.osome.iu.edu/#query=%E7%94%B7%E5%A5%B3%E5%85%B1%E5%90%8C%E5%8F%82%E7%94%BB&sort=recent&type=Twitter&lang=](https://t.co/SpactQMyq7)
+       - [https://twitter.com/ura5ch3wo/status/1606364580275400704](https://twitter.com/ura5ch3wo/status/1606364580275400704)
+     - 説明
+       - 現在、男女共同参画でツイートしているアカウントを調べると、なんと海乱鬼がもっとも拡散に関与している
+       - このソフトウェアはデマ拡散に関わる Twitter アカウントを調べるためのもの
+       - Hoaxy: How claims spread online
 
 108. SNS の文章を解析
 
-
-    - 参考
-      - [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/)
-      - [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/)
-      - [【Journal of Medical Internet Research】Evolution of the public opinion on COVID-19 vaccination in Japan: Large-scale Twitter data analysis](https://www.jmir.org/2022/12/e41928)
-      - [https://univ-journal.jp/203044/](https://univ-journal.jp/203044/)
-      - [https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s](https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s)
-      - [https://twitter.com/Kyukimasa/status/1184325145550188544](https://twitter.com/Kyukimasa/status/1184325145550188544)
-    - 説明
-      - 1 億超の Twitter のつぶやきから新型コロナワクチンに関する話題の変遷を分析
-      - 今回、東京大学、国立情報学研究所、千葉商科大学、ゲント大学（ベルギー）らの共同研究グループは、ワクチン接種期間（2021 年 1 月から 10 月）に Twitter でつぶやかれた「ワクチン」を含む日本語の全ツイートを時系列的に分析することで、ワクチンに関する人々の興味・関心の変化を調べた
-      - 論文情報：
-      - なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな
+     - 参考
+       - [SNS 国立情報学研究所新型コロナウイルス科学技術振興機構](https://univ-journal.jp/tag/sns/)
+       - [海外の大学東京大学千葉商科大学](https://univ-journal.jp/journaltag/%e6%b5%b7%e5%a4%96/)
+       - [【Journal of Medical Internet Research】Evolution of the public opinion on COVID-19 vaccination in Japan: Large-scale Twitter data analysis](https://www.jmir.org/2022/12/e41928)
+       - [https://univ-journal.jp/203044/](https://univ-journal.jp/203044/)
+       - [https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s](https://www.theguardian.com/science/shortcuts/2019/oct/15/why-the-uk-was-at-its-cheeriest-in-the-1920s)
+       - [https://twitter.com/Kyukimasa/status/1184325145550188544](https://twitter.com/Kyukimasa/status/1184325145550188544)
+     - 説明
+       - 1 億超の Twitter のつぶやきから新型コロナワクチンに関する話題の変遷を分析
+       - 今回、東京大学、国立情報学研究所、千葉商科大学、ゲント大学（ベルギー）らの共同研究グループは、ワクチン接種期間（2021 年 1 月から 10 月）に Twitter でつぶやかれた「ワクチン」を含む日本語の全ツイートを時系列的に分析することで、ワクチンに関する人々の興味・関心の変化を調べた
+       - 論文情報：
+       - なに、Twitter ユーザ全体の幸福度ってのが ツイート から計測できて「ロシアのウクライナ侵攻に伴うムード悪化ぶりは COVID-19 パンデミック開始時の 8 倍」みたいに定量的に示せるのか。なんか PARANOIA RPG っぽいな
 
 109. ワークサンプルテスト
 
-
-    - 参考
-      - [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
-      - [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
-    - 説明
-      - \*\*<span style="text-decoration:underline;">
-      - </span>\*\*
-      - サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です
+     - 参考
+       - [新卒の思考力を見極めるワークサンプルテスト「Worksamples」](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
+       - [https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight](https://thebridge.jp/2022/09/mpweeklynews-hrport-cyberagentcapital-insight)
+     - 説明
+       - \*\*<span style="text-decoration:underline;">
+       - </span>\*\*
+       - サービス概要：「ワークサンプルテスト」は、選考時の評価と実際の現場の評価の相関が高い手法として、海外で注目されている手法です
 
 110. Omegawave
 
-
-    - 参考
-      - [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
-    - 説明
-      - フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している
-      - Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる
+     - 参考
+       - [https://diamond.jp/articles/-/303686](https://diamond.jp/articles/-/303686)
+     - 説明
+       - フィンランドで開発された「Omegawave」を活用し、電通が仕掛ける Sports Tech Tokyo と共に伴氏らがメンタルの可視化に挑戦している
+       - Omegawave とは、脳波と心拍変動を測定するデバイス。スポーツ選手の客観的なデータを計測し、その数値から準備の進捗度合いや疲労度を確認できるという。Omegawave を使うと、意識の動きが計測できる
 
 111. FaiCE（フェイス）
 
-
-    - 参考
-      - [https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
-    - 説明
-      - 脳内にイメージする「魅力的な顔」を可視化できるアプリ『FaiCE（フェイス）』
-      - 「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。\*\*
-      - \*\*
+     - 参考
+       - [https://chizaizukan.com/property/680/](https://chizaizukan.com/property/680/)
+     - 説明
+       - 脳内にイメージする「魅力的な顔」を可視化できるアプリ『FaiCE（フェイス）』
+       - 「FaiCE（フェイス）」とは、脳科学、心理学、AI を組み合わせた独自アルゴリズムによってユーザーが脳内にイメージする「魅力的な顔」を可視化できる AI アプリです。ユーザーはアプリから得られる 30 枚の架空の顔写真それぞれに対して、イメージに合うかどうかの点数をつけるだけで、人工知能がユーザーの脳内にある無意識な感性を推定し、架空の AI 顔としてイメージを画像生成する。\*\*
+       - \*\*
 
 112. ひきこもり度を簡単に評価できるテスト
 
-
-    - 参考
-      - [Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
-      - [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
-    - 説明
-      - 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました
-      - 研究の詳細は、2022 年 11 月 30 日付の科学誌『』に掲載されています
+     - 参考
+       - [Psychiatry and Clinical Neurosciences](https://onlinelibrary.wiley.com/doi/10.1111/pcn.13499)
+       - [https://nazology.net/archives/118508](https://nazology.net/archives/118508)
+     - 説明
+       - 九州大学大学院医学研究院に所属する加藤隆弘氏ら研究チームは、直近 1 カ月間の状況からひきこもりリスクを評価できる質問票を開発。その妥当性を確認できました
+       - 研究の詳細は、2022 年 11 月 30 日付の科学誌『』に掲載されています
 
 113. パルスアイ
 
-
-    - 参考
-      - [https://techable.jp/archives/185582](https://techable.jp/archives/185582)
-    - 説明
-      - 最短 1 クリックで厚労省準拠のストレスチェックを開始。組織診断サービス「パルスアイ」に新機能
-      - 株式会社ジャンプスタートパートナーズが提供する「PULSE AI（パルスアイ）」は、従業員の本音を把握し退職リスクを可視化する組織診断サービス
-      - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
-      - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
+     - 参考
+       - [https://techable.jp/archives/185582](https://techable.jp/archives/185582)
+     - 説明
+       - 最短 1 クリックで厚労省準拠のストレスチェックを開始。組織診断サービス「パルスアイ」に新機能
+       - 株式会社ジャンプスタートパートナーズが提供する「PULSE AI（パルスアイ）」は、従業員の本音を把握し退職リスクを可視化する組織診断サービス
+       - 新たに「ストレスチェック機能」をリリースし、厚生労働省準拠のストレスチェックを年に 1 回実施できるようになりました
+       - PULSE AI は、毎月 1 回簡単な Web アンケートを配信し、会社全体・部署ごと・従業員個人の課題を見える化する組織診断サービスです
 
 114. Classroom Technologies が Intel と提携して開発しているシステム
 
-
-    - 参考
-      - [Classroom Technologies](https://www.class.com/)
-      - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
-      - [https://gigazine.net/news/20220418-intel-edutech-ai/](https://gigazine.net/news/20220418-intel-edutech-ai/)
-    - 説明
-      - 仮想空間上で行う授業のソフトを販売する企業の\***\*が\*\***と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる
+     - 参考
+       - [Classroom Technologies](https://www.class.com/)
+       - [Intel](https://www.intel.co.jp/content/www/jp/ja/homepage.html)
+       - [https://gigazine.net/news/20220418-intel-edutech-ai/](https://gigazine.net/news/20220418-intel-edutech-ai/)
+     - 説明
+       - 仮想空間上で行う授業のソフトを販売する企業の\***\*が\*\***と提携して開発しているシステムでは、生徒の表情や教材への取り組み方を分析することで、生徒の授業態度や理解度を検出できる
 
 115. Face2Brain
 
-
-    - 参考
-      - [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya)
-      - [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/)
-      - [https://chizaizukan.com/property/704/](https://chizaizukan.com/property/704/)
-    - 説明
-      - 「顔画像」から脳波を推定するアルゴリズム Face2Brain
-      - 「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム
+     - 参考
+       - [株式会社 アラヤ](https://chizaizukan.com/enterprise/araya)
+       - [https://www.araya.org/publications/news20220406/](https://www.araya.org/publications/news20220406/)
+       - [https://chizaizukan.com/property/704/](https://chizaizukan.com/property/704/)
+     - 説明
+       - 「顔画像」から脳波を推定するアルゴリズム Face2Brain
+       - 「Face2Brain」とは、顔画像から表情、視線、瞳孔などのデータを取得し、脳波を推定するアルゴリズム
 
 116. CBT-I
 
-
-    - 参考
-      - [https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
-    - 説明
-      - 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した
-      - 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという
+     - 参考
+       - [https://news.mynavi.jp/techplus/article/20220727-2409646/](https://news.mynavi.jp/techplus/article/20220727-2409646/)
+     - 説明
+       - 京都大学（京大）医学研究科の石見拓教授、同大学学生総合支援機構の降籏隆二准教授、OKI、京大発ベンチャーのヘルステック研究所は 7 月 26 日、共同でオンライン記者会見を開催。不眠症の認知行動療法（CBT-I)を応用したスマートフォン向けアプリケーションとして「睡眠プロンプトアプリケーション（SPA)」を開発し、不眠に対する有効性を検証したことを発表した
+       - 労働者の健康における重要な問題として高頻度に見られる不眠問題は、その治療法として CBT-I の有効性が示されている。しかし、CBT-I に関する専門家が不足していることから、スマートフォンアプリケーションを活用した CBT-I プログラムに対する需要があるという
 
 117. Face++や Microsoft AI などの顔認識技術
 
-
-    - 参考
-      - [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
-    - 説明
-      - 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった
-      - でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた
+     - 参考
+       - [https://forbesjapan.com/articles/detail/48530/2/1/1](https://forbesjapan.com/articles/detail/48530/2/1/1)
+     - 説明
+       - 2018 年の研究では、Face++や Microsoft AI などの顔認識技術が、応募者の感情や性格の特徴を分析できることがわかった
+       - でも注意点として、黒人男性には白人男性よりもネガティブな評価が多く割り当てられていた
 
 118. 「充実した人生」を測る指標
 
-
-    - 参考
-      - [『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)
-      - [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
-    - 説明
-      - 「充実した人生」を測る指標をこの研究論文で参考にして、「人生の満足度」を測ることができる方法を作りたい
-      - スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました
-      - 研究の詳細は、2022 年 9 月 30 日付で学術誌に掲載されています
+     - 参考
+       - [『Frontiers in Psychology』](https://www.frontiersin.org/articles/10.3389/fpsyg.2022.982782/full)
+       - [https://nazology.net/archives/118839](https://nazology.net/archives/118839)
+     - 説明
+       - 「充実した人生」を測る指標をこの研究論文で参考にして、「人生の満足度」を測ることができる方法を作りたい
+       - スイス・チューリッヒ大学（UZH）の心理学研究チームは、**一般人を対象に、どのような生活や暮らしを「充実した人生（Fulfilling Life）」と捉えているのか**調査することにしました
+       - 研究の詳細は、2022 年 9 月 30 日付で学術誌に掲載されています
 
 119. Dot Mind Unlocked
 
-
-    - 参考
-      - [ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)
-      - [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
-    - 説明
-      - ***
-      - ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」
+     - 参考
+       - [ヘッドセットで正確な ADHD 診断を支援する「Dot Mind Unlocked」](https://thebridge.jp/2022/06/collision-2022-pitch-final)
+       - [https://thebridge.jp/2022/06/collision-2022-pitch-final](https://thebridge.jp/2022/06/collision-2022-pitch-final)
+     - 説明
+       - ***
+       - ヘッドセットを使って正確かつ迅速な ADHD（注意欠如・多動症）診断を支援する「Dot Mind Unlocked」
 
 120. Oura
 
-
-    - 参考
-      - [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
-    - 説明
-      - 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング
-      - 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている
+     - 参考
+       - [https://www.axion.zone/67936431-4689365435468/](https://www.axion.zone/67936431-4689365435468/)
+     - 説明
+       - 様々な健康指標を測定できるウェアラブルデバイスが登場「Oura」のリング
+       - 緑色の光は、発光ダイオード（LED）である 1 対の長方形の金属片から発せられる。水滴ほどの大きさの 3 つのドーム状の突起には、赤色と赤外線の LED と一対の受光素子が入っている。その周囲には、7 つの温度センサー、薄型バッテリー、あらゆる動きを検出する小型の 3 次元加速度センサーが配置されている
 
 121. 瞳孔反応解析技術
 
-
-    - 参考
-      - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
-    - 説明
-      - 夏目綜合研究所の人の本当の感情を可視化する眼の瞳孔反応解析技術\*\*
-      - \*\*「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ
-      - 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている
+     - 参考
+       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-208/)
+     - 説明
+       - 夏目綜合研究所の人の本当の感情を可視化する眼の瞳孔反応解析技術\*\*
+       - \*\*「瞳孔は鍛えられないし、瞳孔は嘘をつけない」瞳孔反応というものは、心臓や肺と同様で、生来的な本能レベルでコントロールされる。そして、人種を問わない、自身でコントロールできない、嘘をつけない、動物のもっとも原始的な生体反応であるということが特徴だ
+       - 夏目綜合研究所の瞳孔反応解析技術は、これら以外にもセキュリティの分野において、テロ対策、自動運転補助、防犯活動支援、冤罪根絶などに貢献し、また医療の分野では、遠隔医療、嘘患者排除、精神疾患の客観的診断指標などに応用されている
 
 122. ESHA（イーエスエイチエー）・KIBI 理論
 
-
-    - 参考
-      - [https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)
-      - [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
-    - 説明
-      - 株式会社エモテック・ラボは、感情 AI とオンライン面談によって社員のココロを可視化する心理的安全性組織診断「ESHA（イーエスエイチエー）」
-      - 「ESHA」は、社員ひとりひとりのマインドを“機微力（人の気持ちを察する力）”に基づいてタイプ別に診断し、現在のココロの在り方を心理的安全性と不快指数の両面から測る診断ツールです
-      - ここで活用される感情 AI「Kansei Driven Engine（KDE）」は、20 年にわたる数値解析・感性工学・可視化技術に関する研究・開発で培われた独自アルゴリズムと AI をかけ合わせたもの
-      - 10 年にわたり東京大学と研究開発してきた、国際学会にて実証済の“KIBI 理論”に基づく感情解析によって、解析結果のフィット感を革新的に向上させています
-      - \*\*[株式会社エモテック・ラボ
-      - ]()\*\*
+     - 参考
+       - [https://www.emotech-lab.co.jp/business/](https://www.emotech-lab.co.jp/business/)
+       - [https://techable.jp/archives/181285](https://techable.jp/archives/181285)
+     - 説明
+       - 株式会社エモテック・ラボは、感情 AI とオンライン面談によって社員のココロを可視化する心理的安全性組織診断「ESHA（イーエスエイチエー）」
+       - 「ESHA」は、社員ひとりひとりのマインドを“機微力（人の気持ちを察する力）”に基づいてタイプ別に診断し、現在のココロの在り方を心理的安全性と不快指数の両面から測る診断ツールです
+       - ここで活用される感情 AI「Kansei Driven Engine（KDE）」は、20 年にわたる数値解析・感性工学・可視化技術に関する研究・開発で培われた独自アルゴリズムと AI をかけ合わせたもの
+       - 10 年にわたり東京大学と研究開発してきた、国際学会にて実証済の“KIBI 理論”に基づく感情解析によって、解析結果のフィット感を革新的に向上させています
+       - \*\*[株式会社エモテック・ラボ
+       - ]()\*\*
 
 123. 幸福度の指標
 
-
-    - 参考
-      - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
-    - 説明
-      - ウェルビーイングに関する学問、「幸福学」の国内第一人者である慶應義塾大学の前野隆司教授と共同研究を実施しました。前野教授は、幸せとはどんな状態か、どんな状態にある人が幸せを感じているかを調査して、「幸せの 4 因子」を定めています[4] 。幸せの 4 因子は幸せの心的特性に焦点を当てた指標
-      - 各因子をどの程度満たしているかはアンケート調査によって測ることができます
-      - 1 つ目の「見える化：利用者の負担を軽減しつつ個人の特性を収集すること」には AI チャットボットを利用します
-      - 一般的に、個人の特性データを収集するにはアンケート調査を実施します。しかしアンケート調査では一度に全ての設問に回答する必要があり、所要時間が膨大になることも少なくありません
-      - 利用者側の視点では、AI チャットボットを利用し数日掛けてアンケートに回答することで、大量の設問に回答する心理的負荷の軽減が期待されます。実際、今回の実証では幸福度に関する設問だけでも計 16 問ありましたが、チャットボットで毎日 1 問ずつ配信することで、1 回あたりの回答所要時間を大幅に削減しています（印象評価の結果については後編で詳述）
-      - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
-      - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
+     - 参考
+       - [https://jpn.nec.com/ai/consulting/analyst/column/20221122.html](https://jpn.nec.com/ai/consulting/analyst/column/20221122.html)
+     - 説明
+       - ウェルビーイングに関する学問、「幸福学」の国内第一人者である慶應義塾大学の前野隆司教授と共同研究を実施しました。前野教授は、幸せとはどんな状態か、どんな状態にある人が幸せを感じているかを調査して、「幸せの 4 因子」を定めています[4] 。幸せの 4 因子は幸せの心的特性に焦点を当てた指標
+       - 各因子をどの程度満たしているかはアンケート調査によって測ることができます
+       - 1 つ目の「見える化：利用者の負担を軽減しつつ個人の特性を収集すること」には AI チャットボットを利用します
+       - 一般的に、個人の特性データを収集するにはアンケート調査を実施します。しかしアンケート調査では一度に全ての設問に回答する必要があり、所要時間が膨大になることも少なくありません
+       - 利用者側の視点では、AI チャットボットを利用し数日掛けてアンケートに回答することで、大量の設問に回答する心理的負荷の軽減が期待されます。実際、今回の実証では幸福度に関する設問だけでも計 16 問ありましたが、チャットボットで毎日 1 問ずつ配信することで、1 回あたりの回答所要時間を大幅に削減しています（印象評価の結果については後編で詳述）
+       - 2 つ目の「分析：日常業務における、ウェルビーイングの具体的な変動要因を分析すること」
+       - アンケート調査の結果幸福度が高かった人と、そうでない人の業務スケジュールを比較することで、幸福度を高めるスケジュールの組み方を見つけ出します。抽象的な指標や主観指標ではなく、「早朝の会議時間」や「1 日の予定数」などの定量的な指標を用いるため、利用者のとるべきアクションが明確になります
 
 124. 幸福度の指標
-
 
     - 参考
       - [「幸せ」を追求するのはいいことなのか？──『ハッピークラシー――「幸せ」願望に支配される日常』](https://huyukiitoichi.hatenadiary.jp/entry/2022/11/14/080000)
@@ -8700,14 +8675,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 125. 幸福度を測る 11 の要素
 
-
     - 参考
       - [https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0](https://yuchrszk.blogspot.com/2022/04/blog-post-22.html?m=0)
     - 説明
       - 過去の幸福研究などをベースに、人間に幸福をもたらす要素を 11 パターンに分類しております
 
 126. 音声
-
 
     - 参考
       - [https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full](https://www.frontiersin.org/articles/10.3389/fpsyt.2022.1016676/full)
@@ -8716,14 +8689,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 127. マイク
 
-
     - 参考
       - [https://www.itmedia.co.jp/news/articles/2301/25/news068.html](https://www.itmedia.co.jp/news/articles/2301/25/news068.html)
     - 説明
       - 特別な機器を必要とせず、マイクのあるスマホだけで検査できるってのが可能性を感じる。精度が高まれば応用いろいろできそう。／話し方で「飲みすぎ」か分かる AI 12 秒の会話で酩酊状態を特定
 
 128. うつ病予測
-
 
     - 参考
       - [https://twitter.com/AIBoom-net/status/1618865899628560391](https://twitter.com/AIBoom-net/status/1618865899628560391)
@@ -8732,7 +8703,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 129. EEG
 
-
     - 参考
       - [https://twitter.com/masatojames/status/1618502175021486080](https://twitter.com/masatojames/status/1618502175021486080)
     - 説明
@@ -8740,7 +8710,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 音楽聴いてる状態を特定するのに、イヤホンに脳波センサーと音波センサー取り付けるの考えてたけど、これあればセンサー 1 種類で済むんよな
 
 130. 脳内の磁場変化を察知できるセンサー
-
 
     - 参考
       - [https://twitter.com/tmiyatake1/status/1620241970928181250](https://twitter.com/tmiyatake1/status/1620241970928181250)
@@ -8751,7 +8720,6 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 131. Canary
 
-
     - 参考
       - [https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/](https://news.mynavi.jp/techplus/article/kinmirai-technology-kenbunroku-304/)
     - 説明
@@ -8759,14 +8727,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
 
 132. fMRI と EEG
 
-
     - 参考
       - [https://twitter.com/shiropen2/status/1620573717507219456](https://twitter.com/shiropen2/status/1620573717507219456)
     - 説明
       - 脳全体の血流や代謝を測定する fMRI と脳内の電気的活動に伴う電磁気信号を捉える脳波（EEG)を組み合わせ（非侵襲的）深層学習で音声合成による曲の復元と識別を行う
 
 133. スマホで血管老化を予測
-
 
     - 参考
       - [https://www.nature.com/articles/s41598-020-76816-6](https://www.nature.com/articles/s41598-020-76816-6)
@@ -8776,15 +8742,12 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - スマートフォンで取得できる PRG※と、4 つの変数（性別、身長、体重、喫煙有無）を機械学習で分析し、血管老化を AUC 95％で予測できるとの報告。※RPG：フォトプレチスモグラフィ。血中酸素飽和度などの測定に使用
 
 134. 表情
-
-
-    - 参考
-      - [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
-    - 説明
-      - 声が出せない状況下でもマスク＋ AI で会話
+      - 参考
+        - [https://nature.com/articles/s41467-022-29083-0](https://nature.com/articles/s41467-022-29083-0)
+      - 説明
+        - 声が出せない状況下でもマスク＋ AI で会話
 
 135. 唇の筋肉の動きを分析
-
 
     - 参考
       - [https://nature.com/articles/s41467-022-32231-1](https://nature.com/articles/s41467-022-32231-1)
@@ -8795,27 +8758,23 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
       - 下記は、レーダー信号と Wi-Fi 信号を深層学習で分析して読み取るアプローチ。上記 ツイート で紹介した研究とは別角度からの解決となります
 
 136. 心臓のエコー図
-
-
-    - 参考
-      - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
-      - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
-    - 説明
-      - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
-      - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
+      - 参考
+        - [https://www.itmedia.co.jp/news/articles/2302/08/news054.html](https://www.itmedia.co.jp/news/articles/2302/08/news054.html)
+        - [https://twitter.com/shiropen2/status/1623110045100638209](https://twitter.com/shiropen2/status/1623110045100638209)
+      - 説明
+        - 心臓のエコー図が撮れる皮膚パッチ 切手サイズで激しい運動でも 1 日中計測 米国チームが開発
+        - 長さ 1.9cm 幅 2.2cm 厚さ 0.09cm のパッチを皮膚に貼ると心臓の超音波画像をリアルタイムに 24 時間連続で取得。心臓が 1 回に送り出す血液量を機械学習で抽出など
 
 137. リストバンド型加速度計
-
-
-    - 参考
-      - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
-      - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
-    - 説明
-      - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
-      - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
-
-138.  AiGROW
+      - 参考
+        - [https://www.asahi.com/articles/DA3S15547588.html](https://www.asahi.com/articles/DA3S15547588.html)
+        - [https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650](https://twitter.com/Tatsu-Fujimoto/status/1622130025628827650)
       - 説明
+        - リストバンド型加速度計でデータを取得&感情の算出の参考にしたい
+        - 東大と理研は小中高校生を対象に「子ども睡眠健診プロジェクト」を始めた。東大の上田泰己教授が研究総括を務める。リストバンド型加速度計で腕の動きから睡眠か覚醒を記録。「一番心配なのは、眠れなくても困っている様子がないこと。睡眠がなぜ大切か伝えていく必要がある」
+
+138. AiGROW
+    - 説明 
       - AiGROW で Big-5 モデルを使って性格検査
       - 木村充、福原正大、田代琴音「潜在的連合の測定による 5 因子性格検査ツール GROW-IAT の開発と評価」
 
