@@ -1,38 +1,38 @@
-name: Deploy docs to Cloudflare test
+name: Deploy portal to Cloudflare production
 
 on:
   push:
     branches:
-      - "test/*"
+      - main
     paths:
-      - projects/docs-web-app/**
+      - projects/main-web-app/**
       - scripts/sites/**
       - tests/sites/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - .node-version
-      - .github/workflows/main-docs-cloudflare-test.yml
+      - .github/workflows/main-web-app-cloudflare-production.yml
 
 permissions:
   contents: read
 
 concurrency:
-  group: freeism-docs-staging-deploy
+  group: freeism-main-production-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy docs to staging
+    name: Deploy portal to production
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    environment: web-app-staging
+    environment: web-app-production
     env:
       CI: "true"
       WRANGLER_SEND_METRICS: "false"
 
     steps:
-      - name: Check out the pushed commit
+      - name: Check out the main commit
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up pnpm
@@ -51,23 +51,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Test docs
-        run: pnpm --filter docs-web-app test
+      - name: Test portal
+        run: pnpm --filter main-web-app test
 
-      - name: Check docs
-        run: pnpm --filter docs-web-app check
+      - name: Check portal
+        run: pnpm --filter main-web-app check
 
-      - name: Build docs
-        run: pnpm --filter docs-web-app build
+      - name: Build portal
+        run: pnpm --filter main-web-app build
 
       - name: Test site delivery contracts
         run: node --test tests/sites/*.test.mjs
 
-      - name: Deploy docs
-        run: pnpm --filter docs-web-app deploy:staging
+      - name: Deploy portal
+        run: pnpm --filter main-web-app deploy:production
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Smoke test docs
-        run: pnpm --filter docs-web-app smoke:staging
+      - name: Smoke test portal
+        run: pnpm --filter main-web-app smoke:production

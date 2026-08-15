@@ -7,6 +7,7 @@ import { validateStaticSite } from "../../scripts/sites/smoke-static-site.mjs";
 const SITE_CONTRACTS = [
   {
     packageDirectory: "projects/main-web-app",
+    wranglerVersion: "4.108.0",
     wrangler: {
       $schema: "./node_modules/wrangler/config-schema.json",
       name: "main-web-app",
@@ -44,6 +45,7 @@ const SITE_CONTRACTS = [
   },
   {
     packageDirectory: "projects/docs-web-app",
+    wranglerVersion: "4.111.0",
     wrangler: {
       $schema: "./node_modules/wrangler/config-schema.json",
       name: "docs-web-app",
@@ -97,7 +99,7 @@ test("portal and docs use the exact static Worker and domain matrix", async () =
 test("portal and docs expose the exact deploy and smoke scripts with pinned Wrangler", async () => {
   for (const contract of SITE_CONTRACTS) {
     const manifest = await readJson(`${contract.packageDirectory}/package.json`);
-    assert.equal(manifest.devDependencies.wrangler, "4.108.0");
+    assert.equal(manifest.devDependencies.wrangler, contract.wranglerVersion);
     for (const [name, command] of Object.entries(contract.scripts)) {
       assert.equal(manifest.scripts[name], command);
     }

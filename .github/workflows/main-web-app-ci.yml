@@ -1,23 +1,23 @@
-name: Validate docs
+name: Validate portal
 
 on:
   pull_request:
     paths:
-      - projects/docs-web-app/**
+      - projects/main-web-app/**
       - scripts/sites/**
       - tests/sites/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
       - .node-version
-      - .github/workflows/main-docs-ci.yml
+      - .github/workflows/main-web-app-ci.yml
 
 permissions:
   contents: read
 
 jobs:
   validate:
-    name: Validate docs
+    name: Validate portal
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -43,14 +43,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Test docs
-        run: pnpm --filter docs-web-app test
+      - name: Test portal
+        run: pnpm --filter main-web-app test
 
-      - name: Check docs
-        run: pnpm --filter docs-web-app check
+      - name: Check portal
+        run: pnpm --filter main-web-app check
 
-      - name: Build docs
-        run: pnpm --filter docs-web-app build
+      - name: Build portal
+        run: pnpm --filter main-web-app build
 
       - name: Verify static-site contracts
         run: node --test tests/sites/*.test.mjs

@@ -8,9 +8,7 @@ const ACTIONS = [
   "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
 ];
 
-const COMMON_PATHS = [
-  "projects/main-web-app/**",
-  "projects/docs-web-app/**",
+const SHARED_PATHS = [
   "scripts/sites/**",
   "tests/sites/**",
   "package.json",
@@ -19,26 +17,43 @@ const COMMON_PATHS = [
   ".node-version",
 ];
 
-const WORKFLOWS = {
+const APPS = {
+  portal: {
+    projectPath: "projects/main-web-app/**",
+    filter: "main-web-app",
+    otherFilter: "docs-web-app",
+    workflowPrefix: "main-web-app",
+    concurrencyPrefix: "freeism-main",
+  },
+  docs: {
+    projectPath: "projects/docs-web-app/**",
+    filter: "docs-web-app",
+    otherFilter: "main-web-app",
+    workflowPrefix: "main-docs",
+    concurrencyPrefix: "freeism-docs",
+  },
+};
+
+const WORKFLOW_TYPES = {
   validation: {
-    path: ".github/workflows/main-docs-ci.yml",
+    filename: "ci.yml",
     event: "pull_request",
     trigger: "pull_request:\n    paths:",
   },
   staging: {
-    path: ".github/workflows/main-docs-cloudflare-test.yml",
+    filename: "cloudflare-test.yml",
     event: "push",
     trigger: 'push:\n    branches:\n      - "test/*"\n    paths:',
     environment: "web-app-staging",
-    concurrency: "freeism-main-docs-staging-deploy",
+    concurrencySuffix: "staging-deploy",
     suffix: "staging",
   },
   production: {
-    path: ".github/workflows/main-docs-cloudflare-production.yml",
+    filename: "cloudflare-production.yml",
     event: "push",
     trigger: "push:\n    branches:\n      - main\n    paths:",
     environment: "web-app-production",
-    concurrency: "freeism-main-docs-production-deploy",
+    concurrencySuffix: "production-deploy",
     suffix: "production",
   },
 };
@@ -66,7 +81,20 @@ const PORTAL_DOCS_DELIVERY_PATHS = [
   "pnpm-lock.yaml",
   ".changeset/**",
   ".github/workflows/main-docs-*.yml",
+  ".github/workflows/main-web-app-*.yml",
 ];
+
+function workflowContract(appName, typeName) {
+  const app = APPS[appName];
+  const type = WORKFLOW_TYPES[typeName];
+  return {
+    ...app,
+    ...type,
+    appName,
+    typeName,
+    path: `.github/workflows/${app.workflowPrefix}-${type.filename}`,
+  };
+}
 
 async function readWorkflow(path) {
   return readFile(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -100,98 +128,93 @@ function assertInOrder(workflow, commands) {
 }
 
 function namedStep(workflow, name) {
-  const match = workflow.match(new RegExp(`      - name: ${name}\\n([\\s\\S]*?)(?=      - name:)`));
+  const match = workflow.match(new RegExp(`      - name: ${name}\\n([\\s\\S]*?)(?=      - name:|$)`));
   assert.ok(match, `${name} step must exist`);
   return match[0];
 }
 
-test("all portal/docs workflows are pinned, read-only, and narrowly path-filtered", async () => {
-  for (const contract of Object.values(WORKFLOWS)) {
-    const workflow = await readWorkflow(contract.path);
+test("portal and docs workflows are pinned, read-only, isolated, and narrowly path-filtered", async () => {
+  for (const appName of Object.keys(APPS)) {
+    for (const typeName of Object.keys(WORKFLOW_TYPES)) {
+      const contract = workflowContract(appName, typeName);
+      const workflow = await readWorkflow(contract.path);
 
-    assert.match(workflow, /^permissions:\n  contents: read$/m);
-    assert.match(workflow, /runs-on: ubuntu-24\.04/);
-    assert.match(workflow, /timeout-minutes: 30/);
-    assert.match(workflow, /^\s+CI: "true"$/m);
-    for (const action of ACTIONS) assert.ok(workflow.includes(`uses: ${action}`));
+      assert.match(workflow, /^permissions:\n  contents: read$/m);
+      assert.match(workflow, /runs-on: ubuntu-24\.04/);
+      assert.match(workflow, /timeout-minutes: 30/);
+      assert.match(workflow, /^\s+CI: "true"$/m);
+      for (const action of ACTIONS) assert.ok(workflow.includes(`uses: ${action}`));
 
-    const trigger = onSection(workflow);
-    assert.ok(trigger.includes(contract.trigger));
-    assert.deepEqual(
-      [...trigger.matchAll(/^  ([a-z_]+):/gm)].map((match) => match[1]),
-      [contract.event],
-    );
-    assert.deepEqual(listedPaths(trigger), [...COMMON_PATHS, contract.path]);
+      const trigger = onSection(workflow);
+      assert.ok(trigger.includes(contract.trigger));
+      assert.deepEqual(
+        [...trigger.matchAll(/^  ([a-z_]+):/gm)].map((match) => match[1]),
+        [contract.event],
+      );
+      assert.deepEqual(listedPaths(trigger), [contract.projectPath, ...SHARED_PATHS, contract.path]);
 
-    assert.doesNotMatch(workflow, /pull_request_target|workflow_dispatch/);
-    assert.doesNotMatch(workflow, /@freeism\/(?:points|markets)-web-app/i);
-    assert.doesNotMatch(workflow, /(?:db:)?migrat|terraform\s+apply/i);
-    assert.doesNotMatch(workflow, /(?:npm|pnpm)\s+(?:install|add)\s+(?:--global|-g)\b/);
+      assert.match(workflow, new RegExp(`pnpm --filter ${contract.filter} (?:test|check|build)`));
+      assert.doesNotMatch(workflow, new RegExp(`pnpm --filter ${contract.otherFilter} `));
+      assert.doesNotMatch(workflow, /pull_request_target|workflow_dispatch/);
+      assert.doesNotMatch(workflow, /@freeism\/(?:points|markets)-web-app/i);
+      assert.doesNotMatch(workflow, /(?:db:)?migrat|terraform\s+apply/i);
+      assert.doesNotMatch(workflow, /(?:npm|pnpm)\s+(?:install|add)\s+(?:--global|-g)\b/);
+    }
   }
 });
 
-test("pull-request validation is unprivileged and runs every portal/docs check", async () => {
-  const workflow = await readWorkflow(WORKFLOWS.validation.path);
-  const trigger = onSection(workflow);
-
-  assert.doesNotMatch(trigger, /^\s{2}push:/m);
-  assert.doesNotMatch(workflow, /environment:|secrets\.|CLOUDFLARE_|WRANGLER_|deploy:|smoke:/);
-  assertInOrder(workflow, [
-    "pnpm install --frozen-lockfile",
-    "pnpm --filter main-web-app test",
-    "pnpm --filter docs-web-app test",
-    "pnpm --filter main-web-app check",
-    "pnpm --filter docs-web-app check",
-    "pnpm --filter main-web-app build",
-    "pnpm --filter docs-web-app build",
-    "node --test tests/sites/*.test.mjs",
-  ]);
-});
-
-for (const name of ["staging", "production"]) {
-  test(`${name} deployment uses isolated credentials and preserves deploy order`, async () => {
-    const contract = WORKFLOWS[name];
+for (const appName of Object.keys(APPS)) {
+  test(`${appName} pull-request validation is unprivileged and app-specific`, async () => {
+    const contract = workflowContract(appName, "validation");
     const workflow = await readWorkflow(contract.path);
     const trigger = onSection(workflow);
 
-    assert.doesNotMatch(trigger, /^\s{2}pull_request:/m);
-    assert.match(workflow, new RegExp(`environment: ${contract.environment}`));
-    assert.match(workflow, new RegExp(`group: ${contract.concurrency}`));
-    assert.match(workflow, /cancel-in-progress: false/);
-    assert.match(workflow, /^\s+WRANGLER_SEND_METRICS: "false"$/m);
-
-    const portalDeploy = namedStep(workflow, "Deploy portal");
-    const docsDeploy = namedStep(workflow, "Deploy docs");
-    for (const deployStep of [portalDeploy, docsDeploy]) {
-      assert.match(deployStep, /env:\n          CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}\n          CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
-    }
-
-    const withoutDeploySteps = workflow.replace(portalDeploy, "").replace(docsDeploy, "");
-    assert.doesNotMatch(withoutDeploySteps, /secrets\.|CLOUDFLARE_/);
-
-    const secrets = [...workflow.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((match) => match[1]);
-    assert.deepEqual(secrets, [
-      "CLOUDFLARE_ACCOUNT_ID",
-      "CLOUDFLARE_API_TOKEN",
-      "CLOUDFLARE_ACCOUNT_ID",
-      "CLOUDFLARE_API_TOKEN",
-    ]);
-
+    assert.doesNotMatch(trigger, /^\s{2}push:/m);
+    assert.doesNotMatch(workflow, /environment:|secrets\.|CLOUDFLARE_|WRANGLER_|deploy:|smoke:/);
     assertInOrder(workflow, [
       "pnpm install --frozen-lockfile",
-      "pnpm --filter main-web-app test",
-      "pnpm --filter docs-web-app test",
-      "pnpm --filter main-web-app check",
-      "pnpm --filter docs-web-app check",
-      "pnpm --filter main-web-app build",
-      "pnpm --filter docs-web-app build",
+      `pnpm --filter ${contract.filter} test`,
+      `pnpm --filter ${contract.filter} check`,
+      `pnpm --filter ${contract.filter} build`,
       "node --test tests/sites/*.test.mjs",
-      `pnpm --filter main-web-app deploy:${contract.suffix}`,
-      `pnpm --filter main-web-app smoke:${contract.suffix}`,
-      `pnpm --filter docs-web-app deploy:${contract.suffix}`,
-      `pnpm --filter docs-web-app smoke:${contract.suffix}`,
     ]);
   });
+
+  for (const typeName of ["staging", "production"]) {
+    test(`${appName} ${typeName} deployment uses isolated credentials and app-specific commands`, async () => {
+      const contract = workflowContract(appName, typeName);
+      const workflow = await readWorkflow(contract.path);
+      const trigger = onSection(workflow);
+
+      assert.doesNotMatch(trigger, /^\s{2}pull_request:/m);
+      assert.match(workflow, new RegExp(`environment: ${contract.environment}`));
+      assert.match(
+        workflow,
+        new RegExp(`group: ${contract.concurrencyPrefix}-${contract.concurrencySuffix}`),
+      );
+      assert.match(workflow, /cancel-in-progress: false/);
+      assert.match(workflow, /^\s+WRANGLER_SEND_METRICS: "false"$/m);
+
+      const deployStep = namedStep(workflow, `Deploy ${appName}`);
+      assert.match(deployStep, /env:\n          CLOUDFLARE_ACCOUNT_ID: \$\{\{ secrets\.CLOUDFLARE_ACCOUNT_ID \}\}\n          CLOUDFLARE_API_TOKEN: \$\{\{ secrets\.CLOUDFLARE_API_TOKEN \}\}/);
+
+      const withoutDeployStep = workflow.replace(deployStep, "");
+      assert.doesNotMatch(withoutDeployStep, /secrets\.|CLOUDFLARE_/);
+
+      const secrets = [...workflow.matchAll(/secrets\.([A-Z0-9_]+)/g)].map((match) => match[1]);
+      assert.deepEqual(secrets, ["CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN"]);
+
+      assertInOrder(workflow, [
+        "pnpm install --frozen-lockfile",
+        `pnpm --filter ${contract.filter} test`,
+        `pnpm --filter ${contract.filter} check`,
+        `pnpm --filter ${contract.filter} build`,
+        "node --test tests/sites/*.test.mjs",
+        `pnpm --filter ${contract.filter} deploy:${contract.suffix}`,
+        `pnpm --filter ${contract.filter} smoke:${contract.suffix}`,
+      ]);
+    });
+  }
 }
 
 for (const [name, contract] of Object.entries(APP_DEPLOY_WORKFLOWS)) {

@@ -18,6 +18,7 @@ on:
       - pnpm-lock.yaml
       - .changeset/**
       - .github/workflows/main-docs-*.yml
+      - .github/workflows/main-web-app-*.yml
       - .github/workflows/cloudflare-test.yml
 
 permissions:

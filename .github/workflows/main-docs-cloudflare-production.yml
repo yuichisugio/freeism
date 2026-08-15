@@ -1,11 +1,10 @@
-name: Deploy portal and docs to Cloudflare production
+name: Deploy docs to Cloudflare production
 
 on:
   push:
     branches:
       - main
     paths:
-      - projects/main-web-app/**
       - projects/docs-web-app/**
       - scripts/sites/**
       - tests/sites/**
@@ -19,12 +18,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: freeism-main-docs-production-deploy
+  group: freeism-docs-production-deploy
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy portal and docs to production
+    name: Deploy docs to production
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: web-app-production
@@ -52,35 +51,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Test portal
-        run: pnpm --filter main-web-app test
-
       - name: Test docs
         run: pnpm --filter docs-web-app test
 
-      - name: Check portal
-        run: pnpm --filter main-web-app check
-
       - name: Check docs
         run: pnpm --filter docs-web-app check
-
-      - name: Build portal
-        run: pnpm --filter main-web-app build
 
       - name: Build docs
         run: pnpm --filter docs-web-app build
 
       - name: Test site delivery contracts
         run: node --test tests/sites/*.test.mjs
-
-      - name: Deploy portal
-        run: pnpm --filter main-web-app deploy:production
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Smoke test portal
-        run: pnpm --filter main-web-app smoke:production
 
       - name: Deploy docs
         run: pnpm --filter docs-web-app deploy:production
