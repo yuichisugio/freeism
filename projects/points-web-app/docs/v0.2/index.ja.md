@@ -13,6 +13,7 @@
 - [横断アーキテクチャ](../../../../docs/web-app/v0.2/architecture.md)
 - [認証仕様](../../../../docs/web-app/v0.2/authentication.md)
 - [Points–Markets契約](../../../../docs/web-app/v0.2/points-markets-contract.md)
+- [Points–Markets OpenAPI](./points-markets.openapi.json)
 - [設計判断台帳](../../../../docs/web-app/v0.2/decision-register.md)
 
 ## v0.2の境界

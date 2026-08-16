@@ -42,6 +42,9 @@ function resolvedAnchorHrefs(html, baseUrl) {
   return hrefs;
 }
 
+/**
+ * 公開 HTML の canonical・必須文言・必須リンクを検査する。
+ */
 export async function validateStaticSite({
   baseUrl,
   canonicalUrl,

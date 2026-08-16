@@ -145,5 +145,5 @@ export async function createSettlementPlan(
     };
   }
   const planJson = JSON.stringify(plan);
-  return { plan, planHash: await sha256(planJson), planJson };
+  return { plan, planHash: `sha256:${await sha256(planJson)}`, planJson };
 }

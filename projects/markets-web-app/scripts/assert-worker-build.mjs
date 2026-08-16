@@ -3,6 +3,9 @@ import path from "node:path";
 
 const HTML_ARTIFACTS = ["index.html", "terms.html", "privacy.html", "help.html", "docs.html"];
 
+/**
+ * Vite / Wrangler が出力する wrangler.json を1つだけ探す。
+ */
 export async function findGeneratedWorkerConfig(appPath) {
   const root = path.resolve(appPath);
   const candidates = [
@@ -25,6 +28,9 @@ export async function findGeneratedWorkerConfig(appPath) {
   return configs[0];
 }
 
+/**
+ * 生成済み Worker 成果物がリリース契約を満たすことを検査する。
+ */
 export async function assertWorkerBuild(appPath, expectedEnvironment, expectedName) {
   const configPath = await findGeneratedWorkerConfig(appPath);
   const config = JSON.parse(await readFile(configPath, "utf8"));

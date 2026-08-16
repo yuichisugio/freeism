@@ -3,6 +3,7 @@ import { access, readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { findGeneratedWorkerConfig } from "./assert-worker-build";
 import { releaseEnvironment, type ReleaseEnvironment } from "./migrate-d1";
 
 const REQUIRED_COMPATIBILITY_FLAGS = [
@@ -62,29 +63,9 @@ export function assertGeneratedConfig(
   }
 }
 
-async function generatedConfigPath(appRoot: string): Promise<string> {
-  const candidates = [
-    resolve(appRoot, "dist/server/wrangler.json"),
-    resolve(appRoot, "dist/wrangler.json"),
-  ];
-  const existing: string[] = [];
-  for (const candidate of candidates) {
-    try {
-      await access(candidate);
-      existing.push(candidate);
-    } catch {
-      // Only one of the framework's documented output locations may exist.
-    }
-  }
-  if (existing.length !== 1) {
-    throw new Error(`expected one generated wrangler.json, found ${existing.length}`);
-  }
-  return existing[0]!;
-}
-
 export async function deployGenerated(environment: ReleaseEnvironment): Promise<void> {
   const appRoot = resolve(dirname(import.meta.filename), "..");
-  const configPath = await generatedConfigPath(appRoot);
+  const configPath = await findGeneratedWorkerConfig(appRoot);
   const config = JSON.parse(await readFile(configPath, "utf8")) as GeneratedConfig;
   assertGeneratedConfig(config, environment);
 

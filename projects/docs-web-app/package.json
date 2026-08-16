@@ -9,14 +9,14 @@
 		"url": "git+https://github.com/yuichisugio/freeism-documentation.git"
 	},
 	"scripts": {
-		"dev": "pnpm --filter @freeism/legacy-typescript-tools run docs:dev",
-		"check": "pnpm --filter @freeism/legacy-typescript-tools run docs:check",
+		"dev": "blume dev",
+		"check": "blume check",
 		"test": "vitest run --passWithNoTests",
-		"build": "pnpm --filter @freeism/legacy-typescript-tools run docs:build",
+		"build": "blume build",
 		"deploy:staging": "wrangler deploy --env staging",
 		"deploy:production": "wrangler deploy --env production",
-		"smoke:staging": "node ../../scripts/sites/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://staging.docs.freeism.app/en/ --link https://staging.docs.freeism.app/notes",
-		"smoke:production": "node ../../scripts/sites/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes",
+		"smoke:staging": "node scripts/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://staging.docs.freeism.app/en/ --link https://staging.docs.freeism.app/notes",
+		"smoke:production": "node scripts/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes",
 		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md",
 		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md",
 		"lint-staged": "lint-staged"
@@ -48,7 +48,7 @@
 		"textlint-rule-preset-ja-technical-writing": "^3.1.3",
 		"textlint-rule-prh": "^5.3.0",
 		"textlint-rule-spellcheck-tech-word": "^5.0.0",
-		"typescript": "7.0.2",
+		"typescript": "6.0.2",
 		"vitest": "^3.2.4",
 		"wrangler": "4.111.0"
 	},

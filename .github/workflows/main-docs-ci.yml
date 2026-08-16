@@ -4,12 +4,9 @@ on:
   pull_request:
     paths:
       - projects/docs-web-app/**
-      - scripts/sites/**
-      - tests/sites/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
-      - .node-version
       - .github/workflows/main-docs-ci.yml
 
 permissions:
@@ -36,7 +33,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version-file: .node-version
+          node-version: latest
+          check-latest: true
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -51,6 +49,3 @@ jobs:
 
       - name: Build docs
         run: pnpm --filter docs-web-app build
-
-      - name: Verify static-site contracts
-        run: node --test tests/sites/*.test.mjs

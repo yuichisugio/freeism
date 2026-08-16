@@ -41,7 +41,7 @@ class RecordingFetcher implements Fetcher {
   }
 }
 
-describe("Points generated API client contract", () => {
+describe("Points API client contract", () => {
   it("exposes only the frozen eleven generated operations", () => {
     const methods = Object.getOwnPropertyNames(PointsApiClient.prototype)
       .filter((name) => name !== "constructor")
@@ -70,11 +70,11 @@ describe("Points generated API client contract", () => {
       {
         expiresAt: "2026-07-13T00:10:00.000Z",
         marketsUserId: "musr_1",
-        pkceChallenge: "challenge",
+        pkceChallenge: "a".repeat(43),
         redirectUri: "https://markets.example.test/api/points-connection/callback",
         requestedScopes: ["openid"],
-        returnUrlHash: "sha256:return",
-        stateHash: "sha256:state",
+        returnUrlHash: `sha256:${"b".repeat(64)}`,
+        stateHash: `sha256:${"c".repeat(64)}`,
       },
       "link-attempt-1",
     );

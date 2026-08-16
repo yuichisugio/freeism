@@ -1,5 +1,4 @@
 {
-  "*.{ts,tsx}": ["pnpm --filter @freeism/legacy-typescript-tools run web:lint:files --fix"],
   "!(CLAUDE).{js,jsx,ts,tsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}": ["prettier --write"],
   "**/*.prisma": ["prisma format"]
 }

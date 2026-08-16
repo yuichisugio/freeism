@@ -11,9 +11,9 @@
     "test:worker": "vp test run --config vitest.worker.config.ts",
     "test:e2e": "playwright test -c playwright.config.ts",
     "build": "vp build",
-    "build:staging": "CLOUDFLARE_ENV=staging vp build && node ../../scripts/web-app/generate-static-security-headers.mjs . staging",
-    "build:production": "CLOUDFLARE_ENV=production vp build && node ../../scripts/web-app/generate-static-security-headers.mjs . production",
-    "build:assert": "node ../../scripts/web-app/assert-worker-build.mjs .",
+    "build:staging": "CLOUDFLARE_ENV=staging vp build && node scripts/generate-static-security-headers.mjs . staging",
+    "build:production": "CLOUDFLARE_ENV=production vp build && node scripts/generate-static-security-headers.mjs . production",
+    "build:assert": "node scripts/assert-worker-build.mjs .",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
     "db:migrate:staging": "node scripts/migrate-d1.mjs staging",
@@ -35,7 +35,8 @@
     "hono": "4.12.28",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "react-markdown": "10.1.0"
+    "react-markdown": "10.1.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.43.2",

@@ -1,4 +1,5 @@
 import type { Context, Hono } from "hono";
+import type { z } from "zod";
 
 import { pointsOAuthScopes } from "../../auth/points-oauth-provider";
 import {
@@ -6,7 +7,17 @@ import {
   type PointsOAuthPrincipal,
 } from "../../auth/resource-token-introspection";
 import { canonicalJson, sha256Hex } from "../../csv/csv-validation-result";
-import type { operations } from "../../../generated/points-markets-api";
+import {
+  auctionEligibilityRequestSchema,
+  balanceCheckRequestSchema,
+  captureSettlementRequestSchema,
+  createLinkAttemptRequestSchema,
+  createReservationRequestSchema,
+  deactivateConnectionRequestSchema,
+  finalizeLinkAttemptRequestSchema,
+  releaseReservationRequestSchema,
+  reservationStatusRequestSchema,
+} from "../points-api-schemas";
 import { createPointsLinkAttempt } from "../../usecases/create-points-link-attempt";
 import { checkPointBalance } from "../../usecases/check-point-balance";
 import {
@@ -30,24 +41,6 @@ import { releasePointReservation } from "../../usecases/release-point-reservatio
 import type { BackendContext, Bindings } from "../context";
 import { requireBindings } from "../context";
 import { problem } from "../problem";
-
-type CreateLinkBody =
-  operations["createPointsLinkAttempt"]["requestBody"]["content"]["application/json"];
-type FinalizeLinkBody =
-  operations["finalizePointsLinkAttempt"]["requestBody"]["content"]["application/json"];
-type EligibilityBody =
-  operations["checkPointPackageAuctionEligibility"]["requestBody"]["content"]["application/json"];
-type BalanceBody = operations["checkPointBalance"]["requestBody"]["content"]["application/json"];
-type CreateReservationBody =
-  operations["createPointReservation"]["requestBody"]["content"]["application/json"];
-type ReservationStatusBody =
-  operations["getPointReservationStatus"]["requestBody"]["content"]["application/json"];
-type CaptureSettlementBody =
-  operations["capturePointSettlement"]["requestBody"]["content"]["application/json"];
-type ReleaseReservationBody =
-  operations["releasePointReservation"]["requestBody"]["content"]["application/json"];
-type DeactivateConnectionBody =
-  operations["deactivatePointsConnection"]["requestBody"]["content"]["application/json"];
 
 export type AuthorizePointsResource = (
   request: Request,
@@ -75,14 +68,22 @@ const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =
     scopes,
   );
 
-async function readJson<T>(context: Context<BackendContext>, limit = 64 * 1024) {
+async function readJson<T>(
+  context: Context<BackendContext>,
+  schema: z.ZodType<T>,
+  limit = 64 * 1024,
+) {
   const bytes = new Uint8Array(await context.req.arrayBuffer());
   if (bytes.byteLength > limit) throw new Error("REQUEST_BODY_TOO_LARGE");
+  let parsed: unknown;
   try {
-    return JSON.parse(new TextDecoder().decode(bytes)) as T;
+    parsed = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     throw new Error("MALFORMED_REQUEST");
   }
+  const result = schema.safeParse(parsed);
+  if (!result.success) throw new Error("VALIDATION_FAILED");
+  return result.data;
 }
 
 function idempotencyKey(context: Context<BackendContext>) {
@@ -173,7 +174,7 @@ export function registerOAuthResourceRoutes(
         "points.connection.link-attempt.create",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<CreateLinkBody>(context);
+      const body = await readJson(context, createLinkAttemptRequestSchema);
       const payloadHash = `sha256:${await sha256Hex(
         canonicalJson({ body, clientId: principal.clientId }),
       )}`;
@@ -210,7 +211,7 @@ export function registerOAuthResourceRoutes(
         "points.connection.link-attempt.finalize",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<FinalizeLinkBody>(context);
+      const body = await readJson(context, finalizeLinkAttemptRequestSchema);
       const finalized = await finalizePointsLinkAttempt(env.DB, {
         attemptPayloadHash: body.attemptPayloadHash,
         idempotencyKey: idempotencyKey(context),
@@ -274,7 +275,7 @@ export function registerOAuthResourceRoutes(
         "points.packages.auction-eligibility",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<EligibilityBody>(context, 1024 * 1024);
+      const body = await readJson(context, auctionEligibilityRequestSchema, 1024 * 1024);
       const result = await checkPointPackageAuctionEligibility(env.DB, {
         ...body,
         idempotencyKey: idempotencyKey(context),
@@ -299,7 +300,7 @@ export function registerOAuthResourceRoutes(
         pointsSubject: principal.subject,
         userClientId: principal.clientId,
       });
-      const body = await readJson<BalanceBody>(context);
+      const body = await readJson(context, balanceCheckRequestSchema);
       const balance = await checkPointBalance(env.DB, {
         ...body,
         pointsUserId: connection.pointsUserId,
@@ -322,7 +323,7 @@ export function registerOAuthResourceRoutes(
       const env = requireBindings(context.env);
       const principal = await authorize(context.req.raw, env, "USER", ["points.connection.unlink"]);
       if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<DeactivateConnectionBody>(context);
+      const body = await readJson(context, deactivateConnectionRequestSchema);
       const key = idempotencyKey(context);
       const responseRequestId = requestId(context);
       if (body.deactivationKey !== key) throw new Error("IDEMPOTENCY_KEY_REUSED");
@@ -360,7 +361,7 @@ export function registerOAuthResourceRoutes(
         pointsSubject: principal.subject,
         userClientId: principal.clientId,
       });
-      const body = await readJson<CreateReservationBody>(context);
+      const body = await readJson(context, createReservationRequestSchema);
       if (body.leaseSeconds !== 900 || body.marketsUserId !== connection.marketsUserId) {
         throw new Error("VALIDATION_FAILED");
       }
@@ -399,7 +400,7 @@ export function registerOAuthResourceRoutes(
         "points.reservations.status",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<ReservationStatusBody>(context, 1024 * 1024);
+      const body = await readJson(context, reservationStatusRequestSchema, 1024 * 1024);
       const reservations = await readReservationStatus(env.DB, {
         marketsClientId: principal.clientId,
         ...(body.lookupBy === "POINT_RESERVATION_ID"
@@ -433,7 +434,7 @@ export function registerOAuthResourceRoutes(
         "points.reservations.capture",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<CaptureSettlementBody>(context, 1024 * 1024);
+      const body = await readJson(context, captureSettlementRequestSchema, 1024 * 1024);
       const captured = await captureSettlement(env.DB, {
         ...body,
         idempotencyKey: idempotencyKey(context),
@@ -460,7 +461,7 @@ export function registerOAuthResourceRoutes(
         "points.reservations.release",
       ]);
       if (principal.kind !== "M2M") throw new Error("INVALID_ACCESS_TOKEN");
-      const body = await readJson<ReleaseReservationBody>(context, 1024 * 1024);
+      const body = await readJson(context, releaseReservationRequestSchema, 1024 * 1024);
       const released = await releasePointReservation(env.DB, {
         ...body,
         idempotencyKey: idempotencyKey(context),

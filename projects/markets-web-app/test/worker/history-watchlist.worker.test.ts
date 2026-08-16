@@ -236,7 +236,11 @@ describe("public auction read", () => {
   });
 
   it("returns a public detail and bid history without AutoBid maximum or private data", async () => {
-    const seeded = await seedUserAndAuction("detail", { status: "OPEN" });
+    const seeded = await seedUserAndAuction("detail", {
+      endsAt: new Date(Date.now() + 3_600_000).toISOString(),
+      startsAt: new Date(Date.now() - 60_000).toISOString(),
+      status: "OPEN",
+    });
     await env.DB.batch([
       env.DB.prepare(
         `INSERT INTO bid_events
@@ -419,7 +423,7 @@ describe("user auction history", () => {
          (id, settlement_id, round_ordinal, plan_hash, cutoff_hash, state,
           first_attempt_at, retry_deadline_at)
          VALUES (?, ?, 1, ?, ?, 'RESERVED', ?, ?)`,
-      ).bind(roundId, settlementId, "b".repeat(64), "c".repeat(64), settledAt, settledAt),
+      ).bind(roundId, settlementId, `sha256:${"b".repeat(64)}`, "c".repeat(64), settledAt, settledAt),
       env.DB.prepare(
         `INSERT INTO settlement_allocations
          (id, settlement_id, settlement_round_id, allocation_ordinal, auction_id,

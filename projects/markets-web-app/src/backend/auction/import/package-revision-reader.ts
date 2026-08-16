@@ -1,8 +1,8 @@
-import type { components } from "../../../generated/points-markets-api";
 import type { PointsApiClient } from "../../points/points-api-client";
-
-type PublicPointPackageRevisionResponse =
-  components["schemas"]["PublicPointPackageRevisionResponse"];
+import {
+  publicPointPackageRevisionResponseSchema,
+  type PublicPointPackageRevisionResponse,
+} from "../../points/points-api-schemas";
 
 export interface PointPackageRevisionHttpResult {
   body: PublicPointPackageRevisionResponse;
@@ -37,15 +37,21 @@ export function createPackageRevisionReader(client: PublicRevisionClient): Packa
       if (response.status !== 200) {
         throw new PackageRevisionReaderError("POINTS_DEPENDENCY_UNAVAILABLE");
       }
+      let body: unknown;
       try {
-        return {
-          body: await response.json<PublicPointPackageRevisionResponse>(),
-          cacheControl: response.headers.get("Cache-Control"),
-          etag: response.headers.get("ETag"),
-        };
+        body = await response.json();
       } catch {
         throw new PackageRevisionReaderError("POINTS_DEPENDENCY_UNAVAILABLE");
       }
+      const parsed = publicPointPackageRevisionResponseSchema.safeParse(body);
+      if (!parsed.success) {
+        throw new PackageRevisionReaderError("POINTS_DEPENDENCY_UNAVAILABLE");
+      }
+      return {
+        body: parsed.data,
+        cacheControl: response.headers.get("Cache-Control"),
+        etag: response.headers.get("ETag"),
+      };
     },
   };
 }

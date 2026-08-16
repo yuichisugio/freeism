@@ -18,6 +18,9 @@ const STATIC_PAGE_PATHS = [
   "/docs.html",
 ];
 
+/**
+ * 固定 HTML の inline script hash を含む `_headers` を生成する。
+ */
 export async function generateStaticSecurityHeaders(appPath, environment) {
   const configPath = await findGeneratedWorkerConfig(appPath);
   const config = JSON.parse(await readFile(configPath, "utf8"));

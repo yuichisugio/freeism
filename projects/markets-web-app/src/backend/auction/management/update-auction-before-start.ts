@@ -1,8 +1,11 @@
-import type { components } from "../../../generated/points-markets-api";
 import type {
   AuctionImportPreviewRow,
   VerifiedPackageRevision,
 } from "../import/validate-auction-import";
+import type {
+  AuctionEligibilityRequest,
+  AuctionEligibilityResponse,
+} from "../../points/points-api-schemas";
 import { revalidateAuctionImportRows } from "../import/auction-import-row";
 import type { MarketsActor } from "../../http/context";
 import {
@@ -18,8 +21,8 @@ import type {
   WriteContext,
 } from "../../db/d1-auction-repository";
 
-type EligibilityRequest = components["schemas"]["AuctionEligibilityRequest"];
-type EligibilityResponse = components["schemas"]["AuctionEligibilityResponse"];
+type EligibilityRequest = AuctionEligibilityRequest;
+type EligibilityResponse = AuctionEligibilityResponse;
 
 export interface UpdateAuctionBeforeStartInput {
   actor: MarketsActor;

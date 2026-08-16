@@ -403,7 +403,7 @@ describe("settlement close and Workflow", () => {
     });
     expect(first).toEqual(second);
     expect(first.plan.eligibleBidIds).toEqual(["bp_1", "bp_2"]);
-    expect(first.planHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(first.planHash).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
 
   it("dispatches one deterministic Workflow instance and fails explicitly without Points bindings", async () => {
@@ -556,7 +556,7 @@ describe("settlement close and Workflow", () => {
   it("uses distinct retry IDs, rejects oversized IDs, and defines every explicit policy", () => {
     const base = {
       auctionId: "auc_1",
-      planHash: "a".repeat(64),
+      planHash: `sha256:${"a".repeat(64)}`,
       settlementId: "stl_1",
       settlementRevision: 1,
       workflowAttempt: 0,

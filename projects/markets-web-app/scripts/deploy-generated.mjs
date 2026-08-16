@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 
-import { findGeneratedWorkerConfig } from "../../../scripts/web-app/assert-worker-build.mjs";
+import { findGeneratedWorkerConfig } from "./assert-worker-build.mjs";
 import { loadReleaseTarget, releaseEnvironment } from "./migrate-d1.mjs";
 
 const REQUIRED_FLAGS = [

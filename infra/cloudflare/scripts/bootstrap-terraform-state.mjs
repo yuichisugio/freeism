@@ -17,6 +17,9 @@ async function readJson(response, operation) {
   return body.result;
 }
 
+/**
+ * Terraform state 用 R2 バケットの確認または一度きりの作成を行う。
+ */
 export async function runBootstrap({
   mode,
   env = process.env,
@@ -48,9 +51,7 @@ export async function runBootstrap({
     ]);
 
     const listResult = await readJson(listResponse, "R2 bucket list");
-    const listed = (listResult?.buckets ?? []).filter(
-      (bucket) => bucket?.name === BUCKET_NAME,
-    );
+    const listed = (listResult?.buckets ?? []).filter((bucket) => bucket?.name === BUCKET_NAME);
 
     if (getResponse.status === 404) {
       if (listed.length !== 0) {

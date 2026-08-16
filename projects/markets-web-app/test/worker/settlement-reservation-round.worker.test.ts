@@ -510,7 +510,7 @@ describe("settlement reservation round", () => {
               pointReservationId: "pres_refreshed",
               reservationKey: body.reservationKey,
               status: "ACTIVE",
-              vectorHash: "7".repeat(64),
+              vectorHash: `sha256:${"7".repeat(64)}`,
             },
             meta: { requestId: "req_refreshed" },
           });

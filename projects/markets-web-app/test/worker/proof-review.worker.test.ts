@@ -20,7 +20,7 @@ async function seedProof() {
   const allocationId = `allocation_${suffix}`;
   const proofId = `proof_${suffix}`;
   const settledAt = "2026-07-14T02:00:00.000Z";
-  const planHash = "a".repeat(64);
+  const planHash = `sha256:${"a".repeat(64)}`;
   const contentHash = "b".repeat(64);
   const item = {
     description: "Immutable description",

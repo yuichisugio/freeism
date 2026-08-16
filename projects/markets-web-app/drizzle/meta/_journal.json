@@ -85,6 +85,13 @@
       "when": 1784004699607,
       "tag": "0011_ops-alert-maintenance",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1786870010324,
+      "tag": "0012_sha256-plan-hash",
+      "breakpoints": true
     }
   ]
 }

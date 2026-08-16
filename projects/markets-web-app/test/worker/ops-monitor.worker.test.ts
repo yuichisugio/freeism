@@ -111,7 +111,7 @@ describe("Markets ops monitor", () => {
       ).bind(
         outboxId,
         settlementId,
-        "a".repeat(64),
+        `sha256:${"a".repeat(64)}`,
         new Date(now.getTime() - 5 * 60_000).toISOString(),
       ),
     ]);

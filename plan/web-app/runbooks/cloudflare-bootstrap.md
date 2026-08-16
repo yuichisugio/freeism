@@ -108,9 +108,9 @@ After deployment, wait until Cloudflare has provisioned TLS for both custom doma
 Set a short-lived token with R2 read/write and the exact account ID, then run:
 
 ```bash
-node scripts/web-app/bootstrap-terraform-state.mjs --check
-node scripts/web-app/bootstrap-terraform-state.mjs --apply
-node scripts/web-app/bootstrap-terraform-state.mjs --check
+node infra/cloudflare/scripts/bootstrap-terraform-state.mjs --check
+node infra/cloudflare/scripts/bootstrap-terraform-state.mjs --apply
+node infra/cloudflare/scripts/bootstrap-terraform-state.mjs --check
 ```
 
 `--check` performs Cloudflare R2 bucket get plus filtered list. Absence is reported with exit 0. Read errors, account/name disagreement, and duplicate list results stop with non-zero. `--apply` creates only an absent bucket and repeats get/list verification. It never deletes or changes an existing bucket.

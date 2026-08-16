@@ -12,7 +12,7 @@ import { reconcileSettlement } from "../../src/backend/settlement/reconcile-sett
 const db = env.DB;
 const now = "2033-05-18T03:33:20.000Z";
 const expiresAt = Date.parse(now) + 60_000;
-const planHash = "1".repeat(64);
+const planHash = `sha256:${"1".repeat(64)}`;
 const reasonHash = `sha256:${"2".repeat(64)}` as const;
 
 async function seedSettlement(

@@ -19,10 +19,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:rm": "rm -rf tsconfig.tsbuildinfo && tsc --noEmit",
     "clean": "git clean -xdf node_modules dist",
-    "lint": "pnpm --filter @freeism/legacy-typescript-tools run web:lint",
-    "lint:fix": "pnpm --filter @freeism/legacy-typescript-tools run web:lint --fix && prisma validate",
+    "lint:fix": "prisma validate",
     "lint-staged": "lint-staged --concurrent false",
-    "unused:check": "pnpm --filter @freeism/legacy-typescript-tools run web:knip",
     "unused:fix": "ts-prune --project tsconfig.json --write",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}\" && prisma format",
@@ -39,7 +37,6 @@
     "actions:send-scheduled-notifications": "tsx scripts/send-scheduled-notifications.ts",
     "prisma:dev:migrate": "pnpm dotenv -e .env.local -- pnpm prisma migrate dev",
     "prisma:prod:deploy": "pnpm dotenv -e .env.production -- pnpm prisma migrate deploy",
-    "knip": "pnpm --filter @freeism/legacy-typescript-tools run web:knip",
     "workspace:open": "code web-app.code-workspace"
   },
   "prisma": {

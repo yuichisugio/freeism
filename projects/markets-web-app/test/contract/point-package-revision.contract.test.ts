@@ -10,10 +10,13 @@ import {
 } from "../../src/backend/auction/import/validate-auction-import";
 import { AUCTION_IMPORT_HEADERS } from "../../src/backend/auction/import/auction-import-row";
 import { PointsApiError } from "../../src/backend/points/points-api-client";
-import type { components } from "../../src/generated/points-markets-api";
+import type {
+  AuctionEligibilityResponse,
+  PublicPointPackageRevisionData,
+} from "../../src/backend/points/points-api-schemas";
 
-type PublicRevision = components["schemas"]["PublicPointPackageRevisionData"];
-type EligibilityResponse = components["schemas"]["AuctionEligibilityResponse"];
+type PublicRevision = PublicPointPackageRevisionData;
+type EligibilityResponse = AuctionEligibilityResponse;
 
 const immutableCache = "public, max-age=31536000, immutable";
 

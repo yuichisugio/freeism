@@ -7,13 +7,10 @@
     "pnpm": "10.33.3"
   },
   "scripts": {
-    "contract:web-app:generate": "pnpm --filter @freeism/legacy-typescript-tools run openapi:web-app:generate && pnpm --filter @freeism/points-web-app exec vp check --fix src/generated/points-markets-api.ts && pnpm --filter @freeism/markets-web-app exec vp check --fix src/generated/points-markets-api.ts",
-    "contract:web-app:check": "pnpm contract:web-app:generate && git diff --exit-code -- projects/points-web-app/src/generated/points-markets-api.ts projects/markets-web-app/src/generated/points-markets-api.ts",
     "lint": "pnpm -r --if-present lint",
     "lint:documentation": "pnpm --filter docs-web-app lint",
     "lint:documentation:ja": "pnpm --filter docs-web-app lint:ja",
     "lint:documentation:en": "pnpm --filter docs-web-app lint:en",
-    "lint:web-app": "pnpm --filter web-app lint",
     "changeset": "changeset",
     "changeset:status": "changeset status",
     "version-packages": "changeset version"

@@ -1,41 +1,40 @@
-import type { components, operations } from "../../generated/points-markets-api";
+import type { z } from "zod";
 
-type EligibilityBody =
-  operations["checkPointPackageAuctionEligibility"]["requestBody"]["content"]["application/json"];
-type CreateLinkBody =
-  operations["createPointsLinkAttempt"]["requestBody"]["content"]["application/json"];
-type FinalizeLinkBody =
-  operations["finalizePointsLinkAttempt"]["requestBody"]["content"]["application/json"];
-type DeactivateBody =
-  operations["deactivatePointsConnection"]["requestBody"]["content"]["application/json"];
-type BalanceBody = operations["checkPointBalance"]["requestBody"]["content"]["application/json"];
-type ReservationBody =
-  operations["createPointReservation"]["requestBody"]["content"]["application/json"];
-type StatusBody =
-  operations["getPointReservationStatus"]["requestBody"]["content"]["application/json"];
-type CaptureBody =
-  operations["capturePointSettlement"]["requestBody"]["content"]["application/json"];
-type ReleaseBody =
-  operations["releasePointReservation"]["requestBody"]["content"]["application/json"];
-type AuctionEligibilityItemError = components["schemas"]["AuctionEligibilityItemError"];
-
-const AUCTION_ELIGIBILITY_ERROR_CODES = [
-  "POINT_PACKAGE_NOT_FOUND",
-  "POINT_PACKAGE_REVISION_NOT_FOUND",
-  "POINT_PACKAGE_REVISION_MISMATCH",
-  "POINT_PACKAGE_REVISION_INACTIVE",
-  "POINT_PACKAGE_INACTIVE",
-  "CONTENT_HASH_MISMATCH",
-] as const;
+import {
+  auctionEligibilityItemErrorSchema,
+  auctionEligibilityRequestSchema,
+  auctionEligibilityResponseSchema,
+  balanceCheckRequestSchema,
+  balanceCheckResponseSchema,
+  captureSettlementRequestSchema,
+  captureSettlementResponseSchema,
+  createLinkAttemptRequestSchema,
+  createLinkAttemptResponseSchema,
+  createReservationRequestSchema,
+  createReservationResponseSchema,
+  deactivateConnectionRequestSchema,
+  deactivateConnectionResponseSchema,
+  finalizeLinkAttemptRequestSchema,
+  finalizeLinkAttemptResponseSchema,
+  pointsConnectionResponseSchema,
+  releaseReservationRequestSchema,
+  releaseReservationResponseSchema,
+  reservationStatusRequestSchema,
+  reservationStatusResponseSchema,
+  type AuctionEligibilityItemError,
+  type AuctionEligibilityRequest,
+  type BalanceCheckRequest,
+  type CaptureSettlementRequest,
+  type CreateLinkAttemptRequest,
+  type CreateReservationRequest,
+  type DeactivateConnectionRequest,
+  type FinalizeLinkAttemptRequest,
+  type ReleaseReservationRequest,
+  type ReservationStatusRequest,
+} from "./points-api-schemas";
 
 function isAuctionEligibilityItemError(value: unknown): value is AuctionEligibilityItemError {
-  if (typeof value !== "object" || value === null) return false;
-  const candidate = value as { auctionItemId?: unknown; code?: unknown };
-  return (
-    typeof candidate.auctionItemId === "string" &&
-    typeof candidate.code === "string" &&
-    AUCTION_ELIGIBILITY_ERROR_CODES.some((code) => code === candidate.code)
-  );
+  return auctionEligibilityItemErrorSchema.safeParse(value).success;
 }
 
 function readProblem(value: unknown) {
@@ -88,7 +87,7 @@ export class PointsApiError extends Error {
   }
 }
 
-async function json<T>(response: Response): Promise<T> {
+async function json<T>(response: Response, schema: z.ZodType<T>): Promise<T> {
   if (!response.ok) {
     const body: unknown = await response.json<unknown>().catch(() => undefined);
     const problem = readProblem(body);
@@ -101,7 +100,17 @@ async function json<T>(response: Response): Promise<T> {
       problem.insufficientReservationIds,
     );
   }
-  return response.json<T>();
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    throw new PointsApiError(response.status, "POINTS_API_RESPONSE_INVALID");
+  }
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new PointsApiError(response.status, "POINTS_API_RESPONSE_INVALID");
+  }
+  return parsed.data;
 }
 
 function request(
@@ -143,136 +152,163 @@ export class PointsApiClient {
     );
   }
 
-  async checkPointPackageAuctionEligibility(body: EligibilityBody, idempotencyKey: string) {
+  async checkPointPackageAuctionEligibility(
+    body: AuctionEligibilityRequest,
+    idempotencyKey: string,
+  ) {
     const bearer = await this.getM2MAccessToken(["points.packages.auction-eligibility"]);
-    return json<components["schemas"]["AuctionEligibilityResponse"]>(
+    return json(
       await this.service.fetch(
         request("/api/v1/point-package-auction-eligibility-checks", {
           bearer,
-          body,
+          body: auctionEligibilityRequestSchema.parse(body),
           idempotencyKey,
         }),
       ),
+      auctionEligibilityResponseSchema,
     );
   }
 
-  async createPointsLinkAttempt(body: CreateLinkBody, idempotencyKey: string) {
+  async createPointsLinkAttempt(body: CreateLinkAttemptRequest, idempotencyKey: string) {
     const bearer = await this.getM2MAccessToken(["points.connection.link-attempt.create"]);
-    return json<components["schemas"]["CreateLinkAttemptResponse"]>(
+    return json(
       await this.service.fetch(
-        request("/api/v1/oauth/link-attempts", { bearer, body, idempotencyKey }),
+        request("/api/v1/oauth/link-attempts", {
+          bearer,
+          body: createLinkAttemptRequestSchema.parse(body),
+          idempotencyKey,
+        }),
       ),
+      createLinkAttemptResponseSchema,
     );
   }
 
   async finalizePointsLinkAttempt(
     linkAttemptId: string,
-    body: FinalizeLinkBody,
+    body: FinalizeLinkAttemptRequest,
     idempotencyKey: string,
   ) {
     const bearer = await this.getM2MAccessToken(["points.connection.link-attempt.finalize"]);
-    return json<components["schemas"]["FinalizeLinkAttemptResponse"]>(
+    return json(
       await this.service.fetch(
         request(`/api/v1/oauth/link-attempts/${encodeURIComponent(linkAttemptId)}/finalizations`, {
           bearer,
-          body,
+          body: finalizeLinkAttemptRequestSchema.parse(body),
           idempotencyKey,
         }),
       ),
+      finalizeLinkAttemptResponseSchema,
     );
   }
 
   async getPointsConnection(userAccessToken: string) {
-    return json<components["schemas"]["PointsConnectionResponse"]>(
+    return json(
       await this.service.fetch(request("/api/v1/me/connection", { bearer: userAccessToken })),
+      pointsConnectionResponseSchema,
     );
   }
 
   async deactivatePointsConnection(
-    body: DeactivateBody,
+    body: DeactivateConnectionRequest,
     idempotencyKey: string,
     userAccessToken: string,
   ) {
-    return json<components["schemas"]["DeactivateConnectionResponse"]>(
+    return json(
       await this.service.fetch(
         request("/api/v1/me/connection-deactivations", {
           bearer: userAccessToken,
-          body,
+          body: deactivateConnectionRequestSchema.parse(body),
           idempotencyKey,
         }),
       ),
+      deactivateConnectionResponseSchema,
     );
   }
 
-  async checkPointBalance(body: BalanceBody, userAccessToken: string) {
-    return json<components["schemas"]["BalanceCheckResponse"]>(
+  async checkPointBalance(body: BalanceCheckRequest, userAccessToken: string) {
+    return json(
       await this.service.fetch(
-        request("/api/v1/me/balance-checks", { bearer: userAccessToken, body }),
+        request("/api/v1/me/balance-checks", {
+          bearer: userAccessToken,
+          body: balanceCheckRequestSchema.parse(body),
+        }),
       ),
+      balanceCheckResponseSchema,
     );
   }
 
   async createPointReservation(
-    body: ReservationBody,
+    body: CreateReservationRequest,
     idempotencyKey: string,
     userAccessToken: string,
     options: PointsRequestOptions = {},
   ) {
-    return json<components["schemas"]["CreateReservationResponse"]>(
+    return json(
       await this.service.fetch(
         request("/api/v1/me/point-reservations", {
           bearer: userAccessToken,
-          body,
+          body: createReservationRequestSchema.parse(body),
           idempotencyKey,
           signal: options.signal,
         }),
       ),
+      createReservationResponseSchema,
     );
   }
 
-  async getPointReservationStatus(body: StatusBody, options: PointsRequestOptions = {}) {
+  async getPointReservationStatus(
+    body: ReservationStatusRequest,
+    options: PointsRequestOptions = {},
+  ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.status"]);
-    return json<components["schemas"]["ReservationStatusResponse"]>(
+    return json(
       await this.service.fetch(
-        request("/api/v1/point-reservations/status", { bearer, body, signal: options.signal }),
+        request("/api/v1/point-reservations/status", {
+          bearer,
+          body: reservationStatusRequestSchema.parse(body),
+          signal: options.signal,
+        }),
       ),
+      reservationStatusResponseSchema,
     );
   }
 
   async capturePointSettlement(
     settlementId: string,
-    body: CaptureBody,
+    body: CaptureSettlementRequest,
     idempotencyKey: string,
     options: PointsRequestOptions = {},
   ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.capture"]);
-    return json<components["schemas"]["CaptureSettlementResponse"]>(
+    return json(
       await this.service.fetch(
         request(`/api/v1/settlements/${encodeURIComponent(settlementId)}/capture`, {
           bearer,
-          body,
+          body: captureSettlementRequestSchema.parse(body),
           idempotencyKey,
           signal: options.signal,
         }),
       ),
+      captureSettlementResponseSchema,
     );
   }
 
   async releasePointReservation(
-    body: ReleaseBody,
+    body: ReleaseReservationRequest,
     idempotencyKey: string,
     options: PointsRequestOptions = {},
   ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.release"]);
-    return json<components["schemas"]["ReleaseReservationResponse"]>(
+    return json(
       await this.service.fetch(
         request("/api/v1/point-reservations/release", {
           bearer,
-          body,
+          body: releaseReservationRequestSchema.parse(body),
           idempotencyKey,
           signal: options.signal,
         }),
       ),
+      releaseReservationResponseSchema,
     );
   }
 }

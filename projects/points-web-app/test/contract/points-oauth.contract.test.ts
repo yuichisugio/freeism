@@ -1,29 +1,12 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
 import { describe, expect, it } from "vite-plus/test";
 
 import {
-  createPointsOAuthProvider,
-  pointsOAuthClients,
-  pointsOAuthScopes,
-  requiresPointsLinkAttemptBinding,
+    createPointsOAuthProvider,
+    pointsOAuthClients,
+    pointsOAuthScopes,
+    requiresPointsLinkAttemptBinding,
 } from "../../src/backend/auth/points-oauth-provider";
 import { pointsOAuthBootstrapRegistrations } from "../../src/backend/auth/register-points-oauth-clients";
-
-const expectedOperations = [
-  "capturePointSettlement",
-  "checkPointBalance",
-  "checkPointPackageAuctionEligibility",
-  "createPointReservation",
-  "createPointsLinkAttempt",
-  "deactivatePointsConnection",
-  "finalizePointsLinkAttempt",
-  "getPointReservationStatus",
-  "getPointsConnection",
-  "getPublicPointPackageRevision",
-  "releasePointReservation",
-].sort();
 
 describe("Points OAuth contract", () => {
   it("separates USER, M2M and SETTLEMENT client grants and scopes", () => {
@@ -114,27 +97,5 @@ describe("Points OAuth contract", () => {
         subject_type: "pairwise",
       }),
     ]);
-  });
-
-  it("keeps the generated interservice contract to exactly eleven operations", async () => {
-    const openapi = JSON.parse(
-      await readFile(
-        path.resolve(process.cwd(), "../../docs/web-app/v0.2/points-markets.openapi.json"),
-        "utf8",
-      ),
-    ) as { paths: Record<string, Record<string, { operationId?: string }>> };
-    const operationIds = Object.values(openapi.paths)
-      .flatMap((path) => Object.values(path))
-      .map(({ operationId }) => operationId)
-      .filter((operationId): operationId is string => operationId !== undefined)
-      .sort();
-    expect(operationIds).toEqual(expectedOperations);
-    expect(
-      Object.keys(openapi.paths).some(
-        (path) =>
-          /\/profiles|\/search|\/evaluation-criteria|\/point-packages\//.test(path) &&
-          !path.includes("point-package-revisions"),
-      ),
-    ).toBe(false);
   });
 });

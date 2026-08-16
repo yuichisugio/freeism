@@ -1,5 +1,8 @@
-import type { components } from "../../../generated/points-markets-api";
 import type { MarketsActor } from "../../http/context";
+import type {
+  AuctionEligibilityRequest,
+  AuctionEligibilityResponse,
+} from "../../points/points-api-schemas";
 import {
   D1AuctionRepository,
   type AuctionEligibilityReceipt,
@@ -14,8 +17,8 @@ import type {
 } from "./validate-auction-import";
 import { calculateAuctionCommandIdentity } from "./validate-auction-import";
 
-type EligibilityRequest = components["schemas"]["AuctionEligibilityRequest"];
-type EligibilityResponse = components["schemas"]["AuctionEligibilityResponse"];
+type EligibilityRequest = AuctionEligibilityRequest;
+type EligibilityResponse = AuctionEligibilityResponse;
 
 export class AuctionCommitError extends Error {
   constructor(readonly code: string) {

@@ -1,5 +1,9 @@
-import type { components } from "../../../generated/points-markets-api";
 import type { CsvError } from "../../csv/csv-errors";
+import type {
+  AuctionEligibilityRequest,
+  AuctionEligibilityResponse,
+  PublicPointPackageRevisionData,
+} from "../../points/points-api-schemas";
 import { parseCsv } from "../../csv/parse-csv";
 import {
   AUCTION_IMPORT_HEADERS,
@@ -11,9 +15,9 @@ import type {
   PointPackageRevisionHttpResult,
 } from "./package-revision-reader";
 
-type PublicRevision = components["schemas"]["PublicPointPackageRevisionData"];
-type EligibilityRequest = components["schemas"]["AuctionEligibilityRequest"];
-type EligibilityResponse = components["schemas"]["AuctionEligibilityResponse"];
+type PublicRevision = PublicPointPackageRevisionData;
+type EligibilityRequest = AuctionEligibilityRequest;
+type EligibilityResponse = AuctionEligibilityResponse;
 
 const IMMUTABLE_CACHE = "public, max-age=31536000, immutable";
 const HASH_PATTERN = /^sha256:[0-9a-f]{64}$/;

@@ -29,7 +29,10 @@ export const settlementCaptureReceipts = sqliteTable(
   },
   (table) => [
     uniqueIndex("settlement_capture_receipts_settlement_uidx").on(table.settlementId),
-    check("settlement_capture_receipts_plan_hash_check", sql`length(${table.planHash}) = 64`),
+    check(
+      "settlement_capture_receipts_plan_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
     check(
       "settlement_capture_receipts_content_hash_check",
       sql`length(${table.contentHash}) = 71 and substr(${table.contentHash}, 1, 7) = 'sha256:' and substr(${table.contentHash}, 8) not glob '*[^0-9a-f]*'`,
@@ -142,7 +145,10 @@ export const proofs = sqliteTable(
     ),
     check("proofs_price_ticks_check", sql`${table.priceTicks} between 0 and ${safeInteger}`),
     check("proofs_status_check", sql`${table.completionStatus} = 'SETTLED'`),
-    check("proofs_plan_hash_check", sql`length(${table.planHash}) = 64`),
+    check(
+      "proofs_plan_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
     check("proofs_content_hash_check", sql`length(${table.contentHash}) = 64`),
   ],
 );
@@ -166,7 +172,10 @@ export const settlementFinalizeReceipts = sqliteTable(
   (table) => [
     uniqueIndex("settlement_finalize_receipts_settlement_uidx").on(table.settlementId),
     uniqueIndex("settlement_finalize_receipts_capture_uidx").on(table.captureReceiptId),
-    check("settlement_finalize_receipts_plan_hash_check", sql`length(${table.planHash}) = 64`),
+    check(
+      "settlement_finalize_receipts_plan_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
     check("settlement_finalize_receipts_proof_ids_check", sql`json_valid(${table.proofIdsJson})`),
     check(
       "settlement_finalize_receipts_proof_set_hash_check",

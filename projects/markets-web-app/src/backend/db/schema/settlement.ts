@@ -73,7 +73,10 @@ export const settlementPlans = sqliteTable(
       sql`${table.settlementRevision} between 1 and ${safeInteger}`,
     ),
     check("settlement_plans_json_check", sql`json_valid(${table.planJson})`),
-    check("settlement_plans_hash_check", sql`length(${table.planHash}) = 64`),
+    check(
+      "settlement_plans_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
   ],
 );
 
@@ -156,7 +159,10 @@ export const settlementOutbox = sqliteTable(
       "settlement_outbox_attempt_check",
       sql`${table.workflowAttempt} between 0 and ${safeInteger}`,
     ),
-    check("settlement_outbox_plan_hash_check", sql`length(${table.planHash}) = 64`),
+    check(
+      "settlement_outbox_plan_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
     check("settlement_outbox_status_check", sql`${table.status} in ('PENDING', 'DISPATCHED')`),
     check("settlement_outbox_delivery_attempt_check", sql`${table.deliveryAttemptCount} >= 0`),
   ],
@@ -216,8 +222,14 @@ export const settlementRounds = sqliteTable(
       "settlement_rounds_ordinal_check",
       sql`${table.roundOrdinal} between 1 and ${safeInteger}`,
     ),
-    check("settlement_rounds_plan_hash_check", sql`length(${table.planHash}) = 64`),
-    check("settlement_rounds_cutoff_hash_check", sql`length(${table.cutoffHash}) = 64`),
+    check(
+      "settlement_rounds_plan_hash_check",
+      sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,
+    ),
+    check(
+      "settlement_rounds_cutoff_hash_check",
+      sql`length(${table.cutoffHash}) = 64 or (length(${table.cutoffHash}) = 71 and substr(${table.cutoffHash}, 1, 7) = 'sha256:')`,
+    ),
     check("settlement_rounds_excluded_json_check", sql`json_valid(${table.excludedUserIdsJson})`),
     check(
       "settlement_rounds_deadline_check",

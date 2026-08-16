@@ -49,7 +49,7 @@ async function uniqueIndexColumns(tableName: string) {
 }
 
 describe("Markets greenfield domain schema", () => {
-  it("applies the twelve greenfield migrations in sequence", async () => {
+  it("applies the greenfield migrations in sequence", async () => {
     await expect(appliedMigrationNames()).resolves.toEqual([
       "0000_markets-auth.sql",
       "0001_points-oauth-connection.sql",
@@ -63,6 +63,7 @@ describe("Markets greenfield domain schema", () => {
       "0009_proof-review.sql",
       "0010_watchlist.sql",
       "0011_ops-alert-maintenance.sql",
+      "0012_sha256-plan-hash.sql",
     ]);
   });
 
