@@ -1,6 +1,6 @@
-# # freeism-depcheckerの仕様書
+# # freeism-find-contribの仕様書
 
-- [# freeism-depcheckerの仕様書](#-freeism-depcheckerの仕様書)
+- [# freeism-find-contribの仕様書](#-freeism-find-contribの仕様書)
   - [v0.1](#v0.1)
   - [v2](#v2)
 

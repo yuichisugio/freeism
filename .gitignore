@@ -14,14 +14,14 @@ projects/docs-web-app/dist/
 projects/main-web-app/.astro/
 projects/main-web-app/dist/
 
-# --- calc-contrib, depchecker ---
+# --- calc-contrib, find-contrib ---
 projects/calc-contrib/results/
 projects/calc-contrib/*/results/*
 projects/calc-contrib/*/results/
 
-projects/depchecker/results/
-projects/depchecker/*/results/*
-projects/depchecker/*/results/
+projects/find-contrib/results/
+projects/find-contrib/*/results/*
+projects/find-contrib/*/results/
 
 # --- web-app ---
 projects/*-web-app/.wrangler/

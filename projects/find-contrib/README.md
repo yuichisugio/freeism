@@ -1,6 +1,6 @@
-# freeism-depchecker
+# freeism-find-contrib
 
-- [freeism-depchecker](#freeism-depchecker)
+- [freeism-find-contrib](#freeism-find-contrib)
   - [言語](#言語)
   - [概要](#概要)
   - [ファイル構造](#ファイル構造)
@@ -30,7 +30,7 @@
   3. 方式ごとの説明 `document.md`
 
 ```
-freeism-depchecker/
+freeism-find-contrib/
   ├─ github-osi/
   │   ├─ main.sh
   │   ├─ results/

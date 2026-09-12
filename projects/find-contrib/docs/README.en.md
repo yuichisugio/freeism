@@ -1,6 +1,6 @@
-# freeism-depchecker
+# freeism-find-contrib
 
-- [freeism-depchecker](#freeism-depchecker)
+- [freeism-find-contrib](#freeism-find-contrib)
   - [Languages](#languages)
 
 ## Languages

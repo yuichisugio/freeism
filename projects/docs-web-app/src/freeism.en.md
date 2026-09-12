@@ -10597,8 +10597,8 @@ We want to draw on the methods below as references for the "right to non-interfe
    - `projects/calc-contrib` in the `freeism` repository
    - Contribution calculation
    - Prototype of the `contribution-reward mechanism`
-2. `depchecker`
-   - `projects/depchecker` in the `freeism` repository
+2. `find-contrib`
+   - `projects/find-contrib` in the `freeism` repository
    - Dependency detection
    - Prototype of the `contribution-detection mechanism`
 3. `points-web-app`

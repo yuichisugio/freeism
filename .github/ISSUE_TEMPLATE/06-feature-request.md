@@ -13,7 +13,7 @@ assignees: ''
 - [ ] web-app
 - [ ] documentation
 - [ ] calc-contrib
-- [ ] depchecker
+- [ ] find-contrib
 - [ ] リポジトリ全体 / その他（具体的に）
 
 ## 背景・課題

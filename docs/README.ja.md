@@ -30,7 +30,7 @@ freeism/
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # v0.2切替まで保持する旧実装
     ├── calc-contrib/         # 貢献度の算出
-    └── depchecker/           # 依存関係の取得
+    └── find-contrib/         # 依存関係の取得
 ```
 
 | パス(README.md)                                                      | 説明                              |
@@ -42,7 +42,7 @@ freeism/
 | [`docs/web-app/`](./web-app/README.md)                               | Web アプリ横断仕様                |
 | [`projects/web-app/`](../projects/web-app/README.md)                 | v0.2切替まで保持する旧Next.js実装 |
 | [`projects/calc-contrib/`](../projects/calc-contrib/README.md)       | 貢献度を算出するソフトウェア      |
-| [`projects/depchecker/`](../projects/depchecker/README.md)           | 依存関係を取得するソフトウェア    |
+| [`projects/find-contrib/`](../projects/find-contrib/README.md)       | 依存関係を取得するソフトウェア    |
 
 ## 初期設定
 

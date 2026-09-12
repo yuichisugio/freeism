@@ -26,7 +26,7 @@
 | [`projects/web-app/`](./projects/web-app/)                 | Legacy Next.js implementation retained until the v0.2 cutover                                   |
 | [`docs/web-app/`](./docs/web-app/)                         | Cross-app architecture, authentication, API, security, and migration manifest                   |
 | [`projects/calc-contrib/`](./projects/calc-contrib/)       | Software that calculates contribution scores                                                    |
-| [`projects/depchecker/`](./projects/depchecker/)           | Software that fetches dependencies                                                              |
+| [`projects/find-contrib/`](./projects/find-contrib/)       | Software that fetches dependencies                                                              |
 
 ```
 freeism/
@@ -41,7 +41,7 @@ freeism/
     ├── markets-web-app/      # markets.freeism.app
     ├── web-app/              # Legacy app until v0.2 cutover
     ├── calc-contrib/         # Contribution calculation
-    └── depchecker/           # Dependency fetching
+    └── find-contrib/         # Dependency fetching
 ```
 
 ## Release workflow

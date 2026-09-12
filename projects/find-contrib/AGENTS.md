@@ -1,8 +1,8 @@
-# depchecker Guidelines
+# find-contrib Guidelines
 
 ## Scope
 
-These instructions apply to everything under `projects/depchecker/`.
+These instructions apply to everything under `projects/find-contrib/`.
 
 ## Project Structure
 

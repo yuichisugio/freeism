@@ -1,4 +1,4 @@
-## 概要（depchecker）
+## 概要（find-contrib）
 
 <!-- 変更内容 -->
 

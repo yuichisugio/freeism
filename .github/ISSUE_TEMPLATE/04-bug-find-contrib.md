@@ -1,7 +1,7 @@
 ---
-name: バグ報告（depchecker）
-about: 依存取得ツール（depchecker）の不具合を報告する
-title: '[depchecker] '
+name: バグ報告（find-contrib）
+about: 依存取得ツール（find-contrib）の不具合を報告する
+title: '[find-contrib] '
 labels: 'bug'
 assignees: ''
 ---
