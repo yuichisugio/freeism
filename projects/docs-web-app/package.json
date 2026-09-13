@@ -24,6 +24,7 @@
 	"keywords": [],
 	"devDependencies": {
 		"@astrojs/mdx": "^7.0.0",
+		"@shikijs/twoslash": "4.3.1",
 		"@tailwindcss/vite": "^4.0.0",
 		"@textlint-ja/textlint-rule-no-insert-dropping-sa": "^1.0.1",
 		"astro": "^7.0.9",
