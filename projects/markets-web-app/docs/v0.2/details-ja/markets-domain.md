@@ -204,6 +204,7 @@ SCHEDULED -> CANCELLED
 - settle完了時に公開・永続的なproof IDとcanonical URLを作る。
 - proofはAuction ID／Auction revision／Package revision、Auction revisionから固定した商材snapshot、seller/buyer identity snapshot、allocation quantity、uniform price、component vector、`SETTLED` completion status、settlement timestamp、plan hashを持つ。
 - seller/buyerの外部identityはsettle時snapshotを表示し、後の名前変更で証明内容を改変しない。
+- seller/buyerの外部アカウント情報はAccountsが証明・管理する情報を取得し、提供を許可されたサービス名、ユーザー名・表示名、固有ID・プロフィールURLのうち、[Accountsの提供項目](../../../../accounts-web-app/docs/specification/v0.1/main.md#管理画面と監査)に限って表示する。Markets側の接続設計で、Marketsへの提供許可による直接取得かPointsの公開API経由かを決め、許可取消後の公開条件と併せて確定する。
 - 通常proofは全員が閲覧できる。seller/buyer限定proofはv0.2で実装しない。
 - immutable proof本体とmutable reviewを別resourceにする。`GET /api/v1/proofs/{proofId}`のcontent hash、ETag、`Cache-Control: public, max-age=31536000, immutable`はreviewを含めず、review作成・更新で変化させない。
 - sellerとbuyerは相互に1〜5、任意comment、任意`completionProofUrl`を記録できる。commentはNFC／LF正規化後0〜2,000 Unicode code pointかつUTF-8最大8,000 bytes、LFとtab以外のcontrol文字を拒否する。`completionProofUrl`は0件または1件、最大2,048 UTF-8 bytesのcanonical HTTPS URLとし、userinfo／fragment／control文字を拒否する。空文字は`null`へ正規化する。本人の取引だけに方向ごと1件のcurrent reviewを持ち、更新はappend-only revisionを追加してcurrent pointerを進める。proof rowを更新しない。

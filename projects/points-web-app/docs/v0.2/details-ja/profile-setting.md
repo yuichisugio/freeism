@@ -46,7 +46,7 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 
 ## 3. Accountsとの情報連携
 
-Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。Pointsの設定画面にはAccountsとの連携状態とAccountsの管理画面への導線を表示する。
+Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。PointsはAccounts APIから連携アカウント一覧を取得する。Pointsの設定画面には取得した一覧、Accountsとの連携状態、Accountsの管理画面への導線を表示する。
 
 外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。PointsとAccountsのID対応、連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
 
@@ -54,7 +54,9 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
 - 自分のプロフィールだけに編集ボタンを表示する。
-- Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。外部アカウントとAccounts IDの公開対応は[Accountsの公開プロフィール](../../../../accounts-web-app/docs/specification/v0.1/main.md)を参照する。
+- Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
+- Pointsプロフィールには、Accounts APIから取得したOAuth連携・Webページ検証による連携アカウントの一覧も表示する。外部サービス名、取得できるユーザー名・表示名、固有ID・プロフィールURLなどの識別情報、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。Pointsへの提供に同意されたアカウントの情報を、Pointsプロフィール自体の公開・非公開に従って表示する。
+- 外部アカウントの所有権証明・管理と、Accounts APIが提供する項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を参照する。
 - 公式Packageはprofileの`displayOrder`で返し、現在の公開revisionへのlinkと不変Package IDを示す。
 - FIX・譲渡履歴は対応する評価軸フラグが`PUBLIC`の時だけ返す。交換履歴はsourceとtarget両方の`exchangeHistoryVisibility` が`PUBLIC`の時だけ返し、非公開軸のIDや額を反対軸から推測できる部分表示を行わない。
 - 非公開プロフィールは検索へ出さず、直接アクセスでも存在を開示しない。
@@ -101,6 +103,10 @@ close・reopen時のAccounts連携・公開許可の扱い、および受領資�
 - Google/GitHub login/link、メール暗黙link拒否
 - GitHub-onlyユーザーのGoogle step-up導線
 - Pointsの認証Provider対応とAccounts連携を独立して管理する
+- Pointsプロフィールと設定画面に、Accounts APIから取得したOAuth・Webページ検証の連携アカウント一覧を表示する
+- Pointsへの提供に同意した外部アカウントは、Accounts自身の一般公開設定にかかわらず、公開Pointsプロフィール・公開APIでテキスト表示できる
+- 各一覧・APIの表示項目はAccountsが提供元ごとに提供する項目と一致する
+- Pointsプロフィール自体が非公開の場合は、連携アカウント一覧も公開表示しない
 - ACTIVE reservationがあるcloseの`ACCOUNT_CLOSE_ACTIVE_RESERVATION`、最後ADMINの`ACCOUNT_CLOSE_LAST_ADMIN`
 - closedプロフィールの匿名化と台帳参照維持、close中の正負FIX保留、同一OAuth主体callbackで新user 0件
 - callback GETでCLOSED維持、Google fresh後の明示reopenで正負全件一括claim、集合変化時は再開拒否

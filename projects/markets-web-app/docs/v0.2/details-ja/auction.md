@@ -149,6 +149,7 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 
 - 未ログインでも閲覧できる。
 - proof ID、Auction ID／Auction revision、Package revision、seller/buyer snapshot、数量、uniform price、component vector、settledAt、statusを表示する。
+- seller/buyerの外部アカウントは、[落札証明仕様](markets-domain.md#12-落札証明と相互評価)に従ってAccounts由来の情報を表示する。GitHub Issueでの利用はMarkets側の検討事項とし、必要な識別情報と取得方法をMarketsの接続設計で定める。
 - secret tokenをURLへ含めず、`Cache-Control`と検索index方針を公開proof仕様に合わせる。
 - seller/buyer本人だけに相互評価入力を表示する。
 - proof本体とreview APIを別々に取得する。review作成・更新後もproof本体のcontent hash、ETag、immutable cacheを変更しない。

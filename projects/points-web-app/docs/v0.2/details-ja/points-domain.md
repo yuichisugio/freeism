@@ -35,10 +35,12 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - ユーザーID
 - 表示名: 1〜100文字
 - 説明: 0〜500文字
-- Accountsの公開プロフィールへの参照。外部アカウントとの公開対応はAccountsが管理する
+- Accounts APIから取得するOAuth・Webページ検証の連携アカウント一覧。外部サービス名、取得できるユーザー名・表示名、固有ID・プロフィールURLなどの識別情報、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで表示する
 - 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
 - 公開設定をONにした評価軸の`balance`と`evaluationTotal`
 - 公開設定をONにしたFIX・譲渡・交換履歴
+
+Pointsへの提供同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含み、Accounts自身の一般公開設定とは独立する。連携アカウント一覧はPointsプロフィール自体の公開・非公開に従って表示する。表示要件の詳細は[プロフィール設定](profile-setting.md)、所有権証明・アカウント管理・Accounts APIの提供項目は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
 
 メールは公開プロフィールへ出さず、本人識別にも使わない。
 
@@ -247,6 +249,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 ## 11. Public read API
 
 - 公開プロフィール、公開設定された残高と`evaluationTotal`
+- ユーザー情報の連携SNS・外部サービス名とアカウント名のうち、Accountsが提供元ごとに提供する項目。Pointsへの提供同意を公開表示の許可としてAccounts APIから取得し、Pointsプロフィール自体の公開・非公開に従って応答へ含める。Accounts自身の一般公開設定とは独立する。Accountsによる所有権証明・管理・API提供項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を参照する
 - 評価軸・パッケージ・revisionの公開情報
 - Shields.io等で使える短い残高表示
 - Marketsの公開落札証明へのcanonical link
