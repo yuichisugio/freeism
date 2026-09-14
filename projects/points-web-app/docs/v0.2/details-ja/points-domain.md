@@ -6,18 +6,20 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 
 ### 所有する主なaggregate
 
-- `pointsUser`、`profile`、`socialAccount`、`externalIdentity`
+- `pointsUser`、`profile`、Pointsのログイン用`socialAccount`、Accounts連携情報
 - `adminMembership`
 - `evaluationCriterion`、`evaluationCriterionRevision`
 - `pointPackage`、`pointPackageRevision`、`pointPackageComponent`
 - `fixResult`、`fixRevision`、`fixRevisionEntry`
 - `pointLedgerEntry`、利用者・評価軸ごとの`pointAccount`
-- `unclaimedFixEntry`、`identityOwnership`、`ownershipEpoch`、`fixClaim`
+- `unclaimedFixEntry`、`fixClaim`
 - `pointReservation`、`pointReservationComponent`
 - `pointsMarketsConnection`、OAuth client/token metadata
 - append-only `auditEvent`
 
 経済履歴は退会時にも削除しない。プロフィールを`CLOSED`かつ匿名化し、台帳、FIX、予約、永久OAuth主体対応、監査eventは保持する。
+
+外部アカウントの所有権証明・管理・公開・照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsは独自の認証・sessionと重要操作の再認証を持ち、Accountsを情報連携先として利用する。
 
 ## 2. ユーザーとプロフィール
 
@@ -33,8 +35,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - ユーザーID
 - 表示名: 1〜100文字
 - 説明: 0〜500文字
-- Google/GitHub Social Accountの表示名、provider内ID、プロフィールURL、検証状態、連携日時
-- 所有権確認済みの汎用Web URL、検証方式、検証日時、次回検証期限
+- Accountsの公開プロフィールへの参照。外部アカウントとの公開対応はAccountsが管理する
 - 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
 - 公開設定をONにした評価軸の`balance`と`evaluationTotal`
 - 公開設定をONにしたFIX・譲渡・交換履歴
@@ -133,16 +134,7 @@ FIX CSVの1行は最低限次を持つ。
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
-`recipientProfileUrl`が正規化後に`https://github.com/{login}`という1階層のGitHub利用者プロフィールURLへ分類される場合、validationと最終commitの両方でGitHub REST `GET /users/{username}`を再実行する。OAuth Appのapplication authenticationはWorkers SecretのClient ID／SecretによるBasic認証と固定GitHub API version headerをWorker内だけで構成し、browser、CSV、URL query、logへ出さない。
-
-- responseの`type`が利用者、`html_url`の正規化値が入力URLと完全一致し、数値`id`が有効であることを要求する。
-- 入力には数値IDを書かせず、FIX revisionへ`recipientProviderId=github`、10進文字列の`recipientAccountId`、正規化URL、`identityResolvedAt=最終commit時刻`を不変snapshotする。過去の`evaluationAt`時点のusername所有者を復元したとは扱わず、`evaluationAt`はFIXの評価期間とWeb ownership epoch割当だけに使う。
-- validation request内では同じ正規化URLを1回だけ解決するが、server draftやcross-request correctness cacheを作らない。commitは常に再解決し、previewのvalidation hashと数値IDが変わった場合は全件を`409 VALIDATION_CHANGED`で止める。
-- 404、429、rate limit枯渇、timeout、5xx、schema不正は当該行だけをURL文字列へfallbackせず、ファイル全体を`GITHUB_IDENTITY_LOOKUP_UNAVAILABLE`または入力errorで0件反映にする。GitHubの`Retry-After`／rate resetは安全な範囲でcallerへ伝える。
-- distinct URL数をapp-global D1 rate budgetへ先に予約し、GitHub responseのrate-limit headerで補正する。必要数を確保できない場合は外部call前に全件を429とする。lookupは最大6接続、1件3秒、全体120秒のpoolで行い、deadline／Abort時はdomain writeを0件にする。1,000 distinct GitHub URLも許可範囲であり、重複URLだけのtestで代替しない。
-- username変更後の新URLは新しいlookupで同じ数値IDへ、旧usernameが別Accountに再利用された後の新FIXは新しい数値IDへ向く。claim時はBetter AuthのGitHub `accountId`とrevision snapshotの数値IDを比較し、username、メール、現在URLだけで判定しない。
-
-GitHub以外のURLはprovider/account snapshotを持たず、Web所有権epochで受領者を決定する。
+外部プロフィールURLの正規化・所有者照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsはvalidationと最終commitで照合結果を確認し、結果が変わった場合は全件を`409 VALIDATION_CHANGED`で止める。FIX revisionへ保存する照合snapshot、通信失敗の扱い、Accounts IDと受領者の対応付け、未受領FIXの帰属に関する未決事項は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に記載する。
 
 ### 7.2 不変性
 

@@ -5,13 +5,14 @@ This page is the fixed documentation entry point for Freeism Web App v0.2.
 ## Shared Specifications
 
 - Architecture: `docs/web-app/v0.2/architecture.md`
-- Authentication and external identities: `docs/web-app/v0.2/authentication.md`
+- Sign-in and service authorization: `docs/web-app/v0.2/authentication.md`
 - Points–Markets contract: `docs/web-app/v0.2/points-markets-contract.md`
 - Security and delivery: `docs/web-app/v0.2/security-and-delivery.md`
 - Design decision register: `docs/web-app/v0.2/decision-register.md`
 
 ## Application-Specific Specifications
 
+- Accounts: `projects/accounts-web-app/docs/specification/v0.1/main.md`
 - Points: `projects/points-web-app/docs/v0.2/index.ja.md`
 - Markets: `projects/markets-web-app/docs/v0.2/index.ja.md`
 

@@ -6,8 +6,12 @@ Freeism v0.2は、ポイントを扱うPointsと、商材・Auctionを扱うMark
 
 - `points.freeism.app`ではGoogleまたはGitHubでログインできます。
 - メール・パスワード、Appleによるログインはありません。
-- 評価軸、FIX、残高、譲渡、交換、未受領FIX、外部URL所有権を管理します。
-- GitHubとWeb URLの所有権確認後、正負すべての未受領FIXをpreviewして一括受領します。都合のよい結果だけは選べません。
+- 評価軸、FIX、残高、譲渡、交換、未受領FIXを管理します。
+- Accountsと情報連携し、公開を許可した外部アカウントの照合後、正負すべての未受領FIXをpreviewして一括受領します。都合のよい結果だけは選べません。
+
+## Accountsとの連携
+
+外部アカウントの登録・所有権証明・公開設定は `accounts.freeism.app` で管理します。Pointsへログインした後、Accountsとの情報連携を許可できます。公開設定の詳細は[Accounts v0.1仕様](../../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を参照してください。
 
 ## Markets
 
@@ -18,7 +22,7 @@ Freeism v0.2は、ポイントを扱うPointsと、商材・Auctionを扱うMark
 
 ## セキュリティ上の確認
 
-Account連携、FIX確定、所有権、未受領FIX受領、管理操作などでは、15分以内のGoogle再認証を求めることがあります。メールアドレスの一致だけでAccountを統合しません。
+Pointsのログインアカウント連携、FIX確定、未受領FIX受領、管理操作などでは、15分以内のGoogle再認証を求めることがあります。メールアドレスの一致だけでAccountを統合しません。
 
 ## 問題が起きた場合
 

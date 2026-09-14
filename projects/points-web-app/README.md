@@ -5,6 +5,7 @@
 - [日本語ドキュメント](./docs/readme/README.ja.md)
 - [v0.2仕様](./docs/v0.2/index.ja.md)
 - [v0.2実装計画](./plan/v0.2-implementation.md)
+- [Accountsの外部アカウント連携仕様](../accounts-web-app/docs/specification/v0.1/main.md)
 - [横断仕様](../../docs/web-app/README.md)
 
 現時点では仕様・計画の分割までを完了しています。実装は横断migration planとPoints実装planに従ってgreenfieldで追加します。

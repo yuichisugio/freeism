@@ -6,8 +6,12 @@ Freeism v0.2 is divided into Points, which handles points, and Markets, which ha
 
 - You can sign in to `points.freeism.app` with Google or GitHub.
 - Sign-in with email and password or Apple is not available.
-- Points manages evaluation axes, FIX results, balances, transfers, exchanges, unclaimed FIX results, and ownership of external URLs.
-- After ownership of a GitHub or Web URL has been verified, you preview and claim all positive and negative unclaimed FIX results together. You cannot select only the results that are favorable to you.
+- Points manages evaluation axes, FIX results, balances, transfers, exchanges, and unclaimed FIX results.
+- After connecting Accounts and matching the external accounts you have permitted Points to access, you preview and claim all positive and negative unclaimed FIX results together. You cannot select only the results that are favorable to you.
+
+## Connecting Accounts
+
+Manage external account registration, ownership verification, and sharing settings at `accounts.freeism.app`. After signing in to Points, you can authorize information sharing with Accounts. See the [Accounts v0.1 specification](../../../../projects/accounts-web-app/docs/specification/v0.1/main.md) for sharing settings.
 
 ## Markets
 
@@ -18,7 +22,7 @@ Freeism v0.2 is divided into Points, which handles points, and Markets, which ha
 
 ## Security Checks
 
-For operations such as linking Accounts, finalizing FIX results, managing ownership, claiming unclaimed FIX results, and administrative operations, you may be required to reauthenticate with Google within the previous 15 minutes. Accounts are not combined solely because their email addresses match.
+For operations such as linking Points sign-in accounts, finalizing FIX results, claiming unclaimed FIX results, and administrative operations, you may be required to reauthenticate with Google within the previous 15 minutes. Accounts are not combined solely because their email addresses match.
 
 ## If a Problem Occurs
 

@@ -1605,7 +1605,7 @@ The disadvantages and concerns summarized so far are explained in detail below.
 - Explanation
   - Nations and towns also have X and Facebook accounts
   - Group ID specification methods are the same as for individuals—SNS or some linkage method is OK
-  - Method to link with official evaluation axes: initial account setup after OAuth external account linkage, or linkage from settings screen
+  - Linking to official evaluation axes takes place during account setup after the first Points login, or from the Points settings screen
 
 **Necessity of "buy-it-now price"**
 
@@ -1699,10 +1699,11 @@ The disadvantages and concerns summarized so far are explained in detail below.
   2. Also, we want to use showing held points to help build connections with others
 
 - **About finer disclosure units**
-  - In addition to "disclose/hide holdings per evaluation axis," there is room to set **hiding by history unit** (e.g., point exchange history, transfer history, contribution upload history) and **display control per linked external account**
+  - In addition to "disclose/hide holdings per evaluation axis," there is room to set **hiding by history unit** (e.g., point exchange history, transfer history, contribution upload history)
+  - Disclosure of linked external accounts follows the [Accounts v0.1 specification](https://github.com/yuichisugio/freeism/blob/main/projects/accounts-web-app/docs/specification/v0.1/main.md)
   - We want to enable operation such as avoiding others seeing one's evaluation history and behavior patterns, and showing only to cooperating parties when necessary
 
-- **Choice to conceal entire profile**
+- **Choice to conceal the entire Points profile**
   - In addition to holding display per evaluation axis, **full profile concealment** is possible at account level—**not appearing in list search and not showing existence even on direct URL access** (e.g., conceal with response similar to not found)
 
 **Problem of not increasing interoperability and monopolizing**
@@ -2286,6 +2287,9 @@ This section explains the mechanisms that make freeism work.
 
 ### Proof Mechanism
 
+This section presents concepts for proving account ownership, related technologies, and research examples.
+The [Accounts v0.1 specification](https://github.com/yuichisugio/freeism/blob/main/projects/accounts-web-app/docs/specification/v0.1/main.md) is the canonical source for current service requirements.
+
 **Overview**
 
 - Explanation
@@ -2315,32 +2319,8 @@ This section explains the mechanisms that make freeism work.
 
 **How to Unify Accounts**
 
-1. When an evaluation axis grants points through contributor uploads and the like, the identifier on the contribution-data side should, in principle, be **the profile URL on each service that represents that person**
-   - Reasons
-     1. Matching on "OAuth user IDs" or raw account-name strings is prone to failure due to spelling variation, custom domains, and similar issues
-        - When verification relies only on matching "user ID" or "username," linkage other than OAuth depends on `bi-directional link`
-        - With custom domains, usernames may not appear in URLs, and mismatches due to spelling variation become more likely
-        - To avoid missed matches as much as possible, identifiers are therefore standardized as URLs
-   - Supplement
-     - Even if it is not an account on that service, it can still be linked to a freeism account
-
-2. The freeism app applies the same normalization rules to "contribution-data URLs" and linkage URLs that users write to their profiles, then compares the normalized values
-
-3. When the same user registers **multiple linkage URLs**, if the normalized contribution-side URL matches **any one** of them, the person is treated as the same user
-
-4. **Do not infer a person from strings extracted from a URL**
-   - Do not treat only the final path segment after splitting on `/` as the user ID
-   - On article paths and custom domains, usernames may not appear at the end of the URL
-   - **The basic approach is to match normalized URL strings against each other**
-
-5. **Example priority order for reading on the mutual-link (HTML fetch) side**
-   - If the fetched page contains at least one link with `rel="me"`, verify **only those link destinations** as candidates for "back-links to oneself"
-   - Only when there is **no** `rel="me"` link may links without `rel` also be included
-   - This balances services such as Zenn that do not support `rel="me"` with suppression of erroneous crawling
-
-6. **One-to-one mapping between the same external URL and an account**
-   - To prevent double claiming of rewards or linkage, a verified external profile URL should, in principle, be allowed on **only one account**, and re-linking to other accounts should not be permitted
-   - Express URL-level occupancy on the operations and app side
+The [Accounts v0.1 specification](https://github.com/yuichisugio/freeism/blob/main/projects/accounts-web-app/docs/specification/v0.1/main.md) defines external account registration, ownership verification, changes to account linkage, disclosure settings, and contributor matching.
+Client services such as Points use Accounts information according to that specification.
 
 **Methods**
 
@@ -2383,12 +2363,6 @@ This section explains the mechanisms that make freeism work.
 
 - **Advantages**
   1. Requires the least work from the user
-
-- **Consistency with matching against contribution data**
-  - This also aligns with operations in which the upload side treats profile URLs as a single key
-  - Identifiers obtained through OAuth/OIDC are not applied directly as raw `sub` values or screen names; when possible, they are converted and stored in **profile URL form on the linked service**
-  - As with `matching contribution data and profile linkage`, both sides are normalized before equality is determined
-  - Some providers return only user IDs, so rules for assembling URLs are needed
 
 **SSI, DID, and VC**
 

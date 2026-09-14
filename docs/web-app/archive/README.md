@@ -1,12 +1,14 @@
 # Webアプリ旧資料archive
 
-このディレクトリは、旧 `projects/web-app` の仕様、実装観測、検討過程を情報欠落なく保存するためのarchiveです。
+このディレクトリは、旧 `projects/web-app` の仕様、実装観測、検討過程を参照するためのarchiveです。外部アカウントの要件本文はAccounts仕様へ集約し、移管元の記述はGit履歴から追跡できます。
 
 ## 重要
 
 archive内の資料は、すべて**非正規**です。現行実装の要件、採用技術、認証方式、データモデル、デプロイ方式の判断根拠には使用しません。
 
 旧資料には、Next.js、Prisma、Supabase、Vercel、SSE、Upstash Redis、Task、グループ、通知、画像アップロードなど、v0.2で撤回または置換された記述が含まれます。内容を再採用する場合は、現行の横断仕様と各appの仕様へ改めて明記してください。
+
+外部アカウントの所有権証明・公開設定・情報提供に関する現行要件は、[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に集約しています。
 
 ## 保管内容
 

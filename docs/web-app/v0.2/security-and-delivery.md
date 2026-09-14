@@ -36,7 +36,7 @@ Better Authの詳細は[認証仕様](./authentication.md)を正本とする。
 - email一致で通さない。
 - 成功後はsessionをrotateする。
 
-対象operation、route、条件の完全な一覧は[認証仕様6.2](./authentication.md#62-対象操作)のpolicy registryを唯一の正本とする。本書では一覧を複製しない。少なくともSocial link、OAuth／Web ownership、未受領claim、Points–Markets link／unlink／relink、全CSV commit、ADMIN変更、account close／reopen、公開範囲拡大、ADMIN CSV export、OAuth鍵、Settlement retry／reconciliationを含み、個別routeのif文で対象を増減しない。
+対象operation、route、条件の完全な一覧は[認証仕様6.2](./authentication.md#62-対象操作)のpolicy registryを唯一の正本とする。本書では一覧を複製しない。少なくともSocial link、未受領claim、Points–Markets link／unlink／relink、全CSV commit、ADMIN変更、account close／reopen、公開範囲拡大、ADMIN CSV export、OAuth鍵、Settlement retry／reconciliationを含み、個別routeのif文で対象を増減しない。
 
 GitHubだけで作成したPointsユーザーは、Googleを明示linkするOAuth成功を最初のfresh proofとして使える。
 
@@ -64,7 +64,7 @@ Settlement手動retryはMarkets内に別ADMIN roleを作らない。Marketsか�
 
 ### 5.1 HTTP security header
 
-Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。OAuth authorization、callback、token exchange、consent、fresh認証、ownership、link／unlink、Settlement retryのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
+Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。OAuth authorization、callback、token exchange、consent、fresh認証、Accounts連携、link／unlink、Settlement retryのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
 
 deployed HTMLのCSP baselineは次のdirectiveを正本とし、`{appHost}`をbuild対象のPointsまたはMarkets staging／production hostへ置換する。
 
@@ -103,17 +103,9 @@ upgrade-insecure-requests
 
 localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
 
-## 6. SSRFと外部URL
+## 6. 外部アカウント検証のセキュリティ境界
 
-URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)のruleを適用する。
-
-- HTTPS/443、userinfoなし、public hostだけ
-- redirect最大3、全体5秒、response最大1MiB
-- HTML/textだけ、JavaScript実行・subresource取得なし
-- IP literal、localhost、private／reserved hostnameをfetch前に拒否し、manual redirectの各hopを再検証
-- `global_fetch_strictly_public`を有効にし、Cloudflareのpublic Internet egress制約を使う。Workersが公開しない実接続先IPをアプリで検査・pinningできるとは扱わない
-- Cookie、Authorization、内部headerを転送しない
-- 外部URLの本文をlog/監査へ保存しない
+Webページ検証のURL正規化、外部fetch、SSRF対策、応答上限、監査は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とし、Accountsが実施する。PointsはAccountsへの提供許可と照合結果を使い、FIXの帰属・受領を判定する。
 
 ## 7. Durable Object/WebSocket
 
@@ -138,8 +130,6 @@ URL所有権検証は[未受領FIXと外部identity所有権](../../../projects/
 | WebSocket upgrade     | IP                                    | 1分30回                                    |
 | WebSocket接続         | user + Auction                        | 同時3                                      |
 | WebSocket接続         | user                                  | 同時20                                     |
-| URL検証               | user + normalized URL                 | 1時間5回                                   |
-| URL検証               | user                                  | 1日30回                                    |
 | CSV validation/commit | ADMIN + 評価軸                        | 1分2回、1時間10回                          |
 | Auction CSV           | Markets user + operation              | 1分2回、1時間10回                          |
 | settlement手動retry   | Points ADMIN + Markets user + Auction | 1時間5回、single-flight、assertion 1回消費 |
@@ -148,7 +138,7 @@ idempotent retryは保存済み結果を先に返し、同じ副作用へrate li
 
 ## 9. Turnstile
 
-- 通常のlogin、bid、URL検証へ常時challengeを出さない。
+- 通常のlogin、bidへ常時challengeを出さない。
 - abuse threshold接近、異常IP/ASN、連続失敗等のrisk signal時だけadaptiveに要求する。
 - tokenはWorkerからSiteverifyへ送ってserver-sideで検証し、hostname、action、期限、再利用を確認する。
 - Turnstile失敗をauthorization成功へfallbackしない。
@@ -158,7 +148,6 @@ PointsとMarketsはenvironment別のSite Key／Secretとtoken replay tableをそ
 | App     | operation                             | Turnstile `action`         |
 | ------- | ------------------------------------- | -------------------------- |
 | Points  | Google／GitHub OAuth開始              | `points_oauth_start`       |
-| Points  | GitHub／Web URL所有権検証             | `points_ownership_verify`  |
 | Points  | CSV validate／commit                  | `points_csv`               |
 | Points  | 未受領FIX claim confirm               | `points_claim`             |
 | Markets | Google OAuth／Points link・unlink開始 | `markets_oauth_start`      |
@@ -191,7 +180,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 ## 11. D1不変条件
 
-- ledger、FIX revision、claim、permanent OAuth主体、audit eventをappend-onlyにする。
+- ledger、FIX revision、claim、Pointsログイン用のpermanent OAuth主体、audit eventをappend-onlyにする。
 - `sourceFixRevisionId`、idempotency key、Auction command/seq、settlement plan hashを一意にする。
 - amountは`INTEGER`、`REAL`禁止、safe integer、minimumUnit倍数を境界とDB constraintで検証する。
 - `balance = ledgerの符号付き合計`。
@@ -238,7 +227,6 @@ ADMINによる不正FIX、複数アカウントの談合、seller/buyerの虚偽
 
 | App     | Alert                            | OPEN条件                                                          | RESOLVED条件                                  |
 | ------- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
-| Points  | ownership scheduler lag          | dueから15分超未lease／未完了                                      | 次の成功または明示terminal化                  |
 | Points  | command／revocation outbox stuck | `PENDING`／`VALIDATED`／未送信が5分超                             | terminal／送信receipt確定                     |
 | Points  | reconciliation mismatch          | ledger、projection、reservation、claim集合が1件でも不一致         | full reconciliation一致                       |
 | Points  | rejection audit failure          | rejection auditまたはalert書込みが1件失敗                         | 次のhealth probe成功。失敗event自体は消さない |
@@ -364,7 +352,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - fixed decimal、minimumUnit、safe integer
 - FIX delta、balance/evaluationTotal式
-- URL normalization/ownership epoch
+- Accounts照合結果とPointsのFIX帰属・受領
 - Auction ranking、tie、partial allocation、clearing
 - state machine、idempotency key、plan hash
 

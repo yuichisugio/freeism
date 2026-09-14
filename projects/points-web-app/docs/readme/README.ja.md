@@ -7,8 +7,10 @@
 - 評価軸とパッケージの管理
 - 不変のFIXリビジョンと差分台帳
 - ポイント付与、残高、`evaluationTotal`、予約、確定、解放の管理
-- 未受領FIXと外部URL・外部アカウント所有権の検証
-- Pointsの認証とMarketsへのOAuth Provider/API提供
+- 未受領FIXとAccountsの照合結果に基づく貢献者の特定
+- Points独自の認証・sessionとMarketsへのOAuth Provider/API提供
+
+外部アカウントの管理・所有権証明・公開・照合は、[Accounts v0.1仕様](../../../accounts-web-app/docs/specification/v0.1/main.md)に集約します。PointsはAccountsを別サービスの情報連携先として利用します。
 
 商材情報を含むAuctionの作成・入札・落札はMarketsの責務です。Marketsは独立したListing resourceを持ちません。Taskとグループ機能はv0.2では実装しません。
 

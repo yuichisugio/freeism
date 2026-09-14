@@ -7,7 +7,7 @@
 - v0.2 は未リリースのテスト環境を作り直すため、後方互換性を持たせない。
 - Supabase PostgreSQL から D1 へのデータ移行、旧ユーザー・セッション・ポイント・オークションデータの移行は行わない。
 - 旧モノリスの観測記録や未確定案は `../archive/` に保存するが、v0.2 の規範にはしない。
-- 矛盾する記述がある場合は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に優先する。
+- Points・Marketsの横断仕様は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に参照する。外部アカウントの所有権証明・公開設定・情報提供は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
 
 ## 1. リポジトリと文書の境界
 
@@ -41,7 +41,7 @@ Pointsだけが次のデータを所有し、更新できる。
 - 評価軸、評価軸設定、公式パッケージと不変revision
 - FIX評価結果、FIX revision、差分台帳、未受領FIX
 - `balance`、`evaluationTotal`、予約、capture/release
-- 外部URL・GitHub主体の所有権状態とownership epoch
+- Accountsとの情報連携、照合結果に基づくPointsユーザーへのFIX帰属
 - Marketsとの1対1連携、およびPoints OAuth Provider
 
 Marketsはこれらを複製して正本にしない。Auction表示に必要な名称・比率・ユーザー表示情報は、不変snapshotまたはPoints APIから取得した表示用データとして保持する。
@@ -58,7 +58,11 @@ Marketsだけが次のデータを所有し、更新できる。
 - Settlement Workflow、outbox、精算saga状態
 - 落札証明、取引完了証明、seller/buyer相互評価
 
-### 2.3 廃止する境界
+### 2.3 Accounts
+
+外部アカウントの登録・所有権証明・公開設定・照合API・OAuthクライアント管理は、独立したAccountsサービスが担当する。要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に集約する。PointsとAccountsは各自でログイン・セッションを管理し、利用者が情報連携を許可する。
+
+### 2.4 廃止する境界
 
 - Taskは完全廃止する。MarketsにもPointsにもTask作成機能を置かない。
 - Groupと一般コミュニティメンバー管理は完全廃止する。
@@ -76,7 +80,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - PointsのSocial Provider集合はGoogleとGitHubである。両方をログイン画面と既存ユーザーへの明示連携画面に同じように表示する。
 - Provider単位のlink-onlyを実現する独自sign-in拒否hookは実装しない。
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
-- GitHubはログインにも使えるが、外部アカウント所有権確認の対象でもある。
+- PointsのGitHubログインと、Accountsの外部アカウント所有権証明は、それぞれのサービスが管理する。
 - 重要操作は15分以内のGoogle fresh sessionを必須とする。GitHubだけで作成したPointsユーザーは、重要操作の前にGoogleを明示linkしてstep-upを完了する。
 
 ## 4. Pointsドメイン
@@ -89,7 +93,6 @@ Marketsだけが次のデータを所有し、更新できる。
 - 初期ADMINは、ADMINが0人のときだけ、Secretsで指定したGoogle `accountId`と一致するログインを一度だけ昇格する。公開bootstrap routeは置かない。
 - 評価軸IDは不変の文字列IDとし、生成にはNano ID相当のURL-safe IDを用いる。
 - 評価軸名は30文字以下、説明は200文字以下、関連URLは最大20件とする。
-- プロフィールに登録する外部URLは最大30件とする。
 
 ### 4.2 固定小数点
 
@@ -112,16 +115,13 @@ Marketsだけが次のデータを所有し、更新できる。
 - `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡・交換・消費・予約・releaseは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、予約、落札captureなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
 
-### 4.4 未受領FIXと所有権
+### 4.4 未受領FIXとAccounts照合
 
-- 利用者が未登録でも、正規化した外部プロフィールURLまたはGitHub OAuth主体を宛先として、正負どちらのFIXも先に保存する。
+- 利用者が未登録でも、外部の貢献者を宛先として正負どちらのFIXも先に保存する。
 - 未受領FIXは暫定ユーザー残高へ入れない。宛先と評価額を不変FIX revisionに保存し、受領時に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
-- 所有権確認後、そのownership epochで受領可能な正負すべての未受領FIXを選択不可で一括受領する。
-- 一度受領済みのFIXを別ユーザーへ移動しない。
-- GitHubのOAuth主体は最初に対応したPointsユーザーへ永久固定する。所有権利用を無効化している間の新規FIXは保留し、同じ元ユーザーが明示的に再有効化した時に正負を一括受領する。
-- 汎用Web URLは所有期間を持ち、再所有時は新しいownership epochを作る。FIXの評価時刻をそのepochへ割り当てる。
-- Web再所有の`effectiveAt`は、再所有確認が3回成功したうち3回目の成功時刻とする。
-- 自動検証のみを行い、人による手動審査は実装しない。
+- PointsはAccountsの許可済み照合結果に基づいて受領先を特定し、受領可能な正負すべての未受領FIXを選択不可で一括受領する。
+- 一度受領済みのFIXとその訂正先は同じPointsユーザーに保持する。
+- 照合と受領対象の詳細は[未受領FIX仕様](../../../projects/points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
 ### 4.5 CSV
 
@@ -259,14 +259,13 @@ Marketsだけが次のデータを所有し、更新できる。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
 - Service Binding越しでもOAuth bearer tokenをBetter Auth標準Resource Clientのconfidential remote introspectionへ通し、`active`、issuer、audience/resource、期待する利用者用またはM2M用Client ID、scope、利用者Tokenのpairwise subjectを検証する。credentialはPoints／Markets Worker Secretだけに置いてbrowserへ出さない。利用者principalは利用者用Client＋pairwise `sub`あり＋利用者scopeだけ、M2M principalはM2M用Client＋利用者`sub`なし＋M2M scopeだけから導出し、独自token-class claim、JWT Access Token、内部Points user IDをcross-app identityにしない。
 - 重要mutationは`Idempotency-Key`を必須にする。
-- ledger、FIX、永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
-- URL fetchはHTTPS/443だけを許可し、IP literal／localhost／private・reserved hostnameを入力時に拒否し、manual redirectの各hopを同じ規則で再検証する。`global_fetch_strictly_public`を有効にし、Cloudflareのpublic Internet egress制約をDNS rebinding時の接続防御に使う。Workers `fetch()`が実接続先IPを公開しないため、アプリが「接続直前のIP」を独自検査できるとは規定しない。
+- ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。
 - Better Authは開発・stagingで`1.7.0-rc.1`を完全固定し、productionは1.7正式版への更新と全認証回帰test完了をrelease条件にする。
 - 2026-05のTanStack npm supply-chain incidentで影響を受けたversionをblockし、導入前に公式advisoryとlockfileを再確認する。
 - GitHub Actionsはfull commit SHA、最小permissions、PR由来cacheをdeployに使わない構成にする。
 - `main`はdirect push、force push、deleteを禁止し、required checks、up-to-date、merge queueを必須にする。現在1名運用中はapproval 0、2人目のmaintainer追加時に1へ変更する。
-- 全体coverage率だけのrelease gateは設けず、金額、FIX、所有権、OAuth、Auction ordering、DO resync、settlement saga、migrationのinvariant testを必須にする。
+- 全体coverage率だけのrelease gateは設けず、金額、FIX、Accounts照合、OAuth、Auction ordering、DO resync、settlement saga、migrationのinvariant testを必須にする。
 - 4固定公開ページは日本語・英語のcontent hash一致、keyboard／screen reader操作、JavaScript無効時の両言語可読性、hydration不一致0を必須testとする。英語参照訳のbilingual review記録がないreleaseをproductionへ進めない。
 
 ## 採用しないもの
@@ -276,7 +275,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - provider別link-onlyを作る独自Better Auth sign-in拒否hook
 - email一致によるaccount merge、暗黙link、手動審査
 - PostgreSQL型、RLS、PGroonga、`REAL`による金額計算
-- 複数Points serviceを選ぶ実装、独立accounts service、`api.points.*`の別公開domain
+- 複数Points serviceを選ぶ実装、`api.points.*`の別公開domain
 調査した結果、DEC-018は「PointsとMarketsは分離するが、各アプリ内部のUI/APIまでは分割しない」という判断です。
 
 セッションでは2026年7月11日に3案を比較し、推奨案1をユーザーが明示的に採用しています。[提案ログ](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2143) [採用回答](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2153)

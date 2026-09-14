@@ -2,12 +2,12 @@
 
 ## 1. 目的と適用範囲
 
-本書は、`points.freeism.app`、`markets.freeism.app`、およびPointsが提供するOAuth 2.1 Provider／Resource APIの認証・認可・外部ID所有権を定める正本である。
+本書は、`points.freeism.app`、`markets.freeism.app`、およびPointsが提供するOAuth 2.1 Provider／Resource APIの認証・認可を定める正本である。外部アカウントの登録・所有権証明・公開設定は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
 
 次の3種類を混同しない。
 
 1. **アプリへのログイン**：PointsまたはMarketsの利用者セッションを作る。
-2. **外部ID・URLの所有権確認**：未受領FIXの受領先を決める。
+2. **Accountsとの情報連携**：Accountsが公開許可に基づいて照合した情報を使い、Pointsが未受領FIXの受領先を決める。
 3. **Points–Markets間の認可**：Marketsが利用者の同意を得て残高参照・予約を行い、サービス権限で既存予約を確定・解放する。
 
 メールアドレス、表示名、ユーザー名、プロフィールURLは変更可能な属性であり、本人識別の正本にしない。
@@ -30,6 +30,8 @@
 - Google ID、GitHub ID、メールアドレスを使ったPoints–Markets間の暗黙対応
 
 MarketsはPointsをログインProviderにしない。MarketsへGoogleでログインした後、独立した操作としてPointsを明示連携する。
+
+PointsとAccountsは、それぞれのログイン手段、ユーザー、セッションを持つ独立サービスである。Pointsへのログイン後に、Accountsとの情報連携を明示的に許可する。
 
 ## 3. Better Auth共通設定
 
@@ -104,7 +106,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 同じGitHub Accountを複数のPointsユーザーへ紐付けない。
 - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
-## 5. OAuth主体の永久対応とGitHub所有権の無効化
+## 5. Pointsログイン用OAuth主体の永久対応
 
 ### 5.1 永久対応
 
@@ -122,22 +124,9 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - login／明示link／Account close後の再開は、app-owned永久対応を同じD1 transactionまたは失敗時に再実行可能な単調処理で照合する。同じ主体を別ユーザーへ割り当てない。
 - 永久対応table、一意制約、既存対応への再開経路はPoints実装計画Task 9が所有し、Task 9完了をproduction release blockerとする。Task 1ではBetter Auth標準Accountの既存Account再利用だけを検査する。
 
-### 5.2 GitHub所有権の無効化
+### 5.2 Accountsとの責務境界
 
-GitHubはログインProviderでもあるため、所有権利用の停止をBetter Auth Accountの物理unlinkとして扱わない。
-
-利用者が「GitHub所有権利用を無効化」した場合は次の状態になる。
-
-- GitHub側のOAuth Tokenを失効させる。
-- D1に保存したGitHub Access／Refresh Tokenを削除する。
-- Better Authの`providerId + accountId + userId`対応行は保持する。
-- GitHub所有権grantを`INACTIVE`にする。
-- `INACTIVE`中に到着した正負FIXは自動付与せず保留する。
-- GitHubログインに成功しても、それだけでは所有権grantを`ACTIVE`へ戻さない。
-
-元のPointsユーザーがGoogle fresh認証を行い、同じGitHub Accountで所有権を明示的に再有効化した場合だけ`ACTIVE`へ戻す。再有効化responseで保留中の正負FIXの最新previewと集合hashを返し、同じfresh sessionから明示confirmした時だけ選択不可で一括受領する。OAuth callbackだけでledgerへ反映しない。
-
-この「無効化」はログインAccountの切断ではない。永久対応を保ったまま、FIXの受領根拠としてGitHubを使用するかだけを切り替える。
+本節の永久対応はPointsへのログインと経済記録の再開を対象とする。外部アカウントの所有権証明・紐付け・解除は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従い、PointsはAccountsから提供を許可された照合結果を貢献者の特定に利用する。
 
 ## 6. Google fresh認証
 
@@ -163,8 +152,6 @@ step-upでは専用Google Authorization Code flowを開始する。authorization
 ### 6.2 対象操作
 
 - Google／GitHubの明示link
-- GitHub所有権利用の無効化・再有効化
-- Web URL所有権の確定
 - 正負の未受領FIX一括受領
 - Points–Marketsの初回link、unlink、relink
 - Points OAuthの追加scope同意
@@ -184,8 +171,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | operation                                 | route／protocol                                                                                 | 追加条件                                                  |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | Social Account明示link                    | Better Auth `linkSocial` wrapper                                                                | login済み、Google fresh                                   |
-| GitHub ownership停止／再開                | `/api/ownership/github/{deactivate,reactivate}`                                                 | Google fresh、永久主体一致                                |
-| Web ownership確定                         | `/api/ownership/web/verify`                                                                     | Google fresh、fetch検証成功                               |
 | 未受領FIX claim                           | `/api/ownership/{id}/claim`                                                                     | Google fresh後の最新preview hash                          |
 | Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                                                               | Google fresh、明示consent                                 |
 | Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations`                                        | Google fresh、ACTIVE reservation 0                        |
@@ -201,82 +186,26 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 各operationはGoogle `auth_time` 899秒、900秒、901秒、Google未link、`sub`不一致を同じtable-driven contract testで検証する。900秒以内だけを許可し、個別routeがmiddlewareを迂回できないことを確認する。
 
-## 7. 汎用Web URLの所有権
+## 7. Accountsとの情報連携と未受領FIX
 
-### 7.1 検証方法
+### 7.1 外部アカウントの照合
 
-v0.2では人による審査、審査者Role、承認Queue、異議申立てWorkflowを実装しない。利用者が検証を実行し、自動条件を満たした時点で承認する。
+外部アカウントの登録、OAuth・Webページによる所有権証明、URL正規化、公開先ごとの同意、外部fetchの安全条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従う。Pointsは独立したOAuthクライアントとして、本人がPointsへの提供を許可したアカウントを照合する。本人がPointsを操作していない場合も、許可済みの情報を照合できる。
 
-対応する検証方法は次のとおりである。
+未受領FIXの対象集合と帰属は[未受領FIX仕様](../../../projects/points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
-- 編集可能な外部WebページにPointsプロフィールURLをlinkする方式
-- `rel="me"`による相互link方式
-- GitHub Social AccountによるOAuth/API所有権確認
-
-Webページ検証は次の規則に従う。
-
-- 利用者が外部URLを自身のPointsプロフィールへ事前登録する。
-- Pointsプロフィールからも登録外部URLを参照できる相互linkとする。
-- 外部ページの許可されたlink要素またはHTTP `Link` headerのURLと、PointsプロフィールURLをそれぞれ正規化して完全一致で判定する。
-- 本文テキスト中のURL、部分一致、ユーザー名抽出、曖昧な同一性推定は使用しない。
-- `rel="me"`が1件以上あるページでは`rel="me"`のlinkだけを候補とする。
-- `rel="me"`がない編集可能ページでは、許可されたlink要素の完全一致を候補にできる。
-- iframe内のlinkとJavaScript実行後にだけ現れるlinkは無視する。
-- nonce、一時検証Token、DNS TXT、人による補完審査を必須にしない。
-
-正規化では少なくともscheme／hostの大小文字、IDNのPunycode、既定port、末尾slash、fragmentを一貫して扱う。リダイレクト短縮URLは最終公開URLを再検証し、各遷移先にも同じ安全条件を適用する。
-
-### 7.2 所有期間
-
-初回所有者は1回の検証成功で待機なく`ACTIVE`となり、その成功時刻を所有期間の`effectiveAt`とする。これは以後に到着するFIXの所有期間境界であり、初回claimの下限時刻ではない。未登録者への先行FIXを後から受領できるという獲得戦略を維持するため、そのURLに過去から蓄積した未受領FIXは初回所有者のclaim集合へ含める。
-
-- 検証有効期間は30日。
-- 期限到来時または新規FIX到着時に再検証できる。
-- 最初の失敗で`REVERIFYING`となり、新規FIXの自動付与を停止する。
-- 7日間に最大3回再検証する。
-- 3回以内に1回でも成功すれば所有継続とする。利用者がfresh sessionで実行した再検証なら最新preview確認後に保留中の正負FIXを一括受領できる。Cronによる成功はACTIVE復帰だけを行い、ledger反映は次回のfresh preview／confirmまで保留する。
-- 3回すべて失敗、または明示解除で所有期間を終了する。
-- 初回所有権のfresh preview／confirmは、当該正規化URLに紐づき、まだ誰にも受領されていない正負すべてのFIXを評価時刻にかかわらず選択不可で一括claimする。既受領FIX、取消済みFIX、別のidentity keyへ解決済みのFIXは含めない。
-
-別ユーザーによる再所有は次のとおりである。
-
-- 14日間に3回の検証成功を必要とする。
-- 1回目の成功を候補期間の開始とし、2回目は1回目から5日後以降、3回目は2回目から5日後以降かつ候補開始から14日以内だけをcountする。`nextEligibleAt`より早い成功は回数へ数えず、14日を超えた場合は候補回数をresetして次の成功を新しい1回目とする。
-- 新しい所有期間の`effectiveAt`は3回目の成功時刻とする。
-- 候補期間中、所有者不明期間、`effectiveAt`より前のFIXは新所有者へ付与しない。
-- 新所有者は`effectiveAt`以後に評価時刻を持つFIXだけを受領できる。
-- 受領者はFIXの評価時刻と`ownershipEpoch`の組合せで決定する。
-- 過去の受領済みFIXは旧所有者に残す。
-- 自動的に解決できないFIXは凍結し、元FIXの訂正または取消Revisionによってのみ解消する。
-
-### 7.3 未受領FIX
+### 7.2 未受領FIX
 
 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
 
 - 正・負のどちらも登録できる。
-- 所有権確認後にGoogle fresh sessionで最新previewと集合hashを確認し、claim可能な正負すべてを選択不可で一括受領する。自動callbackやCronだけでledgerへ反映しない。
+- Accountsの照合結果とPointsユーザーへの対応を確認した後、Google fresh sessionで最新previewと集合hashを確認し、claim可能な正負すべてを選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
 - 受領前に評価軸別の正味合計、正件数、負件数を表示する。
 - 最新Revisionだけを対象とする。
 - 単一のPoints D1 transactionで処理し、1件でも失敗すれば全件を未受領のままにする。
 - 同じFIX Revisionの二重受領を一意制約で防ぐ。
 - 受領後の訂正は同じ受領者への差分台帳として反映する。
-- 所有権を停止・変更しても既受領FIXを巻き戻さない。
-
-### 7.4 外部fetchの安全条件
-
-- HTTPS・port 443のみ
-- URL userinfo禁止
-- IP literal、localhost、private／reserved address・hostname禁止
-- redirectはmanual、最大3回、各遷移先を再検証
-- timeout 5秒
-- response最大1 MiB
-- HTML／textだけを受理
-- Cookie、Authorization、利用者headerを転送しない
-- JavaScriptを実行しない
-- `global_fetch_strictly_public`を有効にする
-- response本文は保存せず、証拠hashと検証結果だけを保存する
-
-Workersの`fetch()`は、Cloudflareのegress proxyが実際に選択した接続先IPをWorkerへ公開しない。したがって、DNS解決後または接続直前のIPをアプリケーションが再検査・pinningする要件は置かない。URL parserでIP literal、localhost、private／reserved hostnameを拒否し、redirectをmanualにして各hopを再検証したうえで、`global_fetch_strictly_public`によるpublic Internet経路とCloudflare側の内部network遮断を接続時の防御とする。`cf.resolveOverride`やTCP socketでHTTP/443を独自実装しない。
+- Accountsの紐付けや公開許可が変更されても既受領FIXを巻き戻さない。
 
 ## 8. Points–Markets OAuth
 
@@ -425,7 +354,7 @@ Account closeは経済記録と永久主体対応の物理削除ではない。
 - 有効予約がある場合はcloseできない。
 - 最後のADMINである場合はcloseを拒否し、別のADMINを追加した後にだけ再実行できる。未定義の「ADMIN対象アーカイブ」経路は作らない。
 
-close後に同じ永久OAuth主体でloginした場合、認証callbackは新しいPoints userを作らず元の`pointsUserId`へCLOSED sessionを結び付ける。callbackだけで公開状態へ戻さず、利用者へ再開画面を表示する。Google freshを伴う明示POSTで`CLOSED -> ACTIVE`へ進め、Sessionを再rotateし、監査eventを追加する。匿名化済みの表示名、説明、画像、外部URLを自動復元せず、利用者が再設定する。FIX、claim、ledger、残高、永久主体対応は同じuserに残す。
+close後に同じ永久OAuth主体でloginした場合、認証callbackは新しいPoints userを作らず元の`pointsUserId`へCLOSED sessionを結び付ける。callbackだけで公開状態へ戻さず、利用者へ再開画面を表示する。Google freshを伴う明示POSTで`CLOSED -> ACTIVE`へ進め、Sessionを再rotateし、監査eventを追加する。匿名化済みのPoints表示名、説明、画像は、利用者が再設定する。外部URLの管理・提供条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を参照する。FIX、claim、ledger、残高、永久主体対応は同じuserに残す。
 
 ## 11. バージョンと本番Gate
 
@@ -437,20 +366,19 @@ close後に同じ永久OAuth主体でloginした場合、認証callbackは新し
 
 ## 12. Rate LimitとTurnstile
 
-Rate Limitは不正利用の抑止に使用するが、所有権retry回数、Account一意性、FIX二重受領などの正確性はD1の状態・一意制約で保証する。
+Rate Limitは不正利用の抑止に使用するが、Account一意性、FIX二重受領などの正確性はD1の状態・一意制約で保証する。
 
 | 操作                     | v0.2初期値                                 |
 | ------------------------ | ------------------------------------------ |
 | Google／GitHub OAuth開始 | Better AuthのD1 rate limit＋Cloudflare WAF |
-| URL所有権検証            | user＋URLで5回／時、user全体30回／日       |
 | Points–Markets link開始  | user単位のD1 rate limit＋WAF               |
 
-Turnstileは通常のlogin、通常のURL検証では表示しない。未認証のOAuth開始がrate limitへ接近した場合、短時間の大量URL検証、明らかなbot pattern、WAF managed challenge後にだけ適応的に要求する。
+Turnstileは通常のloginでは表示しない。未認証のOAuth開始がrate limitへ接近した場合、明らかなbot pattern、WAF managed challenge後にだけ適応的に要求する。
 
 - Turnstile Tokenはserver-side Siteverifyで検証する。
 - hostnameとactionを検証する。
 - Tokenは5分・一回限りとする。
-- Turnstile成功をAccount link、所有権、FIX claimの正確性根拠にしない。
+- Turnstile成功をAccount link、FIX claimの正確性根拠にしない。
 
 ## 13. 監査event
 
@@ -458,10 +386,9 @@ Turnstileは通常のlogin、通常のURL検証では表示しない。未認証
 
 - Google／GitHub loginの成功・拒否
 - Social Account linkの成功・拒否
-- GitHub ownershipの無効化・再有効化
 - Google fresh認証の成功・拒否と時刻
 - Points–Markets link、unlink、relink、scope同意
-- Web URL検証、再検証、所有期間終了、再所有
+- Accountsとの情報連携・解除、照合の成功・拒否
 - 未受領FIX claim
 - OAuth Client／Secret／署名鍵変更
 - Refresh失敗、Token class／scope拒否
@@ -484,14 +411,11 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - GitHub email欠落時の予約ドメイン値を本人識別・通知・link判定に使わない。
 - Social OAuth Tokenが`account.encryptOAuthTokens: true`によりD1上で暗号化され、Account Cookie・ブラウザへ出ず、versioned secret rotation後のrefresh／再連携でcurrent versionへ収束する。
 
-### 14.2 GitHub永久対応・所有権無効化
+### 14.2 Pointsログイン用の永久対応
 
-- GitHub所有権無効化でTokenが失効・削除されるが、Better Auth Accountと永久対応は残る。
-- 無効化中のGitHubログインだけではownershipが`ACTIVE`にならない。
-- 無効化中の正負FIXが保留される。
-- 別Pointsユーザーが同じGitHub Accountをlinkできない。
-- 元ユーザーがGoogle fresh認証と同じGitHub Accountで再有効化すると、保留中の正負FIXを全件受領する。
-- Account close後の同一OAuth主体ログインが元のPointsユーザーを再開し、新規空ユーザーを作らない。
+- 別Pointsユーザーが同じログイン用GitHub Accountをlinkできない。
+- Account close後の同一OAuth主体ログインが元のPointsユーザーへ戻り、新規空ユーザーを作らない。
+- Accountsとの情報連携の変更後も、Pointsのログイン用主体対応と受領済み経済記録が保持される。
 
 ### 14.3 Google fresh認証
 
@@ -502,20 +426,14 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - GitHubだけのユーザーはGoogle linkとstep-up完了前に重要操作を実行できない。
 - 再認証中に確認対象が変化した場合、古い確認を破棄する。
 
-### 14.4 Web URL所有権・未受領FIX
+### 14.4 Accounts照合・未受領FIX
 
-- 許可link要素の正規化完全一致で初回所有権を即時確定する。
-- 本文テキスト、部分一致、iframe、JavaScript生成linkを拒否する。
-- `rel="me"`が存在する場合に通常linkを候補にしない。
-- 30日境界、再検証失敗後7日間最大3回、途中成功、3回失敗を検証する。
-- 再所有は14日間3回成功を要求し、`effectiveAt`が3回目成功時刻になる。
-- 新所有者が`effectiveAt`以前のFIXを受領できない。
+- Pointsへの提供を許可されたアカウントだけを照合し、本人の操作中以外でも許可済み情報を利用できる。
 - 正負未受領FIXを選択不可・全件原子的にclaimする。
 - 同じFIX Revisionを二重claimできない。
 - claim途中失敗で全件rollbackする。
-- 既受領FIXがunlink・再所有で移動しない。
-- HTTPS／443、userinfo、IP literal、private／reserved address、redirect 3回、timeout 5秒、1 MiB、Content-Type制限を検証する。
-- redirect先を毎回再検証し、Cookie・Authorizationを転送しない。
+- Accountsの紐付けや公開許可の変更後も既受領FIXが移動しない。
+- 外部アカウントの証明・検証のテスト要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従い、Accounts側で検証する。
 
 ### 14.5 Points–Markets OAuth
 
@@ -552,9 +470,9 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 
 ### 14.7 Rate Limit・Turnstile
 
-- OAuth開始、URL検証、Points–Markets link開始の各limitをActor／resource単位で適用する。
-- Cloudflareの近似Rate Limitがずれても、D1の所有権retry上限と一意制約が破られない。
-- 通常loginと通常URL検証ではTurnstileを要求しない。
+- OAuth開始、Points–Markets link開始の各limitをActor／resource単位で適用する。
+- Cloudflareの近似Rate Limitがずれても、D1の一意制約が破られない。
+- 通常loginではTurnstileを要求しない。
 - 適応条件を満たした場合だけTurnstileを要求する。
 - Siteverifyの失敗、期限切れ、再利用、hostname不一致、action不一致を拒否する。
 

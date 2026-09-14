@@ -5,7 +5,7 @@
 ## 正本
 
 - [Pointsドメイン仕様](./details-ja/points-domain.md)
-- [未受領FIXと外部URL所有権](./details-ja/unclaimed-fix-and-ownership.md)
+- [未受領FIXとAccounts連携](./details-ja/unclaimed-fix-and-ownership.md)
 - [CSV取込](./details-ja/csv-upload.md)
 - [CSV出力](./details-ja/csv-export.md)
 - [評価軸管理](./details-ja/evaluation-criteria-management.md)
@@ -16,10 +16,13 @@
 - [Points–Markets OpenAPI](./points-markets.openapi.json)
 - [設計判断台帳](../../../../docs/web-app/v0.2/decision-register.md)
 
+- [Accountsの外部アカウント・所有権証明・公開・照合仕様](../../../accounts-web-app/docs/specification/v0.1/main.md)
+
 ## v0.2の境界
 
 - Better Auth、Hono、Drizzle、D1を使う`points-worker`と、TanStack Start/Vite PlusのSPA+SSGを同じprojectで管理する。
-- GoogleとGitHubをログイン・明示linkの共通Provider集合として使う。email/password、Apple、ORCIDは実装しない。
+- Points独自のGoogle/GitHubログイン・明示linkとsessionを持つ。重要操作はPointsのGoogle freshで再認証する。
+- Accountsを別サービスの情報連携先として利用し、許可された外部アカウントの照合結果を貢献者の特定に使う。
 - 評価結果はdraftを持たず、ADMINが不変FIX revisionとしてアップロードする。
 - グローバルな同格ADMINだけを管理し、Group、一般member、評価軸別owner/adminを持たない。
 - 負のFIXと負残高を許可するが、残高不足時の消費系操作は拒否する。

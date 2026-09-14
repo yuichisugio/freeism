@@ -10,10 +10,12 @@ Pointsで本人またはADMINが閲覧権限を持つ設定・経済履歴をCSV
 - 未受領FIXとclaim結果
 - ledger、balance、evaluationTotal、reservation
 - 譲渡、交換、貢献評価代用、自動分配
-- 外部identityとownership epochの安全なmetadata
+- PointsのFIX・claimへ保存したAccounts照合結果のうち、閲覧・出力権限があるmetadata
 - ADMIN向けreconciliation結果と監査event
 
 Task、Group、Analytics draft、通知データはv0.2に存在しないため出力対象にしない。旧形式は[v0.1の実装履歴](../../v0.1/details/csv-export.md)にだけ残す。
+
+Accountsのプロフィール・連携アカウント・公開設定のバックアップと別Accountsサービスへの移行は、[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)のインポート・エクスポートに従う。
 
 ## 2. 権限
 
