@@ -4,7 +4,7 @@
 
 Pointsに未登録の貢献者にも先にFIX結果を記録し、後から本人がPointsへ登録し、Accounts連携によって受領対象が確定した時にポイントを受け取れるようにする。
 
-FIX revisionへ入力された`recipientProfileUrl`、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。CSV入力は外部プロフィールURLを使う。
+FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。CSVで指定する識別子の列と形式は[FIX取込時の照合](#6-fix取込時の照合)で定める。
 
 ## 2. Accountsとの責務境界
 
@@ -12,7 +12,9 @@ FIX revisionへ入力された`recipientProfileUrl`、Accountsから取得でき
 
 Pointsは独自のGoogle/GitHubログインとsessionを持ち、Points利用者が別サービスのAccountsへ情報連携を許可する。Pointsはクライアントとして許可された外部アカウントを照合し、取得したAccounts IDをPointsの受領者へ対応付けて、FIX・未受領FIX・claimを管理する。事前に許可された照合は、本人がPointsを操作していない時にも行える。
 
-1つのPointsユーザーは複数のAccountsユーザーを連携できる。Accountsユーザーは提供元AccountsサービスとAccounts IDの組で識別し、同じPointsサービス内での紐付け先は最大1つのPointsユーザーとする。別のPointsサービスでは独立して連携できる。連携制約の正本は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)とする。
+接続先の管理、PointsユーザーとAccountsユーザーの対応件数・一意性、利用開始・再連携・解除・退会の操作は、[プロフィール設定のAccountsとの情報連携](profile-setting.md#3-accountsとの情報連携)を正本とする。
+
+CSV取込、FIX、未受領分の受領、ポイント台帳・残高、パッケージ、経済履歴とそれらの公開設定はPointsが管理する。Marketsなどへ経済情報・操作権限を提供するOAuth資源APIもPointsの責務とし、[Points–Markets契約](../../../../../docs/web-app/v0.2/points-markets-contract.md)に従う。
 
 接続・解除時の受領資格、許可の取消後に保持する照合情報は、Points側の連携要件として確定する必要がある。
 
@@ -21,7 +23,7 @@ Pointsは独自のGoogle/GitHubログインとsessionを持ち、Points利用者
 ### `unclaimedFixEntry`
 
 - `fixRevisionEntryId`
-- 入力した外部プロフィールURLと照合用の識別情報
+- 入力した貢献者識別子と照合用の識別情報
 - 評価時刻
 - 符号付きscale済みamount
 - claim状態と`claimedByPointsUserId`
@@ -43,8 +45,10 @@ GitHub OAuthによる所有権証明、編集可能Webページのリンク検�
 
 ## 6. FIX取込時の照合
 
+Accounts APIはプロフィールURL・外部サービス名と固有ID・AccountsユーザーIDを受け付ける。PointsのCSVでは、これらを指定する列と形式、接続先Accountsサービスの指定方法を未決事項として確定する。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
+
 - validationと最終commitの両方でAccountsへ照合し、previewの照合結果が変わった場合は`409 VALIDATION_CHANGED`で全件を止め、再previewを要求する。
-- FIX revisionは入力URLと取得した識別情報・観測時刻を不変snapshotとして保持する。過去の評価時刻における外部アカウント所有者の判定方法は、次節の未決事項に含める。
+- FIX revisionは入力した貢献者識別子と取得した識別情報・観測時刻を不変snapshotとして保持する。過去の評価時刻における外部アカウント所有者の判定方法は、次節の未決事項に含める。
 - 同じrequest内の重複URLをまとめて照合する。
 - 照合APIの通信失敗・制限超過・不正response時はファイル全体を0件反映とし、利用者が再実行できる理由を返す。照合が正常に完了した未紐付け・非公開の場合と通信失敗を区別する。
 - FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。
@@ -57,9 +61,10 @@ Accountsは現在の紐付けと公開許可を提供する。その情報を使
 - 外部アカウントが別Accountsユーザーへ移った場合、移動前に評価された未受領FIXを誰に帰属させるか。
 - FIXの評価時刻、照合時刻、Pointsとの連携時刻のどれを受領資格の基準にするか。
 - Accountsへの公開許可の取消・再許可、Pointsとの連携解除・再連携、Points account close・reopenが受領資格へ与える影響。
+- Accountsの照合が正常に完了したうえで該当なしとなった場合の、未受領FIXの帰属と受領資格。通信失敗時の取込は[FIX取込時の照合](#6-fix取込時の照合)に従う。
 - 既存の帰属・照合データを保持する場合の移行方法。
 
-すでにclaim済みのFIXは、外部アカウントの紐付け変更によって移動せず、Pointsの経済履歴として保持する。
+外部アカウントの追加・解除・紐付け先変更・公開設定変更やサービス間の連携・退会後も、すでにclaim済みのFIXと確定済みの貢献・ポイントの帰属はPointsの経済履歴として保持する。
 
 ## 8. 一括claim
 
@@ -87,8 +92,7 @@ Google fresh済みhash付きconfirm POST時、次を同じD1原子処理で行�
 ## 10. 必須テスト
 
 - Points独自のログイン状態とAccounts連携状態を個別に扱えること。
-- 1つのPointsユーザーへ複数のAccountsユーザーを連携でき、同じ提供元AccountsサービスとIDの組を同じPointsサービス内の別ユーザーへ重複連携できないこと。
-- Accounts提供元が異なる同一IDを別ユーザーとして識別し、別のPointsサービスでは独立して連携できること。
+- ユーザー対応の件数・一意性・解除・退会は[プロフィール設定の必須テスト](profile-setting.md#8-必須テスト)を満たすこと。
 - Pointsへの公開が許可された外部アカウントだけを照合に利用すること。
 - 利用者の操作中以外でも、事前許可されたAccounts照合を利用できること。
 - validation後の照合結果変更、通信失敗、制限超過でFIXを全件0反映にすること。
