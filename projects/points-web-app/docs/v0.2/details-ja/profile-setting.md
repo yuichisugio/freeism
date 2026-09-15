@@ -46,9 +46,9 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 
 ## 3. Accountsとの情報連携
 
-Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。PointsはAccounts APIから連携アカウント一覧を取得する。Pointsの設定画面には取得した一覧、Accountsとの連携状態、Accountsの管理画面への導線を表示する。
+Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。Pointsは連携した各AccountsサービスのAPIから連携アカウント一覧を取得する。Pointsの設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元AccountsサービスとAccounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
 
-外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。PointsとAccountsのID対応、連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
+外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。PointsとAccountsの連携件数・一意性は同仕様に従う。連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
 
 ## 4. 公開表示
 
@@ -103,7 +103,7 @@ close・reopen時のAccounts連携・公開許可の扱い、および受領資�
 - Google/GitHub login/link、メール暗黙link拒否
 - GitHub-onlyユーザーのGoogle step-up導線
 - Pointsの認証Provider対応とAccounts連携を独立して管理する
-- Pointsプロフィールと設定画面に、Accounts APIから取得したOAuth・Webページ検証の連携アカウント一覧を表示する
+- 設定画面に複数Accountsユーザーとの連携状態・提供元とID・各管理画面への導線を表示し、Pointsプロフィールと設定画面には各Accounts APIから取得したOAuth・Webページ検証の外部アカウント一覧を表示する
 - Pointsへの提供に同意した外部アカウントは、Accounts自身の一般公開設定にかかわらず、公開Pointsプロフィール・公開APIでテキスト表示できる
 - 各一覧・APIの表示項目はAccountsが提供元ごとに提供する項目と一致する
 - Pointsプロフィール自体が非公開の場合は、連携アカウント一覧も公開表示しない

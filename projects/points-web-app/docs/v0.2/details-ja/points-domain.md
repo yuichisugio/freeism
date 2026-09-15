@@ -136,7 +136,7 @@ FIX CSVの1行は最低限次を持つ。
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
-外部プロフィールURLの正規化・所有者照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsはvalidationと最終commitで照合結果を確認し、結果が変わった場合は全件を`409 VALIDATION_CHANGED`で止める。FIX revisionへ保存する照合snapshot、通信失敗の扱い、Accounts IDと受領者の対応付け、未受領FIXの帰属に関する未決事項は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に記載する。
+外部プロフィールURLの正規化・所有者照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsはvalidationと最終commitで照合結果を確認し、結果が変わった場合は全件を`409 VALIDATION_CHANGED`で止める。FIX revisionへ保存する照合snapshot、通信失敗の扱い、複数AccountsユーザーとPoints受領者の対応付け、および未受領FIXの帰属に関する未決事項は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に記載する。
 
 ### 7.2 不変性
 

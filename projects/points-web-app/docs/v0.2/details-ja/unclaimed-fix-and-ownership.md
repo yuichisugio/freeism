@@ -12,7 +12,9 @@ FIX revisionへ入力された`recipientProfileUrl`、Accountsから取得でき
 
 Pointsは独自のGoogle/GitHubログインとsessionを持ち、Points利用者が別サービスのAccountsへ情報連携を許可する。Pointsはクライアントとして許可された外部アカウントを照合し、取得したAccounts IDをPointsの受領者へ対応付けて、FIX・未受領FIX・claimを管理する。事前に許可された照合は、本人がPointsを操作していない時にも行える。
 
-Accounts IDとPointsユーザーの対応付けの制約、接続・解除時の受領資格、許可の取消後に保持する照合情報は、Points側の連携要件として確定する必要がある。
+1つのPointsユーザーは複数のAccountsユーザーを連携できる。Accountsユーザーは提供元AccountsサービスとAccounts IDの組で識別し、同じPointsサービス内での紐付け先は最大1つのPointsユーザーとする。別のPointsサービスでは独立して連携できる。連携制約の正本は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)とする。
+
+接続・解除時の受領資格、許可の取消後に保持する照合情報は、Points側の連携要件として確定する必要がある。
 
 ## 3. Pointsが保存する経済データ
 
@@ -85,6 +87,8 @@ Google fresh済みhash付きconfirm POST時、次を同じD1原子処理で行�
 ## 10. 必須テスト
 
 - Points独自のログイン状態とAccounts連携状態を個別に扱えること。
+- 1つのPointsユーザーへ複数のAccountsユーザーを連携でき、同じ提供元AccountsサービスとIDの組を同じPointsサービス内の別ユーザーへ重複連携できないこと。
+- Accounts提供元が異なる同一IDを別ユーザーとして識別し、別のPointsサービスでは独立して連携できること。
 - Pointsへの公開が許可された外部アカウントだけを照合に利用すること。
 - 利用者の操作中以外でも、事前許可されたAccounts照合を利用できること。
 - validation後の照合結果変更、通信失敗、制限超過でFIXを全件0反映にすること。
