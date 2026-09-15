@@ -50,6 +50,14 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 
 外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。PointsとAccountsの連携件数・一意性は同仕様に従う。連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
 
+### 3.1 接続先Accountsサービスの管理
+
+- Pointsの運営者が、接続対象とするAccounts互換サービスのURLと、その接続先に登録したOAuthクライアントのClient ID・Client Secretを設定する。Client SecretはPointsのバックエンドで管理する。
+- 利用者は、運営者が接続設定を用意したAccountsサービスの一覧から選び、本人の認証・情報提供への同意を経て連携する。
+- 別のURLへ切り替える場合は、新しい接続先として追加する。利用者は新しい接続先で認証・同意して連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。
+- 運営者が接続先を取り下げると、そのAccountsサービスに対する既存のPointsユーザーとAccountsユーザーの対応をすべて解除し、PointsからのAPI利用を終了する。Accounts側の公開設定・情報提供同意と、Pointsで確定済みの貢献・ポイントの帰属を維持する。
+- 接続先の設定・切り替え・取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証・外部アカウント情報・照合APIの条件は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。
+
 ## 4. 公開表示
 
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
@@ -103,6 +111,9 @@ close・reopen時のAccounts連携・公開許可の扱い、および受領資�
 - Google/GitHub login/link、メール暗黙link拒否
 - GitHub-onlyユーザーのGoogle step-up導線
 - Pointsの認証Provider対応とAccounts連携を独立して管理する
+- 運営者が接続先とOAuthクライアント情報を設定でき、Client Secretをバックエンドで管理したまま利用者が接続先を選んで認証・同意できる
+- 新しいURLを別の接続先として追加し、旧接続先のユーザー連携を維持したまま新接続先へ連携できる
+- 旧接続先を取り下げると、その接続先への全ユーザー連携とAPI利用が終了し、新接続先への連携、Accounts側の公開設定・情報提供同意、確定済み貢献・ポイントの帰属が維持される
 - 設定画面に複数Accountsユーザーとの連携状態・提供元とID・各管理画面への導線を表示し、Pointsプロフィールと設定画面には各Accounts APIから取得したOAuth・Webページ検証の外部アカウント一覧を表示する
 - Pointsへの提供に同意した外部アカウントは、Accounts自身の一般公開設定にかかわらず、公開Pointsプロフィール・公開APIでテキスト表示できる
 - 各一覧・APIの表示項目はAccountsが提供元ごとに提供する項目と一致する

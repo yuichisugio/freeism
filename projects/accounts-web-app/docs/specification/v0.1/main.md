@@ -12,6 +12,7 @@
     - [入力ごとの照合手順](#入力ごとの照合手順)
     - [クライアント認証と権限](#クライアント認証と権限)
     - [APIの具体案](#apiの具体案)
+    - [貢献者照合の流れ](#貢献者照合の流れ)
   - [外部識別情報の仕様](#外部識別情報の仕様)
     - [照合する識別子](#照合する識別子)
     - [URL正規化](#url正規化)
@@ -24,6 +25,7 @@
   - [Accountsユーザーの退会](#accountsユーザーの退会)
   - [管理画面と監査](#管理画面と監査)
   - [JSONによるバックアップと移行](#jsonによるバックアップと移行)
+    - [JSON形式](#json形式)
   - [受け入れ条件](#受け入れ条件)
   - [未決事項](#未決事項)
   - [文書化要件](#文書化要件)
@@ -62,6 +64,8 @@
 - Accountsユーザーは、提供元のAccountsサービスとAccountsユーザーIDの組み合わせで区別する。同じAccountsサービス内の複数ユーザーと、別々のAccountsサービスのユーザーを連携対象にできる
 - 同じAccountsユーザーを別々のPointsサービスへ連携でき、各Pointsサービスへの情報提供にそれぞれ同意する
 - PointsでAccountsとの連携を解除するときは、Pointsのバックエンドが本人の操作権限を確認し、Pointsユーザーと対象Accountsユーザーの対応を解除して完了とする。Accounts側のPointsへの公開設定と情報提供同意を維持する
+- Pointsユーザーが退会した場合は、そのPointsユーザーと連携しているすべてのAccountsユーザーの対応をPoints側で解除する。Accounts側のそのPointsへの公開設定と情報提供同意は維持し、情報提供の停止は本人がAccountsで設定する
+- Accountsユーザーが退会した場合は、Accounts側でそのユーザーの情報提供を終了する。Points側に保存したそのAccountsユーザーとの対応は保持し、本人がPointsへログインして連携を解除できる。Pointsで確定済みの貢献・ポイントの帰属を維持する
 - Points側の連携解除後も、Accounts APIは現在の紐付け・公開設定・情報提供同意に従って、そのPointsクライアントへ一覧取得・照合の結果を提供する。公開設定は本人がAccountsで管理する
 - Pointsは、CSV取込、FIX、未受領分の受領、ポイント台帳・残高、パッケージ、経済履歴とそれらの公開設定を管理する
 - Pointsのプロフィール・公開APIでは、Accounts APIから取得した連携アカウント情報を表示する。情報の証明・管理・提供許可はAccounts、取得した情報を使う画面とAPIは利用側サービスが担当する
@@ -86,9 +90,7 @@
 
 Pointsの外部アカウント管理からAccountsへ切り替える際は、利用者がAccountsで外部アカウントを新しく登録し、所有権を証明して公開先を設定する。この手順は外部アカウントの登録・証明・公開設定を対象とし、Pointsの貢献データ・ポイントはPointsが管理する。
 
-利用側サービスの運営者が、接続対象とするAccounts互換サービスのURLと、その接続先に登録したOAuthクライアントのClient ID・Client Secretを設定する。利用者は、運営者が接続設定を用意したAccountsサービスの一覧から選ぶ。Client Secretは利用側サービスのバックエンドで管理する。
-
-Pointsの運営者がAccounts互換サービスを接続先一覧から外した場合は、そのサービスに対する既存のPointsユーザーとAccountsユーザーの対応をすべて解除し、PointsからのAPI利用も終了する。Accounts側の公開設定・情報提供同意と、Pointsで確定済みの貢献・ポイントを維持する。
+接続先Accountsサービスの登録・URLの切り替え・取り下げと、それに伴うPoints内のユーザー連携の管理は、Pointsの責務とする。具体的な要件は[Pointsの接続先Accountsサービスの管理](../../../../points-web-app/docs/v0.2/details-ja/profile-setting.md#31-接続先accountsサービスの管理)に従う。
 
 Pointsなどの利用側から開始する場合は、次の流れとする。
 
@@ -175,6 +177,11 @@ Pointsではこの流れを繰り返して、同じPointsユーザーへ別のAc
    - `points.freeism.app`から権限付与できるようにする
    - 利用側で接続設定した複数のAccounts互換サービスから選べるよう、OAuth Providerとして連携する
    - v0.1から、外部サービスの開発者がAccountsの画面で自分のアプリをOAuthクライアントとして登録できる
+   - OAuthクライアントの登録では、アプリ名とリダイレクトURLを必須入力とし、サービスの紹介URLと説明文は任意入力とする。リダイレクトURLは、Accountsでの認証・同意後に利用者を戻す先として登録する
+   - クライアント設定は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にする。アプリ名・紹介URL・説明文をアプリ情報、リダイレクトURL・Client ID・Client Secretを接続情報として整理し、入力項目と提供機能は本仕様で定めた内容とする
+   - 1つのOAuthクライアントへ、リダイレクトURLを1件以上、複数登録できる。認可要求ごとに戻り先の`redirect_uri`を1つ指定し、Accountsのバックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認する
+   - OAuthのリダイレクトURLはHTTPSを基本とし、ホストが`localhost`またはループバックIPアドレスの場合は、ローカル開発用としてHTTPも許可する。ローカルのURLも、ポートとパスを含む登録済みURLとの完全一致を確認する
+   - 登録画面とAccountsのバックエンドで必須項目を検査し、紹介URL・説明文が未入力でも、ほかの登録条件を満たせば登録できる
    - 登録したアプリにはClient IDとClient Secretを発行する
    - 登録したアプリは、登録者のAccountsユーザーが管理し、アプリ設定の変更とアプリ自体の削除を行える
    - 登録アプリの管理者は、Accountsの画面でClient IDとClient Secretを管理できる
@@ -206,8 +213,8 @@ Pointsではこの流れを繰り返して、同じPointsユーザーへ別のAc
    - 一旦は、freeism向けに提供したいため
    - [https://accounts.freeism.app/](https://accounts.freeism.app/)
 8. データ移行を簡単にしたい
-   - 同じAccountsユーザーの設定をバックアップし、復元できるようにする
-   - 別の運営者や本人が運営するサービスへの移行に使えるよう、登録情報をエクスポートできるようにする
+   - 別の運営者や本人が運営するサービスへの移行を主目的として、登録情報をエクスポートできるようにする
+   - 出力した情報は、同じAccountsユーザーの設定のバックアップ・復元にも利用できるようにする
    - インポート・エクスポートのファイル形式はJSONとする
    - 詳細は[JSONによるバックアップと移行](#jsonによるバックアップと移行)に従う
 9. OSSとしてすべてを公開
@@ -275,7 +282,7 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 
 ### APIの具体案
 
-以下の一覧取得・一括照合の呼び出し先と成功応答形式を採用する。未確定の項目名・各照合結果の詳細な形式は、API契約の具体案として引き続き決定する。
+以下の一覧取得・一括照合の呼び出し先、応答形式、入力の検証条件を採用する。
 
 | 操作 | HTTP | 内容 |
 | --- | --- | --- |
@@ -294,13 +301,73 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 | `no_match` | 入力は有効だが、照合条件と提供許可を満たすAccountsユーザーが該当しない |
 | `invalid_input` | 入力に不備があり、`errors`配列にその内容を返す |
 
-一覧取得の成功応答は、提供元の`accountsOrigin`、AccountsユーザーIDの`accountsUserId`、連携アカウントの配列`externalAccounts`を1つのJSONオブジェクトにまとめる。ユーザーと同意が有効で、提供対象が0件の場合は次の形式で返す。
+以下は、要求全体の形式・認証・権限の条件を満たし、照合成立・該当なし・必須項目不足の3件の結果をHTTP 200で返す例とする。
 
 ```json
 {
   "accountsOrigin": "https://accounts.freeism.app",
-  "accountsUserId": "example-accounts-user",
-  "externalAccounts": []
+  "results": [
+    {
+      "index": 0,
+      "identifier": {
+        "type": "provider_account",
+        "provider": "google",
+        "accountId": "123456789"
+      },
+      "status": "matched",
+      "accountsUserId": "sample-user",
+      "errors": []
+    },
+    {
+      "index": 1,
+      "identifier": {
+        "type": "url",
+        "url": "https://example.org/unlinked/"
+      },
+      "status": "no_match",
+      "accountsUserId": null,
+      "errors": []
+    },
+    {
+      "index": 2,
+      "identifier": {
+        "type": "provider_account",
+        "provider": "google"
+      },
+      "status": "invalid_input",
+      "accountsUserId": null,
+      "errors": [
+        {
+          "code": "MISSING_REQUIRED_FIELD",
+          "message": "accountId is required.",
+          "path": ["identifiers", 2, "accountId"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+一覧取得の成功応答は、提供元の`accountsOrigin`、AccountsユーザーIDの`accountsUserId`、連携アカウントの配列`externalAccounts`を1つのJSONオブジェクトにまとめる。ユーザーと同意が有効で、提供対象が0件の場合は`externalAccounts`を空配列とする。以下は、問い合わせ元への提供を許可した証明済みのOAuthアカウントとWebページを返す例とする。
+
+```json
+{
+  "accountsOrigin": "https://accounts.freeism.app",
+  "accountsUserId": "sample-user",
+  "externalAccounts": [
+    {
+      "type": "provider_account",
+      "provider": "google",
+      "accountId": "123456789",
+      "displayName": "サンプル"
+    },
+    {
+      "type": "url",
+      "url": "https://example.org/about/",
+      "verificationMethod": "bidirectional_link",
+      "verifiedAt": "2026-09-01T00:00:00Z"
+    }
+  ]
 }
 ```
 
@@ -322,9 +389,11 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - `identifiers`が空配列の場合は、要求の形式とクライアントの認証・権限を確認したうえで、HTTP 200で`accountsOrigin`と空の`results`配列を返す
 - 一括照合の要求bodyはUTF-8のJSONとし、容量上限は5MiB（5,242,880 bytes）とする。bodyの読込時に上限を確認し、超過した場合は照合を開始する前に要求全体をエラーにする
 - サービスにかかわらず、登録時に証明したURLで探す場合は`url`、OAuthで証明した固有IDで探す場合は`provider_account`を使う
-- 一覧の項目案は、識別方法を表す`type`と、OAuth連携では`provider`・`accountId`・`displayName`、Webページでは`url`・検証方法・検証日時とする。OAuth連携アカウントの`displayName`は常に含め、表示名を取得できない場合は`null`で返す
+- 一覧の各アカウント項目では、提供情報を項目の直下に置く。OAuth連携アカウントは`type: "provider_account"`と文字列の`provider`・`accountId`、文字列または`null`の`displayName`を返す。`displayName`は常に含め、表示名を取得できない場合は`null`で返す
+- Webページの一覧項目は、`type: "url"`、確認済みURLの`url`、`verificationMethod: "bidirectional_link"`、検証成功日時の`verifiedAt`を返す。`url`は文字列、`verifiedAt`はUTCのRFC 3339形式とする
 - 一括照合では、要求全体の形式とクライアント認証を確認した後、各入力を個別に検査・照合し、入力順に結果を返す。不正な入力には、検査で確認できた不備をその入力の`errors`配列へまとめ、各不備の位置と理由を返す。正しい入力の照合を継続する
 - 要求全体の形式・認証・権限が正しく、各入力の検査・照合を完了した場合はHTTP 200を返す。一部の入力が不正な場合も、すべての入力が不正な場合も、各入力の結果と不備を`results`内で返す
+- 照合APIの要求全体に、JSONの構文不正、必須項目の不足・型違い、未定義の最上位項目などの入力形式の不備がある場合は、HTTP 400と最上位の`errors`配列を返す。具体的な理由は各エラーの`code`・`message`・`path`で示す
 - 照合APIのJSON入力で仕様にない項目名を受け取った場合は、入力エラーにする。要求の最上位の不明な項目は要求全体のエラーとし、個別の識別子内の不明な項目はその入力の`errors`へ含める
 - 有効な入力について、[入力ごとの照合手順](#入力ごとの照合手順)の条件を満たす場合は`status: matched`とAccountsユーザーID、それ以外は`status: no_match`とする。入力に不備がある場合は`status: invalid_input`と`errors`配列を返す
 - `no_match`では未登録と問い合わせ元への非公開を同じ応答として扱い、入力ごとの不正によるエラーと区別する。要求全体の形式・認証・サーバー処理の失敗は、要求全体に対するエラー応答として扱う
@@ -334,7 +403,79 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - 認証失敗・サーバー障害など、特定のJSON入力項目を指せないエラーは`path: null`とする
 - クライアントは接続設定で選択した提供元とともにAccountsユーザーIDを保持する
 
+入力項目の不備には、次のエラーコードを使用する。要求全体の入力エラーと、個別の照合入力のエラーで共通の区分を使い、`message`で具体的な理由、`path`で対象項目を示す。
+
+| `code` | 不備の種類 |
+| --- | --- |
+| `MISSING_REQUIRED_FIELD` | 必須の項目が含まれていない |
+| `INVALID_TYPE` | 値のJSONの型が、項目で定めた型と異なる |
+| `INVALID_VALUE` | 値の型は正しいが、URL形式や許可された値など、項目の条件を満たしていない |
+| `UNKNOWN_FIELD` | 仕様で定義されていない項目名が含まれている |
+
+一覧取得・照合APIで要求全体が失敗する場合は、次のHTTPステータスとエラーコードを使用する。応答bodyは最上位の`errors`配列とし、各エラーに`code`・英語の`message`・`path`を含める。特定の入力項目を指せない場合は`path: null`とする。この表の適用対象は一覧取得・照合の資源APIとし、OAuthの各エンドポイントはOAuthの応答仕様に従う。
+
+| 原因 | HTTPステータス | `code` |
+| --- | --- | --- |
+| JSONの構文不正 | 400 | `INVALID_JSON` |
+| 要求全体の入力項目の不備 | 400 | 不備の種類に応じて`MISSING_REQUIRED_FIELD`・`INVALID_TYPE`・`INVALID_VALUE`・`UNKNOWN_FIELD` |
+| 一括照合の入力が1,000件を超過 | 400 | `INVALID_VALUE` |
+| アクセストークンの未指定・無効・期限切れ | 401 | `UNAUTHORIZED` |
+| 必要なscopeの不足 | 403 | `INSUFFICIENT_SCOPE` |
+| 一覧取得の対象ユーザーが存在しない、または問い合わせ元への提供同意がない | 404 | `NOT_FOUND` |
+| 一括照合の要求bodyが5MiBを超過 | 413 | `REQUEST_TOO_LARGE` |
+| サーバー内部の処理失敗 | 500 | `INTERNAL_ERROR` |
+
 例えば、公開ページを持つ連携先はURLを、固有IDを共有する連携先は`provider_account`を渡せる。アップロード側は本人から共有された情報など、対象者との対応を確認できる識別子を指定する。PointsのCSV列・入力画面からこのAPIへ渡す具体的な形式は、Points側の契約で定める。
+
+### 貢献者照合の流れ
+
+本人による外部アカウントの証明・情報提供の同意と、Pointsによる貢献者照合を次の流れで行う。Pointsへの初回連携は[クライアント認証と権限](#クライアント認証と権限)の認可フローに従う。
+
+```mermaid
+sequenceDiagram
+    actor Owner as 本人
+    actor Uploader as 貢献データの登録者
+    participant Points as Pointsバックエンド
+    participant Accounts as Accounts
+    participant External as 外部サービス・Webページ
+
+    Owner->>Accounts: 外部アカウントを追加し、所有権を証明する
+    alt OAuth・OIDCによる証明
+        Accounts->>External: 本人の操作に基づく認証・認可
+        External-->>Accounts: 認証したサービス名・固有IDを確認できる情報
+    else Webページの証明
+        Note over Owner,External: 本人が登録URLにAccounts公開プロフィールへのリンクを設置
+        Owner->>Accounts: 検証を実行する
+        Accounts->>External: 登録URLを安全な取得条件で取得
+        External-->>Accounts: HTML・HTTP Linkヘッダー
+        Accounts->>Accounts: 共通のリンク検証条件で完全一致を確認
+    end
+    Accounts->>Accounts: 証明成功時に現在の紐付けを保存
+
+    Owner->>Points: ログインし、Accountsとの連携を開始
+    Points-->>Owner: 選択したAccountsの認可画面へ案内
+    Owner->>Accounts: 本人認証・Pointsへの提供同意・公開対象の選択
+    Accounts->>Accounts: 同意と外部アカウント別の公開設定を保存
+    Accounts-->>Points: ブラウザ経由で認可コードを返す
+    Points->>Accounts: 認可コードを交換
+    Accounts-->>Points: ID Tokenなどのトークン応答
+    Points->>Points: ID Tokenと開始した連携操作を検証し、本人との対応を保存
+
+    Uploader->>Points: 貢献データをアップロード
+    Note over Points,Accounts: 第三者のアップロード時・バックグラウンド処理時にも照合可能
+    opt 有効なクライアント用Access Tokenの取得が必要
+        Points->>Accounts: Client Credentialsでクライアント認証
+        Accounts-->>Points: 署名付きJWTのAccess Token
+    end
+    Points->>Accounts: Access Tokenと識別子配列で一括照合
+    Accounts->>Accounts: JWT・クライアントの有効性・scope・入力を検査
+    Accounts->>Accounts: 保存済みの現在の紐付けと同意・公開設定を照合
+    Note over Accounts,External: URL照合の根拠は保存済みの証明済みURL
+    Accounts-->>Points: 入力順のmatched・no_match・invalid_input、または要求全体のエラー
+    Points->>Points: Pointsの仕様に従って貢献データ・FIX・ポイントを処理
+```
+
+AccountsユーザーIDを直接指定する場合は、対象ユーザーの存在と問い合わせ元への情報提供同意で照合する。Pointsでの未受領FIXの帰属や照合不能時の処理は、Points側で定める。
 
 ## 外部識別情報の仕様
 
@@ -460,8 +601,10 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 
 - 本人が、外部アカウントの追加連携、外部URLの登録、検証実行、検証結果の確認、連携解除、公開先の設定を行える
 - 公開設定画面では、OAuthクライアントごとに「Pointsへの提供に同意する」などの同意のON・OFFを設定できる
-- 外部アカウントとOAuthクライアントの組み合わせごとに、公開するかをチェックボックスで選択できる。チェック操作で複数の公開設定を一括指定できる
+- 外部アカウントとOAuthクライアントの組み合わせごとに、公開するかをチェックボックスで選択できる
+- OAuthクライアント単位で、そのクライアント向けの連携済み外部アカウントの公開チェックを一括選択・解除できる。外部アカウント単位で、そのアカウントの各OAuthクライアント向けの公開チェックを一括選択・解除できる
 - 情報提供への同意をONにしたOAuthクライアントについて、外部アカウントが1件も選択されていない場合は、その設定の保存ボタンを非活性にする
+- 公開設定の保存APIは、保存対象のOAuthクライアントごとに、保存後の情報提供同意がONなら、本人に証明済みとして紐付く外部アカウントが1件以上選択されていることを確認する。条件を満たさない保存要求はエラーにし、同意と個別の公開設定を変更前の状態に維持する
 - 本人向けの外部アカウント一覧では、外部サービス名、取得できる表示名、固有ID・URLなどの識別情報、連携日時、検証方法・検証日時・検証結果を確認できる
 - 公開を許可したOAuthアカウントの提供項目は、外部サービス名、固有ID、取得できる表示名とする。メールアドレスは本人向けの識別補助情報として扱う
 - 公開を許可したWebページの提供項目は、確認済みURL、検証方法、検証日時とする
@@ -482,28 +625,113 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 
 ## JSONによるバックアップと移行
 
+- JSONエクスポートの主目的は、他のサービスへ本人の登録情報を移行できるようにすることとする。同じJSONを、本人向けのバックアップ・復元にも利用できる
 - 本人のプロフィール、外部アカウントの安全なmetadata、一般公開とOAuthクライアントへの提供設定をJSONで出力する。バックエンドで対象のAccountsユーザーと各データへの権限を確認する
 - 本サービスは、本人のユーザー情報のJSONエクスポートと、同じAccountsユーザーへのバックアップ復元を提供する。開発者として登録するOAuthクライアントのアプリ設定は、本サービスの管理画面で設定する
 - バックアップJSONには、ファイル形式の版番号を表す`schemaVersion`を含める。v0.1の出力・復元形式は`schemaVersion: 1`とし、復元時に必須項目として対応する版番号であることを確認する
+- JSONの最上位に、出力元のAccountsサービスのoriginを表す`accountsOrigin`、本人の固定ユーザーIDを表す`accountsUserId`、出力日時を表す`exportedAt`を含める。出力日時はUTCのRFC 3339形式とし、どのサービスの誰の情報をいつ出力したか確認できるようにする
+- 本人が設定したAccountsの表示名は、JSONの最上位の`profile`オブジェクト内の`displayName`に記録する
 - 出力・復元で扱うJSONファイルはUTF-8とし、ファイル内容の容量上限を5MiB（5,242,880 bytes）とする。出力対象全体が上限を超える場合は出力を止め、上限超過を知らせる。復元ではファイル内容の読込時に上限を検査し、超過した場合はデータを変更する前に復元全体をエラーにする
 - エクスポートしたJSONを別サービスへ取り込む際の形式の対応、所有権の証明、ID・公開設定の扱いは、取込先サービスが定める
-- 外部アカウントのmetadataは、外部サービス名、固有ID・URL、表示名、連携日時、検証方法・検証日時・検証結果など、本人が管理画面で確認できる情報を対象とする
-- 外部アカウントのmetadataと、そのアカウントの一般公開設定・各OAuthクライアントへの提供設定を、JSON内の同じアカウント項目にまとめる
-- OAuthクライアントごとの情報提供同意は、外部アカウント単位の公開設定とは別の情報としてJSONに含める。復元ではバックアップの同意状態を優先し、削除済みクライアントの設定には本節の除外条件を適用する
-- OAuth token、セッション、Client Secret、暗号鍵、URL検証HTML本文は出力対象から除外する
+- 外部アカウントのmetadataは、外部サービス名、固有ID・URL、表示名、連携日時、検証方法・検証日時・出力時点の証明状態を対象とする
+- 外部アカウントのmetadataには表示名の`displayName`を常に含め、表示名を取得できていない場合は`null`を記録する
+- 外部アカウントのmetadataには、連携成立日時の`linkedAt`と検証成功日時の`verifiedAt`を常に含める。それぞれの日時が存在する場合はUTCのRFC 3339形式で記録し、一度も成立しておらず日時が存在しない場合は`null`とする
+- 検証方法は`metadata.verificationMethod`に記録する。成功した検証の記録がある場合はOAuth・OIDC認証を`oauth`、Webページのリンク検証を`bidirectional_link`とし、成功した検証の記録がない場合は`null`とする
+- OAuth連携アカウントとリンク検証の対象となるWebページは、JSONの最上位の共通の`externalAccounts`配列にまとめる。各要素の`type`で種類を区別し、OAuth連携アカウントには外部サービス名・固有ID、WebページにはURLを記録する
+- `externalAccounts`には、証明済みのアカウントに加えて、本人が登録した検証待ち・検証失敗のWeb URLや、復元後の再証明待ちのアカウントも登録候補として含める。出力時点の証明状態を区別できる情報を記録し、復元時に所有権が未証明の項目は登録候補として扱い、本節の再証明と有効化の条件を適用する
+- JSONに記録する証明状態は、`metadata.verificationStatus`で表す。出力時点で本人へ有効に紐付く証明済みのアカウントは`verified`、検証待ち・検証失敗・再証明待ちの登録候補は`unverified`とする
+- `metadata`の識別項目は種類ごとに必要な項目を含める。OAuth連携アカウントは外部サービス名の`provider`と固有IDの`accountId`、Webページは`url`を記録する
+- `externalAccounts`の各項目では、外部サービス名・固有ID・URL・表示名・連携日時・検証方法・検証日時・出力時点の証明状態を、その項目内の`metadata`オブジェクトにまとめる。種類を表す`type`、一般公開設定の`isPublic`、OAuthクライアント別の`clientVisibility`は、`metadata`と同じ階層に置く
+- 各外部アカウントの`isPublic`は、Accounts自身の公開プロフィールへの掲載設定を真偽値で記録する。公開は`true`、非公開は`false`とする
+- 各外部アカウントのOAuthクライアント別の公開設定は、そのアカウント項目内の`clientVisibility`配列に記録する。各要素に提供先の`clientId`と真偽値の`isPublic`を含め、バックアップに含まれるOAuthクライアントごとに、公開を`true`、非公開を`false`として明示する
+- OAuthクライアントごとの情報提供同意は、JSONの最上位の`clientConsents`配列に記録する。各要素には、提供先のClient IDを表す`clientId`、表示名の`displayName`、同意状態を真偽値で表す`consented`を含める。復元ではバックアップに含まれるクライアントの同意状態を優先し、削除済みクライアントの設定には本節の除外条件を適用する
+- バックアップ内の情報提供先には、Client IDと出力時の提供先の表示名を記録する。表示名は内容確認のための情報とし、同意・公開設定の復元対象はClient IDで特定する
+- メールアドレス、OAuth token、セッション、Client Secret、暗号鍵、URL検証HTML本文は出力対象から除外する
 - timestampはUTCのRFC 3339、IDは不変文字列として出力する。認証付きexport応答には`Cache-Control: private, no-store`を付ける
 - 出力前に対象情報、件数の見込み、非公開情報を含むかを本人に示す。出力操作では紐付け・検証日時・設定などの保存状態を維持する
 - 同じAccountsサービス内の同じAccountsユーザーへ復元するプロフィール・設定は、バックアップに含まれる値を優先する。一般公開と各OAuthクライアントへの提供許可も、それぞれバックアップ時の設定へ戻す
 - 同じAccountsユーザーへの復元では、JSONに含まれるプロフィール・公開設定の復元に必要な項目が欠けている場合は、データを変更する前に復元全体をエラーにする。不足項目を表示し、現在のデータを維持したまま、JSONを修正・再出力してやり直せるようにする
+- バックアップJSONの外部アカウント項目にURLの形式不正や値の型違いなどがある場合は、データを変更する前に復元全体をエラーにする。不正な箇所と理由を表示し、現在のデータを維持したまま、JSONを修正して再実行できるようにする
+- バックアップJSONに仕様で定義されていない項目が含まれる場合は、階層にかかわらず、データを変更する前に復元全体をエラーにする。未定義の項目の位置を表示し、現在のデータを維持したまま、JSONを修正して再実行できるようにする
+- バックアップJSON内に、同じ正規化URL、または同じ外部サービス名と固有IDで識別される外部アカウントの項目が複数あり、その公開設定が食い違う場合は、データを変更する前に復元全体をエラーにする。食い違う項目の位置と設定項目を表示し、現在のデータを維持したまま、JSONを修正して再実行できるようにする
+- バックアップの検査で複数の不備を確認できる場合は、確認できた不備の位置と理由をまとめて一覧表示し、本人がまとめて修正して再実行できるようにする
 - 本人がバックアップJSONファイルを選択し、「復元する」ボタンを押して復元を開始する。バックエンドで本人の権限・必須項目・Web URLの上限などの復元条件を検査し、条件を満たす場合は復元を実行する。画面には復元の成功・失敗と結果を表示する
 - 復元操作には、[操作の認可](#操作の認可)の条件を適用する
 - バックアップの公開設定に含まれるOAuthクライアントが復元時には削除済みの場合は、そのクライアントへの提供設定を反映対象から外し、プロフィールと存在するクライアントの設定など、ほかの復元対象を通常の復元条件に従って反映する。反映対象から外した設定があることを復元結果に表示する
 - バックアップに含まれ、取得時から復元時まで同じAccountsユーザーへの連携を継続している外部アカウントは、現在の証明済み状態を維持したまま、プロフィール・公開設定をバックアップの値に戻す
 - バックアップに含まれず、取得後に追加した外部アカウントは、復元時の紐付け・証明状態・公開設定を維持する
+- バックアップに含まれていないOAuthクライアントについては、復元時の情報提供同意と、そのクライアントに対する各外部アカウントの公開設定を維持する。バックアップに収録された外部アカウントについても、そのクライアント向けの公開設定は復元時の状態を維持する
 - 本サービスでのバックアップ復元では、現在の登録URLと取り込む登録候補を正規化後に重複排除し、保存前にWeb URLの合計が150件以内であることを確認する。上限を超える場合は取込全体を実行前に止め、現在のデータを維持したまま上限超過を知らせる。本人がURLを整理してからやり直せるようにする
 - 同じAccountsサービス内の同じAccountsユーザーへ復元するとき、バックアップに含まれ、復元時点で本人に紐付いていない外部アカウントは、本人向けの登録候補として取り込む。本人が連携を解除した場合と、Web URLの再証明によって別ユーザーへ紐付け先が更新された場合を含む
 - 登録候補は、本人がOAuth認証またはWebページのリンク検証で所有権を改めて証明し、現在の紐付けの一意性を確認してから有効にする。復元した公開設定は、紐付けが有効になった後の照合・一般公開・OAuthクライアントへの提供に適用する
-- 本サービスが出力・復元するJSONの詳細schemaは、未決事項で定める
+### JSON形式
+
+出力・復元するJSONは次の項目で構成する。各オブジェクトは、種類ごとに定めた項目をすべて含める。値が`null`の場合や配列が空の場合も、その項目を含める。項目の検査と復元時の扱いは、本節の条件に従う。
+
+| 対象 | 項目と型 |
+| --- | --- |
+| 最上位 | `schemaVersion: 1`、`accountsOrigin: string`、`accountsUserId: string`、`exportedAt: string`、`profile: object`、`clientConsents: array`、`externalAccounts: array` |
+| `profile` | `displayName: string` |
+| `clientConsents`の各要素 | `clientId: string`、`displayName: string`、`consented: boolean` |
+| `externalAccounts`の各要素 | `type: "provider_account" \| "url"`、`metadata: object`、`isPublic: boolean`、`clientVisibility: array` |
+| OAuthアカウントの`metadata`の識別項目 | `provider: string`、`accountId: string`。`provider`は`google`・`github`・`orcid`、`accountId`は各サービスの固有ID |
+| Webページの`metadata`の識別項目 | `url: string` |
+| 両種類に共通する`metadata`の項目 | `displayName: string \| null`、`linkedAt: string \| null`、`verifiedAt: string \| null`、`verificationMethod: "oauth" \| "bidirectional_link" \| null`、`verificationStatus: "verified" \| "unverified"` |
+| `clientVisibility`の各要素 | `clientId: string`、`isPublic: boolean` |
+
+以下は、証明済みのGoogleアカウントと未証明のWebページを含む出力例とする。日時はUTCのRFC 3339形式で記録する。
+
+```json
+{
+  "schemaVersion": 1,
+  "accountsOrigin": "https://accounts.freeism.app",
+  "accountsUserId": "sample-user",
+  "exportedAt": "2026-09-15T00:00:00Z",
+  "profile": {
+    "displayName": "サンプル"
+  },
+  "clientConsents": [
+    {
+      "clientId": "points-client",
+      "displayName": "Points",
+      "consented": true
+    }
+  ],
+  "externalAccounts": [
+    {
+      "type": "provider_account",
+      "metadata": {
+        "provider": "google",
+        "accountId": "123456789",
+        "displayName": "サンプル",
+        "linkedAt": "2026-09-01T00:00:00Z",
+        "verifiedAt": "2026-09-01T00:00:00Z",
+        "verificationMethod": "oauth",
+        "verificationStatus": "verified"
+      },
+      "isPublic": false,
+      "clientVisibility": [
+        {"clientId": "points-client", "isPublic": true}
+      ]
+    },
+    {
+      "type": "url",
+      "metadata": {
+        "url": "https://example.org/about/",
+        "displayName": null,
+        "linkedAt": null,
+        "verifiedAt": null,
+        "verificationMethod": null,
+        "verificationStatus": "unverified"
+      },
+      "isPublic": false,
+      "clientVisibility": [
+        {"clientId": "points-client", "isPublic": false}
+      ]
+    }
+  ]
+}
+```
 
 ## 受け入れ条件
 
@@ -529,13 +757,15 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - AccountsユーザーIDから、問い合わせ元へ提供を許可した連携アカウントを1回の応答で全件取得でき、同じサービス内の複数アカウントを区別できる
 - 一覧取得の成功応答は、`accountsOrigin`・`accountsUserId`・`externalAccounts`を含むJSONオブジェクトになる。指定ユーザーが存在しない場合と、問い合わせ元への有効な情報提供同意がない場合は、いずれも同じ内容のHTTP 404になる。ユーザーと同意が有効で提供対象が0件の場合は、HTTP 200と空の`externalAccounts`を返す
 - OAuth連携アカウントのAPI応答には`displayName`を含め、外部サービスから表示名を取得できない場合は`null`となる
+- 一覧APIの`externalAccounts`では、各項目直下に、OAuth連携アカウントなら`type`・`provider`・`accountId`・`displayName`、Webページなら`type`・`url`・`verificationMethod`・`verifiedAt`が含まれる。Webページの検証方法は`bidirectional_link`、検証成功日時はUTCのRFC 3339形式となる
 - サービスにかかわらず、URLは保存済みの証明済みURLとの正規化後の完全一致、外部サービス名と固有IDは保存済みの組み合わせの完全一致で照合できる
 - 複数登録されたURLはいずれも照合対象となり、登録URLとの一致と現在の提供許可を確認できる
 - 登録時に証明したURLは、登録後の外部ページの内容や到達性にかかわらず、保存済みのURL・紐付け・提供許可で照合できる。照合後も保存済みの紐付けを維持する
 - OAuthクライアントによる照合の利用回数と、本人が所有権証明のために実行するWeb検証の利用回数を、それぞれの要求上限に従って管理できる
 - Accountsの一般公開設定を非公開にしたアカウントでも、Pointsへの情報提供同意と、そのアカウントのPoints向け公開設定が有効ならPoints上の公開表示に利用できる
 - 同じ外部アカウントについて、OAuthクライアントごとに異なる公開設定を保存でき、情報提供同意と各アカウントの公開設定の両方に従って提供対象を判定できる
-- 公開設定画面で、外部アカウントとOAuthクライアントの組み合わせごとのチェック操作と、複数設定の一括指定ができる。同意ONのOAuthクライアントについて外部アカウントの選択が0件なら、その設定の保存ボタンが非活性になる
+- 公開設定画面で、外部アカウントとOAuthクライアントの組み合わせごとのチェック操作ができる。OAuthクライアント単位と外部アカウント単位の両方で、対応する公開チェックを一括選択・解除できる。同意ONのOAuthクライアントについて外部アカウントの選択が0件なら、その設定の保存ボタンが非活性になる
+- 公開設定の保存APIへ、同意ON・有効な外部アカウントの選択0件の要求を送るとエラーになり、保存済みの同意と個別の公開設定が維持される。同意ONで1件以上選択した保存要求は、本人の権限と対象アカウントの条件を満たした場合に保存できる
 - 同意だけをOFFにして保存すると、個別のチェック状態が保持され、そのクライアントへの当該ユーザーの情報提供が停止する。再び同意をONにして保存すると、現在の証明済みの紐付けと保持された公開選択に従って提供を再開できる
 - 保存tokenの暗号化とbrowser・セッション応答・ログへの平文非露出を確認でき、Google・GitHub・ORCIDの連携解除は外部tokenの失効確認と保存tokenの削除を経て完了する
 - Google・GitHub・ORCIDの外部token失効を確認できない場合は、紐付けと保存tokenを維持したまま解除未完了を表示する。本人が再実行し、解除対象の失効を確認した後に保存tokenと紐付けを削除できる
@@ -545,6 +775,9 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - 退会確認画面で削除対象のデータと終了する登録OAuthクライアントを確認でき、確認チェック欄を選択すると退会ボタンが有効になる。ボタンの実行で退会を確定できる
 - OAuthクライアントを登録した本人が退会すると、登録クライアントも終了し、そのClient ID・Client Secret・既存の認可・発行済みトークンによるAPI利用と、新しい認可の受付が終了する
 - Client Secretは、ログイン状態と操作権限の条件を満たしたアプリ管理者が、新規発行・再発行時の結果として一度確認できる。紛失時は新しいSecretを再発行できる
+- OAuthクライアントの登録ではアプリ名とリダイレクトURLが必須となり、必須項目が欠けた登録要求をバックエンドでも拒否する。紹介URLと説明文が未入力でも、ほかの登録条件を満たす場合は登録できる
+- 1つのOAuthクライアントへ複数のリダイレクトURLを登録でき、認可要求で指定したURLが登録済みのいずれかと完全一致する場合に、そのURLを戻り先として使用できる。登録済みURLと一致しない`redirect_uri`を指定した要求を拒否する
+- OAuthのリダイレクトURLとしてHTTPSのURLと、`localhost`・ループバックIPアドレスのHTTP URLを登録できる。それ以外のホストのHTTP URLは登録を拒否し、ローカルURLでも登録済みのポート・パスと異なる`redirect_uri`を指定した認可要求を拒否する
 - Client Secretの再発行後は、新しいSecretでクライアント認証でき、古いSecretでの認証を拒否する
 - Client Secretの再発行後は、そのクライアントへAccountsが発行した既存のAccess Token・Refresh Tokenも失効し、期限内のトークンでもAPI利用・トークン更新を拒否する。新しいSecretで取得したクライアント用Access Tokenは、現在の提供許可に従って利用できる
 - 退会成立時に、本人のプロフィール・外部アカウント情報・紐付け・公開設定・登録アプリ設定と、それらに属する認証情報・セッション・認可・トークンが削除される
@@ -558,12 +791,16 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - クライアント用Access Tokenは発行から15分で期限切れとなり、期限切れのAPI要求を拒否する。応答の`expires_in`は900秒となり、クライアントは新しいAccess Tokenを取得して利用を続けられる
 - AccountsユーザーIDを直接指定した照合では、そのユーザーが存在し、問い合わせ元への情報提供同意が現在有効な場合に`matched`と指定IDを返す。存在しないIDと、有効な提供同意がないIDは、いずれも`no_match`となる
 - 一括照合に正しい入力と不正な入力が混在していても、正しい入力の照合結果と、不正な入力の位置・理由を入力順に返せる。未登録・提供同意なしによる`no_match`と入力不正を区別でき、要求全体の形式や認証が不正な場合は要求全体をエラーにする
+- 照合APIのJSON構文が不正な場合や、要求全体の必須項目不足・型違い・未定義の最上位項目がある場合は、HTTP 400と最上位の`errors`配列を返す。各エラーの`code`・`message`・`path`で理由と位置を確認できる
 - 一括照合の成功応答は、`accountsOrigin`と入力順の`results`配列を含むJSONオブジェクトになり、各結果のAccountsユーザーIDの提供元を確認できる
 - 各照合結果の`status`が、照合成立では`matched`、有効な入力で該当なしの場合は`no_match`、入力不正の場合は`invalid_input`となる
 - 各照合結果に`accountsUserId`と`errors`が常に含まれる。AccountsユーザーIDが該当しない場合は`null`、入力不備がない場合は空の`errors`配列となり、入力不正の場合は`errors`に確認できた不備が含まれる
+- 照合成立・該当なし・必須項目不足が混在する要求について、HTTP 200で入力順に3件の結果を返せる。各結果に`index`・元の`identifier`・`status`・`accountsUserId`・`errors`が含まれ、必須項目不足の結果では`MISSING_REQUIRED_FIELD`と対象項目までの`path`を確認できる
 - 一覧取得・照合APIの要求全体が失敗した場合は、`code`と英語の`message`を持つエラーを、最上位の`errors`配列で返す。1件の場合も同じ配列形式となり、確認できた複数の入力不備をまとめて返せる
 - JSON入力の項目に不備がある場合は、要求全体・個別の照合結果のどちらのエラーでも、要求bodyの最上位からの`path`配列で対象を示す。配列内の位置は0始まりとし、未指定の必須項目もその項目までの位置を示す
 - 一覧取得・照合APIのすべてのエラーに`code`・`message`・`path`が含まれ、特定のJSON入力項目を指せないエラーでは`path`が`null`となる
+- APIの入力項目について、必須項目不足は`MISSING_REQUIRED_FIELD`、型違いは`INVALID_TYPE`、不正な値は`INVALID_VALUE`、未定義の項目は`UNKNOWN_FIELD`で区別できる。要求全体と個別の照合入力のどちらでも、同じ不備の種類に同じコードを使用する
+- 一覧取得・照合APIの要求全体の失敗は、入力不備の400、認証失敗の401、scope不足の403、一覧対象なし・提供同意なしの404、body容量超過の413、内部処理失敗の500を、規定のエラーコードと最上位の`errors`配列で返せる。個別の照合入力の不備はHTTP 200の`results`内で返す
 - 一括照合の各結果に、入力配列の位置と一致する0始まりの`index`と、正規化前の入力値を保持した`identifier`が含まれる。該当なしや入力不正の結果も、元の入力へ対応付けられる
 - 一括照合の1つの入力で、外部サービス名と固有IDの不足など複数の不備を確認した場合は、その入力の`errors`配列に確認できた不備をまとめて返せる
 - 要求全体の形式・認証・権限が正しく、入力した識別子がすべて不正な場合も、HTTP 200で各入力のエラーを含む`results`を返せる
@@ -573,24 +810,38 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 - 空の`identifiers`配列を指定した場合も、要求の形式とクライアントの認証・権限を確認し、HTTP 200と`accountsOrigin`・空の`results`を返せる
 - 一括照合の要求bodyがUTF-8で5MiB以内なら容量上限を満たし、5MiBを超えた場合は照合を開始する前に要求全体をエラーにする。受付には件数と容量の両方の上限を適用する
 - PointsとAccountsでそれぞれ独立したログイン状態を保ちながら、本人の同意による情報連携が成立する
-- 利用側サービスの運営者がAccounts互換サービスのURLとOAuthクライアント情報を設定すると、その接続先を利用者向けの一覧から選んで連携できる。Client Secretは利用側のバックエンドで管理される
-- Pointsの運営者がAccounts互換サービスを接続先一覧から外すと、その接続先への既存のユーザー間の対応がすべて解除され、API利用が終了する。Accounts側の公開設定・情報提供同意と、Pointsの確定済み貢献・ポイントは維持される
 - Pointsに外部アカウント情報を登録済みの利用者も、Accountsで新しく登録・証明・公開先設定を行う利用開始手順を完了できる
 - 1つのPointsユーザーへ複数のAccountsユーザーを連携でき、各Accountsユーザーは同じPointsサービス内で最大1つのPointsユーザーへ紐付く。別々のPointsサービスへの連携は独立して成立する
 - 同じAccountsユーザーを同じPointsサービスの別ユーザーへ連携し直すには、元のPointsユーザーで連携を解除してから、移動先で本人確認・同意を伴う再連携を行う。元の連携が有効な間は、その連携状態を案内する
 - Pointsで本人の解除権限を確認した後、Pointsユーザーと対象Accountsユーザーの対応を解除できる。Accounts側のPointsへの公開設定と情報提供同意が維持され、有効なクライアント用JWTによる一覧取得・照合には引き続き現在の提供許可を適用する
-- 本人のプロフィール・外部アカウント情報・公開設定を、バックアップや他サービスへの移行に使うJSONとして出力でき、本サービスの同じAccountsユーザーへバックアップを復元できる
+- Pointsユーザーが退会すると、そのユーザーに連携していたすべてのAccountsユーザーとの対応がPoints側で解除される。Accounts側のそのPointsへの公開設定と情報提供同意は維持され、以後のAPI応答も現在の提供条件に従う
+- Accountsユーザーが退会すると、そのユーザーのAccountsからの情報提供が終了し、Points側の連携設定は保持される。本人はPointsへログインしてその連携を解除でき、Pointsの確定済み貢献・ポイントの帰属は維持される
+- 本人のプロフィール・外部アカウント情報・公開設定を、他サービスへの移行を主目的とするJSONとして出力できる。同じJSONを本人向けのバックアップとして利用し、本サービスの同じAccountsユーザーへ復元できる
 - 同じAccountsサービス内の同じAccountsユーザーへの復元では、プロフィール・設定はバックアップの値を優先する。バックアップ後に一般公開・OAuthクライアントへの提供許可を変更していても、ログイン状態と操作権限の条件を満たしてバックアップ時の設定へ戻せる
 - 同じAccountsユーザーへの復元で、JSONに含まれるプロフィール・公開設定の必要項目が欠けている場合は、不足項目を示して復元全体をエラーにし、現在のプロフィール・紐付け・公開設定を維持する
+- バックアップJSONの外部アカウント項目に不正なURLや値の型違いがある場合は、不正な箇所と理由を示して復元全体をエラーにする。ほかの項目が正常でも、現在のプロフィール・紐付け・同意・公開設定を維持する
+- バックアップJSONの最上位や各項目内に、仕様で定義されていない項目がある場合は、その位置を示して復元全体をエラーにする。現在のプロフィール・紐付け・同意・公開設定を維持する
+- バックアップJSON内で同じ外部アカウントの項目が重複し、公開設定が食い違う場合は、該当箇所を表示して復元全体をエラーにする。プロフィール・紐付け・同意・公開設定は現在の状態を維持し、JSONを修正してから再実行できる
+- バックアップの検査で複数の不備を確認した場合は、それぞれの位置と理由をまとめて表示する。不備がある間は復元全体をエラーにし、現在のプロフィール・紐付け・同意・公開設定を維持する
 - バックアップ取得時から復元時まで同じAccountsユーザーへの連携を継続している外部アカウントは、現在の証明済み状態を維持したまま、プロフィール・公開設定を復元できる
 - バックアップに含まれず、取得後に追加した外部アカウントの紐付け・証明状態・公開設定を維持しながら、バックアップに含まれるアカウントの設定を復元できる
+- バックアップ取得後に新しいOAuthクライアントへの情報提供を許可した場合は、そのバックアップを復元しても、新しい提供先への同意と個別の公開設定が維持される。バックアップに収録された外部アカウントの、その提供先向けの公開設定も維持される
 - 現在の登録URLと復元する登録候補の合計が、正規化後の重複排除で150件以内なら取込を進められ、151件以上なら保存済みのプロフィール・紐付け・公開設定を維持したまま取込全体を止めて上限超過を知らせる
 - 同じAccountsサービス内の同じAccountsユーザーへ復元する際、解除済みの外部アカウントや別ユーザーへ紐付け先が更新されたWeb URLは、本人向けの登録候補となる。再証明と紐付けの一意性の確認が成功した後に有効となり、復元した公開設定に従って照合・一般公開・OAuthクライアントへの提供に利用できる
-- JSONの入出力対象が本人の権限内のプロフィール・外部アカウント情報・公開設定であることを確認でき、出力は秘密情報を含まず、元の保存状態を変更しない
+- JSONの入出力対象が本人の権限内のプロフィール・外部アカウント情報・公開設定であることを確認でき、出力はメールアドレスと秘密情報を含まず、元の保存状態を変更しない
 - バックアップJSONに`schemaVersion: 1`が出力され、復元時に版番号を検査できる。版番号が欠けている場合や対応する版番号でない場合は、データを変更する前に復元全体をエラーにする
+- 移行・バックアップ用JSONの最上位に`accountsOrigin`・`accountsUserId`・`exportedAt`が含まれ、出力元のサービス、本人の固定ユーザーID、UTCのRFC 3339形式の出力日時を確認できる
+- 移行・バックアップ用JSONの`profile.displayName`に、本人が設定したAccountsの表示名が記録される
 - バックアップの出力・復元でUTF-8のJSONファイル内容が5MiBまでであることを確認できる。上限を超えた出力・復元は停止し、現在のデータを維持して上限超過を表示する
-- バックアップJSONの各外部アカウント項目に、そのアカウントのmetadata・一般公開設定・各OAuthクライアントへの提供設定がまとまっている
-- OAuthクライアントごとの情報提供同意を外部アカウント単位の公開設定と別にバックアップでき、復元対象のクライアントについてバックアップ時の同意状態に戻せる
+- 移行・バックアップ用JSONでは、OAuth連携アカウントとWebページが最上位の共通の`externalAccounts`配列に含まれ、各項目の`type`で種類を区別できる。`metadata`内の識別項目は、OAuth連携アカウントでは`provider`・`accountId`、Webページでは`url`だけになり、種類ごとに必要な識別情報を確認できる
+- 移行・バックアップ用JSONには、検証待ち・検証失敗のWeb URLと再証明待ちのアカウントも登録候補として含まれ、証明済みの項目と区別できる。復元時に所有権が未証明の項目は登録候補となり、再証明と紐付けの一意性の確認後に有効になる
+- JSONの`metadata.verificationStatus`は、出力時点で本人へ有効に紐付く証明済みのアカウントでは`verified`となり、検証待ち・検証失敗・再証明待ちの登録候補ではいずれも`unverified`となる
+- `externalAccounts`の各項目では、識別情報・表示名・連携日時・検証情報が`metadata`オブジェクト内にまとまり、`type`・`isPublic`・`clientVisibility`がその外側の同じ階層に配置されている。アカウント項目直下の`isPublic`にAccounts自身の公開プロフィールへの掲載設定が真偽値で記録され、`clientVisibility`配列の各要素には`clientId`と真偽値の`isPublic`で各クライアントへの公開設定が記録されている
+- 移行・バックアップ用JSONの各外部アカウントのmetadataに`displayName`が含まれ、表示名を取得できていない場合は`null`となる
+- 移行・バックアップ用JSONの各外部アカウントのmetadataに`linkedAt`と`verifiedAt`が含まれる。一度も連携・検証が成立していない登録候補では、対応する日時が`null`となり、日時が存在する項目はUTCのRFC 3339形式となる
+- JSONの`metadata.verificationMethod`で、成功したOAuth・OIDC認証を`oauth`、Webページのリンク検証を`bidirectional_link`として確認できる。成功した検証の記録がない項目では`null`となる
+- OAuthクライアントごとの情報提供同意を、JSONの最上位の`clientConsents`配列でバックアップできる。各要素に`clientId`・`displayName`・真偽値の`consented`が含まれ、復元対象のクライアントについてバックアップ時の同意状態に戻せる
+- バックアップの情報提供先にClient IDと表示名が含まれ、復元時はClient IDで対象を特定できる。提供先の表示名が変更されていても、同じClient IDの対象へ同意・公開設定を復元できる
 - バックアップJSONファイルを選択すると「復元する」ボタンで開始でき、ボタンを押すと検査・復元が実行される。検査が成功するまで現在のデータを維持し、画面に復元の成功・失敗と結果を表示する
 - バックアップの公開設定に削除済みのOAuthクライアントが含まれていても、ほかの復元条件を満たす場合は、そのクライアントへの提供設定を反映対象から外して復元を完了できる。反映対象から外した設定があることを復元結果で確認できる
 - 日本語・英語の初期選択、読み込み中・空・成功・失敗の表示、キーボードとスクリーンリーダーによる操作を確認できる
@@ -598,19 +849,13 @@ AccountsユーザーIDを直接指定した照合は、指定IDのユーザー�
 
 ## 未決事項
 
-- チェック操作による公開設定の一括指定の対象範囲を定める
-- 同意ON・外部アカウントの選択0件の設定保存要求を、バックエンドでどう扱うかを定める
-- Accounts APIの未確定のschemaを定める
-- PointsとAccountsの各サービスの退会時に、サービス間の連携をどう扱うかを定める
 - Accountsの現在の紐付けに基づくPointsの未受領FIXの帰属、照合不能時や照合APIが利用できない場合の扱いをPoints側で定める
 - PointsのCSVで、プロフィールURL・外部サービス名と固有ID・AccountsユーザーIDを指定する列と、接続先Accountsサービスの指定方法をPoints側で定める
-- 本サービスが出力・復元するJSONの詳細schemaを定める
 - AccountsのWeb検証で使用するTurnstileの固定action名を定める
-- 利用側の運営者が既存のAccounts互換サービスの接続先URLを変更するとき、既存の連携をどう扱うかを定める
 
 ## 文書化要件
 
-- 要件の聞き出しが完了した後、貢献者照合の流れをシーケンス図で記載する
+- 貢献者照合の流れは[シーケンス図](#貢献者照合の流れ)にまとめ、仕様の変更時に更新する
 - すべての要件を確定した後、確定仕様に基づいてテーブル構造を設計する
 - 公開ヘルプ・プライバシー説明で、外部アカウント情報の保持、一般公開とOAuthクライアントへの提供、連携解除、バックアップと移行の扱いを説明する
 
