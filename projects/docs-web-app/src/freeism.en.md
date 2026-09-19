@@ -60,6 +60,9 @@ It is intended to be used as a mechanism that complements or replaces capitalism
       - [Mechanism to Substitute Contribution Evaluation](#mechanism-to-substitute-contribution-evaluation)
       - [Transfer Mechanism](#transfer-mechanism)
     - [Purchase-Method Mechanism](#purchase-method-mechanism)
+      - [Point Handling](#point-handling)
+      - [Purchase Methods](#purchase-methods)
+      - [Auction Requirements](#auction-requirements)
     - [Contribution-Calculation Mechanism](#contribution-calculation-mechanism)
       - [AI Prompt](#ai-prompt)
       - [Explanation of the "Contribution-Calculation Mechanism"](#explanation-of-the-contribution-calculation-mechanism)
@@ -2778,24 +2781,46 @@ Client services such as Points use Accounts information according to that specif
 - **Explanation of the "purchase-method mechanism"**
   - An explanation of how points are handled when obtaining goods in freeism
 
-- **Types of point handling**
+#### Point Handling
+
+- Types of point handling
   1. Consumption
   2. No consumption
   3. Deposit for a fixed period and return
+
+- **About "consumption"**
+  - At confirmation of winning or acquisition, deduct the corresponding points from holdings
+  - The deducted portion **permanently leaves the freeism economic sphere** (burn method)
+  - This is different from "transfer" to others and from "deposit for a fixed period and return," which comes back after maturity
+
+- **About "no consumption"**
+  - Even when obtaining goods, do not deduct the corresponding points from holdings
+  - Points remain **in the economic sphere, in a reusable state**
+  - This is different from both "deposit for a fixed period and return," which binds them temporarily, and "consumption," in which they permanently leave
 
 - **About "deposit for a fixed period and return"**
   - For **only the deposit period** defined by the evaluation axis (or platform), the corresponding points are bound in a state where they cannot be reused
   - After maturity, they return to a state where **ownership is maintained and they can circulate again**
   - This is different from "consumption," in which points permanently leave the economic sphere
 
+#### Purchase Methods
+
 - **Types of purchase methods**
   1. Auction
   2. Buy-it-now price
   3. Self-declaration
-     - A mechanism in which one declares the amount to deposit oneself, and must yield if a higher offer is made
-     - Similar to COST
 
-**Auction requirements**
+- **About "buy-it-now price"**
+  - A buyout price at which a bidder becomes the winning bidder upon offering the amount specified by the seller or more
+  - One can **acquire immediately** without waiting for competition
+  - This is different from "auction," which allocates over time, and from "self-declaration," in which one must yield if a higher offer is made
+
+- **About "self-declaration"**
+  - A mechanism in which one declares the amount to deposit oneself, and must yield if a higher offer is made
+  - Similar to COST (common ownership self-assessed tax)
+  - This is different from "auction," which decides by competition, and from "buy-it-now price," which decides immediately at a specified amount
+
+#### Auction Requirements
 
 - **Positioning**
   - Auction is one of the basic purchase methods when allocating limited goods through competition with evaluation-axis points
