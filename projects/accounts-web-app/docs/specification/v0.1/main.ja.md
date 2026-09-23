@@ -1,55 +1,50 @@
 # アカウント統合サービス v0.1
 
-- [アカウント統合サービス v0.1](#アカウント統合サービス-v01)
-  - [説明](#説明)
-  - [存在意義・独立したサービスにする理由](#存在意義独立したサービスにする理由)
-  - [責務](#責務)
-  - [Pointsなどの連携サービスとの境界](#pointsなどの連携サービスとの境界)
-  - [利用開始の流れ](#利用開始の流れ)
-  - [v0.1で実装する機能](#v01で実装する機能)
-  - [Accountsプロフィール](#accountsプロフィール)
-  - [登録とログイン](#登録とログイン)
-  - [所有権と紐付け](#所有権と紐付け)
-  - [OAuthクライアント管理](#oauthクライアント管理)
-  - [公開設定](#公開設定)
-  - [Accounts API](#accounts-api)
-    - [提供する機能](#提供する機能)
-    - [入力ごとの照合手順](#入力ごとの照合手順)
-    - [クライアント認証と権限](#クライアント認証と権限)
-    - [APIの具体案](#apiの具体案)
-    - [貢献者照合の流れ](#貢献者照合の流れ)
-  - [外部識別情報の仕様](#外部識別情報の仕様)
-    - [照合する識別子](#照合する識別子)
-    - [URL正規化](#url正規化)
-    - [外部認証情報](#外部認証情報)
-  - [Webページの検証仕様](#webページの検証仕様)
-    - [証明に使用するリンク](#証明に使用するリンク)
-    - [外部ページの取得](#外部ページの取得)
-    - [検証要求の制御](#検証要求の制御)
-  - [操作の認可](#操作の認可)
-  - [Accountsユーザーの退会](#accountsユーザーの退会)
-  - [管理画面と監査](#管理画面と監査)
-    - [表示・提供する情報](#表示提供する情報)
-  - [JSONによるバックアップと移行](#jsonによるバックアップと移行)
-    - [JSON形式](#json形式)
-  - [受け入れ条件](#受け入れ条件)
-  - [テーブル構造の設計案](#テーブル構造の設計案)
-    - [共通の保存形式](#共通の保存形式)
-    - [認証ライブラリとの分担](#認証ライブラリとの分担)
-    - [外部認証と登録確認の接続](#外部認証と登録確認の接続)
-    - [外部アカウントと公開設定](#外部アカウントと公開設定)
-    - [検証操作の保存](#検証操作の保存)
-    - [読み取りと更新の単位](#読み取りと更新の単位)
-    - [物理設計で確認する事項](#物理設計で確認する事項)
-  - [未決事項](#未決事項)
-  - [文書化要件](#文書化要件)
-  - [提供・技術要件](#提供技術要件)
+- [説明](#説明)
+- [存在意義・独立したサービスにする理由](#存在意義独立したサービスにする理由)
+- [責務](#責務)
+- [Pointsなどの連携サービスとの境界](#pointsなどの連携サービスとの境界)
+- [利用開始の流れ](#利用開始の流れ)
+- [v0.1で実装する機能](#v01で実装する機能)
+- [Accountsプロフィール](#accountsプロフィール)
+- [登録とログイン](#登録とログイン)
+- [所有権と紐付け](#所有権と紐付け)
+- [OAuthクライアント管理](#oauthクライアント管理)
+- [公開設定](#公開設定)
+- [Accounts API](#accounts-api)
+  - [提供する機能](#提供する機能)
+  - [入力ごとの照合手順](#入力ごとの照合手順)
+  - [クライアント認証と権限](#クライアント認証と権限)
+  - [APIの具体案](#apiの具体案)
+  - [貢献者照合の流れ](#貢献者照合の流れ)
+- [外部識別情報の仕様](#外部識別情報の仕様)
+  - [照合する識別子](#照合する識別子)
+  - [URL正規化](#url正規化)
+  - [外部認証情報](#外部認証情報)
+- [Webページの検証仕様](#webページの検証仕様)
+  - [検証要求の制御](#検証要求の制御)
+- [操作の認可](#操作の認可)
+- [Accountsユーザーの退会](#accountsユーザーの退会)
+- [管理画面と監査](#管理画面と監査)
+  - [表示・提供する情報](#表示提供する情報)
+- [JSONによるバックアップと移行](#jsonによるバックアップと移行)
+  - [JSON形式](#json形式)
+- [受け入れ条件](#受け入れ条件)
+- [テーブル構造の設計案](#テーブル構造の設計案)
+  - [共通の保存形式](#共通の保存形式)
+  - [認証ライブラリとの分担](#認証ライブラリとの分担)
+  - [外部認証と登録の接続](#外部認証と登録の接続)
+  - [外部アカウントと公開設定](#外部アカウントと公開設定)
+  - [読み取りと更新の単位](#読み取りと更新の単位)
+- [未決事項](#未決事項)
+- [文書化要件](#文書化要件)
+- [提供・技術要件](#提供技術要件)
 
 ## 説明
 
 - あらゆるアカウントのIDを統合して管理できるサービス
 - v0.1は個人名義のAccountsユーザーを対象とする
-- v0.1の機能・画面要件は確定し、[テーブル構造の設計案](#テーブル構造の設計案)を具体化する段階とする。設計中に確認が必要になった事項は[未決事項](#未決事項)へ記載する
+- 本文をサービス全体の仕様、[URL登録・検証仕様](verify-url.ja.md)をURL検証の正本とする。利用者の動作に関わる[未決事項](#未決事項)を確定してから、テーブル構造・実装を具体化する
 
 ## 存在意義・独立したサービスにする理由
 
@@ -109,20 +104,22 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 表示名はほかのAccountsユーザーと重複して設定できる。ユーザーの識別には固定のAccountsユーザーIDを使う
 - Accountsと外部アカウントのプロフィールで扱う情報は、表示名や識別情報などのテキスト情報とする
 - `accounts.freeism.app`内のユーザーIDを、公開された固定IDとして表示する
-- 誰でも閲覧できる公開プロフィールページを設ける
+- 公開プロフィールのURLを知っている人は、ログアウト状態でも閲覧できる。外部アカウントの掲載には本人の一般公開設定を適用する
+- 公開プロフィールは、外部サイトがJavaScriptを実行せず確認できるHTMLを返す。掲載する外部URLの`rel="me"`と出力条件は[公開プロフィールへの掲載](verify-url.ja.md#公開プロフィールへの掲載)に従う
 - 公開プロフィールURLは、`https://accounts.freeism.app/profiles/{accountsUserId}`とする
 - 公開プロフィールは、GitHubなどの外部アカウントとAccountsユーザーIDの対応を表示することを主な用途とする
 
 ## 登録とログイン
 
 - v0.1では、Google・GitHub・ORCIDのOAuth・OIDC認証を登録・ログイン手段にする
-- ログアウト状態で、Accountsユーザーに紐付いていないGoogle・GitHub・ORCIDアカウントを認証した場合は、新規登録の確認画面を表示する
-- 確認画面でAccountsの表示名を設定し、「新規登録」を実行すると、Accountsユーザーを作成して認証済みの外部アカウントを紐付ける
-- 新規登録の確認待ちは、Accountsのバックエンドが外部サービスの認証結果を確認した時点から30分間有効とする。バックエンドは登録確定時に有効期限を検査し、期限切れの場合は外部サービスでの認証からやり直すよう案内する
+- Accountsユーザーに紐付いていないGoogle・GitHub・ORCIDアカウントから、新規登録へ進める
+- 新規登録では、本人の登録意思を確認し、Accountsの表示名を設定する。ユーザー作成と確認画面の順序は[未決事項](#未決事項)の選択に従う
+- 認証フロー中のstate・認可コード・セッションの有効期限はBetter Auth標準の管理に従う。新規登録確認の画面を表示するタイミングは、標準のユーザー作成フローに合わせて[未決事項](#未決事項)で確定する
+- 同一メールを持つ既存ユーザーとの連携が必要な場合は、Better Auth標準の結果に従い、既存のログイン手段で認証して明示連携するよう案内する
 - 確認画面には、既存のログイン手段でAccountsへログインし、「アカウント連携」画面から外部アカウントを追加連携する導線も設ける
 - 紐付け済みのGoogle・GitHub・ORCIDアカウントでAccountsへログインできる
 - 後から追加したGoogle・GitHub・ORCIDアカウントでも、紐付け先のAccountsユーザーへログインできる
-- ログイン状態は、本人がAccountsを最後に利用した時点から7日間保持する。利用のたびに保持期限を更新し、7日間利用がなければ再ログインを求める
+- ログインセッションの有効期間は7日を基本とし、本人の利用に応じてBetter Auth標準の更新間隔で延長する。有効期限を過ぎた場合は再ログインを求める
 - ログイン状態の保持期限を更新する利用は、本人のAccountsセッションによる利用とする。OAuthクライアントによる一覧取得・照合は、クライアント用Access Tokenの有効期間で管理する
 - 「アカウント連携」画面では、各AccountsユーザーにGoogle・GitHub・ORCIDアカウントを合計で最低1件残し、最後のログイン手段の連携解除を許可しない
 - ほかのログイン可能な外部アカウントが残っていれば、対象サービスの最後のアカウントを解除できる
@@ -134,8 +131,14 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - Google・GitHub・ORCIDの連携アカウント数に上限を設けない
 - OAuthアカウントと正規化したWeb URLの有効な紐付け先は、同時点で最大1人のAccountsユーザーとする。同じ外部アカウントへの連携処理が競合した場合も、この一意性を維持する
 - 紐付け先のない外部アカウントは、所有権の証明が成功した時点で、そのAccountsユーザーへ即時に紐付ける
-- OAuthで証明する外部アカウントが別のAccountsユーザーに紐付け済みの場合は、元のAccountsユーザーでの連携解除が必要であることを案内する
-- OAuthアカウントの紐付け先を変更する場合は、元のAccountsユーザーで連携を解除した後、移動先のAccountsユーザーで所有権を改めて証明して連携する
+- 成功した証明に基づく現在の紐付けは、本人による解除または別の本人の再証明による更新まで有効とする。再検証の直近結果と現在の紐付けを分けて保存し、後日の検証失敗だけでは現在の紐付けを変更しない
+- 別のユーザーに紐付くWeb URLも、申請者のAccountsプロフィールを示す証拠を再証明できた場合は、確認した識別子の現在の所有者を申請者へ更新する。その識別子を以前の所有者の一覧・照合から外し、新しい所有者の公開設定を適用する。他の識別子と証明は、今回確認した範囲に従って維持・更新する
+- 管理画面の「連携解除」は外部アカウントの表示行全体を対象にし、その行の識別子・証明方法・公開設定を終了する。OAuthのログイン手段を含む場合は、残るログイン手段の条件を確認して認証連携も解除する
+- ログイン済みの本人が追加連携でOAuth認証に成功した場合、その外部アカウントの現在の紐付け先を操作中のAccountsユーザーへ上書きできる。新しい所有者自身の公開設定を適用し、以前の所有者への照合を終了する
+- 上書きは追加連携の操作として実行する。通常のログインでは、認証した外部アカウントの現在の紐付け先へログインする
+- 移動するOAuthアカウントが元のユーザーの最後のログイン手段である場合の扱いは、[未決事項](#未決事項)で確定する
+- 外部アカウントごとに複数の識別子と証明方法を保持できる。同じアカウントにOAuthと`bidirectional_link`の証明を追加し、方法ごとの結果・日時を表示する。各証明が確認した識別子を記録し、その範囲に対して照合を有効にする
+- URLの未検証登録と、URL・ユーザー名からのサービス判定は[URL登録・検証仕様](verify-url.ja.md)に従う。所有権の証明には、検証対象と本人の操作権限を確認できる証拠を用いる
 
 1. OAuthによる所有権証明
    - 対応するログインProviderで本人を認証し、検証済みの外部サービス名と固有IDをAccountsユーザーへ紐付ける
@@ -155,11 +158,13 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 1つのOAuthクライアントへ、リダイレクトURLを1件以上、複数登録できる。認可要求ごとに戻り先の`redirect_uri`を1つ指定し、Accountsのバックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認する
 - OAuthのリダイレクトURLはHTTPSを基本とし、ホストが`localhost`またはループバックIPアドレスの場合は、ローカル開発用としてHTTPも許可する。ローカルのURLも、ポートとパスを含む登録済みURLとの完全一致を確認する
 - 登録画面とAccountsのバックエンドで必須項目を検査し、紹介URL・説明文が未入力でも、ほかの登録条件を満たせば登録できる
-- 登録したアプリにはClient IDとClient Secretを発行する
+- 1人のAccountsユーザーが所有できるOAuthクライアントは最大5件とする。画面とバックエンドの登録処理で確認する
+- 登録したアプリにはClient IDを発行する。Client Secret方式ではSecretを発行し、公開鍵方式では利用側が保管する秘密鍵に対応する公開鍵を登録する。採用する方式は[未決事項](#未決事項)で確定する
+- Client Credentialsを利用できるクライアントを登録すると、利用者が情報提供同意と外部アカウント別の公開範囲を設定できる提供先として扱う。登録後の同意・公開選択の初期値はOFFとする。提供先を一覧へ表示する対象利用者は[未決事項](#未決事項)で確定する
 - 登録したアプリは、登録者のAccountsユーザーが管理し、アプリ設定の変更とアプリ自体の削除を行える
-- Client Secretは、新規発行・再発行の結果としてアプリ管理者へ一度表示し、保存できるようにする。紛失した場合は新しいClient Secretを再発行する
+- Client Secret方式では、Secretを新規発行・再発行の結果としてアプリ管理者へ一度表示し、保存できるようにする。紛失した場合は新しいSecretを再発行する
 - Client Secretの再発行が成立した時点で古いSecretを無効にし、それ以後のクライアント認証には新しいSecretを使用する
-- Client Secretの再発行と同時に、対象クライアントへAccountsが発行済みのAccess Token・Refresh Tokenもすべて失効させる。クライアント用Access Tokenは新しいSecretで再取得し、ユーザー用トークンは必要に応じて認可フローをやり直して取得する
+- 発行済みJWTの有効期間は[クライアント認証と権限](#クライアント認証と権限)に従う。Secretの再発行後も、発行済みJWTはその有効期限まで利用できる。認可・保存トークンの失効はBetter Authが標準提供する操作に従う
 
 ## 公開設定
 
@@ -188,7 +193,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 | 機能 | 入力 | 出力・用途 |
 | --- | --- | --- |
 | 連携アカウント一覧の取得 | AccountsユーザーID | 問い合わせ元へ提供を許可した連携アカウントを全件返す。同じサービスの複数アカウントも個別に返す |
-| 識別情報からユーザーを照合 | プロフィールURL、外部サービス名と固有ID、またはAccountsユーザーID | 入力ごとの条件と提供許可を満たすAccountsユーザーIDを最大1件返す |
+| 識別情報からユーザーを照合 | プロフィールURL、外部サービス名と固有IDまたはユーザー名、AccountsユーザーID | 入力ごとの条件と提供許可を満たすAccountsユーザーIDを最大1件返す |
 
 一覧取得・照合は、本人の操作中以外にも、許可済みクライアントの処理から利用できる。取得対象には[公開設定](#公開設定)、要求の認証には[クライアント認証と権限](#クライアント認証と権限)を適用し、入出力は[APIの具体案](#apiの具体案)に従う。
 
@@ -199,14 +204,15 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 | 入力 | 照合方法 |
 | --- | --- |
 | URL | 入力URLを正規化し、保存済みの証明済みURLとの完全一致で現在の紐付けを検索する |
-| 外部サービス名と固有ID | 保存済みの証明済みアカウントを、外部サービス名と固有IDの組み合わせの完全一致で検索する |
+| 外部サービス名と固有ID | 保存済みの証明済み識別子を、サービス・固有IDの組み合わせの完全一致で検索する |
+| 外部サービス名とユーザー名 | 保存済みの証明済み識別子を、サービス・ユーザー名の組み合わせで検索する。サービスで明示された正規化だけを適用する |
 | AccountsユーザーID | 問い合わせ先Accounts内の固定IDの存在と、そのユーザーから問い合わせ元への有効な情報提供同意を確認する |
 
-URLと外部サービス名・固有IDの照合は、表の一致条件に加えて[公開設定](#公開設定)による問い合わせ元への現在の提供許可を確認する。両方を満たす場合は紐付くAccountsユーザーIDを返し、それ以外は該当なしとする。
+URLと外部サービス名・固有ID・ユーザー名の照合は、表の一致条件に加えて[公開設定](#公開設定)による問い合わせ元への現在の提供許可を確認する。両方を満たす場合は紐付くAccountsユーザーIDを返し、それ以外は該当なしとする。
 
 外部ページの取得とリンク検証は、本人がURLを登録して所有権を証明する処理で行う。照合の判定に使う情報は、保存済みの正規化URL・現在の紐付け・現在の提供許可とする。
 
-URLの登録・検証結果と、OAuthで証明したサービス名・固有IDは、それぞれの識別方法の根拠として管理する。
+URL・固有ID・ユーザー名はそれぞれ型を区別して保存し、証明が確認した範囲に従って照合する。サービス別のURL判定や取得済みページからの抽出は登録・検証時に行い、照合APIは保存済みの情報を参照する。
 
 AccountsユーザーIDを直接指定した場合は、表の条件を満たせば指定IDを返し、それ以外は該当なしとする。
 
@@ -217,29 +223,33 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
 - 初回連携ではOIDCのAuthorization Codeフローを使い、`openid` scopeを要求する。利用側は、Accountsで認証して情報提供に同意した本人をID Tokenで確認し、連携開始時にログインしていた利用側ユーザーへ対応付ける
 - ID Tokenの`sub`はAccountsユーザーの公開された固定IDとする。利用側は、接続先Accountsサービスに対応する発行元`iss`と`sub`を確認し、Accountsサービスの提供元とAccountsユーザーIDを保持する
 - 利用側のバックエンドは、ID Tokenの署名・発行元・対象クライアント・有効期限と、連携開始時に生成した`nonce`との一致を、OIDCの検証規則に従って確認する。連携開始操作と戻り先の処理を対応付け、検証に成功した本人IDで連携を確定する
-- 連携サービスのバックエンドは、Client ID・Client Secretを使い、OAuthの`client_credentials`でクライアント自身の期限付きAccess Tokenを取得する
-- クライアント用Access Tokenは署名付きJWTとする
-- 連携アカウントの一覧取得と外部識別子の照合APIは、このAccess Tokenを`Authorization: Bearer`で受け取り、クライアントを認証する
+- 連携サービスのバックエンドは、登録したクライアント認証方式を使い、OAuthの`client_credentials`でクライアント自身の期限付きAccess Tokenを取得する
+- Authorization CodeとClient Credentialsで発行するAccess Tokenは署名付きJWTとする。両フローで`resource`に`{accountsOrigin}/api/v1`を指定し、Better AuthのOAuth ProviderとJWTプラグインを使用する
+- 連携アカウントの一覧取得と外部識別子の照合APIは、クライアント用Access Tokenでクライアントを認証する。DPoPを採用する場合のヘッダー・鍵登録は、下記の送信者を確認する構成に従う
 - 一覧取得と識別子の照合には、共通の読取scopeとして`identities:read`を設ける。このscopeを持つクライアント用JWTで両APIを利用できる
 - 一覧取得と照合の継続利用では、利用側がクライアント単位のAccess Tokenを管理し、Accountsが各ユーザーの現在の提供許可を判定する
-- クライアント用Access Tokenの有効期間は発行から15分とし、トークン応答の`expires_in`は900秒を返す
+- Access Tokenの有効期間は発行から15分とし、トークン応答の`expires_in`は900秒を返す
 - Access Tokenの期限が切れた場合は、クライアント認証によって新しいAccess Tokenを取得する
-- APIのバックエンドは、事前に信頼した検証鍵と許可した署名方式でJWTを検証し、発行元・対象API・期限・トークンの用途・クライアント主体・scopeを確認する。検証に失敗した要求は、紐付け・提供許可・失効状態のDB照合へ進む前に拒否する
-- JWTの検証に成功した要求だけ、認証済みClient IDに対応するクライアントの有効性とトークンの失効状態をDBで確認する。Client Secretの再発行前に発行したJWTは、署名が正しく有効期限内でも拒否する
+- APIのバックエンドは、事前に信頼した検証鍵と許可した署名方式でJWTを検証し、発行元・対象API・期限・トークンの用途・クライアント主体・scopeを確認する。検証に失敗した要求は、紐付け・提供許可の照合へ進む前に拒否する
+- JWTの検証に成功した要求で、認証済みClient IDに対応するクライアントの有効性と、対象ユーザーの現在の提供許可を確認する。クライアント削除後はそのクライアントへのAPI提供を終了する
 - 返す外部アカウントについて、DB上の現在の紐付けと、そのユーザーから認証済みClient IDへの提供許可を要求ごとに確認する
+
+送信者を確認する構成には、Better Auth標準のDPoPと`private_key_jwt`を候補とする。DPoPはAccess Tokenを保有者の鍵へ結び付ける。Client Secretを持つ者が自分の鍵で新しいTokenを発行できる構成では、Secret漏えいへの対策は別に必要になる。Client IDとSecretの漏えいだけでAPIを利用できない要件を満たす推奨構成は、登録済み公開鍵による`private_key_jwt`でのクライアント認証とDPoPを組み合わせる方式とする。秘密鍵は利用側のバックエンドが保持する。鍵登録を含む画面要件は[未決事項](#未決事項)で確定する。[Better Auth OAuth Provider](https://better-auth.com/docs/plugins/oauth-provider)
 
 初回連携は[OIDC Authorization Codeフロー](https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth)と[ID Tokenの検証](https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation)、一覧取得・照合APIの認証は[OAuth client credentials grant](https://www.rfc-editor.org/rfc/rfc6749#section-4.4)に従い、[Better Auth OAuth Provider](https://better-auth.com/docs/plugins/oauth-provider)の対応機能を使用する。
 
 ### APIの具体案
 
-以下の一覧取得・一括照合の呼び出し先、応答形式、入力の検証条件を採用する。
+一覧取得・一括照合は、読取条件をJSON bodyで渡すHTTP `QUERY`を採用する。`QUERY`は安全かつ冪等な取得メソッドとして[RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)で標準化されている。`Content-Type: application/json`で条件を送信する。契約を[OpenAPI 3.2.1](https://spec.openapis.org/oas/v3.2.1.html)の`query`操作として記述し、「開発者向け」画面に表示する。
+
+Valibotの入力schemaをフロントエンドとバックエンドで共有し、バックエンドでもすべての入力を検証する。認証・所有者・現在の提供許可はバックエンドで確認する。
 
 | 操作 | HTTP | 内容 |
 | --- | --- | --- |
-| 一覧取得 | `GET /api/v1/external-accounts?accountsUserId={accountsUserId}` | 提供元、AccountsユーザーID、許可済みアカウントの全件一覧を返す |
-| 照合 | `POST /api/v1/identities/resolve` | 種類を明示した識別子の配列を受け取り、入力ごとの照合結果を返す |
+| 一覧取得 | `QUERY /api/v1/external-accounts` | 提供元、AccountsユーザーID、許可済みアカウントの全件一覧を返す |
+| 照合 | `QUERY /api/v1/identities/resolve` | 種類を明示した識別子の配列を受け取り、入力ごとの照合結果を返す |
 
-一覧取得では、対象ユーザーIDを必須のクエリパラメーター`accountsUserId`で指定する。クライアントの認証・権限を確認した後、対象ユーザーの存在と問い合わせ元への有効な情報提供同意を確認する。条件を満たす場合はHTTP 200を返し、対象ユーザーが存在しない場合と同意がない場合は、同じ内容のHTTP 404とする。
+一覧取得はJSON bodyの`{"accountsUserId":"sample-user"}`で対象ユーザーIDを指定する。クライアントの認証・権限を確認した後、対象ユーザーの存在と問い合わせ元への有効な情報提供同意を確認する。条件を満たす場合はHTTP 200を返し、対象ユーザーが存在しない場合と同意がない場合は、同じ内容のHTTP 404とする。
 
 一括照合の成功応答は、提供元の`accountsOrigin`と、入力順に並べた照合結果の配列`results`を1つのJSONオブジェクトにまとめる。
 各結果には、入力配列の0始まりの位置を表す`index`、その位置の元の入力を表す`identifier`、結果の状態を表す`status`を含める。`identifier`は正規化前の入力値とし、照合成立・該当なし・入力不正のいずれの結果にも含める。
@@ -251,7 +261,7 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
 | `no_match` | 入力は有効だが、条件を満たすユーザーが該当しない | `null` | 空配列 |
 | `invalid_input` | 入力に不備がある | `null` | 確認できた不備の配列 |
 
-以下は、要求全体の形式・認証・権限の条件を満たし、照合成立・該当なし・必須項目不足の3件の結果をHTTP 200で返す例とする。
+以下は、要求全体の形式・認証・権限の条件を満たし、照合成立・該当なし・必須項目不足の3件の結果をHTTP 400で返す例とする。
 
 ```json
 {
@@ -298,7 +308,7 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
 }
 ```
 
-一覧取得の成功応答は、提供元の`accountsOrigin`、AccountsユーザーIDの`accountsUserId`、連携アカウントの配列`externalAccounts`を1つのJSONオブジェクトにまとめる。ユーザーと同意が有効で、提供対象が0件の場合は`externalAccounts`を空配列とする。以下は、問い合わせ元への提供を許可した証明済みのOAuthアカウントとWebページを返す例とする。
+一覧取得の成功応答は、`accountsOrigin`、`accountsUserId`、`externalAccounts`を返す。ユーザーと同意が有効で提供対象が0件の場合は、`externalAccounts`を空配列とする。外部アカウントを1要素にまとめ、複数の識別子と証明方法をその中に含める。
 
 ```json
 {
@@ -306,20 +316,86 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
   "accountsUserId": "sample-user",
   "externalAccounts": [
     {
-      "type": "provider_account",
-      "provider": "google",
-      "accountId": "123456789",
-      "displayName": "サンプル"
-    },
-    {
-      "type": "url",
-      "url": "https://example.org/about/",
-      "verificationMethod": "bidirectional_link",
-      "verifiedAt": "2026-09-01T00:00:00Z"
+      "service": "github",
+      "displayName": "Alice",
+      "identifiers": [
+        {
+          "type": "provider_account",
+          "provider": "github",
+          "accountId": "123456789"
+        },
+        {
+          "type": "provider_username",
+          "provider": "github",
+          "username": "alice"
+        },
+        {
+          "type": "url",
+          "url": "https://github.com/alice"
+        }
+      ],
+      "linkedAt": "2026-09-01T00:00:00Z",
+      "verificationStatus": "verified",
+      "verifications": [
+        {
+          "method": "oauth",
+          "identifiers": [
+            {
+              "type": "provider_account",
+              "provider": "github",
+              "accountId": "123456789"
+            },
+            {
+              "type": "provider_username",
+              "provider": "github",
+              "username": "alice"
+            },
+            {
+              "type": "url",
+              "url": "https://github.com/alice"
+            }
+          ],
+          "verifiedAt": "2026-09-01T00:00:00Z",
+          "checkedAt": "2026-09-01T00:00:00Z",
+          "result": "verified",
+          "evidenceUrl": null
+        },
+        {
+          "method": "bidirectional_link",
+          "identifiers": [
+            {
+              "type": "url",
+              "url": "https://github.com/alice"
+            },
+            {
+              "type": "provider_username",
+              "provider": "github",
+              "username": "alice"
+            }
+          ],
+          "verifiedAt": "2026-09-02T00:00:00Z",
+          "checkedAt": "2026-09-02T00:00:00Z",
+          "result": "verified",
+          "evidenceUrl": "https://github.com/alice"
+        }
+      ]
     }
   ]
 }
 ```
+
+| 外部アカウントの項目 | 型・意味 |
+| --- | --- |
+| `service`、`displayName` | `string \| null`。判明しているサービス名・表示名。汎用Webページなどで取得できない情報は`null` |
+| `identifiers` | `url`・`provider_account`・`provider_username`の識別子配列。各形式は照合入力と共通 |
+| `linkedAt` | `string \| null`。現在の紐付けの成立日時。日時はUTCのRFC 3339形式 |
+| `verificationStatus` | `verified`または`unverified`。本人への有効な証明済み紐付けがあるかを示す |
+| `verifications` | 証明方法ごとの情報の配列。未実行の場合は空配列 |
+| 証明方法の各要素 | `method: "oauth" \| "bidirectional_link"`、`identifiers`、`verifiedAt: string \| null`、`checkedAt: string \| null`、`result`、`evidenceUrl: string \| null` |
+
+`verifications[].identifiers`は、その証明が対象として確認した識別子を示す。`verifiedAt`は現在の紐付けの根拠となる成功日時、`checkedAt`と`result`は直近の検証日時・結果とし、未検証と失敗を区別する。`result`は`verified`・`not_verified`・`indeterminate`・`action_required`とする。検証結果と紐付けの有効性の関係は[URL登録・検証仕様](verify-url.ja.md)に従う。公開証拠のURLを示せる場合に`evidenceUrl`を返す。
+
+OAuthの固有IDと、URLから抽出したユーザー名は、それぞれ別の識別子とする。上記のOAuth例でURL・ユーザー名を含められるのは、OAuthで取得したProvider応答がその固有IDとの対応を確認できる場合に限る。識別子の文字列が一部似ていることだけで証明対象を広げず、同一性を確認できた範囲を保存する。
 
 照合入力の例。1件でも複数件でも同じ形式を用いる。
 
@@ -328,20 +404,20 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
   "identifiers": [
     { "type": "url", "url": "https://example.org/about/" },
     { "type": "provider_account", "provider": "google", "accountId": "123456789012345678901" },
+    { "type": "provider_username", "provider": "github", "username": "alice" },
     { "type": "accounts_user", "accountsUserId": "example-accounts-user" }
   ]
 }
 ```
 
 - 入力種別ごとの判定は、[入力ごとの照合手順](#入力ごとの照合手順)に従う
-- 外部サービス名は`google`・`github`・`orcid`の固定値、固有IDは文字列で受け付ける
-- 一括照合は、URL・外部サービス名と固有ID・AccountsユーザーIDを合わせて、入力配列の要素数で1要求あたり最大1,000件とする。上限を超える場合は、照合を開始する前に要求全体をエラーにする
+- 外部サービス名は登録されたProvider識別子、固有ID・ユーザー名は文字列で受け付ける。`provider_account`は`provider`と`accountId`、`provider_username`は`provider`と`username`を必須とする。許可するProviderは`google`・`github`・`orcid`と、採用済みの個別対応サービスとする。未対応のProviderは`INVALID_VALUE`を返す。自己ホスト型のProviderを採用する場合は`issuer`にHTTPSのoriginを必須とし、それ以外のProviderでは`issuer`の省略を標準形とする。受け付けるProvider・入力形式・正規化は[サービス別の識別](verify-url.ja.md#サービス別の識別)に従う
+- 一括照合は、URL・外部サービス名と固有IDまたはユーザー名・AccountsユーザーIDを合わせて、入力配列の要素数で1要求あたり最大1,000件とする。上限を超える場合は、照合を開始する前に要求全体をエラーにする
 - `identifiers`が空配列の場合は、要求の形式とクライアントの認証・権限を確認したうえで、HTTP 200で`accountsOrigin`と空の`results`配列を返す
 - 一括照合の要求bodyはUTF-8のJSONとし、容量上限は5MiB（5,242,880 bytes）とする。bodyの読込時に上限を確認し、超過した場合は照合を開始する前に要求全体をエラーにする
-- 一覧の各アカウント項目では、提供情報を項目の直下に置く。OAuth連携アカウントは`type: "provider_account"`と文字列の`provider`・`accountId`、文字列または`null`の`displayName`を返す。`displayName`は常に含め、表示名を取得できない場合は`null`で返す
-- Webページの一覧項目は、`type: "url"`、確認済みURLの`url`、`verificationMethod: "bidirectional_link"`、検証成功日時の`verifiedAt`を返す。`url`は文字列、`verifiedAt`はUTCのRFC 3339形式とする
+- 一覧の各アカウント項目には、上表の項目を常に含める。未取得の情報は`null`、識別子・証明方法の未登録は空配列で表す
 - 一括照合では、要求全体の形式とクライアント認証を確認した後、各入力を個別に検査・照合し、入力順に結果を返す。不正な入力には、検査で確認できた不備をその入力の`errors`配列へまとめ、各不備の位置と理由を返す。正しい入力の照合を継続する
-- 要求全体の形式・認証・権限が正しく、各入力の検査・照合を完了した場合はHTTP 200を返す。一部の入力が不正な場合も、すべての入力が不正な場合も、各入力の結果と不備を`results`内で返す
+- 要求全体の形式・認証・権限が正しく、各入力が有効ならHTTP 200を返す。1件以上の`invalid_input`がある場合はHTTP 400を返し、有効な入力の照合結果も含めて入力順の`results`を保持する。HTTP 400で`results`を返す場合と、要求全体の形式不正で最上位の`errors`を返す場合をOpenAPIで区別する
 - 照合APIの要求全体に、JSONの構文不正、必須項目の不足・型違い、未定義の最上位項目などの入力形式の不備がある場合は、HTTP 400と最上位の`errors`配列を返す。具体的な理由は各エラーの`code`・`message`・`path`で示す
 - 照合APIのJSON入力で仕様にない項目名を受け取った場合は、入力エラーにする。要求の最上位の不明な項目は要求全体のエラーとし、個別の識別子内の不明な項目はその入力の`errors`へ含める
 - `no_match`では未登録と問い合わせ元への非公開を同じ応答として扱い、入力ごとの不正によるエラーと区別する。要求全体の形式・認証・サーバー処理の失敗は、要求全体に対するエラー応答として扱う
@@ -365,6 +441,8 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
 | 原因 | HTTPステータス | `code` |
 | --- | --- | --- |
 | JSONの構文不正 | 400 | `INVALID_JSON` |
+| `Content-Type`の未指定 | 400 | `MISSING_REQUIRED_FIELD` |
+| `Content-Type`が対応するJSON形式以外 | 415 | `UNSUPPORTED_MEDIA_TYPE` |
 | 要求全体の入力項目の不備 | 400 | 不備の種類に応じて`MISSING_REQUIRED_FIELD`・`INVALID_TYPE`・`INVALID_VALUE`・`UNKNOWN_FIELD` |
 | 一括照合の入力が1,000件を超過 | 400 | `INVALID_VALUE` |
 | アクセストークンの未指定・無効・期限切れ | 401 | `UNAUTHORIZED` |
@@ -430,27 +508,11 @@ sequenceDiagram
 
 ### 照合する識別子
 
-- 人物を表す公開ページはURLで指定できる。OAuthで証明したアカウントは、公開ページの有無にかかわらず外部サービス名と固有IDで指定できる
-- URLは、サイトのルート、`/about/`、サービス共通プロフィールなど、本人を表す複数のURLを登録できる。Webページとして登録する各URLで所有権を証明する
-- 独自ドメインや記事パスの扱いも登録URL単位とする。同じホストの別pathを照合対象に含める場合は、そのURLも本人が登録・証明する
-- 判定には[入力ごとの照合手順](#入力ごとの照合手順)を適用し、複数URLのいずれかが条件を満たす場合も同じAccountsユーザーを返す
-
-例えば、`https://freeism.hatenablog.com/`、`https://freeism.hatenablog.com/about/`、`https://profile.hatena.ne.jp/freeism/`は、それぞれ別の登録対象になる。各URLを登録・証明して提供を許可すると、アップロードされたURLが正規化後にいずれかと完全一致する場合に、同じAccountsユーザーを返せる。独自ドメインや記事パスもURL全体で扱う。
+人物を表すURL、外部サービス名と固有ID、外部サービス名とユーザー名を、[入力ごとの照合手順](#入力ごとの照合手順)に従って扱う。複数URLや記事パスの登録、別名の抽出、証明する範囲は[URL登録・検証仕様](verify-url.ja.md)に集約する。
 
 ### URL正規化
 
-外部ページの登録、貢献者照合、証明用リンクの判定に、共通のURL正規化規則を適用する。
-
-- URLの構造を標準のURL parserで検査し、schemeと取得先の制約を確認する。正規化はネットワークアクセスを伴わない共通の純粋関数とする
-- schemeとhostを小文字化し、国際化ドメインをASCII/Punycode表現に統一する
-- HTTPSのURLを受け付け、default portとfragmentを除去する
-- 空のpathを`/`に統一する
-- queryは保持する
-- 末尾slash、`/about`などのpath、subdomainはそれぞれのURLの意味に従って区別する
-- percent encodingは、同じoctetを表す安全な範囲で正規化する
-- 外部URLの受付と取得先の制約は、[外部ページの取得](#外部ページの取得)に従う
-
-正規化規則の参考：[URL Standard](https://url.spec.whatwg.org/)、[RFC 3986の正規化](https://www.rfc-editor.org/rfc/rfc3986#section-6.2.2)
+URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](verify-url.ja.md#url正規化)を使用する。サービス別の識別情報の抽出と証明範囲も[URL登録・検証仕様](verify-url.ja.md)に従う。
 
 ### 外部認証情報
 
@@ -461,10 +523,10 @@ sequenceDiagram
   - browserと連携先へ提供するのは、用途に応じた表示名・識別子・許可された情報とする。Google・GitHub・ORCIDのAccess Token、Refresh Token、OAuth AppのClient SecretはAccountsのバックエンドで扱う
 - 所有権証明に使う情報と、一般公開・OAuthクライアントに提供する情報を区別する
 - 外部アカウントの追加連携は、本人の操作と外部サービスでの認証に基づいて行う
-- 同じ外部アカウントかどうかは外部サービス名と固有IDで判定する。メールアドレスが同じだけで自動的に紐付けることはなく、メールアドレスが異なる場合も本人による明示的な追加連携を許可する
+- OAuthの同一アカウントは外部サービス名と固有IDで判定する。メールアドレスにかかわらず、本人の操作とProviderでの認証により明示連携する
 - 外部アカウントでのログイン・追加連携・再連携で表示名を取得した場合は、その外部アカウントの最新の表示名として保存する。管理画面・一般公開・OAuthクライアントへの提供では、公開条件に従って保存済みの表示名を使用する
 - ログイン・追加連携・再連携の後も、本人が設定したAccountsの表示名を維持する
-- OAuth連携の解除は、ログイン認証に使うProviderの認証仕様に合わせて処理する
+- 外部アカウント全体の連携解除でOAuth認証情報を削除する際は、ログイン認証に使うProviderの認証仕様に合わせて処理する
   - Google・GitHub・ORCIDでは、外部サービス側で解除対象tokenの失効が成功したか、すでに失効済みであることを確認してから、保存したAccess Token・Refresh Tokenを削除して紐付けを解除する
   - 外部サービスの通信失敗などで失効を確認できない場合は、Accounts内の紐付けと保存tokenを維持し、解除が未完了であることを本人に表示する。本人が解除を再実行し、失効を確認した後に完了できる
   - 失効の確認には、保存しているRefresh Tokenも含めた解除対象を用いる。外部サービスの成功応答、または解除対象がすでに失効済みと判断できる応答を確認する
@@ -481,56 +543,16 @@ sequenceDiagram
 
 ## Webページの検証仕様
 
-### 証明に使用するリンク
-
-- 本人が編集できる公開Webページをサービスを限定せず対象とし、「アカウント連携」画面でURLを登録する。Web URLは1ユーザーにつき最大150件登録できる
-- 本人が外部ページに自分の[Accounts公開プロフィール](#accountsプロフィール)へのリンクを設置し、検証を実行する
-- 証明用リンクをたどると、外部ページとAccountsユーザーIDの対応を確認できる。公開プロフィールへの掲載・クライアントへの提供には[公開設定](#公開設定)を適用する
-- 証明後の現在の紐付けは、本人による解除、または別ユーザーの再証明に基づく更新まで有効とする
-- 登録された外部ページをAccountsのバックエンドが取得する
-- HTMLの`a[href]`・`link[href]`とHTTPの`Link`ヘッダーを、リンクの候補とする
-  - `<head>`内の`<link href>`や`<p>`内の`<a href>`も対象になる。候補はHTMLを解析して実際のリンク要素から抽出する
-  - 相対hrefは取得した最終ページのURLを基準に解決してから正規化する
-- `rel`のtokenに`me`を持つリンクがある場合は、そのリンクを証明候補とする。それ以外のページでは、通常の許可されたリンクを候補とする
-- `rel=me`の優先規則で証明候補を決め、リンク先を正規化した後、同じAccountsサービス内の異なる複数ユーザーへの公開プロフィールURLが含まれる場合は、検証失敗として現在の紐付けを維持する。本人には証明用リンクを自分1人分に整理して再実行するよう案内する
-- 候補のリンク先を正規化し、検証する本人のAccounts公開プロフィールURLと完全一致した場合に証明を成立させる
-- 取得したHTMLの実際のリンク要素とHTTPヘッダーを証拠の範囲とし、本文、code block、comment、JSON、画像alt、JavaScriptが生成するDOM、iframe内の記述は証明候補から除外する
-- 本人による検証操作で条件を満たした場合に自動承認する
-- URL登録時は検証待ちとし、取得・リンク検証・一意性の確認に成功した時点で紐付けを有効にする
-- 別のAccountsユーザーに紐付け済みのWeb URLも、申請者の公開プロフィールへのリンクを共通の証明条件で確認できた場合は、現在の紐付け先を申請者へ更新する。更新前後を通じて、同じ正規化URLの有効な紐付け先を最大1ユーザーに保つ
-- 紐付け先の更新後は、以前のユーザーの連携アカウント一覧・照合結果からそのURLを外し、新しいユーザーが設定した一般公開・OAuthクライアントへの提供許可に従って扱う
-
-例えば、別人への`rel="me"`と本人への通常リンクがある場合は、優先される候補が本人と一致せず証明失敗になる。[HTMLの解析仕様](https://html.spec.whatwg.org/multipage/parsing.html#tokenization)
-
-リンクの発見手法は[IndieWeb discovery algorithms](https://indieweb.org/discovery-algorithms)と[rel-me](https://indieweb.org/rel-me)を参考にし、Accountsの承認は上記のリンク要素と公開プロフィールURLの完全一致条件に従う。
-
-### 外部ページの取得
-
-- 取得先はHTTPS・port 443の公開Webページとする
-- userinfo付きURL、IP literal、localhost、private・link-local・loopback・reserved hostname/address、Cloud metadata addressを受付・取得対象から除外する
-- Cloudflare Workersでは、入力時のhost検査と`global_fetch_strictly_public`による公開Internet向けの接続制約を組み合わせ、DNS rebinding相当のprivate接続も拒否する
-- redirectは最大3回まで手動で追跡し、各遷移先に同じscheme・port・userinfo・hostの検査を適用する。redirect loopは検証失敗とする
-- 各取得は`cache: no-store`相当でcacheをbypassし、新しく取得した応答を証拠とする。staleな応答や`Age`などcache由来を示す応答は検証失敗として扱う
-- 全体の取得期限は5秒、response上限は1MiBとし、`text/html`または`text/plain`を受け付ける
-  - 容量と時間の上限は、応答待ち時間とメモリ使用量を抑え、大きな応答による負荷を制限するために設ける
-- 取得要求には外部ページの検証に必要なヘッダーだけを付け、利用者のCookie、Authorization、client IP、内部ヘッダーは転送対象から除外する
-- HTMLとHTTPヘッダーの静的な解析で検証し、JavaScriptの実行とsubresourceの取得は検証処理の対象から除外する
-
-容量上限を超えた応答は検証失敗とする。参考として、MastodonはHTML5 parserで`a`・`link`の`rel=me`を確認し、応答の読み取りには既定1MiBの打ち切り処理を使う。[Mastodonのリンク検証](https://github.com/mastodon/mastodon/blob/main/app/services/verify_link_service.rb)、[Mastodonの応答取得](https://github.com/mastodon/mastodon/blob/main/app/lib/request.rb)
+単一URL入力、未検証での登録、登録時の検証、証拠候補の抽出、公開HTML、サービス別の識別、取得制限、検証結果は[URL登録・検証仕様](verify-url.ja.md)を正本とする。
 
 ### 検証要求の制御
 
-以下は、本人がURLの登録・所有権確定のために行う検証操作へ適用する。OAuthクライアントの読取照合は、クライアント認証・現在の提供許可と、API契約で定める要求上限に従う。
+- Web検証への大量リクエストはCloudflare標準のWAF・Rate Limitingで制御する。認証エンドポイントはBetter Auth標準のレートリミッターを使い、`rateLimit.storage: "database"`で保存する
+- Web検証の集計期間と上限は、採用するCloudflareプランで設定できる期間の中から、短時間の集中を抑える値にする。1時間の集計が必要な場合は、その期間を提供するプランを選定する。具体値は実装時の運用設定で定める
+- WAFのIPなどの集計キーと、Accountsユーザー単位の厳密な回数管理は性質が異なる。v0.1の検証頻度制御には前者を採用する
+- OAuthクライアントの読取照合には、クライアント認証・現在の提供許可と、[API契約](#apiの具体案)の入力件数・容量上限を適用する
 
-- 本人のWeb検証は、検証対象のURLをまとめてAccountsユーザーごとに回数を数え、UTCの日付ごとに150回を初期上限とする。毎日UTCの0時（日本時間の午前9時）にカウントをリセットする
-- Web検証は、再送を含め、受け付けた検証実行ごとに1回として数える
-- 上限値は429の発生、誤検知、不正利用の観測に基づいて変更し、設定変更をレビューする
-- 短時間の大量検証、連続失敗、明らかなbot、異常なIP・ASN、頻度上限への接近などのリスクに応じてTurnstileを要求する
-- TurnstileのSite Key、Secret、再使用検知用の保存領域は、Accountsの環境ごとに管理する
-- challengeが必要な場合は`428 TURNSTILE_REQUIRED`と、その環境のSite Key・固定actionの`verify_web_ownership`を返す。画面はtokenを取得し、同じ操作を1回再送する
-- AccountsのバックエンドでSiteverifyを実行し、期待するhostname・action、5分の有効期限、一回限りの使用を検査する。検証に成功した要求だけを後続処理へ進める
-- 本人認証、操作の認可、頻度制限、所有権のリンク検証は、それぞれの条件を満たす必要がある。WAFによるchallengeとアプリのTurnstileは独立して扱う
-- 本人向けWeb検証APIの成功・失敗応答には、`Cache-Control: no-store`と`Pragma: no-cache`を付ける
+[Cloudflare Rate Limitingのプラン別設定](https://developers.cloudflare.com/waf/rate-limiting-rules/parameters/)を確認して設定する。
 
 ## 操作の認可
 
@@ -554,7 +576,7 @@ sequenceDiagram
 
 | 画面名 | 扱う機能 |
 | --- | --- |
-| 開発者向け | 自分が登録する[OAuthクライアントの設定](#oauthクライアント管理)。アプリの登録・変更・削除と、Client ID・Client Secretの管理 |
+| 開発者向け | 自分が登録する[OAuthクライアントの設定](#oauthクライアント管理)、認証情報の管理、OpenAPIによるAccounts APIとBetter Auth APIのドキュメント |
 | 設定 | [Accountsの表示名](#accountsプロフィール)、[JSON出力・復元](#jsonによるバックアップと移行)、[退会](#accountsユーザーの退会) |
 | アカウント連携 | [外部アカウントの追加・解除](#所有権と紐付け)、[Web URLの登録・検証・結果確認](#webページの検証仕様)、[一般公開と連携先サービスごとの公開設定](#公開設定) |
 
@@ -563,8 +585,8 @@ sequenceDiagram
 - 「設定」画面では、表示名を編集して「保存」ボタンを押すと変更を反映する。JSON出力・復元・退会は、それぞれ専用のボタンから実行する
 - 「アカウント連携」画面で、紐付ける外部アカウントと、その外部アカウントをどの連携先サービスへ公開するかをまとめて管理する。連携先サービスはOAuthクライアント単位で扱う
 - 利用側サービスからAccountsへの連携を開始した場合も、この画面の通常の一覧表で提供対象を選択する。今回の連携先の名前と利用目的を確認できるようにし、その連携先への情報提供同意と公開設定を編集・保存した後、保存した提供内容に同意して元のサービスへ戻る操作へ進む。戻り先と本人確認は[クライアント認証と権限](#クライアント認証と権限)に従う
-- 外部アカウントの追加は「アカウントを追加」ボタンから開始する。ボタンを押すと「Google」「GitHub」「ORCID」「WebページのURL」を選べ、選択した方法の追加手続きへ進む
-- 「WebページのURL」を選ぶと、URLの入力・登録、外部ページへ設置する本人のAccounts公開プロフィールリンクの表示・コピー、本人によるリンク設置、「検証する」の順に案内する。URL登録後もそのまま案内を続け、本人が「検証する」を押した時点で[Webページの検証](#webページの検証仕様)を実行する
+- 外部URLの追加は単一のURL入力欄から開始する。登録のみで未検証として保存でき、登録・検証を選んだ場合は公開証拠の確認まで進める。詳細は[URL登録・検証仕様](verify-url.ja.md)に従う
+- Google・GitHub・ORCIDのOAuthによる追加連携も用意する。既存の外部アカウントには証明方法を追加でき、各方法の状態をバッジとテキストで表示する
 - 同画面では、OAuthクライアントごとに「Pointsへの提供に同意する」などの同意のON・OFFを設定できる
 - 外部アカウントを行、一般公開と各連携先サービス（OAuthクライアント）を列にした一覧表を表示する。同じ外部サービスの複数アカウントも、それぞれ別の行に表示する
 - 各行と公開先の列が交わるセルのチェックボックスで、その外部アカウントを公開するか選択する。連携先への情報提供同意は、外部アカウント別の公開チェックとは別に操作できる
@@ -590,8 +612,9 @@ sequenceDiagram
 | 対象 | 項目 |
 | --- | --- |
 | 本人向けの外部アカウント一覧 | 外部サービス名、取得できる表示名、固有ID・URL、連携日時、検証方法・検証日時・検証結果。OAuthのメールアドレスは複数アカウントを見分ける補助情報として扱い、検証失敗の詳細も本人向けに表示する |
-| 一般公開・OAuthクライアント向けのOAuthアカウント | 外部サービス名、固有ID、取得できる表示名 |
-| 一般公開・OAuthクライアント向けのWebページ | 確認済みURL、検証方法、検証日時 |
+| 一般公開・OAuthクライアント向け | 外部サービス名、取得できる表示名、固有ID・ユーザー名・URL、連携日時、検証方法ごとの検証日時・検証結果。取得していない項目は`null`または空配列とする |
+
+証明方法は`verifications`配列で複数提供し、OAuth・リンク検証をそれぞれのバッジで示す。成功・未検証・失敗・判断不能などを区別し、詳細な失敗理由は本人画面で表示する。未検証登録の公開範囲は[未決事項](#未決事項)で確定する。
 
 一般公開とOAuthクライアントへの提供には共通の項目を用い、[公開設定](#公開設定)で対象を選択する。APIのキー・型は[APIの具体案](#apiの具体案)、本人向けJSON出力の項目は[JSON形式](#json形式)に従う。
 
@@ -614,42 +637,37 @@ sequenceDiagram
   - 同じ正規化URL、または同じ外部サービス名と固有IDの項目が複数ある場合、その公開設定が食い違っていないこと
 - 本人がバックアップJSONファイルを選択し、「復元する」ボタンを押して復元を開始する。バックエンドで本人の権限・必須項目・Web URLの上限などの復元条件を検査し、条件を満たす場合は復元を実行する。画面には復元の成功・失敗と結果を表示する
 - 復元操作には、[操作の認可](#操作の認可)の条件を適用する
-- バックアップの公開設定に含まれるOAuthクライアントが復元時には削除済みの場合は、そのクライアントへの提供設定を反映対象から外し、プロフィールと存在するクライアントの設定など、ほかの復元対象を通常の復元条件に従って反映する。反映対象から外した設定があることを復元結果に表示する
+- バックアップに含まれるClient IDごとの情報提供同意・公開設定を、その値のまま復元する。現在登録されているクライアントの有無にかかわらず設定を保持する。情報提供の実行時には有効なOAuthクライアントとしての認証を確認する。クライアント本体・鍵・Secretの設定は「開発者向け」画面で管理する
 - バックアップに含まれ、復元時点で本人へ証明済みとして紐付いている外部アカウントは、現在の証明済み状態・連携日時・検証日時を維持し、公開設定をバックアップの値に戻す。バックアップ取得後に一度解除し、同じ本人が再証明して再連携済みの場合も、この扱いを適用する
 - バックアップに含まれず、取得後に追加した外部アカウントは、復元時の紐付け・証明状態・公開設定を維持する
 - バックアップに含まれていないOAuthクライアントについては、復元時の情報提供同意と、そのクライアントに対する各外部アカウントの公開設定を維持する。バックアップに収録された外部アカウントについても、そのクライアント向けの公開設定は復元時の状態を維持する
 - 本サービスでのバックアップ復元では、現在の登録URLと取り込む登録候補を正規化後に重複排除し、保存前にWeb URLの合計が150件以内であることを確認する。上限を超える場合は取込全体を実行前に止め、現在のデータを維持したまま上限超過を知らせる。本人がURLを整理してからやり直せるようにする
-- 同じAccountsサービス内の同じAccountsユーザーへ復元するとき、バックアップに含まれ、復元時点で本人に紐付いていない外部アカウントは、本人向けの登録候補として取り込む。本人が連携を解除した場合と、Web URLの再証明によって別ユーザーへ紐付け先が更新された場合を含む
+- 同じAccountsサービス内の同じAccountsユーザーへ復元するとき、バックアップに含まれ、復元時点で本人に紐付いていない外部アカウントは、本人向けの登録候補として取り込む。本人が連携を解除した場合と、外部アカウントの再証明によって別ユーザーへ紐付け先が更新された場合を含む
 - 登録候補は、本人がOAuth認証またはWebページのリンク検証で所有権を改めて証明し、現在の紐付けの一意性を確認してから有効にする。復元した公開設定は、紐付けが有効になった後の照合・一般公開・OAuthクライアントへの提供に適用する
 
 ### JSON形式
 
-出力・復元するJSONは次の項目で構成する。各オブジェクトは、種類ごとに定めた項目をすべて含める。値が`null`の場合や配列が空の場合も、その項目を含める。項目の検査と復元時の扱いは、本節の条件に従う。
+各オブジェクトは定義された項目を含め、未取得は`null`、未登録の配列は空配列で表す。本人向けの設定と、公開・クライアント向けにも提供する外部アカウント情報を次のように組み合わせる。
 
-| 対象 | 項目と型 | 意味・値の条件 |
+| 対象 | 項目と型 | 意味 |
 | --- | --- | --- |
-| 最上位 | `schemaVersion: 1`、`accountsOrigin: string`、`accountsUserId: string`、`exportedAt: string`、`profile: object`、`clientConsents: array`、`externalAccounts: array` | 形式の版、出力元のorigin・本人の固定ID・出力日時。`externalAccounts`はOAuthとWebの共通配列 |
+| 最上位 | `schemaVersion: 1`、`accountsOrigin: string`、`accountsUserId: string`、`exportedAt: string`、`profile: object`、`clientConsents: array`、`externalAccounts: array` | 形式の版、出力元と本人、UTCの出力日時、出力内容 |
 | `profile` | `displayName: string` | 本人が設定したAccountsの表示名 |
-| `clientConsents`の各要素 | `clientId: string`、`displayName: string`、`consented: boolean` | 提供先のClient ID、出力時の表示名、情報提供同意。表示名は内容確認のために記録する |
-| `externalAccounts`の各要素 | `type: "provider_account" \| "url"`、`metadata: object`、`isPublic: boolean`、`clientVisibility: array` | 種類、外部アカウント情報、Accounts一般公開、クライアント別公開。公開フラグと種類は`metadata`の外に置く |
-| OAuthアカウントの`metadata`の識別項目 | `provider: string`、`accountId: string` | 外部サービス名`google`・`github`・`orcid`とサービスの固有ID |
-| Webページの`metadata`の識別項目 | `url: string` | 登録したWeb URL |
-| 共通`metadata`の表示名 | `displayName: string \| null` | 取得済みの外部表示名。未取得は`null` |
-| 共通`metadata`の日時 | `linkedAt: string \| null`、`verifiedAt: string \| null` | 連携成立日時と検証成功日時。一度も成立せず日時が存在しない場合は`null` |
-| 共通`metadata`の検証方法 | `verificationMethod: "oauth" \| "bidirectional_link" \| null` | 成功したOAuth・OIDC認証は`oauth`、Webリンク検証は`bidirectional_link`。成功した記録がなければ`null` |
-| 共通`metadata`の証明状態 | `verificationStatus: "verified" \| "unverified"` | 出力時点で本人へ有効に紐付く証明済みアカウントは`verified`。検証待ち・失敗・再証明待ちの登録候補は`unverified` |
-| `clientVisibility`の各要素 | `clientId: string`、`isPublic: boolean` | バックアップ対象の各クライアントへの公開を`true`、非公開を`false`として明示する |
+| `clientConsents`の各要素 | `clientId: string`、`displayName: string`、`consented: boolean` | 提供先Client ID、出力時の表示名、情報提供同意 |
+| `externalAccounts`の各要素 | `metadata: object`、`isPublic: boolean`、`clientVisibility: array` | 外部アカウント情報、一般公開、クライアント別の公開設定 |
+| `metadata` | [APIの外部アカウント項目](#apiの具体案)と同じ`service`・`displayName`・`identifiers`・`linkedAt`・`verificationStatus`・`verifications` | 識別子・表示情報・出力時点の証明状態と方法別の結果。証明日時は移行先・復元時の再証明用の参考情報 |
+| `clientVisibility`の各要素 | `clientId: string`、`isPublic: boolean` | Client IDごとの公開を`true`、非公開を`false`で明示 |
 
-日時はUTCのRFC 3339形式、IDは不変の文字列とする。一般公開の`isPublic`も公開を`true`、非公開を`false`とする。
+同じ外部アカウントを判定する際は、識別子の種類とサービス・固有ID・正規化URLなどを照合する。バックアップの証明情報は、復元時の現在の有効な証明と区別して扱う。本人に現在紐付く証明を維持するか、再証明の登録候補へ戻すかは[復元の条件](#jsonによるバックアップと移行)に従う。
 
-以下は、証明済みのGoogleアカウントと未証明のWebページを含む出力例とする。日時はUTCのRFC 3339形式で記録する。
+以下は、OAuthとリンクで証明したGitHubアカウントと、未検証のWebページの例とする。
 
 ```json
 {
   "schemaVersion": 1,
   "accountsOrigin": "https://accounts.freeism.app",
   "accountsUserId": "sample-user",
-  "exportedAt": "2026-09-15T00:00:00Z",
+  "exportedAt": "2026-09-23T00:00:00Z",
   "profile": {
     "displayName": "サンプル"
   },
@@ -662,34 +680,99 @@ sequenceDiagram
   ],
   "externalAccounts": [
     {
-      "type": "provider_account",
       "metadata": {
-        "provider": "google",
-        "accountId": "123456789",
-        "displayName": "サンプル",
+        "service": "github",
+        "displayName": "Alice",
+        "identifiers": [
+          {
+            "type": "provider_account",
+            "provider": "github",
+            "accountId": "123456789"
+          },
+          {
+            "type": "provider_username",
+            "provider": "github",
+            "username": "alice"
+          },
+          {
+            "type": "url",
+            "url": "https://github.com/alice"
+          }
+        ],
         "linkedAt": "2026-09-01T00:00:00Z",
-        "verifiedAt": "2026-09-01T00:00:00Z",
-        "verificationMethod": "oauth",
-        "verificationStatus": "verified"
+        "verificationStatus": "verified",
+        "verifications": [
+          {
+            "method": "oauth",
+            "identifiers": [
+              {
+                "type": "provider_account",
+                "provider": "github",
+                "accountId": "123456789"
+              },
+              {
+                "type": "provider_username",
+                "provider": "github",
+                "username": "alice"
+              },
+              {
+                "type": "url",
+                "url": "https://github.com/alice"
+              }
+            ],
+            "verifiedAt": "2026-09-01T00:00:00Z",
+            "checkedAt": "2026-09-01T00:00:00Z",
+            "result": "verified",
+            "evidenceUrl": null
+          },
+          {
+            "method": "bidirectional_link",
+            "identifiers": [
+              {
+                "type": "url",
+                "url": "https://github.com/alice"
+              },
+              {
+                "type": "provider_username",
+                "provider": "github",
+                "username": "alice"
+              }
+            ],
+            "verifiedAt": "2026-09-02T00:00:00Z",
+            "checkedAt": "2026-09-02T00:00:00Z",
+            "result": "verified",
+            "evidenceUrl": "https://github.com/alice"
+          }
+        ]
       },
-      "isPublic": false,
+      "isPublic": true,
       "clientVisibility": [
-        {"clientId": "points-client", "isPublic": true}
+        {
+          "clientId": "points-client",
+          "isPublic": true
+        }
       ]
     },
     {
-      "type": "url",
       "metadata": {
-        "url": "https://example.org/about/",
+        "service": null,
         "displayName": null,
+        "identifiers": [
+          {
+            "type": "url",
+            "url": "https://example.org/about/"
+          }
+        ],
         "linkedAt": null,
-        "verifiedAt": null,
-        "verificationMethod": null,
-        "verificationStatus": "unverified"
+        "verificationStatus": "unverified",
+        "verifications": []
       },
       "isPublic": false,
       "clientVisibility": [
-        {"clientId": "points-client", "isPublic": false}
+        {
+          "clientId": "points-client",
+          "isPublic": false
+        }
       ]
     }
   ]
@@ -698,185 +781,107 @@ sequenceDiagram
 
 ## 受け入れ条件
 
-各機能の判定条件・数値・入出力形式は、参照先の仕様を正とする。実装時は次の観点で正常系・異常系・境界値を確認する。
+各機能の条件・数値・入出力形式は参照先を正とし、実装時に次の正常系・異常系・境界値を確認する。
 
-| 対象 | 仕様と検証観点 |
+| 対象 | 検証観点 |
 | --- | --- |
-| プロフィール・ログイン | [プロフィール](#accountsプロフィール)の入力条件、[管理画面](#管理画面と監査)の表示名の保存操作、[登録とログイン](#登録とログイン)の登録確認・確認待ちの期限内と期限切れ・各Provider・期限更新・最後のログイン手段 |
-| 所有権・連携 | [管理画面](#管理画面と監査)の追加方法の選択、[所有権と紐付け](#所有権と紐付け)の競合時を含む一意性・移動、[外部認証情報](#外部認証情報)の明示連携・表示名更新・暗号化・失効確認と再試行 |
-| Webページ検証 | [URL正規化](#url正規化)の同値・非同値、[証明リンク](#証明に使用するリンク)の候補優先・本人一致・複数主体・紐付け更新、[取得](#外部ページの取得)の接続・redirect・容量・時間・MIME・cache制約 |
-| 検証回数・Turnstile | [検証要求の制御](#検証要求の制御)の上限・日付切替・再送を含む実行ごとの計数・hostname/action・期限・再使用・応答cache制御 |
-| 情報提供 | [公開設定](#公開設定)の一般公開と各クライアントの独立性・現在の許可、[管理画面](#管理画面と監査)の一括選択・画面全体の保存・同意ON時の保存条件・拒否時の状態維持、[提供項目](#表示提供する情報) |
-| OAuthクライアント | [管理画面](#管理画面と監査)のクライアント一覧・新規登録・選択した詳細の編集と一括保存、[クライアント管理](#oauthクライアント管理)の入力・管理権限・リダイレクトURL・Secret表示と再発行・既存トークン失効 |
-| 認可・API | [管理画面](#管理画面と監査)の連携先からの開始・公開設定の保存・同意後の復帰、[クライアント認証と権限](#クライアント認証と権限)の初回本人確認と継続利用、[照合手順](#入力ごとの照合手順)の現在の保存済み情報による判定、[API契約](#apiの具体案)の各状態・入出力・空配列・混在入力・要求全体のエラー・上限 |
-| 本人操作・退会・ログ | [操作の認可](#操作の認可)、[退会](#accountsユーザーの退会)の確認・削除・情報提供終了、[監査](#管理画面と監査)の記録項目と個人情報・秘密情報の扱い |
-| JSON出力・復元 | [バックアップと移行](#jsonによるバックアップと移行)の対象・権限・容量・形式検査・全体拒否・設定優先・現在状態維持・再証明候補・削除済みクライアント、[JSON形式](#json形式)の項目・型・null |
-| 画面共通 | [管理画面と監査](#管理画面と監査)の3画面への機能配置・未保存時の画面移動と編集対象切り替えの確認・言語初期選択・各状態・キーボード・スクリーンリーダー |
+| プロフィール・ログイン | 表示名、匿名での公開HTML閲覧、各Provider、セッション、前回ログイン方法、同一ブラウザーのユーザー切り替え、確定する新規登録の画面遷移 |
+| 所有権・連携 | 複数アカウントと複数証明、識別子ごとの証明範囲、未検証登録、OAuth上書き移動と元ユーザーの扱い、本人による解除 |
+| URL検証 | [URL登録・検証仕様](verify-url.ja.md)の受け入れ条件 |
+| 情報提供 | 一般公開・各クライアントの独立性、現在の許可、一括選択、保存条件、複数証明のバッジと提供項目 |
+| OAuthクライアント | 5件の登録上限、管理権限、redirect URI、選定した認証方式の鍵またはSecret管理、標準の有効期限 |
+| 認可・API | Authorization Codeの本人確認とCCでの継続利用、JWT・scope・resource、選定した送信者検証、QUERYの実経路、HTTP 400の部分不正、要求全体エラー・空配列・件数・容量 |
+| JSON出力・復元 | 現在の証明保持、候補の再証明、複数識別子・証明の往復、登録先が現在存在しないClient IDも含めた設定の復元、150件のURL上限と全体保存 |
+| 管理画面 | 3画面への配置、未保存時の確認、日英表示、キーボード・スクリーンリーダー、OpenAPI・OSSライセンスの表示 |
+| 基盤・運用 | Previewの環境分離、選定したテスト環境保護、共有Valibotとバックエンド検証、UTC保存、ログ、標準レート制限、キャッシュ適用範囲 |
 
 ## テーブル構造の設計案
 
-確定した機能・画面要件を保存構造へ対応付ける設計案とする。独自テーブルはD1の`snake_case`名を使い、Better Authのモデル名・標準項目は採用バージョンの生成schemaに対応付ける。以下の列・関連・制約をschema作成の入力とし、実サービスとの接続とmigrationの検証は[実装計画](../../implementation-plan/v0.1.md)で管理する。
+本節は要件に対応する論理モデルとする。[未決事項](#未決事項)の画面・権限・証明範囲を確定した後に、列・関連・一意制約・索引を具体化する。認証テーブルは採用するBetter Auth構成から生成し、Drizzleのschemaへ組み合わせる。
 
 ### 共通の保存形式
 
-| 対象 | 保存形式 |
-| --- | --- |
-| 独自ID・外部ID・URL | `TEXT`。外部IDは文字列として保持する。文字列の照合は`BINARY`を使用し、URLは共通の正規化後に保存する |
-| AccountsユーザーID | `ausr_`に暗号学的乱数のURL-safe文字列を付けた固定ID。乱数部分は128bit以上とし、登録確定時にバックエンドで生成する |
-| 外部アカウント登録行ID・登録確認待ちID | 同じ生成方法で、それぞれ`ext_`・`areg_`のprefixを付ける |
-| 日時 | UTCのUnix epoch millisecondsを`INTEGER`に保存する。API・JSON出力ではRFC 3339文字列へ変換する |
-| 真偽値 | `INTEGER NOT NULL`とし、`CHECK (値 IN (0, 1))`を付ける |
-| 日次回数の対象日 | バックエンドがUTCで計算した`YYYY-MM-DD`を`TEXT`に保存する |
-| 秘密情報 | 暗号文または用途に応じた検証用ハッシュを`TEXT`に保存する。暗号鍵は環境別のWorker Secretに置く |
-
-主キー・外部キー・種別・状態・作成日時・更新日時は、各表で必要な列に`NOT NULL`を付ける。未取得の表示名・メール・未成立の連携日時などは`NULL`とし、意味ごとに下記の制約を適用する。
+- すべての保存日時をUTCへ統一する。D1ではUnix epoch millisecondsを`INTEGER`、API・JSONではUTCのRFC 3339文字列として扱う
+- AccountsユーザーIDは、`ausr_`に128bit以上の暗号学的乱数のURL-safe文字列を付けた固定IDとする。外部ID・URLも文字列として保存する
+- 独自テーブル名は`snake_case`とし、必要な主キー・外部キー・一意制約を設ける。未取得の表示名などは`NULL`で表す
+- 秘密情報はBetter Auth標準の暗号化・ハッシュ化を用い、鍵を環境別のWorker Secretで管理する
 
 ### 認証ライブラリとの分担
 
-| モデル | 保存する情報・対応付け |
+| 標準モデル | 保存内容 |
 | --- | --- |
-| Better Auth `user` | `id`を固定AccountsユーザーID、`name`を本人が設定した表示名として使用する。作成・更新日時を保持する |
-| Better Auth `session` | 本人のログインセッション、期限、利用時の更新。`userId`から本人へ関連付ける |
-| Better Auth `account` | 証明済みOAuthアカウントの`providerId`・`accountId`・`userId`と暗号化した認証情報。OAuthによる本人確認と紐付けの正本とする |
-| Better Auth `verification`・`rateLimit` | 認証手順の期限付き情報と認証endpointの頻度制御 |
-| OAuth Provider `oauthClient` | `clientId`、管理者の`userId`、アプリ名、紹介URL、説明文、redirect URI配列、Secretの検証用ハッシュ、有効性。説明文は管理下metadataの固定項目へ対応付ける |
-| OAuth Providerの認可・トークンモデル | プロトコル上のscope同意、不透明なAccess Token・Refresh Tokenと期限・失効状態。Accountsの情報提供同意は後述の独自表を正本とする |
-| OAuth Providerの資源モデル | Accounts APIのaudience、scopeとクライアントの利用可能な資源 |
-| JWTの署名鍵モデル | JWTプラグインの`jwks`など、採用構成で必要な署名鍵情報。秘密鍵は暗号化してバックエンドで扱う |
+| `user` | Accounts固定ID、表示名、作成・更新日時、AdminプラグインのAccounts内のrole |
+| `session` | 本人のログインセッション、期限、更新。Multi Sessionの切替も標準機能を利用 |
+| `account` | `providerId`・`accountId`・`userId`、暗号化した外部OAuth token |
+| `verification` | 認証フローのstateなど標準機能に必要な期限付き情報 |
+| `rateLimit` | 認証APIの標準レート制限。`id`・一意な`key`・`count`・`lastRequest` |
+| `oauthClient`とOAuth Providerモデル | Client ID、所有者、アプリ情報、redirect URI、認証方式と公開鍵またはSecretハッシュ、認可・scope・resourceに必要な標準情報 |
+| `jwks` | Accountsが発行するJWTの署名鍵 |
 
-`account`には`(providerId, accountId)`の一意制約と`userId`の索引を設ける。同じユーザーが同じProviderの別アカウントを保持できるよう、Providerとユーザーの組み合わせは複数行を許容する。公開プロフィールと本人が設定する表示名は`user`を参照する。
+Better Auth 1.7系安定版と対応するプラグイン・CLIをそろえる。JWTの発行・検証、クライアント認証、鍵管理、保存トークンの扱いは[OAuth Provider](https://better-auth.com/docs/plugins/oauth-provider)と[JWT](https://better-auth.com/docs/plugins/jwt)の標準機能へ接続する。
 
-v0.1のクライアント設定は、grant typeを`authorization_code`・`client_credentials`、scopeを初回本人確認の`openid`と資源API用の`identities:read`へ対応付ける。
+`account`の`(providerId, accountId)`は全体で一意とし、`userId`に索引を設ける。同じ本人・Providerへ複数の外部アカウントを関連付けられる。標準の`unlinkAccount`などが受け取る`accountId`はBetter Authの行IDと外部サービスの固有IDを区別して使用する。[1.7移行ガイド](https://better-auth.com/docs/guides/1-7-upgrade-guide)
 
-OAuthクライアントには独自の`token_version`（初期値1）を追加する。クライアント用JWTの発行時の版を署名対象のclaimへ含め、署名などの検証後に現在のクライアントの版と一致することを確認する。Secret再発行は、Secretの更新・版の加算・保存済みAccess TokenとRefresh Tokenの失効を同じ保存単位で行う。発行処理はクライアント認証時の版を引き継ぎ、再発行前に開始した処理から発行するトークンも旧版として判定できるようにする。
+### 外部認証と登録の接続
 
-`token_version`は`INTEGER NOT NULL DEFAULT 1 CHECK (token_version >= 1)`とする。Better Authプラグインの`schema.oauthClient.fields`へ、サーバーだけが設定できる`tokenVersion`を追加して対応付ける。JWTの追加claimはOAuth Providerの`extensions[].claims.accessToken`で、認証に使った`client.tokenVersion`から設定する。
-
-初回連携のAuthorization Codeでは、要求scopeの`openid`に対応するID Tokenとユーザー用Access Tokenを扱う。採用構成では、このAccess Tokenは標準の不透明トークンとして保存される。発行時の`extensions[].claims.idToken`で認証済みクライアントの版を要求内のcontextへ保持し、token endpointのafter hookで、保存完了後の現在版と照合する。不一致なら今回保存したAccess Tokenを削除してOAuthの`invalid_grant`を返す。これにより、Secret再発行前に始まった要求が後から保存するトークンも、発行結果を返す前に無効化する。
-
-クライアント用JWTの発行では、`resource`に`{accountsOrigin}/api/v1`を指定し、同じ値をAccounts資源APIの`aud`として検証する。OAuth Providerへこの資源を登録し、クライアントが利用する資源・scopeを対応付ける。`iss`はOAuth Providerのdiscoveryで定める発行元と完全一致させる。
-
-標準モデルと拡張方法は[Database](https://better-auth.com/docs/concepts/database)、クライアント・Secretの保存とJWTの扱いは[OAuth Provider](https://better-auth.com/docs/plugins/oauth-provider)、鍵の保存は[JWT](https://better-auth.com/docs/plugins/jwt)に従って採用バージョンで確認する。
-
-### 外部認証と登録確認の接続
-
-Better Authの認証開始とProvider処理を再利用し、callbackの保存処理をAccounts用プラグインへ接続する。Google・GitHubとGeneric OAuthで登録するORCIDについて、検証した外部サービス名・固有IDから同じ保存処理へ進む。
-
-1. 認証開始時のstateと本人のブラウザ操作を照合し、Providerに対応したcode交換・PKCE・issuer・nonceなどの検査を完了する。
-2. 検証済みの外部サービス名と固有IDで`account`を検索する。ログイン目的で既存の紐付けがあれば、そのユーザーのログインへ進む。追加連携では開始時と完了時のAccounts本人を確認し、別ユーザーに紐付け済みなら追加を拒否して、[所有権と紐付け](#所有権と紐付け)に従って元のユーザーでの解除を案内する。
-3. 新規登録の場合は`pending_registrations`へ認証結果を保存し、登録確認画面へ進む。
-4. 本人の登録確定操作で、確認待ちの期限・ブラウザとの対応・外部IDの一意性を確認する。`user`・`account`・`external_accounts`の作成と確認待ち情報の消費を一括確定し、本人のセッションを発行する。
-
-| テーブル | 列・制約 |
-| --- | --- |
-| `pending_registrations` | `id TEXT PRIMARY KEY NOT NULL`、`browser_token_hash TEXT NOT NULL UNIQUE`、`provider_id TEXT NOT NULL`、`provider_account_id TEXT NOT NULL`、`encrypted_proof TEXT NOT NULL`、`verified_at INTEGER NOT NULL`、`expires_at INTEGER NOT NULL` |
-
-確認待ちの照合用乱数はHttpOnly・SecureのCookieで保持し、DBにはそのハッシュを保存する。`encrypted_proof`には検証済みの認証情報、取得した表示情報、検査済みの認証後の戻り先を暗号化して保存する。有効期限は[登録とログイン](#登録とログイン)に従う。確認待ちは外部IDの所有権を占有せず、登録確定時の認証行の一意制約で判定する。消費済みの確認待ち情報は登録確定とともに削除する。
-
-Better Authの必須`user.email`には、`{accountsUserId}@accounts.invalid`の内部値を保存し、`emailVerified`は`false`とする。実メールは外部アカウントの本人向け情報として保持し、本人識別は検証済みのProviderと固有IDで行う。内部値を含む標準モデルの情報は、[表示・提供する情報](#表示提供する情報)の許可項目へ変換して返す。
-
-callbackの接続には[Better Authのbefore hook](https://better-auth.com/docs/concepts/hooks)と公開されたstate・Provider処理を使う。Accounts用プラグインの登録確定endpointでは、保存後に`ctx.context.internalAdapter.createSession(user.id)`と`setSessionCookie()`へ接続する。標準の認証開始APIと、Accounts用の保存・出力処理を組み合わせて使用する。
+- Google・GitHub・ORCIDの認証、state・PKCE、OIDCのissuer・nonceの検査はBetter Authの標準フローへ接続する。ORCIDはGeneric OAuthを用いる
+- 登録確認・初回設定は[登録とログイン](#登録とログイン)で確定する順序に従い、標準のユーザー・セッション作成を利用する
+- メールアドレスを返さないProviderには、[Better Authの案内](https://better-auth.com/docs/concepts/oauth#handling-providers-without-email)に従って内部用の一意な値を対応付ける。本人識別はProviderと固有IDで行い、外部への情報提供は本仕様の項目から組み立てる
+- 通常の追加連携は`linkSocial()`、解除は`unlinkAccount()`へ接続する。別のAccountsユーザーに紐付くOAuthアカウントの上書きは、標準APIが他ユーザーの所有を拒否するため、今回認証した外部主体と移動先本人を確認するAccounts固有の移動処理として実装する
+- 移動の確定では、認証行と該当する外部識別子の現在の所有者を一括更新し、以前の所有者の提供設定を新しい所有者へ引き継ぐことなく、新しい所有者の設定を適用する。元ユーザーの最後のログイン手段と既存セッションの扱いは未決事項に従う
 
 ### 外部アカウントと公開設定
 
-| テーブル | 保存内容 | キー・役割 |
-| --- | --- | --- |
-| `external_accounts` | 識別情報・証明状態・本人向け情報・一般公開。列の型と条件は下表で定める | 本人が管理する外部アカウントの登録行。証明済みと登録候補を扱う。主キーは`id` |
-| `client_consents` | `user_id`、`client_id`、`consented`、`updated_at` | 主キーは`(user_id, client_id)`。利用側への情報提供同意を保持する |
-| `external_account_visibility` | `external_account_id`、`client_id`、`is_public`、`updated_at` | 主キーは`(external_account_id, client_id)`。本人の各登録行のクライアント別公開選択を保持する。保存対象はセッション本人の登録行であることを検査する |
-
-識別列は、`type = provider_account`ならProviderと固有ID、`type = url`なら正規化URLを必須とし、それ以外の識別列を`NULL`にする。`state`は`candidate`または`verified`とする。`email`は本人向けの補助情報であり、提供・exportは[表示・提供する情報](#表示提供する情報)と[JSON形式](#json形式)の項目から組み立てる。
-
-| `external_accounts`の列 | 型・値の条件 |
+| 独自モデル | 役割 |
 | --- | --- |
-| `id`、`user_id` | `TEXT NOT NULL`。それぞれ登録行の主キー、`user.id`への外部キー |
-| `type`、`state` | `TEXT NOT NULL`。上記の列挙値をCHECKする |
-| `provider_id`、`provider_account_id`、`normalized_url`、`auth_account_id` | `TEXT`。種別・状態に応じた必須・NULL条件をCHECKする。Providerは`google`・`github`・`orcid`、固有IDと正規化URLは空文字を拒否する |
-| `display_name`、`email` | `TEXT`、未取得は`NULL` |
-| `linked_at`、`verified_at` | `INTEGER`。証明済み行では両方を必須とする |
-| `verification_method` | `TEXT`。OAuthでは`oauth`、Webでは`bidirectional_link`。候補の未取得値は`NULL` |
-| `is_public` | `INTEGER NOT NULL DEFAULT 0`、値は0・1 |
-| `last_verification_result`、`last_verification_error`、`last_verification_at` | 直近検証の成否（`success`・`failure`）、エラー分類、実行日時。順に`TEXT`・`TEXT`・`INTEGER`。未実行は`NULL` |
-| `created_at`、`updated_at` | `INTEGER NOT NULL` |
+| `external_accounts` | 本人が登録した外部アカウントの単位。所有者、取得したサービス名・表示名、連携日時、一般公開設定を保持する |
+| `external_identifiers` | アカウントに属するURL・サービス固有ID・ユーザー名。それぞれの型、サービスやorigin、正規化した値を保持する |
+| `external_account_verifications` | OAuth・リンクなどの方法ごとの検証結果、確認した識別子との関連、成功日時・直近結果・公開証拠URL・必要な認証行との関連 |
+| `client_consents` | `(user_id, client_id)`ごとの情報提供同意と、復元・出力時に使う提供先の表示名 |
+| `external_account_visibility` | `(external_account_id, client_id)`ごとの公開選択 |
 
-同意・個別公開表のID列と`updated_at`は必須とする。`consented`・`is_public`は0・1を保存し、初期値を0とする。登録行のユーザー・識別種別・識別情報は、その登録の固定属性として扱う。別の識別情報への変更は、新しい登録行の作成へ対応付ける。
+同じ外部アカウントに複数の証明方法を関連付ける。証明した識別子とその範囲を保持し、追加した別URLの証明状態を識別できるようにする。固有IDと変更可能なユーザー名は別の識別子として保存する。
 
-| 制約・索引 | 目的 |
-| --- | --- |
-| OAuth登録行の`(user_id, provider_id, provider_account_id)`を一意にする | 本人の同じアカウントを、復元候補と証明済みで重複登録することを防ぐ |
-| Web登録行の`(user_id, normalized_url)`を一意にする | 本人の同じ正規化URLを1行にまとめ、候補を含む150件の計数に使う |
-| `state = verified`のWeb登録行だけ、`normalized_url`を全体で一意にする | URLの有効な所有者を1人に保ち、別ユーザーの登録候補は共存できるようにする |
-| OAuth登録行の`auth_account_id`を一意な外部キーにする | 証明済みOAuthアカウントの認証行と登録行を1対1で結ぶ |
-| `(auth_account_id, user_id, provider_id, provider_account_id)`から認証行の対応する4列へ複合外部キーを設ける | 別人や別アカウントの認証行を証明の根拠として参照することを防ぐ。参照先の4列にも一意制約を設ける |
-| `external_accounts(user_id, state)`、`external_account_visibility(client_id)`、`client_consents(client_id)`の索引 | 本人の一覧、公開対象の抽出、クライアント削除時の関連処理に使う |
+有効な各識別子の現在の所有者を最大1ユーザーに保つ。未検証の登録候補は、本人の管理情報として保持する。登録URL数は候補を含め、本人ごとの正規化URLを重複排除して150件以内にする。証明後の統合・移動では、検証した識別子の範囲に合わせて更新する。
 
-OAuthの`verified`行は対応する`account`行を必須とし、`candidate`行の`auth_account_id`は`NULL`とする。OAuthの現在の所有者を返す際も対応する認証行との一致を確認する。登録候補の保存は、本人認証を行う`account`行の作成とは独立して行う。
-
-URL上限は`external_accounts`の追加後のtriggerで、同じユーザーの`type = url`の行数を確認する。150件を超えた場合は`RAISE(ABORT, 'WEB_URL_LIMIT')`で失敗にする。既存URLへの設定の復元は同一行へのUPSERTで行い、上限に達していても既存行を更新できるようにする。
-
-`account`の削除前のtriggerは、親の`user`が存在し、残るログイン可能な認証行がなくなる場合に`RAISE(ABORT, 'LAST_LOGIN_ACCOUNT')`で失敗にする。通常の解除では外部tokenの失効に先立ってこの条件を確認し、DB削除時にも適用する。退会は親の`user`削除からcascadeさせる。
-
-`linked_at`・`verified_at`・`verification_method`は、候補ではバックアップ由来の参考情報を保持できる。証明状態は`state`と有効な認証・証明の対応から判定する。現在の証明が有効な行への復元ではその証明情報を保持し、候補の証明成功時は実際の証明結果で日時・方法を更新する。
-
-一般公開は登録行の`is_public`、クライアント別公開は`external_account_visibility.is_public`に保存する。設定がない組み合わせはOFFとして扱う。情報提供同意をOFFにしても個別の公開行を保持する。候補の設定は、証明済みへ移った後に[公開設定](#公開設定)の条件で有効になる。公開設定を本人の登録行へ結び付けることで、Web URLの紐付け先更新では新しい所有者が自分で設定した公開範囲を使用できる。
+公開・同意の設定がない組み合わせはOFFとする。Client IDごとの設定は、OAuthクライアント本体の登録状態と分けて保持し、バックアップの設定をそのまま復元できるようにする。API呼び出し時の有効なクライアント認証と、設定データの保存は別の条件とする。Client IDは新規登録ごとに生成する。
 
 ```mermaid
 erDiagram
     user ||--o{ account : authenticates
     user ||--o{ external_accounts : registers
-    account o|--o| external_accounts : proves_oauth
+    external_accounts ||--o{ external_identifiers : identifies
+    external_accounts ||--o{ external_account_verifications : verifies
     user ||--o{ oauthClient : manages
     user ||--o{ client_consents : consents
-    oauthClient ||--o{ client_consents : receives
     external_accounts ||--o{ external_account_visibility : selects
-    oauthClient ||--o{ external_account_visibility : receives
 ```
-
-### 検証操作の保存
-
-| テーブル | 主な列・キー | 用途 |
-| --- | --- | --- |
-| `web_verification_daily_usage` | 主キー`(user_id, utc_date)`。両列は`TEXT NOT NULL`、`attempt_count INTEGER NOT NULL`、値は1〜150。`user_id`は`user.id`を参照する | 日次の検証回数。残り回数の確認と加算を原子的に実行する |
-| `turnstile_token_uses` | `token_hash TEXT PRIMARY KEY NOT NULL`、`expires_at INTEGER NOT NULL` | 検証に成功したTurnstile tokenのSHA-256ハッシュと有効期限を保存する |
-
-検証実行を受け付ける際に、日次回数の上限確認と加算を原子的に行う。再送も新しい検証実行として受け付ける。外部ページを取得している間はDB更新のトランザクションを保持せず、取得・検証後に結果保存と紐付け変更をまとめて確定する。
-
-日次回数は、初回を1とするUPSERTで保存する。既存行の加算は`attempt_count < 150`を条件とし、`RETURNING`が0行なら上限として扱う。本人認証・入力検査・必要なTurnstileの検証を通過した要求について、外部ページ取得の開始前に加算する。
-
-本人の一覧に必要な直近の検証結果は`external_accounts`に保存し、登録行とともに管理する。
-
-これらは本人向け機能と検証制御に必要なデータであり、監査ログの出力先は[管理画面と監査](#管理画面と監査)のログ基盤とする。ユーザーに属するデータは退会時に削除する。
-
-期限付きの各表には`expires_at`、日次回数には`utc_date`の索引を設ける。期限切れの登録確認・認証state・Turnstileの記録と、過去日付の日次回数は、1時間ごとの清掃処理で削除する。有効性は要求処理中にも期限で判定する。清掃処理は1回1,000行までの削除を繰り返す。
 
 ### 読み取りと更新の単位
 
-| 操作 | データの読み取り・更新 |
-| --- | --- |
-| 一覧取得 | 本人とクライアント同意を確認し、証明済み登録行と個別公開設定を結合して全件返す |
-| URL・Providerと固有IDの照合 | 識別子の一意索引から現在の証明済み登録行を検索し、その所有者の同意と個別公開設定を確認する |
-| AccountsユーザーIDの照合 | `user`と`client_consents`を検索し、[入力ごとの条件](#入力ごとの照合手順)で返す |
-| 公開設定の保存 | 保存対象の同意・一般公開・個別公開を検査し、全体を一括保存する。通常の保存に必要な最低選択件数は保存処理で検査する |
-| Web URLの紐付け先更新 | 検証成功後、旧所有者の登録行・個別公開を削除し、申請者の登録行を証明済みにする処理を一括確定する。両者のクライアント同意は保持する |
-| OAuthの連携・解除 | 外部認証・失効の結果を確認し、認証行と登録行の作成・削除を整合させる。解除では残るログイン手段の条件も保存時に確認する |
-| 復元 | JSON全体を検査し、現在のデータと突き合わせ、候補・同意・公開設定・表示名を一括更新する |
-| 退会・クライアント削除 | ユーザー、本人の登録行、所有クライアントを起点に、関連する同意・個別公開・認証・トークン・本人向け操作データを削除する |
+- 一覧取得・照合は、保存済みの識別子・現在の証明済み紐付け・クライアント同意・個別公開設定を確認する
+- URLの取得と証明の確定を分け、ネットワーク待機後に結果と必要な紐付けの変更を保存する
+- 公開設定の保存、所有者の移動、JSON復元は必要な更新をD1の`batch()`で一括確定する。入力検証やDB更新が失敗した場合は全体を変更前の状態へ保つ
+- 復元は現在の有効な証明と、バックアップ由来の参考情報を区別して保存する。登録先が現在存在しないClient IDも設定データとして保持する
+- ユーザー退会時は本人と関連データを削除する。OAuthクライアント削除時はそのクライアントへの認証・提供を終了し、関連する設定の削除を行う。後日のバックアップ復元による設定の保存は[復元仕様](#jsonによるバックアップと移行)に従う
+- 一括照合と復元のSQLは[D1の制限](https://developers.cloudflare.com/d1/platform/limits/)内で分割し、必要な一括保存の原子性を維持する。索引は実際の検索条件に合わせて設ける
 
-ユーザー・登録行・クライアントとの外部キーには、上記の削除範囲に合わせて`ON DELETE CASCADE`を設定する。認証行を解除する順序と複合外部キーの関係は、ライブラリの保存処理に合わせて検証する。OAuth連携の解除では、外部tokenの失効確認をDB内の削除に先立って完了させる。
-
-複数行をまとめる更新にはD1の`batch()`を使用し、途中の失敗では全体をロールバックする。Web登録数、現在の所有者、最後のログイン手段は上記の一意制約・外部キー・triggerでも確認する。公開設定では、対象の所有者・証明済み状態・必要な選択件数を検査してから、対象行の外部キーを持つ公開設定を一括UPSERTする。要求が正当な場合だけ保存へ進め、SQLエラーで全体が戻ることを確認する。[D1のbatch](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)、[D1の外部キー](https://developers.cloudflare.com/d1/sql-api/foreign-keys/)
-
-現在の公開許可・失効状態の判定は、D1のprimaryから読み取る構成を基本とする。一括照合は、URL・AccountsユーザーIDを90件、Providerと固有IDを45件までの単位で検索し、入力順の結果へ戻す。クライアント認証や提供許可の固定パラメーターを含めて、1 SQLのbindを100個以内に収める。
-
-復元は検査済みデータを表ごとに分け、1MiB以下のJSON断片を`json_each(?)`で行へ展開して保存する。すべての断片を同じ`batch()`へまとめ、復元全体を1回で確定する。文字列・行の最大サイズ、SQL長、クエリ件数、実行時間も[D1の制限](https://developers.cloudflare.com/d1/platform/limits/)に従って実装時に確認する。
-
-### 物理設計で確認する事項
-
-設計の検証基準は、Pointsで採用しているBetter Auth・OAuth Provider `1.7.0-rc.1`とする。Accounts用のプラグイン構成から標準schemaを生成し、本節の独自列・制約を対応付ける。登録確定・セッション発行、実Providerでの認証、暗号化、Secret再発行と保存トークンの失効を含む接続検証は、[実装計画](../../implementation-plan/v0.1.md#1-接続契約と移行対象を確定する)にまとめる。
+標準schemaを生成してから、採用した`user.email`、`account.userId`、`session.userId/token`、`verification.identifier`と独自識別子検索の索引を確認する。Drizzleのrelationsをadapterへ渡し、同じテーブルを参照する複数の関連には対応する`relationName`を付ける。
 
 ## 未決事項
 
-利用者の動作に関わる追加の判断が必要になった場合に、本節へ記録して確認する。列名・索引・保存方法などの技術判断は、確定した要件に基づいて設計する。
+次の利用者の動作を選択肢で確認する。回答までは未決のまま保持し、物理テーブルの確定はこれらの要件確定後に行う。
+
+1. **新規登録の確認タイミング**：標準OAuthでユーザーを作成した後に初回の表示名設定を行うか、OAuth開始前に登録を確認するか。Better Auth標準callbackはユーザー作成後に`newUserURL`へ進む
+2. **クライアントの認証情報**：登録公開鍵の`private_key_jwt`とDPoPを採用するか、Client Secret方式とDPoPを採用するか。前者は鍵登録UIと利用側の秘密鍵管理が必要。後者はClient Secret自体の漏えいへの対策範囲が異なる
+3. **OAuthアカウント上書き時の元ユーザー**：最後のログイン手段も移せるか。その場合の元ユーザーへの再ログインと、既存セッションをどう扱うか
+4. **未検証登録の公開**：本人向け管理に加え、一般公開・クライアント一覧へ「未検証」として表示できるか。照合で返す本人IDの根拠は証明済み識別子とする
+5. **登録したクライアントの表示対象**：全利用者の提供先一覧へ表示するか、利用者がそのクライアントの連携を開始した時点で表示するか
+6. **URL検証の提供範囲**：[URL登録・検証仕様の未決事項](verify-url.ja.md#未決事項)に従い、初期の個別対応サービス、投稿からプロフィールへの証明範囲、DNS TXTによるドメイン証明の対象版を定める
+7. **テスト環境のBasic認証**：APIのOAuth Authorizationヘッダーと環境保護を両立する方法を定める。Hono標準`basicAuth`が読むAuthorizationと、Bearer・DPoP・OAuthのBasicは同じヘッダーを使用する
+8. **評価軸の管理権限**：今回指定された`appAdmin`・`specificEvaluationCriteriaAdmin`・`user`と、説明中の`evaluationAdmin`の対応をPoints側で確認する。現行Points仕様はグローバルADMINであるため、評価軸オーナー別のアップロード権限を導入する場合はPointsの要件変更として確定する
+
+列名・保存方法などの技術判断は、確定した要件と標準機能に基づいて具体化する。
 
 ## 文書化要件
 
@@ -886,14 +891,42 @@ erDiagram
 
 ## 提供・技術要件
 
-- 提供ドメインは[`accounts.freeism.app`](https://accounts.freeism.app/)とし、OSSとして公開する
-- UIはリッチにしない
-- 最低限の機能のみ
-- 認証はBetter Auth、DBはCloudflare D1、DB adapterはDrizzleを使用する。フロントエンドはTanStack Start・React・Vite Plusを用いたSPAとして構成する
-- ORCIDの登録・ログイン・追加連携はBetter AuthのGeneric OAuthを使用し、ORCIDの認証フローで確認した固有IDを外部アカウントの識別に用いる。[ORCIDの認証済みID取得](https://info.orcid.org/documentation/api-tutorials/api-tutorial-get-and-authenticated-orcid-id/)、[Generic OAuth](https://better-auth.com/docs/plugins/generic-oauth)
-- SPA構成は[TanStack StartのSPA mode](https://tanstack.com/start/latest/docs/framework/react/guide/spa-mode)に従う
-- 既存Accountsユーザーへの外部アカウント追加は、ログイン済みの本人が「アカウント連携」画面からBetter Authの明示連携APIを呼び出して行う
-  - Google・GitHubの標準Providerでは、client APIの`authClient.linkSocial()`、server APIの`auth.api.linkSocialAccount()`を使う。`disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`で明示連携と表示名の維持を設定する
-  - Google・GitHubのログインには`authClient.signIn.social()`を使う。ORCIDは採用バージョンのGeneric OAuthに対応するログイン・明示連携APIを使い、本人による追加連携とAccountsの表示名の維持を同様に適用する。[Better AuthのOAuth連携](https://better-auth.com/docs/concepts/oauth#link-account)、[アカウント連携設定](https://better-auth.com/docs/concepts/users-accounts#account-linking)
-- `points.freeism.app`に実装しているAccountsの責務に属する機能は、リンク検証を含めてすべて`accounts.freeism.app`へ移行する
-- 移行対象・実装順序・検証条件は、[v0.1実装計画](../../implementation-plan/v0.1.md)に記載する
+- 提供ドメインは[`accounts.freeism.app`](https://accounts.freeism.app/)とし、OSSとして公開する。基本機能を中心とした簡潔なUIとする
+- バックエンドはHono・Drizzle・Cloudflare D1、フロントエンドはTanStack Start・React・HeroUI v3・Tailwind・Vite Plusを使用する。Valibotのschemaを両側で共有する
+- フロントエンドの各機能の取得・状態・イベント・検証ロジックをfeatureごとのフックへ分け、ビューはpropsとイベントから描画する。認可と保存時の検証はバックエンドが担当する
+- アプリの処理、ドメインの規則、DB・外部サービスへの接続を分けた実用的なクリーンアーキテクチャとする。必要な責務に対応する層・インターフェースを用意する
+- 管理画面はSPAとし、公開プロフィールは同じデータからサーバーでHTMLを返す。静的assets・プロフィール・APIのルーティングは[実装計画](../../implementation-plan/v0.1.md)に従う
+- Better Auth 1.7系安定版と対応パッケージを採用する。Drizzle adapterと`better-auth/minimal`を使用し、TypeScriptのstrictを有効にして`$Infer`で認証型を取得する
+- 認証の標準設定は次の表に従う。実際の設定値とProvider別の対応は[1.7移行ガイド](https://better-auth.com/docs/guides/1-7-upgrade-guide)と[Options](https://better-auth.com/docs/reference/options)で確認する
+
+| 設定 | 用途 |
+| --- | --- |
+| `account.encryptOAuthTokens: true` | 保存する外部OAuth Access Token・Refresh Tokenを標準機能で暗号化 |
+| `account.updateAccountOnSignIn: true` | ログイン時の最新token情報の保存 |
+| `account.accountLinking.disableImplicitLinking: true` | 本人が明示的に追加連携する方式 |
+| `allowDifferentEmails: true`・`updateUserInfoOnLink: false` | 異なるメールの明示連携と、Accountsで設定した表示名の維持 |
+| `advanced.database.joins: true` | Drizzleのrelationsを使う結合取得 |
+| `session.cookieCache` | `enabled: true`・`strategy: "jwe"`・`maxAge: 3600`。管理操作で最新のセッションを確認するときは標準`disableCookieCache`でDB状態を読む |
+| `rateLimit.storage: "database"` | Better Auth標準の認証APIの頻度制御 |
+| `advanced.backgroundTasks.handler` | Workersの`waitUntil`への接続。応答の成立に必要な保存は完了を待つ |
+
+OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonceを標準フローで扱う。Providerで対応するプロトコルに従って検査する。Google・GitHubとGeneric OAuthのORCIDは、1.7の`signIn.social()`・`linkSocial()`・`unlinkAccount()`へ接続する。
+
+| プラグイン | 利用目的 |
+| --- | --- |
+| OAuth Provider・JWT | 初回連携、Client Credentials、署名付きJWT、選定するDPoP・クライアント認証 |
+| Generic OAuth | ORCIDの認証・連携 |
+| i18n | 認証メッセージの日本語・英語対応 |
+| Last Login Method | 前回利用したログイン方法の表示 |
+| Multi Session | 同じブラウザー内でAccountsユーザーのセッションを保持・切り替え |
+| OAuth Proxy | 固定callbackを経由したPreview・localhostへの復帰 |
+| Open API | Better AuthのAPIドキュメント。Accounts資源APIのOpenAPI 3.2.1とそれぞれの仕様を表示 |
+| Test Utils | 統合テスト・E2E向けのテスト用構成 |
+| Admin | Accounts内の`appAdmin`・`user`の権限管理 |
+
+評価軸オーナーのアップロード権限は[Pointsの権限設計](../../../../points-web-app/docs/v0.2/details-ja/evaluation-criteria-management.md)で管理する。Accountsの管理権限と利用側サービスの業務権限は、それぞれのサービスが判定する。
+
+- Cloudflare WorkersのPreviewから変更内容を確認できるようにする。テスト環境のBasic認証は、上記未決事項でAPIとの併用を確定してから導入する
+- Workersの認証・個人別API用エントリーポイントは`cache.enabled: false`とする。ブラウザー・中間キャッシュに対する認証・個人別応答の`Cache-Control: private, no-store`は別途設定する。公開assetsなどのキャッシュ対象だけ、用途に応じてWorkers Cache・ETagを適用する
+- 公開の「オープンソースライセンス」ページを設け、Viteの`build.license`が生成するJSONから、使用パッケージ名・版・ライセンス識別子・全文を表示する。管理の3画面とは別のヘルプページとする
+- `points.freeism.app`にあるAccountsの責務に属する機能を移管する。移行対象・実装順序・HonoとWorkersの設定・テスト・PRへのpushは、[v0.1実装計画](../../implementation-plan/v0.1.md)に記載する

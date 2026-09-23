@@ -1,171 +1,200 @@
-# 外部アカウント連携
+# 外部URLの登録と検証
 
-- [外部アカウント連携](#外部アカウント連携)
-  - [実現したいこと](#実現したいこと)
-  - [Bidirectional Linkの検証](#bidirectional-linkの検証)
-    - [実装したいこと](#実装したいこと)
-    - [実装方針](#実装方針)
-    - [参考実装](#参考実装)
-    - [URL判定](#url判定)
-    - [URL照合](#url照合)
-    - [個別対応する外部アカウント](#個別対応する外部アカウント)
-      - [前提](#前提)
-      - [GitHub Provider](#github-provider)
-      - [その他](#その他)
-    - [実行結果](#実行結果)
-    - [必要なネットワーク対策](#必要なネットワーク対策)
-    - [既存ライブラリ採用とフォークの判断](#既存ライブラリ採用とフォークの判断)
-    - [公式資料・確認したソース](#公式資料確認したソース)
-  - [ドメイン認証](#ドメイン認証)
-    - [実現したいこと](#実現したいこと-1)
+- [外部URLの登録と検証](#外部urlの登録と検証)
+  - [目的と適用範囲](#目的と適用範囲)
+  - [利用者の操作](#利用者の操作)
+  - [URL正規化](#url正規化)
+  - [サービス別の識別](#サービス別の識別)
+  - [証明に使用するリンクと本文](#証明に使用するリンクと本文)
+  - [外部ページの取得](#外部ページの取得)
+  - [検証結果と複数の証明方法](#検証結果と複数の証明方法)
+  - [公開プロフィールへの掲載](#公開プロフィールへの掲載)
+  - [個別対応する外部サービス](#個別対応する外部サービス)
+    - [GitHub](#github)
+    - [対応候補](#対応候補)
+  - [検証処理の構成](#検証処理の構成)
+  - [受け入れ条件](#受け入れ条件)
+  - [未決事項](#未決事項)
+  - [参考資料](#参考資料)
 
-## 実現したいこと
+## 目的と適用範囲
 
-`verifyUrl`を呼び出し、引数にURLを入れるだけで、何かしらの方法(Bidirectional Link検証 or DND検証)を順番にチェックしてアカウント認証する
+利用者がURLを一つ入力すると、Accountsが対象のWebページと、取得できる外部サービスの識別情報を登録し、Accountsプロフィールへの公開されたリンク・記述によって所有権を検証できるようにする。
 
-URLを渡すだけで、検証結果が帰ってくる。
-URL検証するためのロジックを外に漏らさず、UseCaseの一つの関数を呼び出せば良い設計にする。
+本書は、URLの登録・正規化・サービス判定・公開証拠の読み取り・検証結果と、第三者から確認できる公開HTMLを定める。OAuth・OIDCの本人認証、紐付け先の更新、公開設定、API契約、保存構造は[Accounts v0.1](main.ja.md)を正とする。
 
-具体的な処理内容としては、URLを受け取ったら検証
-引数はURLのみで、URLからこの関数内でサービスを特定して、特別対応するサービスなら、その処理をして、違うなら汎用的な方法で判定する。利用者は外部プロフィール、本人の公開コンテンツ、所有するサイトなどにAccountsのプロフィールURLを置く。Accountsのバックエンドはそれを検証し、AccountsユーザーIDと外部Identityの関係をDBへ保存する。
+URLの検証は本人による登録・検証操作で行い、Accounts APIによる照合は保存済みの識別子・証明・公開許可を読み取って行う。証明の有効性は、[所有権と紐付け](main.ja.md#所有権と紐付け)の現在の紐付けに従う。
 
-## Bidirectional Linkの検証
+## 利用者の操作
 
-### 実装したいこと
+1. Accountsにログインした本人が、「アカウント連携」画面の一つの入力欄へURLを入力する。サービスの判定はAccountsが行う。
+2. Accountsのバックエンドがセッションから`user.id`を取得し、DB上の本人のプロフィール情報から、そのユーザーの公開プロフィールURLを確定する。操作主体と証明先は、このサーバー側の情報を根拠にする。
+3. URLを検査・正規化し、外部サービス、入力URLの種類、取得できる外部アカウントの識別情報を判定する。
+4. URLを未検証のまま保存できる。本人が検証を実行した場合は、公開ページを取得し、本人のAccounts公開プロフィールURLを示す証拠を確認する。登録時点で証拠があれば、その検証操作で成功する。
+5. 証明方法ごとの結果を保存し、成功した証明と対象の識別子を本人の外部アカウントへ対応付ける。同じ外部アカウントにOAuthとリンクの両方の証明を追加できる。
+6. 本人が選択した公開設定に従い、Accountsの公開プロフィールや許可されたOAuthクライアントへ情報を提供する。未検証の登録情報の提供範囲は[未決事項](#未決事項)で確定する。
 
-`verifyUrl`から呼び出して、Bidirectional Linkの検証をする
-Bidirectional Linkで検証するためのロジックを外に漏らさず、UseCaseの一つの関数を呼び出せば良い設計にする。
+Web URLは、未検証の登録を含めて1ユーザー150件までとする。同一ユーザーの同じ正規化URLは一つの登録として扱う。この上限は登録URL数の上限であり、検証リクエストの頻度制限は[Accountsの提供・技術要件](main.ja.md#提供技術要件)に従う。
 
-### 実装方針
+## URL正規化
 
-既存プロジェクト全体はフォークしない。共通契約、URL判定、正確な照合、検証結果の意味を小さく独自実装する。OAuth/OIDCはBetter Authへ任せ、URLの分解は標準URL、テキストからのURL抽出はlinkify-itへ任せる。HTMLの要素・テキスト・属性はHTMLRewriterで走査する。必要なProviderの取得知識とテストを既存実装から参考にする。
-実装のコードの設計は、一番の大前提は、完全な整合性は不要で、より良くシンプルで汎用的な設計があれば、それを選択する
+登録するURL、API照合の入力URL、外部ページから得た証明候補には、同じ純粋関数による正規化を適用する。URLの構造は標準のURLパーサーで検査し、次の規則で比較用の文字列へ整える。
 
-### 参考実装
+- schemeとhostを小文字化し、国際化ドメインをASCII/Punycode表現に統一する。
+- HTTPSを受け付け、既定のportとfragmentを除去する。
+- 空のpathを`/`に統一する。
+- queryとpathの意味を保持する。末尾slash、`/about`などのpath、subdomainは、それぞれのURLとして区別する。
+- percent encodingは、同じ値を表す安全な範囲で表記を統一する。予約文字の符号化によるpathやqueryの意味を保持する。
+- 外部URLの受付には、[外部ページの取得](#外部ページの取得)のscheme・port・userinfo・hostの制約を適用する。
 
-| 実装                | 参考にする部分                                                             | v0.1でそのまま全面採用しない理由                                                                                                                                             |
-| ------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| doipjs              | URLマッチ、ProviderとFetcherの分離、サービス別の証拠取得位置               | 公開ソースのgenerateClaimはOpenPGP/ASPEを前提にする。URL完全一致の汎用エンジンではない。                                                                                     |
-| Keytrace runner     | Provider内の案内文、複数証拠位置、取得結果の説明、verifyAccess             | createClaimがDID形式を強制する。AccountsプロフィールURLを直接渡せない。                                                                                                      |
-| FUTO ID / Harbor    | 公開文面とOAuthの分離、getClaimFieldsByUrl、getText、healthCheck           | 同系統の実装を別製品として二重評価しない。現行HarborのサービスはPolycentric workspace、Node/Express、Puppeteer等と結び付く。checkFieldsは部分一致なのでURL判定は置き換える。 |
-| Divine              | Hono/Workers、検証器のレジストリ、取得不能と不一致の区別、キャッシュの分離 | Nostr向け。公開リポジトリの閲覧とコード再配布の許諾は別であり、対象ファイルの利用条件を確認する。                                                                            |
-| IndieWeb / Mastodon | rel=meの相互リンク、静的HTMLで第三者も確認できる公開方法                   | すべてのSNSがrel属性をユーザーに編集させるわけではない。専用ProviderによるBioやURL欄の検査と併用する。                                                                       |
+例えば、`https://example.com/`、`https://example.com/about/`、`https://profile.example.com/user`は別のURLとして登録・証明する。それぞれが同じAccountsユーザーへ有効に紐付き、問い合わせ元への提供が許可されていれば、各URLの照合で同じユーザーを返せる。
 
-### URL判定
+一致条件は正規化後のURL全体の完全一致とする。期待するURLが`https://accounts.freeism.app/profiles/alice`なら、同じURLを文字列の一部に含む別path・別host・queryは別のURLである。ネットワーク取得による証拠の確認と、文字列の正規化を分けて扱う。
 
-1. 既知ホストのProviderを最優先する。
-   - URLは標準URLパーサーで分解し、host全体とpath構造を確認する。
-   - `github.com.evil.example`を`GitHub`としない。
-   - 既知サービスの未対応pathや検証失敗を、汎用HTMLの緩い判定へ回して成功させない。
-2. 必要な範囲で取得したレスポンスから、ActivityPub等のプロトコル固有の取得方法を探す。
-   - 自己ホストされたサービスのローカルIDはoriginと組み合わせる。
-   - HTTPのContent-Type、正規URL、投稿のauthorなどの対応を確認する。
-   - 名前解決やサービス発見だけでは操作権限確認の成功にしない。
-3. 既知ホスト以外は、未知のサイトを汎用Webリソースとして扱う。
-   - 初期の汎用モードは、静的HTML内のa/linkタグのrel=meとhrefを検査する。
-   - 本文にAccountsのURLが一箇所あれば無条件でSNSアカウントとして承認するモードにはしない。
-   - 未知サイトではSNS内部のアカウントIDを確定できないため、外部IDは検証対象の正規URLとし、kindはweb-resourceにする。
+正規化の基準は[WHATWG URL Standard](https://url.spec.whatwg.org/)と[RFC 3986 §6.2.2](https://www.rfc-editor.org/rfc/rfc3986.html#section-6.2.2)とする。
 
-### URL照合
+## サービス別の識別
 
-- HTMLはhrefの値、プロフィールAPIのURL項目は項目全体、BioやプレーンテキストはURL抽出器で得たトークンを比較する。
-  - 見出しやリンクの表示文字列だけを証拠にしない。
-- 期待URLが /u/alice である場合、/u/alice-other、別ホスト、別path、URLをクエリ中へ埋め込んだページを一致にしない。
-  - hostnameは標準パーサーの正規化を使い、pathやqueryを一律に小文字化・削除しない。
-  - 末尾スラッシュやfragmentもアプリが保証する同一性の範囲でのみ扱う。
-  - 追跡用リダイレクトは既知Providerに限定したルールで解く。
-  - 外部ページのcanonical宣言や任意のredirectだけで別ユーザーのプロフィールURLを同一視しない。
+入力URLは、既知サービスのhost全体とpath構造に基づいて判定する。`github.com`と`github.com.example.net`は別hostとして扱う。個別対応するサービスでは、プロフィール、投稿、Gistなど、入力URLの種類も区別する。
 
-### 個別対応する外部アカウント
+保存する識別情報は次のように整理する。取得元と証明が適用される対象を保持し、APIでは[Accounts API](main.ja.md#accounts-api)で定める型として提供・照合する。
 
-#### 前提
+| 情報                 | 取得元と扱い                                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 正規化URL            | 本人が登録したURL。汎用Webページでは、このURLを外部の識別子とする                                           |
+| 外部サービス名       | 既知hostと対応するURL規則から判定する。自己ホスト型サービスの主体はoriginも含めて区別する                   |
+| サービス内ユーザー名 | 対応サービスのURL構造や、取得した本人の公開情報から抽出する。変更可能な名前として固有IDと区別する           |
+| サービス内固有ID     | OAuth・OIDCの検証済み応答、または今回取得した公開ページで、対象アカウントとの対応を確認できる場合に保存する |
+| プロフィールURL      | OAuth応答や今回取得したページで対象アカウントとの対応を確認できる場合に保存する                             |
+| 証拠のURL            | リンクや記述を実際に確認したプロフィール・投稿・GistなどのURLを保存する                                     |
 
-- 可能な限り、PointsからのAPIリクエストでは、「URL」と「アカウント名＋ユーザー名 or ユーザーID」に対応したい。
-- なので、個別対応するサイトも用意する
-  - 個別対応する外部アカウントでは「URL」から「アカウント名＋ユーザー名 or ユーザーID」も取得して保存する処理を入れたい
-  - 個別対応で「アカウント名＋ユーザー名 or ユーザーID」も取得できたら`provider_account`に対応したい
-- API RateLimitの管理が面倒なため、追加でAPIリクエストが発生するようなことは行わない。
-  - URLや取得したHTMLなどから抽出できるなら行う程度
-  - 例えば、GitHubではプロフィールURLの場合に、プロフィールURLから取得したデータでAPIリクエストを行うことはしない。URLにユーザー名があるので、それを使用する
-	- 個別対応のサービスに該当しない場合は、汎用的な方法で対応する
+サービス名・ユーザー名などの補助情報は、入力URLと検証のために取得したページから得られる範囲で保存する。URLの登録・リンク検証が必要とするページ取得と、利用者が開始したOAuth認証を通信の範囲とする。
 
-#### GitHub Provider
+URLを解析できることと所有権の証明成功は別の結果として扱う。未検証のURLから得たユーザー名は登録情報であり、証明が成功した対象にだけ、その証明結果を対応付ける。サービス固有の識別子が得られないページも、正規化URLによる登録・検証を行える。
 
-- URLからユーザー名を抽出する
-  - ユーザー名はアカウント登録してから変更がほぼ不可能なのでユニークかつ不変性があるとして信用して良い
+OAuthで得た固有IDとURLから得たユーザー名は、異なる種類の識別子である。同じ外部アカウントの情報としてまとめる際は、本人の操作と、検証済みのOAuth応答・公開証拠が示す対応を根拠にする。各証明は、実際に確認できた識別子の範囲へ適用する。
 
-- GitHub Gist URLに対応
-  - 例）`https://gist.github.com/yuichisugio/8e8c7d94a9318dbaef9e36da88e9a885`
-  - これも、URLからユーザー名を抽出する
-  - Gist URLとしての連携と抽出したユーザー名からGitHubプロフィールURLも作成して保存する
+## 証明に使用するリンクと本文
 
-- GitHub OAuthに対応
-  - GitHub IDやGitHubユーザー名が得られたら、GitHubプロフィールURLとしても保存する
+検証対象の外部ページから、以下の候補を抽出する。
 
-- Gistを使う実装上の利点
-  - プロフィールのURL枠やBioを占有しないこと、複数・長い証明を独立したファイルへ置けること、APIから本文と所有者を構造化して取得できること、証拠単位で編集・削除できることである。作者の採用動機を確認したわけではない。AccountsプロフィールURL一つを置くv0.1では、プロフィール方式を既定にしてGistを代替手段にする。
+| 候補                          | 抽出する値                                                            |
+| ----------------------------- | --------------------------------------------------------------------- |
+| HTMLの`a[href]`と`link[href]` | `href`のURL。`head`内の`link`と本文のリンクを含む                     |
+| HTTPの`Link`ヘッダー          | link-valueが示すURL                                                   |
+| HTML全体の本文テキスト        | プロフィール説明文など、静的HTMLのテキストから抽出した完全なHTTPS URL |
+| `text/plain`の応答            | 本文から抽出した完全なHTTPS URL                                       |
 
-#### その他
+- `rel="me"`を含むリンクも、通常のリンクや本文のURLと一緒に候補へ含める。
+- 相対hrefは、取得した最終ページのURLを基準に解決してから正規化する。
+- 本文では、URL抽出器で得たURLを比較対象にする。URLの途中までの一致や、ほかのURLのqueryに含まれる文字列は、証明先URLの完全一致と区別する。
+- HTML comment、JSON、画像alt、`script`・`style`内の記述、JavaScriptの実行後に生成されるDOM、`iframe`内は候補から除外する。HTMLパーサーで要素・属性・テキストを区別してから抽出する。
+- 個別対応サービスでは、対象アカウント本人のプロフィール説明、URL欄、投稿本文など、対象者が編集する公開領域を証拠の範囲にする。投稿の作者など、サービスが示す主体との対応も確認する。
+- 候補のURLを正規化し、セッション本人に対応するAccounts公開プロフィールURLと完全一致した場合に証明を成立させる。条件を満たした検証は自動で確定する。
 
-- 相談
-  - Instagram、X(Twitter)、などに対応したいけど、URLから推測できそうな外部アカウントを提案してほしい
+証拠は検証した時点の公開記述を示す。検証日時と方法を記録し、第三者が確認するための証拠URLを対応付ける。別のAccountsユーザーのURLも存在するページや、本文中のコード例・第三者投稿の扱いは、[未決事項](#未決事項)で証拠の範囲を確定する。
 
-### 実行結果
+## 外部ページの取得
 
-| status          | 意味                                                           |
-| --------------- | -------------------------------------------------------------- |
-| verified        | 所定の対象と証拠が一致した                                     |
-| not-verified    | 対象を取得・解釈できたが、証拠やアカウントが一致しなかった     |
-| indeterminate   | レート制限、タイムアウト、形式変更、取得上限などで判断できない |
-| action-required | 利用者によるリンク配置やSNS認証が必要                          |
+- 取得先はHTTPS・port 443の公開Webページとする。
+- 入力とredirect先でuserinfo、IP literal、localhost、private・link-local・loopback・reserved hostname/address、Cloud metadata addressを検査し、公開Internet上の宛先を許可する。
+- Cloudflare Workersの`global_fetch_strictly_public`を使い、同一zoneへの要求も公開Internetからのアクセスと同じ経路で取得する。private宛先への接続制約は、入力検査と実行環境の接続制約を含めて確認する。[Cloudflareの互換性フラグ](https://developers.cloudflare.com/workers/configuration/compatibility-flags/#global-fetch-strictly-public)
+- redirectは最大3回まで手動で追跡し、各遷移先に同じ取得先検査を適用する。登録URL、最終取得URL、実際の証拠を区別して扱う。
+- 全体の取得期限は5秒、応答本文の上限は1MiBとし、`text/html`または`text/plain`を受け付ける。応答を読みながら上限を確認し、上限を超えたら取得を終了する。
+- 取得要求には、外部ページの取得に必要なヘッダーをAccountsが組み立てて付ける。Accountsのセッションや、利用者から受け取った認証ヘッダーは本人認証の処理で扱う。
+- 検証操作ごとに外部ページを取得し、今回得た応答を証拠として評価する。証拠の内容との一致と検証日時を保存する。
+- 応答HTMLとHTTPヘッダーを静的に解析する。対象は取得した文書であり、JavaScriptの実行や画像などの関連ファイルの読み込みを必要とする場合は、今回の取得で確認できる範囲を結果に示す。
 
-### 必要なネットワーク対策
+期限・容量・redirectの上限は、利用者の待ち時間と取得負荷を抑えるための共通条件とする。取得不能、上限超過、解釈できない応答は[検証結果](#検証結果と複数の証明方法)に従って本人へ伝える。
 
-URLを外部入力として受けるため、HTTP取得先に対するSSRF対策は必須。HTTPS、宛先IP、private/link-local等の到達先、redirect各段、本文サイズ、接続時間を統一した送信ポリシーで制限する。DNSの事前検査だけで実接続先まで保証できるとは考えず、Nodeなら実接続先制御、Workers等ではランタイムの保証と必要な送信プロキシを評価する。パーサーはscriptを実行しない。描画する場合もsubrequestを含めて宛先制限する。外部ページへAccountsのCookieや別サービスのトークンを転送しない。
+## 検証結果と複数の証明方法
 
-### 既存ライブラリ採用とフォークの判断
+外部アカウント、照合に使う識別子、検証方法ごとの証明を分けて管理する。同じ外部アカウントについて、OAuthによる証明と`bidirectional_link`による証明を保持できる。保存構造は[テーブル構造の設計案](main.ja.md#テーブル構造の設計案)に従う。
 
-評価単位をプロジェクト全体ではなく部品にする。URL抽出、OAuth/OIDC、HTTP標準処理のように要求が一致する部分は依存ライブラリとして使う。識別子と証拠形式が今回と違うエンジンは、無理に改造して全面依存しない。
+| 状態・結果               | 意味                                                                      |
+| ------------------------ | ------------------------------------------------------------------------- |
+| `unverified`（登録状態） | 登録を保存し、有効な証明の成立を待っている                                |
+| `verified`               | 対象の識別子とAccountsユーザーへの証拠が一致した                          |
+| `not_verified`           | 対象を取得・解釈できたが、期待する証拠が確認できなかった                  |
+| `indeterminate`          | timeout、外部のアクセス制限、取得上限、応答形式などにより判断できなかった |
+| `action_required`        | リンク設置や公開状態の変更など、証明のための本人操作が必要になった        |
 
-今回の選定は、通常部品としてBetter Auth・linkify-it・標準URL/fetchを採用し、URL同一性・Evidence意味付け・Provider契約・サービス判別は独自とする。HTMLの要素・テキスト・属性の走査はHTMLRewriterで行う。Workers上の組合せは採用版を固定した統合テストが必要。HarborのgetText/URL解決とKeytraceのProvider案内・証拠表示、doipjsのサービス定義、DivineのWorkersサービス構成を参考にする。
+リンク設置、公開状態の変更、OAuthによる証明など、本人の次の操作は、検証結果に対応する案内として表示する。方法別の検証結果、検証日時、証拠URL、確認した識別子を記録し、既存の有効な証明と直近の検証試行の結果を区別する。API・JSONの項目名は、主仕様の`verificationStatus`と`verifications`へ対応付ける。成功した証明の`verifiedAt`と、直近の試行の`checkedAt`・`result`を分けて保持する。
 
-Keytrace runnerへDIDに見せかけたローカルIDを渡す迂回策は採用しない。
+一般公開・OAuthクライアント向けの表示は、[表示・提供する情報](main.ja.md#表示提供する情報)と公開設定に従う。公開プロフィールには「OAuth」「リンク検証」などの方法をテキスト付きバッジで表示し、それぞれの検証日時・結果を確認できるようにする。
 
-### 公式資料・確認したソース
+## 公開プロフィールへの掲載
 
-- doipjs： https://codeberg.org/keyoxide/doipjs
-- doipjs公開Claim実装： https://js.doip.rocks/claim.js.html
-- doipjs照合実装： https://js.doip.rocks/verifications.js.html
-- doipjs文字列整形： https://js.doip.rocks/utils.js.html
-- doipjs GitHub Provider： https://js.doip.rocks/serviceProviders_github.js.html
-- doipjs配布情報： https://www.npmjs.com/package/doipjs
-- Keytrace Claim実装： https://github.com/orta/keytrace/blob/main/packages/runner/src/claim.ts
-- Keytrace GitHub Provider： https://github.com/orta/keytrace/blob/main/packages/runner/src/serviceProviders/github.ts
-- Keytrace依存関係： https://github.com/orta/keytrace/blob/main/packages/runner/package.json
-- FUTO IDの旧称と検証方式： https://docs.polycentric.io/futo-id/
-- Harbor検証器： https://join.harbor.social/docs/protocol/verifiers/
-- Harbor追加手順： https://join.harbor.social/docs/guides/add-a-platform-verifier/
-- Harbor実装： https://github.com/futo-org/Harbor/blob/develop/services/verifier-bot/src/verifier.ts
-- Harbor依存関係： https://github.com/futo-org/Harbor/blob/develop/services/verifier-bot/package.json
-- Harborライセンス： https://github.com/futo-org/Harbor/blob/develop/LICENSE
-- Divine： https://github.com/divinevideo/divine-identify-verification-service
-- Divine GitHub検証器： https://github.com/divinevideo/divine-identify-verification-service/blob/main/src/platforms/github.ts
-- Better Auth連携： https://better-auth.com/docs/concepts/users-accounts
-- Better Authオプション： https://better-auth.com/docs/reference/options
-- Better Auth Generic OAuth： https://better-auth.com/docs/plugins/generic-oauth
-- GitHub user API： https://docs.github.com/en/rest/users/users
-- GitHub social accounts API： https://docs.github.com/en/rest/users/social-accounts
-- GitHub Gists API： https://docs.github.com/en/rest/gists/gists
-- GitHub Gistの性質： https://docs.github.com/ja/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists
-- GitHubレート制限： https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
-- IndieWeb rel-me： https://indieweb.org/rel-me
-- Mastodonリンク確認： https://docs.joinmastodon.org/user/profile/
-- linkify-it： https://github.com/markdown-it/linkify-it
-- SSRF対策： https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html
+Accountsの公開プロフィールは、URLを知っている第三者がログアウト状態でも取得できる。公開された外部プロフィールURLは、初回応答の静的HTMLに`rel="me"`を付けたリンクとして出力する。
 
-## ドメイン認証
+```html
+<a
+	href="https://github.com/alice"
+	rel="me"
+	>GitHub</a
+>
+```
 
-### 実現したいこと
+画面上の表示とHTMLへ出すリンクは、本人の一般公開設定に従う。外部アカウントが非公開でも、本人の検証操作では外部ページからAccountsへの証拠を確認できる。第三者向けの相互リンクは、本人が外部URLを一般公開した時点で両側をたどれる状態になる。
 
-1. ドメイン認証
-   - DNS TXTなどで所有を証明
+外部サービスの判定はそのサービスの規則に従う。例えば、MastodonはプロフィールのHTTPSリンク先から`rel="me"`付きの戻りリンクを確認するため、Accounts側では静的HTMLから外部プロフィールへリンクする。[Mastodonのリンク検証](https://docs.joinmastodon.org/user/profile/#link-verification)
+
+## 個別対応する外部サービス
+
+### GitHub
+
+- `https://github.com/{username}`形式のプロフィールでは、URLからサービス名`github`とユーザー名を取得し、今回取得したプロフィールの本人向け公開領域から証拠を読む。
+- GitHubのユーザー名は変更でき、旧ユーザー名は別の利用者が取得できる。ユーザー名は検証時点の識別情報として保存する。[GitHubのユーザー名変更](https://docs.github.com/en/account-and-profile/concepts/username-changes)
+- OAuthでGitHubの固有ID・ユーザー名・プロフィールURLを得た場合は、同じ認証結果が示す外部アカウントの識別情報として保存する。OAuthの処理は[Accounts v0.1](main.ja.md#外部認証情報)に従う。
+- Gist URLの登録に対応する。例えば、`https://gist.github.com/yuichisugio/8e8c7d94a9318dbaef9e36da88e9a885`を入力した場合は、取得したGistの作者情報と本人の本文を確認し、Gist URLを証拠URLとして扱う。
+- Gistから取得できるユーザー名・プロフィールURLは、作者との対応を確認して保存する。Gistの証明をGitHubプロフィール全体の証明として扱う範囲は[未決事項](#未決事項)で確定する。
+
+Gistは公開コンテンツとしてAccountsプロフィールURLを置く場所の一つになる。取得できる証拠と作者の対応に基づき、登録URLの検証と外部アカウントの判定を行う。[GitHub Gist](https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists/creating-gists)
+
+### 対応候補
+
+X、Instagramなど、プロフィールURLにユーザー名を含むサービスを個別対応の候補とする。URLから識別情報を抽出できることと、ログインなしの静的HTMLで本人の公開証拠を取得できることを分けて確認する。対応サービスとURL形式は、実際に取得できる公開ページを確認して確定する。
+
+自己ホスト型のMastodonなどは、originを含むプロフィールURLを基本とする。今回のページ取得でアカウント情報と公開証拠が得られる場合に、その対応を保存する。汎用Webページは、登録された正規化URLを対象として共通の検証を行う。
+
+## 検証処理の構成
+
+入口となるUseCaseは`verifyUrl`とし、画面からの入力はURL一つにする。操作中の本人情報と期待するAccountsプロフィールURLは、認証済みのサーバー側コンテキストから受け取る。UseCaseがURL検査、サービス判定、ページ取得、証拠抽出、判定、結果保存をまとめる。
+
+サービス別の処理は、対応するURL規則、取得ページ内の本人の情報・証拠の位置、取得できる識別子の抽出に絞る。共通処理はURLの正規化、取得制限、完全一致の判定、検証結果の保存を扱う。呼び出し側は、サービス別の処理手順を意識せず結果を扱えるようにする。
+
+URLの構文解析は標準`URL`、HTMLの要素・属性・テキストの走査はWorkersの`HTMLRewriter`を用いる。本文からURLを抽出する部品には`linkify-it`を使用し、明示されたHTTPS URLを比較対象にする。テキストが複数のチャンクへ分割される場合も、URLを途中で欠落させずに抽出する。[HTMLRewriter](https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/)、[linkify-it](https://github.com/markdown-it/linkify-it)
+
+既存の検証サービスは、サービスごとの証拠位置、処理の分離、利用者への案内、テストの参考とする。採用するコードや依存部品は、今回のURL・証明形式への適合とライセンスを確認し、実装計画に記録する。
+
+## 受け入れ条件
+
+- 一つのURL入力からサービスとURLの種類を判定でき、未検証のまま登録できる。登録数150件の境界を検査できる。
+- ブラウザから任意のユーザーIDや期待URLが送られても、セッション本人のAccountsプロフィールを証明先として扱う。
+- 正規化によって同値になるURLと、別path・query・subdomain・末尾slashによって区別するURLを判定できる。
+- HTMLリンク、HTTP Link、プロフィール説明文のURLを候補として取得し、`rel="me"`付きリンクが存在する場合も許可された他の候補を確認できる。
+- 本人のAccountsプロフィールURL全体との一致で成功し、別のURLの一部に含まれる文字列を区別できる。除外対象のHTML comment、JSON、alt、script、iframeを区別できる。
+- 公開先、redirect、応答時間・容量・MIMEを検査し、取得できない場合と、取得できたが一致しない場合を分けて表示できる。
+- URL由来ユーザー名とOAuthの固有IDを別種別の識別子として保存し、証明方法ごとに確認した対象を保持できる。
+- 同じ外部アカウントにOAuthとリンク検証の両方の結果が存在し、公開許可された情報と方法別のバッジを表示できる。
+- Accounts APIでの照合は保存済みの識別子と公開許可で行い、外部ページ取得は本人の検証操作で行う。
+- 一般公開した外部プロフィールURLが、匿名で取得したAccountsプロフィールの初回HTMLに`rel="me"`付きで存在する。
+
+## 未決事項
+
+- 未検証の外部アカウントを、一般公開・OAuthクライアント向けの一覧へどの範囲で表示するかを決める。証明結果と表示を分け、利用者が未検証と分かる表記にする。
+- HTML本文のうち、コード例や第三者が投稿したコメントを証拠として扱う範囲を決める。第三者の投稿だけでページ所有者を認定できることが、本人の証明という目的に合うか確認する。
+- 同じ証拠ページに複数のAccountsユーザーへのURLがある場合の、紐付け先の決め方を定める。
+- Gistや投稿から作者のプロフィール全体へ証明を適用する条件と、OAuthで証明した固有IDへの対応付けを確定する。
+- X・Instagramなどの個別対応対象と、各サービスで受け付けるプロフィール・投稿URLの種類を確定する。
+- DNS TXTによるドメイン認証のv0.1対応要否を決める。採用する場合は、DNSで証明するドメインと、そこから証明済みとして扱うURLの範囲、設置する値を定める。
+
+## 参考資料
+
+URLや公開証拠の仕様には、本文中の公式資料を参照する。サービス別の実装方法を検討する際の調査対象は次のとおりとする。
+
+- [doipjs](https://codeberg.org/keyoxide/doipjs)と[GitHub向けProvider](https://js.doip.rocks/serviceProviders_github.js.html)
+- [KeytraceのGitHub向けProvider](https://github.com/orta/keytrace/blob/main/packages/runner/src/serviceProviders/github.ts)
+- [Harborの検証器](https://join.harbor.social/docs/protocol/verifiers/)と[公開実装](https://github.com/futo-org/Harbor/blob/develop/services/verifier-bot/src/verifier.ts)
+- [Divine Identity Verification Service](https://github.com/divinevideo/divine-identify-verification-service)
+- [IndieWebのリンク発見](https://indieweb.org/discovery-algorithms)と[rel-me](https://indieweb.org/rel-me)

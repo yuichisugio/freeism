@@ -42,13 +42,13 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 - 別ユーザーとして作成済みのProvider accountは独立したPointsユーザーとして扱う。
 - account close後の本人識別に必要な認証Providerの永久対応を保持する。
 
-外部アカウントの所有権証明・公開設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
+外部アカウントの所有権証明・公開設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。
 
 ## 3. Accountsとの情報連携
 
 Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。Pointsは連携した各AccountsサービスのAPIから連携アカウント一覧を取得する。Pointsの設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元AccountsサービスとAccounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
 
-外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。Points内のユーザー連携は本節を正本とする。連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
+外部Web URLの登録・リンク検証・紐付け解除、Accountsの公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Points内のユーザー連携は本節を正本とする。連携解除・再連携が未受領FIXへ与える影響は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)の未決事項として扱う。
 
 ### 3.1 接続先Accountsサービスの管理
 
@@ -56,7 +56,7 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 - 利用者は、運営者が接続設定を用意したAccountsサービスの一覧から選び、本人の認証・情報提供への同意を経て連携する。
 - 別のURLへ切り替える場合は、新しい接続先として追加する。利用者は新しい接続先で認証・同意して連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。
 - 運営者が接続先を取り下げると、そのAccountsサービスに対する既存のPointsユーザーとAccountsユーザーの対応をすべて解除し、PointsからのAPI利用を終了する。Accounts側の公開設定・情報提供同意と、Pointsで確定済みの貢献・ポイントの帰属を維持する。
-- 接続先の設定・切り替え・取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証・外部アカウント情報・照合APIの条件は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)に従う。
+- 接続先の設定・切り替え・取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証・外部アカウント情報・照合APIの条件は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
 ### 3.2 ユーザー連携の件数と識別
 
@@ -74,7 +74,7 @@ Accountsで先に登録・外部アカウントの連携を済ませた利用者
 3. 自分が利用するAccountsサービスを選び、Accountsへログインする。アカウントがなければ新規作成する。
 4. Accountsで、貢献の識別に使う外部アカウントを連携する。
 5. Pointsへ提供するアカウントと利用目的を確認して同意する。
-6. Pointsへ戻り、Accountsの[クライアント認証と権限](../../../../accounts-web-app/docs/specification/v0.1/main.md#クライアント認証と権限)に従ってID Tokenと開始した連携操作を検証し、ログイン中のPointsユーザーとの対応を保存する。貢献・ポイントの処理は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に従う。
+6. Pointsへ戻り、Accountsの[クライアント認証と権限](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従ってID Tokenと開始した連携操作を検証し、ログイン中のPointsユーザーとの対応を保存する。貢献・ポイントの処理は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に従う。
 7. Pointsの設定・プロフィールに、連携した各AccountsサービスとAccountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
 
 同じ手順を繰り返して別のAccountsユーザーを追加できる。追加するAccountsユーザーごとに本人が認証し、情報提供へ同意する。同じPointsサービス内ですでに別のPointsユーザーへ連携済みの場合は、現在の連携状態を案内する。
@@ -85,7 +85,8 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 
 ### 3.4 連携解除と退会
 
-- Pointsでの個別の連携解除は、バックエンドで本人の操作権限を確認し、Pointsユーザーと対象Accountsユーザーの対応を解除して完了する。
+- Pointsでの個別の連携解除は、バックエンドで本人の操作権限を確認し、対象のAccountsサービスorigin・AccountsユーザーIDとPointsユーザーの対応を削除して完了する。解除した対応を起点とする一覧取得を終了する。
+- 外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応がある場合にだけPointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応をそれぞれ確認する。
 - Pointsユーザーが退会した場合は、そのPointsユーザーに連携しているすべてのAccountsユーザーとの対応をPoints側で解除する。
 - Pointsでの個別解除・退会では、Accounts側のそのPointsへの公開設定と情報提供同意を維持する。情報提供を停止したい本人はAccountsで設定する。以後の一覧取得・照合も、Accounts APIが定める現在の提供条件に従う。
 - Accountsユーザーが退会した場合は、Accountsからそのユーザーの情報提供が終了する。Points側に保存した対応は保持し、本人がPointsへログインして解除できる。
@@ -97,7 +98,7 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 - 自分のプロフィールだけに編集ボタンを表示する。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
 - Pointsプロフィールには、Accounts APIから取得したOAuth連携・Webページ検証による連携アカウントの一覧も表示する。外部サービス名、取得できるユーザー名・表示名、固有ID・プロフィールURLなどの識別情報、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。Pointsへの提供に同意されたアカウントの情報を、Pointsプロフィール自体の公開・非公開に従って表示する。
-- 外部アカウントの所有権証明・管理と、Accounts APIが提供する項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を参照する。
+- 外部アカウントの所有権証明・管理と、Accounts APIが提供する項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を参照する。
 - Accountsから取得済みの情報の保存、過去の履歴、提供許可の取消後の公開表示はPointsが管理する。取得時点の提供許可と、その後の保存・公開の扱いを区別し、後者の具体的な条件はPoints側で定める。
 - 公式Packageはprofileの`displayOrder`で返し、現在の公開revisionへのlinkと不変Package IDを示す。
 - FIX・譲渡履歴は対応する評価軸フラグが`PUBLIC`の時だけ返す。交換履歴はsourceとtarget両方の`exchangeHistoryVisibility` が`PUBLIC`の時だけ返し、非公開軸のIDや額を反対軸から推測できる部分表示を行わない。
