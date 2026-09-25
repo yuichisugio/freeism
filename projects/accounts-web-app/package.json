@@ -25,6 +25,7 @@
     "@tanstack/react-start": "1.168.57",
     "better-auth": "1.7.5",
     "drizzle-orm": "0.45.3",
+    "entities": "8.1.0",
     "hono": "4.13.8",
     "linkify-it": "6.1.0",
     "react": "19.3.0",
