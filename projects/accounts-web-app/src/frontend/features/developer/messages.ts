@@ -25,7 +25,7 @@ export const developerMessages = defineMessages({
     descriptionHint: "アプリの説明です（任意）。",
     redirectUrisLabel: "リダイレクトURL",
     redirectUrisHint:
-      "認証・同意の後に利用者を戻すURLです。HTTPSのURL、またはローカル開発用にlocalhost・127.0.0.1・[::1]のHTTPのURLを登録できます。",
+      "認証・同意の後に利用者を戻すURLです。HTTPSのURL（localhost・127.0.0.1・[::1]を除く）、またはローカル開発用にlocalhost・127.0.0.1・[::1]のHTTPのURLを登録できます。",
     redirectUriLabel: (position: number) => `リダイレクトURL ${position}`,
     addRedirectUri: "リダイレクトURLを追加",
     removeRedirectUri: (position: number) => `リダイレクトURL ${position}を削除`,
@@ -39,7 +39,7 @@ export const developerMessages = defineMessages({
     required: "入力してください。",
     invalidUrl: "URLの形式で入力してください。",
     invalidRedirectUri:
-      "HTTPSのURL、またはlocalhost・127.0.0.1・[::1]のHTTPのURLを、#以降を付けずに入力してください。",
+      "HTTPSのURL（localhost・127.0.0.1・[::1]を除く）、またはlocalhost・127.0.0.1・[::1]のHTTPのURLを、#以降を付けずに入力してください。",
     invalidJson: "JSONの構文が正しくありません。",
     invalidKeys: '"keys" に1件以上の鍵（ktyを含むJWK）を入れてください。',
     created: "登録しました。",
@@ -61,6 +61,9 @@ export const developerMessages = defineMessages({
       INVALID_TYPE: "値の型が正しくありません。表示された項目を確認してください。",
       INVALID_VALUE: "値が条件を満たしていません。表示された項目を確認してください。",
       UNKNOWN_FIELD: "定義されていない項目があります。",
+      INVALID_JWKS: "公開鍵を登録できません。鍵の形式・種類を確認してください。",
+      INVALID_CLIENT_METADATA: "アプリ情報またはリダイレクトURLを登録できません。入力内容を確認してください。",
+      CLIENT_NOT_FOUND: "クライアントが見つかりません。一覧を読み込み直してください。",
     } as Partial<Record<string, string>>,
   },
   en: {
@@ -82,7 +85,7 @@ export const developerMessages = defineMessages({
     descriptionHint: "A description of your app (optional).",
     redirectUrisLabel: "Redirect URLs",
     redirectUrisHint:
-      "Where users return after authentication and consent. Use HTTPS, or HTTP on localhost, 127.0.0.1 or [::1] for local development.",
+      "Where users return after authentication and consent. Use HTTPS on a host other than localhost, 127.0.0.1 or [::1], or HTTP on localhost, 127.0.0.1 or [::1] for local development.",
     redirectUriLabel: (position: number) => `Redirect URL ${position}`,
     addRedirectUri: "Add redirect URL",
     removeRedirectUri: (position: number) => `Remove redirect URL ${position}`,
@@ -95,7 +98,8 @@ export const developerMessages = defineMessages({
       'Enter the public keys for private_key_jwt as JSON in the {"keys":[...]} format. To rotate keys, save both the old and new keys first, then remove the old key.',
     required: "This field is required.",
     invalidUrl: "Enter a valid URL.",
-    invalidRedirectUri: "Enter an HTTPS URL, or an HTTP URL on localhost, 127.0.0.1 or [::1], without a fragment (#).",
+    invalidRedirectUri:
+      "Enter an HTTPS URL on a host other than localhost, 127.0.0.1 or [::1], or an HTTP URL on those hosts, without a fragment (#).",
     invalidJson: "The JSON syntax is invalid.",
     invalidKeys: 'Put at least one key (a JWK with "kty") in "keys".',
     created: "Registered.",
@@ -117,6 +121,9 @@ export const developerMessages = defineMessages({
       INVALID_TYPE: "A value has the wrong type. Please check the highlighted fields.",
       INVALID_VALUE: "A value does not meet the requirements. Please check the highlighted fields.",
       UNKNOWN_FIELD: "The request contains an undefined field.",
+      INVALID_JWKS: "The public keys cannot be registered. Check the key format and type.",
+      INVALID_CLIENT_METADATA: "The app information or redirect URLs cannot be registered. Please check your input.",
+      CLIENT_NOT_FOUND: "The client was not found. Reload the list.",
     },
   },
 });

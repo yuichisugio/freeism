@@ -67,8 +67,6 @@ export function useDeviceSessions() {
   return { state, switchingToken, hasSwitched, hasSwitchFailed, switchSession };
 }
 
-export type DeviceSessions = ReturnType<typeof useDeviceSessions>;
-
 // --------------------------------------------------
 // 読み込み
 // --------------------------------------------------

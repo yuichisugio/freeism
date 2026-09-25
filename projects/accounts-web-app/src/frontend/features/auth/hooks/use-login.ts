@@ -39,5 +39,3 @@ export function useLogin() {
 
   return { pendingProvider, hasStartFailed, lastUsedMethod, signIn };
 }
-
-export type Login = ReturnType<typeof useLogin>;

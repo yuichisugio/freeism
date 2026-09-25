@@ -35,5 +35,4 @@ export const meSchema = v.object({
   profileUrl: v.string(),
 });
 
-export type ProfileInput = v.InferInput<typeof profileSchema>;
 export type Me = v.InferOutput<typeof meSchema>;

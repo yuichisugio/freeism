@@ -25,10 +25,3 @@ export function renderWithProviders(ui: ReactNode, { language = "ja" }: { langua
   });
   return render(<RouterProvider router={router} />);
 }
-
-/**
- * フックの単体テスト用に、表示言語だけを用意するwrapper。
- */
-export function I18nTestWrapper({ children }: { children: ReactNode }) {
-  return <I18nProvider initialLanguage="ja">{children}</I18nProvider>;
-}

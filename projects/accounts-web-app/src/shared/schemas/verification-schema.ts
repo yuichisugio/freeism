@@ -44,5 +44,4 @@ export const verificationFailureCodeSchema = v.picklist([
 
 export type VerificationMethod = v.InferOutput<typeof verificationMethodSchema>;
 export type VerificationResult = v.InferOutput<typeof verificationResultSchema>;
-export type VerificationStatus = v.InferOutput<typeof verificationStatusSchema>;
 export type VerificationFailureCode = v.InferOutput<typeof verificationFailureCodeSchema>;

@@ -28,6 +28,7 @@
 - [Accountsユーザーの退会](#accountsユーザーの退会)
 - [管理画面と監査](#管理画面と監査)
   - [表示・提供する情報](#表示提供する情報)
+  - [画面用のAPI](#画面用のapi)
 - [JSONによるバックアップと移行](#jsonによるバックアップと移行)
   - [JSON形式](#json形式)
 - [受け入れ条件](#受け入れ条件)
@@ -125,6 +126,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 公開プロフィールは、外部サイトがJavaScriptを実行せず確認できるHTMLを返す。掲載する外部URLの`rel="me"`と出力条件は[公開プロフィールへの掲載](verify-url.ja.md#公開プロフィールへの掲載)に従う
 - 公開プロフィールURLは、`https://accounts.freeism.app/profiles/{accountsUserId}`とする
 - 公開プロフィールは、GitHubなどの外部アカウントとAccountsユーザーIDの対応を表示することを主な用途とする
+- 公開プロフィールのキャッシュはURL単位のため、HTMLの固定文言は日本語と英語を併記する
 
 ## 登録とログイン
 
@@ -151,7 +153,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - OAuthアカウントと正規化したWeb URLの有効な紐付け先は、同時点で最大1人のAccountsユーザーとする。同じ外部アカウントへの連携処理が競合した場合も、この一意性を維持する。Accountsユーザーは個人名義とする。組織アカウント（GitHubの組織ページ、Codeberg・Hugging Faceの組織namespaceなど）のプロフィールURLも個人と同じ規則でサービス名とユーザー名を保存し、この紐付けの対象とする
 - 紐付け先のない外部アカウントは、所有権の証明が成功した時点で、そのAccountsユーザーへ即時に紐付ける
 - 成功した証明に基づく現在の紐付けは、本人による解除または別の本人の再証明による更新まで有効とする。再検証の直近結果と現在の紐付けを分けて保存し、後日の検証失敗だけでは現在の紐付けを変更しない
-- 別のユーザーに紐付くWeb URLも、申請者のAccountsプロフィールを示す証拠を再証明できた場合は、確認した識別子の現在の所有者を申請者へ更新する。その識別子を以前の所有者の一覧・照合から外し、新しい所有者の公開設定を適用する。他の識別子と証明は、今回確認した範囲に従って維持・更新する。リンク証明（`bidirectional_link`）単独の成功では、`dns_txt`または`oauth`の有効な証明が支える識別子を移動せず、その識別子の結果を`indeterminate`として、別の方法で証明済みの利用者に紐付いていることを本人に案内する。リンク証明だけが支える識別子は再証明で移動する
+- 別のユーザーに紐付くWeb URLも、申請者のAccountsプロフィールを示す証拠を再証明できた場合は、確認した識別子の現在の所有者を申請者へ更新する。その識別子を以前の所有者の一覧・照合から外し、新しい所有者の公開設定を適用する。他の識別子と証明は、今回確認した範囲に従って維持・更新する。リンク証明（`bidirectional_link`）単独の成功では、確認した識別子のうち1つでも別のユーザーの`dns_txt`または`oauth`の有効な証明が支えていれば、そのリンク証明全体を`indeterminate`として所有者を変更せず、同じ要求でDNS TXTの確認へ進む。本人には、別の方法で証明済みの利用者に紐付いていることを案内する。確認した識別子がすべてリンク証明だけに支えられている場合は再証明で移動する
 - 管理画面の「連携解除」は外部アカウントの表示行全体を対象にし、その行の識別子・証明方法・公開設定を終了する。OAuthのログイン手段を含む場合は、標準の認証連携の解除を先に行い、最後のログイン手段として拒否された場合は何も変更しない
 - OAuthの証明を持つ行には、「OAuthの認証連携だけ解除する」操作も置く。この操作は標準`unlinkAccount`に対象の標準`account`の行ID（`account.id`）を渡して認証連携を解除し、対応する`oauth`証明と対象関連だけを終了する。ほかの方法（公開ページのリンク・DNS TXT）が支える識別子と、外部アカウント行・公開設定は維持する。最後のログイン手段の解除は標準の結果に従って拒否する
 - OAuthアカウントの紐付け先を変更する場合は、元のAccountsユーザーで連携を解除した後、移動先のAccountsユーザーで所有権を改めて証明して連携する。元のユーザーには別のログイン手段を残して解除する
@@ -178,15 +180,16 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - OAuthクライアントの登録では、アプリ名・リダイレクトURL・`private_key_jwt`用の公開鍵を必須入力とし、サービスの紹介URLと説明文は任意入力とする。リダイレクトURLは、Accountsでの認証・同意後に利用者を戻す先として登録する
 - クライアント設定は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にする。アプリ名・紹介URL・説明文をアプリ情報、リダイレクトURL・Client ID・公開鍵を接続情報として整理し、入力項目と提供機能は本仕様で定めた内容とする
 - 1つのOAuthクライアントへ、リダイレクトURLを1件以上、複数登録できる。認可要求ごとに戻り先の`redirect_uri`を1つ指定し、Accountsのバックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認する。ローカル開発用のURLは次項のとおりポートを除いて一致を確認する
-- OAuthのリダイレクトURLはHTTPSとする。ローカル開発用に、ホストが`localhost`・`127.0.0.1`・`[::1]`のいずれかのURLをHTTPで登録できる。ローカル開発用のURLは[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除いて一致を確認する。1つのクライアントに本番のHTTPSのURLとローカル開発用のURLを併記できる
+- OAuthのリダイレクトURLはHTTPSとする。HTTPSのURLのホストには、loopback（`localhost`・`127.0.0.0/8`・`[::1]`）を使えない。ローカル開発用に、ホストが`localhost`・`127.0.0.1`・`[::1]`のいずれかのURLをHTTPで登録できる。ローカル開発用のURLは[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除いて一致を確認する。1つのクライアントに本番のHTTPSのURLとローカル開発用のURLを併記できる
 - バックエンドは、リダイレクトURLにローカル開発用のURLを含むクライアントを`application_type: "native"`、それ以外を`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡す。`private_key_jwt`・Client Credentials・DPoPは`application_type`によらず使用できる
-- 登録画面とAccountsのバックエンドで必須項目を検査し、紹介URL・説明文が未入力でも、ほかの登録条件を満たせば登録できる
+- 登録画面とAccountsのバックエンドで、必須項目とリダイレクトURLの規則を共有のschemaで検査する。リダイレクトURLの規則はBetter Auth標準の登録時の検査と同じとする。紹介URL・説明文が未入力でも、ほかの登録条件を満たせば登録できる
 - 1人のAccountsユーザーが所有できるOAuthクライアントは最大5件とする。画面とバックエンドの登録処理で確認する
 - 登録したアプリにはClient IDを発行し、`private_key_jwt`用の公開鍵をインラインのJWKS（`{"keys":[...]}`形式のJWK Set）で登録する。対応する秘密鍵は利用側サービスのバックエンドで保管する
 - Client Credentialsを利用できるクライアントは、本人がそのサービスから[連携を開始した](#利用開始の流れ)ときに、本人の情報提供先として表示する。初回の同意・公開選択の初期値はOFFとする。保存済みの提供先は、同意がOFFの場合も設定を編集できるよう一覧に表示する。通常の一覧には保存済みの提供先を表示する。初回の保存前に中断した場合は、次にそのサービスから連携を開始したときに再び同意画面へ表示する
 - 登録したアプリは、登録者のAccountsユーザーが管理し、アプリ設定の変更とアプリ自体の削除を行える
 - 開発者向け画面で公開鍵を登録・更新できる。登録時の鍵の検査とクライアント認証にはBetter Auth標準の機能を使う
-- 標準の更新APIは公開鍵を受け付けないため、公開鍵の更新は[提供・技術要件](#提供技術要件)の手続きで承認した独自拡張とし、`oauthClient.jwks`をAccountsの保存処理で更新する。更新する鍵の検査は、標準の登録時のJWK検査関数（`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`。公開APIの互換性保証の対象外）と同等とし、標準の登録と同じくJWK SetのJSON文字列で保存する。次のクライアント認証から新しい鍵で検証する
+- 登録はBetter Authのサーバー専用API`adminCreateOAuthClient`、アプリ情報・リダイレクトURLの更新は`adminUpdateOAuthClient`で行う。説明文は標準の列が無いため`oauthClient.metadata`の`description`に保存する
+- 標準の更新APIは公開鍵を受け付けず、紹介URLを削除できないため、公開鍵の更新と紹介URLの削除（`NULL`への更新）は[提供・技術要件](#提供技術要件)の手続きで承認した独自拡張とし、`oauthClient`の`jwks`・`uri`をAccountsの保存処理で更新する。更新する鍵の検査は、標準の登録時のJWK検査関数（`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`。公開APIの互換性保証の対象外）と同等とし、標準の登録と同じくJWK SetのJSON文字列で保存する。次のクライアント認証から新しい鍵で検証する
 - 鍵を切り替えるときは、JWK Setに新旧の鍵（`kid`）を併存させてから旧鍵を外す
 - 発行済みJWTの有効期間は[クライアント認証と権限](#クライアント認証と権限)に従う。鍵の更新とトークンの有効期限をそれぞれ管理し、認可・保存トークンの失効にはBetter Auth標準の操作を使う。署名付きJWTのAccess Tokenは失効できず、鍵の更新後も期限（最長15分）まで有効である。即時に止める場合はクライアントを削除する
 
@@ -261,7 +264,7 @@ AccountsユーザーIDを直接指定した場合は、表の条件を満たせ�
 - JWTの検証に成功した要求で、認証済みClient IDに対応するクライアントの有効性と、対象ユーザーの現在の提供許可を確認する。クライアント削除後はそのクライアントへのAPI提供を終了する
 - 返す外部アカウントについて、DB上の現在の紐付けと、そのユーザーから認証済みClient IDへの提供許可を要求ごとに確認する
 
-クライアント認証には`private_key_jwt`、Access Tokenの送信者確認にはDPoPを採用する。Better Auth公式OAuth Providerの`token_endpoint_auth_method: "private_key_jwt"`、公開鍵の`jwks`、`dpop_bound_access_tokens: true`を設定し、API資源側も`dpopBoundAccessTokensRequired: true`とする。Accounts APIは標準の`verifyAccessTokenRequest`で検証し、Workersでは公式の`createDpopReplayStore`を認証DBへ接続する。
+クライアント認証には`private_key_jwt`、Access Tokenの送信者確認にはDPoPを採用する。Better Auth公式OAuth Providerの`token_endpoint_auth_method: "private_key_jwt"`、公開鍵の`jwks`、`dpop_bound_access_tokens: true`を設定し、API資源側も`dpopBoundAccessTokensRequired: true`とする。Accounts APIの検証は、標準の`verifyAccessTokenRequest`と同じ標準部品（`parseAccessTokenAuthorization`・`verifyJwsAccessToken`・`enforceDpopBinding`・`createDpopReplayStore`・`createResourceServerChallenge`）で組み立てる。`verifyAccessTokenRequest`は検証鍵のJWKSをURL文字列でしか受け付けないため、検証鍵は`auth.api.getJwks()`から読む。Workersでは`createDpopReplayStore`を認証DBへ接続する。
 
 利用側サービスは秘密鍵を保管し、DPoP対応の標準ライブラリでトークン取得とAPI要求のproofを生成する。この構成は公開鍵によるクライアント認証とトークンの鍵への結び付けを組み合わせるものであり、鍵そのものの保管は利用側の責務とする。[Better Auth OAuth Provider](https://better-auth.com/docs/plugins/oauth-provider)、[FAPI 2.0](https://openid.net/specs/fapi-security-profile-2_0-final.html)
 
@@ -481,7 +484,7 @@ OAuthの固有IDと、URLから抽出したユーザー名は、それぞれ別�
 | 一括照合の要求bodyが5MiBを超過 | 413 | `REQUEST_TOO_LARGE` |
 | サーバー内部の処理失敗 | 500 | `INTERNAL_ERROR` |
 
-401・403の応答では、Better Auth標準の`verifyAccessTokenRequest`が付ける`WWW-Authenticate`ヘッダーを維持し、bodyは本表の形式とする。削除したクライアントのトークンによる要求は401とする。
+401・403の応答では、Better Auth標準の`createResourceServerChallenge`で作る`WWW-Authenticate`ヘッダーを付け、bodyは本表の形式とする。削除したクライアントのトークンによる要求は401とする。
 
 一覧取得・照合の資源APIにも、CloudflareのWAFのRate Limitingを適用する。上限を超えた要求にはWAFがHTTP 429を返し、この応答は本表の形式に従わない。利用側はHTTPステータスで判定する。
 
@@ -564,7 +567,8 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 外部アカウントの追加連携は、本人の操作と外部サービスでの認証に基づいて行う
 - OAuthの同一アカウントは外部サービス名と固有IDで判定する。メールアドレスにかかわらず、本人の操作とProviderでの認証により明示連携する
 - 外部アカウントでのログイン・追加連携・再連携で表示名を取得した場合は、その外部アカウントの最新の表示名として保存する。管理画面・一般公開・OAuthクライアントへの提供では、公開条件に従って保存済みの表示名を使用する
-- OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLは、その外部アカウントの識別子を置き換える。置き換え後の値が別のAccountsユーザーの有効な識別子と衝突する場合は、OAuthの検証済み応答を優先し、その識別子を今回の本人へ移動する
+- OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLは、その外部アカウントの識別子を置き換える。改名前のユーザー名・プロフィールURLの識別子行と、それらだけを対象とする証明行（改名前のURLのリンク証明など）は削除する。置き換え後の値が別のAccountsユーザーの有効な識別子と衝突する場合は、OAuthの検証済み応答を優先し、その識別子を今回の本人へ移動する
+- OAuth連携でURL識別子を追加する時点で本人の`url`行が150件に達している場合は、そのURL行だけを保存せず、ログイン・連携とほかの識別子の保存を続ける。上限到達は「アカウント連携」画面に表示する
 - ログイン・追加連携・再連携の後も、本人が設定したAccountsの表示名を維持する
 - 外部アカウントの連携解除と退会では、Better Auth標準の処理で保存したAccess Token・Refresh Tokenを削除する。外部サービス側に残るAccountsへの連携許可は、本人が各サービスの設定から取り消す。この案内は[文書化要件](#文書化要件)の公開ヘルプで行う
 
@@ -661,11 +665,30 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 | 対象 | 項目 |
 | --- | --- |
 | 本人向けの外部アカウント一覧 | 外部サービス名、取得できる表示名、固有ID・URL、連携日時、検証方法・検証日時・検証結果。OAuthのメールアドレスは、取得できた場合に複数アカウントを見分ける補助情報として表示し、取得できない場合は表示名だけを表示する。検証失敗の詳細も本人向けに表示する |
-| 一般公開・OAuthクライアント向け | 外部サービス名、取得できる表示名、固有ID・ユーザー名・URL、連携日時、検証方法ごとの検証日時・検証結果・証拠URL。取得していない項目は`null`または空配列とする |
+| 一般公開・OAuthクライアント向け | 外部サービス名、取得できる表示名、固有ID・ユーザー名・URL、連携日時、検証方法ごとの検証日時・検証結果・証拠URL。検証方法は一度でも成功した証明（`verified_at`がある行）だけを含め、成功していない方法の試行は本人向けに限る。取得していない項目は`null`または空配列とする |
 
 証明方法は`verifications`配列で複数提供し、「OAuth」「公開ページのリンク確認」「DNS TXT」の3種のバッジで示す。成功・未検証・失敗・判断不能などを区別し、詳細な失敗理由は本人画面で表示する。提供する対象は[公開設定](#公開設定)に従う。
 
 一般公開とOAuthクライアントへの提供には共通の項目を用い、[公開設定](#公開設定)で対象を選択する。APIのキー・型は[APIの具体案](#apiの具体案)、本人向けJSON出力の項目は[JSON形式](#json形式)に従う。
+
+### 画面用のAPI
+
+管理画面は、Cookieのセッションで本人を確認する次の画面用API（BFF）を呼ぶ。状態変更の経路にはCSRF対策を適用し、cookie cacheを使わずDBのセッションを読む。成功応答は`{ "data": ... }`、失敗応答は[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457)のProblem Detailsに機械判定用の`code`と、入力不備の`errors`（各要素は`code`・`message`・`path`）を加えた形とする。ログイン・連携の開始・退会・OAuthの同意はBetter Authの標準エンドポイント（`/api/auth/*`）、連携アカウントの一覧取得・照合は[APIの具体案](#apiの具体案)の資源APIとし、それぞれの応答形式に従う。
+
+| 経路 | HTTP | 内容 |
+| --- | --- | --- |
+| `/api/me` | `GET` | ログイン中の本人のAccountsユーザーID・表示名・公開プロフィールURL |
+| `/api/profile` | `PATCH` | 表示名の変更 |
+| `/api/account-links` | `GET` | 「アカウント連携」画面の外部アカウント・証明・公開設定・提供先。同意画面では今回の連携先を`consentClientId`で指定する |
+| `/api/visibility` | `PUT` | 一般公開・情報提供同意・外部アカウント別の公開選択の一括保存 |
+| `/api/external-urls` | `POST` | URLの「保存して検証する」（`mode: "verify"`）と「未検証で保存」（`mode: "unverified"`） |
+| `/api/external-accounts/:id` | `DELETE` | 外部アカウントの表示行全体の連携解除 |
+| `/api/external-accounts/:id/oauth/:authAccountId` | `DELETE` | OAuthの認証連携だけの解除 |
+| `/api/backup/summary` | `GET` | JSON出力前に示す対象情報と件数 |
+| `/api/backup` | `GET` | JSON出力。bodyはバックアップJSONそのものとする |
+| `/api/backup/restore` | `POST` | バックアップJSONからの復元 |
+| `/api/oauth-clients` | `GET`・`POST` | 本人のOAuthクライアントの一覧と登録 |
+| `/api/oauth-clients/:clientId` | `GET`・`PUT`・`DELETE` | 本人のOAuthクライアントの取得・更新・削除 |
 
 ## JSONによるバックアップと移行
 
@@ -913,7 +936,7 @@ ORCIDの固有IDはURL形式でないiD（例: `0000-0002-1825-0097`）とする
 
 `kind`は`url`・`provider_account`・`provider_username`とする。URL行は正規化URL全体を`value`、正規化hostを`host`に保存し、`provider`と`issuer`を空文字にする。Provider識別子行はProvider識別子を`provider`、空文字を`issuer`に保存し、`host`をNULLにする。`value`には固有IDまたはサービス規則で正規化したユーザー名を入れる。照合入力も同じキーへ変換する。NULLを含めないキーにより、SQLiteのUNIQUEのNULL扱いに依存しない。
 
-登録候補の`is_active=0`は、同じ識別子を複数のAccountsユーザーが保持できる。[SQLiteの部分UNIQUE索引](https://www.sqlite.org/partialindex.html)は証明済みで現在有効な`is_active=1`の行だけに適用し、競合時も所有者を最大1人にする。同じ本人の同じ正規化URLは候補を含め1行とする。150件の上限は、本人が登録したURL、証明で保存したプロフィールURL、OAuth由来のURLを含む本人の`kind='url'`の全行を数える。登録・検証・OAuth連携・復元で`url`行を追加する前に現在の行数が150未満であることを確認し、150に達していれば追加を拒否して上限到達を本人に示す。`verification_identifiers`は成功した各証明が実際に確認した識別子だけを結び、同じ外部アカウントのOAuth・リンク・DNS証明を別行に保つ。証明と識別子は同じ`account_id`に属することを保存処理で確認する。
+登録候補の`is_active=0`は、同じ識別子を複数のAccountsユーザーが保持できる。[SQLiteの部分UNIQUE索引](https://www.sqlite.org/partialindex.html)は証明済みで現在有効な`is_active=1`の行だけに適用し、競合時も所有者を最大1人にする。同じ本人の同じ正規化URLは候補を含め1行とする。150件の上限は、本人が登録したURL、証明で保存したプロフィールURL、OAuth由来のURLを含む本人の`kind='url'`の全行を数える。登録・検証・OAuth連携・復元で`url`行を追加する前に現在の行数が150未満であることを確認し、150に達していれば追加を拒否して上限到達を本人に示す。OAuth連携では上限を超えるURL行だけを保存せず、ほかの保存は続ける。`verification_identifiers`は成功した各証明が実際に確認した識別子だけを結び、同じ外部アカウントのOAuth・リンク・DNS証明を別行に保つ。証明と識別子は同じ`account_id`に属することを保存処理で確認する。
 
 `method`は`oauth`・`bidirectional_link`・`dns_txt`。`evidence_key`はOAuthでは標準`account.id`、リンクでは正規化した入力URL、DNSでは正規化hostとし、同じ方法・証拠の再検証を同じ行に記録する。リンクで証拠を確認したページ（最終取得URL）は`evidence_url`に保存する。`verified_at`は現在有効な成功の日時とし、再検証の成功で更新する。`checked_at`・`result`・`failure_code`は直近の試行を表す。`external_accounts.linked_at`は、その外部アカウントで最初に有効な証明が成立した日時とする。証明を失った識別子は、Web識別子の移動で旧所有者から外すものを除き、`is_active=0`の候補として残す。本人への次の操作の案内は`failure_code`から導く。失敗や判断不能の試行では`verified_at`と成功済みの`verification_identifiers`を変更しない。`imported_verifications_json`は復元した候補の過去情報を本人向けの参考として保持する欄であり、有効な証明・照合の根拠にしない。JSON出力の`verifications`は現在の証明行だけから作り、`imported_verifications_json`は出力しない。
 
@@ -934,13 +957,13 @@ erDiagram
 
 ### 読み取りと更新の単位
 
-- **登録・検証**：セッション本人の入力URLを検査・正規化し、`url`行を追加する前に本人の`url`行が150未満であることを確認する。未登録URLも受け付け、公開ページのリンク証明を先に確認する。不成立なら同じ要求で入力URLのhostのDNS TXTを確認し、各方法の結果と入力URLを保存する。ページ取得・DNS照会はDB書込の前に行う。成功時だけ証明行と今回確認した識別子との対象関連を保存して`is_active=1`にする。リンク証明では、入力URLが個別対応サービスのプロフィールURLなら、URL規則で最終取得URLから確定したユーザー名・プロフィールURLを入力URLと同じ外部アカウント・同じ証明へ含める。コンテンツURLのリンク証明は入力URLだけを対象とする。DNSの対象は入力URLと同じhostで本人が登録済みのURLとし、対象URLを含む各外部アカウントにhostを`evidence_key`とする`dns_txt`証明行を作る。外部アカウントは統合しない。
+- **登録・検証**：セッション本人の入力URLを検査・正規化し、`url`行を追加する前に本人の`url`行が150未満であることを確認する。未登録URLも受け付け、公開ページのリンク証明を先に確認する。不成立なら同じ要求で入力URLのhostのDNS TXTを確認し、各方法の結果と入力URLを保存する。ページ取得・DNS照会はDB書込の前に行う。成功時だけ証明行と今回確認した識別子との対象関連を保存して`is_active=1`にする。リンク証明では、最終取得URLが個別対応サービスのプロフィールURLなら、そのURL規則で確定したユーザー名・プロフィールURLを入力URLと同じ外部アカウント・同じ証明へ含める。最終取得URLがそれ以外の場合のリンク証明は入力URLだけを対象とする。DNSの対象は入力URLと同じhostで本人が登録済みのURLとし、対象URLを含む各外部アカウントにhostを`evidence_key`とする`dns_txt`証明行を作る。外部アカウントは統合しない。
 - **再検証**：成功した場合に限り、その証拠行の対象識別子を今回確認した集合へ更新し、他の成功証明が支える識別子の有効性は維持する。`not_verified`・`indeterminate`では直近の`checked_at`・`result`・`failure_code`だけを更新し、過去に成功した証明の対象集合と`verified_at`、現在の有効な紐付けを維持する。
-- **Web識別子の移動**：新しい本人の証明が成功したとき、今回確認したキーごとに旧所有者の識別子行とその全証明との関連を削除し、新所有者の行・成功証明を有効にする。旧所有者の他の識別子と、それを支える証明は残す。対象識別子がなくなった証明と表示行・公開設定は終了し、新所有者には本人の公開選択を適用する。リンク証明単独の成功では、旧所有者の`dns_txt`または`oauth`の有効な証明が支えるキーを移動せず、そのキーを`indeterminate`として扱う。リンク証明だけが支えるキーは移動する。OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLが別の所有者の有効な識別子と衝突する場合も、この手順で今回の本人へ移動する。OAuth固有IDとOAuth認証行はこの手順では移動しない。
+- **Web識別子の移動**：新しい本人の証明が成功したとき、今回確認したキーごとに旧所有者の識別子行とその全証明との関連を削除し、新所有者の行・成功証明を有効にする。旧所有者の他の識別子と、それを支える証明は残す。対象識別子がなくなった証明と表示行・公開設定は終了し、新所有者には本人の公開選択を適用する。リンク証明単独の成功では、今回確認したキーのうち1つでも旧所有者の`dns_txt`または`oauth`の有効な証明が支えていれば、どのキーも移動せずにリンク証明全体を`indeterminate`とする。すべてのキーがリンク証明だけに支えられている場合は移動する。OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLが別の所有者の有効な識別子と衝突する場合も、この手順で今回の本人へ移動する。OAuth固有IDとOAuth認証行はこの手順では移動しない。
 - **OAuth解除・再連携**：標準`unlinkAccount`（標準`account.id`を指定）を先に実行する。`account`行の削除でCASCADEにより対応する`oauth`証明と対象関連を終了し、続くbatchで支えを失った識別子を`is_active=0`にする。「OAuthの認証連携だけ解除する」操作では、ほかの成功した方法が支える識別子と外部アカウント行を有効なまま残す。表示行全体を解除する操作では、標準の解除が成功した後のbatchで`external_accounts`行を削除し、その行の全識別子・証明・公開設定をCASCADEで終了する。最後のログイン手段の解除は標準の結果に従って拒否し、独自表を変更しない。OAuthの所有者変更は元ユーザーで解除してから、新ユーザーが標準フローで再連携する。
 - **公開・照合**：一般公開は`external_accounts.is_public=1`、クライアント提供は本人の`client_consents.consented=1`と対象行の`external_account_visibility.is_public=1`を必要とする。いずれも現在`is_active=1`で成功済み証明の対象に含まれる識別子だけを提供し、クライアントAPIでは有効な`oauthClient.clientId`と認証済み主体も確認する。画面全体の保存時は、同意ONの有効な各クライアントに証明済みの選択行が1件以上あることを検査し、一般公開・同意・個別選択を一括更新する。照合APIは保存済みキーだけを読み、外部通信しない。
 - **復元**：5MiB・形式・重複・本人権限と、復元後の本人の`url`行が150件以内であることを先に検査する。バックアップ内で現在も本人に有効な識別子・証明・連携日時・検証日時は維持して公開選択だけ戻し、本人に有効でない項目は`is_active=0`の候補として取り込む。バックアップにないアカウントとクライアント向け設定は維持する。バックアップ内の同意・公開選択はClient IDで上書きし、現在存在しないClient IDも保存する。同意をOFFに戻すクライアントの標準`oauthConsent`は、公開設定の保存と同じく削除する。候補の過去の証明情報を現在の証明として扱わない。本人の既存行（候補を含む）と識別子キーが一致する項目はその行を更新する。JSONの1アカウントが既存の複数行に当たる場合と、JSONの複数のアカウントが既存の1行に当たり公開選択が食い違う場合は入力不備とする。候補を再証明するとき、`service`・`displayName`は[サービス別の識別](verify-url.ja.md#サービス別の識別)に従ってバックエンドが再判定し、JSONの値は採用しない。
-- **削除**：退会では標準`deleteUser`が`user`行を削除し、CASCADEで本人の独自表データと標準認証・登録クライアントを削除する。クライアント削除では標準クライアント・認可を終了し、そのClient IDの同意・公開選択を削除する。後日のJSON復元で同じClient IDの設定が入力された場合は、設定データとして保持する。
+- **削除**：退会では標準`deleteUser`が`user`行を削除し、CASCADEで本人の独自表データと標準認証・登録クライアントを削除する。退会者が登録したクライアントへのほかのユーザーの同意・公開選択は、存在しないClient IDの設定として残す。一覧には有効なクライアントだけを表示し、そのClient IDによるAPI要求はクライアント認証で拒否される。クライアント削除では標準の削除APIで標準クライアント・認可を終了した後、続くbatchでそのClient IDの同意・公開選択を削除する。後日のJSON復元で同じClient IDの設定が入力された場合は、設定データとして保持する。
 
 関連する複数書込は[D1の`batch()`](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)1回で確定する。失敗時はそのbatch全体がロールバックされる。1つの操作を複数batchへ分けた場合は、操作全体の原子性を保証したものとは扱わない。照合・復元・公開設定の更新で複数の値を扱う文は、値の配列をJSON文字列にして1つのバインド値で渡し、[`json_each`](https://developers.cloudflare.com/d1/sql-api/query-json/#expand-arrays-for-in-queries)で展開する（`IN (SELECT value FROM json_each(?))`、`INSERT … SELECT … FROM json_each(?)`）。これにより[D1の1文100バインド変数・SQL文100KBの上限](https://developers.cloudflare.com/d1/platform/limits/)に掛からず、文の数は入力件数によらず一定になる。1つのバインド値はD1の文字列上限（2,000,000 bytes）以内とし、照合は入力を500件ずつ読み、`json_each`の`key`で入力順へ戻す。[JSONによるバックアップと移行](#jsonによるバックアップと移行)で定めた件数上限までの有効な復元入力を1 batchで処理できることを実装時に確認する。
 
@@ -969,7 +992,7 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 - フロントエンドの各機能の取得・状態・イベント・検証ロジックをfeatureごとのフックへ分け、ビューはpropsとイベントから描画する。認可と保存時の検証はバックエンドが担当する
 - アプリの処理、ドメインの規則、DB・外部サービスへの接続を分けた実用的なクリーンアーキテクチャとする。必要な責務に対応する層・インターフェースを用意する
 - 管理画面はSPA、ヘルプなどの固定ページはSPAまたはビルド時SSGで配信する。公開プロフィールの公開情報はD1を正とし、キャッシュミス時にHonoが在籍ユーザーの表示名・固定IDと一般公開を許可された外部アカウント情報からHTMLを生成する。生成した`text/html`応答をCloudflare Workers Cacheに保持し、ヒット時はキャッシュから返す。外部リンクが0件でもプロフィールを返し、初回HTMLには、一般公開を許可した外部アカウントのURLすべてを`rel="me"`付きのリンクとして含める。退会などでユーザーが存在しない場合は404を返す。配信手順は[実装計画](../../implementation-plan/v0.1.md)に従う
-- 認証はBetter Authの標準機能・公式プラグインで構成する。標準で実現できない認証拡張が必要になった場合は、理由・追加内容・代替案を提示し、本人の承認を得てから実装する。承認済みの拡張は、[OAuthクライアント管理](#oauthクライアント管理)の公開鍵の更新（`oauthClient.jwks`をAccountsの保存処理で更新する）とする
+- 認証はBetter Authの標準機能・公式プラグインで構成する。標準で実現できない認証拡張が必要になった場合は、理由・追加内容・代替案を提示し、本人の承認を得てから実装する。承認済みの拡張は、[OAuthクライアント管理](#oauthクライアント管理)の公開鍵の更新と紹介URLの削除（`oauthClient`の`jwks`・`uri`をAccountsの保存処理で更新する）とする
 - Better Auth 1.7系安定版と対応パッケージを採用する。Drizzle adapterと`better-auth/minimal`を使用し、TypeScriptのstrictを有効にして`$Infer`で認証型を取得する
 - 認証の標準設定は次の表に従う。実際の設定値とProvider別の対応は[1.7移行ガイド](https://better-auth.com/docs/guides/1-7-upgrade-guide)と[Options](https://better-auth.com/docs/reference/options)で確認する
 

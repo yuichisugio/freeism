@@ -41,7 +41,7 @@ describe("parseOAuthClientForm", () => {
     expect(result.errors.uri).toBe("invalidUrl");
   });
 
-  it("リダイレクトURLは、HTTPSとlocalhostのHTTPを許可し、それ以外の行と空の行をエラーにする", () => {
+  it("リダイレクトURLは、loopback以外のHTTPSとlocalhostのHTTPを許可し、それ以外の行と空の行をエラーにする", () => {
     const result = parseOAuthClientForm({
       ...validForm,
       redirectUris: [
@@ -49,6 +49,8 @@ describe("parseOAuthClientForm", () => {
         "http://localhost:3000/callback",
         "http://points.example/callback",
         "https://points.example/callback#top",
+        "https://localhost/callback",
+        "https://127.0.0.2/callback",
         "",
       ],
     });
@@ -57,6 +59,8 @@ describe("parseOAuthClientForm", () => {
     expect(result.errors.redirectUris).toEqual([
       undefined,
       undefined,
+      "invalidRedirectUri",
+      "invalidRedirectUri",
       "invalidRedirectUri",
       "invalidRedirectUri",
       "required",

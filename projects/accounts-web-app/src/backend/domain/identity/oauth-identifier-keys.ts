@@ -1,11 +1,12 @@
 import type { IdentifierKey } from "./identifier-key";
-import { normalizeProviderUsername, type OAuthProviderId } from "./providers";
+import type { LoginProviderId } from "../../../shared/providers";
+import { normalizeProviderUsername } from "./providers";
 
 /**
  * OAuthの検証済み応答から得た識別子の元データ。
  */
 export type OAuthIdentity = {
-  providerId: OAuthProviderId;
+  providerId: LoginProviderId;
   accountId: string;
   username: string | null;
 };

@@ -1,5 +1,7 @@
+import { loginProviderIds, type LoginProviderId, type ProviderId } from "../../../shared/providers";
+
 /**
- * Accountsが扱うProvider識別子と、サービス内ユーザー名の正規化規則。
+ * Accountsが扱うProviderごとの、サービス内ユーザー名の正規化規則。
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
  * @see ./providers.test.ts
  */
@@ -15,23 +17,7 @@ const providerRules = {
   codeberg: { lowercasesUsername: true },
   x: { lowercasesUsername: true },
   huggingface: { lowercasesUsername: true },
-} as const satisfies Record<string, { lowercasesUsername: boolean }>;
-
-/**
- * Provider表のProvider識別子。
- */
-export type ProviderId = keyof typeof providerRules;
-
-/**
- * ログイン・追加連携に使うOAuth ProviderのProvider識別子。
- */
-export type OAuthProviderId = Extract<ProviderId, "google" | "github" | "orcid">;
-
-const oauthProviderIds: readonly string[] = [
-  "google",
-  "github",
-  "orcid",
-] satisfies OAuthProviderId[];
+} as const satisfies Record<ProviderId, { lowercasesUsername: boolean }>;
 
 /**
  * 値がProvider表のProvider識別子かを判定する。
@@ -43,8 +29,8 @@ export function isProviderId(value: string): value is ProviderId {
 /**
  * 標準`account`の`providerId`が、ログイン・追加連携に使うOAuth Providerかを判定する。
  */
-export function isOAuthProviderId(value: string): value is OAuthProviderId {
-  return oauthProviderIds.includes(value);
+export function isOAuthProviderId(value: string): value is LoginProviderId {
+  return (loginProviderIds as readonly string[]).includes(value);
 }
 
 /**

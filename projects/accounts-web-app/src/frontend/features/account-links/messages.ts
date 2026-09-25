@@ -323,5 +323,3 @@ export const accountLinksMessages = defineMessages({
     oauthErrorFallback: "The external account could not be linked. Please try again.",
   },
 });
-
-export type AccountLinksMessages = (typeof accountLinksMessages)["ja"];

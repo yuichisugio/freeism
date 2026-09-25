@@ -1,7 +1,7 @@
 import type { Account } from "better-auth";
 import { decryptOAuthToken } from "better-auth/oauth2";
 
-import type { OAuthProviderId } from "../domain/identity/providers";
+import type { LoginProviderId } from "../../shared/providers";
 import type { OAuthProfile } from "../usecases/sync-oauth-account";
 
 /**
@@ -32,7 +32,7 @@ function readText(value: unknown): string | null {
  * @see ./read-oauth-profile.test.ts
  */
 export function toOAuthProfile(
-  providerId: OAuthProviderId,
+  providerId: LoginProviderId,
   accountId: string,
   userInfo: ProviderUserInfo,
 ): OAuthProfile {
@@ -69,7 +69,7 @@ export function toOAuthProfile(
  * @throws Providerから取得できなかった場合
  */
 export async function readOAuthProfile(
-  account: Account & { providerId: OAuthProviderId },
+  account: Account & { providerId: LoginProviderId },
   authContext: AuthContext,
 ): Promise<OAuthProfile> {
   const provider = authContext.socialProviders.find(

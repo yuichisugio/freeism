@@ -141,5 +141,3 @@ export function useAccountLinks(consentClientId?: string) {
       ),
   };
 }
-
-export type AccountLinksState = ReturnType<typeof useAccountLinks>;

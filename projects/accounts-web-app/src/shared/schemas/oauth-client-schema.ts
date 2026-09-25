@@ -20,15 +20,25 @@ import { httpsUrlSchema } from "./identifier-schema";
 const loopbackHosts = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 /**
+ * loopbackのhostか判定する。
+ * URLの解析で正規化されたhost（`localhost`・`127.0.0.0/8`・`[::1]`）を対象にする。
+ */
+function isLoopbackHostname(hostname: string): boolean {
+  return (
+    hostname === "localhost" || hostname === "[::1]" || /^127\.\d+\.\d+\.\d+$/.test(hostname)
+  );
+}
+
+/**
  * リダイレクトURLとして登録できるか判定する。
- * HTTPSのURLと、ローカル開発用hostのHTTPのURLを許可する。
- * fragmentはOAuthの戻り先に使えないため拒否する。
+ * loopback以外のhostのHTTPSのURLと、ローカル開発用hostのHTTPのURLを許可する。
+ * HTTPSのloopbackとfragmentは、OAuth Providerの標準検査が拒否するため同じく拒否する。
  */
 export function isAllowedRedirectUri(value: string): boolean {
   if (!URL.canParse(value)) return false;
   const url = new URL(value);
   if (url.hash !== "" || value.includes("#")) return false;
-  if (url.protocol === "https:") return true;
+  if (url.protocol === "https:") return !isLoopbackHostname(url.hostname);
   return url.protocol === "http:" && loopbackHosts.has(url.hostname);
 }
 
@@ -37,7 +47,10 @@ export const redirectUriSchema = v.pipe(
   v.trim(),
   v.nonEmpty(),
   v.maxBytes(urlMaxBytes),
-  v.check(isAllowedRedirectUri, "HTTPS, or HTTP on localhost, 127.0.0.1 or [::1], without a fragment."),
+  v.check(
+    isAllowedRedirectUri,
+    "HTTPS on a non-loopback host, or HTTP on localhost, 127.0.0.1 or [::1], without a fragment.",
+  ),
 );
 
 // --------------------------------------------------
@@ -87,4 +100,3 @@ export const oauthClientListSchema = v.object({
 
 export type OAuthClientInput = v.InferInput<typeof oauthClientSchema>;
 export type OAuthClientDetail = v.InferOutput<typeof oauthClientDetailSchema>;
-export type Jwks = v.InferOutput<typeof jwksSchema>;

@@ -22,7 +22,11 @@ const limitBody = bodyLimit({
   onError: (c) =>
     resourceApiErrorResponse(
       c,
-      requestError(413, "REQUEST_TOO_LARGE", "Request body must be at most 5242880 bytes."),
+      requestError(
+        413,
+        "REQUEST_TOO_LARGE",
+        `Request body must be at most ${resourceApiBodyMaxBytes} bytes.`,
+      ),
     ),
 });
 

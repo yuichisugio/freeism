@@ -78,7 +78,6 @@ export const accountLinksSchema = v.object({
   clients: v.array(linkedClientSchema),
 });
 
-export type LinkedIdentifier = v.InferOutput<typeof linkedIdentifierSchema>;
 export type LinkedVerification = v.InferOutput<typeof linkedVerificationSchema>;
 export type LinkedAccount = v.InferOutput<typeof linkedAccountSchema>;
 export type LinkedClient = v.InferOutput<typeof linkedClientSchema>;

@@ -51,7 +51,6 @@ export const saveUnverifiedUrlResultSchema = v.object({
 });
 
 export type ExternalUrlMode = v.InferOutput<typeof externalUrlModeSchema>;
-export type ExternalUrlInput = v.InferInput<typeof externalUrlSchema>;
 export type VerificationAttempt = v.InferOutput<typeof verificationAttemptSchema>;
 export type VerifyUrlResult = v.InferOutput<typeof verifyUrlResultSchema>;
 export type SaveUnverifiedUrlResult = v.InferOutput<typeof saveUnverifiedUrlResultSchema>;

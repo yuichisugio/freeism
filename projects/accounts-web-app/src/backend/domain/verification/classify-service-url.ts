@@ -1,4 +1,5 @@
-import { normalizeProviderUsername, type ProviderId } from "../identity/providers";
+import type { ProviderId } from "../../../shared/providers";
+import { normalizeProviderUsername } from "../identity/providers";
 
 /**
  * 個別対応サービスのURL規則による、サービス名・URLの種類・ユーザー名の判定。

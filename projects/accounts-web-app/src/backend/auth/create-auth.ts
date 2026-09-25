@@ -18,6 +18,7 @@ import {
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements } from "better-auth/plugins/admin/access";
 
+import { loginProviderIds } from "../../shared/providers";
 import { createDatabase } from "../db/database";
 import { createRandomId } from "../db/id";
 import * as schema from "../db/schema";
@@ -28,7 +29,6 @@ import { selectProfilePurgeTargets } from "../usecases/profile/select-profile-pu
 import { syncOAuthAccount } from "../usecases/sync-oauth-account";
 import { createAuditAfterHook } from "./audit-auth-events";
 import { readOAuthProfile, type AuthContext } from "./read-oauth-profile";
-import { requireSavedClientConsent } from "./require-saved-client-consent";
 
 /**
  * 新規ユーザーの表示名。
@@ -210,7 +210,7 @@ export function createAuth(
       updateAccountOnSignIn: true,
       accountLinking: {
         disableImplicitLinking: true,
-        trustedProviders: ["google", "github", "orcid"],
+        trustedProviders: [...loginProviderIds],
         allowDifferentEmails: true,
         updateUserInfoOnLink: false,
       },
@@ -241,7 +241,6 @@ export function createAuth(
       "/update-user",
     ],
     hooks: {
-      before: requireSavedClientConsent(db),
       after: createAuditAfterHook({ purgeProfiles }),
     },
     databaseHooks: {

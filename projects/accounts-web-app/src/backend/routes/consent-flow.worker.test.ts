@@ -154,19 +154,6 @@ describe("連携開始と同意画面", () => {
     readConsentPageQuery(withPrompt);
   });
 
-  it("情報提供同意をONで保存していなければ、accept:trueでも認可コードを発行しない", async () => {
-    const { userId, headers, clientId } = await setUpUser();
-    const oauthQuery = readConsentPageQuery(
-      await authorize(headers, clientId, { prompt: "consent" }),
-    );
-
-    const response = await sendConsent(headers, oauthQuery, true);
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({ code: "CONSENT_NOT_SAVED" });
-    expect(await countOAuthConsents(userId, clientId)).toBe(0);
-  });
-
   it("accept:falseはaccess_deniedで戻り、保存済みの同意と公開設定を変えない", async () => {
     const { userId, headers, accountId, clientId } = await setUpUser();
     await saveVisibility(headers, {
