@@ -12,6 +12,13 @@
     "enabled": true,
     "head_sampling_rate": 1
   },
+  // Workers Cacheは公開プロフィール専用のエントリーポイントだけに適用し、API・認証・画面の入口はキャッシュしない。
+  // Previewはこの設定を継承しないため、キャッシュせずに毎回D1から生成する。
+  "cache": { "enabled": true },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "PublicProfileEntrypoint": { "type": "worker", "cache": { "enabled": true } }
+  },
   // SPAの画面はassetsから配信し、API・認証・公開プロフィールのパスはWorkerで処理する。
   "assets": {
     "binding": "ASSETS",

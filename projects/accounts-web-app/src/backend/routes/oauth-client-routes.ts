@@ -4,6 +4,7 @@ import { oauthClientSchema } from "../../shared/schemas/oauth-client-schema";
 import { getAuth } from "../auth/auth";
 import { createDatabase } from "../db/database";
 import type { AppEnv } from "../hono-env";
+import { auditRequest } from "../logging/audit-request";
 import { requireSession, type SessionVariables } from "../middleware/session-middleware";
 import { dataResponse, handleBffError, parseJsonBody } from "../problem-details";
 import { deleteOAuthClient } from "../usecases/oauth-client/delete-oauth-client";
@@ -41,25 +42,40 @@ export const oauthClientRoutes = new Hono<OAuthClientEnv>()
     const clients = await listOAuthClients(createOAuthClientDeps(c));
     return dataResponse(c, { clients });
   })
-  .post("/", requireSession({ fresh: true }), async (c) => {
-    const input = await parseJsonBody(c, oauthClientSchema);
-    const client = await registerOAuthClient(createOAuthClientDeps(c), input);
-    return c.json({ data: client }, 201, { "Cache-Control": "private, no-store" });
-  })
+  .post(
+    "/",
+    auditRequest("oauth_client_registered"),
+    requireSession({ fresh: true }),
+    async (c) => {
+      const input = await parseJsonBody(c, oauthClientSchema);
+      const client = await registerOAuthClient(createOAuthClientDeps(c), input);
+      return c.json({ data: client }, 201, { "Cache-Control": "private, no-store" });
+    },
+  )
   .get("/:clientId", requireSession({ fresh: false }), async (c) => {
     const client = await readOAuthClient(createOAuthClientDeps(c), c.req.param("clientId"));
     return dataResponse(c, client);
   })
-  .put("/:clientId", requireSession({ fresh: true }), async (c) => {
-    const input = await parseJsonBody(c, oauthClientSchema);
-    const client = await updateOAuthClient(
-      createOAuthClientDeps(c),
-      c.req.param("clientId"),
-      input,
-    );
-    return dataResponse(c, client);
-  })
-  .delete("/:clientId", requireSession({ fresh: true }), async (c) => {
-    await deleteOAuthClient(createOAuthClientDeps(c), c.req.param("clientId"));
-    return dataResponse(c, { ok: true as const });
-  });
+  .put(
+    "/:clientId",
+    auditRequest("oauth_client_updated"),
+    requireSession({ fresh: true }),
+    async (c) => {
+      const input = await parseJsonBody(c, oauthClientSchema);
+      const client = await updateOAuthClient(
+        createOAuthClientDeps(c),
+        c.req.param("clientId"),
+        input,
+      );
+      return dataResponse(c, client);
+    },
+  )
+  .delete(
+    "/:clientId",
+    auditRequest("oauth_client_deleted"),
+    requireSession({ fresh: true }),
+    async (c) => {
+      await deleteOAuthClient(createOAuthClientDeps(c), c.req.param("clientId"));
+      return dataResponse(c, { ok: true as const });
+    },
+  );

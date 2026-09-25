@@ -1,11 +1,9 @@
 import { Hono } from "hono";
 import { except } from "hono/combine";
 import { csrf } from "hono/csrf";
-import { etag } from "hono/etag";
 import { languageDetector } from "hono/language";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
-import { trimTrailingSlash } from "hono/trailing-slash";
 
 import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
@@ -16,6 +14,7 @@ import { externalAccountRoutes } from "./routes/external-account-routes";
 import { externalUrlRoutes } from "./routes/external-url-routes";
 import { healthRoutes } from "./routes/health-routes";
 import { profileRoutes } from "./routes/profile-routes";
+import { forwardToPublicProfile } from "./routes/public-profile-routes";
 import { oauthClientRoutes } from "./routes/oauth-client-routes";
 import { resourceApiRoutes } from "./routes/resource-api-routes";
 import { visibilityRoutes } from "./routes/visibility-routes";
@@ -40,7 +39,7 @@ app.use(
   }),
 );
 // Basic認証は画面と静的ファイルだけに適用し、APIと認証プロトコルは各エンドポイントの認証条件に従う。
-app.use(except(["/api/*", "/.well-known/*", "/healthz"], basicAuthMiddleware));
+app.use(except(["/api/*", "/.well-known/*", "/profiles/*", "/healthz"], basicAuthMiddleware));
 
 // --------------------------------------------------
 // パス別のミドルウェア
@@ -50,7 +49,6 @@ app.use(except(["/api/*", "/.well-known/*", "/healthz"], basicAuthMiddleware));
 app.use("/api/*", except("/api/auth/*", prettyJSON({ force: true })));
 // Better Authの認証APIは標準のOrigin検証、資源APIはクライアント用Access Tokenで保護するため、CSRFミドルウェアの対象から外す。
 app.use("/api/*", except(["/api/auth/*", "/api/v1/*"], csrf()));
-app.use("/profiles/*", trimTrailingSlash(), etag());
 
 // --------------------------------------------------
 // 機能別ルート
@@ -60,6 +58,8 @@ app.use("/profiles/*", trimTrailingSlash(), etag());
 app.route("/api/auth", authRoutes);
 // 資源APIは連携サービスのバックエンドから呼ぶため、RPCのルート型に含めない。
 app.route("/api/v1", resourceApiRoutes);
+// 公開プロフィールはWorkers Cacheを有効にした専用のエントリーポイントで生成する。
+app.get("/profiles/*", forwardToPublicProfile);
 
 const routes = app
   .route("/healthz", healthRoutes)

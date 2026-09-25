@@ -31,3 +31,14 @@
 1. 新しいversionを先頭に加えた値（例: `2:新しい値,1:古い値`）を`pnpm exec wrangler secret put BETTER_AUTH_SECRETS --env <ENVIRONMENT>`で登録する。
 2. 旧versionで暗号化したOAuth tokenは、次回のログイン・token更新でcurrent versionへ保存し直される。
 3. 旧versionを値から外すと、そのversionのままのtokenは復号できなくなる。外した後にtokenが必要になった外部アカウントは再連携で保存し直す。
+
+## 運営者（appAdmin）の任命
+
+運営者画面は設けないため、最初の`appAdmin`はOAuthでログインして作成したユーザーの`user.role`をD1で設定して任命する。AccountsユーザーIDは「設定」画面の公開プロフィールURLの末尾で確認する。
+
+```sh
+pnpm exec wrangler d1 execute DB --env production --remote \
+  --command "UPDATE \"user\" SET role = 'appAdmin' WHERE id = 'ausr_...';"
+```
+
+任命後に再ログインし、ログイン中のブラウザーからBetter AuthのAdmin API（`/api/auth/admin/list-users`・`get-user`・`ban-user`・`unban-user`）を呼ぶ。`appAdmin`はこの4つだけを実行でき、ban・unbanの後は対象ユーザーの公開プロフィールのキャッシュをpurgeする。

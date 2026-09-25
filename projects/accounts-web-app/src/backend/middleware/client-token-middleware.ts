@@ -3,6 +3,7 @@ import { createMiddleware } from "hono/factory";
 import { getAuth } from "../auth/auth";
 import { verifyClientAccessToken } from "../auth/verify-client-access-token";
 import type { Bindings } from "../hono-env";
+import { auditLog } from "../logging/audit-log";
 import { requestError } from "../resource-api-response";
 
 /**
@@ -28,13 +29,11 @@ export const requireClientAccessToken = createMiddleware<{
     accountsOrigin: c.env.ACCOUNTS_ORIGIN,
   });
   if (!result.ok) {
-    console.warn(
-      JSON.stringify({
-        event: "resource_api_rejected",
-        outcome: "failure",
-        errorCategory: result.status,
-      }),
-    );
+    auditLog({
+      event: "resource_api_rejected",
+      outcome: "failure",
+      errorCategory: String(result.status),
+    });
     const headers = { "WWW-Authenticate": result.wwwAuthenticate };
     throw result.status === 403
       ? requestError(

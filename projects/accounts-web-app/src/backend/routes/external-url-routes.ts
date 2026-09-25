@@ -3,9 +3,11 @@ import { Hono } from "hono";
 import { externalUrlSchema } from "../../shared/schemas/external-url-schema";
 import { createDatabase } from "../db/database";
 import type { AppEnv } from "../hono-env";
+import { purgeProfileCache } from "../infrastructure/cache/profile-cache-purger";
 import { createSafePageFetcher } from "../infrastructure/verification/safe-page-fetcher";
 import { requireSession } from "../middleware/session-middleware";
 import { dataResponse, handleBffError, parseJsonBody } from "../problem-details";
+import { selectProfilePurgeTargets } from "../usecases/profile/select-profile-purge-targets";
 import { saveUnverifiedUrl } from "../usecases/save-unverified-url";
 import { verifyUrl } from "../usecases/verify-url";
 
@@ -27,7 +29,7 @@ export const externalUrlRoutes = new Hono<AppEnv>()
       return dataResponse(c, await saveUnverifiedUrl({ db }, { userId, url }));
     }
 
-    const { externalAccountId, status, link, dns } = await verifyUrl(
+    const { externalAccountId, status, link, dns, affectedUserIds } = await verifyUrl(
       {
         db,
         now: new Date(),
@@ -36,6 +38,9 @@ export const externalUrlRoutes = new Hono<AppEnv>()
         rateLimiter: c.env.URL_VERIFICATION_RATE_LIMITER,
       },
       { userId, url },
+    );
+    purgeProfileCache(
+      await selectProfilePurgeTargets({ db }, { actorUserId: userId, affectedUserIds }),
     );
     return dataResponse(c, { externalAccountId, status, link, dns });
   });

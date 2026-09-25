@@ -4,7 +4,7 @@ import { loginProviderIds } from "../../../../shared/providers";
 import type { LoginProviderId } from "../../../../shared/providers";
 import { ErrorText } from "../../app-shell/components/status-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
-import { formatServiceName } from "../../../lib/service-names";
+import { formatServiceName } from "../../../../shared/service-names";
 import { accountLinksMessages } from "../messages";
 
 /**

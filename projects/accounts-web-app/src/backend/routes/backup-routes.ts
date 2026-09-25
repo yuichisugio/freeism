@@ -5,6 +5,8 @@ import { jsonFileMaxBytes } from "../../shared/constants";
 import { backupSchema } from "../../shared/schemas/backup-schema";
 import { createDatabase } from "../db/database";
 import type { AppEnv } from "../hono-env";
+import { purgeProfileCache } from "../infrastructure/cache/profile-cache-purger";
+import { auditRequest } from "../logging/audit-request";
 import { requireSession } from "../middleware/session-middleware";
 import {
   dataResponse,
@@ -31,7 +33,7 @@ export const backupRoutes = new Hono<AppEnv>()
     );
     return dataResponse(c, summary);
   })
-  .get("/", requireSession({ fresh: false }), async (c) => {
+  .get("/", auditRequest("backup_exported"), requireSession({ fresh: false }), async (c) => {
     const { fileName, json } = await exportBackup(
       { db: createDatabase(c.env.DB), accountsOrigin: c.env.ACCOUNTS_ORIGIN, now: new Date() },
       { userId: c.get("sessionUser").id },
@@ -44,6 +46,7 @@ export const backupRoutes = new Hono<AppEnv>()
   })
   .post(
     "/restore",
+    auditRequest("backup_restored"),
     requireSession({ fresh: true }),
     // ファイル内容の上限をDBの変更前に検査する。
     bodyLimit({
@@ -52,11 +55,12 @@ export const backupRoutes = new Hono<AppEnv>()
     }),
     async (c) => {
       const backup = await parseJsonBody(c, backupSchema);
-      // 公開プロフィールのpurge（`affectedUserIds`）は公開プロフィールの配信と合わせて接続する。
-      const { affectedUserIds: _affectedUserIds, ...result } = await restoreBackup(
+      const { affectedUserIds, ...result } = await restoreBackup(
         { db: createDatabase(c.env.DB), now: new Date() },
         { userId: c.get("sessionUser").id, backup },
       );
+      // 表示名を戻すため、一般公開の有無によらず本人の公開プロフィールをpurgeする。
+      purgeProfileCache(affectedUserIds);
       return dataResponse(c, result);
     },
   );

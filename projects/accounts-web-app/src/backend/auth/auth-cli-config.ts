@@ -20,7 +20,7 @@ export const auth = createAuth(
     ORCID_CLIENT_ID: "auth-cli",
     ORCID_CLIENT_SECRET: "auth-cli",
   } as Bindings,
-  { waitUntil: () => {} },
+  { waitUntil: () => {}, purgeProfiles: () => {} },
 );
 
 auth.$context.catch(() => undefined);

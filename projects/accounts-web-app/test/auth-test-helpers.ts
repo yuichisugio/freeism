@@ -3,12 +3,17 @@ import { setTokenUtil } from "better-auth/oauth2";
 import type { TestHelpers } from "better-auth/plugins";
 
 import { createAuth } from "../src/backend/auth/create-auth";
+import { purgeProfileCache } from "../src/backend/infrastructure/cache/profile-cache-purger";
 import type { AuthContext } from "../src/backend/auth/read-oauth-profile";
 
 /**
  * `testUtils`を有効にした、Workers結合テスト用のBetter Auth。
  */
-export const testAuth = createAuth(env, { waitUntil, enableTestUtils: true });
+export const testAuth = createAuth(env, {
+  waitUntil,
+  purgeProfiles: purgeProfileCache,
+  enableTestUtils: true,
+});
 
 /**
  * Better Authの内部コンテキストと`testUtils`のヘルパーを取得する。

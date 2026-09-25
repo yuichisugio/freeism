@@ -23,7 +23,10 @@ import { createRandomId } from "../db/id";
 import * as schema from "../db/schema";
 import { isOAuthProviderId } from "../domain/identity/providers";
 import type { Bindings } from "../hono-env";
+import { auditLog } from "../logging/audit-log";
+import { selectProfilePurgeTargets } from "../usecases/profile/select-profile-purge-targets";
 import { syncOAuthAccount } from "../usecases/sync-oauth-account";
+import { createAuditAfterHook } from "./audit-auth-events";
 import { readOAuthProfile, type AuthContext } from "./read-oauth-profile";
 import { requireSavedClientConsent } from "./require-saved-client-consent";
 
@@ -116,6 +119,8 @@ const adminRoles = {
 export type CreateAuthOptions = {
   /** 応答後に続ける処理をWorkersの`waitUntil`へ渡す。 */
   waitUntil: (promise: Promise<unknown>) => void;
+  /** 公開内容が変わったユーザーの公開プロフィールのキャッシュpurgeを依頼する。 */
+  purgeProfiles: (accountsUserIds: readonly string[]) => void;
   /** 結合テスト用に`testUtils`プラグインを追加する。 */
   enableTestUtils?: boolean;
 };
@@ -129,7 +134,7 @@ export type CreateAuthOptions = {
  */
 export function createAuth(
   env: Bindings,
-  { waitUntil, enableTestUtils = false }: CreateAuthOptions,
+  { waitUntil, purgeProfiles, enableTestUtils = false }: CreateAuthOptions,
 ) {
   const db = createDatabase(env.DB);
   const accountsOrigin = env.ACCOUNTS_ORIGIN;
@@ -138,7 +143,7 @@ export function createAuth(
   const previewHosts = env.PREVIEW_HOST_PATTERN ? [env.PREVIEW_HOST_PATTERN] : [];
 
   /**
-   * OAuthの標準`account`の作成・更新後に独自表を同期する。
+   * OAuthの標準`account`の作成・更新後に独自表を同期し、公開内容が変わりうるユーザーの公開プロフィールをpurgeする。
    * 失敗してもログインは継続し、次回のログインでの`account.update.after`で再構成する。
    * エンドポイント外（`testUtils`など）の呼出しでは、フックの第2引数が無いため`auth.$context`を使う。
    */
@@ -156,19 +161,34 @@ export function createAuth(
       const authContext =
         endpointContext?.context ?? ((await auth.$context) as unknown as AuthContext);
       const profile = await readOAuthProfile({ ...account, providerId }, authContext);
-      await syncOAuthAccount(
+      const { affectedUserIds } = await syncOAuthAccount(
         { db, now: new Date() },
         { userId: account.userId, authAccountId: account.id, profile },
       );
-    } catch (error) {
-      console.error(
-        JSON.stringify({
-          event: "oauth_sync",
-          outcome: "failure",
-          provider: providerId,
-          errorName: error instanceof Error ? error.name : "UnknownError",
-        }),
+      purgeProfiles(
+        await selectProfilePurgeTargets(
+          { db },
+          { actorUserId: account.userId, affectedUserIds },
+        ),
       );
+      auditLog({ event: "oauth_sync", outcome: "success", method: providerId });
+      // 旧所有者がいる場合は、ユーザー名・プロフィールURLの紐付け先を今回の本人へ更新している。
+      const previousOwnerCount = affectedUserIds.length - 1;
+      if (previousOwnerCount > 0) {
+        auditLog({
+          event: "identifier_transfer",
+          outcome: "success",
+          method: "oauth",
+          count: previousOwnerCount,
+        });
+      }
+    } catch (error) {
+      auditLog({
+        event: "oauth_sync",
+        outcome: "failure",
+        method: providerId,
+        errorCategory: error instanceof Error ? error.name : "UnknownError",
+      });
     }
   };
 
@@ -200,7 +220,14 @@ export function createAuth(
       cookieCache: { enabled: true, strategy: "jwe", maxAge: 3600 },
     },
     user: {
-      deleteUser: { enabled: true },
+      deleteUser: {
+        enabled: true,
+        // 本人の独自表・登録OAuthクライアントとそのトークン・同意はCASCADEで同じ削除に含まれる。
+        afterDelete: async (deletedUser) => {
+          purgeProfiles([deletedUser.id]);
+          auditLog({ event: "user_withdrawn", outcome: "success" });
+        },
+      },
     },
     rateLimit: { enabled: true, storage: "database" },
     // `/token`はOAuth Providerとの併用のため無効にし、残りはAccountsのルート経由の`auth.api`呼出しに限定する。
@@ -213,7 +240,10 @@ export function createAuth(
       "/unlink-account",
       "/update-user",
     ],
-    hooks: { before: requireSavedClientConsent(db) },
+    hooks: {
+      before: requireSavedClientConsent(db),
+      after: createAuditAfterHook({ purgeProfiles }),
+    },
     databaseHooks: {
       user: {
         create: {

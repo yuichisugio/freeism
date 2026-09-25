@@ -64,11 +64,11 @@ export default defineConfig(({ mode }) => ({
         },
       },
       {
-        // WorkerのエントリーポイントはTanStack Startの画面描画を含むため、結合テストはHonoアプリを直接起動する。
+        // WorkerのエントリーポイントはTanStack Startの画面描画を含むため、結合テストはHonoアプリと公開プロフィールのエントリーポイントだけを起動する。
         // D1へはsetupFilesでmigrationを適用し、認証のSecretにはテスト用の値を渡す。
         plugins: [
           cloudflareTest(async () => ({
-            main: "./src/backend/app.ts",
+            main: "./test/worker-main.ts",
             wrangler: { configPath: "./wrangler.jsonc" },
             miniflare: {
               bindings: {

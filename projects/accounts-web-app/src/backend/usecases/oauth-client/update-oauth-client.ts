@@ -42,14 +42,8 @@ export async function updateOAuthClient(
       deps.userId,
       { jwksJson: JSON.stringify(input.jwks), uri: input.uri },
     );
-  } catch (error) {
-    console.error(
-      JSON.stringify({
-        event: "client_key_updated",
-        outcome: "failure",
-        errorName: error instanceof Error ? error.name : "UnknownError",
-      }),
-    );
+  } catch {
+    // 失敗はルートの監査ログに`oauth_client_updated`の失敗として残る。
     throw new OAuthClientError("CLIENT_KEY_SAVE_FAILED");
   }
   if (!isSaved) {

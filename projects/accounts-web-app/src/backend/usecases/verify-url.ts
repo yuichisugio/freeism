@@ -19,6 +19,7 @@ import {
   verifyDnsTxtEvidence,
 } from "../infrastructure/verification/verify-dns-txt-evidence";
 import { verifyLinkEvidence } from "../infrastructure/verification/verify-link-evidence";
+import { auditLog } from "../logging/audit-log";
 import { ProblemError } from "../problem-details";
 import {
   buildRegistrationIdentifiers,
@@ -95,6 +96,7 @@ export async function verifyUrl(
   if (!success) {
     throw new ProblemError(429, "RATE_LIMITED");
   }
+  auditLog({ event: "url_verification_started", outcome: "success" });
 
   // --------------------------------------------------
   // 公開ページとDNS TXTで証拠を確かめる
@@ -238,18 +240,30 @@ export async function verifyUrl(
     },
     dns: dnsOutcome === null ? null : { result: dnsOutcome.result, failureCode: dnsOutcome.failureCode },
   };
-  console.log(
-    JSON.stringify({
-      event: "url_verification",
-      outcome: proofPlan === null ? "failure" : "success",
-      linkResult: result.link.result,
-      linkFailureCode: result.link.failureCode,
-      dnsResult: result.dns?.result ?? null,
-      dnsFailureCode: result.dns?.failureCode ?? null,
-      transferredCount: proofPlan?.transferred.length ?? 0,
-      durationMs: Date.now() - startedAt,
-    }),
-  );
+  const durationMs = Date.now() - startedAt;
+  for (const [method, outcome] of [
+    ["bidirectional_link", linkOutcome],
+    ["dns_txt", dnsOutcome],
+  ] as const) {
+    if (outcome !== null) {
+      auditLog({
+        event: "url_verification",
+        outcome: outcome.result === "verified" ? "success" : "failure",
+        errorCategory: outcome.failureCode ?? undefined,
+        method,
+        durationMs,
+      });
+    }
+  }
+  const transferredCount = proofPlan?.transferred.length ?? 0;
+  if (transferredCount > 0) {
+    auditLog({
+      event: "identifier_transfer",
+      outcome: "success",
+      method: linkPlan === null ? "dns_txt" : "bidirectional_link",
+      count: transferredCount,
+    });
+  }
 
   return { ...result, affectedUserIds };
 }

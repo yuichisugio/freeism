@@ -1,5 +1,5 @@
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
-import { formatServiceName } from "../../../lib/service-names";
+import { formatServiceName } from "../../../../shared/service-names";
 
 /**
  * 外部アカウントを見分けるための表示名。

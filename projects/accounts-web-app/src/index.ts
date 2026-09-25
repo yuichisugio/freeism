@@ -21,3 +21,5 @@ const worker = new Hono<AppEnv>().route("/", app).all("*", async (c) => {
 });
 
 export default worker;
+
+export { PublicProfileEntrypoint } from "./public-profile";
