@@ -993,7 +993,7 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 | `rateLimit.storage: "database"` | Better Auth標準の認証APIの頻度制御 |
 | `advanced.ipAddress.ipAddressHeaders: ["cf-connecting-ip"]` | レート制限とセッションのIPをCloudflareの接続元IPから取得する |
 | `advanced.backgroundTasks.handler` | Workersの`waitUntil`への接続。応答の成立に必要な保存は完了を待つ |
-| `disabledPaths: ["/token"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする |
+| `disabledPaths: ["/token", "/oauth2/register", "/oauth2/create-client", "/oauth2/update-client", "/oauth2/delete-client", "/unlink-account", "/update-user"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする。クライアントの登録・更新・削除、連携解除、表示名の更新はHTTPの標準経路を塞ぎ、件数上限・必須項目・独自表の整合を確認するAccountsのAPIからサーバー側の標準APIを呼ぶ |
 
 OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonceを標準フローで扱う。Providerで対応するプロトコルに従って検査する。Google・GitHubとGeneric OAuthのORCIDは、1.7の`signIn.social()`・`linkSocial()`・`unlinkAccount()`へ接続する。
 

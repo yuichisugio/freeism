@@ -13,7 +13,7 @@
     "test:worker": "vp test --project worker",
     "lint": "vp lint",
     "db:generate": "drizzle-kit generate",
-    "auth:generate": "auth generate"
+    "auth:generate": "auth generate --config src/backend/auth/auth-cli-config.ts --output src/backend/db/schema/auth.ts --yes"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.5",

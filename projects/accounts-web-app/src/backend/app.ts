@@ -9,6 +9,7 @@ import { trimTrailingSlash } from "hono/trailing-slash";
 
 import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
+import { authRoutes } from "./routes/auth-routes";
 import { healthRoutes } from "./routes/health-routes";
 
 /**
@@ -45,6 +46,9 @@ app.use("/profiles/*", trimTrailingSlash(), etag());
 // --------------------------------------------------
 // 機能別ルート
 // --------------------------------------------------
+
+// Better Authの標準エンドポイントは認証クライアントから呼ぶため、RPCのルート型に含めない。
+app.route("/api/auth", authRoutes);
 
 const routes = app.route("/healthz", healthRoutes);
 

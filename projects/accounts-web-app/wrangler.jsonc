@@ -22,6 +22,10 @@
     "APP_ENV": "local",
     "ACCOUNTS_ORIGIN": "http://localhost:5173"
   },
+  // 認証の秘密値。ローカルは.env.local、デプロイ先は`wrangler secret put`で登録する。
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -40,12 +44,14 @@
         "not_found_handling": "single-page-application",
         "run_worker_first": true
       },
+      // PREVIEW_HOST_PATTERNはPreviewのhostだけに一致させる。ACCOUNT_SUBDOMAINはCloudflareアカウントのworkers.dev subdomainへ置き換える。
       "vars": {
         "APP_ENV": "staging",
-        "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app"
+        "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
+        "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.ACCOUNT_SUBDOMAIN.workers.dev"
       },
       "secrets": {
-        "required": ["BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
       },
       "d1_databases": [
         {
@@ -59,10 +65,11 @@
       "previews": {
         "vars": {
           "APP_ENV": "staging",
-          "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app"
+          "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
+          "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.ACCOUNT_SUBDOMAIN.workers.dev"
         },
         "secrets": {
-          "required": ["BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
+          "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
         },
         "d1_databases": [
           {
@@ -82,6 +89,9 @@
       "vars": {
         "APP_ENV": "production",
         "ACCOUNTS_ORIGIN": "https://accounts.freeism.app"
+      },
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET"]
       },
       "d1_databases": [
         {

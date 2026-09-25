@@ -1,5 +1,5 @@
 import { cloudflare } from "@cloudflare/vite-plugin";
-import { cloudflareTest } from "@cloudflare/vitest-plugin";
+import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
@@ -29,6 +29,12 @@ export default defineConfig(({ mode }) => ({
           tailwindcss(),
         ],
   environments: {
+    // 画面に含む依存パッケージのライセンスをJSONで出力し、OSSライセンス画面から読む。
+    client: {
+      build: {
+        license: { fileName: "dependency-open-source-licenses.json" },
+      },
+    },
     // Workerのコードを圧縮し、upload_source_mapsで送るソースマップを出力する。
     ssr: {
       build: {
@@ -59,15 +65,29 @@ export default defineConfig(({ mode }) => ({
       },
       {
         // WorkerのエントリーポイントはTanStack Startの画面描画を含むため、結合テストはHonoアプリを直接起動する。
+        // D1へはsetupFilesでmigrationを適用し、認証のSecretにはテスト用の値を渡す。
         plugins: [
-          cloudflareTest({
+          cloudflareTest(async () => ({
             main: "./src/backend/app.ts",
             wrangler: { configPath: "./wrangler.jsonc" },
-          }),
+            miniflare: {
+              bindings: {
+                TEST_MIGRATIONS: await readD1Migrations("./migrations"),
+                BETTER_AUTH_SECRETS: "1:worker-test-secret-value-with-enough-entropy-0123456789",
+                GOOGLE_CLIENT_ID: "worker-test-google",
+                GOOGLE_CLIENT_SECRET: "worker-test-google",
+                GITHUB_CLIENT_ID: "worker-test-github",
+                GITHUB_CLIENT_SECRET: "worker-test-github",
+                ORCID_CLIENT_ID: "worker-test-orcid",
+                ORCID_CLIENT_SECRET: "worker-test-orcid",
+              },
+            },
+          })),
         ],
         test: {
           name: "worker",
           include: ["src/**/*.worker.test.ts", "test/**/*.worker.test.ts"],
+          setupFiles: ["./test/apply-d1-migrations.ts"],
         },
       },
     ],

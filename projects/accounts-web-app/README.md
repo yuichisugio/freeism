@@ -20,6 +20,14 @@
 | `pnpm lint` | Vite Plusのlintを実行する |
 | `pnpm test` | 単体テスト（Node.js）とWorkers結合テストを実行する。`test:unit`・`test:worker`で個別に実行できる |
 | `pnpm db:generate` | Drizzleのschemaからmigrationを生成する |
-| `pnpm auth:generate` | Better AuthのCLIで認証のschemaを生成する |
+| `pnpm auth:generate` | Better AuthのCLIで認証の標準schemaを`src/backend/db/schema/auth.ts`へ生成する。認証の設定・プラグインを変更したら実行し、続けて`pnpm db:generate`でmigrationを作る |
 
 ローカルの秘密値は`.env.example`を`.env.local`へ複製して設定する。
+
+## 認証の秘密値の切り替え
+
+`BETTER_AUTH_SECRETS`は`<version>:<secret>`をカンマ区切りで並べ、先頭のcurrentで暗号化し、残りを復号に使う。
+
+1. 新しいversionを先頭に加えた値（例: `2:新しい値,1:古い値`）を`pnpm exec wrangler secret put BETTER_AUTH_SECRETS --env <ENVIRONMENT>`で登録する。
+2. 旧versionで暗号化したOAuth tokenは、次回のログイン・token更新でcurrent versionへ保存し直される。
+3. 旧versionを値から外すと、そのversionのままのtokenは復号できなくなる。外した後にtokenが必要になった外部アカウントは再連携で保存し直す。
