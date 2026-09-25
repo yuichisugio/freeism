@@ -1,22 +1,21 @@
-import { Card } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { LoginPage } from "../features/auth/components/login-page";
+
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  // OAuth Providerの署名付きクエリを保つため、ほかのパラメータも値のまま残す。
+  validateSearch: (search: Record<string, unknown>): { error?: string } => ({
+    ...search,
+    error: typeof search.error === "string" ? search.error : undefined,
+  }),
+  component: LoginRoute,
 });
 
 /**
- * Accountsのトップ画面。
+ * ログイン画面。
+ * ログイン失敗時は、Better Authが`?error=`を付けてこの画面へ戻す。
  */
-function HomePage() {
-  return (
-    <main className="mx-auto flex max-w-xl flex-col gap-6 p-8">
-      <Card>
-        <Card.Header>
-          <Card.Title>Accounts</Card.Title>
-          <Card.Description>外部アカウントの所有権証明と公開先ごとの情報提供を管理します。</Card.Description>
-        </Card.Header>
-      </Card>
-    </main>
-  );
+function LoginRoute() {
+  const { error } = Route.useSearch();
+  return <LoginPage errorCode={error} />;
 }

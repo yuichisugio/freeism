@@ -1,0 +1,38 @@
+import { defineMessages } from "../../lib/i18n/define-messages";
+
+export const appShellMessages = defineMessages({
+  ja: {
+    appName: "Accounts",
+    mainNavigation: "メインメニュー",
+    accountLinks: "アカウント連携",
+    settings: "設定",
+    developer: "開発者向け",
+    help: "ヘルプ",
+    licenses: "OSSライセンス",
+    language: "表示言語",
+    signOut: "ログアウト",
+    signOutFailed: "ログアウトできませんでした。もう一度お試しください。",
+    unsavedTitle: "保存していない変更があります",
+    unsavedDescription: "移動すると、保存していない変更は破棄されます。保存済みの設定は維持されます。",
+    discardAndLeave: "変更を破棄して移動",
+    keepEditing: "編集に戻る",
+    notFound: "ページが見つかりません。",
+  },
+  en: {
+    appName: "Accounts",
+    mainNavigation: "Main menu",
+    accountLinks: "Account links",
+    settings: "Settings",
+    developer: "Developers",
+    help: "Help",
+    licenses: "Open source licenses",
+    language: "Language",
+    signOut: "Sign out",
+    signOutFailed: "Could not sign out. Please try again.",
+    unsavedTitle: "You have unsaved changes",
+    unsavedDescription: "If you leave, your unsaved changes will be discarded. Saved settings are kept.",
+    discardAndLeave: "Discard changes and leave",
+    keepEditing: "Keep editing",
+    notFound: "Page not found.",
+  },
+});
