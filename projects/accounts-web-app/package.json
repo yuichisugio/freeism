@@ -23,6 +23,7 @@
     "@heroui/styles": "3.2.6",
     "@tanstack/react-router": "1.170.38",
     "@tanstack/react-start": "1.168.57",
+    "@valibot/to-json-schema": "1.8.0",
     "better-auth": "1.7.5",
     "drizzle-orm": "0.45.3",
     "entities": "8.1.0",

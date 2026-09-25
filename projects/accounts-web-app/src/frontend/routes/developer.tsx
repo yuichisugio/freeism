@@ -4,6 +4,7 @@ import { UnsavedChangesDialog } from "../features/app-shell/components/unsaved-c
 import { useUnsavedChangesGuard } from "../features/app-shell/hooks/use-unsaved-changes-guard";
 import { DeveloperPage } from "../features/developer/components/developer-page";
 import { useOAuthClients } from "../features/developer/hooks/use-oauth-clients";
+import { useResourceApiReference } from "../features/developer/hooks/use-resource-api-reference";
 
 export const Route = createFileRoute("/developer")({
   component: DeveloperRoute,
@@ -15,11 +16,12 @@ export const Route = createFileRoute("/developer")({
  */
 function DeveloperRoute() {
   const state = useOAuthClients();
+  const resourceApiReference = useResourceApiReference();
   const guard = useUnsavedChangesGuard(state.isDirty);
 
   return (
     <>
-      <DeveloperPage state={state} />
+      <DeveloperPage state={state} resourceApiReference={resourceApiReference} />
       <UnsavedChangesDialog
         isOpen={guard.isConfirming}
         onDiscard={guard.discardAndLeave}

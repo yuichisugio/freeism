@@ -6,18 +6,26 @@ import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { ErrorNotice, LoadingState, SuccessNotice } from "../../app-shell/components/status-messages";
 import { UnsavedChangesDialog } from "../../app-shell/components/unsaved-changes-dialog";
 import type { OAuthClientFeedback, OAuthClientsState } from "../hooks/use-oauth-clients";
+import type { ResourceApiReferenceState } from "../hooks/use-resource-api-reference";
 import { developerMessages } from "../messages";
 import { DeleteOAuthClientDialog } from "./delete-oauth-client-dialog";
 import { OAuthClientEditor } from "./oauth-client-editor";
 import { OAuthClientList } from "./oauth-client-list";
+import { ResourceApiReferenceView } from "./resource-api-reference";
 
 /**
  * 「開発者向け」画面。
- * OAuthクライアントの一覧・編集・削除と、OpenAPIのドキュメントへのリンクを置く。
+ * OAuthクライアントの一覧・編集・削除と、OpenAPIのドキュメントへのリンク・Accounts APIの仕様の簡易表示を置く。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./developer-page.test.tsx
  */
-export function DeveloperPage({ state }: { state: OAuthClientsState }) {
+export function DeveloperPage({
+  state,
+  resourceApiReference,
+}: {
+  state: OAuthClientsState;
+  resourceApiReference: ResourceApiReferenceState;
+}) {
   const messages = useMessages(developerMessages);
   const common = useMessages(commonMessages);
 
@@ -58,6 +66,7 @@ export function DeveloperPage({ state }: { state: OAuthClientsState }) {
       ) : null}
 
       <DeveloperDocsLinks />
+      <ResourceApiReferenceView state={resourceApiReference} />
 
       <DeleteOAuthClientDialog
         isOpen={state.isDeleteConfirming}

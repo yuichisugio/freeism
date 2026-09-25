@@ -16,8 +16,10 @@ import { healthRoutes } from "./routes/health-routes";
 import { profileRoutes } from "./routes/profile-routes";
 import { forwardToPublicProfile } from "./routes/public-profile-routes";
 import { oauthClientRoutes } from "./routes/oauth-client-routes";
+import { openApiRoutes } from "./routes/openapi-routes";
 import { resourceApiRoutes } from "./routes/resource-api-routes";
 import { visibilityRoutes } from "./routes/visibility-routes";
+import { wellKnownRoutes } from "./routes/well-known-routes";
 
 /**
  * API・認証・公開プロフィールを処理するHonoアプリ。
@@ -57,7 +59,10 @@ app.use("/api/*", except(["/api/auth/*", "/api/v1/*"], csrf()));
 // Better Authの標準エンドポイントは認証クライアントから呼ぶため、RPCのルート型に含めない。
 app.route("/api/auth", authRoutes);
 // 資源APIは連携サービスのバックエンドから呼ぶため、RPCのルート型に含めない。
+// OpenAPI文書は認証なしで返すため、クライアント認証を適用する資源APIより先に登録する。
+app.route("/api/v1/openapi.json", openApiRoutes);
 app.route("/api/v1", resourceApiRoutes);
+app.route("/.well-known", wellKnownRoutes);
 // 公開プロフィールはWorkers Cacheを有効にした専用のエントリーポイントで生成する。
 app.get("/profiles/*", forwardToPublicProfile);
 

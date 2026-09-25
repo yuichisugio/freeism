@@ -17,7 +17,7 @@ afterEach(() => {
  * routeと同じくフックの状態をビューへ渡す。
  */
 function DeveloperPageHarness() {
-  return <DeveloperPage state={useOAuthClients()} />;
+  return <DeveloperPage state={useOAuthClients()} resourceApiReference={{ status: "loading" }} />;
 }
 
 /**
