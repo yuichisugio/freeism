@@ -34,6 +34,11 @@
       "migrations_dir": "migrations"
     }
   ],
+  // 「保存して検証する」の要求を、AccountsユーザーIDをキーに外部ページの取得とDNS照会の前で制限する。
+  // 上限は運用設定値で、Workers Rate Limitingの期間は10秒か60秒から選ぶ。namespace_idは環境ごとに分ける。
+  "ratelimits": [
+    { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1000", "simple": { "limit": 10, "period": 60 } }
+  ],
   "env": {
     "staging": {
       "name": "accounts-worker-staging",
@@ -61,7 +66,10 @@
           "migrations_dir": "migrations"
         }
       ],
-      // Previewは設定を継承しないため、Bindingsと変数を明示する。D1はstagingと共有する。
+      "ratelimits": [
+        { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+      ],
+      // Previewは設定を継承しないため、Bindingsと変数を明示する。D1とレート制限はstagingと共有する。
       "previews": {
         "vars": {
           "APP_ENV": "staging",
@@ -78,6 +86,9 @@
             "database_id": "00000000-0000-0000-0000-000000000000",
             "migrations_dir": "migrations"
           }
+        ],
+        "ratelimits": [
+          { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
         ]
       }
     },
@@ -100,6 +111,9 @@
           "database_id": "00000000-0000-0000-0000-000000000000",
           "migrations_dir": "migrations"
         }
+      ],
+      "ratelimits": [
+        { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
       ]
     }
   }

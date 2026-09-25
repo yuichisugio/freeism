@@ -89,9 +89,17 @@ function ExternalUrlOutcomeView({ outcome }: { outcome: ExternalUrlOutcome }) {
     );
   }
   const { result } = outcome;
+  // 再検証で今回の試行がどちらも成立しなくても、既存の証明が有効なら紐付けは維持されている。
+  const isAttemptVerified = result.link.result === "verified" || result.dns?.result === "verified";
+  const summary =
+    result.status !== "verified"
+      ? messages.verifyFailed
+      : isAttemptVerified
+        ? messages.verifySucceeded
+        : messages.reverifyFailedKeptExisting;
   return (
     <div role="status" className="flex flex-col gap-2 rounded border border-default p-3">
-      <p className="font-semibold">{result.status === "verified" ? messages.verifySucceeded : messages.verifyFailed}</p>
+      <p className="font-semibold">{summary}</p>
       <AttemptResult label={messages.linkAttempt} attempt={result.link} />
       {result.link.evidenceUrl === null ? null : (
         <p className="break-all text-sm">

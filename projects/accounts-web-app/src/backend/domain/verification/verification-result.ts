@@ -1,8 +1,16 @@
+import type {
+  VerificationFailureCode,
+  VerificationResult,
+} from "../../../shared/schemas/verification-schema";
+
 /**
  * 証明の試行結果と`failure_code`の定義。
- * 失敗の種類ごとに結果（`not_verified`・`indeterminate`）を1つに決め、結果と`failure_code`の組合せを揃える。
+ * `failure_code`と結果の値は画面と共有するschemaを正とし、失敗の種類ごとに結果（`not_verified`・`indeterminate`）を1つに決める。
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
+ * @see ../../../shared/schemas/verification-schema.ts
  */
+
+export type { VerificationFailureCode, VerificationResult };
 
 // --------------------------------------------------
 // failure_code
@@ -31,18 +39,7 @@ const failureCodeResults = {
   DNS_LOOKUP_FAILED: "indeterminate",
   // リンク証明・DNS TXT共通
   MULTIPLE_ACCOUNTS_PROFILES: "indeterminate",
-} as const satisfies Record<string, "not_verified" | "indeterminate">;
-
-/**
- * 直近の試行が成功しなかった理由。
- * 画面は、この値から本人の次の操作の案内を導く。
- */
-export type VerificationFailureCode = keyof typeof failureCodeResults;
-
-/**
- * 直近の試行の結果。
- */
-export type VerificationResult = "verified" | "not_verified" | "indeterminate";
+} as const satisfies Record<VerificationFailureCode, "not_verified" | "indeterminate">;
 
 /**
  * 1回の証明の試行結果。

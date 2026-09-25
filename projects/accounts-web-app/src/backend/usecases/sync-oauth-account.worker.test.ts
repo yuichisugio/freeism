@@ -181,7 +181,7 @@ describe("syncOAuthAccount", () => {
     ).toHaveLength(1);
   });
 
-  it("ユーザー名の変更で証明の対象を新しい識別子へ置き換え、旧識別子を候補にする", async () => {
+  it("ユーザー名の変更で、同じ外部アカウントの旧ユーザー名・旧プロフィールURLを新しい値へ置き換える", async () => {
     const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
     const suffix = createRandomId().slice(0, 8).toLowerCase();
     await syncOAuthAccount(
@@ -196,14 +196,52 @@ describe("syncOAuthAccount", () => {
 
     expect(await readIdentifierActivity(userId)).toEqual({
       [`provider_account:${githubId}`]: true,
-      [`provider_username:old-${suffix}`]: false,
-      [`url:https://github.com/old-${suffix}`]: false,
       [`provider_username:new-${suffix}`]: true,
       [`url:https://github.com/new-${suffix}`]: true,
     });
     expect(await readOAuthCoveredValues(authAccountId)).toEqual(
       [githubId, `new-${suffix}`, `https://github.com/new-${suffix}`].sort(),
     );
+  });
+
+  it("改名で置き換えた旧プロフィールURLを証拠とするリンク証明も削除する", async () => {
+    const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
+    const suffix = createRandomId().slice(0, 8).toLowerCase();
+    const oldUrl = `https://github.com/old-${suffix}`;
+    const { externalAccountId } = await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `old-${suffix}`) },
+    );
+    const [oldIdentifier] = await db
+      .select({ id: externalIdentifiers.id })
+      .from(externalIdentifiers)
+      .where(and(eq(externalIdentifiers.userId, userId), eq(externalIdentifiers.value, oldUrl)));
+    const linkVerificationId = createRandomId("evf_");
+    await db.insert(externalAccountVerifications).values({
+      id: linkVerificationId,
+      accountId: externalAccountId,
+      method: "bidirectional_link",
+      evidenceKey: oldUrl,
+      verifiedAt: now,
+      checkedAt: now,
+      result: "verified",
+    });
+    await db
+      .insert(verificationIdentifiers)
+      .values({ verificationId: linkVerificationId, identifierId: oldIdentifier?.id ?? "" });
+
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `new-${suffix}`) },
+    );
+
+    expect(
+      await db
+        .select()
+        .from(externalAccountVerifications)
+        .where(eq(externalAccountVerifications.id, linkVerificationId)),
+    ).toEqual([]);
+    expect(await readIdentifierActivity(userId)).not.toHaveProperty(`url:${oldUrl}`);
   });
 
   it("他ユーザーが有効に保持するプロフィールURLを本人へ移動し、旧所有者の他の識別子と証明は残す", async () => {

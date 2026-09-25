@@ -33,3 +33,17 @@ export async function runBatch(db: Database, items: readonly DatabaseBatchItem[]
 
   await db.batch([first, ...rest]);
 }
+
+/**
+ * D1のUNIQUE制約違反による失敗かを判定する。
+ * Drizzleが包んだ例外も`cause`をたどって確認する。
+ * 有効識別子の部分UNIQUEに違反した場合は、同じ識別子への操作が競合したものとして扱う。
+ */
+export function isUniqueConstraintError(error: unknown): boolean {
+  for (let current: unknown = error; current instanceof Error; current = current.cause) {
+    if (current.message.includes("UNIQUE constraint failed")) {
+      return true;
+    }
+  }
+  return false;
+}

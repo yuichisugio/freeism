@@ -140,6 +140,26 @@ describe("ExternalUrlForm", () => {
     expect(screen.getByText(/時間をおいて再検証してください/)).toBeDefined();
   });
 
+  it("再検証で今回の試行が成立しなくても、既存の証明が有効なら維持されていることを示す", async () => {
+    renderWithProviders(
+      <ExternalUrlForm
+        {...formProps}
+        outcome={{
+          mode: "verify",
+          result: {
+            externalAccountId: "eac_1",
+            status: "verified",
+            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: "https://example.com/" },
+            dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+          },
+        }}
+      />,
+    );
+
+    expect(await screen.findByText(/以前に成立した証明は引き続き有効です/)).toBeDefined();
+    expect(screen.queryByText("所有権を証明しました。")).toBeNull();
+  });
+
   it("バックエンドが返したURLの不備を、読み上げられる理由で示す", async () => {
     renderWithProviders(<ExternalUrlForm {...formProps} error={new Error("400")} urlInputErrorCode="HOST_NOT_ALLOWED" />);
 

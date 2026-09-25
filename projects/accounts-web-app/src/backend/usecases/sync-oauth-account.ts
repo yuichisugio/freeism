@@ -37,7 +37,7 @@ export type SyncOAuthAccountResult = {
 
 /**
  * 本人がURL登録・リンク証明で先に保存した、同じユーザー名・プロフィールURLを持つ外部アカウント行を探す。
- * 別のOAuthアカウントの行（改名前の識別子が残る行など）へ統合しないよう、固有IDを持つ行は除く。
+ * 別のOAuthアカウントの行へ統合しないよう、固有IDを持つ行は除く。
  */
 async function findRegisteredAccountId(
   repository: D1ExternalAccountRepository,
@@ -52,6 +52,7 @@ async function findRegisteredAccountId(
 /**
  * 標準`account`の作成・更新後に、外部アカウント行・識別子・`oauth`証明・表示名・メールアドレスを冪等に作成・更新する。
  * 対象の外部アカウント行は、同じ`oauth`証明の行、同じ固有IDを持つ本人の行、同じユーザー名・プロフィールURLを先に登録した本人の行、新規の順に決める。
+ * 同じ`oauth`証明が確認していたユーザー名・プロフィールURLのうち、今回の応答に無い値（改名前の値）は削除して新しい値へ置き換える。
  * 他ユーザーが有効に保持するユーザー名・プロフィールURLは、OAuthの検証済み応答を優先して今回の本人へ移動する。
  * 本人の`url`行が上限に達している場合は、URL識別子だけを追加しない。
  * 書込は1回のD1 batchで確定し、失敗した場合は次回のログインで同じ処理により再構成する。
@@ -74,6 +75,9 @@ export async function syncOAuthAccount(
     repository.findIdentifiersByKeys(input.userId, keys),
     repository.countUrlIdentifiers(input.userId),
   ]);
+  const previouslyCoveredIdentifiers = existingVerification
+    ? await repository.findCoveredIdentifiers(existingVerification.id)
+    : [];
   const ownIdentifiers = existingIdentifiers.filter(
     (identifier) => identifier.userId === input.userId,
   );
@@ -92,9 +96,18 @@ export async function syncOAuthAccount(
   // 識別子ごとの扱いを決める
   // --------------------------------------------------
 
+  // 改名前のユーザー名・プロフィールURLは今回の値で置き換えるため削除し、空いたURLの枠を今回の値に使う。
+  const replacedIdentifiers = previouslyCoveredIdentifiers.filter(
+    (identifier) =>
+      identifier.kind !== "provider_account" &&
+      !keys.some((key) => isSameIdentifierKey(identifier, key)),
+  );
   const coveredKeys: (IdentifierKey & { id: string })[] = [];
   const newIdentifiers: (IdentifierKey & { id: string; accountId: string; userId: string })[] = [];
-  let urlIdentifierCapacity = urlIdentifierLimitPerUser - urlIdentifierCount;
+  let urlIdentifierCapacity =
+    urlIdentifierLimitPerUser -
+    urlIdentifierCount +
+    replacedIdentifiers.filter((identifier) => identifier.kind === "url").length;
 
   for (const key of keys) {
     const ownIdentifier = ownIdentifiers.find((identifier) => isSameIdentifierKey(identifier, key));
@@ -140,7 +153,7 @@ export async function syncOAuthAccount(
       displayName: input.profile.displayName,
       email: input.profile.email,
     }),
-    ...repository.transferIdentifiers(transferredIdentifiers),
+    ...repository.transferIdentifiers([...transferredIdentifiers, ...replacedIdentifiers]),
     ...repository.insertIdentifiers(newIdentifiers),
     repository.upsertOAuthVerification({
       id: verificationId,

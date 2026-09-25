@@ -9,8 +9,12 @@ import { trimTrailingSlash } from "hono/trailing-slash";
 
 import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
+import { accountLinkRoutes } from "./routes/account-link-routes";
 import { authRoutes } from "./routes/auth-routes";
+import { externalAccountRoutes } from "./routes/external-account-routes";
+import { externalUrlRoutes } from "./routes/external-url-routes";
 import { healthRoutes } from "./routes/health-routes";
+import { profileRoutes } from "./routes/profile-routes";
 import { oauthClientRoutes } from "./routes/oauth-client-routes";
 
 /**
@@ -51,7 +55,13 @@ app.use("/profiles/*", trimTrailingSlash(), etag());
 // Better Authの標準エンドポイントは認証クライアントから呼ぶため、RPCのルート型に含めない。
 app.route("/api/auth", authRoutes);
 
-const routes = app.route("/healthz", healthRoutes).route("/api/oauth-clients", oauthClientRoutes);
+const routes = app
+  .route("/healthz", healthRoutes)
+  .route("/api", profileRoutes)
+  .route("/api/account-links", accountLinkRoutes)
+  .route("/api/external-urls", externalUrlRoutes)
+  .route("/api/external-accounts", externalAccountRoutes)
+  .route("/api/oauth-clients", oauthClientRoutes);
 
 /**
  * Hono RPCクライアントで使うルート型。

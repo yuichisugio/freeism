@@ -1,6 +1,8 @@
-import { and, count, eq, inArray, isNull, not, or, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, not, or, sql } from "drizzle-orm";
 
 import type { IdentifierKey } from "../../domain/identity/identifier-key";
+import type { VerificationMethod } from "../../domain/identity/verification-method";
+import type { VerificationOutcome } from "../../domain/verification/verification-result";
 import type { Database, DatabaseBatchItem } from "../database";
 import {
   externalAccounts,
@@ -122,6 +124,167 @@ export class D1ExternalAccountRepository {
     return row?.value ?? 0;
   }
 
+  /**
+   * 本人の`kind='url'`の識別子行のうち、正規化hostが一致する行を読む。
+   * DNS TXTの証明対象（同じhostで本人が登録済みのURL）に使う。
+   */
+  async findUrlIdentifiersByHost(userId: string, host: string): Promise<ExternalIdentifierRow[]> {
+    return this.db
+      .select()
+      .from(externalIdentifiers)
+      .where(
+        and(
+          eq(externalIdentifiers.userId, userId),
+          eq(externalIdentifiers.host, host),
+          eq(externalIdentifiers.kind, "url"),
+        ),
+      );
+  }
+
+  /**
+   * 正規化URLのうち、他ユーザーが有効に保持しているURL識別子行を読む。
+   * URLの配列は1つのバインド値で渡し、件数によらず1文で読む。
+   */
+  async findOtherActiveUrlIdentifiers(
+    userId: string,
+    urls: readonly string[],
+  ): Promise<ExternalIdentifierRow[]> {
+    if (urls.length === 0) {
+      return [];
+    }
+
+    return this.db
+      .select()
+      .from(externalIdentifiers)
+      .where(
+        and(
+          eq(externalIdentifiers.kind, "url"),
+          eq(externalIdentifiers.provider, ""),
+          eq(externalIdentifiers.issuer, ""),
+          inArray(externalIdentifiers.value, jsonEachValues(urls)),
+          sql`${externalIdentifiers.isActive} = 1`,
+          not(eq(externalIdentifiers.userId, userId)),
+        ),
+      );
+  }
+
+  /**
+   * 識別子ごとに、その識別子を支える成功証明（`verified_at`あり）の方法を読む。
+   */
+  async findSupportingMethods(
+    identifierIds: readonly string[],
+  ): Promise<{ identifierId: string; method: VerificationMethod }[]> {
+    if (identifierIds.length === 0) {
+      return [];
+    }
+
+    return this.db
+      .select({
+        identifierId: verificationIdentifiers.identifierId,
+        method: externalAccountVerifications.method,
+      })
+      .from(verificationIdentifiers)
+      .innerJoin(
+        externalAccountVerifications,
+        eq(externalAccountVerifications.id, verificationIdentifiers.verificationId),
+      )
+      .where(
+        and(
+          inArray(verificationIdentifiers.identifierId, jsonEachValues(identifierIds)),
+          isNotNull(externalAccountVerifications.verifiedAt),
+        ),
+      );
+  }
+
+  /**
+   * 外部アカウント行ごとに、同じ方法・証拠キーの証明行を読む。
+   */
+  async findVerifications(
+    accountIds: readonly string[],
+    method: VerificationMethod,
+    evidenceKey: string,
+  ): Promise<{ id: string; accountId: string }[]> {
+    if (accountIds.length === 0) {
+      return [];
+    }
+
+    return this.db
+      .select({
+        id: externalAccountVerifications.id,
+        accountId: externalAccountVerifications.accountId,
+      })
+      .from(externalAccountVerifications)
+      .where(
+        and(
+          inArray(externalAccountVerifications.accountId, jsonEachValues(accountIds)),
+          eq(externalAccountVerifications.method, method),
+          eq(externalAccountVerifications.evidenceKey, evidenceKey),
+        ),
+      );
+  }
+
+  /**
+   * 証明が現在確認している識別子行を読む。
+   */
+  async findCoveredIdentifiers(verificationId: string): Promise<ExternalIdentifierRow[]> {
+    const rows = await this.db
+      .select({ identifier: externalIdentifiers })
+      .from(verificationIdentifiers)
+      .innerJoin(
+        externalIdentifiers,
+        eq(externalIdentifiers.id, verificationIdentifiers.identifierId),
+      )
+      .where(eq(verificationIdentifiers.verificationId, verificationId));
+    return rows.map((row) => row.identifier);
+  }
+
+  /**
+   * 本人の外部アカウント行を、`oauth`証明の標準`account.id`とともに読む。
+   * 本人の行でなければ`undefined`を返す。
+   */
+  async findOwnExternalAccount(
+    userId: string,
+    externalAccountId: string,
+  ): Promise<{ id: string; authAccountIds: string[] } | undefined> {
+    const externalAccount = await this.db.query.externalAccounts.findFirst({
+      columns: { id: true },
+      where: and(eq(externalAccounts.id, externalAccountId), eq(externalAccounts.userId, userId)),
+      with: {
+        externalAccountVerifications: {
+          columns: { authAccountId: true },
+          where: eq(externalAccountVerifications.method, "oauth"),
+        },
+      },
+    });
+    if (externalAccount === undefined) {
+      return undefined;
+    }
+
+    return {
+      id: externalAccount.id,
+      authAccountIds: externalAccount.externalAccountVerifications.flatMap((verification) =>
+        verification.authAccountId === null ? [] : [verification.authAccountId],
+      ),
+    };
+  }
+
+  /**
+   * 本人向け一覧に使う、本人の全外部アカウント行と識別子・証明・公開選択を読む。
+   */
+  async findOwnExternalAccountDetails(userId: string) {
+    return this.db.query.externalAccounts.findMany({
+      where: eq(externalAccounts.userId, userId),
+      orderBy: [sql`${externalAccounts.linkedAt} is null`, externalAccounts.linkedAt],
+      with: {
+        externalIdentifiers: true,
+        externalAccountVerifications: {
+          with: { verificationIdentifiers: { columns: { identifierId: true } } },
+        },
+        externalAccountVisibility: true,
+      },
+    });
+  }
+
   // --------------------------------------------------
   // 書込文
   // --------------------------------------------------
@@ -133,7 +296,7 @@ export class D1ExternalAccountRepository {
   upsertExternalAccount(input: {
     id: string;
     userId: string;
-    service: string;
+    service: string | null;
     displayName: string | null;
     email: string | null;
   }): DatabaseBatchItem {
@@ -203,6 +366,60 @@ export class D1ExternalAccountRepository {
   }
 
   /**
+   * リンク証明・DNS TXTの試行結果を、`(account_id, method, evidence_key)`の証明行へ記録する。
+   * 常に`checked_at`・`result`・`failure_code`を今回の試行で更新し、成功時だけ`verified_at`・`evidence_url`を更新する。
+   * 失敗・判断不能の試行では、過去に成功した`verified_at`と対象の関連を変更しない。
+   */
+  upsertVerificationAttempt(input: {
+    id: string;
+    accountId: string;
+    method: Exclude<VerificationMethod, "oauth">;
+    evidenceKey: string;
+    outcome: VerificationOutcome;
+    evidenceUrl: string | null;
+    now: Date;
+  }): DatabaseBatchItem {
+    const attempt = {
+      checkedAt: input.now,
+      result: input.outcome.result,
+      failureCode: input.outcome.failureCode,
+    };
+    const success =
+      input.outcome.result === "verified"
+        ? { verifiedAt: input.now, evidenceUrl: input.evidenceUrl }
+        : {};
+
+    return this.db
+      .insert(externalAccountVerifications)
+      .values({
+        id: input.id,
+        accountId: input.accountId,
+        method: input.method,
+        evidenceKey: input.evidenceKey,
+        ...attempt,
+        ...success,
+      })
+      .onConflictDoUpdate({
+        target: [
+          externalAccountVerifications.accountId,
+          externalAccountVerifications.method,
+          externalAccountVerifications.evidenceKey,
+        ],
+        set: { ...attempt, ...success },
+      });
+  }
+
+  /**
+   * 外部アカウント行を削除する。
+   * 識別子・証明・対象関連・公開設定はCASCADEで削除される。
+   */
+  deleteExternalAccount(userId: string, externalAccountId: string): DatabaseBatchItem {
+    return this.db
+      .delete(externalAccounts)
+      .where(and(eq(externalAccounts.id, externalAccountId), eq(externalAccounts.userId, userId)));
+  }
+
+  /**
    * 証明が確認した識別子の関連を、今回の集合で置き換える。
    */
   replaceVerificationIdentifiers(
@@ -222,9 +439,9 @@ export class D1ExternalAccountRepository {
   }
 
   /**
-   * 他ユーザーが保持する識別子行を、Web識別子の移動として削除する。
-   * 移動する識別子だけを対象としていた証明と、識別子が無くなった外部アカウント行（公開設定はCASCADE）も削除する。
-   * 旧所有者の他の識別子と、それを支える証明は残す。
+   * 識別子行を削除し、その識別子だけを対象としていた証明と、識別子が無くなった外部アカウント行（公開設定はCASCADE）も削除する。
+   * Web識別子の移動で旧所有者から外す識別子と、OAuthで置き換えた旧ユーザー名・旧プロフィールURLに使う。
+   * 行の他の識別子と、それを支える証明は残す。
    */
   transferIdentifiers(
     identifiers: readonly Pick<ExternalIdentifierRow, "id" | "accountId">[],
