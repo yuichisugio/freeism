@@ -28,6 +28,7 @@ export const problemDetailsSchema = v.object({
   title: v.string(),
   status: v.number(),
   code: v.string(),
+  detail: v.optional(v.string()),
   errors: v.optional(v.array(problemIssueSchema)),
 });
 

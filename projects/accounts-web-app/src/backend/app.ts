@@ -17,6 +17,8 @@ import { externalUrlRoutes } from "./routes/external-url-routes";
 import { healthRoutes } from "./routes/health-routes";
 import { profileRoutes } from "./routes/profile-routes";
 import { oauthClientRoutes } from "./routes/oauth-client-routes";
+import { resourceApiRoutes } from "./routes/resource-api-routes";
+import { visibilityRoutes } from "./routes/visibility-routes";
 
 /**
  * API・認証・公開プロフィールを処理するHonoアプリ。
@@ -44,9 +46,10 @@ app.use(except(["/api/*", "/.well-known/*", "/healthz"], basicAuthMiddleware));
 // パス別のミドルウェア
 // --------------------------------------------------
 
-app.use("/api/*", prettyJSON({ force: true }));
-// Better Authの認証APIは標準のOrigin検証で保護するため、CSRFミドルウェアの対象から外す。
-app.use("/api/*", except("/api/auth/*", csrf()));
+// Better Authの認証APIはリダイレクト（bodyの無い応答）を返すため、整形の対象から外す。
+app.use("/api/*", except("/api/auth/*", prettyJSON({ force: true })));
+// Better Authの認証APIは標準のOrigin検証、資源APIはクライアント用Access Tokenで保護するため、CSRFミドルウェアの対象から外す。
+app.use("/api/*", except(["/api/auth/*", "/api/v1/*"], csrf()));
 app.use("/profiles/*", trimTrailingSlash(), etag());
 
 // --------------------------------------------------
@@ -55,6 +58,8 @@ app.use("/profiles/*", trimTrailingSlash(), etag());
 
 // Better Authの標準エンドポイントは認証クライアントから呼ぶため、RPCのルート型に含めない。
 app.route("/api/auth", authRoutes);
+// 資源APIは連携サービスのバックエンドから呼ぶため、RPCのルート型に含めない。
+app.route("/api/v1", resourceApiRoutes);
 
 const routes = app
   .route("/healthz", healthRoutes)
@@ -63,7 +68,8 @@ const routes = app
   .route("/api/external-urls", externalUrlRoutes)
   .route("/api/external-accounts", externalAccountRoutes)
   .route("/api/oauth-clients", oauthClientRoutes)
-  .route("/api/backup", backupRoutes);
+  .route("/api/backup", backupRoutes)
+  .route("/api/visibility", visibilityRoutes);
 
 /**
  * Hono RPCクライアントで使うルート型。

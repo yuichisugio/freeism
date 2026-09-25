@@ -25,6 +25,7 @@ import { isOAuthProviderId } from "../domain/identity/providers";
 import type { Bindings } from "../hono-env";
 import { syncOAuthAccount } from "../usecases/sync-oauth-account";
 import { readOAuthProfile, type AuthContext } from "./read-oauth-profile";
+import { requireSavedClientConsent } from "./require-saved-client-consent";
 
 /**
  * 新規ユーザーの表示名。
@@ -212,6 +213,7 @@ export function createAuth(
       "/unlink-account",
       "/update-user",
     ],
+    hooks: { before: requireSavedClientConsent(db) },
     databaseHooks: {
       user: {
         create: {

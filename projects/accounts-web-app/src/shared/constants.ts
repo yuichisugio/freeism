@@ -55,3 +55,13 @@ export const backupAccountItemLimit = 20;
  * バックアップJSONの`clientConsents`の上限。
  */
 export const backupClientConsentLimit = 50;
+
+/**
+ * 照合APIの1要求あたりの入力件数の上限。
+ */
+export const resolveIdentifierLimit = 1000;
+
+/**
+ * 一覧取得・照合APIの要求bodyの上限（5MiB）。
+ */
+export const resourceApiBodyMaxBytes = 5_242_880;

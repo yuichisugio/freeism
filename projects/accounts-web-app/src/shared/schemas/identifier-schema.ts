@@ -9,7 +9,10 @@ import { providerIds } from "../providers";
  * @see ../../../docs/specification/v0.1/main.ja.md
  */
 
-const identifierValueSchema = v.pipe(v.string(), v.nonEmpty(), v.maxBytes(identifierValueMaxBytes));
+/**
+ * 固有ID・ユーザー名などの識別子の値。
+ */
+export const identifierValueSchema = v.pipe(v.string(), v.nonEmpty(), v.maxBytes(identifierValueMaxBytes));
 
 /**
  * HTTPSの絶対URL。

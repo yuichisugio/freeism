@@ -3,7 +3,7 @@ import { and, count, eq, inArray, isNotNull, isNull, not, or, sql } from "drizzl
 import type { IdentifierKey } from "../../domain/identity/identifier-key";
 import type { VerificationMethod } from "../../domain/identity/verification-method";
 import type { VerificationOutcome } from "../../domain/verification/verification-result";
-import type { Database, DatabaseBatchItem } from "../database";
+import { jsonEachValues, type Database, type DatabaseBatchItem } from "../database";
 import {
   externalAccounts,
   externalAccountVerifications,
@@ -15,14 +15,6 @@ import {
  * `external_identifiers`の1行。
  */
 export type ExternalIdentifierRow = typeof externalIdentifiers.$inferSelect;
-
-/**
- * 値の配列を1つのバインド値にし、`json_each`で展開する副問合せ。
- * @see https://developers.cloudflare.com/d1/sql-api/query-json/#expand-arrays-for-in-queries
- */
-function jsonEachValues(values: readonly string[]) {
-  return sql`(select value from json_each(${JSON.stringify(values)}))`;
-}
 
 /**
  * 外部アカウント・識別子・証明の読取と、D1 batchへ渡す書込文を組み立てる。

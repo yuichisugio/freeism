@@ -1,4 +1,5 @@
 import type { BatchItem } from "drizzle-orm/batch";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 
 import * as schema from "./schema";
@@ -32,6 +33,15 @@ export async function runBatch(db: Database, items: readonly DatabaseBatchItem[]
   }
 
   await db.batch([first, ...rest]);
+}
+
+/**
+ * 値の配列を1つのバインド値にし、`json_each`で展開する副問合せ。
+ * 件数によらず1つのバインド値で渡し、D1の1文100バインド変数の上限に掛からないようにする。
+ * @see https://developers.cloudflare.com/d1/sql-api/query-json/#expand-arrays-for-in-queries
+ */
+export function jsonEachValues(values: readonly string[]) {
+  return sql`(select value from json_each(${JSON.stringify(values)}))`;
 }
 
 /**

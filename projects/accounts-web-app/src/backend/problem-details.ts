@@ -18,12 +18,14 @@ import type { ProblemDetails, ProblemIssue } from "../shared/schemas/problem-det
 
 /**
  * ユースケース・ミドルウェアが投げる、BFFの失敗応答へ変換できるエラー。
+ * `detail`はRFC 9457の`detail`（英語の補足説明）。
  */
 export class ProblemError extends Error {
   constructor(
     readonly status: ContentfulStatusCode,
     readonly code: string,
     readonly issues?: ProblemIssue[],
+    readonly detail?: string,
   ) {
     super(code);
     this.name = "ProblemError";
@@ -40,6 +42,7 @@ export function problemResponse(c: Context, error: ProblemError): Response {
     title: error.code,
     status: error.status,
     code: error.code,
+    ...(error.detail === undefined ? {} : { detail: error.detail }),
     ...(error.issues === undefined ? {} : { errors: error.issues }),
   };
   return c.json(problem, error.status, {
@@ -109,7 +112,13 @@ function classifyIssue(issue: v.GenericIssue): string {
   ) {
     return "MISSING_REQUIRED_FIELD";
   }
-  if (issue.type === "literal" || issue.type === "picklist" || issue.type === "variant") {
+  if (issue.type === "variant") {
+    // 判別キーの不足・オブジェクトでない入力・未定義の判別値を区別する。
+    if (issue.received === "undefined") return "MISSING_REQUIRED_FIELD";
+    if (issue.expected === "Object") return "INVALID_TYPE";
+    return "INVALID_VALUE";
+  }
+  if (issue.type === "literal" || issue.type === "picklist") {
     return "INVALID_VALUE";
   }
   return "INVALID_TYPE";
