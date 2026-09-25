@@ -11,6 +11,7 @@ import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
 import { authRoutes } from "./routes/auth-routes";
 import { healthRoutes } from "./routes/health-routes";
+import { oauthClientRoutes } from "./routes/oauth-client-routes";
 
 /**
  * API・認証・公開プロフィールを処理するHonoアプリ。
@@ -50,7 +51,7 @@ app.use("/profiles/*", trimTrailingSlash(), etag());
 // Better Authの標準エンドポイントは認証クライアントから呼ぶため、RPCのルート型に含めない。
 app.route("/api/auth", authRoutes);
 
-const routes = app.route("/healthz", healthRoutes);
+const routes = app.route("/healthz", healthRoutes).route("/api/oauth-clients", oauthClientRoutes);
 
 /**
  * Hono RPCクライアントで使うルート型。

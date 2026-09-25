@@ -31,6 +31,19 @@ import { readOAuthProfile, type AuthContext } from "./read-oauth-profile";
  */
 const provisionalUserName = "仮ユーザー";
 
+/**
+ * 連携アカウントの一覧取得と識別子の照合に使う、Client Credentials用の読取scope。
+ */
+export const identitiesReadScope = "identities:read";
+
+/**
+ * Accounts資源APIのresource（Access Tokenの`aud`）。
+ * @see ../../../docs/specification/v0.1/main.ja.md
+ */
+export function createResourceApiIdentifier(accountsOrigin: string): string {
+  return `${accountsOrigin}/api/v1`;
+}
+
 // --------------------------------------------------
 // 設定に使う純粋関数
 // --------------------------------------------------
@@ -119,7 +132,7 @@ export function createAuth(
 ) {
   const db = createDatabase(env.DB);
   const accountsOrigin = env.ACCOUNTS_ORIGIN;
-  const resourceApiIdentifier = `${accountsOrigin}/api/v1`;
+  const resourceApiIdentifier = createResourceApiIdentifier(accountsOrigin);
   // staging・PreviewはPreviewのhostからの要求も受け付ける。
   const previewHosts = env.PREVIEW_HOST_PATTERN ? [env.PREVIEW_HOST_PATTERN] : [];
 
@@ -224,7 +237,7 @@ export function createAuth(
       oauthProvider({
         loginPage: "/",
         consentPage: "/account-links",
-        scopes: ["openid", "identities:read"],
+        scopes: ["openid", identitiesReadScope],
         // Refresh Tokenを発行しないため、`refresh_token`を除く。
         grantTypes: ["authorization_code", "client_credentials"],
         accessTokenExpiresIn: 900,
