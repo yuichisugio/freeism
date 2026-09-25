@@ -11,6 +11,7 @@ import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
 import { accountLinkRoutes } from "./routes/account-link-routes";
 import { authRoutes } from "./routes/auth-routes";
+import { backupRoutes } from "./routes/backup-routes";
 import { externalAccountRoutes } from "./routes/external-account-routes";
 import { externalUrlRoutes } from "./routes/external-url-routes";
 import { healthRoutes } from "./routes/health-routes";
@@ -61,7 +62,8 @@ const routes = app
   .route("/api/account-links", accountLinkRoutes)
   .route("/api/external-urls", externalUrlRoutes)
   .route("/api/external-accounts", externalAccountRoutes)
-  .route("/api/oauth-clients", oauthClientRoutes);
+  .route("/api/oauth-clients", oauthClientRoutes)
+  .route("/api/backup", backupRoutes);
 
 /**
  * Hono RPCクライアントで使うルート型。
