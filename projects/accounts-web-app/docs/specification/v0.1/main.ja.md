@@ -136,10 +136,11 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 認証フロー中のstate・認可コード・セッションの有効期限はBetter Auth標準の管理に従う
 - 未連携の外部アカウントでのログインで、そのメールアドレスが既存のAccountsユーザーの`user.email`と一致する場合は、新しいAccountsユーザーを作成せず、Better Auth標準の`account_not_linked`で拒否する。既存のログイン手段でログインして「アカウント連携」画面から明示連携するよう案内する。元のAccountsユーザーを作成した外部アカウントを解除した後、その外部アカウントで新規登録しようとした場合も同じ結果になるため、元のAccountsユーザーへ再連携するか、移動先のAccountsユーザーで明示連携するか、元のAccountsユーザーを退会するよう案内する
 - 共通ログイン画面では、`account_not_linked`と、GitHubでメールアドレス一覧も取得できない場合の`email_not_found`に応じた案内を表示する
+- 利用側サービスから開始した連携でログイン画面を開いた場合、画面の署名付きクエリは同意画面と同じく10分で失効する。失効後にログインを開始できなかった場合は、元のサービスから連携を最初からやり直すよう案内し、署名付きクエリを外してログイン画面を開き直す導線を示す
 - 紐付け済みのGoogle・GitHub・ORCIDアカウントでAccountsへログインできる
 - 後から追加したGoogle・GitHub・ORCIDアカウントでも、紐付け先のAccountsユーザーへログインできる
 - ログイン画面には、そのブラウザーで前回利用したログイン方法を表示する
-- 同じブラウザー内で複数のAccountsユーザーのセッションを保持し、切り替えられる
+- 同じブラウザー内で複数のAccountsユーザーのセッションを保持し、切り替えられる。ログアウトは、Multi Sessionの標準に従い、このブラウザーでログイン中のすべてのAccountsユーザーのセッションを終了する
 - ログインセッションの有効期間は7日を基本とし、本人の利用に応じてBetter Auth標準の更新間隔で延長する。有効期限を過ぎた場合は再ログインを求める
 - ログイン状態の保持期限を更新する利用は、本人のAccountsセッションによる利用とする。OAuthクライアントによる一覧取得・照合は、クライアント用Access Tokenの有効期間で管理する
 - 「アカウント連携」画面では、各AccountsユーザーにGoogle・GitHub・ORCIDアカウントを合計で最低1件残し、最後のログイン手段の連携解除を許可しない
@@ -177,7 +178,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - v0.1の連携対象は、Pointsのようなバックエンドを持つWebサービスとする
 - 利用側で接続設定した複数のAccounts互換サービスから選べるよう、OAuth Providerとして連携する
 - v0.1から、外部サービスの開発者がAccountsの画面で自分のアプリをOAuthクライアントとして登録できる
-- OAuthクライアントの登録では、アプリ名・リダイレクトURL・`private_key_jwt`用の公開鍵を必須入力とし、サービスの紹介URLと説明文は任意入力とする。リダイレクトURLは、Accountsでの認証・同意後に利用者を戻す先として登録する
+- OAuthクライアントの登録では、アプリ名・リダイレクトURL・`private_key_jwt`用の公開鍵を必須入力とし、サービスの紹介URLと説明文は任意入力とする。紹介URLはHTTPSのURLとする。リダイレクトURLは、Accountsでの認証・同意後に利用者を戻す先として登録する
 - クライアント設定は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にする。アプリ名・紹介URL・説明文をアプリ情報、リダイレクトURL・Client ID・公開鍵を接続情報として整理し、入力項目と提供機能は本仕様で定めた内容とする
 - 1つのOAuthクライアントへ、リダイレクトURLを1件以上、複数登録できる。認可要求ごとに戻り先の`redirect_uri`を1つ指定し、Accountsのバックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認する。ローカル開発用のURLは次項のとおりポートを除いて一致を確認する
 - OAuthのリダイレクトURLはHTTPSとする。HTTPSのURLのホストには、loopback（`localhost`・`127.0.0.0/8`・`[::1]`）を使えない。ローカル開発用に、ホストが`localhost`・`127.0.0.1`・`[::1]`のいずれかのURLをHTTPで登録できる。ローカル開発用のURLは[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除いて一致を確認する。1つのクライアントに本番のHTTPSのURLとローカル開発用のURLを併記できる
@@ -420,7 +421,7 @@ Valibotの入力schemaをフロントエンドとバックエンドで共有し�
 | --- | --- |
 | `service`、`displayName` | `string \| null`。判明しているサービス名・表示名。汎用Webページなどで取得できない情報は`null` |
 | `identifiers` | `url`・`provider_account`・`provider_username`の識別子配列。各形式は照合入力と共通 |
-| `linkedAt` | `string \| null`。現在の紐付けの成立日時。日時はUTCのRFC 3339形式 |
+| `linkedAt` | `string \| null`。その外部アカウントで最初に有効な証明が成立した日時。日時はUTCのRFC 3339形式 |
 | `verificationStatus` | `verified`または`unverified`。本人への有効な証明済み紐付けがあるかを示す |
 | `verifications` | 証明方法ごとの情報の配列。未実行の場合は空配列 |
 | 証明方法の各要素 | `method: "oauth" \| "bidirectional_link" \| "dns_txt"`、`identifiers`、`verifiedAt: string \| null`、`checkedAt: string \| null`、`result`、`evidenceUrl: string \| null` |
@@ -484,7 +485,7 @@ OAuthの固有IDと、URLから抽出したユーザー名は、それぞれ別�
 | 一括照合の要求bodyが5MiBを超過 | 413 | `REQUEST_TOO_LARGE` |
 | サーバー内部の処理失敗 | 500 | `INTERNAL_ERROR` |
 
-401・403の応答では、Better Auth標準の`createResourceServerChallenge`で作る`WWW-Authenticate`ヘッダーを付け、bodyは本表の形式とする。削除したクライアントのトークンによる要求は401とする。
+401・403の応答では、Better Auth標準の`createResourceServerChallenge`で作る`WWW-Authenticate`ヘッダーを付け、bodyは本表の形式とする。`WWW-Authenticate`には`DPoP`と`Bearer`の両方のchallengeが含まれうるため、利用側はHTTPステータスとbodyの`code`で失敗を判定する。削除したクライアント、無効にしたクライアント（登録者のban中を含む）のトークンによる要求は401とする。
 
 一覧取得・照合の資源APIにも、CloudflareのWAFのRate Limitingを適用する。上限を超えた要求にはWAFがHTTP 429を返し、この応答は本表の形式に従わない。利用側はHTTPステータスで判定する。
 
@@ -567,7 +568,7 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 外部アカウントの追加連携は、本人の操作と外部サービスでの認証に基づいて行う
 - OAuthの同一アカウントは外部サービス名と固有IDで判定する。メールアドレスにかかわらず、本人の操作とProviderでの認証により明示連携する
 - 外部アカウントでのログイン・追加連携・再連携で表示名を取得した場合は、その外部アカウントの最新の表示名として保存する。管理画面・一般公開・OAuthクライアントへの提供では、公開条件に従って保存済みの表示名を使用する
-- OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLは、その外部アカウントの識別子を置き換える。改名前のユーザー名・プロフィールURLの識別子行と、それらだけを対象とする証明行（改名前のURLのリンク証明など）は削除する。置き換え後の値が別のAccountsユーザーの有効な識別子と衝突する場合は、OAuthの検証済み応答を優先し、その識別子を今回の本人へ移動する
+- OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLは、その外部アカウントの識別子を置き換える。改名前のユーザー名・プロフィールURLの識別子行と、それらだけを対象とする証明行（改名前のURLのリンク証明など）は削除する。置き換え後の値が別のAccountsユーザーの有効な識別子と衝突する場合は、OAuthの検証済み応答を優先し、その識別子を今回の本人へ移動する。OAuthで得たユーザー名・プロフィールURLを、本人が「未検証で保存」などで固有IDを持たない別の外部アカウント行に候補として登録している場合は、その候補をOAuthの外部アカウントへ移して有効にする
 - OAuth連携でURL識別子を追加する時点で本人の`url`行が150件に達している場合は、そのURL行だけを保存せず、ログイン・連携とほかの識別子の保存を続ける。上限到達は「アカウント連携」画面に表示する
 - ログイン・追加連携・再連携の後も、本人が設定したAccountsの表示名を維持する
 - 外部アカウントの連携解除と退会では、Better Auth標準の処理で保存したAccess Token・Refresh Tokenを削除する。外部サービス側に残るAccountsへの連携許可は、本人が各サービスの設定から取り消す。この案内は[文書化要件](#文書化要件)の公開ヘルプで行う
@@ -608,6 +609,8 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 最初の`appAdmin`は、OAuthで作成したユーザーの`user.role`をDBで`appAdmin`に設定して任命する。運営者画面は設けず、ログイン済みの`appAdmin`がAdmin APIを呼ぶ
 - Admin APIのユーザー一覧・取得の応答には、Better Auth標準の`user.email`（ユーザーを作成した外部アカウントのメールアドレス）が含まれる
 - banは期限を設けずに行う。ban中は標準機能でログインを拒否し、既存セッションを失効させる
+- ban中は、本人が開発者として登録したOAuthクライアントを標準の`oauthClient.disabled`で無効にし、そのクライアントの認可・トークン発行と、発行済みトークンによる資源APIの利用を拒否する。unbanで有効に戻す
+- banの時点でブラウザーが保持するセッションのcookie cacheは、有効期間（最長1時間）の間、cookie cacheで判定する読取系の画面用API・追加連携の開始・同意済みクライアントへの認可で使われうる。状態変更APIと`/api/me`はDBのセッションを読むため拒否する
 - ban中のユーザーの公開プロフィールは404とし、連携アカウント一覧と照合APIはユーザーが存在しない場合と同じ結果を返す。unbanで元の公開設定へ戻す
 - ban・unbanの後は、[提供・技術要件](#提供技術要件)に従って対象の公開プロフィールのキャッシュをpurgeする
 
@@ -618,6 +621,7 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 退会が成立したユーザーは、Accountsへのログインとセッション、外部アカウントの紐付け、一般公開、OAuthクライアントへの情報提供を終了する
 - 退会と同時に、本人が開発者として登録したOAuthクライアントも終了する。対象クライアントのClient ID・公開鍵登録、既存の認可・発行済みトークンによるAPI利用を無効にし、新しい認可の受付を終了する
 - 退会成立時に、本人のプロフィール、外部アカウント情報と紐付け、公開・提供設定、登録OAuthクライアントの設定、それらに属する認証情報・セッション・認可・トークンを削除する
+- 退会した端末以外のブラウザーが保持するセッションのcookie cacheは、有効期間（最長1時間）の間、cookie cacheで判定する読取系の画面用APIで使われうる。削除済みのデータは返らず、状態変更APIと`/api/me`はDBのセッションを読むため拒否する
 - 退会操作には、[操作の認可](#操作の認可)の条件を適用する
 - 操作監査ログは[管理画面と監査](#管理画面と監査)の個人情報を含めない記録方針に従い、保存・保持はログ基盤の設定で管理する
 
@@ -654,7 +658,7 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 外部サービスの表示名やURLは、表示時に適切にエスケープする
 - 編集と検証には、[操作の認可](#操作の認可)を適用する
 - 所有権確認の開始・成功・失敗、検証方法、Web URLの紐付け先更新を監査する
-- ログイン・外部連携の成功と拒否、連携解除・再連携、退会、情報提供同意・公開選択の変更、ban・unban、OAuthクライアント・クライアント公開鍵・署名鍵の変更、refresh失敗、token種別・scopeによる拒否を監査する
+- ログイン・外部連携の成功と拒否、連携解除・再連携、退会、情報提供同意・公開選択の変更、同意画面での同意・拒否、ban・unban、OAuthクライアント・クライアント公開鍵の変更、refresh失敗、token種別・scopeによる拒否を監査する。Accountsの署名鍵の変更は運用作業として扱い、操作監査ログの対象にしない
 - アプリケーションログと操作監査ログは、操作種別、実行日時、成否、エラー分類、検証方法、処理時間、処理件数など、個人を識別しない項目を記録する
 - アカウント名、表示名、AccountsユーザーID、外部サービスのユーザーID、メールアドレス、プロフィールURL・外部URL、IPアドレスなどの個人情報はログへ出力しない。OAuth token、認証code、Cookie、Client Secret、外部HTML本文、外部APIの応答本文もログへ出力しない
 - リクエスト・レスポンスや例外を記録するときも、上記の記録項目へ整形し、入力値や識別子を含むURL・本文・メッセージをそのまま出力しない
@@ -1009,14 +1013,14 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 | `advanced.database.joins: true` | Drizzleのrelationsを使う結合取得 |
 | `session.freshAge: 0` | 外部アカウントの解除と退会を、ログインからの経過時間によらず有効なセッションで実行する |
 | `user.deleteUser.enabled: true` | 本人による退会を標準`deleteUser`で実行する |
-| `session.cookieCache.enabled: true` | セッションのcookie cache。Accountsの状態変更API（解除・退会・公開設定・クライアント設定・復元・Admin API）では標準`disableCookieCache`でDBのセッションを読む |
+| `session.cookieCache.enabled: true` | セッションのcookie cache。Accountsの状態変更API（解除・退会・公開設定・クライアント設定・復元・Admin API）と、本人の表示名を返す`/api/me`では標準`disableCookieCache`でDBのセッションを読む |
 | `session.cookieCache.strategy: "jwe"` | cookie cacheの暗号化 |
 | `session.cookieCache.maxAge: 3600` | cookie cacheの有効期間（1時間） |
 | `rateLimit.enabled: true` | 実行環境の`NODE_ENV`によらず認証APIの頻度制御を有効にする |
 | `rateLimit.storage: "database"` | Better Auth標準の認証APIの頻度制御 |
 | `advanced.ipAddress.ipAddressHeaders: ["cf-connecting-ip"]` | レート制限とセッションのIPをCloudflareの接続元IPから取得する |
 | `advanced.backgroundTasks.handler` | Workersの`waitUntil`への接続。応答の成立に必要な保存は完了を待つ |
-| `disabledPaths: ["/token", "/oauth2/register", "/oauth2/create-client", "/oauth2/update-client", "/oauth2/delete-client", "/unlink-account", "/update-user"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする。クライアントの登録・更新・削除、連携解除、表示名の更新はHTTPの標準経路を塞ぎ、件数上限・必須項目・独自表の整合を確認するAccountsのAPIからサーバー側の標準APIを呼ぶ |
+| `disabledPaths: ["/token", "/get-access-token", "/refresh-token", "/account-info", "/oauth2/register", "/oauth2/create-client", "/oauth2/update-client", "/oauth2/delete-client", "/unlink-account", "/update-user"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする。外部ProviderのTokenとProvider側のプロフィールを返す`/get-access-token`・`/refresh-token`・`/account-info`は、Tokenをバックエンドだけで扱うため無効にする。クライアントの登録・更新・削除、連携解除、表示名の更新はHTTPの標準経路を塞ぎ、件数上限・必須項目・独自表の整合を確認するAccountsのAPIからサーバー側の標準APIを呼ぶ |
 
 OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonceを標準フローで扱う。Providerで対応するプロトコルに従って検査する。Google・GitHubとGeneric OAuthのORCIDは、1.7の`signIn.social()`・`linkSocial()`・`unlinkAccount()`へ接続する。
 
@@ -1027,7 +1031,7 @@ OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonce�
 | i18n | 認証メッセージの日本語・英語対応 |
 | Last Login Method | 前回利用したログイン方法の表示 |
 | Multi Session | 同じブラウザー内でAccountsユーザーのセッションを保持・切り替え |
-| OAuth Proxy | 固定callbackを経由したPreview・localhostへの復帰 |
+| OAuth Proxy | stagingの固定callbackを経由したPreviewへのログインの復帰。ローカル開発では、各ProviderのOAuthアプリにlocalhostのcallbackを登録する |
 | Open API | Better Auth認証APIのOpenAPI 3.1.1を生成する。Accounts資源APIのOpenAPI 3.2.1は共有のValibot schemaから作成し、それぞれを「開発者向け」画面に表示する |
 | Test Utils | 統合テスト・E2E向けのテスト用構成 |
 | Admin | `ac`・`roles`でロール`appAdmin`（`user`の`list`・`get`・`ban`）と`user`を定義し、[運営者の権限](#運営者の権限)に使う |

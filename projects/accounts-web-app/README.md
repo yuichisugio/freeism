@@ -14,7 +14,7 @@
 | script | 内容 |
 | --- | --- |
 | `pnpm dev` | Vite Plusで画面とWorkerを起動する |
-| `pnpm build` | 画面のSPA shellを事前生成し、Workerとassetsをビルドする。デプロイ先の設定でビルドする場合は`CLOUDFLARE_ENV=staging`などを指定する |
+| `pnpm build` | 画面のSPA shellを事前生成し、Workerとassetsをビルドする。デプロイ先の設定でビルドする場合は`CLOUDFLARE_ENV=staging`などを指定する。生成した`dist/client/index.html`の`<body>`に画面の中身（`<main>`）が無いことを確認する |
 | `pnpm preview` | ビルド結果をローカルのWorkers環境で確認する |
 | `pnpm typecheck` | Bindings型を生成し、型検査を実行する |
 | `pnpm lint` | Vite Plusのlintを実行する |
@@ -40,7 +40,7 @@
 | `ORCID_CLIENT_ID`・`ORCID_CLIENT_SECRET` | 秘密値 | ORCID（Generic OAuth）のクライアント |
 | `BASIC_AUTH_USERNAME`・`BASIC_AUTH_PASSWORD` | 秘密値 | staging・Previewの画面のBasic認証。デプロイ先だけに登録し、ローカルとCIのビルドでは空にする |
 
-各ProviderのOAuthアプリには、callback URLとして`{ACCOUNTS_ORIGIN}/api/auth/callback/google`・`/github`・`/orcid`を登録する。Previewからのログインは、OAuth Proxyがstagingのcallbackを経由して戻す。
+各ProviderのOAuthアプリには、callback URLとして`{ACCOUNTS_ORIGIN}/api/auth/callback/google`・`/github`・`/orcid`を登録する。ローカル開発では、ローカル用のOAuthアプリに`http://localhost:5173/api/auth/callback/...`を登録する。Previewからのログインは、OAuth Proxyがstagingのcallbackを経由して戻す。「アカウント連携」画面からの追加連携はOAuth Proxyを経由しないため、stagingで確認する。
 
 ## stagingでの確認
 
@@ -49,7 +49,7 @@
 3. `pnpm exec wrangler d1 migrations apply DB --env staging --remote`でmigrationを適用する。
 4. `CLOUDFLARE_ENV=staging pnpm build`でstagingの設定でビルドし、`pnpm exec wrangler deploy`でデプロイする。Cloudflare Vite Pluginはビルド時に環境を確定するため、`wrangler deploy`には`--env`を付けない。
 5. `https://staging.accounts.freeism.app`でBasic認証を通して画面を開き、Google・GitHub・ORCIDのログイン、URLの検証、公開プロフィール（Basic認証なし）、OAuthクライアントの登録と`/api/v1/*`の呼出しを確認する。
-6. PRのPreviewは、同じビルドの後に`pnpm exec wrangler preview`で更新する。PreviewはstagingのD1を共有する。
+6. PRのPreviewは、同じビルドの後に`pnpm exec wrangler preview`で更新する。PreviewはstagingのD1を共有する。Previewではログインを確認し、追加連携はstagingで確認する。
 
 ## 認証の秘密値の切り替え
 
@@ -68,4 +68,19 @@ pnpm exec wrangler d1 execute DB --env production --remote \
   --command "UPDATE \"user\" SET role = 'appAdmin' WHERE id = 'ausr_...';"
 ```
 
-任命後に再ログインし、ログイン中のブラウザーからBetter AuthのAdmin API（`/api/auth/admin/list-users`・`get-user`・`ban-user`・`unban-user`）を呼ぶ。`appAdmin`はこの4つだけを実行できる。ban・unbanが成功すると、対象ユーザーの公開プロフィールのキャッシュは自動でpurgeされる。
+任命後に再ログインし、ログイン中のブラウザーからBetter AuthのAdmin API（`/api/auth/admin/list-users`・`get-user`・`ban-user`・`unban-user`）を呼ぶ。`appAdmin`はこの4つだけを実行できる。ban・unbanが成功すると、対象ユーザーが登録したOAuthクライアントは自動で無効化・再開され、公開プロフィールのキャッシュは自動でpurgeされる。ban・unbanの応答が失敗した場合は、同じ操作を再実行する。
+
+## 運用時の対処
+
+### 退会が途中で失敗した場合
+
+退会は標準の`deleteUser`でセッション・`account`・`user`の順に削除し、D1のtransactionを使わない。途中で失敗すると、ログイン手段の無い`user`行が残り、本人は退会を再実行できない。監査ログに`"event":"user_withdrawn","outcome":"failure"`が残り、本人からの問い合わせなどで対象のAccountsユーザーIDを確認できた場合は、`user`行を削除する。独自表と登録OAuthクライアントはCASCADEで同時に削除され、公開プロフィールのキャッシュは最長1日で失効する。
+
+```sh
+pnpm exec wrangler d1 execute DB --env production --remote \
+  --command "DELETE FROM \"user\" WHERE id = 'ausr_...';"
+```
+
+### 資源APIのresource設定を変える場合
+
+OAuth Providerは、`oauthProvider.resources`の設定を`resourceSeedMode`の既定（`insertOnly`）で`oauth_resource`へ初回だけ保存し、既存の行は設定を変えても更新しない。DPoPの必須化などresourceの方針を変える場合は、デプロイ後に対象環境の`oauth_resource`の行を新しい設定に合わせて更新するか、一時的に`resourceSeedMode: "merge"`でデプロイして反映させてから既定に戻す。

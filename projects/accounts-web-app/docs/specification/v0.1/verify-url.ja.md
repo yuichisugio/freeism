@@ -95,7 +95,7 @@ Provider識別子とユーザー名の正規化は次のとおりとする。[Ac
 | `github`        | GitHub         | OAuth・URL規則       | する                 | 未確認 |
 | `orcid`         | ORCID          | OAuth・OIDC          | 対象外（固有IDで照合する） | - |
 | `gitlab`        | GitLab         | URL規則              | する                 | 未確認 |
-| `stackoverflow` | Stack Overflow | URL規則              | 対象外（数値IDをユーザー名相当の識別子とし、slugは保存しない） | - |
+| `stackoverflow` | Stack Overflow | URL規則              | 対象外（数値IDをユーザー名相当の識別子とし、slugは含めない） | - |
 | `qiita`         | Qiita          | URL規則              | する                 | 未確認 |
 | `note`          | note           | URL規則              | する                 | 未確認 |
 | `zenn`          | Zenn           | URL規則              | する                 | 未確認 |
@@ -165,7 +165,9 @@ URL規則は、redirectを追跡した最終取得URLに適用する。入力URL
 | `not_verified`           | 対象を取得・解釈できたが、期待する証拠が確認できなかった                  |
 | `indeterminate`          | timeout、外部のアクセス制限、取得上限、応答形式、異なるAccountsユーザーへのURLの併存などにより判断できなかった |
 
-直近の試行の`result`は`verified`・`not_verified`・`indeterminate`のいずれかとする。リンク設置、公開状態の変更、OAuthによる証明など、本人の次の操作の案内は、直近の試行の`failure_code`から導いて表示する。方法別の検証結果、検証日時、証拠URL、確認した識別子を記録し、既存の有効な証明と直近の検証試行の結果を区別する。API・JSONの項目名は、主仕様の`verificationStatus`と`verifications`へ対応付ける。成功した証明の`verifiedAt`と、直近の試行の`checkedAt`・`result`を分けて保持する。
+直近の試行の`result`は`verified`・`not_verified`・`indeterminate`のいずれかとする。「保存して検証する」の応答では、証拠を確認したページ（最終取得URL）をリンク証明が成立した場合だけ示し、成立しなかった試行では示さない。リンク設置、公開状態の変更、OAuthによる証明など、本人の次の操作の案内は、直近の試行の`failure_code`から導いて表示する。方法別の検証結果、検証日時、証拠URL、確認した識別子を記録し、既存の有効な証明と直近の検証試行の結果を区別する。API・JSONの項目名は、主仕様の`verificationStatus`と`verifications`へ対応付ける。成功した証明の`verifiedAt`と、直近の試行の`checkedAt`・`result`を分けて保持する。
+
+バックアップから取り込んだ候補には、所有権を改めて証明すると有効になることを本人に案内する。有効な識別子を持つ行（再証明済みの行）には、この案内を表示しない。
 
 異なるAccountsユーザーへのURLが併存する場合は、証拠ページのURLを整理して再検証するよう本人に案内する。既存の有効な紐付けは、このリンク検証の判断不能という直近結果だけでは変更しない。DNS TXTが一致した場合は、その独立した証明結果に従う。
 
@@ -204,7 +206,7 @@ v0.1では、GitHub、GitLab、Stack Overflow、Qiita、note、Zenn、Codeberg�
 | サービス | プロフィールURLと識別子 | プロフィールの匿名取得の実測 | 制約と対応境界 |
 | ---- | ---------------------- | ---------------------------- | -------------- |
 | GitLab | `gitlab.com/{namespace}`。namespaceはユーザーまたはグループ | [個人プロフィール](https://gitlab.com/yorickpeterse)は200・31,439Bで外部リンクあり | - |
-| Stack Overflow | `stackoverflow.com/users/{userId}/{slug}`。URLの数値IDをユーザー名相当の識別子とする | [プロフィール](https://stackoverflow.com/users/22656/jon-skeet)は200・173,815Bで外部リンクあり | slugは保存しない |
+| Stack Overflow | `stackoverflow.com/users/{userId}/{slug}`。URLの数値IDをユーザー名相当の識別子とする | [プロフィール](https://stackoverflow.com/users/22656/jon-skeet)は200・173,815Bで外部リンクあり | ユーザー名相当の識別子にslugは含めない。プロフィールURLの識別子には、他のサービスと同じく最終取得URL（`/users/{userId}`からredirectした後のslug付きのURL）を保存する |
 | Qiita | `qiita.com/{username}` | [プロフィール](https://qiita.com/Qiita)は200・112,075B | ユーザー名の変更後は、旧URLから変更後のURLへredirectする |
 | note | `note.com/{username}` | [クリエイターページ](https://note.com/info)は200・577,759B | 「プロフィールに設定した記事」はコンテンツURLとして扱う |
 | Zenn | `zenn.dev/{username}` | [プロフィール](https://zenn.dev/zenn)は200・39,035B | `/p/{publication}`はPublicationであり個人プロフィールと区別する |
