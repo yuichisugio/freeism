@@ -96,7 +96,8 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
           <FieldError>{nameError}</FieldError>
         </TextField>
         <TextField
-          type="url"
+          type="text"
+          inputMode="url"
           value={form.uri}
           onChange={(value) => state.changeField("uri", value)}
           isInvalid={uriError !== undefined}
@@ -136,7 +137,8 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
               <div key={index} className="flex items-start gap-2">
                 <TextField
                   className="flex-1"
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   aria-label={messages.redirectUriLabel(index + 1)}
                   value={redirectUri}
                   onChange={(value) => state.changeRedirectUri(index, value)}
