@@ -2,8 +2,8 @@ import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import * as v from "valibot";
 
+import { toProblemIssue } from "../shared/schemas/problem-details-schema";
 import type { ResourceApiError } from "../shared/schemas/resource-api-schema";
-import { toProblemIssue } from "./problem-details";
 
 /**
  * Accounts資源API（`/api/v1/*`）の応答の組立て。

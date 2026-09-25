@@ -8,9 +8,10 @@ import {
   getTestAuthContext,
   testAuth,
 } from "../../../test/auth-test-helpers";
-import { createDatabase } from "../db/database";
+import { createDatabase, isUniqueConstraintError } from "../db/database";
 import { createRandomId } from "../db/id";
 import {
+  account,
   externalAccounts,
   externalAccountVerifications,
   externalIdentifiers,
@@ -58,6 +59,51 @@ async function createUserWithGoogleAccounts(accountCount: number) {
   }
   return { context, user, accounts };
 }
+
+describe("Better Authの設定", () => {
+  it("主仕様の設定表の値で構成する", () => {
+    const { options } = testAuth;
+
+    expect(options.account).toMatchObject({
+      encryptOAuthTokens: true,
+      updateAccountOnSignIn: true,
+      accountLinking: {
+        disableImplicitLinking: true,
+        allowDifferentEmails: true,
+        updateUserInfoOnLink: false,
+      },
+    });
+    expect(options.session).toMatchObject({
+      freshAge: 0,
+      cookieCache: { enabled: true, strategy: "jwe", maxAge: 3600 },
+    });
+    expect(options.rateLimit).toEqual({ enabled: true, storage: "database" });
+    expect(options.advanced?.ipAddress).toEqual({ ipAddressHeaders: ["cf-connecting-ip"] });
+  });
+
+  it("同じProviderの同じアカウントIDの標準accountは1行に限る", async () => {
+    const context = await getTestAuthContext();
+    const subject = createRandomId("google-");
+    const createAccount = async () => {
+      const user = await context.test.saveUser(context.test.createUser());
+      await db.insert(account).values({
+        id: createRandomId(),
+        userId: user.id,
+        providerId: "google",
+        accountId: subject,
+        updatedAt: new Date(),
+      });
+    };
+
+    await createAccount();
+    const duplicated = await createAccount().then(
+      () => null,
+      (error: unknown) => error,
+    );
+
+    expect(isUniqueConstraintError(duplicated)).toBe(true);
+  });
+});
 
 describe("Better Authのユーザー作成", () => {
   it("user.idをausr_形式で作り、表示名を「仮ユーザー」にする", async () => {

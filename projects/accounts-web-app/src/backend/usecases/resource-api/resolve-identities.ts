@@ -1,5 +1,6 @@
 import * as v from "valibot";
 
+import { toProblemIssue } from "../../../shared/schemas/problem-details-schema";
 import {
   resolveIdentifierSchema,
   type ResolveResult,
@@ -11,7 +12,6 @@ import {
   type ResolvedRow,
 } from "../../db/repositories/d1-resource-api-repository";
 import { buildResolveTarget, type ResolveTarget } from "../../domain/identity/resolve-target";
-import { toProblemIssue } from "../../problem-details";
 
 /**
  * 照合（`QUERY /api/v1/identities/resolve`）。

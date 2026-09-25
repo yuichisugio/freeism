@@ -4,7 +4,7 @@ import { isOAuthProviderId } from "../domain/identity/providers";
 import { auditLog, toErrorCategory, type AuditEvent } from "../logging/audit-log";
 
 /**
- * Better Authの標準エンドポイントの監査とban・unban後のpurge。
+ * Better Authの標準エンドポイントの監査と、ban・unban後の登録クライアントの無効化・再開とpurge。
  * `hooks.after`は標準の処理が例外（リダイレクトを含む）で終わった場合も実行され、結果は`ctx.context.returned`に入る。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ./audit-auth-events.worker.test.ts
@@ -32,7 +32,8 @@ function readErrorCategory(returned: unknown): string {
 /**
  * `hooks.after`に渡す監査処理を作る。
  * - OAuthのcallback（ログイン・追加連携・再連携）: リダイレクト先の`error`の有無で成否を記録する。
- * - ban・unban: 成功後に対象ユーザーの公開プロフィールをpurgeし、成否を記録する。
+ * - ban・unban: 成功後に対象ユーザーが登録したOAuthクライアントを標準の`disabled`で無効化・再開し、公開プロフィールをpurgeして、成否を記録する。
+ * - 同意画面の同意・拒否: 標準の`oauth2.consent`の`accept`ごとに成否を記録する。
  * - token endpoint: grant種別・scope・クライアント認証などによる拒否を記録する（refresh tokenの要求も拒否として残る）。
  * - 退会: 失敗を記録する（成功は`user.deleteUser.afterDelete`で記録する）。
  */
@@ -64,8 +65,24 @@ export function createAuditAfterHook({
         auditLog({ event: banEvent, outcome: "failure", errorCategory: readErrorCategory(returned) });
         return;
       }
-      purgeProfiles([String(ctx.body.userId)]);
+      const userId = String(ctx.body.userId);
+      // 無効化したクライアントは、標準の認可・トークン発行と資源APIのクライアント確認で拒否される。
+      await ctx.context.adapter.updateMany({
+        model: "oauthClient",
+        where: [{ field: "userId", value: userId }],
+        update: { disabled: banEvent === "user_banned" },
+      });
+      purgeProfiles([userId]);
       auditLog({ event: banEvent, outcome: "success" });
+      return;
+    }
+
+    if (ctx.path === "/oauth2/consent") {
+      auditLog({
+        event: ctx.body?.accept === true ? "oauth_consent_accepted" : "oauth_consent_denied",
+        outcome: isAPIError(returned) ? "failure" : "success",
+        errorCategory: isAPIError(returned) ? readErrorCategory(returned) : undefined,
+      });
       return;
     }
 

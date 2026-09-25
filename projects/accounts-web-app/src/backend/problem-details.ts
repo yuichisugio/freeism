@@ -2,7 +2,11 @@ import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import * as v from "valibot";
 
-import type { ProblemDetails, ProblemIssue } from "../shared/schemas/problem-details-schema";
+import {
+  toProblemIssue,
+  type ProblemDetails,
+  type ProblemIssue,
+} from "../shared/schemas/problem-details-schema";
 
 /**
  * BFF（`/api/*`）の応答の組立て。
@@ -86,42 +90,6 @@ export async function parseJsonBody<TSchema extends v.GenericSchema>(
     throw new ProblemError(400, "INVALID_VALUE", parsed.issues.map(toProblemIssue));
   }
   return parsed.output;
-}
-
-/**
- * valibotの不備を、`MISSING_REQUIRED_FIELD`・`UNKNOWN_FIELD`・`INVALID_TYPE`・`INVALID_VALUE`に分類した不備1件にする。
- * `path`は要求bodyの最上位からの位置で、画面の入力検査と同じ規則にする。
- */
-export function toProblemIssue(issue: v.GenericIssue): ProblemIssue {
-  return {
-    code: classifyIssue(issue),
-    message: issue.message,
-    path: issue.path?.map((item) => item.key as string | number) ?? null,
-  };
-}
-
-/**
- * valibotの不備の種類を分類する。
- */
-function classifyIssue(issue: v.GenericIssue): string {
-  if (issue.kind === "validation") return "INVALID_VALUE";
-  if (issue.type === "strict_object" && issue.expected === "never") return "UNKNOWN_FIELD";
-  if (
-    (issue.type === "object" || issue.type === "strict_object") &&
-    issue.received === "undefined"
-  ) {
-    return "MISSING_REQUIRED_FIELD";
-  }
-  if (issue.type === "variant") {
-    // 判別キーの不足・オブジェクトでない入力・未定義の判別値を区別する。
-    if (issue.received === "undefined") return "MISSING_REQUIRED_FIELD";
-    if (issue.expected === "Object") return "INVALID_TYPE";
-    return "INVALID_VALUE";
-  }
-  if (issue.type === "literal" || issue.type === "picklist") {
-    return "INVALID_VALUE";
-  }
-  return "INVALID_TYPE";
 }
 
 // --------------------------------------------------

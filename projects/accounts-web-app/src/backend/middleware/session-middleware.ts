@@ -22,7 +22,7 @@ export type SessionVariables = {
 /**
  * Better Authのセッションから操作主体を確定し、`sessionUser`へ設定する。
  * セッションが無ければ401 `UNAUTHORIZED`を返す。
- * 状態変更APIでは`fresh: true`とし、標準の`disableCookieCache`でcookie cacheを使わずDBのセッションを読む。
+ * 状態変更APIと`/api/me`では`fresh: true`とし、標準の`disableCookieCache`でcookie cacheを使わずDBのセッションを読む。
  * @param options.fresh cookie cacheを使わずにDBのセッションを読むか。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ../routes/external-account-routes.worker.test.ts

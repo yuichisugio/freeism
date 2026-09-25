@@ -3,7 +3,16 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createVerifiedUrlAccount, testDb, uniqueHost } from "../../../test/external-account-test-helpers";
-import { loginAsNewUser } from "../../../test/oauth-client-test-helpers";
+import {
+  generateTestKeyPair,
+  loginAsNewUser,
+  requestClientAccessToken,
+} from "../../../test/oauth-client-test-helpers";
+import {
+  createResourceApiCaller,
+  fetchResourceApi,
+  registerTestClient,
+} from "../../../test/resource-api-test-helpers";
 import { PublicProfileEntrypoint } from "../../public-profile";
 import { externalAccounts, user } from "../db/schema";
 import { isUserVisible } from "../usecases/profile/is-user-visible";
@@ -145,6 +154,29 @@ describe("ban・unban", () => {
     expect(await profile.text()).toContain(`<a href="${target.url}" rel="me">`);
     expect(await isUserVisible({ db: testDb }, { userId: target.userId })).toBe(true);
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([target.userId]));
+  });
+
+  it("banの間は本人が登録したクライアントのトークン発行と資源APIを拒否し、unbanで戻す", async () => {
+    const { headers } = await loginAsAppAdmin();
+    const developer = await loginAsNewUser();
+    const { clientId, clientKey } = await registerTestClient(developer.headers);
+    const issuedBeforeBan = await createResourceApiCaller(clientId, clientKey);
+    const resolveIdentities = (caller: typeof issuedBeforeBan) =>
+      fetchResourceApi(caller, "/api/v1/identities/resolve", { body: { identifiers: [] } });
+    const requestToken = async () =>
+      requestClientAccessToken({ clientId, clientKey, dpopKey: await generateTestKeyPair("dpop-key") });
+
+    await callAdminApi(headers, "/ban-user", { body: { userId: developer.userId } });
+
+    const rejected = await requestToken();
+    expect(rejected.status).toBe(400);
+    expect(await rejected.json()).toMatchObject({ error: "invalid_client" });
+    expect((await resolveIdentities(issuedBeforeBan)).status).toBe(401);
+
+    await callAdminApi(headers, "/unban-user", { body: { userId: developer.userId } });
+
+    expect((await requestToken()).status).toBe(200);
+    expect((await resolveIdentities(await createResourceApiCaller(clientId, clientKey))).status).toBe(200);
   });
 
   it("拒否されたbanは監査ログへ失敗として残し、purgeしない", async () => {

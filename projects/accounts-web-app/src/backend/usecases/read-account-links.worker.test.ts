@@ -53,6 +53,10 @@ describe("readAccountLinks", () => {
       { db: testDb },
       { userId, url: `https://${uniqueHost()}/` },
     );
+    await testDb
+      .update(externalAccounts)
+      .set({ importedVerificationsJson: "[]" })
+      .where(eq(externalAccounts.id, candidate.externalAccountId));
 
     const links = await readAccountLinks({ db: testDb, accountsOrigin }, { userId });
 
@@ -83,13 +87,14 @@ describe("readAccountLinks", () => {
           },
         ],
         visibility: { [clientId]: true },
-        hasImportedVerifications: true,
+        // 取り込んだ証明情報があっても、有効な識別子がある行は再証明待ちとして示さない。
+        hasImportedVerifications: false,
       },
       expect.objectContaining({
         id: candidate.externalAccountId,
         linkedAt: null,
         verificationStatus: "unverified",
-        hasImportedVerifications: false,
+        hasImportedVerifications: true,
       }),
     ]);
   });

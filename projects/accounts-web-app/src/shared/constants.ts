@@ -37,11 +37,6 @@ export const urlMaxBytes = 2048;
 export const identifierValueMaxBytes = 256;
 
 /**
- * 外部アカウントの表示名・連携先クライアント名など、表示用の文字列の上限（UTF-8のbyte数）。
- */
-export const displayTextMaxBytes = 256;
-
-/**
  * バックアップJSONの`externalAccounts`の上限。
  */
 export const backupExternalAccountLimit = 300;

@@ -37,7 +37,7 @@ export const developerMessages = defineMessages({
     jwksHint:
       'private_key_jwtで使う公開鍵を {"keys":[...]} 形式のJSONで入力します。鍵を切り替えるときは、新旧の鍵を併記して保存してから旧鍵を外してください。',
     required: "入力してください。",
-    invalidUrl: "URLの形式で入力してください。",
+    invalidUrl: "HTTPSのURLを入力してください。",
     invalidRedirectUri:
       "HTTPSのURL（localhost・127.0.0.1・[::1]を除く）、またはlocalhost・127.0.0.1・[::1]のHTTPのURLを、#以降を付けずに入力してください。",
     invalidJson: "JSONの構文が正しくありません。",
@@ -97,7 +97,7 @@ export const developerMessages = defineMessages({
     jwksHint:
       'Enter the public keys for private_key_jwt as JSON in the {"keys":[...]} format. To rotate keys, save both the old and new keys first, then remove the old key.',
     required: "This field is required.",
-    invalidUrl: "Enter a valid URL.",
+    invalidUrl: "Enter an HTTPS URL.",
     invalidRedirectUri:
       "Enter an HTTPS URL on a host other than localhost, 127.0.0.1 or [::1], or an HTTP URL on those hosts, without a fragment (#).",
     invalidJson: "The JSON syntax is invalid.",

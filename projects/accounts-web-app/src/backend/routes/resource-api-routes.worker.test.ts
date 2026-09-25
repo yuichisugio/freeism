@@ -1,7 +1,7 @@
 import { exports } from "cloudflare:workers";
 import { deriveDpopJkt } from "better-auth/oauth2";
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { testAuth } from "../../../test/auth-test-helpers";
 import {
@@ -599,6 +599,10 @@ describe("資源APIの要求全体の検査", () => {
 // --------------------------------------------------
 
 describe("資源APIのクライアント認証", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("Access Tokenの無い要求は、bodyを検査する前にWWW-Authenticate付きの401を返す", async () => {
     const response = await exports.default.fetch(`${testOrigin}/api/v1/identities/resolve`, {
       method: "QUERY",
@@ -638,6 +642,23 @@ describe("資源APIのクライアント認証", () => {
     expect(response.headers.get("www-authenticate")).toContain('error="insufficient_scope"');
     expect(await response.json()).toEqual({
       errors: [{ code: "INSUFFICIENT_SCOPE", message: expect.any(String), path: null }],
+    });
+  });
+
+  it("有効期限（15分）を過ぎたトークンは401にする", async () => {
+    const { caller } = await setUpClient();
+    const issuedAt = Date.now();
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(issuedAt + 14 * 60 * 1000);
+    const beforeExpiry = await resolve(caller, []);
+    vi.setSystemTime(issuedAt + 16 * 60 * 1000);
+    const response = await resolve(caller, []);
+
+    expect(beforeExpiry.status).toBe(200);
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      errors: [{ code: "UNAUTHORIZED", message: expect.any(String), path: null }],
     });
   });
 

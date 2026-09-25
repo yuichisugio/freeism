@@ -72,6 +72,7 @@ export async function readAccountLinks(
  * 日時はUTCのRFC 3339文字列、Provider識別子の無いURL行の`provider`は`null`にする。
  */
 function toLinkedAccount(externalAccount: ExternalAccountDetails): LinkedAccount {
+  const isVerified = externalAccount.externalIdentifiers.some((identifier) => identifier.isActive);
   return {
     id: externalAccount.id,
     service: externalAccount.service,
@@ -79,11 +80,7 @@ function toLinkedAccount(externalAccount: ExternalAccountDetails): LinkedAccount
     email: externalAccount.email,
     linkedAt: externalAccount.linkedAt?.toISOString() ?? null,
     isPublic: externalAccount.isPublic,
-    verificationStatus: externalAccount.externalIdentifiers.some(
-      (identifier) => identifier.isActive,
-    )
-      ? "verified"
-      : "unverified",
+    verificationStatus: isVerified ? "verified" : "unverified",
     identifiers: externalAccount.externalIdentifiers.map((identifier) => ({
       id: identifier.id,
       type: identifier.kind,
@@ -108,6 +105,7 @@ function toLinkedAccount(externalAccount: ExternalAccountDetails): LinkedAccount
         visibility.isPublic,
       ]),
     ),
-    hasImportedVerifications: externalAccount.importedVerificationsJson !== null,
+    // 取り込んだ証明情報は再証明待ちの案内に使うため、有効な識別子がある行では示さない。
+    hasImportedVerifications: !isVerified && externalAccount.importedVerificationsJson !== null,
   };
 }

@@ -21,15 +21,21 @@ describe("/api/auth/*", () => {
   });
 
   it.each([
-    "/api/auth/token",
-    "/api/auth/unlink-account",
-    "/api/auth/update-user",
-    "/api/auth/oauth2/create-client",
-  ])("HTTPで無効にした%sは404を返す", async (path) => {
+    ["/api/auth/token", "GET"],
+    ["/api/auth/get-access-token", "POST"],
+    ["/api/auth/refresh-token", "POST"],
+    ["/api/auth/account-info", "GET"],
+    ["/api/auth/unlink-account", "POST"],
+    ["/api/auth/update-user", "POST"],
+    ["/api/auth/oauth2/register", "POST"],
+    ["/api/auth/oauth2/create-client", "POST"],
+    ["/api/auth/oauth2/update-client", "POST"],
+    ["/api/auth/oauth2/delete-client", "POST"],
+  ])("HTTPで無効にした%sは404を返す", async (path, method) => {
     const response = await exports.default.fetch(`${origin}${path}`, {
-      method: path === "/api/auth/token" ? "GET" : "POST",
+      method,
       headers: { "Content-Type": "application/json", Origin: origin },
-      body: path === "/api/auth/token" ? undefined : "{}",
+      body: method === "GET" ? undefined : "{}",
     });
 
     expect(response.status).toBe(404);

@@ -1,5 +1,6 @@
 import { Alert, Spinner } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 import { describeError, isUnauthorizedError } from "../../../lib/describe-error";
 import { commonMessages } from "../../../lib/i18n/common-messages";
@@ -58,7 +59,7 @@ export function ErrorNotice({
 /**
  * 利用者向けの文言をそのまま示す失敗の表示（入力不備など）。
  */
-export function ErrorText({ children }: { children: string }) {
+export function ErrorText({ children }: { children: ReactNode }) {
   return (
     <Alert status="danger" role="alert">
       <Alert.Indicator />

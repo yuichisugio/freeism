@@ -29,6 +29,7 @@ export const verificationAttemptSchema = v.object({
 
 /**
  * `mode: "verify"`の`data`。
+ * `link.evidenceUrl`は、リンク証明が成立した場合だけ証拠を確認したページ（最終取得URL）を返し、それ以外は`null`。
  * リンク証明が成立した場合、DNS TXTは試行しないため`dns`は`null`。
  */
 export const verifyUrlResultSchema = v.object({

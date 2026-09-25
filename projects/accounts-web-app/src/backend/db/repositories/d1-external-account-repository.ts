@@ -306,6 +306,18 @@ export class D1ExternalAccountRepository {
   }
 
   /**
+   * まだ有効な証明が成立していない（`linked_at`が無い）外部アカウント行の、サービス種別を判定値に、表示名をNULLにする。
+   * 復元したJSONの`service`・`displayName`を再証明で採用しないよう、有効化する前にbatchへ並べる。
+   * 有効化済みの行（OAuth由来の表示名を含む）は変更しない。
+   */
+  resetUnlinkedAccountProfile(accountId: string, service: string | null): DatabaseBatchItem {
+    return this.db
+      .update(externalAccounts)
+      .set({ service, displayName: null })
+      .where(and(eq(externalAccounts.id, accountId), isNull(externalAccounts.linkedAt)));
+  }
+
+  /**
    * 候補（`is_active=0`）として識別子行を追加する。
    * 有効化は証明との関連を作った後の`reconcileIdentifierActivity`で行う。
    */

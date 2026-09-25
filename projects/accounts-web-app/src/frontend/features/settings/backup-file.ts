@@ -2,7 +2,7 @@ import * as v from "valibot";
 
 import { jsonFileMaxBytes } from "../../../shared/constants";
 import { backupSchema } from "../../../shared/schemas/backup-schema";
-import type { ProblemIssue } from "../../../shared/schemas/problem-details-schema";
+import { toProblemIssue, type ProblemIssue } from "../../../shared/schemas/problem-details-schema";
 
 /**
  * 復元するバックアップJSONファイルの、送信前の検査。
@@ -36,30 +36,6 @@ export async function readBackupFile(file: File): Promise<ReadBackupFileResult> 
     return { backup: null, issues: result.issues.map(toProblemIssue) };
   }
   return { backup: result.output, issues: null };
-}
-
-/**
- * valibotの不備を、サーバーと同じエラーコードの不備1件にする。
- */
-function toProblemIssue(issue: v.GenericIssue): ProblemIssue {
-  return {
-    code: classifyIssue(issue),
-    message: issue.message,
-    path: issue.path?.map((item) => item.key as string | number) ?? null,
-  };
-}
-
-/**
- * valibotの不備の種類を、`MISSING_REQUIRED_FIELD`・`UNKNOWN_FIELD`・`INVALID_TYPE`・`INVALID_VALUE`に分類する。
- */
-function classifyIssue(issue: v.GenericIssue): string {
-  if (issue.kind === "validation") return "INVALID_VALUE";
-  if (issue.type === "strict_object" && issue.expected === "never") return "UNKNOWN_FIELD";
-  if ((issue.type === "object" || issue.type === "strict_object") && issue.received === "undefined") {
-    return "MISSING_REQUIRED_FIELD";
-  }
-  if (issue.type === "literal" || issue.type === "picklist" || issue.type === "variant") return "INVALID_VALUE";
-  return "INVALID_TYPE";
 }
 
 // --------------------------------------------------

@@ -1,13 +1,19 @@
 import { exports } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   createVerifiedUrlAccount,
   testDb,
   uniqueHost,
 } from "../../../test/external-account-test-helpers";
-import { loginAsNewUser, testOrigin } from "../../../test/oauth-client-test-helpers";
+import {
+  fetchOAuthClients,
+  generateTestKeyPair,
+  loginAsNewUser,
+  testOrigin,
+  toJwks,
+} from "../../../test/oauth-client-test-helpers";
 import {
   registerTestClient,
   saveVisibility,
@@ -44,11 +50,15 @@ async function setUpUser() {
  * ブラウザーで認可エンドポイントを開く。
  * PKCEの`code_challenge`は固定値でよい（トークン交換はこのテストの対象外）。
  */
-function authorize(headers: Headers, clientId: string, { prompt }: { prompt?: string } = {}) {
+function authorize(
+  headers: Headers,
+  clientId: string,
+  { prompt, redirectUri = testRedirectUri }: { prompt?: string; redirectUri?: string } = {},
+) {
   const query = new URLSearchParams({
     response_type: "code",
     client_id: clientId,
-    redirect_uri: testRedirectUri,
+    redirect_uri: redirectUri,
     scope: "openid",
     state: "state-1",
     nonce: "nonce-1",
@@ -105,7 +115,21 @@ async function countOAuthConsents(userId: string, clientId: string) {
 // 同意画面
 // --------------------------------------------------
 
+/**
+ * 監査ログ（`console.log`・`console.warn`）に出た1行のJSONを読む。
+ */
+function readAuditEvents(...spies: { mock: { calls: unknown[][] } }[]) {
+  return spies
+    .flatMap((spy) => spy.mock.calls.map(([line]) => String(line)))
+    .filter((line) => line.includes('"type":"audit"'))
+    .map((line) => JSON.parse(line) as { event: string; outcome: string });
+}
+
 describe("連携開始と同意画面", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("ログイン後の認可要求は、署名付きクエリを付けて「アカウント連携」画面へ302で移動する", async () => {
     const { headers, clientId } = await setUpUser();
 
@@ -125,8 +149,12 @@ describe("連携開始と同意画面", () => {
     const saved = await saveVisibility(headers, {
       clients: [{ clientId, consented: true, visibleAccountIds: [accountId] }],
     });
+    const log = vi.spyOn(console, "log");
     const redirect = await readRedirectUrl(await sendConsent(headers, oauthQuery, true));
 
+    expect(readAuditEvents(log)).toContainEqual(
+      expect.objectContaining({ event: "oauth_consent_accepted", outcome: "success" }),
+    );
     expect(saved.status).toBe(200);
     expect(`${redirect.origin}${redirect.pathname}`).toBe(testRedirectUri);
     expect(redirect.searchParams.get("code")).toEqual(expect.any(String));
@@ -163,8 +191,12 @@ describe("連携開始と同意画面", () => {
       await authorize(headers, clientId, { prompt: "consent" }),
     );
 
+    const log = vi.spyOn(console, "log");
     const redirect = await readRedirectUrl(await sendConsent(headers, oauthQuery, false));
 
+    expect(readAuditEvents(log)).toContainEqual(
+      expect.objectContaining({ event: "oauth_consent_denied", outcome: "success" }),
+    );
     expect(redirect.searchParams.get("error")).toBe("access_denied");
     expect(redirect.searchParams.get("code")).toBeNull();
     expect(
@@ -194,5 +226,81 @@ describe("連携開始と同意画面", () => {
 
     expect(await countOAuthConsents(userId, clientId)).toBe(0);
     readConsentPageQuery(await authorize(headers, clientId));
+  });
+
+  it("ローカル開発用のリダイレクトURLは、ポートだけが異なる戻り先を受け付ける", async () => {
+    const { headers } = await loginAsNewUser();
+    const clientKey = await generateTestKeyPair("client-key");
+    const registered = await fetchOAuthClients(headers, "", {
+      method: "POST",
+      body: {
+        name: "Points (local)",
+        uri: null,
+        description: null,
+        redirectUris: ["http://127.0.0.1:8787/callback"],
+        jwks: toJwks(clientKey),
+      },
+    });
+    const { data } = (await registered.json()) as { data: { clientId: string } };
+
+    const otherPort = await authorize(headers, data.clientId, {
+      prompt: "consent",
+      redirectUri: "http://127.0.0.1:53123/callback",
+    });
+    const otherPath = await authorize(headers, data.clientId, {
+      prompt: "consent",
+      redirectUri: "http://127.0.0.1:8787/other",
+    });
+
+    expect(new URLSearchParams(readConsentPageQuery(otherPort)).get("redirect_uri")).toBe(
+      "http://127.0.0.1:53123/callback",
+    );
+    expect(new URL(otherPath.headers.get("location") ?? "").searchParams.get("error")).toBe(
+      "invalid_redirect",
+    );
+  });
+
+  it("保存済みのOAuth同意がある状態でaccept:falseを送っても、標準のOAuth同意を変えない", async () => {
+    const { userId, headers, accountId, clientId } = await setUpUser();
+    await saveVisibility(headers, {
+      clients: [{ clientId, consented: true, visibleAccountIds: [accountId] }],
+    });
+    await sendConsent(
+      headers,
+      readConsentPageQuery(await authorize(headers, clientId, { prompt: "consent" })),
+      true,
+    );
+
+    await sendConsent(
+      headers,
+      readConsentPageQuery(await authorize(headers, clientId, { prompt: "consent" })),
+      false,
+    );
+
+    expect(await countOAuthConsents(userId, clientId)).toBe(1);
+  });
+
+  it("同意をOFFにした後も、同意画面で同意をONに戻して保存すれば連携を再開できる", async () => {
+    const { userId, headers, accountId, clientId } = await setUpUser();
+    await saveVisibility(headers, {
+      clients: [{ clientId, consented: true, visibleAccountIds: [accountId] }],
+    });
+    await sendConsent(
+      headers,
+      readConsentPageQuery(await authorize(headers, clientId, { prompt: "consent" })),
+      true,
+    );
+    await saveVisibility(headers, {
+      clients: [{ clientId, consented: false, visibleAccountIds: [accountId] }],
+    });
+
+    const oauthQuery = readConsentPageQuery(await authorize(headers, clientId));
+    await saveVisibility(headers, {
+      clients: [{ clientId, consented: true, visibleAccountIds: [accountId] }],
+    });
+    const redirect = await readRedirectUrl(await sendConsent(headers, oauthQuery, true));
+
+    expect(redirect.searchParams.get("code")).toEqual(expect.any(String));
+    expect(await countOAuthConsents(userId, clientId)).toBe(1);
   });
 });

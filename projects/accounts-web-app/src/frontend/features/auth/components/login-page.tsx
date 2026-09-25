@@ -1,4 +1,5 @@
 import { Card } from "@heroui/react";
+import { Link } from "@tanstack/react-router";
 
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { ErrorText, LoadingState } from "../../app-shell/components/status-messages";
@@ -12,6 +13,7 @@ import { LoginProviderList } from "./login-provider-list";
 /**
  * ログイン画面（`/`）。
  * OAuth Providerのログイン画面を兼ね、ログイン済みのセッションがあれば一覧と切替を表示する。
+ * 署名付きクエリが期限切れの場合は、元のサービスからやり直す案内と、クエリを外してログイン画面を開き直す導線を示す。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./login-page.test.tsx
  */
@@ -30,7 +32,15 @@ export function LoginPage({ errorCode }: { errorCode: string | undefined }) {
         </Card.Header>
         <Card.Content className="flex flex-col gap-4">
           {errorCode === undefined ? null : <LoginErrorNotice errorCode={errorCode} />}
-          {login.hasStartFailed ? <ErrorText>{messages.startFailed}</ErrorText> : null}
+          {login.startFailure === "failed" ? <ErrorText>{messages.startFailed}</ErrorText> : null}
+          {login.startFailure === "expired" ? (
+            <ErrorText>
+              {messages.requestExpired}{" "}
+              <Link to="/" className="underline">
+                {messages.reopenLoginPage}
+              </Link>
+            </ErrorText>
+          ) : null}
           <LoginProviderList
             pendingProvider={login.pendingProvider}
             lastUsedMethod={login.lastUsedMethod}

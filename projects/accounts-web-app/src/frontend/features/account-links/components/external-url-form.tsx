@@ -54,7 +54,8 @@ export function ExternalUrlForm({
         validationBehavior="aria"
         isInvalid={validationMessage !== undefined || serverInputErrorMessage !== undefined} isDisabled={isSubmitting}>
         <Label>{messages.urlLabel}</Label>
-        <Input type="url" inputMode="url" placeholder={messages.urlPlaceholder} />
+        {/* スキームの無い入力もブラウザー標準の型検査で送信を止めず、アプリの検査で案内する。 */}
+        <Input type="text" inputMode="url" placeholder={messages.urlPlaceholder} />
         <FieldError>{validationMessage}</FieldError>
       </TextField>
       <p className="text-sm text-muted">{messages.urlCount(urlCount, urlIdentifierLimitPerUser)}</p>

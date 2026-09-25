@@ -86,6 +86,31 @@ describe("連携解除後の公開プロフィールのpurge", () => {
   });
 });
 
+describe("URL検証後の公開プロフィールのpurge", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("一般公開中の行を持つ本人のURL検証の後に、本人の公開プロフィールをpurgeする", async () => {
+    const { userId, headers } = await loginAsNewUser();
+    await createAccount(userId, { isPublic: true });
+    // 外部ページの取得とDNS TXTの照会は、どちらも証拠の無い応答にする。
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () => new Response("<p>no link</p>", { headers: { "content-type": "text/html" } }),
+    );
+    const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
+
+    const response = await exports.default.fetch(`${testOrigin}/api/external-urls`, {
+      method: "POST",
+      headers: new Headers([...headers, ["Content-Type", "application/json"]]),
+      body: JSON.stringify({ url: `https://${uniqueHost()}/`, mode: "verify" }),
+    });
+
+    expect(response.status).toBe(200);
+    await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
+  });
+});
+
 describe("復元後の公開プロフィールのpurge", () => {
   afterEach(() => {
     vi.restoreAllMocks();

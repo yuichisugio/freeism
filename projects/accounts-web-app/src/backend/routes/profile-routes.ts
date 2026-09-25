@@ -16,7 +16,8 @@ import { updateDisplayName } from "../usecases/profile/update-display-name";
  */
 export const profileRoutes = new Hono<AppEnv>()
   .onError(handleBffError)
-  .get("/me", requireSession({ fresh: false }), (c) => {
+  // 復元や別の端末で変わった表示名を返すため、cookie cacheではなくD1のセッションとユーザーを読む。
+  .get("/me", requireSession({ fresh: true }), (c) => {
     const sessionUser = c.get("sessionUser");
     return dataResponse(c, toMe(c.env.ACCOUNTS_ORIGIN, sessionUser.id, sessionUser.name));
   })

@@ -198,10 +198,12 @@ describe("BackupRestoreSection", () => {
   });
 
   it("Web URLの上限超過は、URLを整理してから再実行するよう案内する", async () => {
-    const restoreError = new BffError(409, { type: "about:blank", title: "Conflict", status: 409, code: "URL_LIMIT_REACHED" });
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ restoreError })} />);
+    const issues = [{ code: "URL_LIMIT_REACHED", message: "", path: null }];
+    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ issues })} />);
 
-    expect((await screen.findByRole("alert")).textContent).toContain("URLを整理してから再実行してください");
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "ファイル全体: 復元するとWeb URLが上限（150件）を超えます。「アカウント連携」画面でURLを整理してから再実行してください。",
+    );
   });
 
   it("復元の成功を件数とともにstatusで示す", async () => {

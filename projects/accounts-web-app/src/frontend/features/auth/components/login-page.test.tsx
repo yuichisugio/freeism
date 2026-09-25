@@ -12,7 +12,7 @@ type AuthClientCall = (...args: unknown[]) => Promise<unknown>;
 const authClientMock = vi.hoisted(() => ({
   signIn: { social: vi.fn<AuthClientCall>() },
   getLastUsedLoginMethod: vi.fn<() => string | null>(),
-  getSession: vi.fn<AuthClientCall>(),
+  useSession: vi.fn<() => { data: unknown; isPending: boolean }>(),
   multiSession: { listDeviceSessions: vi.fn<AuthClientCall>(), setActive: vi.fn<AuthClientCall>() },
 }));
 
@@ -24,7 +24,7 @@ const bob = { session: { id: "session-b", token: "token-b", userId: "ausr_bob" }
 beforeEach(() => {
   vi.resetAllMocks();
   authClientMock.getLastUsedLoginMethod.mockReturnValue(null);
-  authClientMock.getSession.mockResolvedValue({ data: null, error: null });
+  authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
   authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [], error: null });
 });
 
@@ -63,6 +63,20 @@ describe("LoginPage", () => {
     expect(alert.textContent).toContain("state_mismatch");
   });
 
+  it("ログインの要求が期限切れの場合は、元のサービスからやり直す案内と、ログイン画面を開き直す導線を示す", async () => {
+    authClientMock.signIn.social.mockResolvedValue({
+      data: null,
+      error: { status: 400, statusText: "Bad Request", error: "invalid_signature" },
+    });
+    renderWithProviders(<LoginPage errorCode={undefined} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "GitHubでログイン" }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.textContent).toContain("元のサービスから連携を最初からやり直してください");
+    expect(within(alert).getByRole("link", { name: "ログイン画面を開き直す" }).getAttribute("href")).toBe("/");
+  });
+
   it("エラーが無い場合は失敗の案内を表示しない", async () => {
     renderWithProviders(<LoginPage errorCode={undefined} />);
 
@@ -80,7 +94,7 @@ describe("LoginPage", () => {
   });
 
   it("ログイン済みのセッションがあれば、表示名・IDと現在のセッションを示し、別のユーザーへ切り替えられる", async () => {
-    authClientMock.getSession.mockResolvedValue({ data: alice, error: null });
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
     authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice, bob], error: null });
     authClientMock.multiSession.setActive.mockResolvedValue({ data: bob, error: null });
     renderWithProviders(<LoginPage errorCode={undefined} />);

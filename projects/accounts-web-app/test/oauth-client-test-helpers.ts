@@ -171,6 +171,28 @@ export async function loginAsNewUser(): Promise<{ userId: string; headers: Heade
 }
 
 /**
+ * ログイン直後のブラウザーと同じく、セッションのcookie cache（`session_data`）を持つヘッダーでログインする。
+ * `testUtils`のログインはcookie cacheを発行しないため、`/get-session`の応答のSet-Cookieを要求のCookieへ加える。
+ */
+export async function loginWithCookieCache(): Promise<{ userId: string; headers: Headers }> {
+  const { userId, headers } = await loginAsNewUser();
+  const session = await exports.default.fetch(`${testOrigin}/api/auth/get-session`, { headers });
+  const cookies = new Map(
+    (headers.get("cookie") ?? "")
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => [part.slice(0, part.indexOf("=")), part.slice(part.indexOf("=") + 1)]),
+  );
+  for (const setCookie of session.headers.getSetCookie()) {
+    const [pair = ""] = setCookie.split(";");
+    cookies.set(pair.slice(0, pair.indexOf("=")), pair.slice(pair.indexOf("=") + 1));
+  }
+  headers.set("cookie", [...cookies].map(([name, value]) => `${name}=${value}`).join("; "));
+  return { userId, headers };
+}
+
+/**
  * ログイン中のユーザーとして`/api/oauth-clients`を呼ぶ。
  */
 export function fetchOAuthClients(

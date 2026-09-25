@@ -1,11 +1,14 @@
 import { env, exports } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import * as v from "valibot";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { loginAsNewUser } from "../../../test/oauth-client-test-helpers";
+import { testDb } from "../../../test/external-account-test-helpers";
+import { loginAsNewUser, loginWithCookieCache } from "../../../test/oauth-client-test-helpers";
 import { dataResponseSchema, problemDetailsSchema } from "../../shared/schemas/problem-details-schema";
 import { meSchema } from "../../shared/schemas/profile-schema";
 import { PublicProfileEntrypoint } from "../../public-profile";
+import { user } from "../db/schema";
 
 const origin = env.ACCOUNTS_ORIGIN;
 
@@ -21,6 +24,21 @@ function patchProfile(headers: Headers, body: unknown) {
     body: JSON.stringify(body),
   });
 }
+
+describe("GET /api/me", () => {
+  it("復元や別の端末で変わった表示名を、セッションのcookie cacheによらず返す", async () => {
+    const { userId, headers } = await loginWithCookieCache();
+    expect(headers.get("cookie")).toContain("session_data");
+    await testDb.update(user).set({ name: "復元した名前" }).where(eq(user.id, userId));
+
+    const response = await exports.default.fetch(`${origin}/api/me`, { headers });
+
+    expect(response.status).toBe(200);
+    expect(v.parse(dataResponseSchema(meSchema), await response.json()).data.displayName).toBe(
+      "復元した名前",
+    );
+  });
+});
 
 describe("PATCH /api/profile", () => {
   afterEach(() => {

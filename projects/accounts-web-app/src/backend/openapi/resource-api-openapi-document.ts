@@ -87,7 +87,8 @@ function convertSharedSchemas(): Record<SchemaName, JsonSchema> {
 
 const wwwAuthenticateHeader = {
   "WWW-Authenticate": {
-    description: "The challenge from the standard DPoP access token verification.",
+    description:
+      "The challenges from the standard access token verification. The value can include both `DPoP` and `Bearer` challenges. Handle the error by the HTTP status and the `code` in the body, not by this header.",
     schema: { type: "string" },
   },
 };

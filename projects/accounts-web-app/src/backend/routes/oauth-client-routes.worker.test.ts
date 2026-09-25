@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchOAuthClients,
@@ -11,6 +11,7 @@ import {
 } from "../../../test/oauth-client-test-helpers";
 import { oauthClientLimitPerUser } from "../../shared/constants";
 import { createDatabase } from "../db/database";
+import { D1OAuthClientRepository } from "../db/repositories/d1-oauth-client-repository";
 import { createRandomId } from "../db/id";
 import {
   clientConsents,
@@ -256,6 +257,10 @@ describe("OAuthクライアントの登録", () => {
 // --------------------------------------------------
 
 describe("OAuthクライアントの更新", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("アプリ情報・リダイレクトURL・application_type・公開鍵を1回の保存で反映する", async () => {
     const { headers, clientId } = await registerClient();
     const oldKey = await generateTestKeyPair("key-1");
@@ -288,6 +293,25 @@ describe("OAuthクライアントの更新", () => {
     expect(JSON.parse(row?.jwks ?? "null")).toEqual(toJwks(oldKey, newKey));
     expect(row?.tokenEndpointAuthMethod).toBe("private_key_jwt");
     expect(readJsonColumn(row?.clientCredentialsScopes)).toEqual(["identities:read"]);
+  });
+
+  it("公開鍵の保存だけが失敗した場合は500 `CLIENT_KEY_SAVE_FAILED`を返し、同じ内容の再保存で反映する", async () => {
+    const { headers, clientId } = await registerClient();
+    const newKey = await generateTestKeyPair("key-2");
+    const input = await createClientInput({ name: "Renamed", jwks: toJwks(newKey) });
+    vi.spyOn(D1OAuthClientRepository.prototype, "updateAccountsManagedFields").mockRejectedValueOnce(
+      new Error("D1_ERROR"),
+    );
+
+    const failed = await fetchOAuthClients(headers, `/${clientId}`, { method: "PUT", body: input });
+    const retried = await fetchOAuthClients(headers, `/${clientId}`, { method: "PUT", body: input });
+
+    expect(failed.status).toBe(500);
+    expect(await failed.json()).toMatchObject({ code: "CLIENT_KEY_SAVE_FAILED" });
+    expect(retried.status).toBe(200);
+    const [row] = await db.select().from(oauthClient).where(eq(oauthClient.clientId, clientId));
+    expect(row?.name).toBe("Renamed");
+    expect(JSON.parse(row?.jwks ?? "null")).toEqual(toJwks(newKey));
   });
 
   it("不正な公開鍵は標準の更新より前に拒否し、保存済みの設定を変えない", async () => {

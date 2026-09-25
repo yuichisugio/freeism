@@ -160,6 +160,15 @@ export async function verifyUrl(
   ]);
   const linkVerificationId = linkVerifications[0]?.id ?? createRandomId("evf_");
   const provenService = linkPlan === null ? null : readProfileProvider(finalUrl);
+  // 成功した証明で有効にする行ごとの、URLから判定したサービス種別。
+  const judgedServices = new Map<string, string | null>(
+    linkPlan === null
+      ? (dnsPlan?.targets ?? []).map((proofTarget) => [
+          proofTarget.accountId,
+          readProfileProvider(proofTarget.key.value),
+        ])
+      : [[accountId, provenService ?? registration.service]],
+  );
   const affectedUserIds = [
     ...new Set([userId, ...(proofPlan?.transferred ?? []).map((identifier) => identifier.userId)]),
   ];
@@ -180,6 +189,10 @@ export async function verifyUrl(
           }),
         ]
       : []),
+    // 候補から有効にする行は、復元したJSONのサービス種別・表示名を採用せず判定し直す。
+    ...[...judgedServices].map(([judgedAccountId, service]) =>
+      repository.resetUnlinkedAccountProfile(judgedAccountId, service),
+    ),
     ...repository.transferIdentifiers(proofPlan?.transferred ?? []),
     ...repository.insertIdentifiers(newIdentifiers),
     repository.upsertVerificationAttempt({
@@ -233,10 +246,11 @@ export async function verifyUrl(
       proofPlan !== null || registration.inputIdentifier?.isActive === true
         ? "verified"
         : "unverified",
+    // 証拠を確認したページは、リンク証明が成功した場合だけ示す（DBも成功時だけ保存する）。
     link: {
       result: linkOutcome.result,
       failureCode: linkOutcome.failureCode,
-      evidenceUrl: linkEvidence.finalUrl,
+      evidenceUrl: linkOutcome.result === "verified" ? linkEvidence.finalUrl : null,
     },
     dns: dnsOutcome === null ? null : { result: dnsOutcome.result, failureCode: dnsOutcome.failureCode },
   };

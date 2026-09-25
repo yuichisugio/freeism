@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
+import { fillUrlIdentifiers } from "../../../test/external-account-test-helpers";
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { createDatabase } from "../db/database";
 import { createRandomId } from "../db/id";
@@ -13,6 +14,7 @@ import {
   user,
   verificationIdentifiers,
 } from "../db/schema";
+import { saveUnverifiedUrl } from "./save-unverified-url";
 import { syncOAuthAccount, type OAuthProfile } from "./sync-oauth-account";
 
 const db = createDatabase(env.DB);
@@ -204,6 +206,61 @@ describe("syncOAuthAccount", () => {
     );
   });
 
+  it("改名後のプロフィールURLを本人が別の行に候補として保存していても、OAuthの行へ移して有効にする", async () => {
+    const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
+    const suffix = createRandomId().slice(0, 8).toLowerCase();
+    const first = await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `old-${suffix}`) },
+    );
+    const candidate = await saveUnverifiedUrl(
+      { db },
+      { userId, url: `https://github.com/new-${suffix}` },
+    );
+
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `new-${suffix}`) },
+    );
+
+    expect(await readIdentifierActivity(userId)).toEqual({
+      [`provider_account:${githubId}`]: true,
+      [`provider_username:new-${suffix}`]: true,
+      [`url:https://github.com/new-${suffix}`]: true,
+    });
+    expect(await readOAuthCoveredValues(authAccountId)).toEqual(
+      [githubId, `new-${suffix}`, `https://github.com/new-${suffix}`].sort(),
+    );
+    expect(
+      await db.select({ id: externalAccounts.id }).from(externalAccounts).where(eq(externalAccounts.userId, userId)),
+    ).toEqual([{ id: first.externalAccountId }]);
+    expect(candidate.externalAccountId).not.toBe(first.externalAccountId);
+  });
+
+  it("URLが上限に達していても、本人の別の行から移すプロフィールURLはOAuthの行へ移す", async () => {
+    const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
+    const suffix = createRandomId().slice(0, 8).toLowerCase();
+    await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser - 1);
+    await saveUnverifiedUrl({ db }, { userId, url: `https://github.com/new-${suffix}` });
+    // 上限に達しているため、改名前のOAuthの行はプロフィールURLを持たない。
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `old-${suffix}`) },
+    );
+
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, `new-${suffix}`) },
+    );
+
+    expect(await readOAuthCoveredValues(authAccountId)).toEqual(
+      [githubId, `new-${suffix}`, `https://github.com/new-${suffix}`].sort(),
+    );
+    expect(await readIdentifierActivity(userId)).toMatchObject({
+      [`url:https://github.com/new-${suffix}`]: true,
+    });
+  });
+
   it("改名で置き換えた旧プロフィールURLを証拠とするリンク証明も削除する", async () => {
     const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
     const suffix = createRandomId().slice(0, 8).toLowerCase();
@@ -354,6 +411,31 @@ describe("syncOAuthAccount", () => {
     expect(await readOAuthCoveredValues(authAccountId)).toEqual(
       [githubId, login, `https://github.com/${login}`].sort(),
     );
+  });
+
+  it("復元した候補の行をOAuthで有効にするとき、Providerが表示名を返さなくてもJSONの表示名を採用しない", async () => {
+    const login = `ivan-${createRandomId().slice(0, 8).toLowerCase()}`;
+    const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
+    const candidate = await saveUnverifiedUrl({ db }, { userId, url: `https://github.com/${login}` });
+    await db
+      .update(externalAccounts)
+      .set({ service: "orcid", displayName: "JSON名" })
+      .where(eq(externalAccounts.id, candidate.externalAccountId));
+
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: { ...githubProfile(githubId, login), displayName: null } },
+    );
+
+    expect(
+      await db.select().from(externalAccounts).where(eq(externalAccounts.userId, userId)),
+    ).toEqual([
+      expect.objectContaining({
+        id: candidate.externalAccountId,
+        service: "github",
+        displayName: null,
+      }),
+    ]);
   });
 
   it("他ユーザーに支えを失った固有IDが有効なまま残っていても、本人の固有IDを有効にする", async () => {

@@ -7,6 +7,7 @@ import { authClient } from "../../../lib/auth-client";
  * Google・GitHub・ORCIDの追加連携。
  * Better Auth標準の`linkSocial`で外部の認証画面へ移動し、戻り先はこの画面とする。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
+ * @see ./use-provider-link.test.tsx
  */
 export function useProviderLink() {
   const [pendingProvider, setPendingProvider] = useState<LoginProviderId | null>(null);
@@ -14,7 +15,7 @@ export function useProviderLink() {
 
   /**
    * 追加連携を開始する。
-   * 成功すると外部の認証画面へ移動するため、開始中の状態を保つ。
+   * 成功すると外部の認証画面へ移動するが、未保存の変更の確認で画面に留まる場合もあるため、応答後は再度押せる状態に戻す。
    */
   const link = async (provider: LoginProviderId) => {
     setPendingProvider(provider);
@@ -25,14 +26,11 @@ export function useProviderLink() {
         callbackURL: "/account-links",
         errorCallbackURL: "/account-links",
       });
-      if (result.error) {
-        setPendingProvider(null);
-        setError(result.error);
-      }
+      if (result.error) setError(result.error);
     } catch (linkError) {
-      setPendingProvider(null);
       setError(linkError);
     }
+    setPendingProvider(null);
   };
 
   return { link, pendingProvider, error };

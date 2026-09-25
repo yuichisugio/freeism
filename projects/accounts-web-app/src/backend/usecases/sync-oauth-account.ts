@@ -1,7 +1,10 @@
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { createRandomId } from "../db/id";
 import { runBatch, type Database } from "../db/database";
-import { D1ExternalAccountRepository } from "../db/repositories/d1-external-account-repository";
+import {
+  D1ExternalAccountRepository,
+  type ExternalIdentifierRow,
+} from "../db/repositories/d1-external-account-repository";
 import { isSameIdentifierKey, type IdentifierKey } from "../domain/identity/identifier-key";
 import {
   buildOAuthIdentifierKeys,
@@ -36,22 +39,9 @@ export type SyncOAuthAccountResult = {
 };
 
 /**
- * 本人がURL登録・リンク証明で先に保存した、同じユーザー名・プロフィールURLを持つ外部アカウント行を探す。
- * 別のOAuthアカウントの行へ統合しないよう、固有IDを持つ行は除く。
- */
-async function findRegisteredAccountId(
-  repository: D1ExternalAccountRepository,
-  userId: string,
-  ownIdentifiers: readonly { accountId: string }[],
-): Promise<string | undefined> {
-  const accountIds = [...new Set(ownIdentifiers.map((identifier) => identifier.accountId))];
-  const oauthAccountIds = await repository.findAccountIdsWithProviderAccount(userId, accountIds);
-  return accountIds.find((accountId) => !oauthAccountIds.includes(accountId));
-}
-
-/**
  * 標準`account`の作成・更新後に、外部アカウント行・識別子・`oauth`証明・表示名・メールアドレスを冪等に作成・更新する。
  * 対象の外部アカウント行は、同じ`oauth`証明の行、同じ固有IDを持つ本人の行、同じユーザー名・プロフィールURLを先に登録した本人の行、新規の順に決める。
+ * 本人が固有IDを持たない別の行に候補として登録したユーザー名・プロフィールURLは、対象の行へ移す。
  * 同じ`oauth`証明が確認していたユーザー名・プロフィールURLのうち、今回の応答に無い値（改名前の値）は削除して新しい値へ置き換える。
  * 他ユーザーが有効に保持するユーザー名・プロフィールURLは、OAuthの検証済み応答を優先して今回の本人へ移動する。
  * 本人の`url`行が上限に達している場合は、URL識別子だけを追加しない。
@@ -85,10 +75,19 @@ export async function syncOAuthAccount(
     (identifier) => identifier.userId !== input.userId && identifier.isActive,
   );
 
+  // 本人がURL登録・リンク証明で先に保存した行は、固有IDを持たない行として区別する。
+  const ownAccountIds = [...new Set(ownIdentifiers.map((identifier) => identifier.accountId))];
+  const oauthAccountIds = await repository.findAccountIdsWithProviderAccount(
+    input.userId,
+    ownAccountIds,
+  );
+  const isRegisteredAccount = (accountId: string) => !oauthAccountIds.includes(accountId);
+
+  // 別のOAuthアカウントの行へ統合しないよう、先に登録した行への合流は固有IDを持たない行に限る。
   const externalAccountId =
     existingVerification?.accountId ??
     ownIdentifiers.find((identifier) => identifier.kind === "provider_account")?.accountId ??
-    (await findRegisteredAccountId(repository, input.userId, ownIdentifiers)) ??
+    ownAccountIds.find(isRegisteredAccount) ??
     createRandomId("eac_");
   const verificationId = existingVerification?.id ?? createRandomId("evf_");
 
@@ -102,6 +101,7 @@ export async function syncOAuthAccount(
       identifier.kind !== "provider_account" &&
       !keys.some((key) => isSameIdentifierKey(identifier, key)),
   );
+  const movedOwnIdentifiers: ExternalIdentifierRow[] = [];
   const coveredKeys: (IdentifierKey & { id: string })[] = [];
   const newIdentifiers: (IdentifierKey & { id: string; accountId: string; userId: string })[] = [];
   let urlIdentifierCapacity =
@@ -111,12 +111,23 @@ export async function syncOAuthAccount(
 
   for (const key of keys) {
     const ownIdentifier = ownIdentifiers.find((identifier) => isSameIdentifierKey(identifier, key));
-    if (ownIdentifier) {
-      // 本人の別の外部アカウント行にある識別子は、その行の証明と分けるため今回の証明に含めない。
-      if (ownIdentifier.accountId === externalAccountId) {
-        coveredKeys.push({ ...key, id: ownIdentifier.id });
-      }
+    if (ownIdentifier?.accountId === externalAccountId) {
+      coveredKeys.push({ ...key, id: ownIdentifier.id });
       continue;
+    }
+
+    if (ownIdentifier) {
+      // 本人の別の外部アカウント行で有効な識別子と、別のOAuthアカウントの行の識別子は、その行の証明と分けるため今回の証明に含めない。
+      if (ownIdentifier.isActive || !isRegisteredAccount(ownIdentifier.accountId)) {
+        continue;
+      }
+
+      // URL登録の候補は、OAuthの検証済み応答を優先して今回の行へ移す（改名後の値を先に登録した場合）。
+      // 移すURLは削除してから追加するため、上限の枠を消費しない。
+      movedOwnIdentifiers.push(ownIdentifier);
+      if (key.kind === "url") {
+        urlIdentifierCapacity += 1;
+      }
     }
 
     if (key.kind === "url") {
@@ -146,6 +157,8 @@ export async function syncOAuthAccount(
   // --------------------------------------------------
 
   await runBatch(deps.db, [
+    // 候補から有効にする行は、復元したJSONのサービス種別・表示名を採用せず、Providerの応答で置き換える。
+    repository.resetUnlinkedAccountProfile(externalAccountId, input.profile.identity.providerId),
     repository.upsertExternalAccount({
       id: externalAccountId,
       userId: input.userId,
@@ -153,7 +166,11 @@ export async function syncOAuthAccount(
       displayName: input.profile.displayName,
       email: input.profile.email,
     }),
-    ...repository.transferIdentifiers([...transferredIdentifiers, ...replacedIdentifiers]),
+    ...repository.transferIdentifiers([
+      ...transferredIdentifiers,
+      ...replacedIdentifiers,
+      ...movedOwnIdentifiers,
+    ]),
     ...repository.insertIdentifiers(newIdentifiers),
     repository.upsertOAuthVerification({
       id: verificationId,

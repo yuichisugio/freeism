@@ -44,7 +44,7 @@ export const linkedVerificationSchema = v.object({
 
 /**
  * 外部アカウント1行。
- * `visibility`はClient IDごとの公開選択、`hasImportedVerifications`はバックアップから取り込んだ証明情報（再証明待ちの参考値）を持つか。
+ * `visibility`はClient IDごとの公開選択、`hasImportedVerifications`は、有効な識別子が無く、バックアップから取り込んだ証明情報（再証明待ちの参考値）を持つか。
  */
 export const linkedAccountSchema = v.object({
   id: v.string(),

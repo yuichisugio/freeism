@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { except } from "hono/combine";
 import { csrf } from "hono/csrf";
 import { languageDetector } from "hono/language";
@@ -7,6 +7,7 @@ import { secureHeaders } from "hono/secure-headers";
 
 import type { AppEnv } from "./hono-env";
 import { basicAuthMiddleware } from "./middleware/basic-auth-middleware";
+import { ProblemError, problemResponse } from "./problem-details";
 import { accountLinkRoutes } from "./routes/account-link-routes";
 import { authRoutes } from "./routes/auth-routes";
 import { backupRoutes } from "./routes/backup-routes";
@@ -80,5 +81,14 @@ const routes = app
  * Hono RPCクライアントで使うルート型。
  */
 export type AppType = typeof routes;
+
+// --------------------------------------------------
+// 未定義のパス
+// --------------------------------------------------
+
+// APIと認証プロトコルの未定義のパスは、Workerのエントリーポイントで画面（SPA）へfallbackさせず404を返す。
+const notFound = (c: Context<AppEnv>) => problemResponse(c, new ProblemError(404, "NOT_FOUND"));
+app.all("/api/*", notFound);
+app.all("/.well-known/*", notFound);
 
 export default app;

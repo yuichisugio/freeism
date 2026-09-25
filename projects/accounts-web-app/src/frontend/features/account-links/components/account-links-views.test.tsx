@@ -149,7 +149,7 @@ describe("ExternalUrlForm", () => {
           result: {
             externalAccountId: "eac_1",
             status: "verified",
-            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: "https://example.com/" },
+            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
             dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
           },
         }}
@@ -164,6 +164,15 @@ describe("ExternalUrlForm", () => {
     renderWithProviders(<ExternalUrlForm {...formProps} error={new Error("400")} urlInputErrorCode="HOST_NOT_ALLOWED" />);
 
     expect((await screen.findByRole("alert")).textContent).toContain("IPアドレスやローカル");
+  });
+
+  it("スキームの無い入力もブラウザー標準の型検査で止めず、アプリの検査に任せる", async () => {
+    renderWithProviders(<ExternalUrlForm {...formProps} url="github.com/alice" />);
+
+    const input = (await screen.findByRole("textbox", { name: "外部ページのURL" })) as HTMLInputElement;
+
+    expect(input.inputMode).toBe("url");
+    expect(input.validity.typeMismatch).toBe(false);
   });
 
   it("URLの上限に達している場合は案内を表示し、判定はバックエンドに任せる", async () => {

@@ -78,7 +78,7 @@ export function normalizeUrl(input: string): NormalizeUrlResult {
 
 /**
  * scheme・host・port・userinfoの受付制約に違反する理由を返す。
- * DNS解決後のprivate宛先はWorkersの`global_fetch_strictly_public`で拒否する。
+ * DNS解決後のprivate宛先へは、Workersの実行環境がprivateネットワークへの経路を持たないため到達しない。
  */
 function findUnacceptableUrlReason(url: URL): NormalizeUrlErrorCode | null {
   if (url.protocol !== "https:") return "UNSUPPORTED_SCHEME";

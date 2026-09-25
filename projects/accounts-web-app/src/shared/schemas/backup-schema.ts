@@ -4,7 +4,6 @@ import {
   backupAccountItemLimit,
   backupClientConsentLimit,
   backupExternalAccountLimit,
-  displayTextMaxBytes,
 } from "../constants";
 import { providerIds } from "../providers";
 import { externalIdentifierSchema, httpsUrlSchema } from "./identifier-schema";
@@ -24,8 +23,6 @@ import { verificationMethodSchema, verificationResultSchema, verificationStatusS
 
 const timestampSchema = v.pipe(v.string(), v.isoTimestamp());
 
-const displayTextSchema = v.pipe(v.string(), v.maxBytes(displayTextMaxBytes));
-
 export const backupVerificationSchema = v.strictObject({
   method: verificationMethodSchema,
   identifiers: v.pipe(v.array(externalIdentifierSchema), v.maxLength(backupAccountItemLimit)),
@@ -37,7 +34,7 @@ export const backupVerificationSchema = v.strictObject({
 
 export const backupAccountMetadataSchema = v.strictObject({
   service: v.nullable(v.picklist(providerIds)),
-  displayName: v.nullable(displayTextSchema),
+  displayName: v.nullable(v.string()),
   identifiers: v.pipe(v.array(externalIdentifierSchema), v.minLength(1), v.maxLength(backupAccountItemLimit)),
   linkedAt: v.nullable(timestampSchema),
   verificationStatus: verificationStatusSchema,
@@ -46,7 +43,7 @@ export const backupAccountMetadataSchema = v.strictObject({
 
 export const backupClientConsentSchema = v.strictObject({
   clientId: v.pipe(v.string(), v.nonEmpty()),
-  displayName: displayTextSchema,
+  displayName: v.string(),
   consented: v.boolean(),
 });
 

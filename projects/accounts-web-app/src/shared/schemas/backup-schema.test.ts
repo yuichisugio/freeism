@@ -1,8 +1,8 @@
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
-import { toProblemIssue } from "../../backend/problem-details";
 import { backupSchema, type Backup } from "./backup-schema";
+import { toProblemIssue } from "./problem-details-schema";
 
 /**
  * 形式の検査（必須項目・版番号・型・未知項目・件数上限・値の長さ上限）。

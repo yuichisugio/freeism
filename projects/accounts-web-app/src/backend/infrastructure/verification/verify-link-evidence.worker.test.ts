@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createMockServer } from "./mock-page-server";
 import { createSafePageFetcher } from "./safe-page-fetcher";
@@ -22,6 +22,10 @@ function pageFetcherFor(handlers: Parameters<typeof createMockServer>[0]) {
 function htmlResponse(html: string): Response {
   return new Response(html, { headers: { "content-type": "text/html" } });
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("verifyLinkEvidence", () => {
   it("redirect後のページに期待URLがあれば成功とし、最終取得URLを返す", async () => {
@@ -70,7 +74,8 @@ describe("verifyLinkEvidence", () => {
     });
   });
 
-  it("HTMLとして解析できないページは形式不明とする", async () => {
+  it("HTMLとして解析できないページは形式不明とし、ログには例外名だけを出す", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const pageFetcher = pageFetcherFor({
       "https://example.com/": () =>
         new Response("<p>https://accounts.freeism.app/profiles/ausr_alice</p>", {
@@ -83,6 +88,9 @@ describe("verifyLinkEvidence", () => {
       failureCode: "UNSUPPORTED_CONTENT_TYPE",
       finalUrl: "https://example.com/",
     });
+    expect(warn.mock.calls).toEqual([
+      [JSON.stringify({ event: "external_page_parse_error", errorName: "TypeError" })],
+    ]);
   });
 
   it("取得できなければ取得の失敗を返し、最終取得URLを持たない", async () => {

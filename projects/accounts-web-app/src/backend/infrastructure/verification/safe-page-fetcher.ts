@@ -8,7 +8,8 @@ import {
 /**
  * リンク証明で外部ページを取得するsafe fetch。
  * redirectの各遷移先に入力URLと同じ受付検査を適用し、期限・容量・内容種別を制限する。
- * DNS解決後のprivate宛先は、本番の`fetch`に掛かる`global_fetch_strictly_public`で拒否する。
+ * DNS解決後のprivate宛先へは、Workersの実行環境がprivateネットワークへの経路を持たないため到達しない。
+ * `global_fetch_strictly_public`は、同一zoneへの要求も公開Internetからのアクセスと同じ経路で取得する設定である。
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
  * @see ./safe-page-fetcher.worker.test.ts
  */
@@ -120,7 +121,9 @@ export function createSafePageFetcher({
         }
       } catch (error) {
         if (signal.aborted) return { ok: false, failure: failVerification("FETCH_TIMEOUT") };
-        console.warn("外部ページの取得に失敗しました。", error);
+        // 外部URLと例外のメッセージは出さず、例外名だけをログへ残す。
+        const errorName = error instanceof Error ? error.name : "UnknownError";
+        console.warn(JSON.stringify({ event: "external_page_fetch_error", errorName }));
         return { ok: false, failure: failVerification("NETWORK_ERROR") };
       }
     },

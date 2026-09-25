@@ -145,14 +145,45 @@ describe("useBackupRestore", () => {
     expect(onRestored).not.toHaveBeenCalled();
   });
 
-  it("URLの上限超過など不備一覧の無い失敗はエラーとして返す", async () => {
-    stubBff({ "POST /api/backup/restore": () => problemResponse(409, "URL_LIMIT_REACHED") });
+  it("Web URLの上限超過は、ファイル全体の不備として同じ一覧で返す", async () => {
+    const urlLimitIssue = { code: "URL_LIMIT_REACHED", message: "The restored URLs exceed the limit.", path: null };
+    stubBff({
+      "POST /api/backup/restore": () => problemResponse(400, "INVALID_VALUE", [urlLimitIssue]),
+    });
+    const { result } = renderWithFile(jsonFile(JSON.stringify(validBackup)));
+
+    await act(() => result.current.restore());
+
+    expect(result.current.issues).toEqual([urlLimitIssue]);
+    expect(result.current.restoreError).toBeNull();
+  });
+
+  it("不備一覧の無い失敗はエラーとして返す", async () => {
+    stubBff({ "POST /api/backup/restore": () => problemResponse(500, "INTERNAL_ERROR") });
     const { result } = renderWithFile(jsonFile(JSON.stringify(validBackup)));
 
     await act(() => result.current.restore());
 
     expect(result.current.issues).toEqual([]);
-    expect((result.current.restoreError as BffError).code).toBe("URL_LIMIT_REACHED");
+    expect((result.current.restoreError as BffError).code).toBe("INTERNAL_ERROR");
+  });
+
+  it("識別子の種類が無い場合は、サーバーと同じく必須項目の不足として返す", async () => {
+    const fetchMock = stubBff({});
+    const invalid = {
+      ...validBackup,
+      externalAccounts: [
+        { ...validAccount, metadata: { ...validAccount.metadata, identifiers: [{ url: "https://example.com/" }] } },
+      ],
+    };
+    const { result } = renderWithFile(jsonFile(JSON.stringify(invalid)));
+
+    await act(() => result.current.restore());
+
+    expect(hasRestoreRequest(fetchMock)).toBe(false);
+    expect(result.current.issues.map(({ code, path }) => ({ code, path }))).toEqual([
+      { code: "MISSING_REQUIRED_FIELD", path: ["externalAccounts", 0, "metadata", "identifiers", 0, "type"] },
+    ]);
   });
 
   it("別のファイルを選択すると前回の結果を消す", async () => {

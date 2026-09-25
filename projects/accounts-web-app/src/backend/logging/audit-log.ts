@@ -34,6 +34,9 @@ export type AuditEvent =
   | "oauth_unlinked"
   // 情報提供同意・公開選択の変更
   | "visibility_saved"
+  // 同意画面での標準OAuthの同意・拒否
+  | "oauth_consent_accepted"
+  | "oauth_consent_denied"
   // Accountsプロフィールの表示名の変更
   | "display_name_updated"
   // 退会・ban・unban

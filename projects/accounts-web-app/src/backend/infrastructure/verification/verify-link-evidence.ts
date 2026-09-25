@@ -36,7 +36,9 @@ export async function verifyLinkEvidence(
   const { finalUrl } = fetched.page;
   const candidates = await extractEvidenceUrls(fetched.page).catch((error: unknown) => {
     // `HTMLRewriter`が扱えない文字コードや構文は、解釈できない応答としてリンク検証の結果にする。
-    console.warn("外部ページの解析に失敗しました。", { finalUrl, error });
+    // 外部URLと例外のメッセージは出さず、例外名だけをログへ残す。
+    const errorName = error instanceof Error ? error.name : "UnknownError";
+    console.warn(JSON.stringify({ event: "external_page_parse_error", errorName }));
     return null;
   });
   if (candidates === null) return { ...failVerification("UNSUPPORTED_CONTENT_TYPE"), finalUrl };

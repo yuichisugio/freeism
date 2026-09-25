@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -176,7 +177,7 @@ describe("verifyUrl", () => {
 
     expect(result).toMatchObject({
       status: "verified",
-      link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: url },
+      link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
       dns: { result: "verified", failureCode: null },
     });
     expect(result.externalAccountId).not.toBe(registered.externalAccountId);
@@ -306,7 +307,7 @@ describe("verifyUrl", () => {
 
       expect(result).toMatchObject({
         status: "unverified",
-        link: { result: "indeterminate", failureCode: "HELD_BY_STRONGER_PROOF", evidenceUrl: url },
+        link: { result: "indeterminate", failureCode: "HELD_BY_STRONGER_PROOF", evidenceUrl: null },
         dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
         affectedUserIds: [userId],
       });
@@ -389,6 +390,67 @@ describe("verifyUrl", () => {
       });
       expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: true });
       expect(await readIdentifierActivity(previousOwner)).toEqual({});
+    });
+  });
+
+  describe("復元した候補の再証明", () => {
+    /**
+     * JSONの`service`・`displayName`を持つ、復元した候補行を作る。
+     */
+    async function createRestoredCandidate(userId: string, url: string) {
+      const { externalAccountId } = await saveUnverifiedUrl({ db: testDb }, { userId, url });
+      await testDb
+        .update(externalAccounts)
+        .set({ service: "github", displayName: "JSON名" })
+        .where(eq(externalAccounts.id, externalAccountId));
+      return externalAccountId;
+    }
+
+    it("リンク証明で有効にすると、サービス種別を判定し直し、JSONの表示名を採用しない", async () => {
+      const userId = await createTestUser();
+      const url = `https://${uniqueHost()}/`;
+      const externalAccountId = await createRestoredCandidate(userId, url);
+      const { deps } = createDeps({ [url]: linkPage(userId) });
+
+      await verifyUrl(deps, { userId, url });
+
+      expect(await readExternalAccounts(userId)).toEqual([
+        expect.objectContaining({ id: externalAccountId, service: null, displayName: null }),
+      ]);
+    });
+
+    it("DNS TXTで有効にすると、同じhostの登録済みの行もサービス種別を判定し直し、JSONの表示名を採用しない", async () => {
+      const userId = await createTestUser();
+      const host = uniqueHost();
+      const registeredUrl = `https://${host}/`;
+      const url = `https://${host}/about`;
+      await createRestoredCandidate(userId, registeredUrl);
+      await createRestoredCandidate(userId, url);
+      const { deps } = createDeps({ [url]: pageWithoutLink }, txtRecords(userId));
+
+      await verifyUrl(deps, { userId, url });
+
+      expect(await readExternalAccounts(userId)).toEqual([
+        expect.objectContaining({ service: null, displayName: null }),
+        expect.objectContaining({ service: null, displayName: null }),
+      ]);
+    });
+
+    it("すでに有効になった行を再検証しても、表示名を変更しない", async () => {
+      const userId = await createTestUser();
+      const url = `https://${uniqueHost()}/`;
+      const verified = await createVerifiedUrlAccount(userId, [url], "bidirectional_link", firstCheck);
+      await testDb
+        .update(externalAccounts)
+        .set({ displayName: "Alice" })
+        .where(eq(externalAccounts.id, verified.accountId));
+      const { deps } = createDeps({ [url]: linkPage(userId) });
+
+      await verifyUrl(deps, { userId, url });
+
+      expect(await readExternalAccounts(userId)).toEqual([
+        expect.objectContaining({ id: verified.accountId, displayName: "Alice" }),
+      ]);
     });
   });
 

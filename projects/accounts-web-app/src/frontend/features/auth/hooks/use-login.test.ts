@@ -35,7 +35,7 @@ describe("useLogin", () => {
       });
       // 成功時はProviderへ移動するため、移動が終わるまで開始中の表示を保つ。
       expect(result.current.pendingProvider).toBe(provider);
-      expect(result.current.hasStartFailed).toBe(false);
+      expect(result.current.startFailure).toBeNull();
     },
   );
 
@@ -45,7 +45,20 @@ describe("useLogin", () => {
 
     await act(() => result.current.signIn("github"));
 
-    expect(result.current.hasStartFailed).toBe(true);
+    expect(result.current.startFailure).toBe("failed");
+    expect(result.current.pendingProvider).toBeNull();
+  });
+
+  it("署名付きクエリの期限切れで開始できない場合は、期限切れとして保持して再度押せる状態に戻す", async () => {
+    authClientMock.signIn.social.mockResolvedValue({
+      data: null,
+      error: { status: 400, statusText: "Bad Request", error: "invalid_signature" },
+    });
+    const { result } = renderHook(() => useLogin());
+
+    await act(() => result.current.signIn("github"));
+
+    expect(result.current.startFailure).toBe("expired");
     expect(result.current.pendingProvider).toBeNull();
   });
 
@@ -55,7 +68,7 @@ describe("useLogin", () => {
 
     await act(() => result.current.signIn("google"));
 
-    expect(result.current.hasStartFailed).toBe(true);
+    expect(result.current.startFailure).toBe("failed");
     expect(result.current.pendingProvider).toBeNull();
   });
 
@@ -67,7 +80,7 @@ describe("useLogin", () => {
     await act(() => result.current.signIn("google"));
     await act(() => result.current.signIn("google"));
 
-    expect(result.current.hasStartFailed).toBe(false);
+    expect(result.current.startFailure).toBeNull();
   });
 
   it("前回のログイン方法を返す", () => {

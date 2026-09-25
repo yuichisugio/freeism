@@ -230,9 +230,14 @@ export function createAuth(
       },
     },
     rateLimit: { enabled: true, storage: "database" },
-    // `/token`はOAuth Providerとの併用のため無効にし、残りはAccountsのルート経由の`auth.api`呼出しに限定する。
+    // `/token`はOAuth Providerとの併用のため無効にする。
+    // 外部ProviderのTokenを返す`/get-access-token`・`/refresh-token`・`/account-info`は、Tokenをバックエンドだけで扱うため無効にする。
+    // 残りはAccountsのルート経由の`auth.api`呼出しに限定する。
     disabledPaths: [
       "/token",
+      "/get-access-token",
+      "/refresh-token",
+      "/account-info",
       "/oauth2/register",
       "/oauth2/create-client",
       "/oauth2/update-client",

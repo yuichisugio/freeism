@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createSafePageFetcher } from "./safe-page-fetcher";
 import { createMockServer } from "./mock-page-server";
@@ -24,6 +24,10 @@ function htmlResponse(
 function redirectResponse(location: string, status = 302): Response {
   return new Response(null, { status, headers: { location } });
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("createSafePageFetcher", () => {
   // --------------------------------------------------
@@ -306,7 +310,8 @@ describe("createSafePageFetcher", () => {
     });
   });
 
-  it("接続できなければ判断不能にする", async () => {
+  it("接続できなければ判断不能にし、ログには例外名だけを出す", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const server = createMockServer({
       "https://site.example.com/": () => {
         throw new TypeError("Network connection lost.");
@@ -321,5 +326,8 @@ describe("createSafePageFetcher", () => {
       ok: false,
       failure: { result: "indeterminate", failureCode: "NETWORK_ERROR" },
     });
+    expect(warn.mock.calls).toEqual([
+      [JSON.stringify({ event: "external_page_fetch_error", errorName: "TypeError" })],
+    ]);
   });
 });

@@ -22,6 +22,7 @@ export type DeviceSessionsState =
 
 /**
  * 同じブラウザー内でログイン中のAccountsユーザーの一覧と切替（Multi Session）。
+ * ログアウト・切替などで現在のセッションが変わると、一覧を読み直す。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-device-sessions.test.ts
  */
@@ -30,16 +31,20 @@ export function useDeviceSessions() {
   const [switchingToken, setSwitchingToken] = useState<string | null>(null);
   const [hasSwitched, setHasSwitched] = useState(false);
   const [hasSwitchFailed, setHasSwitchFailed] = useState(false);
+  // セッションのtokenはHttpOnlyのcookieにあるため、現在のセッションは標準の`useSession`で判別する。
+  const session = authClient.useSession();
+  const currentSessionId = session.isPending ? undefined : (session.data?.session.id ?? null);
 
   useEffect(() => {
+    if (currentSessionId === undefined) return;
     let isActive = true;
-    void readDeviceSessions().then((next) => {
+    void readDeviceSessions(currentSessionId).then((next) => {
       if (isActive) setState(next);
     });
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [currentSessionId]);
 
   /**
    * 指定したセッションを現在のセッションにする。
@@ -72,19 +77,15 @@ export function useDeviceSessions() {
 // --------------------------------------------------
 
 /**
- * 現在のセッションと、このブラウザーのセッション一覧を読む。
- * セッションのtokenはHttpOnlyのcookieにあるため、現在のセッションは`getSession`で判別する。
+ * このブラウザーのセッション一覧を読む。
  */
-async function readDeviceSessions(): Promise<DeviceSessionsState> {
+async function readDeviceSessions(currentSessionId: string | null): Promise<DeviceSessionsState> {
   try {
-    const [current, list] = await Promise.all([
-      authClient.getSession(),
-      authClient.multiSession.listDeviceSessions(),
-    ]);
-    if (current.error !== null || list.error !== null) return { status: "failed" };
+    const list = await authClient.multiSession.listDeviceSessions();
+    if (list.error !== null) return { status: "failed" };
     return {
       status: "loaded",
-      currentSessionId: current.data?.session.id ?? null,
+      currentSessionId,
       sessions: list.data.map(({ session, user }) => ({
         sessionId: session.id,
         sessionToken: session.token,
