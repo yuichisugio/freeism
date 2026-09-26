@@ -4,6 +4,8 @@ import { createPointsAuth } from "./auth/create-auth";
 import type { BackendContext } from "./http/context";
 import type { CreateAccountsRecipientResolver } from "./identity/accounts-recipient-resolver";
 import { registerAccountRoutes } from "./http/routes/account-routes";
+import { registerAccountsConnectionRoutes } from "./http/routes/accounts-connection-routes";
+import { registerAccountsLinkRoutes } from "./http/routes/accounts-link-routes";
 import { registerAdminRoutes } from "./http/routes/admin-routes";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
 import { registerEvaluationRoutes } from "./http/routes/evaluation-routes";
@@ -21,6 +23,8 @@ import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
   getSession: GetSession;
+  /** Accounts への要求に使う `fetch`。テストではテスト用 Accounts へ差し替える。 */
+  accountsFetch?: typeof fetch;
   createAccountsRecipientResolver?: CreateAccountsRecipientResolver;
 }
 
@@ -41,6 +45,12 @@ export function createPointsBackendApp(
   registerExportRoutes(app, dependencies.getSession);
   registerDistributionRoutes(app, dependencies.getSession);
   registerAdminRoutes(app, dependencies.getSession);
+  registerAccountsConnectionRoutes(app, dependencies.getSession, {
+    accountsFetch: dependencies.accountsFetch ?? fetch,
+  });
+  registerAccountsLinkRoutes(app, dependencies.getSession, {
+    accountsFetch: dependencies.accountsFetch ?? fetch,
+  });
   registerFixRoutes(app, dependencies.getSession, {
     createAccountsRecipientResolver: dependencies.createAccountsRecipientResolver,
   });

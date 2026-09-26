@@ -1,4 +1,5 @@
 export const pointsRateLimitPolicies = {
+  ACCOUNTS_LINK_START_HOURLY: { limit: 10, windowSeconds: 60 * 60 },
   CSV_CRITERION_HOURLY: { limit: 10, windowSeconds: 60 * 60 },
   CSV_CRITERION_MINUTE: { limit: 2, windowSeconds: 60 },
 } as const;

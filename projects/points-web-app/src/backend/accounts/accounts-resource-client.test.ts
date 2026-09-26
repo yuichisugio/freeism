@@ -134,6 +134,18 @@ describe("listExternalAccounts", () => {
     });
   });
 
+  it("NOT_FOUNDのエラー本文でない404はINVALID_RESPONSEにする", async () => {
+    const { accounts, client } = await setUp();
+    accounts.interceptNext(
+      "/api/v1/external-accounts",
+      new Response("<html>not found</html>", { status: 404 }),
+    );
+
+    await expect(client.listExternalAccounts("ausr_owner")).rejects.toMatchObject({
+      code: "INVALID_RESPONSE",
+    });
+  });
+
   it("要求と異なるaccountsUserId・accountsOriginの応答をINVALID_RESPONSEにする", async () => {
     const { accounts, client } = await setUp();
 

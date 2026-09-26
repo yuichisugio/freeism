@@ -4,6 +4,7 @@ import * as v from "valibot";
 import {
   accountsExternalAccountListSchema,
   accountsResolveResponseSchema,
+  accountsResourceErrorResponseSchema,
   type AccountsProvidedExternalAccount,
   type AccountsResolveIdentifier,
   type AccountsResolveResult,
@@ -154,7 +155,13 @@ export function createAccountsResourceClient({
   return {
     async listExternalAccounts(accountsUserId) {
       const response = await query("/external-accounts", { accountsUserId });
-      if (response.status === 404) return { status: "NOT_PROVIDED" };
+      if (response.status === 404) {
+        const failure = await readBody(response, accountsResourceErrorResponseSchema);
+        if (failure?.errors.some(({ code }) => code === "NOT_FOUND")) {
+          return { status: "NOT_PROVIDED" };
+        }
+        throw new AccountsClientError("INVALID_RESPONSE");
+      }
       if (response.status !== 200) throw toResourceApiError(response);
       const list = await readBody(response, accountsExternalAccountListSchema);
       if (list?.accountsOrigin !== accountsOrigin || list.accountsUserId !== accountsUserId) {

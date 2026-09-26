@@ -150,3 +150,28 @@ export async function seedActiveAccountsConnection(
   });
   return { connectionId, clientId };
 }
+
+// --------------------------------------------------
+// 複数のテスト用Accounts
+// --------------------------------------------------
+
+/**
+ * 要求先のoriginで、登録したテスト用Accountsへ振り分ける`fetch`。
+ * 1つのappから複数の接続先へ要求するテストで使う。
+ */
+export function createFakeAccountsNetwork() {
+  const accountsByOrigin = new Map<string, FakeAccounts>();
+  const fetch: typeof globalThis.fetch = (input, init) => {
+    const { origin } = new URL(input instanceof Request ? input.url : String(input));
+    const accounts = accountsByOrigin.get(origin);
+    if (accounts === undefined) throw new TypeError(`Unexpected fetch: ${origin}`);
+    return accounts.fetch(input, init);
+  };
+  return {
+    fetch,
+    add(accounts: FakeAccounts): FakeAccounts {
+      accountsByOrigin.set(accounts.origin, accounts);
+      return accounts;
+    },
+  };
+}

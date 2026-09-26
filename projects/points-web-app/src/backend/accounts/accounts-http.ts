@@ -105,8 +105,10 @@ export function toAccountsRequestOptions(
   return {
     signal: () => AbortSignal.timeout(requestTimeoutMs),
     [customFetch]: async (url, options) => {
+      // Workersのglobal `fetch`は、`endpoint`をthisにして呼ぶとIllegal invocationになる。
+      const accountsFetch = endpoint.fetch;
       try {
-        return await endpoint.fetch(url, options as RequestInit);
+        return await accountsFetch(url, options as RequestInit);
       } catch (cause) {
         throw new AccountsClientError("NETWORK_ERROR", null, { cause });
       }

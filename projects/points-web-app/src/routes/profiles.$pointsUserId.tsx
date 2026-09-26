@@ -1,9 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import {
+  AccountsExternalAccountList,
+  type AccountsExternalAccount,
+} from "../client/components/accounts/accounts-external-account-list";
 import { EmptyState, OperationPage, ProblemState } from "../client/components/operation-page";
 
 type PublicProfile = {
+  accountsLinks: Array<{
+    accountsOrigin: string;
+    accountsProfileUrl: string;
+    accountsUserId: string;
+    externalAccounts: AccountsExternalAccount[];
+  }>;
   description: string;
   displayName: string;
   evaluationAccounts: Array<{
@@ -44,7 +54,7 @@ export function ProfilePage({ pointsUserId }: Readonly<{ pointsUserId: string }>
   }, [pointsUserId]);
   return (
     <OperationPage
-      description="公開設定された評価結果と公式Packageだけを表示します。"
+      description="公開設定された評価結果・公式Packageと、Accountsで公開された外部アカウントを表示します。"
       eyebrow="Public profile"
       title={profile?.displayName ?? "Pointsプロフィール"}
     >
@@ -54,6 +64,23 @@ export function ProfilePage({ pointsUserId }: Readonly<{ pointsUserId: string }>
           <section className="form-card">
             <h2>{profile.pointsUserId}</h2>
             <p>{profile.description || "紹介はまだありません。"}</p>
+          </section>
+          <section className="form-card">
+            <h2>外部アカウント</h2>
+            {profile.accountsLinks.length === 0 ? (
+              <EmptyState />
+            ) : (
+              profile.accountsLinks.map((link) => (
+                <div key={`${link.accountsOrigin} ${link.accountsUserId}`}>
+                  <p>
+                    <a href={link.accountsProfileUrl} rel="me nofollow noopener noreferrer ugc">
+                      {link.accountsProfileUrl}
+                    </a>
+                  </p>
+                  <AccountsExternalAccountList externalAccounts={link.externalAccounts} />
+                </div>
+              ))
+            )}
           </section>
           <section className="form-card">
             <h2>評価結果</h2>

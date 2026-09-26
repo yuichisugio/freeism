@@ -139,15 +139,15 @@ export async function generateAccountsSigningKey(): Promise<AccountsSigningKey> 
     "sign",
     "verify",
   ])) as CryptoKeyPair;
-  const {
-    kty = "OKP",
-    crv = "Ed25519",
-    x = "",
-    d,
-  } = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+  const { kty, crv, x, d } = (await crypto.subtle.exportKey("jwk", keyPair.privateKey)) as {
+    kty: "OKP";
+    crv: "Ed25519";
+    x: string;
+    d: string;
+  };
   const kid = await calculateJwkThumbprint({ crv, kty, x });
   return {
-    publicJwk: { kty: "OKP", crv: "Ed25519", x, kid, alg: "EdDSA", use: "sig" },
+    publicJwk: { kty, crv, x, kid, alg: "EdDSA", use: "sig" },
     privateJwk: { kty, crv, x, d, kid },
   };
 }

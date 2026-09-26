@@ -150,6 +150,27 @@ const baseFreshOperationPolicies = [
     idempotency: true,
   },
   {
+    operation: "accounts-connection-create",
+    route: "/api/admin/accounts-connections",
+    admin: true,
+    reason: true,
+    idempotency: true,
+  },
+  {
+    operation: "accounts-connection-activate",
+    route: "/api/admin/accounts-connections/:accountsConnectionId/activation",
+    admin: true,
+    reason: true,
+    idempotency: true,
+  },
+  {
+    operation: "accounts-connection-withdraw",
+    route: "/api/admin/accounts-connections/:accountsConnectionId/withdrawal",
+    admin: true,
+    reason: true,
+    idempotency: true,
+  },
+  {
     operation: "oauth-security-mutation",
     route: "/api/admin/oauth-security",
     admin: true,
