@@ -396,14 +396,18 @@ export async function claimUnclaimedFixes(
   try {
     await db.batch([guard, claim, ledger, items, idempotency, audit]);
   } catch (error) {
-    const isForeignKeyConflict =
-      error instanceof Error && error.message.includes("FOREIGN KEY constraint failed");
-    const isIdempotencyConflict =
-      error instanceof Error &&
-      error.message.includes(
-        "UNIQUE constraint failed: fix_claim.points_user_id, fix_claim.idempotency_key",
-      );
-    if (isForeignKeyConflict || isIdempotencyConflict) {
+    const message = error instanceof Error ? error.message : "";
+    // 確定の直前に連携が消えた（guard が0行）か、別の確定が同じエントリーを先に受領した。
+    const isClaimSetConflict =
+      message.includes("FOREIGN KEY constraint failed") ||
+      message.includes(
+        "UNIQUE constraint failed: point_ledger_entry.source_unclaimed_fix_entry_id",
+      ) ||
+      message.includes("UNIQUE constraint failed: fix_claim_item.unclaimed_fix_entry_id");
+    const isIdempotencyConflict = message.includes(
+      "UNIQUE constraint failed: fix_claim.points_user_id, fix_claim.idempotency_key",
+    );
+    if (isClaimSetConflict || isIdempotencyConflict) {
       const concurrentReplay = await findClaimReplay(
         db,
         input.pointsUserId,
@@ -411,7 +415,7 @@ export async function claimUnclaimedFixes(
         payloadHash,
       );
       if (concurrentReplay) return concurrentReplay;
-      if (isForeignKeyConflict)
+      if (isClaimSetConflict)
         throw new UnclaimedFixClaimError(
           "CLAIM_SET_CHANGED",
           await previewUnclaimedFixes(db, input),

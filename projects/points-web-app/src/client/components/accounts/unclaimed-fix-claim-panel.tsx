@@ -141,8 +141,8 @@ export function UnclaimedFixClaimPanel() {
     if (response.ok) {
       setNeedsReauth(false);
       const { data } = (await response.json()) as { data: { claimedCount: number } };
-      setMessage(`未受領FIXを${data.claimedCount}件受領しました。`);
       await loadPreview(preview.accountsLinkId);
+      setMessage(`未受領FIXを${data.claimedCount}件受領しました。`);
       return;
     }
     const problem = (await response.json()) as { code: string; data?: UnclaimedFixClaimPreview };

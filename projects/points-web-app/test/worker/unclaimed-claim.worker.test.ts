@@ -434,6 +434,35 @@ describe("unclaimed FIX claim routes", () => {
     expect(await countClaims(claimant.pointsUserId)).toBe(0);
   });
 
+  it("claims once when two confirms with different Idempotency-Keys run concurrently", async () => {
+    const { accountsLinkId, claimant } = await setupWithAccounts();
+    const request = createClaimantClient(claimant);
+    const previewResponse = await request(
+      "GET",
+      `/api/unclaimed-fixes/claim-preview?accountsLinkId=${encodeURIComponent(accountsLinkId)}`,
+    );
+    const { data: preview } = (await previewResponse.json()) as {
+      data: { claimSetHash: string };
+    };
+
+    const confirm = () =>
+      request(
+        "POST",
+        "/api/unclaimed-fixes/claims",
+        { accountsLinkId, claimSetHash: preview.claimSetHash },
+        { "Idempotency-Key": `claim-${crypto.randomUUID()}` },
+      );
+    const responses = await Promise.all([confirm(), confirm()]);
+
+    expect(responses.map(({ status }) => status).sort()).toEqual([201, 409]);
+    const conflict = responses.find(({ status }) => status === 409)!;
+    await expect(conflict.json()).resolves.toMatchObject({
+      code: "CLAIM_SET_CHANGED",
+      data: { totalCount: 0 },
+    });
+    expect(await countClaims(claimant.pointsUserId)).toBe(1);
+  });
+
   it("rejects a link owned by another Points user and an invalid claim body", async () => {
     const { accountsLinkId } = await setupWithAccounts();
     const request = createClaimantClient(await seedPointsUser(env.DB!));
