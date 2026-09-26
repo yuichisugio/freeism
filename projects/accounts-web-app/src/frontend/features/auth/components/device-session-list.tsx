@@ -13,10 +13,11 @@ type DeviceSessionListProps = {
   hasSwitched: boolean;
   hasSwitchFailed: boolean;
   onSwitch: (sessionToken: string) => void;
+  onAddUser: () => void;
 };
 
 /**
- * このブラウザーでログイン中のAccountsユーザーの一覧と切替。
+ * このブラウザーでログイン中のAccountsユーザーの一覧と切替、別のAccountsユーザーの追加。
  * 現在のセッションは「現在のセッション」のテキストで示す。
  */
 export function DeviceSessionList({
@@ -26,13 +27,13 @@ export function DeviceSessionList({
   hasSwitched,
   hasSwitchFailed,
   onSwitch,
+  onAddUser,
 }: DeviceSessionListProps) {
   const messages = useMessages(authMessages);
   return (
     <Card>
       <Card.Header>
         <h2 className="text-lg font-semibold">{messages.sessionsTitle}</h2>
-        <Card.Description>{messages.sessionsDescription}</Card.Description>
       </Card.Header>
       <Card.Content className="flex flex-col gap-3">
         {hasSwitched ? <SuccessNotice>{messages.switched}</SuccessNotice> : null}
@@ -64,9 +65,14 @@ export function DeviceSessionList({
             </li>
           ))}
         </ul>
-        <Link to="/account-links" className="self-start underline">
-          {messages.goToAccountLinks}
-        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link to="/account-links" className="underline">
+            {messages.goToAccountLinks}
+          </Link>
+          <Button size="sm" variant="outline" onPress={onAddUser}>
+            {messages.signInAnotherUser}
+          </Button>
+        </div>
       </Card.Content>
     </Card>
   );

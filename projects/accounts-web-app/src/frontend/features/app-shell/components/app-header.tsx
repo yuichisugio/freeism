@@ -5,6 +5,7 @@ import { useState } from "react";
 import { authClient } from "../../../lib/auth-client";
 import { useI18n, useMessages } from "../../../lib/i18n/i18n-provider";
 import type { Language } from "../../../lib/i18n/language";
+import { useHydratedSession } from "../../../lib/use-hydrated-session";
 import { appShellMessages } from "../messages";
 
 const languageOptions: { value: Language; label: string }[] = [
@@ -16,12 +17,14 @@ const navigationLinkClassName = "rounded px-2 py-1 text-sm hover:bg-default data
 
 /**
  * 全画面共通のヘッダー。
- * 管理画面への移動、表示言語の切替、ログアウトを置く。
+ * ロゴとサービス名、管理画面への移動、表示言語の切替、ログアウトを置く。
+ * ロゴはファビコンと同じSVGを使う。
  */
 export function AppHeader() {
   const messages = useMessages(appShellMessages);
   const { language, setLanguage } = useI18n();
-  const session = authClient.useSession();
+  // 事前生成したトップページと描画を揃えるため、hydrationの後にログアウトを表示する。
+  const session = useHydratedSession();
   const navigate = useNavigate();
   const [hasSignOutFailed, setHasSignOutFailed] = useState(false);
 
@@ -45,7 +48,8 @@ export function AppHeader() {
   return (
     <header className="border-b border-default">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-        <Link to="/" className="font-semibold">
+        <Link to="/" className="flex items-center gap-2 font-semibold">
+          <img src="/favicon.svg" alt="" width={24} height={24} />
           {messages.appName}
         </Link>
         <nav aria-label={messages.mainNavigation} className="flex flex-wrap gap-1">
@@ -94,16 +98,23 @@ export function AppHeader() {
 
 /**
  * 全画面共通のフッター。
+ * ヘルプ・OSSライセンス・プライバシーポリシー・利用規約へのリンクを置く。
  */
 export function AppFooter() {
   const messages = useMessages(appShellMessages);
   return (
-    <footer className="mx-auto flex max-w-6xl gap-4 px-4 py-6 text-sm text-muted">
+    <footer className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4 py-6 text-sm text-muted">
       <Link to="/help" className="underline">
         {messages.help}
       </Link>
       <Link to="/licenses" className="underline">
         {messages.licenses}
+      </Link>
+      <Link to="/privacy" className="underline">
+        {messages.privacy}
+      </Link>
+      <Link to="/terms" className="underline">
+        {messages.terms}
       </Link>
     </footer>
   );

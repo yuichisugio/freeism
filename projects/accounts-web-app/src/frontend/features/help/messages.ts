@@ -1,73 +1,69 @@
 import { defineMessages } from "../../lib/i18n/define-messages";
-
-/**
- * ヘルプの1つの節。
- * `items`は箇条書きで表示する。
- */
-export type HelpSection = {
-  id: string;
-  title: string;
-  paragraphs: string[];
-  items: string[];
-};
+import type { DocumentSection } from "../app-shell/components/document-page";
 
 /**
  * 各Providerで連携許可を取り消す設定画面。
  */
-export const providerRevokePages = [
+const providerRevokePages = [
   { name: "Google", url: "https://myaccount.google.com/connections" },
   { name: "GitHub", url: "https://github.com/settings/applications" },
   { name: "ORCID", url: "https://orcid.org/trusted-parties" },
 ] as const;
 
 /**
- * 公開ヘルプ・プライバシー説明の文言。
+ * 公開ヘルプ（使い方）の文言。
+ * 節の`id`は、ほかの画面から`/help#id`で案内するときのリンク先になる。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
  */
 export const helpMessages = defineMessages({
   ja: {
-    title: "ヘルプ・プライバシー",
+    title: "ヘルプ",
     introduction:
-      "Accountsは、Google・GitHub・ORCIDなどの外部アカウントやWebページの所有権を証明し、一般公開と連携先サービスごとに提供する情報を本人が選ぶためのサービスです。",
-    revokeTitle: "各サービスでの連携許可の取消",
-    revokeDescription:
-      "連携解除や退会の後も、Google・GitHub・ORCIDの連携アプリ一覧にAccountsが残ります。各サービスの設定画面から、Accountsのアクセスを取り消せます。",
-    revokeLinkLabel: (providerName: string) => `${providerName}の設定画面`,
+      "Accountsの使い方をまとめています。保存する情報と公開・提供の扱いはプライバシーポリシー、利用の条件は利用規約を参照してください。",
     sections: [
       {
-        id: "retention",
-        title: "保存する情報",
-        paragraphs: ["Accountsは、次の情報を保存します。"],
-        items: [
-          "Accountsの表示名とAccountsユーザーID",
-          "連携した外部アカウントのサービス名・表示名・固有ID・ユーザー名・URLと連携日時",
-          "証明方法（OAuth・公開ページのリンク確認・DNS TXT）ごとの検証日時・結果・証拠URL",
-          "一般公開と連携先サービスごとの情報提供同意・公開選択",
-          "ログインに使ったOAuthのメールアドレス（本人の画面で複数アカウントを見分ける補助にだけ使い、一般公開・連携先へは提供しません）",
-          "外部サービスのOAuthのトークン（暗号化して保存します）",
-        ],
-      },
-      {
-        id: "not-retained",
-        title: "保存しない情報",
+        id: "sign-in",
+        title: "ログインとユーザーの切替",
         paragraphs: [],
         items: [
-          "URL検証のために取得した外部ページの本文は保存しません。",
-          "パスワードは扱いません。ログインにはGoogle・GitHub・ORCIDのアカウントを使います。",
+          "トップページの「ログインする」から、Google・GitHub・ORCIDのいずれかのアカウントでログインします。初めての場合は、表示名「仮ユーザー」のAccountsユーザーを作成します。表示名は「設定」画面で変更できます。",
+          "同じメールアドレスのAccountsユーザーが既にある場合は、新しいユーザーを作成せずに案内を表示します。既存のログイン手段でログインし、「アカウント連携」画面からその外部アカウントを連携してください。",
+          "同じブラウザーで複数のAccountsユーザーにログインでき、トップページで切り替えられます。ログアウトすると、このブラウザーでログイン中のすべてのAccountsユーザーからログアウトします。",
         ],
       },
       {
-        id: "publication",
-        title: "一般公開と連携先サービスへの提供",
-        paragraphs: [
-          "一般公開と各連携先サービス（OAuthクライアント）は、それぞれ独立して設定します。どちらも、本人が「アカウント連携」画面で選んだ証明済みの外部アカウントだけを対象にします。",
-        ],
+        id: "account-links",
+        title: "外部アカウントの追加",
+        paragraphs: [],
         items: [
-          "一般公開: 選んだ外部アカウントを公開プロフィール（/profiles/{AccountsユーザーID}）に掲載します。URLを知っている人は、ログインせずに閲覧できます。",
-          "連携先サービス: 情報提供に同意し、公開を選んだ外部アカウントのサービス名・表示名・識別情報・検証結果を提供します。同意をOFFにして保存すると、そのサービスへの提供を停止します。",
-          "未検証のURLは、本人の画面とJSON出力だけで扱い、一般公開・連携先へは提供しません。",
-          "後から追加した外部アカウントは、本人が選ぶまで公開・提供しません。",
+          "「アカウント連携」画面の「OAuthで追加連携」から、Google・GitHub・ORCIDのアカウントを追加できます。追加したアカウントでもログインできます。",
+          "Webページ（GitHubのプロフィールやブログなど）は、そのページのリンクや本文に「あなたの公開プロフィールURL」を載せてから、URLを入力して「保存して検証する」を押します。公開プロフィールURLは、押すと新しいタブで開いて確認できます。",
+          "「未検証で保存」は、所有権を証明せずに登録候補として保存します。後から同じURLで「保存して検証する」を押すと証明できます。",
+          "サービスごとの注意点は、「アカウント連携」画面の「サービス別のヒント」で確認できます。",
+        ],
+      },
+      {
+        id: "url-verification",
+        title: "URLの検証とDNS TXT",
+        paragraphs: [],
+        items: [
+          "「保存して検証する」を押すと、Accountsがページを取得して公開プロフィールURLへのリンクを確認します。確認するのはリンクの存在で、ページの編集権限までは保証しません。",
+          "リンクを確認できない場合は、同じ操作でDNS TXTを確認します。`_accounts.{host}`という名前のTXTレコードに、本人の公開プロフィールURLを値として追加してください。",
+          "DNS TXTで証明したhostでは、同じhostで登録済みのURLすべてが証明の対象になります。サブドメインはhostごとに証明します。",
+          "DNSの変更は反映に時間がかかることがあります。一致しない場合は、時間をおいて再度検証してください。",
+        ],
+      },
+      {
+        id: "visibility",
+        title: "公開設定",
+        paragraphs: [],
+        items: [
+          "「アカウント連携」画面の表では、外部アカウントを行、一般公開と連携先サービスを列にして、公開する組み合わせをチェックボックスで選びます。",
+          "連携先サービスへ提供するには、その列の見出しで提供への同意をONにし、証明済みの外部アカウントを1件以上選びます。同意をOFFにして保存すると、そのサービスへの提供を停止します。",
+          "列の見出しの「証明済みを一括選択」と「すべての連携先」の列で、まとめて選択・解除できます。",
+          "変更は、表の上と下にある「公開設定を保存」でまとめて反映します。未保存の変更がある間はボタンの横に表示し、「編集内容を破棄」で保存済みの状態に戻せます。",
+          "連携先サービスから連携を始めた場合は、同じ表で提供する外部アカウントを選び、「同意して戻る」を押します。この画面は表示から10分で失効します。",
         ],
       },
       {
@@ -81,86 +77,88 @@ export const helpMessages = defineMessages({
         ],
       },
       {
-        id: "url-verification",
-        title: "URLの検証とDNS TXT",
-        paragraphs: [],
-        items: [
-          "外部ページに本人の公開プロフィールURLへのリンクを置き、「保存して検証する」を押すと、Accountsがページを取得してリンクを確認します。確認するのはリンクの存在で、ページの編集権限までは保証しません。",
-          "リンクを確認できない場合は、同じ操作でDNS TXTを確認します。`_accounts.{host}`という名前のTXTレコードに、本人の公開プロフィールURLを値として追加してください。",
-          "DNS TXTで証明したhostでは、同じhostで登録済みのURLすべてが証明の対象になります。サブドメインはhostごとに証明します。",
-          "DNSの変更は反映に時間がかかることがあります。一致しない場合は、時間をおいて再度検証してください。",
-        ],
-      },
-      {
         id: "backup",
-        title: "バックアップと移行",
+        title: "バックアップと復元",
         paragraphs: [],
         items: [
-          "「設定」画面から、表示名・外部アカウント・公開設定をJSONファイル（5MiBまで）で出力できます。メールアドレス・トークン・セッションは含みません。",
-          "同じJSONファイルで復元できます。本人に紐付いていない外部アカウントは登録候補として取り込み、所有権を改めて証明した後に有効になります。",
-          "他のサービスへ移行する場合は、移行先で外部アカウントの所有権を改めて証明し、連携先サービスとの連携をやり直します。ログイン手段・セッション・開発者として登録したOAuthクライアントは移行の対象外です。",
+          "「設定」画面の「JSONを出力」で、表示名・外部アカウント・公開設定をJSONファイルに保存できます。出力前に、件数と非公開の情報を含むかを確認できます。",
+          "同じ画面でJSONファイルを選んで「復元する」を押すと、バックアップ時の設定に戻します。本人に紐付いていない外部アカウントは登録候補として取り込み、所有権を改めて証明すると有効になります。",
         ],
       },
       {
         id: "withdrawal",
         title: "退会",
         paragraphs: [
-          "「設定」画面から退会できます。退会すると、プロフィール、外部アカウントの紐付け、公開・提供設定、開発者として登録したOAuthクライアント、セッション・認可・トークンを削除し、一般公開と連携先サービスへの提供を終了します。",
+          "「設定」画面から退会できます。退会は取り消せません。削除する情報はプライバシーポリシーを参照してください。",
         ],
         items: [],
       },
       {
-        id: "logs",
-        title: "ログの扱い",
+        id: "developer",
+        title: "開発者向け",
         paragraphs: [
-          "ログには、操作の種類・日時・成否・エラーの分類・処理時間など、個人を識別しない項目だけを記録します。表示名・ID・メールアドレス・URL・IPアドレスなどの個人情報や、トークン・Cookieは記録しません。",
+          "外部サービスの開発者は、「開発者向け」画面で自分のアプリをOAuthクライアントとして登録し、Accounts APIを利用できます。APIの仕様は同じ画面で確認できます。",
         ],
         items: [],
       },
-    ] satisfies HelpSection[],
+      {
+        id: "revoke",
+        title: "各サービスでの連携許可の取消",
+        paragraphs: [
+          "連携解除や退会の後も、Google・GitHub・ORCIDの連携アプリ一覧にAccountsが残ります。各サービスの設定画面から、Accountsのアクセスを取り消せます。",
+        ],
+        items: [],
+        externalLinks: providerRevokePages.map((page) => ({ label: `${page.name}の設定画面`, url: page.url })),
+      },
+    ] satisfies DocumentSection[],
   },
   en: {
-    title: "Help and privacy",
+    title: "Help",
     introduction:
-      "Accounts lets you prove ownership of external accounts such as Google, GitHub, and ORCID, and of web pages, and choose what information is shared publicly and with each connected service.",
-    revokeTitle: "Revoking access on each service",
-    revokeDescription:
-      "Even after you unlink an account or delete your Accounts user, Accounts stays in the connected apps list of Google, GitHub, and ORCID. You can revoke Accounts' access from each service's settings.",
-    revokeLinkLabel: (providerName: string) => `${providerName} settings`,
+      "This page explains how to use Accounts. See the privacy policy for the information we store and how it is shared, and the terms of use for the conditions of use.",
     sections: [
       {
-        id: "retention",
-        title: "Information we store",
-        paragraphs: ["Accounts stores the following information."],
-        items: [
-          "Your Accounts display name and Accounts user ID",
-          "The service name, display name, unique ID, username, URL, and link date of each linked external account",
-          "The verification date, result, and evidence URL for each proof method (OAuth, public page link, DNS TXT)",
-          "Your consent and selections for public display and for each connected service",
-          "The OAuth email address used to sign in (used only to help you tell your accounts apart on your own pages; never shared publicly or with connected services)",
-          "OAuth tokens from external services (stored encrypted)",
-        ],
-      },
-      {
-        id: "not-retained",
-        title: "Information we do not store",
+        id: "sign-in",
+        title: "Signing in and switching users",
         paragraphs: [],
         items: [
-          "The content of external pages fetched for URL verification is not stored.",
-          "Accounts does not handle passwords. You sign in with your Google, GitHub, or ORCID account.",
+          "Press \"Sign in\" on the top page and sign in with your Google, GitHub, or ORCID account. If this is your first time, an Accounts user with the display name \"仮ユーザー\" (temporary user) is created. You can change the display name on the Settings page.",
+          "If an Accounts user with the same email address already exists, no new user is created and guidance is shown. Sign in with your existing sign-in method and link the external account from the Account links page.",
+          "You can sign in to several Accounts users on the same browser and switch between them on the top page. Signing out signs out every Accounts user signed in on this browser.",
         ],
       },
       {
-        id: "publication",
-        title: "Public display and sharing with connected services",
-        paragraphs: [
-          "Public display and each connected service (OAuth client) are configured independently. Both cover only the verified external accounts you select on the Account links page.",
-        ],
+        id: "account-links",
+        title: "Adding external accounts",
+        paragraphs: [],
         items: [
-          "Public display: the selected external accounts are listed on your public profile (/profiles/{Accounts user ID}). Anyone who knows the URL can view it without signing in.",
-          "Connected services: if you consent, the service name, display name, identifiers, and verification results of the accounts you select are shared. Turning consent off and saving stops sharing with that service.",
-          "Unverified URLs are used only on your own pages and in your JSON export; they are never shared publicly or with connected services.",
-          "External accounts you add later are not shared until you select them.",
+          "Use \"Link with OAuth\" on the Account links page to add Google, GitHub, or ORCID accounts. You can also sign in with the accounts you add.",
+          "For a web page (such as a GitHub profile or a blog), put \"Your public profile URL\" in a link or text on the page, then enter the URL and press \"Save and verify\". Press the public profile URL to open it in a new tab.",
+          "\"Save without verifying\" saves the URL as a candidate without proving ownership. You can prove it later by pressing \"Save and verify\" with the same URL.",
+          "See \"Tips for each service\" on the Account links page for notes on each service.",
+        ],
+      },
+      {
+        id: "url-verification",
+        title: "URL verification and DNS TXT",
+        paragraphs: [],
+        items: [
+          "When you press \"Save and verify\", Accounts fetches the page and checks for a link to your public profile URL. This confirms the link exists, not that you can edit the page.",
+          "If the link cannot be confirmed, the same operation checks DNS TXT. Add a TXT record named `_accounts.{host}` whose value is your public profile URL.",
+          "A host proven by DNS TXT covers every URL you have registered on the same host. Subdomains are proven separately for each host.",
+          "DNS changes may take time to propagate. If there is no match, please verify again later.",
+        ],
+      },
+      {
+        id: "visibility",
+        title: "Sharing settings",
+        paragraphs: [],
+        items: [
+          "The table on the Account links page has your external accounts as rows and public display and each connected service as columns. Select the combinations to share with the checkboxes.",
+          "To share with a connected service, turn on consent in its column header and select at least one verified external account. Turning consent off and saving stops sharing with that service.",
+          "Use \"Select all verified\" in a column header and the \"All services\" column to select or clear many at once.",
+          "Press \"Save sharing settings\" above or below the table to apply your changes. While you have unsaved changes, this is shown next to the buttons, and \"Discard edits\" returns to the saved settings.",
+          "When you start connecting from a connected service, select the external accounts to share in the same table and press \"Allow and return\". This page expires 10 minutes after it was opened.",
         ],
       },
       {
@@ -174,42 +172,39 @@ export const helpMessages = defineMessages({
         ],
       },
       {
-        id: "url-verification",
-        title: "URL verification and DNS TXT",
-        paragraphs: [],
-        items: [
-          "Place a link to your public profile URL on the external page and press \"Save and verify\". Accounts fetches the page and checks the link. This confirms the link exists, not that you can edit the page.",
-          "If the link cannot be confirmed, the same operation checks DNS TXT. Add a TXT record named `_accounts.{host}` whose value is your public profile URL.",
-          "A host proven by DNS TXT covers every URL you have registered on the same host. Subdomains are proven separately for each host.",
-          "DNS changes may take time to propagate. If there is no match, please verify again later.",
-        ],
-      },
-      {
         id: "backup",
-        title: "Backup and migration",
+        title: "Backup and restore",
         paragraphs: [],
         items: [
-          "From the Settings page, you can export your display name, external accounts, and sharing settings as a JSON file (up to 5 MiB). Email addresses, tokens, and sessions are not included.",
-          "You can restore from the same JSON file. External accounts no longer linked to you are imported as candidates and become active after you prove ownership again.",
-          "When moving to another service, prove ownership of your external accounts again there and reconnect your connected services. Sign-in methods, sessions, and OAuth clients you registered as a developer are not migrated.",
+          "Use \"Export JSON\" on the Settings page to save your display name, external accounts, and sharing settings as a JSON file. Before exporting, you can check the counts and whether private information is included.",
+          "Select the JSON file on the same page and press \"Restore\" to return to the settings at the time of the backup. External accounts no longer linked to you are imported as candidates and become active after you prove ownership again.",
         ],
       },
       {
         id: "withdrawal",
         title: "Deleting your Accounts user",
         paragraphs: [
-          "You can delete your Accounts user from the Settings page. This deletes your profile, external account links, sharing settings, OAuth clients you registered as a developer, and your sessions, authorizations, and tokens, and ends public display and sharing with connected services.",
+          "You can delete your Accounts user from the Settings page. This cannot be undone. See the privacy policy for the information that is deleted.",
         ],
         items: [],
       },
       {
-        id: "logs",
-        title: "Logs",
+        id: "developer",
+        title: "For developers",
         paragraphs: [
-          "Logs record only items that do not identify individuals, such as the operation type, time, outcome, error category, and duration. Personal information such as display names, IDs, email addresses, URLs, and IP addresses, as well as tokens and cookies, is not logged.",
+          "Developers of external services can register their apps as OAuth clients on the Developers page and use the Accounts API. The API reference is on the same page.",
         ],
         items: [],
       },
-    ] satisfies HelpSection[],
+      {
+        id: "revoke",
+        title: "Revoking access on each service",
+        paragraphs: [
+          "Even after you unlink an account or delete your Accounts user, Accounts stays in the connected apps list of Google, GitHub, and ORCID. You can revoke Accounts' access from each service's settings.",
+        ],
+        items: [],
+        externalLinks: providerRevokePages.map((page) => ({ label: `${page.name} settings`, url: page.url })),
+      },
+    ] satisfies DocumentSection[],
   },
 });

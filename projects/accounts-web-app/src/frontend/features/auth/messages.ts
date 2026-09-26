@@ -1,7 +1,7 @@
 import { defineMessages } from "../../lib/i18n/define-messages";
 
 /**
- * ログイン画面の文言。
+ * ログイン用のダイアログと、ログイン中のユーザーの一覧の文言。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
 export const authMessages = defineMessages({
@@ -28,8 +28,7 @@ export const authMessages = defineMessages({
     unknownErrorDescription: (errorCode: string) =>
       `もう一度お試しください。解決しない場合は時間をおいて再度お試しください（エラー: ${errorCode}）。`,
     sessionsTitle: "このブラウザーでログイン中のAccountsユーザー",
-    sessionsDescription:
-      "別のAccountsユーザーを追加する場合は、上のボタンから別の外部アカウントでログインしてください。",
+    signInAnotherUser: "別のAccountsユーザーでログイン",
     sessionsLoadFailed: "ログイン中のユーザーを読み込めませんでした。",
     accountsUserId: "AccountsユーザーID",
     currentSession: "現在のセッション",
@@ -63,7 +62,7 @@ export const authMessages = defineMessages({
     unknownErrorDescription: (errorCode: string) =>
       `Please try again. If the problem persists, try again later (error: ${errorCode}).`,
     sessionsTitle: "Accounts users signed in on this browser",
-    sessionsDescription: "To add another Accounts user, sign in with another external account using the buttons above.",
+    signInAnotherUser: "Sign in as another Accounts user",
     sessionsLoadFailed: "Could not load the signed-in users.",
     accountsUserId: "Accounts user ID",
     currentSession: "Current session",

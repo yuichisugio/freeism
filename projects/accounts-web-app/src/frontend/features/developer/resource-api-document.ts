@@ -15,6 +15,7 @@ export const resourceApiDocumentPath = "/api/v1/openapi.json";
 const mediaTypesSchema = v.record(v.string(), v.object({ schema: v.optional(v.unknown()) }));
 
 const operationSchema = v.object({
+  operationId: v.string(),
   summary: v.optional(v.string()),
   description: v.optional(v.string()),
   requestBody: v.optional(v.object({ content: mediaTypesSchema })),
@@ -37,9 +38,11 @@ export const resourceApiDocumentSchema = v.object({
 
 /**
  * 1操作の要約。
+ * `operationId`は、画面側で持つ日本語の見出し・説明を引く鍵に使う。
  * schemaは表示用に整形したJSONで、参照先は`schemas`の名前で示される。
  */
 export type ResourceApiOperation = {
+  operationId: string;
   method: string;
   path: string;
   summary: string;
@@ -77,6 +80,7 @@ export function summarizeResourceApiDocument(
   const basePath = new URL(document.servers[0]?.url ?? "/", "https://accounts.invalid").pathname;
   const operations = Object.entries(document.paths).flatMap(([path, pathItem]) =>
     Object.entries(pathItem).map(([method, operation]) => ({
+      operationId: operation.operationId,
       method: method.toUpperCase(),
       path: `${basePath.replace(/\/$/, "")}${path}`,
       summary: operation.summary ?? path,

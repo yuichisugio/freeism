@@ -4,6 +4,7 @@ import { accountLinksMessages } from "../messages";
 
 /**
  * URL入力欄の近くに置く、本人の公開プロフィールURL（DNS TXTの値を兼ねる）とコピー操作。
+ * URLは新しいタブで開く外部ページへのリンクにする。
  */
 export function ProfileUrlPanel({ profileUrl }: { profileUrl: string }) {
   const messages = useMessages(accountLinksMessages);
@@ -13,10 +14,16 @@ export function ProfileUrlPanel({ profileUrl }: { profileUrl: string }) {
         {messages.profileUrlLabel}
       </h3>
       <div className="flex flex-wrap items-center gap-2">
-        <code className="break-all rounded bg-default px-2 py-1 text-sm">{profileUrl}</code>
+        <a
+          href={profileUrl}
+          target="_blank"
+          rel="noopener"
+          className="break-all rounded bg-default px-2 py-1 font-mono text-sm underline"
+        >
+          {profileUrl}
+        </a>
         <CopyButton text={profileUrl} />
       </div>
-      <p className="text-sm text-muted">{messages.profileUrlDescription}</p>
     </section>
   );
 }

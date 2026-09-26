@@ -9,13 +9,11 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 export const accountLinksMessages = defineMessages({
   ja: {
     title: "アカウント連携",
-    description: "外部アカウントの追加・検証・解除と、一般公開・連携先サービスごとの公開設定をまとめて管理します。",
+    helpLink: "使い方（ヘルプ）",
     // --------------------------------------------------
     // 公開プロフィールURL
     // --------------------------------------------------
     profileUrlLabel: "あなたの公開プロフィールURL",
-    profileUrlDescription:
-      "外部ページのリンクや本文にこのURLを載せてから「保存して検証する」を押してください。DNS TXTで証明する場合は、`_accounts.{ホスト名}`のTXTレコードにこのURLを値として追加します。",
     // --------------------------------------------------
     // URLの登録・検証
     // --------------------------------------------------
@@ -64,6 +62,8 @@ export const accountLinksMessages = defineMessages({
     lacksVerifiedSelection: (client: string) =>
       `${client}: 同意をONにした連携先には、証明済みの外部アカウントを1件以上選択してください。`,
     saveVisibility: "公開設定を保存",
+    discardVisibility: "編集内容を破棄",
+    unsavedChanges: "未保存の変更があります",
     saveBlocked: "条件を満たさない連携先があるため保存できません。",
     visibilitySaved: "公開設定を保存しました。",
     noAccounts: "連携済みの外部アカウントはありません。OAuthの追加連携またはURLの追加から始めてください。",
@@ -182,10 +182,8 @@ export const accountLinksMessages = defineMessages({
   },
   en: {
     title: "Account links",
-    description: "Add, verify and unlink external accounts, and manage what is public and what each connected service receives.",
+    helpLink: "How to use (Help)",
     profileUrlLabel: "Your public profile URL",
-    profileUrlDescription:
-      "Put this URL in a link or text on the external page, then press “Save and verify”. To prove a domain with DNS TXT, add a TXT record at `_accounts.{host}` with this URL as its value.",
     urlFormTitle: "Add and verify an external URL",
     urlLabel: "External page URL",
     urlPlaceholder: "https://github.com/your-name",
@@ -228,6 +226,8 @@ export const accountLinksMessages = defineMessages({
     lacksVerifiedSelection: (client: string) =>
       `${client}: select at least one verified external account for a service you allow sharing with.`,
     saveVisibility: "Save sharing settings",
+    discardVisibility: "Discard edits",
+    unsavedChanges: "You have unsaved changes",
     saveBlocked: "Some services do not meet the conditions, so the settings cannot be saved.",
     visibilitySaved: "Sharing settings were saved.",
     noAccounts: "No external accounts are linked yet. Start by linking with OAuth or adding a URL.",

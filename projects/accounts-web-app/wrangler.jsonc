@@ -19,10 +19,9 @@
     "default": { "type": "worker", "cache": { "enabled": false } },
     "PublicProfileEntrypoint": { "type": "worker", "cache": { "enabled": true } }
   },
-  // SPAの画面はassetsから配信し、API・認証・公開プロフィールのパスはWorkerで処理する。
+  // 事前生成した画面はassetsから配信し、API・認証・公開プロフィールのパスと、assetsに無いパスはWorkerで処理する。
   "assets": {
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*", "/.well-known/*", "/profiles/*", "/healthz"]
   },
   "vars": {
@@ -53,7 +52,6 @@
       // stagingとPreviewは静的ファイルもWorkerへ通し、画面へBasic認証を適用する。
       "assets": {
         "binding": "ASSETS",
-        "not_found_handling": "single-page-application",
         "run_worker_first": true
       },
       // PREVIEW_HOST_PATTERNはPreviewのhostだけに一致させる。ACCOUNT_SUBDOMAINはCloudflareアカウントのworkers.dev subdomainへ置き換える。

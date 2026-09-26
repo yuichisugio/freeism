@@ -51,21 +51,22 @@ export function ResourceApiReferenceView({ state }: { state: ResourceApiReferenc
 
 /**
  * 1操作の見出し・経路・要求と応答。
+ * 表示言語の文言が`operationId`にあればそれを、無ければOpenAPI文書の文言を表示する。
  */
 function OperationItem({ operation }: { operation: ResourceApiOperation }) {
   const messages = useMessages(resourceApiReferenceMessages);
+  const text = messages.operations[operation.operationId];
+  const description = text?.description ?? operation.description;
 
   return (
     <article className="space-y-2 border-t border-default pt-4">
-      <h3 className="font-semibold">{operation.summary}</h3>
+      <h3 className="font-semibold">{text?.summary ?? operation.summary}</h3>
       <p>
         <code className="text-sm">
           {operation.method} {operation.path}
         </code>
       </p>
-      {operation.description === null ? null : (
-        <p className="text-sm text-muted">{operation.description}</p>
-      )}
+      {description === null ? null : <p className="text-sm text-muted">{description}</p>}
       <h4 className="text-sm font-semibold">{messages.request}</h4>
       {operation.requestSchema === null ? (
         <p className="text-sm">{messages.noBody}</p>
@@ -78,7 +79,7 @@ function OperationItem({ operation }: { operation: ResourceApiOperation }) {
           <div key={response.status}>
             <dt className="font-semibold">{response.status}</dt>
             <dd className="space-y-1">
-              <p>{response.description}</p>
+              <p>{text?.responses[response.status] ?? response.description}</p>
               {response.schema === null ? null : (
                 <SchemaDetails summary="application/json" json={response.schema} />
               )}

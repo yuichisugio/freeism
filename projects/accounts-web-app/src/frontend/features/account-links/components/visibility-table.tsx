@@ -1,4 +1,5 @@
 import { Button, Checkbox, Chip, Link, Switch } from "@heroui/react";
+import { useState } from "react";
 
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
 import { ErrorNotice, SuccessNotice } from "../../app-shell/components/status-messages";
@@ -13,7 +14,7 @@ import { VerificationList } from "./verification-details";
 
 /**
  * 外部アカウントを行、一般公開と各連携先（OAuthクライアント）を列にした公開設定の表。
- * 一般公開・情報提供同意・公開選択の変更は、画面全体の1つの保存ボタンでまとめて反映する。
+ * 一般公開・情報提供同意・公開選択の変更は、表の上下に置く同じ保存ボタンでまとめて反映する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  */
 export function VisibilityTable({
@@ -24,6 +25,7 @@ export function VisibilityTable({
   onClientVisibilityChange,
   onAccountVisibilityForAllClientsChange,
   onSave,
+  onDiscard,
   onRequestUnlinkAccount,
   onRequestUnlinkOAuth,
 }: {
@@ -34,11 +36,12 @@ export function VisibilityTable({
   onClientVisibilityChange: (clientId: string, accountIds: string[], isVisible: boolean) => void;
   onAccountVisibilityForAllClientsChange: (accountId: string, isVisible: boolean) => void;
   onSave: () => void;
+  onDiscard: () => void;
   onRequestUnlinkAccount: (account: LinkedAccount) => void;
   onRequestUnlinkOAuth: (account: LinkedAccount, authAccountId: string) => void;
 }) {
   const messages = useMessages(accountLinksMessages);
-  const common = useMessages(commonMessages);
+  const [lastSavedFrom, setLastSavedFrom] = useState<SaveBarPosition>("top");
   const hasClients = table.columns.length > 0;
   const blockedColumns = table.columns.filter((column) => column.lacksVerifiedSelection);
   const verifiedAccountIds = table.rows
@@ -47,8 +50,27 @@ export function VisibilityTable({
 
   if (table.rows.length === 0) return <p>{messages.noAccounts}</p>;
 
+  /**
+   * 表の上または下の保存・破棄の操作。
+   * 保存の結果は、押した保存ボタンの側にだけ示す。
+   */
+  const renderSaveBar = (position: SaveBarPosition) => (
+    <VisibilitySaveBar
+      table={table}
+      saveState={lastSavedFrom === position ? saveState : { status: "idle" }}
+      isSaving={saveState.status === "saving"}
+      hasBlockedColumns={blockedColumns.length > 0}
+      onSave={() => {
+        setLastSavedFrom(position);
+        onSave();
+      }}
+      onDiscard={onDiscard}
+    />
+  );
+
   return (
     <div className="flex flex-col gap-3">
+      {renderSaveBar("top")}
       {hasClients ? null : <p className="text-sm text-muted">{messages.noClients}</p>}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
@@ -103,11 +125,49 @@ export function VisibilityTable({
           </p>
         ))}
       </div>
+      {renderSaveBar("bottom")}
+    </div>
+  );
+}
+
+// --------------------------------------------------
+// 保存・破棄
+// --------------------------------------------------
+
+type SaveBarPosition = "top" | "bottom";
+
+/**
+ * 表の上下に置く「公開設定を保存」「編集内容を破棄」と、未保存の変更・保存できない理由の短い表示。
+ * `saveState`は、このボタンで保存した場合の結果の表示に使う。
+ */
+function VisibilitySaveBar({
+  table,
+  saveState,
+  isSaving,
+  hasBlockedColumns,
+  onSave,
+  onDiscard,
+}: {
+  table: VisibilityTableModel;
+  saveState: VisibilitySaveState;
+  isSaving: boolean;
+  hasBlockedColumns: boolean;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
+  const messages = useMessages(accountLinksMessages);
+  const common = useMessages(commonMessages);
+  return (
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="primary" isDisabled={!table.canSave || saveState.status === "saving"} onPress={onSave}>
-          {saveState.status === "saving" ? common.saving : messages.saveVisibility}
+        <Button variant="primary" isDisabled={!table.canSave || isSaving} onPress={onSave}>
+          {isSaving ? common.saving : messages.saveVisibility}
         </Button>
-        {blockedColumns.length > 0 ? <span className="text-sm">{messages.saveBlocked}</span> : null}
+        <Button variant="secondary" isDisabled={!table.isDirty || isSaving} onPress={onDiscard}>
+          {messages.discardVisibility}
+        </Button>
+        {table.isDirty ? <span className="text-sm font-semibold">{messages.unsavedChanges}</span> : null}
+        {hasBlockedColumns ? <span className="text-sm">{messages.saveBlocked}</span> : null}
       </div>
       {saveState.status === "saved" ? <SuccessNotice>{messages.visibilitySaved}</SuccessNotice> : null}
       {saveState.status === "error" ? <ErrorNotice error={saveState.error} codeMessages={messages.errorCodes} /> : null}

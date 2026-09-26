@@ -1,13 +1,16 @@
 // @vitest-environment happy-dom
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../test/render-with-providers";
+import type { VisibilitySaveState } from "../hooks/use-account-links";
 import { createAccountLinks, createLinkedAccount, createLinkedClient } from "../lib/account-links-fixtures";
 import { buildVisibilityTable, emptyVisibilityEdits, setClientConsent } from "../lib/visibility-draft";
 import { ConsentPanel } from "./consent-panel";
 import { ExternalUrlForm } from "./external-url-form";
+import { ProfileUrlPanel } from "./profile-url-panel";
 import { VisibilityTable } from "./visibility-table";
 
 type VisibilityTableProps = Parameters<typeof VisibilityTable>[0];
@@ -19,6 +22,7 @@ const tableHandlers = {
   onClientVisibilityChange: vi.fn<VisibilityTableProps["onClientVisibilityChange"]>(),
   onAccountVisibilityForAllClientsChange: vi.fn<VisibilityTableProps["onAccountVisibilityForAllClientsChange"]>(),
   onSave: vi.fn<VisibilityTableProps["onSave"]>(),
+  onDiscard: vi.fn<VisibilityTableProps["onDiscard"]>(),
   onRequestUnlinkAccount: vi.fn<VisibilityTableProps["onRequestUnlinkAccount"]>(),
   onRequestUnlinkOAuth: vi.fn<VisibilityTableProps["onRequestUnlinkOAuth"]>(),
 };
@@ -32,7 +36,85 @@ describe("VisibilityTable", () => {
     );
 
     expect((await screen.findAllByText(/Points: 同意をONにした連携先には/)).length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "公開設定を保存" }).hasAttribute("disabled")).toBe(true);
+    for (const button of screen.getAllByRole("button", { name: "公開設定を保存" })) {
+      expect(button.hasAttribute("disabled")).toBe(true);
+    }
+  });
+
+  it("表の上と下に保存・破棄の操作を置き、変更が無い間は押せない", async () => {
+    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
+
+    renderWithProviders(<VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />);
+    const saveButtons = await screen.findAllByRole("button", { name: "公開設定を保存" });
+    const discardButtons = screen.getAllByRole("button", { name: "編集内容を破棄" });
+
+    expect(saveButtons).toHaveLength(2);
+    expect(discardButtons).toHaveLength(2);
+    expect(screen.queryByText("未保存の変更があります")).toBeNull();
+    for (const button of [...saveButtons, ...discardButtons]) {
+      expect(button.hasAttribute("disabled")).toBe(true);
+    }
+  });
+
+  it("未保存の変更がある場合は、保存・破棄できることと未保存であることを示す", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn<VisibilityTableProps["onSave"]>();
+    const onDiscard = vi.fn<VisibilityTableProps["onDiscard"]>();
+    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points", consented: true })] });
+
+    renderWithProviders(
+      <VisibilityTable
+        table={buildVisibilityTable(links, setClientConsent(emptyVisibilityEdits, "points", false))}
+        {...tableHandlers}
+        onSave={onSave}
+        onDiscard={onDiscard}
+      />,
+    );
+    const [topSaveButton, bottomSaveButton] = await screen.findAllByRole("button", { name: "公開設定を保存" });
+    await user.click(topSaveButton as HTMLElement);
+    await user.click(bottomSaveButton as HTMLElement);
+    await user.click(screen.getAllByRole("button", { name: "編集内容を破棄" })[1] as HTMLElement);
+
+    expect(screen.getAllByText("未保存の変更があります")).toHaveLength(2);
+    expect(onSave).toHaveBeenCalledTimes(2);
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+  });
+
+  it("保存の結果は、押した保存ボタンの近くに1回だけ示す", async () => {
+    const user = userEvent.setup();
+    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points", consented: true })] });
+    const table = buildVisibilityTable(links, setClientConsent(emptyVisibilityEdits, "points", false));
+
+    /**
+     * 保存ボタンを押すと保存済みの状態にする表。
+     */
+    function SavingTable() {
+      const [saveState, setSaveState] = useState<VisibilitySaveState>({ status: "idle" });
+      return <VisibilityTable table={table} {...tableHandlers} saveState={saveState} onSave={() => setSaveState({ status: "saved" })} />;
+    }
+    renderWithProviders(<SavingTable />);
+
+    const bottomSaveButton = (await screen.findAllByRole("button", { name: "公開設定を保存" }))[1] as HTMLElement;
+    await user.click(bottomSaveButton);
+
+    const notices = await screen.findAllByText("公開設定を保存しました。");
+    expect(notices).toHaveLength(1);
+    expect(bottomSaveButton.compareDocumentPosition(notices[0] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("table").compareDocumentPosition(notices[0] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("一般公開と連携先への同意を、表の列と列の見出しに置く", async () => {
+    const links = createAccountLinks({
+      accounts: [createLinkedAccount({ id: "eac_1", displayName: "Alice" })],
+      clients: [createLinkedClient({ clientId: "points", name: "Points" })],
+    });
+
+    renderWithProviders(<VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />);
+    const table = await screen.findByRole("table");
+
+    expect(within(table).getByRole("columnheader", { name: /一般公開/ })).toBeDefined();
+    expect(within(table).getByRole("checkbox", { name: "GitHub: Aliceを一般公開" })).toBeDefined();
+    expect(within(table).getByRole("switch", { name: "Pointsへの提供に同意する" })).toBeDefined();
   });
 
   it("行と連携先の組ごとに、読み上げ可能な名前のチェックボックスを置く", async () => {
@@ -102,6 +184,17 @@ describe("VisibilityTable", () => {
 
     expect(await screen.findByText("GitHub: <img src=x onerror=alert(1)>")).toBeDefined();
     expect(container.querySelector("img")).toBeNull();
+  });
+});
+
+describe("ProfileUrlPanel", () => {
+  it("公開プロフィールURLを、新しいタブで開く外部リンクとして表示する", async () => {
+    renderWithProviders(<ProfileUrlPanel profileUrl="https://accounts.example/profiles/ausr_1" />);
+
+    const link = await screen.findByRole("link", { name: "https://accounts.example/profiles/ausr_1" });
+    expect(link.getAttribute("href")).toBe("https://accounts.example/profiles/ausr_1");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener");
   });
 });
 

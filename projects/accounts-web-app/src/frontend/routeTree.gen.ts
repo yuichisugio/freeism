@@ -14,7 +14,9 @@ import { Route as AccountLinksRouteImport } from './routes/account-links'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LicensesRouteImport } from './routes/licenses'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TermsRouteImport } from './routes/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,9 +43,19 @@ const LicensesRoute = LicensesRouteImport.update({
   path: '/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -53,7 +65,9 @@ export interface FileRoutesByFullPath {
   '/developer': typeof DeveloperRoute
   '/help': typeof HelpRoute
   '/licenses': typeof LicensesRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +75,9 @@ export interface FileRoutesByTo {
   '/developer': typeof DeveloperRoute
   '/help': typeof HelpRoute
   '/licenses': typeof LicensesRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,15 +86,31 @@ export interface FileRoutesById {
   '/developer': typeof DeveloperRoute
   '/help': typeof HelpRoute
   '/licenses': typeof LicensesRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/account-links' | '/developer' | '/help' | '/licenses' | '/settings'
+    | '/'
+    | '/account-links'
+    | '/developer'
+    | '/help'
+    | '/licenses'
+    | '/privacy'
+    | '/settings'
+    | '/terms'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/account-links' | '/developer' | '/help' | '/licenses' | '/settings'
+    | '/'
+    | '/account-links'
+    | '/developer'
+    | '/help'
+    | '/licenses'
+    | '/privacy'
+    | '/settings'
+    | '/terms'
   id:
     | '__root__'
     | '/'
@@ -86,7 +118,9 @@ export interface FileRouteTypes {
     | '/developer'
     | '/help'
     | '/licenses'
+    | '/privacy'
     | '/settings'
+    | '/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,7 +129,9 @@ export interface RootRouteChildren {
   DeveloperRoute: typeof DeveloperRoute
   HelpRoute: typeof HelpRoute
   LicensesRoute: typeof LicensesRoute
+  PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -135,11 +171,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -151,17 +201,20 @@ const rootRouteChildren: RootRouteChildren = {
   DeveloperRoute: DeveloperRoute,
   HelpRoute: HelpRoute,
   LicensesRoute: LicensesRoute,
+  PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

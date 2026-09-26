@@ -7,7 +7,7 @@ import type { AppEnv } from "./backend/hono-env";
 /**
  * Accounts Workerのエントリーポイント。
  * API・認証・公開プロフィールはHonoアプリで処理し、それ以外の画面と静的ファイルはassetsから返す。
- * assetsに無い画面は、ビルド時のSPA shell事前生成と同じくTanStack Startで描画する。
+ * assetsに無い画面は、ビルド時の事前生成と同じくTanStack Startで描画する。
  * @see https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/
  */
 const worker = new Hono<AppEnv>().route("/", app).all("*", async (c) => {

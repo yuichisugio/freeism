@@ -1,5 +1,5 @@
 import { Card } from "@heroui/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 
 import { ConsentPanel } from "../features/account-links/components/consent-panel";
 import { ExternalUrlForm } from "../features/account-links/components/external-url-form";
@@ -60,9 +60,11 @@ function AccountLinksPage() {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-1">
+      <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h1 className="text-2xl font-semibold">{messages.title}</h1>
-        <p className="text-sm text-muted">{messages.description}</p>
+        <Link to="/help" hash="account-links" className="text-sm underline">
+          {messages.helpLink}
+        </Link>
       </header>
 
       {consent.request === null ? null : (
@@ -126,6 +128,7 @@ function AccountLinksPage() {
             onClientVisibilityChange={accountLinks.setClientVisibility}
             onAccountVisibilityForAllClientsChange={accountLinks.setAccountVisibilityForAllClients}
             onSave={() => void accountLinks.save()}
+            onDiscard={accountLinks.discardEdits}
             onRequestUnlinkAccount={(account) => unlink.request({ kind: "account", account })}
             onRequestUnlinkOAuth={(account, authAccountId) => unlink.request({ kind: "oauth", account, authAccountId })}
           />

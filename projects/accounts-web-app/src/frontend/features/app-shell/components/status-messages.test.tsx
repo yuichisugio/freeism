@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { BffError } from "../../../lib/api-client";
@@ -7,12 +8,14 @@ import { renderWithProviders } from "../../../test/render-with-providers";
 import { ErrorNotice } from "./status-messages";
 
 describe("ErrorNotice", () => {
-  it("ログインしていない失敗は、alertとしてログイン画面への案内を表示する", async () => {
+  it("ログインしていない失敗は、alertとして示し、「ログインする」からログイン用のダイアログを開ける", async () => {
     renderWithProviders(<ErrorNotice error={new BffError(401, null)} />);
 
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("ログインが必要です");
-    expect(screen.getByRole("link", { name: "ログイン画面へ" })).toBeDefined();
+    await userEvent.click(within(alert).getByRole("button", { name: "ログインする" }));
+
+    expect(within(await screen.findByRole("dialog")).getByRole("button", { name: "Googleでログイン" })).toBeDefined();
   });
 
   it("画面ごとのエラーコードの文言を優先する", async () => {

@@ -7,7 +7,7 @@ import { defineConfig } from "vite-plus";
 
 /**
  * 開発・ビルド・lint・テストの設定。
- * 画面はTanStack StartのSPAとして事前生成し、Cloudflare Vite PluginでWorkerとassetsを接続する。
+ * 画面はTanStack Startで事前生成し、Cloudflare Vite PluginでWorkerとassetsを接続する。
  * @see https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/
  */
 export default defineConfig(({ mode }) => ({
@@ -19,11 +19,10 @@ export default defineConfig(({ mode }) => ({
           cloudflare({ viteEnvironment: { name: "ssr" } }),
           tanstackStart({
             srcDirectory: "src/frontend",
-            spa: {
-              enabled: true,
-              // assetsのSPA配信がindex.htmlを返すため、shellをindex.htmlへ出力する。
-              prerender: { outputPath: "/index.html" },
-            },
+            // 静的なルートをすべて事前生成する。
+            // トップページ（`/`）だけ画面の内容を含め、ほかの画面は中身の無いshellになる（`__root.tsx`の`ssr`）。
+            // `/help`などは`help.html`へ出力し、assetsがtrailing slashへ転送せずに返すようにする。
+            prerender: { enabled: true, autoSubfolderIndex: false, crawlLinks: false },
           }),
           react(),
           tailwindcss(),

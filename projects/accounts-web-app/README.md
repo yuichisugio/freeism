@@ -14,7 +14,7 @@
 | script | 内容 |
 | --- | --- |
 | `pnpm dev` | Vite Plusで画面とWorkerを起動する |
-| `pnpm build` | 画面のSPA shellを事前生成し、Workerとassetsをビルドする。デプロイ先の設定でビルドする場合は`CLOUDFLARE_ENV=staging`などを指定する。生成した`dist/client/index.html`の`<body>`に画面の中身（`<main>`）が無いことを確認する |
+| `pnpm build` | 画面を事前生成し、Workerとassetsをビルドする。デプロイ先の設定でビルドする場合は`CLOUDFLARE_ENV=staging`などを指定する。生成した`dist/client/index.html`にトップページの内容（`<main>`）が入り、ほかの画面の`help.html`などは`<body>`に画面の中身が無いことを確認する |
 | `pnpm preview` | ビルド結果をローカルのWorkers環境で確認する |
 | `pnpm typecheck` | Bindings型を生成し、型検査を実行する |
 | `pnpm lint` | Vite Plusのlintを実行する |

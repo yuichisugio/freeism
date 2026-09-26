@@ -1,10 +1,10 @@
-import { Alert, Spinner } from "@heroui/react";
-import { Link } from "@tanstack/react-router";
+import { Alert, Button, Spinner } from "@heroui/react";
 import type { ReactNode } from "react";
 
 import { describeError, isUnauthorizedError } from "../../../lib/describe-error";
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
+import { useLoginDialog } from "../../auth/hooks/use-login-dialog";
 
 /**
  * 読み込み中の表示。
@@ -22,7 +22,7 @@ export function LoadingState({ label }: { label?: string }) {
 
 /**
  * 失敗の表示。
- * `role="alert"`で読み上げ、ログインしていない場合はログイン画面への案内を添える。
+ * `role="alert"`で読み上げ、ログインしていない場合はログイン用のダイアログを開く「ログインする」を添える。
  */
 export function ErrorNotice({
   error,
@@ -34,6 +34,7 @@ export function ErrorNotice({
   title?: string;
 }) {
   const common = useMessages(commonMessages);
+  const loginDialog = useLoginDialog();
   const message = describeError(error, common, codeMessages);
   return (
     <Alert status="danger" role="alert">
@@ -45,9 +46,9 @@ export function ErrorNotice({
           {isUnauthorizedError(error) ? (
             <>
               {" "}
-              <Link to="/" className="underline">
-                {common.goToLogin}
-              </Link>
+              <Button size="sm" variant="outline" onPress={() => loginDialog.open()}>
+                {common.signIn}
+              </Button>
             </>
           ) : null}
         </Alert.Description>
