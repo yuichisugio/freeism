@@ -7,7 +7,7 @@
 - v0.2 は未リリースのテスト環境を作り直すため、後方互換性を持たせない。
 - Supabase PostgreSQL から D1 へのデータ移行、旧ユーザー・セッション・ポイント・オークションデータの移行は行わない。
 - 旧モノリスの観測記録や未確定案は `../archive/` に保存するが、v0.2 の規範にはしない。
-- Points・Marketsの横断仕様は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に参照する。外部アカウントの所有権証明・公開設定・情報提供は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
+- Points・Marketsの横断仕様は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に参照する。外部アカウントの所有権証明・公開設定・情報提供は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。
 
 ## 1. リポジトリと文書の境界
 
@@ -60,7 +60,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 ### 2.3 Accounts
 
-外部アカウントの登録・所有権証明・公開設定・照合API・OAuthクライアント管理は、独立したAccountsサービスが担当する。要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に集約する。PointsとAccountsは各自でログイン・セッションを管理し、利用者が情報連携を許可する。
+外部アカウントの登録・所有権証明・公開設定・照合API・OAuthクライアント管理は、独立したAccountsサービスが担当する。要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に集約する。PointsとAccountsは各自でログイン・セッションを管理し、利用者が情報連携を許可する。
 
 ### 2.4 廃止する境界
 
@@ -220,7 +220,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 - `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
 - 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
-- apex `freeism.app`は`projects/main-web-app`の独立ポータルを配信し、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app`へ通常のHTTPSリンクで案内する。`www.freeism.app`はapexへ正規化する。
+- apex `freeism.app`は`projects/main-web-app`の独立ポータルを配信し、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app`、`accounts.freeism.app`へ通常のHTTPSリンクで案内する。`www.freeism.app`はapexへ正規化する。
 - ポータルとドキュメントのhosting／DNSはPoints／Markets v0.2 migrationのdeploy対象に含めず、それぞれの独立した公開境界として扱う。DNS／redirectの範囲では、Wranglerが`freeism.app`と`docs.freeism.app`のWorker custom domainおよびapex DNSを所有し、Terraformはproxied `www.freeism.app`と`https://freeism.app/`への301正規化だけを所有する。既存のAccess、WAF、rate limit、Turnstile、通知は引き続きTerraformが所有する。
 - 廃止したapex／`www`からPointsへのredirectを再作成しない。`www`正規化ではsource pathとqueryを破棄する。
 - publicなper-PR preview環境はv0.2で作らない。

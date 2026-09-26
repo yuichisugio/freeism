@@ -15,7 +15,7 @@ Pointsで本人またはADMINが閲覧権限を持つ設定・経済履歴をCSV
 
 Task、Group、Analytics draft、通知データはv0.2に存在しないため出力対象にしない。旧形式は[v0.1の実装履歴](../../v0.1/details/csv-export.md)にだけ残す。
 
-Accountsのプロフィール・連携アカウント・公開設定のバックアップと別Accountsサービスへの移行は、[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)のインポート・エクスポートに従う。
+Accountsのプロフィール・連携アカウント・公開設定のバックアップと別Accountsサービスへの移行は、[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)のインポート・エクスポートに従う。
 
 ## 2. 権限
 

@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 
+import { createAccountsFailureReporter } from "../src/backend/accounts/accounts-failure-reporter";
+import { importAccountsKeyEncryptionKey } from "../src/backend/accounts/accounts-key-vault";
 import { pointsBackendApp } from "../src/backend/app";
+import { deleteExpiredAccountsLinkAttempts } from "../src/backend/infrastructure/db/d1-accounts-link-repository";
 import {
   inspectPointsOpsAlerts,
   monitorOpsAlerts,
@@ -11,7 +14,7 @@ import { writeStructuredLog } from "../src/backend/observability/structured-logg
 import { cleanupResolvedOpsAlerts } from "../src/backend/observability/cleanup-ops-alerts";
 import { cleanupExpiredCsvExports } from "../src/backend/usecases/cleanup-expired-csv-exports";
 import { reapExpiredPointsLinkAttempts } from "../src/backend/usecases/reap-expired-points-link-attempts";
-import { runDueWebRevalidations } from "../src/backend/usecases/run-due-web-revalidations";
+import { refreshStaleAccountsLinkSnapshots } from "../src/backend/usecases/refresh-accounts-link-snapshots";
 import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
 
@@ -125,8 +128,15 @@ export async function scheduledPoints(controller: ScheduledController, env: Env)
   }
   if (cron === "*/15 * * * *") {
     await runCronJobs(env, cron, [
-      () => runDueWebRevalidations(env.DB!),
       () => reapExpiredPointsLinkAttempts(env.DB!),
+      async () =>
+        refreshStaleAccountsLinkSnapshots({
+          db: env.DB!,
+          kek: await importAccountsKeyEncryptionKey(env.ACCOUNTS_KEY_ENCRYPTION_KEY),
+          fetch,
+          reportFailure: createAccountsFailureReporter(env),
+        }),
+      () => deleteExpiredAccountsLinkAttempts(env.DB!, Date.now()),
     ]);
   }
 }

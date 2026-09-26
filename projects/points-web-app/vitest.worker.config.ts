@@ -7,6 +7,7 @@ export default defineConfig({
       main: "./worker/index.ts",
       miniflare: {
         bindings: {
+          ACCOUNTS_KEY_ENCRYPTION_KEY: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
           CSV_EXPORT_CURSOR_SECRET: "test-csv-export-cursor-secret-at-least-32-characters",
           BETTER_AUTH_SECRETS:
             "2:test-current-secret-at-least-32-characters,1:test-previous-secret-at-least-32-characters",

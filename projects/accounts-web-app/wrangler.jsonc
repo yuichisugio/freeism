@@ -1,0 +1,128 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // トップレベルはローカル開発用の設定で、デプロイは env.staging または env.production を指定する。
+  // Cloudflare Vite Pluginはminifyを使わないため、Workerの圧縮とソースマップの生成はvite.config.tsのbuild設定で行う。
+  "name": "accounts-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-21",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "upload_source_maps": true,
+  "placement": { "mode": "smart" },
+  // アプリケーションが出力するログだけを記録し、要求URLを含むinvocation logsは記録しない。
+  // staging・production・Previewはこの設定を継承する。
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "invocation_logs": false }
+  },
+  // Workers Cacheは公開プロフィール専用のエントリーポイントだけに適用し、API・認証・画面の入口はキャッシュしない。
+  // Previewはこの設定を継承しないため、キャッシュせずに毎回D1から生成する。
+  "cache": { "enabled": true },
+  "exports": {
+    "default": { "type": "worker", "cache": { "enabled": false } },
+    "PublicProfileEntrypoint": { "type": "worker", "cache": { "enabled": true } }
+  },
+  // 事前生成した画面はassetsから配信し、API・認証・公開プロフィールのパスと、assetsに無いパスはWorkerで処理する。
+  "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/.well-known/*", "/profiles/*", "/healthz"]
+  },
+  "vars": {
+    "APP_ENV": "local",
+    "ACCOUNTS_ORIGIN": "http://localhost:5173"
+  },
+  // 認証の秘密値。ローカルは.env.local、デプロイ先は`wrangler secret put`で登録する。
+  "secrets": {
+    "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "accounts-local",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  // 「保存して検証する」の要求を、AccountsユーザーIDをキーに外部ページの取得とDNS照会の前で制限する。
+  // 上限は運用設定値で、Workers Rate Limitingの期間は10秒か60秒から選ぶ。namespace_idは環境ごとに分ける。
+  "ratelimits": [
+    { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1000", "simple": { "limit": 10, "period": 60 } }
+  ],
+  "env": {
+    "staging": {
+      "name": "accounts-worker-staging",
+      "routes": [{ "pattern": "staging.accounts.freeism.app", "custom_domain": true }],
+      // stagingとPreviewは静的ファイルもWorkerへ通し、画面へBasic認証を適用する。
+      "assets": {
+        "binding": "ASSETS",
+        "run_worker_first": true
+      },
+      // PREVIEW_HOST_PATTERNはPreviewのhostだけに一致させる。先頭の*はPreviewごとの接頭辞。
+      "vars": {
+        "APP_ENV": "staging",
+        "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
+        "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.kyogoku.workers.dev"
+      },
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "accounts-staging",
+          "database_id": "c2c5232a-14d9-4955-8073-6f86dec24a27",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+      ],
+      // Previewは設定を継承しないため、Bindingsと変数を明示する。D1とレート制限はstagingと共有する。
+      "previews": {
+        "vars": {
+          "APP_ENV": "staging",
+          "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
+          "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.kyogoku.workers.dev"
+        },
+        "secrets": {
+          "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
+        },
+        "d1_databases": [
+          {
+            "binding": "DB",
+            "database_name": "accounts-staging",
+            "database_id": "c2c5232a-14d9-4955-8073-6f86dec24a27",
+            "migrations_dir": "migrations"
+          }
+        ],
+        "ratelimits": [
+          { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } }
+        ]
+      }
+    },
+    "production": {
+      "name": "accounts-worker-production",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "accounts.freeism.app", "custom_domain": true }],
+      "vars": {
+        "APP_ENV": "production",
+        "ACCOUNTS_ORIGIN": "https://accounts.freeism.app"
+      },
+      "secrets": {
+        "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "accounts-production",
+          "database_id": "e9a7937a-85fb-44ec-bc19-d746972522a8",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "ratelimits": [
+        { "name": "URL_VERIFICATION_RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
+      ]
+    }
+  }
+}

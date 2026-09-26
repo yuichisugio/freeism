@@ -1,0 +1,8 @@
+{
+  "resource": "https://accounts.example.test/api/v1",
+  "authorization_servers": ["https://accounts.example.test"],
+  "dpop_signing_alg_values_supported": ["EdDSA", "ES256", "ES512", "PS256", "RS256"],
+  "scopes_supported": ["identities:read"],
+  "bearer_methods_supported": ["header"],
+  "dpop_bound_access_tokens_required": true
+}

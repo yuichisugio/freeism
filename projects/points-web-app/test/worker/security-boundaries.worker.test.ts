@@ -37,26 +37,24 @@ beforeEach(async () => {
 });
 
 describe("Points application rate limits", () => {
-  it("atomically rejects the sixth hourly ownership verification for the same URL key", async () => {
+  it("atomically rejects the eleventh hourly CSV commit for the same criterion key", async () => {
     const input = {
       db: env.DB!,
       now: NOW,
-      operation: "OWNERSHIP_IDENTITY_HOURLY" as const,
-      subjectParts: ["pusr_1", "https://example.test/alice"],
+      operation: "CSV_CRITERION_HOURLY" as const,
+      subjectParts: ["pusr_1", "criterion_a"],
     };
 
-    for (let count = 1; count <= pointsRateLimitPolicies.OWNERSHIP_IDENTITY_HOURLY.limit; count++) {
+    for (let count = 1; count <= pointsRateLimitPolicies.CSV_CRITERION_HOURLY.limit; count++) {
       const result = await consumePointsRateLimit(input);
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(
-        pointsRateLimitPolicies.OWNERSHIP_IDENTITY_HOURLY.limit - count,
-      );
+      expect(result.remaining).toBe(pointsRateLimitPolicies.CSV_CRITERION_HOURLY.limit - count);
     }
 
     const rejected = await consumePointsRateLimit(input);
     expect(rejected).toMatchObject({
       allowed: false,
-      limit: 5,
+      limit: 10,
       remaining: 0,
       retryAfterSeconds: 3_600,
     });
@@ -106,7 +104,7 @@ describe("adaptive Points Turnstile", () => {
         db: env.DB!,
         expectedHostname: "points.freeism.app",
         now: NOW,
-        operation: "OWNERSHIP_VERIFY",
+        operation: "CLAIM",
         riskDetected: false,
         secret: "test-secret",
         siteKey: "test-site-key",
@@ -123,14 +121,14 @@ describe("adaptive Points Turnstile", () => {
       db: env.DB!,
       expectedHostname: "points.freeism.app",
       now: NOW,
-      operation: "OWNERSHIP_VERIFY",
+      operation: "CLAIM",
       riskDetected: true,
       secret: "test-secret",
       siteKey: "test-site-key",
     });
 
     expect(result).toEqual({
-      action: pointsTurnstileActions.OWNERSHIP_VERIFY,
+      action: pointsTurnstileActions.CLAIM,
       siteKey: "test-site-key",
       status: "REQUIRED",
     });
@@ -146,7 +144,7 @@ describe("adaptive Points Turnstile", () => {
       expect(body.get("response")).toBe(token);
       expect(body.get("remoteip")).toBe("203.0.113.1");
       return Response.json({
-        action: pointsTurnstileActions.OWNERSHIP_VERIFY,
+        action: pointsTurnstileActions.CLAIM,
         challenge_ts: new Date(NOW - 60_000).toISOString(),
         hostname: "points.freeism.app",
         success: true,
@@ -158,7 +156,7 @@ describe("adaptive Points Turnstile", () => {
         db: env.DB!,
         expectedHostname: "points.freeism.app",
         now: NOW,
-        operation: "OWNERSHIP_VERIFY",
+        operation: "CLAIM",
         remoteIp: "203.0.113.1",
         riskDetected: true,
         secret: "test-secret",
@@ -173,7 +171,7 @@ describe("adaptive Points Turnstile", () => {
       .DB!.prepare("SELECT token_hash, action, hostname FROM turnstile_token_replay")
       .first<{ action: string; hostname: string; token_hash: string }>();
     expect(replay).toMatchObject({
-      action: pointsTurnstileActions.OWNERSHIP_VERIFY,
+      action: pointsTurnstileActions.CLAIM,
       hostname: "points.freeism.app",
     });
     expect(replay?.token_hash).toMatch(/^[a-f0-9]{64}$/);
@@ -181,14 +179,9 @@ describe("adaptive Points Turnstile", () => {
   });
 
   it.each([
-    ["TURNSTILE_HOSTNAME_MISMATCH", "other.example", pointsTurnstileActions.OWNERSHIP_VERIFY, NOW],
+    ["TURNSTILE_HOSTNAME_MISMATCH", "other.example", pointsTurnstileActions.CLAIM, NOW],
     ["TURNSTILE_ACTION_MISMATCH", "points.freeism.app", "wrong_action", NOW],
-    [
-      "TURNSTILE_TOKEN_EXPIRED",
-      "points.freeism.app",
-      pointsTurnstileActions.OWNERSHIP_VERIFY,
-      NOW - 300_000,
-    ],
+    ["TURNSTILE_TOKEN_EXPIRED", "points.freeism.app", pointsTurnstileActions.CLAIM, NOW - 300_000],
   ] as const)(
     "rejects invalid Siteverify evidence with %s",
     async (code, hostname, action, issuedAt) => {
@@ -197,7 +190,7 @@ describe("adaptive Points Turnstile", () => {
           db: env.DB!,
           expectedHostname: "points.freeism.app",
           now: NOW,
-          operation: "OWNERSHIP_VERIFY",
+          operation: "CLAIM",
           riskDetected: true,
           secret: "test-secret",
           siteKey: "test-site-key",

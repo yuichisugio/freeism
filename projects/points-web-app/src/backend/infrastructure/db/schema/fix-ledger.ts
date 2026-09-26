@@ -5,6 +5,7 @@ import {
   integer,
   primaryKey,
   sqliteTable,
+  type SQLiteColumn,
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
@@ -18,6 +19,29 @@ const timestamp = (name: string) =>
   integer(name, { mode: "timestamp_ms" })
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
     .notNull();
+
+// --------------------------------------------------
+// FIX 受領者の識別子と Accounts の照合結果
+// --------------------------------------------------
+
+/**
+ * FIX の受領者を表す入力識別子と、Accounts での照合結果の列。
+ * 識別子は入力値そのままで保存し、正規化は Accounts に任せる。
+ * @see ../../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ */
+const recipientIdentifierColumns = () => ({
+  recipientIdentifierType: text("recipient_identifier_type", {
+    enum: ["url", "accounts_user"],
+  }).notNull(),
+  recipientIdentifierValue: text("recipient_identifier_value").notNull(),
+  accountsOrigin: text("accounts_origin").notNull(),
+  resolvedAccountsUserId: text("resolved_accounts_user_id"),
+  accountsResolvedAt: integer("accounts_resolved_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+/** 識別子の種類と、値・照合先 origin が空でないことを検査する。 */
+const recipientIdentifierCheck = (type: SQLiteColumn, value: SQLiteColumn) =>
+  sql`${type} in ('url', 'accounts_user') and length(${value}) > 0`;
 
 export const fixResults = sqliteTable(
   "fix_result",
@@ -71,10 +95,7 @@ export const fixRevisionEntries = sqliteTable(
     fixRevisionId: text("fix_revision_id")
       .notNull()
       .references(() => fixRevisions.id, { onDelete: "restrict" }),
-    recipientProviderId: text("recipient_provider_id"),
-    recipientAccountId: text("recipient_account_id"),
-    recipientProfileUrl: text("recipient_profile_url").notNull(),
-    identityResolvedAt: integer("identity_resolved_at", { mode: "timestamp_ms" }),
+    ...recipientIdentifierColumns(),
     pointsUserId: text("points_user_id").references(() => pointsUsers.id, {
       onDelete: "restrict",
     }),
@@ -93,12 +114,17 @@ export const fixRevisionEntries = sqliteTable(
   (table) => [
     uniqueIndex("fix_revision_entry_subject_criterion_uidx").on(
       table.fixRevisionId,
-      table.recipientProfileUrl,
+      table.recipientIdentifierType,
+      table.recipientIdentifierValue,
       table.evaluationCriterionId,
     ),
-    index("fix_revision_entry_github_subject_idx").on(
-      table.recipientProviderId,
-      table.recipientAccountId,
+    index("fix_revision_entry_accounts_user_idx").on(
+      table.accountsOrigin,
+      table.resolvedAccountsUserId,
+    ),
+    check(
+      "fix_revision_entry_recipient_identifier_check",
+      recipientIdentifierCheck(table.recipientIdentifierType, table.recipientIdentifierValue),
     ),
     check(
       "fix_revision_entry_amount_check",
@@ -118,9 +144,7 @@ export const unclaimedFixEntries = sqliteTable(
     sourceFixRevisionId: text("source_fix_revision_id")
       .notNull()
       .references(() => fixRevisions.id, { onDelete: "restrict" }),
-    recipientProviderId: text("recipient_provider_id"),
-    recipientAccountId: text("recipient_account_id"),
-    recipientProfileUrl: text("recipient_profile_url").notNull(),
+    ...recipientIdentifierColumns(),
     evaluationCriterionId: text("evaluation_criterion_id")
       .notNull()
       .references(() => evaluationCriteria.id, { onDelete: "restrict" }),
@@ -134,10 +158,15 @@ export const unclaimedFixEntries = sqliteTable(
   (table) => [
     uniqueIndex("unclaimed_fix_entry_source_subject_criterion_uidx").on(
       table.sourceFixRevisionId,
-      table.recipientProviderId,
-      table.recipientAccountId,
-      table.recipientProfileUrl,
+      table.accountsOrigin,
+      table.recipientIdentifierType,
+      table.recipientIdentifierValue,
       table.evaluationCriterionId,
+    ),
+    index("unclaimed_fix_entry_accounts_origin_idx").on(table.accountsOrigin),
+    check(
+      "unclaimed_fix_entry_recipient_identifier_check",
+      recipientIdentifierCheck(table.recipientIdentifierType, table.recipientIdentifierValue),
     ),
     check(
       "unclaimed_fix_entry_delta_check",
@@ -294,10 +323,3 @@ export const pointAccounts = sqliteTable(
     ),
   ],
 );
-
-export const githubApiBudgets = sqliteTable("github_api_budget", {
-  id: text("id").primaryKey(),
-  remaining: integer("remaining").notNull(),
-  resetAt: integer("reset_at").notNull(),
-  updatedAt: timestamp("updated_at"),
-});

@@ -70,6 +70,11 @@ async function assertCloseAllowed(db: D1Database, pointsUserId: string) {
   if (lastAdmin) throw new ClosePointsAccountError("ACCOUNT_CLOSE_LAST_ADMIN");
 }
 
+/**
+ * Pointsアカウントを閉鎖する。
+ * 同じbatchで全Accounts連携を削除し、解除した件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として残す。
+ * @see ../../../test/worker/account-close.worker.test.ts
+ */
 export async function closePointsAccount(
   db: D1Database,
   input: {
@@ -135,50 +140,33 @@ export async function closePointsAccount(
         ),
       db
         .prepare(
-          `INSERT INTO account_close_ownership_suspension
-             (id, close_receipt_id, points_user_id, identity_ownership_id, suspended_at)
-           SELECT 'acos_' || lower(hex(randomblob(16))), ?, ?, ownership.id, ?
-           FROM identity_ownership ownership
-           WHERE ownership.points_user_id = ? AND ownership.permanent_correspondence = 1
-             AND ownership.status = 'ACTIVE' AND ${guardSql}`,
+          `INSERT INTO audit_event
+             (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
+           SELECT ?, ?, 'ACCOUNTS_LINKS_RELEASED', ?,
+                  'releasedLinkCount=' ||
+                    (SELECT count(*) FROM accounts_links WHERE points_user_id = ?),
+                  ?, 'SUCCESS', ?
+           WHERE ${guardSql}`,
         )
         .bind(
-          closeReceiptId,
+          `audit_${crypto.randomUUID()}`,
           input.pointsUserId,
+          input.pointsUserId,
+          input.pointsUserId,
+          input.requestId,
           now,
-          input.pointsUserId,
           input.pointsUserId,
           input.idempotencyKey,
           payloadHash,
         ),
       db
-        .prepare(
-          `UPDATE identity_ownership SET status = 'INACTIVE'
-           WHERE points_user_id = ? AND permanent_correspondence = 1 AND status = 'ACTIVE'
-             AND ${guardSql}`,
-        )
-        .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `UPDATE ownership_epoch SET ended_at = ?
-           WHERE ended_at IS NULL AND id IN (
-             SELECT current_ownership_epoch_id FROM identity_ownership
-             WHERE points_user_id = ? AND identity_type = 'WEB_URL' AND status = 'ACTIVE'
-           ) AND ${guardSql}`,
-        )
-        .bind(now, input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `UPDATE identity_ownership SET status = 'INACTIVE'
-           WHERE points_user_id = ? AND identity_type = 'WEB_URL' AND status = 'ACTIVE'
-             AND ${guardSql}`,
-        )
+        .prepare(`DELETE FROM accounts_links WHERE points_user_id = ? AND ${guardSql}`)
         .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
       db
         .prepare(
           `UPDATE profiles
-           SET display_name = 'Closed account', description = '', external_urls = '[]',
-               visibility = 'PRIVATE', updated_at = ?
+           SET display_name = 'Closed account', description = '', visibility = 'PRIVATE',
+               updated_at = ?
            WHERE points_user_id = ? AND ${guardSql}`,
         )
         .bind(now, input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),

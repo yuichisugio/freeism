@@ -1,17 +1,28 @@
 import type { Context, Hono } from "hono";
 
-import { GitHubApiBudgetError } from "../../identity/github-api-budget";
-import { GitHubIdentityLookupError } from "../../identity/github-profile-recipient-resolver";
+import type { CreateAccountsRecipientResolver } from "../../identity/accounts-recipient-resolver";
 import { commitFixCsv } from "../../usecases/commit-fix-csv";
-import { validateFixCsv } from "../../usecases/validate-fix-csv";
+import { validateFixCsv, type ValidatedFixCsv } from "../../usecases/validate-fix-csv";
+import { toAccountsResolutionProblem } from "../accounts-resolution-problem";
 import type { BackendContext } from "../context";
-import { requireBindings } from "../context";
+import { requireBindings, type Bindings } from "../context";
 import { adminMiddleware } from "../middleware/admin-middleware";
 import { csvBodyLimitMiddleware } from "../middleware/csv-body-limit-middleware";
 import { googleFreshMiddleware } from "../middleware/google-fresh-middleware";
 import { idempotencyKeyMiddleware } from "../middleware/idempotency-middleware";
 import { createSessionMiddleware, type GetSession } from "../middleware/session-middleware";
 import { problem } from "../problem";
+
+/**
+ * FIX CSV の validate・commit。
+ * 受領者の照合に使う接続先 Accounts を `X-Accounts-Connection-Id` で受け取る。
+ * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../test/worker/fix-ledger.worker.test.ts
+ */
+
+// --------------------------------------------------
+// 応答
+// --------------------------------------------------
 
 function csvProblem(context: Context<BackendContext>, errors: unknown[]) {
   return context.json(
@@ -28,38 +39,16 @@ function csvProblem(context: Context<BackendContext>, errors: unknown[]) {
   );
 }
 
+function accountsConnectionRequired(context: Context<BackendContext>): Response {
+  return problem(context, 422, "ACCOUNTS_CONNECTION_REQUIRED", "Accounts connection required");
+}
+
+/**
+ * FIX 取込で投げられたエラーを problem 応答へ変換する。
+ */
 function mapFixError(context: Context<BackendContext>, error: unknown): Response {
-  if (error instanceof GitHubApiBudgetError) {
-    return context.json(
-      {
-        code: error.message,
-        status: 429,
-        title: "GitHub identity lookup rate limited",
-        type: "https://points.freeism.app/problems/github-identity-lookup-rate-limited",
-      },
-      429,
-      {
-        "Content-Type": "application/problem+json",
-        "Retry-After": String(error.retryAfterSeconds),
-      },
-    );
-  }
-  if (error instanceof GitHubIdentityLookupError) {
-    const status = error.code === "GITHUB_IDENTITY_LOOKUP_RATE_LIMITED" ? 429 : 422;
-    return context.json(
-      {
-        code: error.code,
-        status,
-        title: error.code,
-        type: `https://points.freeism.app/problems/${error.code.toLowerCase()}`,
-      },
-      status,
-      {
-        "Content-Type": "application/problem+json",
-        ...(error.retryAfter ? { "Retry-After": error.retryAfter } : {}),
-      },
-    );
-  }
+  const accountsProblem = toAccountsResolutionProblem(context, error);
+  if (accountsProblem) return accountsProblem;
   if (error instanceof Error && "errors" in error)
     return csvProblem(context, (error as Error & { errors: unknown[] }).errors);
   if (error instanceof Error && error.message === "VALIDATION_CHANGED")
@@ -73,6 +62,45 @@ function mapFixError(context: Context<BackendContext>, error: unknown): Response
   throw error;
 }
 
+/**
+ * validate の応答本文。
+ * 受領者の照合結果を行ごとに返す。
+ * 照合できなかった場合は全行を `UNRESOLVED` とし、確定に使う `validationHash` を返さない。
+ */
+function toValidationBody(result: Exclude<ValidatedFixCsv, { status: "INVALID" }>) {
+  if (result.status === "UNRESOLVED") {
+    const { code, retryAfter } = result.failure;
+    return {
+      accountsOrigin: null,
+      accountsResolution: {
+        code: code === "ACCOUNTS_UNAVAILABLE" ? "ACCOUNTS_RESOLVE_UNAVAILABLE" : code,
+        retryAfter,
+        status: "UNAVAILABLE",
+      },
+      fileHash: result.fileHash,
+      rowCount: result.rowCount,
+      rows: Array.from({ length: result.rowCount }, (_, index) => ({
+        recipientLinked: false,
+        resolution: "UNRESOLVED",
+        row: index + 2,
+      })),
+      validationHash: null,
+    };
+  }
+  return {
+    accountsOrigin: result.accountsOrigin,
+    accountsResolution: { status: "COMPLETE" },
+    fileHash: result.fileHash,
+    rowCount: result.rows.length,
+    rows: result.rows.map((row, index) => ({
+      recipientLinked: row.recipientPointsUserId !== null,
+      resolution: row.resolvedAccountsUserId === null ? "NO_MATCH" : "MATCHED",
+      row: index + 2,
+    })),
+    validationHash: result.validationHash,
+  };
+}
+
 function requireCsv(context: Context<BackendContext>): Response | null {
   const contentType = context.req.header("Content-Type")?.split(";", 1)[0]?.trim().toLowerCase();
   return contentType === "text/csv"
@@ -80,10 +108,16 @@ function requireCsv(context: Context<BackendContext>): Response | null {
     : problem(context, 415, "CSV_CONTENT_TYPE_REQUIRED", "Content-Type text/csv required");
 }
 
+// --------------------------------------------------
+// 経路
+// --------------------------------------------------
+
 export function registerFixRoutes(
   app: Hono<BackendContext>,
   getSession: GetSession,
-  dependencies: { githubFetch?: typeof fetch } = {},
+  dependencies: {
+    accountsRecipientResolverFor: (bindings: Bindings) => CreateAccountsRecipientResolver;
+  },
 ) {
   const session = createSessionMiddleware(getSession);
   app.post(
@@ -94,20 +128,18 @@ export function registerFixRoutes(
     async (context) => {
       const invalidType = requireCsv(context);
       if (invalidType) return invalidType;
+      const accountsConnectionId = context.req.header("X-Accounts-Connection-Id")?.trim();
+      if (!accountsConnectionId) return accountsConnectionRequired(context);
       const bytes = new Uint8Array(await context.req.arrayBuffer());
       try {
-        const result = await validateFixCsv(requireBindings(context.env).DB, bytes, {
-          githubClientId: context.env.GITHUB_CLIENT_ID,
-          githubClientSecret: context.env.GITHUB_CLIENT_SECRET,
-          githubFetch: dependencies.githubFetch,
+        const bindings = requireBindings(context.env);
+        const result = await validateFixCsv(bindings.DB, bytes, {
+          accountsConnectionId,
+          createResolver: dependencies.accountsRecipientResolverFor(bindings),
         });
-        if (result.errors.length > 0) return csvProblem(context, result.errors);
+        if (result.status === "INVALID") return csvProblem(context, result.errors);
         return context.json({
-          data: {
-            fileHash: result.fileHash,
-            rowCount: result.rows.length,
-            validationHash: result.validationHash,
-          },
+          data: { accountsConnectionId, ...toValidationBody(result) },
           meta: { requestId: `req_${crypto.randomUUID()}` },
         });
       } catch (error) {
@@ -125,21 +157,23 @@ export function registerFixRoutes(
     async (context) => {
       const invalidType = requireCsv(context);
       if (invalidType) return invalidType;
+      const accountsConnectionId = context.req.header("X-Accounts-Connection-Id")?.trim();
+      if (!accountsConnectionId) return accountsConnectionRequired(context);
       const expectedValidationHash = context.req.header("X-Validation-Hash")?.trim();
       const reason = context.req.header("X-Reason")?.trim();
       if (!expectedValidationHash)
         return problem(context, 422, "VALIDATION_HASH_REQUIRED", "Validation hash required");
       if (!reason) return problem(context, 422, "ADMIN_REASON_REQUIRED", "Admin reason required");
       try {
+        const bindings = requireBindings(context.env);
         const committed = await commitFixCsv(
-          requireBindings(context.env).DB,
+          bindings.DB,
           new Uint8Array(await context.req.arrayBuffer()),
           {
+            accountsConnectionId,
             actorPointsUserId: context.get("pointsUser").id,
+            createResolver: dependencies.accountsRecipientResolverFor(bindings),
             expectedValidationHash,
-            githubClientId: context.env.GITHUB_CLIENT_ID,
-            githubClientSecret: context.env.GITHUB_CLIENT_SECRET,
-            githubFetch: dependencies.githubFetch,
             idempotencyKey: context.req.header("Idempotency-Key")!,
             reason,
           },

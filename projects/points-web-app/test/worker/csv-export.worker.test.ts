@@ -27,8 +27,8 @@ async function createExportApp() {
   await db
     .prepare(
       `INSERT INTO profiles
-         (points_user_id, display_name, description, external_urls, visibility, created_at, updated_at)
-       VALUES (?, '=CSV User', 'first,description', '[]', 'PRIVATE', ?, ?)`,
+         (points_user_id, display_name, description, visibility, created_at, updated_at)
+       VALUES (?, '=CSV User', 'first,description', 'PRIVATE', ?, ?)`,
     )
     .bind(pointsUser.id, now, now)
     .run();

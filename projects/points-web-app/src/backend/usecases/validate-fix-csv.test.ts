@@ -1,33 +1,51 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { normalizeGenericWebProfileUrl } from "./validate-fix-csv";
+import { fixCsvSchema, readRecipientIdentifier } from "./validate-fix-csv";
 
-describe("generic Web FIX recipient URL normalization", () => {
-  it("removes only the fragment while preserving path, query, and trailing slash", () => {
+describe("FIX CSV の列", () => {
+  it("受領者の識別子2列を固定順で持つ", () => {
+    expect(fixCsvSchema.columns.map(({ name }) => name)).toEqual([
+      "fixResultId",
+      "expectedRevision",
+      "recipientProfileUrl",
+      "recipientAccountsUserId",
+      "evaluationCriterionId",
+      "amount",
+      "evaluationAt",
+      "managementId",
+      "memo",
+    ]);
+  });
+});
+
+describe("readRecipientIdentifier", () => {
+  it("プロフィールURLだけを指定した行はurl識別子にする", () => {
     expect(
-      normalizeGenericWebProfileUrl(
-        "https://freeism.app:443/profiles/alice/?view=activity#ownership-proof",
-      ),
-    ).toBe("https://freeism.app/profiles/alice/?view=activity");
+      readRecipientIdentifier({
+        recipientAccountsUserId: "",
+        recipientProfileUrl: "https://example.com/alice",
+      }),
+    ).toEqual({ type: "url", value: "https://example.com/alice" });
   });
 
-  it("rejects userinfo, non-HTTPS ports, IP literals, localhost, and private or reserved names", () => {
-    for (const invalid of [
-      "https://user@freeism.app/profile",
-      "https://freeism.app:444/profile",
-      "https://127.0.0.1/profile",
-      "https://[::1]/profile",
-      "https://localhost/profile",
-      "https://localhost./profile",
-      "https://sub.localhost/profile",
-      "https://host.local/profile",
-      "https://metadata.google.internal/profile",
-      "https://metadata.google.internal./profile",
-      "https://github.com./alice",
-      "https://profile.example.test/profile",
-      "https://intranet/profile",
-    ]) {
-      expect(() => normalizeGenericWebProfileUrl(invalid)).toThrow("RECIPIENT_PROFILE_URL_INVALID");
-    }
+  it("AccountsユーザーIDだけを指定した行はaccounts_user識別子にする", () => {
+    expect(
+      readRecipientIdentifier({ recipientAccountsUserId: "ausr_alice", recipientProfileUrl: "" }),
+    ).toEqual({ type: "accounts_user", value: "ausr_alice" });
+  });
+
+  it("どちらも空の行はRECIPIENT_IDENTIFIER_REQUIREDにする", () => {
+    expect(readRecipientIdentifier({ recipientAccountsUserId: "", recipientProfileUrl: "" })).toBe(
+      "RECIPIENT_IDENTIFIER_REQUIRED",
+    );
+  });
+
+  it("両方を指定した行はRECIPIENT_IDENTIFIER_AMBIGUOUSにする", () => {
+    expect(
+      readRecipientIdentifier({
+        recipientAccountsUserId: "ausr_alice",
+        recipientProfileUrl: "https://example.com/alice",
+      }),
+    ).toBe("RECIPIENT_IDENTIFIER_AMBIGUOUS");
   });
 });

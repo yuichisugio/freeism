@@ -7,7 +7,7 @@ describe("TurnstileChallenge", () => {
   it("renders an accessible challenge container", () => {
     const html = renderToStaticMarkup(
       <TurnstileChallenge
-        action="ownership_verify"
+        action="points_claim"
         onError={() => {}}
         onToken={() => {}}
         siteKey="test"

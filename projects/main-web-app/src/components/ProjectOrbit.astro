@@ -6,7 +6,7 @@ type Props = {
 };
 
 const { sites } = Astro.props;
-const serviceNames = ["Docs", "Points", "Markets"] as const;
+const serviceNames = ["Docs", "Points", "Markets", "Accounts"] as const;
 ---
 
 <div class="project-orbit">
@@ -17,9 +17,10 @@ const serviceNames = ["Docs", "Points", "Markets"] as const;
     aria-hidden="true"
   >
     <path class="orbit-ring" d="M175 310C175 145 338 62 500 62s325 83 325 248-163 248-325 248-325-83-325-248Z"></path>
-    <path class="orbit-route orbit-route--docs" pathLength="1" d="M500 310H175"></path>
+    <path class="orbit-route orbit-route--docs" pathLength="1" d="M500 310 175 168"></path>
     <path class="orbit-route orbit-route--points" pathLength="1" d="M500 310 825 168"></path>
     <path class="orbit-route orbit-route--markets" pathLength="1" d="M500 310 825 452"></path>
+    <path class="orbit-route orbit-route--accounts" pathLength="1" d="M500 310 175 452"></path>
   </svg>
 
   <div class="orbit-core">

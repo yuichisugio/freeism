@@ -1,0 +1,114 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
+import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
+import tailwindcss from "@tailwindcss/vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite-plus";
+
+import { handleWorkerOutboundRequest } from "./test/worker-outbound-service";
+
+/**
+ * 事前生成する画面の経路。
+ * 画面の経路はAccountsユーザーIDを任意で付ける（`/{-$accountsUserId}/...`）ため、自動の検出に含まれず、ここで指定する。
+ */
+const prerenderedPaths = [
+  "/",
+  "/account-links",
+  "/settings",
+  "/developer",
+  "/help",
+  "/licenses",
+  "/privacy",
+  "/terms",
+];
+
+/**
+ * 開発・ビルド・lint・テストの設定。
+ * 画面はTanStack Startで事前生成し、Cloudflare Vite PluginでWorkerとassetsを接続する。
+ * @see https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/
+ */
+export default defineConfig(({ mode }) => ({
+  // テストは各projectの設定で実行環境を用意するため、アプリのビルド用pluginを読み込まない。
+  plugins:
+    mode === "test"
+      ? []
+      : [
+          cloudflare({ viteEnvironment: { name: "ssr" } }),
+          tanstackStart({
+            srcDirectory: "src/frontend",
+            // AccountsユーザーIDの無い経路を事前生成する（ID付きの`/{accountsUserId}/...`はassetsに無く、Workerが同じshellを返す）。
+            // トップページ（`/`）だけ画面の内容を含め、ほかの画面は中身の無いshellになる（`__root.tsx`の`ssr`）。
+            // `/help`などは`help.html`へ出力し、assetsがtrailing slashへ転送せずに返すようにする。
+            pages: prerenderedPaths.map((path) => ({ path })),
+            prerender: { enabled: true, autoSubfolderIndex: false, crawlLinks: false },
+          }),
+          react(),
+          tailwindcss(),
+        ],
+  environments: {
+    // 画面に含む依存パッケージのライセンスをJSONで出力し、OSSライセンス画面から読む。
+    client: {
+      build: {
+        license: { fileName: "dependency-open-source-licenses.json" },
+      },
+    },
+    // Workerのコードを圧縮し、upload_source_mapsで送るソースマップを出力する。
+    ssr: {
+      build: {
+        minify: true,
+        sourcemap: true,
+      },
+    },
+  },
+  lint: {
+    ignorePatterns: ["dist/**", "worker-configuration.d.ts", "src/frontend/routeTree.gen.ts"],
+    plugins: ["typescript", "react", "vitest"],
+    options: {
+      typeAware: true,
+    },
+    rules: {
+      "typescript/no-floating-promises": "error",
+    },
+  },
+  test: {
+    projects: [
+      {
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+          exclude: ["**/*.worker.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        // WorkerのエントリーポイントはTanStack Startの画面描画を含むため、結合テストはHonoアプリと公開プロフィールのエントリーポイントだけを起動する。
+        // D1へはsetupFilesでmigrationを適用し、認証のSecretにはテスト用の値を渡す。
+        // 外部通信はoutboundServiceで受け、実際のサイトへ接続しない。
+        plugins: [
+          cloudflareTest(async () => ({
+            main: "./test/worker-main.ts",
+            wrangler: { configPath: "./wrangler.jsonc" },
+            miniflare: {
+              outboundService: handleWorkerOutboundRequest,
+              bindings: {
+                TEST_MIGRATIONS: await readD1Migrations("./migrations"),
+                BETTER_AUTH_SECRETS: "1:worker-test-secret-value-with-enough-entropy-0123456789",
+                GOOGLE_CLIENT_ID: "worker-test-google",
+                GOOGLE_CLIENT_SECRET: "worker-test-google",
+                GITHUB_CLIENT_ID: "worker-test-github",
+                GITHUB_CLIENT_SECRET: "worker-test-github",
+                ORCID_CLIENT_ID: "worker-test-orcid",
+                ORCID_CLIENT_SECRET: "worker-test-orcid",
+              },
+            },
+          })),
+        ],
+        test: {
+          name: "worker",
+          include: ["src/**/*.worker.test.ts", "test/**/*.worker.test.ts"],
+          setupFiles: ["./test/apply-d1-migrations.ts"],
+        },
+      },
+    ],
+  },
+}));

@@ -6,6 +6,8 @@ GITHUB_CLIENT_SECRET=replace-with-github-fixture-client-secret
 INITIAL_ADMIN_GOOGLE_ACCOUNT_ID=replace-with-initial-admin-google-account-id
 CSV_EXPORT_CURSOR_SECRET=replace-with-environment-specific-csv-cursor-secret-at-least-32-characters
 POINTS_OAUTH_PAIRWISE_SECRET=replace-with-environment-specific-pairwise-secret-at-least-32-characters
+# Base64 of 32 random bytes (for example: openssl rand -base64 32).
+ACCOUNTS_KEY_ENCRYPTION_KEY=replace-with-environment-specific-base64-32-byte-key
 # Set only during the one-time OAuth client bootstrap, then delete and redeploy.
 # POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN=replace-with-one-time-random-token
 MARKETS_USER_OAUTH_CLIENT_ID=replace-with-markets-user-client-id

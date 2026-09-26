@@ -31,6 +31,7 @@ import { Route as AdminMembersRouteImport } from './routes/admin.members'
 import { Route as AdminFixesRouteImport } from './routes/admin.fixes'
 import { Route as AdminExchangeRatesRouteImport } from './routes/admin.exchange-rates'
 import { Route as AdminEvaluationCriteriaRouteImport } from './routes/admin.evaluation-criteria'
+import { Route as AdminAccountsConnectionsRouteImport } from './routes/admin.accounts-connections'
 import { Route as AccountReopenRouteImport } from './routes/account.reopen'
 
 const TermsRoute = TermsRouteImport.update({
@@ -144,6 +145,12 @@ const AdminEvaluationCriteriaRoute = AdminEvaluationCriteriaRouteImport.update({
   path: '/admin/evaluation-criteria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAccountsConnectionsRoute =
+  AdminAccountsConnectionsRouteImport.update({
+    id: '/admin/accounts-connections',
+    path: '/admin/accounts-connections',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AccountReopenRoute = AccountReopenRouteImport.update({
   id: '/account/reopen',
   path: '/account/reopen',
@@ -159,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -184,6 +192,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -210,6 +219,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -313,6 +326,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
   AccountReopenRoute: typeof AccountReopenRoute
+  AdminAccountsConnectionsRoute: typeof AdminAccountsConnectionsRoute
   AdminEvaluationCriteriaRoute: typeof AdminEvaluationCriteriaRoute
   AdminExchangeRatesRoute: typeof AdminExchangeRatesRoute
   AdminFixesRoute: typeof AdminFixesRoute
@@ -486,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEvaluationCriteriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/accounts-connections': {
+      id: '/admin/accounts-connections'
+      path: '/admin/accounts-connections'
+      fullPath: '/admin/accounts-connections'
+      preLoaderRoute: typeof AdminAccountsConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/reopen': {
       id: '/account/reopen'
       path: '/account/reopen'
@@ -505,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,
   AccountReopenRoute: AccountReopenRoute,
+  AdminAccountsConnectionsRoute: AdminAccountsConnectionsRoute,
   AdminEvaluationCriteriaRoute: AdminEvaluationCriteriaRoute,
   AdminExchangeRatesRoute: AdminExchangeRatesRoute,
   AdminFixesRoute: AdminFixesRoute,

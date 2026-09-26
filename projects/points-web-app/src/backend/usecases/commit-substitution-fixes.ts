@@ -12,6 +12,7 @@ import {
   parseEvaluationMonth,
 } from "../domain/distribution/substitution";
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
+import { recipientBusinessKeySql } from "../infrastructure/db/d1-fix-repository";
 import { findCsvCommitReplay } from "../infrastructure/db/d1-point-transaction-repository";
 
 const METHOD_HEADER =
@@ -308,12 +309,7 @@ async function currentSourceTotalsByPair(
                 JOIN fix_revision claimed_revision ON claimed_revision.id = unclaimed.source_fix_revision_id
                 WHERE claimed_revision.fix_result_id = revision.fix_result_id
                   AND unclaimed.evaluation_criterion_id = entry.evaluation_criterion_id
-                  AND ((unclaimed.recipient_provider_id = 'github'
-                        AND entry.recipient_provider_id = 'github'
-                        AND unclaimed.recipient_account_id = entry.recipient_account_id)
-                    OR (unclaimed.recipient_provider_id IS NULL
-                        AND entry.recipient_provider_id IS NULL
-                        AND unclaimed.recipient_profile_url = entry.recipient_profile_url))
+                  AND ${recipientBusinessKeySql("unclaimed")} = ${recipientBusinessKeySql("entry")}
                 ORDER BY claim.claimed_at LIMIT 1
               )) AS pointsUserId,
               entry.amount_scaled AS amountScaled

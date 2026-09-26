@@ -32,6 +32,7 @@
 - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
 - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
 - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
+- FIXの列と受領者識別子は[Pointsドメイン仕様](points-domain.md#71-入力)、受領者のAccounts照合とvalidationとcommitの間の照合結果の変化は[FIX取込時の照合](unclaimed-fix-and-ownership.md#6-fix取込時の照合)に従う。
 - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
 
 ## 4. previewと確定

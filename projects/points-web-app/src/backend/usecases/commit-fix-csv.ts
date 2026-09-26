@@ -1,5 +1,6 @@
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
 import { sha256Hex } from "../csv/csv-validation-result";
+import type { CreateAccountsRecipientResolver } from "../identity/accounts-recipient-resolver";
 import {
   commitFixRows,
   findFixCommitReplay,
@@ -7,15 +8,20 @@ import {
 } from "../infrastructure/db/d1-fix-repository";
 import { validateFixCsv } from "./validate-fix-csv";
 
+/**
+ * 検証済みの FIX CSV を確定する。
+ * 確定の直前に Accounts で再照合し、検証時と結果が変わった場合や照合できなかった場合は `VALIDATION_CHANGED` で全件を止める。
+ * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../test/worker/fix-ledger.worker.test.ts
+ */
 export async function commitFixCsv(
   db: D1Database,
   bytes: Uint8Array,
   input: {
+    accountsConnectionId: string;
     actorPointsUserId: string;
+    createResolver: CreateAccountsRecipientResolver;
     expectedValidationHash: string;
-    githubClientId: string;
-    githubClientSecret: string;
-    githubFetch?: typeof fetch;
     idempotencyKey: string;
     now?: Date;
     reason: string;
@@ -39,17 +45,19 @@ export async function commitFixCsv(
   );
   if (saved) return { replay: true, responseBody: saved.body, results: [], status: saved.status };
   const validated = await validateFixCsv(db, bytes, {
-    githubClientId: input.githubClientId,
-    githubClientSecret: input.githubClientSecret,
-    githubFetch: input.githubFetch,
-    now: input.now,
+    accountsConnectionId: input.accountsConnectionId,
+    createResolver: input.createResolver,
   });
-  if (validated.errors.length > 0)
+  if (validated.status === "INVALID")
     throw Object.assign(new Error("CSV_VALIDATION_FAILED"), { errors: validated.errors });
-  if (validated.validationHash !== input.expectedValidationHash)
+  if (
+    validated.status === "UNRESOLVED" ||
+    validated.validationHash !== input.expectedValidationHash
+  )
     throw new Error("VALIDATION_CHANGED");
   const now = input.now ?? new Date();
   const committed = await commitFixRows(db, {
+    accountsConnectionId: validated.accountsConnectionId,
     actorPointsUserId: input.actorPointsUserId,
     auditEventId: `audit_${crypto.randomUUID()}`,
     fileHash: validated.fileHash,

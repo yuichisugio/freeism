@@ -22,7 +22,7 @@
 
 - `ARCH`：[アーキテクチャ](./architecture.md)
 - `AUTH`：[ログイン・サービス間認可](./authentication.md)
-- `ACCOUNTS`：[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)
+- `ACCOUNTS`：[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)
 - `API`：[レスポンス形式](./response-format.md)
 - `CONTRACT`：[Points–Markets連携契約](./points-markets-contract.md)
 - `POINTS`：[Points v0.2仕様](../../../projects/points-web-app/docs/v0.2/index.ja.md)
