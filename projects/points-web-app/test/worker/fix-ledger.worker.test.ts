@@ -2,12 +2,49 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
-import { reconcilePermanentOAuthSubjects } from "../../src/backend/infrastructure/db/permanent-oauth-subject-repository";
+import type {
+  AccountsRecipientResolver,
+  RecipientResolution,
+} from "../../src/backend/identity/accounts-recipient-resolver";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
 
 const FIX_HEADER =
   "fixResultId,expectedRevision,recipientProfileUrl,evaluationCriterionId,amount,evaluationAt,managementId,memo";
+const ACCOUNTS_ORIGIN = "https://accounts.fix.test";
+
+/** URL ごとの照合結果を返す fake。未登録の URL は no_match にする。 */
+function fakeResolver(results: Record<string, RecipientResolution>): AccountsRecipientResolver {
+  return async (identifiers) => ({
+    accountsOrigin: ACCOUNTS_ORIGIN,
+    results: identifiers.map(({ value }) => results[value] ?? { status: "no_match" }),
+  });
+}
+
+/** 接続先と、Points ユーザーの Accounts 連携を作る。 */
+async function seedAccountsLink(pointsUserId: string, accountsUserId: string) {
+  const suffix = crypto.randomUUID();
+  const now = Date.now();
+  await env.DB!.batch([
+    env
+      .DB!.prepare(
+        `INSERT INTO accounts_connections
+           (id, accounts_origin, display_name, client_id, status, client_key_id,
+            client_public_jwk, client_private_jwk_ciphertext, dpop_private_jwk_ciphertext,
+            created_by_points_user_id, created_at, activated_at)
+         VALUES (?, ?, 'Accounts', 'client', 'ACTIVE', 'kid', '{}', 'v1.a.b', 'v1.c.d', ?, ?, ?)
+         ON CONFLICT DO NOTHING`,
+      )
+      .bind(`acon_fix`, ACCOUNTS_ORIGIN, pointsUserId, now, now),
+    env
+      .DB!.prepare(
+        `INSERT INTO accounts_links
+           (id, points_user_id, accounts_connection_id, accounts_origin, accounts_user_id, linked_at)
+         VALUES (?, ?, 'acon_fix', ?, ?, ?)`,
+      )
+      .bind(`alnk_${suffix}`, pointsUserId, ACCOUNTS_ORIGIN, accountsUserId, now),
+  ]);
+}
 
 describe("immutable FIX revision and delta ledger", () => {
   it("exposes an ADMIN-only raw CSV validation route", async () => {
@@ -40,7 +77,7 @@ describe("immutable FIX revision and delta ledger", () => {
     const response = await app.fetch(
       new Request("https://points.test/api/admin/fixes/csv/validate", {
         body: `${FIX_HEADER}\n,,https://example.com/alice,criterion-a,1,2026-07,,`,
-        headers: { "Content-Type": "text/csv" },
+        headers: { "Content-Type": "text/csv", "X-Accounts-Connection-Id": "acon_fix" },
         method: "POST",
       }),
       env,
@@ -48,13 +85,26 @@ describe("immutable FIX revision and delta ledger", () => {
 
     expect(response.status).toBe(422);
     await expect(response.json()).resolves.toMatchObject({ code: "CSV_VALIDATION_FAILED" });
+
+    const withoutConnection = await app.fetch(
+      new Request("https://points.test/api/admin/fixes/csv/validate", {
+        body: `${FIX_HEADER}\n,,https://example.com/alice,criterion-a,1,2026-07,,`,
+        headers: { "Content-Type": "text/csv" },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(withoutConnection.status).toBe(422);
+    await expect(withoutConnection.json()).resolves.toMatchObject({
+      code: "ACCOUNTS_CONNECTION_REQUIRED",
+    });
   });
 
   it("commits an initial FIX, appends only correction deltas, and permits a negative balance", async () => {
     const suffix = crypto.randomUUID();
     const authUserId = `fix-owner-${suffix}`;
     const recipientAuthUserId = `fix-recipient-${suffix}`;
-    const githubId = `${Math.floor(Math.random() * 1_000_000) + 10_000}`;
+    const accountsUserId = `ausr_${suffix}`;
     const now = Date.now();
     for (const id of [authUserId, recipientAuthUserId]) {
       await env
@@ -64,25 +114,19 @@ describe("immutable FIX revision and delta ledger", () => {
         .bind(id, id, `${id}@example.invalid`, now, now)
         .run();
     }
-    await env.DB!.batch([
-      env
-        .DB!.prepare(
-          "INSERT INTO account (id, account_id, provider_id, user_id, created_at, updated_at) VALUES (?, ?, 'google', ?, ?, ?)",
-        )
-        .bind(`google-${suffix}`, `google-${suffix}`, authUserId, now, now),
-      env
-        .DB!.prepare(
-          "INSERT INTO account (id, account_id, provider_id, user_id, created_at, updated_at) VALUES (?, ?, 'github', ?, ?, ?)",
-        )
-        .bind(`github-${suffix}`, githubId, recipientAuthUserId, now, now),
-    ]);
+    await env
+      .DB!.prepare(
+        "INSERT INTO account (id, account_id, provider_id, user_id, created_at, updated_at) VALUES (?, ?, 'google', ?, ?, ?)",
+      )
+      .bind(`google-${suffix}`, `google-${suffix}`, authUserId, now, now)
+      .run();
     const owner = await provisionPointsUser(env.DB!, authUserId, () => `pusr_owner_${suffix}`);
     const recipient = await provisionPointsUser(
       env.DB!,
       recipientAuthUserId,
       () => `pusr_recipient_${suffix}`,
     );
-    await reconcilePermanentOAuthSubjects(env.DB!, recipientAuthUserId, recipient.id);
+    await seedAccountsLink(recipient.id, accountsUserId);
     await env
       .DB!.prepare("INSERT INTO admin_membership (id, points_user_id, role) VALUES (?, ?, 'ADMIN')")
       .bind(`adm_owner_${suffix}`, owner.id)
@@ -112,21 +156,21 @@ describe("immutable FIX revision and delta ledger", () => {
         session: { createdAt: new Date(), userId: authUserId },
         user: { id: authUserId },
       }),
-      githubFetch: async (request) => {
-        const login = new URL(String(request)).pathname.split("/").pop();
-        return Response.json({
-          html_url: `https://github.com/${login}`,
-          id: Number(githubId),
-          login,
-          type: "User",
-        });
-      },
+      createAccountsRecipientResolver: () =>
+        fakeResolver({
+          "https://github.com/alice": { accountsUserId, status: "matched" },
+          "https://example.com/invalid": { status: "invalid_input" },
+        }),
     });
     const requestCsv = async (path: "validate" | "commit", csv: string, headers = {}) =>
       app.fetch(
         new Request(`https://points.test/api/admin/fixes/csv/${path}`, {
           body: csv,
-          headers: { "Content-Type": "text/csv", ...headers },
+          headers: {
+            "Content-Type": "text/csv",
+            "X-Accounts-Connection-Id": "acon_fix",
+            ...headers,
+          },
           method: "POST",
         }),
         env,
@@ -178,7 +222,7 @@ describe("immutable FIX revision and delta ledger", () => {
     const sameBody = (await same.json()) as {
       data: { results: Array<{ fixRevisionId: string }> };
     };
-    const duplicateCorrectionCsv = `${FIX_HEADER}\n${fixResultId},3,https://github.com/alice,${criterionId},1,2026-07,,duplicate-a\n${fixResultId},3,https://github.com/alice/,${criterionId},2,2026-07,,duplicate-b`;
+    const duplicateCorrectionCsv = `${FIX_HEADER}\n${fixResultId},3,https://github.com/alice,${criterionId},1,2026-07,,duplicate-a\n${fixResultId},3,https://github.com/alice,${criterionId},2,2026-07,,duplicate-b`;
     const duplicateCorrection = await requestCsv("validate", duplicateCorrectionCsv);
     expect(duplicateCorrection.status).toBe(422);
     await expect(duplicateCorrection.json()).resolves.toMatchObject({
@@ -189,33 +233,90 @@ describe("immutable FIX revision and delta ledger", () => {
       ],
     });
 
-    const twoNewResultsCsv = `${FIX_HEADER}\n,,https://github.com/alice,${criterionId},1,2026-07,,new-a\n,,https://github.com/alice/,${criterionId},2,2026-07,,new-b`;
+    const twoNewResultsCsv = `${FIX_HEADER}\n,,https://github.com/alice,${criterionId},1,2026-07,,new-a\n,,https://github.com/alice,${criterionId},2,2026-07,,new-b`;
     const twoNewResults = await requestCsv("validate", twoNewResultsCsv);
     expect(twoNewResults.status).toBe(200);
+
+    const invalidIdentifier = await requestCsv(
+      "validate",
+      `${FIX_HEADER}\n,,https://example.com/invalid,${criterionId},1,2026-07,,invalid`,
+    );
+    expect(invalidIdentifier.status).toBe(422);
+    await expect(invalidIdentifier.json()).resolves.toMatchObject({
+      errors: [{ code: "RECIPIENT_IDENTIFIER_INVALID", column: "recipientProfileUrl", row: 2 }],
+    });
+
+    const unmatchedCsv = `${FIX_HEADER}\n,,https://example.com/nobody,${criterionId},2,2026-07,,unmatched`;
+    const unmatchedPreview = await requestCsv("validate", unmatchedCsv);
+    const unmatchedPreviewBody = (await unmatchedPreview.json()) as {
+      data: { validationHash: string };
+    };
+    const unmatched = await requestCsv("commit", unmatchedCsv, {
+      "Idempotency-Key": `unmatched-${suffix}`,
+      "X-Reason": "unmatched FIX",
+      "X-Validation-Hash": unmatchedPreviewBody.data.validationHash,
+    });
+    expect(unmatched.status).toBe(201);
+    const unmatchedBody = (await unmatched.json()) as {
+      data: { results: Array<{ fixRevisionId: string }> };
+    };
+    await expect(
+      env
+        .DB!.prepare(
+          `SELECT recipient_identifier_type AS type, recipient_identifier_value AS value,
+                  accounts_origin AS accountsOrigin, resolved_accounts_user_id AS resolved,
+                  delta_amount_scaled AS delta
+           FROM unclaimed_fix_entry WHERE source_fix_revision_id = ?`,
+        )
+        .bind(unmatchedBody.data.results[0]!.fixRevisionId)
+        .all(),
+    ).resolves.toMatchObject({
+      results: [
+        {
+          accountsOrigin: ACCOUNTS_ORIGIN,
+          delta: 20_000,
+          resolved: null,
+          type: "url",
+          value: "https://example.com/nobody",
+        },
+      ],
+    });
 
     const sealedRevisionId = sameBody.data.results[0]!.fixRevisionId;
     await expect(
       env
         .DB!.prepare(
           `INSERT INTO fix_revision_entry
-             (id, fix_revision_id, recipient_profile_url, evaluation_criterion_id,
+             (id, fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+              accounts_origin, accounts_resolved_at, evaluation_criterion_id,
               evaluation_criterion_revision_id, amount_scaled, evaluation_at, created_at)
-           VALUES (?, ?, 'https://freeism.app/late', ?, ?, 1, '2026-07', ?)`,
+           VALUES (?, ?, 'url', 'https://freeism.app/late', ?, ?, ?, ?, 1, '2026-07', ?)`,
         )
-        .bind(`late-entry-${suffix}`, sealedRevisionId, criterionId, `ecr_${criterionId}_1`, now)
+        .bind(
+          `late-entry-${suffix}`,
+          sealedRevisionId,
+          ACCOUNTS_ORIGIN,
+          now,
+          criterionId,
+          `ecr_${criterionId}_1`,
+          now,
+        )
         .run(),
     ).rejects.toThrow("SEALED_FIX_REVISION");
     await expect(
       env
         .DB!.prepare(
           `INSERT INTO unclaimed_fix_entry
-             (id, source_fix_revision_id, recipient_profile_url, evaluation_criterion_id,
+             (id, source_fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+              accounts_origin, accounts_resolved_at, evaluation_criterion_id,
               evaluation_criterion_revision_id, delta_amount_scaled, evaluation_at, created_at)
-           VALUES (?, ?, 'https://freeism.app/late', ?, ?, 1, '2026-07', ?)`,
+           VALUES (?, ?, 'url', 'https://freeism.app/late', ?, ?, ?, ?, 1, '2026-07', ?)`,
         )
         .bind(
           `late-unclaimed-${suffix}`,
           sealedRevisionId,
+          ACCOUNTS_ORIGIN,
+          now,
           criterionId,
           `ecr_${criterionId}_1`,
           now,

@@ -16,7 +16,6 @@ export type ProfileData = {
   description: string;
   displayName: string;
   evaluationVisibilities: EvaluationVisibility[];
-  externalUrls: string[];
   pointPackages: Array<{ displayOrder: number; pointPackageId: string }>;
   visibility: Visibility;
 };
@@ -29,7 +28,6 @@ export function ProfileSettingsForm({
   const [evaluationVisibilities, setEvaluationVisibilities] = useState<EvaluationVisibility[]>(
     initialProfile?.evaluationVisibilities ?? [],
   );
-  const [externalUrls, setExternalUrls] = useState<string[]>(initialProfile?.externalUrls ?? []);
   const [packages, setPackages] = useState<string[]>(
     initialProfile?.pointPackages.map((item) => item.pointPackageId) ?? [],
   );
@@ -55,7 +53,6 @@ export function ProfileSettingsForm({
         setDescription(body.data.description);
         setDisplayName(body.data.displayName);
         setEvaluationVisibilities(body.data.evaluationVisibilities);
-        setExternalUrls(body.data.externalUrls);
         setPackages(body.data.pointPackages.map((item) => item.pointPackageId));
         setProfileVisibility(body.data.visibility);
         setReady(true);
@@ -86,7 +83,6 @@ export function ProfileSettingsForm({
       body: JSON.stringify({
         description,
         displayName,
-        externalUrls,
         visibility: profileVisibility,
       }),
       headers: headers(),

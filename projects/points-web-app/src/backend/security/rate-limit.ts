@@ -1,8 +1,6 @@
 export const pointsRateLimitPolicies = {
   CSV_CRITERION_HOURLY: { limit: 10, windowSeconds: 60 * 60 },
   CSV_CRITERION_MINUTE: { limit: 2, windowSeconds: 60 },
-  OWNERSHIP_IDENTITY_HOURLY: { limit: 5, windowSeconds: 60 * 60 },
-  OWNERSHIP_USER_DAILY: { limit: 30, windowSeconds: 24 * 60 * 60 },
 } as const;
 
 export type PointsRateLimitOperation = keyof typeof pointsRateLimitPolicies;

@@ -1,19 +1,31 @@
 import { hashCanonicalPayload } from "../../domain/idempotency/idempotency-result";
+import {
+  recipientIdentifierKey,
+  type CreateAccountsRecipientResolver,
+  type RecipientIdentifier,
+} from "../../identity/accounts-recipient-resolver";
 
-export class OwnershipClaimError extends Error {
+export class UnclaimedFixClaimError extends Error {
   constructor(
     readonly code:
+      | "ACCOUNTS_LINK_NOT_FOUND"
       | "CLAIM_SET_CHANGED"
       | "IDEMPOTENCY_KEY_REUSED"
-      | "NO_UNCLAIMED_FIXES"
-      | "OWNERSHIP_NOT_ACTIVE"
-      | "OWNERSHIP_NOT_FOUND",
+      | "NO_UNCLAIMED_FIXES",
   ) {
     super(code);
   }
 }
 
-interface EligibleUnclaimedFix {
+/** 受領者の Accounts 連携。 */
+export interface ClaimantAccountsLink {
+  accountsConnectionId: string;
+  accountsLinkId: string;
+  accountsOrigin: string;
+  accountsUserId: string;
+}
+
+export interface EligibleUnclaimedFix {
   deltaAmountScaled: number;
   evaluationAt: string;
   evaluationCriterionId: string;
@@ -31,11 +43,107 @@ export interface ClaimPreviewAggregate {
 }
 
 export interface UnclaimedFixClaimPreview {
+  accountsLinkId: string;
   aggregates: ClaimPreviewAggregate[];
   claimSetHash: string;
-  identityOwnershipId: string;
   totalCount: number;
 }
+
+/** Accounts へ1回で照合を求める識別子の上限。 */
+const RESOLVE_CHUNK_SIZE = 1_000;
+
+// --------------------------------------------------
+// 受領資格の判定
+// --------------------------------------------------
+
+/** 本人の Accounts 連携を1件読む。 */
+export async function findClaimantAccountsLink(
+  db: D1Database,
+  accountsLinkId: string,
+  pointsUserId: string,
+): Promise<ClaimantAccountsLink> {
+  const link = await db
+    .prepare(
+      `SELECT id AS accountsLinkId, accounts_connection_id AS accountsConnectionId,
+              accounts_origin AS accountsOrigin, accounts_user_id AS accountsUserId
+       FROM accounts_links WHERE id = ? AND points_user_id = ?`,
+    )
+    .bind(accountsLinkId, pointsUserId)
+    .first<ClaimantAccountsLink>();
+  if (!link) throw new UnclaimedFixClaimError("ACCOUNTS_LINK_NOT_FOUND");
+  return link;
+}
+
+/** 本人の現在の Accounts 連携をすべて読む。 */
+export async function listClaimantAccountsLinks(
+  db: D1Database,
+  pointsUserId: string,
+): Promise<ClaimantAccountsLink[]> {
+  const links = await db
+    .prepare(
+      `SELECT id AS accountsLinkId, accounts_connection_id AS accountsConnectionId,
+              accounts_origin AS accountsOrigin, accounts_user_id AS accountsUserId
+       FROM accounts_links WHERE points_user_id = ? ORDER BY id`,
+    )
+    .bind(pointsUserId)
+    .all<ClaimantAccountsLink>();
+  return links.results;
+}
+
+/**
+ * 連携1件について、受領資格のある未受領エントリーを返す。
+ * 同じ origin の未受領エントリーの識別子を Accounts で現在の状態として照合し、連携先の Accounts ユーザーに一致したものを返す。
+ * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ */
+export async function loadEligibleUnclaimedFixes(
+  db: D1Database,
+  link: ClaimantAccountsLink,
+  createResolver: CreateAccountsRecipientResolver,
+): Promise<EligibleUnclaimedFix[]> {
+  const candidates = await db
+    .prepare(
+      `SELECT entry.id, entry.source_fix_revision_id AS sourceFixRevisionId,
+              entry.evaluation_criterion_id AS evaluationCriterionId,
+              entry.evaluation_criterion_revision_id AS evaluationCriterionRevisionId,
+              entry.delta_amount_scaled AS deltaAmountScaled, entry.evaluation_at AS evaluationAt,
+              entry.recipient_identifier_type AS type, entry.recipient_identifier_value AS value
+       FROM unclaimed_fix_entry entry
+       WHERE entry.accounts_origin = ?
+         AND NOT EXISTS (
+           SELECT 1 FROM fix_claim_item item WHERE item.unclaimed_fix_entry_id = entry.id
+         )
+       ORDER BY entry.id`,
+    )
+    .bind(link.accountsOrigin)
+    .all<EligibleUnclaimedFix & RecipientIdentifier>();
+  if (candidates.results.length === 0) return [];
+
+  const identifiers = [
+    ...new Map(
+      candidates.results.map((candidate) => [
+        recipientIdentifierKey(candidate),
+        { type: candidate.type, value: candidate.value },
+      ]),
+    ).values(),
+  ];
+  const resolve = createResolver(link.accountsConnectionId);
+  const matchedKeys = new Set<string>();
+  for (let start = 0; start < identifiers.length; start += RESOLVE_CHUNK_SIZE) {
+    const chunk = identifiers.slice(start, start + RESOLVE_CHUNK_SIZE);
+    const { results } = await resolve(chunk);
+    results.forEach((result, index) => {
+      if (result.status === "matched" && result.accountsUserId === link.accountsUserId)
+        matchedKeys.add(recipientIdentifierKey(chunk[index]!));
+    });
+  }
+  return candidates.results
+    .filter((candidate) => matchedKeys.has(recipientIdentifierKey(candidate)))
+    .map(({ type: _type, value: _value, ...entry }) => entry);
+}
+
+// --------------------------------------------------
+// 受領の preview と確定
+// --------------------------------------------------
 
 async function findClaimReplay(
   db: D1Database,
@@ -53,7 +161,8 @@ async function findClaimReplay(
     .bind(pointsUserId, idempotencyKey)
     .first<{ payloadHash: string; responseBody: string | unknown; status: number }>();
   if (!replay) return null;
-  if (replay.payloadHash !== payloadHash) throw new OwnershipClaimError("IDEMPOTENCY_KEY_REUSED");
+  if (replay.payloadHash !== payloadHash)
+    throw new UnclaimedFixClaimError("IDEMPOTENCY_KEY_REUSED");
   return {
     responseBody:
       typeof replay.responseBody === "string"
@@ -65,72 +174,10 @@ async function findClaimReplay(
 
 interface InternalPreview extends UnclaimedFixClaimPreview {
   entries: EligibleUnclaimedFix[];
-  ownershipEpochId: string;
-}
-
-const eligibleUnclaimedSql = `
-  FROM unclaimed_fix_entry entry
-  JOIN identity_ownership ownership ON ownership.id = ?
-  JOIN ownership_epoch epoch ON epoch.id = ownership.current_ownership_epoch_id
-  WHERE ownership.points_user_id = ?
-    AND ownership.status = 'ACTIVE'
-    AND epoch.owner_points_user_id = ownership.points_user_id
-    AND NOT EXISTS (
-      SELECT 1 FROM fix_claim_item item WHERE item.unclaimed_fix_entry_id = entry.id
-    )
-    AND (
-      (ownership.identity_type = 'WEB_URL'
-        AND entry.recipient_provider_id IS NULL
-        AND entry.recipient_profile_url = ownership.normalized_identity_key)
-      OR
-      (ownership.identity_type = 'GITHUB_OAUTH'
-        AND entry.recipient_provider_id = 'github'
-        AND 'github:' || entry.recipient_account_id = ownership.normalized_identity_key)
-    )
-    AND (
-      ownership.identity_type = 'GITHUB_OAUTH'
-      OR NOT EXISTS (
-        SELECT 1 FROM ownership_epoch previous
-        WHERE previous.identity_ownership_id = ownership.id AND previous.id <> epoch.id
-      )
-      OR (CASE length(entry.evaluation_at)
-        WHEN 7 THEN unixepoch(entry.evaluation_at || '-01T00:00:00Z') * 1000
-        WHEN 10 THEN unixepoch(entry.evaluation_at || 'T00:00:00Z') * 1000
-        ELSE unixepoch(entry.evaluation_at) * 1000
-      END) >= epoch.effective_at
-    )`;
-
-async function loadEligibleEntries(
-  db: D1Database,
-  identityOwnershipId: string,
-  pointsUserId: string,
-): Promise<{ entries: EligibleUnclaimedFix[]; ownershipEpochId: string }> {
-  const ownership = await db
-    .prepare(
-      `SELECT current_ownership_epoch_id AS ownershipEpochId, status
-       FROM identity_ownership WHERE id = ? AND points_user_id = ?`,
-    )
-    .bind(identityOwnershipId, pointsUserId)
-    .first<{ ownershipEpochId: string; status: string }>();
-  if (!ownership) throw new OwnershipClaimError("OWNERSHIP_NOT_FOUND");
-  if (ownership.status !== "ACTIVE") throw new OwnershipClaimError("OWNERSHIP_NOT_ACTIVE");
-  const rows = await db
-    .prepare(
-      `SELECT entry.id, entry.source_fix_revision_id AS sourceFixRevisionId,
-              entry.evaluation_criterion_id AS evaluationCriterionId,
-              entry.evaluation_criterion_revision_id AS evaluationCriterionRevisionId,
-              entry.delta_amount_scaled AS deltaAmountScaled, entry.evaluation_at AS evaluationAt
-       ${eligibleUnclaimedSql}
-       ORDER BY entry.id`,
-    )
-    .bind(identityOwnershipId, pointsUserId)
-    .all<EligibleUnclaimedFix>();
-  return { entries: rows.results, ownershipEpochId: ownership.ownershipEpochId };
 }
 
 async function buildPreview(
-  identityOwnershipId: string,
-  ownershipEpochId: string,
+  link: ClaimantAccountsLink,
   entries: EligibleUnclaimedFix[],
 ): Promise<InternalPreview> {
   const byCriterion = new Map<string, ClaimPreviewAggregate>();
@@ -150,69 +197,71 @@ async function buildPreview(
     byCriterion.set(entry.evaluationCriterionId, aggregate);
   }
   const claimSetHash = await hashCanonicalPayload({
-    entries: entries.map((entry) => ({
-      deltaAmountScaled: entry.deltaAmountScaled,
-      evaluationAt: entry.evaluationAt,
-      evaluationCriterionId: entry.evaluationCriterionId,
-      evaluationCriterionRevisionId: entry.evaluationCriterionRevisionId,
-      id: entry.id,
-      sourceFixRevisionId: entry.sourceFixRevisionId,
-    })),
-    ownershipEpochId,
+    accountsOrigin: link.accountsOrigin,
+    accountsUserId: link.accountsUserId,
+    entries,
   });
   return {
+    accountsLinkId: link.accountsLinkId,
     aggregates: [...byCriterion.values()].sort((left, right) =>
       left.evaluationCriterionId.localeCompare(right.evaluationCriterionId),
     ),
     claimSetHash,
     entries,
-    identityOwnershipId,
-    ownershipEpochId,
     totalCount: entries.length,
   };
 }
 
+async function loadPreview(
+  db: D1Database,
+  input: {
+    accountsLinkId: string;
+    createResolver: CreateAccountsRecipientResolver;
+    pointsUserId: string;
+  },
+): Promise<{ link: ClaimantAccountsLink; preview: InternalPreview }> {
+  const link = await findClaimantAccountsLink(db, input.accountsLinkId, input.pointsUserId);
+  const entries = await loadEligibleUnclaimedFixes(db, link, input.createResolver);
+  return { link, preview: await buildPreview(link, entries) };
+}
+
+/** 連携1件について、受領できる未受領 FIX の集計を返す。 */
 export async function previewUnclaimedFixes(
   db: D1Database,
-  identityOwnershipId: string,
-  pointsUserId: string,
+  input: {
+    accountsLinkId: string;
+    createResolver: CreateAccountsRecipientResolver;
+    pointsUserId: string;
+  },
 ): Promise<UnclaimedFixClaimPreview> {
-  const loaded = await loadEligibleEntries(db, identityOwnershipId, pointsUserId);
-  const {
-    entries: _entries,
-    ownershipEpochId: _epoch,
-    ...preview
-  } = await buildPreview(identityOwnershipId, loaded.ownershipEpochId, loaded.entries);
+  const { entries: _entries, ...preview } = (await loadPreview(db, input)).preview;
   return preview;
 }
 
+/** preview と同じ集合であることを確かめて、未受領 FIX をまとめて受領する。 */
 export async function claimUnclaimedFixes(
   db: D1Database,
   input: {
+    accountsLinkId: string;
     claimSetHash: string;
+    createResolver: CreateAccountsRecipientResolver;
     idempotencyKey: string;
-    identityOwnershipId: string;
     now: Date;
     pointsUserId: string;
     requestId: string;
   },
 ): Promise<{ responseBody: unknown; status: number }> {
   const payloadHash = await hashCanonicalPayload({
+    accountsLinkId: input.accountsLinkId,
     claimSetHash: input.claimSetHash,
-    identityOwnershipId: input.identityOwnershipId,
   });
   const replay = await findClaimReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
   if (replay) return replay;
 
-  const loaded = await loadEligibleEntries(db, input.identityOwnershipId, input.pointsUserId);
-  const preview = await buildPreview(
-    input.identityOwnershipId,
-    loaded.ownershipEpochId,
-    loaded.entries,
-  );
+  const { link, preview } = await loadPreview(db, input);
   if (preview.claimSetHash !== input.claimSetHash)
-    throw new OwnershipClaimError("CLAIM_SET_CHANGED");
-  if (preview.entries.length === 0) throw new OwnershipClaimError("NO_UNCLAIMED_FIXES");
+    throw new UnclaimedFixClaimError("CLAIM_SET_CHANGED");
+  if (preview.entries.length === 0) throw new UnclaimedFixClaimError("NO_UNCLAIMED_FIXES");
 
   const claimId = `fixclaim_${crypto.randomUUID()}`;
   const commandId = `fixclaimcmd_${crypto.randomUUID()}`;
@@ -242,42 +291,35 @@ export async function claimUnclaimedFixes(
   const guard = db
     .prepare(
       `INSERT INTO fix_claim_command
-         (id, identity_ownership_id, ownership_epoch_id, actor_points_user_id,
+         (id, accounts_origin, accounts_user_id, actor_points_user_id,
           expected_entry_ids, claim_set_hash, created_at)
-       SELECT ?, ownership.id, epoch.id, ownership.points_user_id, ?, ?, ?
-       FROM identity_ownership ownership
-       JOIN ownership_epoch epoch ON epoch.id = ownership.current_ownership_epoch_id
-       WHERE ownership.id = ? AND ownership.points_user_id = ? AND ownership.status = 'ACTIVE'
-         AND epoch.id = ?
-         AND ? = COALESCE((
-           SELECT json_group_array(id) FROM (
-             SELECT entry.id ${eligibleUnclaimedSql} ORDER BY entry.id
-           )
-         ), '[]')`,
+       SELECT ?, link.accounts_origin, link.accounts_user_id, link.points_user_id, ?, ?, ?
+       FROM accounts_links link
+       WHERE link.id = ? AND link.points_user_id = ?
+         AND link.accounts_origin = ? AND link.accounts_user_id = ?`,
     )
     .bind(
       commandId,
       expectedEntryIds,
       preview.claimSetHash,
       claimedAt,
-      input.identityOwnershipId,
+      link.accountsLinkId,
       input.pointsUserId,
-      preview.ownershipEpochId,
-      expectedEntryIds,
-      input.identityOwnershipId,
-      input.pointsUserId,
+      link.accountsOrigin,
+      link.accountsUserId,
     );
   const claim = db
     .prepare(
       `INSERT INTO fix_claim
-         (id, command_id, ownership_epoch_id, points_user_id, claim_set_hash,
+         (id, command_id, accounts_origin, accounts_user_id, points_user_id, claim_set_hash,
           item_count, request_id, idempotency_key, claimed_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       claimId,
       commandId,
-      preview.ownershipEpochId,
+      link.accountsOrigin,
+      link.accountsUserId,
       input.pointsUserId,
       preview.claimSetHash,
       preview.entries.length,
@@ -340,7 +382,7 @@ export async function claimUnclaimedFixes(
     .bind(
       `audit_${crypto.randomUUID()}`,
       input.pointsUserId,
-      input.identityOwnershipId,
+      link.accountsLinkId,
       input.requestId,
       claimedAt,
     );
@@ -362,7 +404,7 @@ export async function claimUnclaimedFixes(
         payloadHash,
       );
       if (concurrentReplay) return concurrentReplay;
-      if (isForeignKeyConflict) throw new OwnershipClaimError("CLAIM_SET_CHANGED");
+      if (isForeignKeyConflict) throw new UnclaimedFixClaimError("CLAIM_SET_CHANGED");
     }
     throw error;
   }

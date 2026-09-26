@@ -12,7 +12,6 @@ type PublicProfile = {
     evaluationTotal?: string;
     name: string;
   }>;
-  externalIdentities: Array<{ identityType: string; profileUrl: string }>;
   pointPackages: Array<{ name: string; pointPackageId: string }>;
   pointsUserId: string;
 };

@@ -1,5 +1,6 @@
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
 import { sha256Hex } from "../csv/csv-validation-result";
+import type { AccountsRecipientResolver } from "../identity/accounts-recipient-resolver";
 import {
   commitFixRows,
   findFixCommitReplay,
@@ -13,12 +14,10 @@ export async function commitFixCsv(
   input: {
     actorPointsUserId: string;
     expectedValidationHash: string;
-    githubClientId: string;
-    githubClientSecret: string;
-    githubFetch?: typeof fetch;
     idempotencyKey: string;
     now?: Date;
     reason: string;
+    resolveRecipients: AccountsRecipientResolver;
   },
 ): Promise<{
   replay: boolean;
@@ -39,10 +38,7 @@ export async function commitFixCsv(
   );
   if (saved) return { replay: true, responseBody: saved.body, results: [], status: saved.status };
   const validated = await validateFixCsv(db, bytes, {
-    githubClientId: input.githubClientId,
-    githubClientSecret: input.githubClientSecret,
-    githubFetch: input.githubFetch,
-    now: input.now,
+    resolveRecipients: input.resolveRecipients,
   });
   if (validated.errors.length > 0)
     throw Object.assign(new Error("CSV_VALIDATION_FAILED"), { errors: validated.errors });

@@ -11,7 +11,6 @@ import { writeStructuredLog } from "../src/backend/observability/structured-logg
 import { cleanupResolvedOpsAlerts } from "../src/backend/observability/cleanup-ops-alerts";
 import { cleanupExpiredCsvExports } from "../src/backend/usecases/cleanup-expired-csv-exports";
 import { reapExpiredPointsLinkAttempts } from "../src/backend/usecases/reap-expired-points-link-attempts";
-import { runDueWebRevalidations } from "../src/backend/usecases/run-due-web-revalidations";
 import { withSecurityHeaders } from "./security-headers";
 import { isSpaNavigationRequest } from "./spa-fallback";
 
@@ -124,10 +123,7 @@ export async function scheduledPoints(controller: ScheduledController, env: Env)
     ]);
   }
   if (cron === "*/15 * * * *") {
-    await runCronJobs(env, cron, [
-      () => runDueWebRevalidations(env.DB!),
-      () => reapExpiredPointsLinkAttempts(env.DB!),
-    ]);
+    await runCronJobs(env, cron, [() => reapExpiredPointsLinkAttempts(env.DB!)]);
   }
 }
 

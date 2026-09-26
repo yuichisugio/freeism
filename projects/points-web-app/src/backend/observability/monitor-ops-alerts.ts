@@ -19,17 +19,7 @@ export async function inspectPointsOpsAlerts(
   now: number,
   resourceHashSalt = "points-ops-alert",
 ): Promise<ObservedOpsAlert[]> {
-  const [laggingJobs, stuckCommands, stuckRevocations, reconciliation] = await Promise.all([
-    db
-      .prepare(
-        `SELECT identity_ownership_id AS resourceId
-         FROM ownership_revalidation_job
-         WHERE status IN ('PENDING', 'LEASED')
-           AND due_at <= ?
-         ORDER BY identity_ownership_id`,
-      )
-      .bind(now - 15 * MINUTE)
-      .all<{ resourceId: string }>(),
+  const [stuckCommands, stuckRevocations, reconciliation] = await Promise.all([
     db
       .prepare(
         `SELECT id AS resourceId FROM idempotency_results
@@ -48,15 +38,6 @@ export async function inspectPointsOpsAlerts(
   ]);
 
   const alerts: ObservedOpsAlert[] = [];
-  for (const row of laggingJobs.results) {
-    const resourceIdHash = await hashOpsResourceId(row.resourceId, resourceHashSalt);
-    alerts.push({
-      alertKey: `ownership-scheduler-lag:${resourceIdHash}`,
-      resourceIdHash,
-      safeDetailCode: "DUE_OVER_15_MINUTES",
-      type: "OWNERSHIP_SCHEDULER_LAG",
-    });
-  }
   for (const row of [...stuckCommands.results, ...stuckRevocations.results]) {
     const resourceIdHash = await hashOpsResourceId(row.resourceId, resourceHashSalt);
     alerts.push({

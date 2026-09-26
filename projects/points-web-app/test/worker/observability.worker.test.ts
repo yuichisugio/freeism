@@ -133,11 +133,11 @@ describe("structured Workers observability", () => {
 });
 
 describe("ops alert monitor", () => {
-  const lagAlert: ObservedOpsAlert = {
-    alertKey: "ownership-scheduler-lag:hash-1",
+  const stuckAlert: ObservedOpsAlert = {
+    alertKey: "command-outbox-stuck:hash-1",
     resourceIdHash: "hash-1",
-    safeDetailCode: "DUE_OVER_15_MINUTES",
-    type: "OWNERSHIP_SCHEDULER_LAG",
+    safeDetailCode: "PENDING_OVER_5_MINUTES",
+    type: "COMMAND_OUTBOX_STUCK",
   };
 
   it("opens, deduplicates, repeats after one hour, and notifies resolution", async () => {
@@ -147,17 +147,17 @@ describe("ops alert monitor", () => {
     };
 
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 5 * 60_000,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 60 * 60_000,
     });
@@ -168,15 +168,15 @@ describe("ops alert monitor", () => {
     });
 
     expect(notifications).toEqual([
-      { alertKey: lagAlert.alertKey, status: "OPEN" },
-      { alertKey: lagAlert.alertKey, status: "OPEN" },
-      { alertKey: lagAlert.alertKey, status: "RESOLVED" },
+      { alertKey: stuckAlert.alertKey, status: "OPEN" },
+      { alertKey: stuckAlert.alertKey, status: "OPEN" },
+      { alertKey: stuckAlert.alertKey, status: "RESOLVED" },
     ]);
     const alert = await env.DB.prepare(
       `SELECT status, repeat_count AS repeatCount, resolved_at AS resolvedAt
        FROM ops_alert WHERE alert_key = ?`,
     )
-      .bind(lagAlert.alertKey)
+      .bind(stuckAlert.alertKey)
       .first<{ repeatCount: number; resolvedAt: number | null; status: string }>();
     expect(alert).toEqual({
       repeatCount: 3,
@@ -192,12 +192,12 @@ describe("ops alert monitor", () => {
       .mockResolvedValue(undefined);
 
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 5 * 60_000,
     });

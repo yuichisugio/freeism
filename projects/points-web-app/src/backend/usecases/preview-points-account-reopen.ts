@@ -1,4 +1,10 @@
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
+import type { CreateAccountsRecipientResolver } from "../identity/accounts-recipient-resolver";
+import {
+  listClaimantAccountsLinks,
+  loadEligibleUnclaimedFixes,
+  type EligibleUnclaimedFix,
+} from "../infrastructure/db/d1-unclaimed-fix-claim-repository";
 
 export class PointsAccountReopenError extends Error {
   constructor(
@@ -20,15 +26,9 @@ export interface ReopenFixAggregate {
   totalCount: number;
 }
 
-interface ReopenFixEntry {
-  deltaAmountScaled: number;
-  evaluationAt: string;
-  evaluationCriterionId: string;
-  evaluationCriterionRevisionId: string;
-  id: string;
-  identityOwnershipId: string;
-  ownershipEpochId: string;
-  sourceFixRevisionId: string;
+interface ReopenFixEntry extends EligibleUnclaimedFix {
+  accountsOrigin: string;
+  accountsUserId: string;
 }
 
 export interface PointsAccountReopenPreview {
@@ -41,33 +41,16 @@ export interface InternalPointsAccountReopenPreview extends PointsAccountReopenP
   entries: ReopenFixEntry[];
 }
 
-export const eligibleReopenFixSql = `
-  FROM unclaimed_fix_entry entry
-  JOIN permanent_oauth_subject subject
-    ON subject.points_user_id = ?
-   AND subject.provider_id = entry.recipient_provider_id
-   AND subject.account_id = entry.recipient_account_id
-  JOIN identity_ownership ownership
-    ON ownership.points_user_id = subject.points_user_id
-   AND ownership.identity_type = 'GITHUB_OAUTH'
-   AND ownership.permanent_correspondence = 1
-   AND ownership.normalized_identity_key = 'github:' || subject.account_id
-  JOIN ownership_epoch epoch ON epoch.id = ownership.current_ownership_epoch_id
-  JOIN account_close_ownership_suspension suspension
-    ON suspension.identity_ownership_id = ownership.id
-   AND suspension.points_user_id = subject.points_user_id
-   AND suspension.restored_at IS NULL
-  WHERE NOT EXISTS (
-      SELECT 1 FROM fix_claim_item item WHERE item.unclaimed_fix_entry_id = entry.id
-    )
-    AND NOT EXISTS (
-      SELECT 1 FROM point_ledger_entry ledger
-      WHERE ledger.source_unclaimed_fix_entry_id = entry.id
-    )`;
-
+/**
+ * reopen で受領する未受領 FIX を集計する。
+ * 受領資格は未受領 FIX の受領と同じ規則を、本人の現在の Accounts 連携に適用して決める。
+ * close で連携を全解除するため、通常は空集合になる。
+ * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ */
 export async function loadPointsAccountReopenPreview(
   db: D1Database,
   pointsUserId: string,
+  createResolver: CreateAccountsRecipientResolver,
 ): Promise<InternalPointsAccountReopenPreview> {
   const account = await db
     .prepare("SELECT account_status AS accountStatus FROM points_user WHERE id = ?")
@@ -77,22 +60,20 @@ export async function loadPointsAccountReopenPreview(
     throw new PointsAccountReopenError("ACCOUNT_NOT_CLOSED");
   }
 
-  const entries = await db
-    .prepare(
-      `SELECT entry.id, entry.source_fix_revision_id AS sourceFixRevisionId,
-              ownership.id AS identityOwnershipId, epoch.id AS ownershipEpochId,
-              entry.evaluation_criterion_id AS evaluationCriterionId,
-              entry.evaluation_criterion_revision_id AS evaluationCriterionRevisionId,
-              entry.delta_amount_scaled AS deltaAmountScaled,
-              entry.evaluation_at AS evaluationAt
-       ${eligibleReopenFixSql}
-       ORDER BY entry.id`,
-    )
-    .bind(pointsUserId)
-    .all<ReopenFixEntry>();
+  const entries: ReopenFixEntry[] = [];
+  for (const link of await listClaimantAccountsLinks(db, pointsUserId)) {
+    const eligible = await loadEligibleUnclaimedFixes(db, link, createResolver);
+    entries.push(
+      ...eligible.map((entry) => ({
+        ...entry,
+        accountsOrigin: link.accountsOrigin,
+        accountsUserId: link.accountsUserId,
+      })),
+    );
+  }
 
   const byCriterion = new Map<string, ReopenFixAggregate>();
-  for (const entry of entries.results) {
+  for (const entry of entries) {
     const aggregate = byCriterion.get(entry.evaluationCriterionId) ?? {
       evaluationCriterionId: entry.evaluationCriterionId,
       negativeCount: 0,
@@ -114,16 +95,21 @@ export async function loadPointsAccountReopenPreview(
     aggregates: [...byCriterion.values()].sort((left, right) =>
       left.evaluationCriterionId.localeCompare(right.evaluationCriterionId),
     ),
-    entries: entries.results,
-    reopenSetHash: await hashCanonicalPayload({ entries: entries.results }),
-    totalCount: entries.results.length,
+    entries,
+    reopenSetHash: await hashCanonicalPayload({ entries }),
+    totalCount: entries.length,
   };
 }
 
 export async function previewPointsAccountReopen(
   db: D1Database,
   pointsUserId: string,
+  createResolver: CreateAccountsRecipientResolver,
 ): Promise<PointsAccountReopenPreview> {
-  const { entries: _entries, ...preview } = await loadPointsAccountReopenPreview(db, pointsUserId);
+  const { entries: _entries, ...preview } = await loadPointsAccountReopenPreview(
+    db,
+    pointsUserId,
+    createResolver,
+  );
   return preview;
 }

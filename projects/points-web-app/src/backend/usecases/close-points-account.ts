@@ -134,51 +134,13 @@ export async function closePointsAccount(
           input.pointsUserId,
         ),
       db
-        .prepare(
-          `INSERT INTO account_close_ownership_suspension
-             (id, close_receipt_id, points_user_id, identity_ownership_id, suspended_at)
-           SELECT 'acos_' || lower(hex(randomblob(16))), ?, ?, ownership.id, ?
-           FROM identity_ownership ownership
-           WHERE ownership.points_user_id = ? AND ownership.permanent_correspondence = 1
-             AND ownership.status = 'ACTIVE' AND ${guardSql}`,
-        )
-        .bind(
-          closeReceiptId,
-          input.pointsUserId,
-          now,
-          input.pointsUserId,
-          input.pointsUserId,
-          input.idempotencyKey,
-          payloadHash,
-        ),
-      db
-        .prepare(
-          `UPDATE identity_ownership SET status = 'INACTIVE'
-           WHERE points_user_id = ? AND permanent_correspondence = 1 AND status = 'ACTIVE'
-             AND ${guardSql}`,
-        )
-        .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `UPDATE ownership_epoch SET ended_at = ?
-           WHERE ended_at IS NULL AND id IN (
-             SELECT current_ownership_epoch_id FROM identity_ownership
-             WHERE points_user_id = ? AND identity_type = 'WEB_URL' AND status = 'ACTIVE'
-           ) AND ${guardSql}`,
-        )
-        .bind(now, input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `UPDATE identity_ownership SET status = 'INACTIVE'
-           WHERE points_user_id = ? AND identity_type = 'WEB_URL' AND status = 'ACTIVE'
-             AND ${guardSql}`,
-        )
+        .prepare(`DELETE FROM accounts_links WHERE points_user_id = ? AND ${guardSql}`)
         .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
       db
         .prepare(
           `UPDATE profiles
-           SET display_name = 'Closed account', description = '', external_urls = '[]',
-               visibility = 'PRIVATE', updated_at = ?
+           SET display_name = 'Closed account', description = '', visibility = 'PRIVATE',
+               updated_at = ?
            WHERE points_user_id = ? AND ${guardSql}`,
         )
         .bind(now, input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),

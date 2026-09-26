@@ -6,7 +6,6 @@ export const pointsTurnstileActions = {
   CLAIM: "points_claim",
   CSV: "points_csv",
   OAUTH_START: "points_oauth_start",
-  OWNERSHIP_VERIFY: "points_ownership_verify",
 } as const;
 
 export type PointsTurnstileOperation = keyof typeof pointsTurnstileActions;

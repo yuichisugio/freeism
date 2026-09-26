@@ -148,6 +148,13 @@
       "when": 1783948263253,
       "tag": "0020_points-security-controls",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1790384435410,
+      "tag": "0021_accounts-client-integration",
+      "breakpoints": true
     }
   ]
 }

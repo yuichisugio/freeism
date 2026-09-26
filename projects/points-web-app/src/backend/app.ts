@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 
 import { createPointsAuth } from "./auth/create-auth";
-import { getGitHubAccessToken, type GetGitHubAccessToken } from "./auth/github-identity-grant";
 import type { BackendContext } from "./http/context";
+import type { CreateAccountsRecipientResolver } from "./identity/accounts-recipient-resolver";
 import { registerAccountRoutes } from "./http/routes/account-routes";
 import { registerAdminRoutes } from "./http/routes/admin-routes";
 import { registerAuthRoutes } from "./http/routes/auth-routes";
@@ -11,7 +11,6 @@ import { registerEvaluationImportRoutes } from "./http/routes/evaluation-import-
 import { registerExportRoutes } from "./http/routes/export-routes";
 import { registerDistributionRoutes } from "./http/routes/distribution-routes";
 import { registerFixRoutes } from "./http/routes/fix-routes";
-import { registerOwnershipRoutes } from "./http/routes/ownership-routes";
 import { registerOAuthResourceRoutes } from "./http/routes/oauth-resource-routes";
 import { registerOpsRoutes } from "./http/routes/ops-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
@@ -22,10 +21,7 @@ import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
   getSession: GetSession;
-  getGitHubAccessToken?: GetGitHubAccessToken;
-  githubFetch?: typeof fetch;
-  githubRevokeFetch?: typeof fetch;
-  webOwnershipFetch?: typeof fetch;
+  createAccountsRecipientResolver?: CreateAccountsRecipientResolver;
 }
 
 const defaultDependencies: PointsBackendDependencies = {
@@ -37,17 +33,16 @@ export function createPointsBackendApp(
 ) {
   const app = new Hono<BackendContext>();
   registerAuthRoutes(app);
-  registerAccountRoutes(app, dependencies.getSession);
+  registerAccountRoutes(app, dependencies.getSession, {
+    createAccountsRecipientResolver: dependencies.createAccountsRecipientResolver,
+  });
   registerEvaluationRoutes(app);
   registerEvaluationImportRoutes(app, dependencies.getSession);
   registerExportRoutes(app, dependencies.getSession);
   registerDistributionRoutes(app, dependencies.getSession);
   registerAdminRoutes(app, dependencies.getSession);
-  registerFixRoutes(app, dependencies.getSession, { githubFetch: dependencies.githubFetch });
-  registerOwnershipRoutes(app, dependencies.getSession, {
-    getGitHubAccessToken: dependencies.getGitHubAccessToken ?? getGitHubAccessToken,
-    githubRevokeFetch: dependencies.githubRevokeFetch,
-    webOwnershipFetch: dependencies.webOwnershipFetch,
+  registerFixRoutes(app, dependencies.getSession, {
+    createAccountsRecipientResolver: dependencies.createAccountsRecipientResolver,
   });
   registerOAuthResourceRoutes(app);
   registerOpsRoutes(app);

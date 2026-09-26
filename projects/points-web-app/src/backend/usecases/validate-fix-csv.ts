@@ -2,12 +2,13 @@ import { parseAndValidateCsv } from "../csv/csv-input";
 import { defineCsvSchema, textColumn } from "../csv/csv-schema";
 import { canonicalJson, sha256Hex, type CsvValidationError } from "../csv/csv-validation-result";
 import { scaledAmountCodec } from "../domain/money/scaled-amount";
-import { normalizeIdentityUrl } from "../domain/ownership/normalize-identity-url";
 import {
-  normalizeGitHubProfileUrl,
-  resolveGitHubProfileRecipients,
-} from "../identity/github-profile-recipient-resolver";
-import { observeGitHubApiBudget, reserveGitHubApiBudget } from "../identity/github-api-budget";
+  recipientBusinessKey,
+  recipientIdentifierKey,
+  type AccountsRecipientResolver,
+  type RecipientIdentifier,
+  type RecipientIdentifierType,
+} from "../identity/accounts-recipient-resolver";
 
 interface FixCsvFields {
   fixResultId: string;
@@ -23,13 +24,14 @@ interface FixCsvFields {
 export type FixCsvRow = FixCsvFields & Record<string, string>;
 
 export interface ValidatedFixCsvRow extends FixCsvFields {
+  accountsOrigin: string;
   amountScaled: number;
   evaluationCriterionRevisionId: string;
   minimumUnitScaled: number;
-  normalizedRecipientProfileUrl: string;
-  recipientAccountId: string | null;
-  recipientProviderId: "github" | null;
+  recipientIdentifierType: RecipientIdentifierType;
+  recipientIdentifierValue: string;
   recipientPointsUserId: string | null;
+  resolvedAccountsUserId: string | null;
 }
 
 export interface ValidatedFixCsv {
@@ -83,69 +85,23 @@ async function findCriteria(
   return new Map(rows.results.map((row) => [row.id, row]));
 }
 
-async function findRegisteredRecipients(
+/** 照合で得た Accounts ユーザーのうち、Points に連携済みのものを Points ユーザーへ対応付ける。 */
+async function findLinkedRecipients(
   db: D1Database,
-  accountIds: readonly string[],
+  accountsOrigin: string,
+  accountsUserIds: readonly string[],
 ): Promise<Map<string, string>> {
-  if (accountIds.length === 0) return new Map();
+  if (accountsUserIds.length === 0) return new Map();
   const rows = await db
     .prepare(
-      `SELECT subject.account_id AS accountId, subject.points_user_id AS pointsUserId
-       FROM permanent_oauth_subject subject
-       JOIN points_user ON points_user.id = subject.points_user_id
-       JOIN account
-         ON account.provider_id = subject.provider_id
-        AND account.account_id = subject.account_id
-        AND account.user_id = points_user.auth_user_id
-       JOIN identity_ownership ownership
-         ON ownership.identity_type = 'GITHUB_OAUTH'
-        AND ownership.normalized_identity_key = 'github:' || subject.account_id
-        AND ownership.points_user_id = subject.points_user_id
-        AND ownership.status = 'ACTIVE'
-        AND ownership.permanent_correspondence = 1
-       JOIN json_each(?) input ON input.value = subject.account_id
-       WHERE subject.provider_id = 'github'`,
+      `SELECT link.accounts_user_id AS accountsUserId, link.points_user_id AS pointsUserId
+       FROM accounts_links link
+       JOIN json_each(?) input ON input.value = link.accounts_user_id
+       WHERE link.accounts_origin = ?`,
     )
-    .bind(canonicalJson([...new Set(accountIds)]))
-    .all<{ accountId: string; pointsUserId: string }>();
-  return new Map(rows.results.map((row) => [row.accountId, row.pointsUserId]));
-}
-
-async function findWebOwnershipRecipients(
-  db: D1Database,
-  rows: ReadonlyArray<{ evaluationAt: string; normalizedRecipientProfileUrl: string }>,
-): Promise<Map<string, string>> {
-  if (rows.length === 0) return new Map();
-  const inputs = rows.map((row) => ({
-    evaluationAt: row.evaluationAt,
-    key: `${row.normalizedRecipientProfileUrl}\u0000${row.evaluationAt}`,
-    normalizedUrl: row.normalizedRecipientProfileUrl,
-  }));
-  const result = await db
-    .prepare(
-      `SELECT json_extract(input.value, '$.key') AS lookupKey,
-              epoch.owner_points_user_id AS pointsUserId
-       FROM json_each(?) input
-       JOIN identity_ownership ownership
-         ON ownership.identity_type = 'WEB_URL'
-        AND ownership.normalized_identity_key = json_extract(input.value, '$.normalizedUrl')
-       JOIN ownership_epoch epoch ON epoch.identity_ownership_id = ownership.id
-       WHERE (epoch.ended_at IS NOT NULL OR ownership.status = 'ACTIVE')
-         AND (CASE length(json_extract(input.value, '$.evaluationAt'))
-           WHEN 7 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || '-01T00:00:00Z') * 1000
-           WHEN 10 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || 'T00:00:00Z') * 1000
-           ELSE unixepoch(json_extract(input.value, '$.evaluationAt')) * 1000
-         END) >= epoch.effective_at
-         AND (epoch.ended_at IS NULL OR (CASE length(json_extract(input.value, '$.evaluationAt'))
-           WHEN 7 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || '-01T00:00:00Z') * 1000
-           WHEN 10 THEN unixepoch(json_extract(input.value, '$.evaluationAt') || 'T00:00:00Z') * 1000
-           ELSE unixepoch(json_extract(input.value, '$.evaluationAt')) * 1000
-         END) < epoch.ended_at)
-       ORDER BY lookupKey, epoch.effective_at`,
-    )
-    .bind(canonicalJson(inputs))
-    .all<{ lookupKey: string; pointsUserId: string }>();
-  return new Map(result.results.map((row) => [row.lookupKey, row.pointsUserId]));
+    .bind(canonicalJson([...new Set(accountsUserIds)]), accountsOrigin)
+    .all<{ accountsUserId: string; pointsUserId: string }>();
+  return new Map(rows.results.map((row) => [row.accountsUserId, row.pointsUserId]));
 }
 
 async function findFixHeads(db: D1Database, ids: readonly string[]) {
@@ -158,6 +114,19 @@ async function findFixHeads(db: D1Database, ids: readonly string[]) {
     .bind(canonicalJson([...new Set(ids)]))
     .all<{ currentRevision: number; id: string }>();
   return new Map(rows.results.map((row) => [row.id, row.currentRevision]));
+}
+
+/** 検査エラーだけを持つ結果を作る。 */
+async function rejectedFixCsv(
+  errors: CsvValidationError[],
+  fileHash: string,
+): Promise<ValidatedFixCsv> {
+  return {
+    errors,
+    fileHash,
+    rows: [],
+    validationHash: await sha256Hex(canonicalJson({ errors, fileHash })),
+  };
 }
 
 function rowError(row: number, column: string, code: string): CsvValidationError {
@@ -173,35 +142,20 @@ function validEvaluationAt(value: string): boolean {
   return Number.isFinite(Date.parse(value.length === 10 ? `${value}T00:00:00Z` : value));
 }
 
-export function normalizeGenericWebProfileUrl(value: string): string {
-  try {
-    return normalizeIdentityUrl(value);
-  } catch {
-    throw new Error("RECIPIENT_PROFILE_URL_INVALID");
-  }
+/** CSV 行の受領者識別子。現在の CSV は URL 列だけを持つ。 */
+function recipientIdentifierOf(row: FixCsvRow): RecipientIdentifier {
+  return { type: "url", value: row.recipientProfileUrl };
 }
 
-function normalizeRecipientProfileUrl(value: string): { normalized: string; github: boolean } {
-  try {
-    const url = new URL(value);
-    if (url.hostname.toLowerCase() === "github.com") {
-      return { normalized: normalizeGitHubProfileUrl(value), github: true };
-    }
-  } catch {
-    throw new Error("RECIPIENT_PROFILE_URL_INVALID");
-  }
-  return { normalized: normalizeGenericWebProfileUrl(value), github: false };
-}
-
+/**
+ * FIX CSV を検査し、受領者を Accounts で照合する。
+ * 照合結果と Points 内の連携を `validationHash` に含め、commit で再照合して変化を検出する。
+ * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ */
 export async function validateFixCsv(
   db: D1Database,
   bytes: Uint8Array | ArrayBuffer,
-  options: {
-    githubClientId: string;
-    githubClientSecret: string;
-    githubFetch?: typeof fetch;
-    now?: Date;
-  },
+  options: { resolveRecipients: AccountsRecipientResolver },
 ): Promise<ValidatedFixCsv> {
   const parsed = await parseAndValidateCsv(bytes, fixCsvSchema);
   const errors = [...parsed.errors];
@@ -210,18 +164,9 @@ export async function validateFixCsv(
     parsed.rows.map((row) => row.evaluationCriterionId),
   );
   const heads = await findFixHeads(db, parsed.rows.map((row) => row.fixResultId).filter(Boolean));
-  const normalizedUrls = new Map<string, string>();
-  const githubUrls = new Set<string>();
 
   parsed.rows.forEach((row, index) => {
     const csvRow = index + 2;
-    try {
-      const normalized = normalizeRecipientProfileUrl(row.recipientProfileUrl);
-      normalizedUrls.set(row.recipientProfileUrl, normalized.normalized);
-      if (normalized.github) githubUrls.add(normalized.normalized);
-    } catch {
-      errors.push(rowError(csvRow, "recipientProfileUrl", "RECIPIENT_PROFILE_URL_INVALID"));
-    }
     const criterion = criteria.get(row.evaluationCriterionId);
     if (!criterion)
       errors.push(rowError(csvRow, "evaluationCriterionId", "EVALUATION_CRITERION_NOT_FOUND"));
@@ -255,60 +200,71 @@ export async function validateFixCsv(
   });
 
   if (errors.length > 0) {
-    return {
-      errors,
-      fileHash: parsed.fileHash,
-      rows: [],
-      validationHash: await sha256Hex(canonicalJson({ errors, fileHash: parsed.fileHash })),
-    };
+    return rejectedFixCsv(errors, parsed.fileHash);
   }
 
-  const distinctUrls = [...githubUrls];
-  await reserveGitHubApiBudget(db, distinctUrls.length, options.now);
-  const resolved = await resolveGitHubProfileRecipients(distinctUrls, {
-    clientId: options.githubClientId,
-    clientSecret: options.githubClientSecret,
-    fetcher: options.githubFetch,
-    onRateLimitObservation: (observation) => observeGitHubApiBudget(db, observation, options.now),
-  });
-  const recipients = await findRegisteredRecipients(
-    db,
-    [...resolved.values()].map((value) => value.accountId),
+  const identifiers = [
+    ...new Map(
+      parsed.rows.map((row) => {
+        const identifier = recipientIdentifierOf(row);
+        return [recipientIdentifierKey(identifier), identifier] as const;
+      }),
+    ).values(),
+  ];
+  const resolution =
+    identifiers.length === 0
+      ? { accountsOrigin: "", results: [] }
+      : await options.resolveRecipients(identifiers);
+  const resolved = new Map(
+    identifiers.map((identifier, index) => [
+      recipientIdentifierKey(identifier),
+      resolution.results[index]!,
+    ]),
   );
-  const provisionalRows = parsed.rows.map((row) => {
-    const normalizedRecipientProfileUrl = normalizedUrls.get(row.recipientProfileUrl)!;
-    const recipient = resolved.get(normalizedRecipientProfileUrl);
+  const linkedRecipients = await findLinkedRecipients(
+    db,
+    resolution.accountsOrigin,
+    resolution.results.flatMap((result) =>
+      result.status === "matched" ? [result.accountsUserId] : [],
+    ),
+  );
+  parsed.rows.forEach((row, index) => {
+    if (
+      resolved.get(recipientIdentifierKey(recipientIdentifierOf(row)))?.status === "invalid_input"
+    )
+      errors.push(rowError(index + 2, "recipientProfileUrl", "RECIPIENT_IDENTIFIER_INVALID"));
+  });
+  if (errors.length > 0) {
+    return rejectedFixCsv(errors, parsed.fileHash);
+  }
+  const rows = parsed.rows.map((row) => {
+    const identifier = recipientIdentifierOf(row);
+    const result = resolved.get(recipientIdentifierKey(identifier))!;
+    const resolvedAccountsUserId = result.status === "matched" ? result.accountsUserId : null;
     const criterion = criteria.get(row.evaluationCriterionId)!;
     return {
       ...row,
+      accountsOrigin: resolution.accountsOrigin,
       amountScaled: scaledAmountCodec.parse(row.amount),
       evaluationCriterionRevisionId: criterion.revisionId,
       minimumUnitScaled: criterion.minimumUnitScaled,
-      normalizedRecipientProfileUrl,
-      recipientAccountId: recipient?.accountId ?? null,
-      recipientPointsUserId: recipient ? (recipients.get(recipient.accountId) ?? null) : null,
-      recipientProviderId: recipient ? ("github" as const) : null,
+      recipientIdentifierType: identifier.type,
+      recipientIdentifierValue: identifier.value,
+      recipientPointsUserId: resolvedAccountsUserId
+        ? (linkedRecipients.get(resolvedAccountsUserId) ?? null)
+        : null,
+      resolvedAccountsUserId,
     };
   });
-  const webRecipients = await findWebOwnershipRecipients(
-    db,
-    provisionalRows.filter((row) => row.recipientProviderId === null),
-  );
-  const rows = provisionalRows.map((row) => ({
-    ...row,
-    recipientPointsUserId:
-      row.recipientPointsUserId ??
-      webRecipients.get(`${row.normalizedRecipientProfileUrl}\u0000${row.evaluationAt}`) ??
-      null,
-  }));
   const correctionKeys = rows.map((row) =>
     row.fixResultId === ""
       ? null
       : [
           row.fixResultId,
-          row.recipientAccountId
-            ? `github:${row.recipientAccountId}`
-            : `web:${row.normalizedRecipientProfileUrl}`,
+          recipientBusinessKey(
+            { type: row.recipientIdentifierType, value: row.recipientIdentifierValue },
+            row.accountsOrigin,
+          ),
           row.evaluationCriterionId,
         ].join("\u0000"),
   );
@@ -322,12 +278,7 @@ export async function validateFixCsv(
     }
   });
   if (errors.length > 0) {
-    return {
-      errors,
-      fileHash: parsed.fileHash,
-      rows: [],
-      validationHash: await sha256Hex(canonicalJson({ errors, fileHash: parsed.fileHash })),
-    };
+    return rejectedFixCsv(errors, parsed.fileHash);
   }
   const validationHash = await sha256Hex(
     canonicalJson({

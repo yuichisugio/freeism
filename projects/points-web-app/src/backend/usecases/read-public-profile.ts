@@ -21,6 +21,11 @@ function scaledAmount(value: number) {
   return `${sign}${whole}${fraction.length === 0 ? "" : `.${fraction}`}`;
 }
 
+/**
+ * 公開プロフィールを返す。
+ * Accounts 連携は D1 に保存した取得結果の snapshot だけを読み、閲覧のたびに Accounts へ問い合わせない。
+ * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ */
 export async function readPublicProfile(db: D1Database, pointsUserId: string) {
   const profile = await db
     .prepare(
@@ -41,23 +46,24 @@ export async function readPublicProfile(db: D1Database, pointsUserId: string) {
     }>();
   if (!profile) throw new PublicResourceNotFoundError();
 
-  const [identities, packages, evaluationAccounts] = await Promise.all([
+  const [accountsLinks, packages, evaluationAccounts] = await Promise.all([
     db
       .prepare(
-        `SELECT ownership.identity_type AS identityType,
-                ownership.normalized_identity_key AS profileUrl,
-                ownership.verified_at AS verifiedAt
-         FROM identity_ownership ownership
-         JOIN ownership_epoch epoch
-           ON epoch.id = ownership.current_ownership_epoch_id
-          AND epoch.identity_ownership_id = ownership.id
-          AND epoch.owner_points_user_id = ownership.points_user_id
-          AND epoch.ended_at IS NULL
-         WHERE ownership.points_user_id = ? AND ownership.status = 'ACTIVE'
-         ORDER BY ownership.identity_type, ownership.normalized_identity_key`,
+        `SELECT link.accounts_origin AS accountsOrigin, link.accounts_user_id AS accountsUserId,
+                link.external_accounts_fetched_at AS fetchedAt,
+                link.external_accounts_json AS externalAccountsJson
+         FROM accounts_links link
+         WHERE link.points_user_id = ? AND link.provision_status = 'PROVIDED'
+           AND link.external_accounts_json IS NOT NULL
+         ORDER BY link.linked_at, link.id`,
       )
       .bind(pointsUserId)
-      .all<{ identityType: "GITHUB_OAUTH" | "WEB_URL"; profileUrl: string; verifiedAt: number }>(),
+      .all<{
+        accountsOrigin: string;
+        accountsUserId: string;
+        externalAccountsJson: string;
+        fetchedAt: number;
+      }>(),
     db
       .prepare(
         `SELECT package.id AS pointPackageId,
@@ -113,10 +119,12 @@ export async function readPublicProfile(db: D1Database, pointsUserId: string) {
     displayName:
       profile.displayName ?? defaultDisplayName(profile.authDisplayName, profile.pointsUserId),
     description: profile.description ?? "",
-    externalIdentities: identities.results.map((identity) => ({
-      identityType: identity.identityType,
-      profileUrl: identity.profileUrl,
-      verifiedAt: new Date(identity.verifiedAt).toISOString(),
+    accountsLinks: accountsLinks.results.map((link) => ({
+      accountsOrigin: link.accountsOrigin,
+      accountsUserId: link.accountsUserId,
+      accountsProfileUrl: `${link.accountsOrigin}/profiles/${encodeURIComponent(link.accountsUserId)}`,
+      fetchedAt: new Date(link.fetchedAt).toISOString(),
+      externalAccounts: JSON.parse(link.externalAccountsJson) as unknown[],
     })),
     pointPackages: packages.results.map((pointPackage) => ({
       ...pointPackage,

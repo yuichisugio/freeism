@@ -1,5 +1,9 @@
 import type { Context, Hono } from "hono";
 
+import {
+  createUnconfiguredAccountsRecipientResolver,
+  type CreateAccountsRecipientResolver,
+} from "../../identity/accounts-recipient-resolver";
 import { closePointsAccount, ClosePointsAccountError } from "../../usecases/close-points-account";
 import {
   previewPointsAccountReopen,
@@ -41,7 +45,13 @@ function mapReopenError(context: Context<BackendContext>, error: unknown): Respo
   return problem(context, 409, error.code, "Account is not closed");
 }
 
-export function registerAccountRoutes(app: Hono<BackendContext>, getSession: GetSession) {
+export function registerAccountRoutes(
+  app: Hono<BackendContext>,
+  getSession: GetSession,
+  dependencies: { createAccountsRecipientResolver?: CreateAccountsRecipientResolver } = {},
+) {
+  const createResolver =
+    dependencies.createAccountsRecipientResolver ?? createUnconfiguredAccountsRecipientResolver;
   const session = createSessionMiddleware(getSession);
 
   app.post(
@@ -71,6 +81,7 @@ export function registerAccountRoutes(app: Hono<BackendContext>, getSession: Get
       const data = await previewPointsAccountReopen(
         requireBindings(context.env).DB,
         context.get("pointsUser").id,
+        createResolver,
       );
       return context.json({ data, meta: { requestId: `req_${crypto.randomUUID()}` } });
     } catch (error) {
@@ -109,6 +120,7 @@ export function registerAccountRoutes(app: Hono<BackendContext>, getSession: Get
       try {
         const result = await reopenPointsAccount(requireBindings(context.env).DB, {
           authUserId: context.get("authSession").user.id,
+          createResolver,
           currentSessionId: context.get("authSession").session.id,
           idempotencyKey: context.req.header("Idempotency-Key")!,
           pointsUserId: context.get("pointsUser").id,
