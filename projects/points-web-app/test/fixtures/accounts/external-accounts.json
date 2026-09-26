@@ -1,0 +1,71 @@
+{
+  "accountsOrigin": "https://accounts.example.test",
+  "accountsUserId": "ausr_sample",
+  "externalAccounts": [
+    {
+      "service": "github",
+      "displayName": "Alice",
+      "identifiers": [
+        {
+          "type": "provider_account",
+          "provider": "github",
+          "accountId": "123456789"
+        },
+        {
+          "type": "provider_username",
+          "provider": "github",
+          "username": "alice"
+        },
+        {
+          "type": "url",
+          "url": "https://github.com/alice"
+        }
+      ],
+      "linkedAt": "2026-09-01T00:00:00Z",
+      "verificationStatus": "verified",
+      "verifications": [
+        {
+          "method": "oauth",
+          "identifiers": [
+            {
+              "type": "provider_account",
+              "provider": "github",
+              "accountId": "123456789"
+            },
+            {
+              "type": "provider_username",
+              "provider": "github",
+              "username": "alice"
+            },
+            {
+              "type": "url",
+              "url": "https://github.com/alice"
+            }
+          ],
+          "verifiedAt": "2026-09-01T00:00:00Z",
+          "checkedAt": "2026-09-01T00:00:00Z",
+          "result": "verified",
+          "evidenceUrl": null
+        },
+        {
+          "method": "bidirectional_link",
+          "identifiers": [
+            {
+              "type": "url",
+              "url": "https://github.com/alice"
+            },
+            {
+              "type": "provider_username",
+              "provider": "github",
+              "username": "alice"
+            }
+          ],
+          "verifiedAt": "2026-09-02T00:00:00Z",
+          "checkedAt": "2026-09-02T00:00:00Z",
+          "result": "verified",
+          "evidenceUrl": "https://github.com/alice"
+        }
+      ]
+    }
+  ]
+}
