@@ -74,7 +74,7 @@ describe("LoginDialog", () => {
     expect(alert.textContent).toContain("state_mismatch");
   });
 
-  it("ログインの要求が期限切れの場合は、元のサービスからやり直す案内と、ログイン画面を開き直す導線を示す", async () => {
+  it("ログインの要求が期限切れの場合は、元のサービスからやり直す案内と、ログインをやり直す導線を示す", async () => {
     authClientMock.signIn.social.mockResolvedValue({
       data: null,
       error: { status: 400, statusText: "Bad Request", error: "invalid_signature" },
@@ -85,12 +85,23 @@ describe("LoginDialog", () => {
 
     const alert = await within(dialog).findByRole("alert");
     expect(alert.textContent).toContain("元のサービスから連携を最初からやり直してください");
-    const reopenLink = within(alert).getByRole("link", { name: "ログイン画面を開き直す" });
+    const reopenLink = within(alert).getByRole("link", { name: "ログインをやり直す" });
     expect(reopenLink.getAttribute("href")).toBe("/");
 
     await userEvent.click(reopenLink);
 
     expect(within(await screen.findByRole("dialog")).queryByRole("alert")).toBeNull();
+  });
+
+  it("利用規約とプライバシーポリシーへのリンクを、ログインの途中の画面を残すため新しいタブで示す", async () => {
+    const dialog = await openLoginDialog();
+
+    const terms = within(dialog).getByRole("link", { name: "利用規約" });
+    const privacy = within(dialog).getByRole("link", { name: "プライバシーポリシー" });
+    expect(terms.getAttribute("href")).toBe("/terms");
+    expect(privacy.getAttribute("href")).toBe("/privacy");
+    expect(terms.getAttribute("target")).toBe("_blank");
+    expect(privacy.getAttribute("target")).toBe("_blank");
   });
 
   it("エラーが無い場合は失敗の案内を表示しない", async () => {

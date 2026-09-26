@@ -5,6 +5,8 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
+import { handleWorkerOutboundRequest } from "./test/worker-outbound-service";
+
 /**
  * 開発・ビルド・lint・テストの設定。
  * 画面はTanStack Startで事前生成し、Cloudflare Vite PluginでWorkerとassetsを接続する。
@@ -65,11 +67,13 @@ export default defineConfig(({ mode }) => ({
       {
         // WorkerのエントリーポイントはTanStack Startの画面描画を含むため、結合テストはHonoアプリと公開プロフィールのエントリーポイントだけを起動する。
         // D1へはsetupFilesでmigrationを適用し、認証のSecretにはテスト用の値を渡す。
+        // 外部通信はoutboundServiceで受け、実際のサイトへ接続しない。
         plugins: [
           cloudflareTest(async () => ({
             main: "./test/worker-main.ts",
             wrangler: { configPath: "./wrangler.jsonc" },
             miniflare: {
+              outboundService: handleWorkerOutboundRequest,
               bindings: {
                 TEST_MIGRATIONS: await readD1Migrations("./migrations"),
                 BETTER_AUTH_SECRETS: "1:worker-test-secret-value-with-enough-entropy-0123456789",

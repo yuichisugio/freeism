@@ -4,7 +4,7 @@ import type { DocumentSection } from "../app-shell/components/document-page";
 
 /**
  * プライバシーポリシー（`/privacy`）の文言。
- * 仕様の「文書化要件」「公開設定」「JSONによるバックアップと移行」に基づき、保持する情報・公開先・解除・バックアップの扱いを説明する。
+ * 仕様の「文書化要件」「公開設定」「JSONによるバックアップと移行」「運営者の権限」に基づき、保持する情報・公開先・解除・バックアップ・運営者による確認の扱いを説明する。
  * 操作の手順はヘルプ（`/help`）で説明する。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
@@ -23,8 +23,10 @@ export const privacyPolicyMessages = defineMessages({
           "連携した外部アカウントのサービス名・表示名・固有ID・ユーザー名・URLと連携日時",
           "証明方法（OAuth・公開ページのリンク確認・DNS TXT）ごとの検証日時・結果・証拠URL",
           "一般公開と連携先サービスごとの情報提供同意・公開選択",
-          "ログインに使ったOAuthのメールアドレス（本人の画面で複数アカウントを見分ける補助にだけ使い、一般公開・連携先へは提供しません）",
+          "ログインに使ったOAuthのメールアドレス（本人の画面で複数アカウントを見分ける補助と、運営者による不正利用への対応に使い、一般公開・連携先へは提供しません）",
           "外部サービスのOAuthのトークン（暗号化して保存します）",
+          "ログイン中のセッションごとのIPアドレスとブラウザーの種類（User-Agent）（不正利用の防止に使います）",
+          "ログインなどの要求回数を制限するための、IPアドレスと要求先ごとの回数（制限の期間が過ぎた記録は削除します）",
           "開発者として登録したOAuthクライアントのアプリ名・紹介URL・説明文・リダイレクトURL・公開鍵",
         ],
       },
@@ -85,7 +87,15 @@ export const privacyPolicyMessages = defineMessages({
         id: "logs",
         title: "ログの扱い",
         paragraphs: [
-          "ログには、操作の種類・日時・成否・エラーの分類・処理時間など、個人を識別しない項目だけを記録します。表示名・ID・メールアドレス・URL・IPアドレスなどの個人情報や、トークン・Cookieは記録しません。",
+          "Accountsが出力するログには、操作の種類・日時・成否・エラーの分類・処理時間など、個人を識別しない項目だけを記録します。表示名・ID・メールアドレス・URL・IPアドレスなどの個人情報や、トークン・Cookieは含めません。",
+        ],
+        items: [],
+      },
+      {
+        id: "operator",
+        title: "運営者による確認と利用の停止",
+        paragraphs: [
+          "運営者は、不正利用への対応のため、メールアドレスを含むAccountsユーザーの情報を確認し、利用を停止することがあります。停止中は、公開プロフィールと連携先サービスへの提供も停止します。",
         ],
         items: [],
       },
@@ -111,8 +121,10 @@ export const privacyPolicyMessages = defineMessages({
           "The service name, display name, unique ID, username, URL, and link date of each linked external account",
           "The verification date, result, and evidence URL for each proof method (OAuth, public page link, DNS TXT)",
           "Your consent and selections for public display and for each connected service",
-          "The OAuth email address used to sign in (used only to help you tell your accounts apart on your own pages; never shared publicly or with connected services)",
+          "The OAuth email address used to sign in (used to help you tell your accounts apart on your own pages and for the operator's handling of abuse; never shared publicly or with connected services)",
           "OAuth tokens from external services (stored encrypted)",
+          "The IP address and browser type (User-Agent) of each signed-in session (used to prevent abuse)",
+          "IP addresses and per-endpoint request counts used to limit sign-in and other requests (records are deleted after the limit period ends)",
           "The app name, service URL, description, redirect URLs, and public keys of OAuth clients you register as a developer",
         ],
       },
@@ -173,7 +185,15 @@ export const privacyPolicyMessages = defineMessages({
         id: "logs",
         title: "Logs",
         paragraphs: [
-          "Logs record only items that do not identify individuals, such as the operation type, time, outcome, error category, and duration. Personal information such as display names, IDs, email addresses, URLs, and IP addresses, as well as tokens and cookies, is not logged.",
+          "Logs written by Accounts record only items that do not identify individuals, such as the operation type, time, outcome, error category, and duration. They do not include personal information such as display names, IDs, email addresses, URLs, and IP addresses, or tokens and cookies.",
+        ],
+        items: [],
+      },
+      {
+        id: "operator",
+        title: "Review and suspension by the operator",
+        paragraphs: [
+          "To handle abuse, the operator may review Accounts user information, including email addresses, and suspend use of the Service. While suspended, the public profile and sharing with connected services are also stopped.",
         ],
         items: [],
       },

@@ -497,30 +497,20 @@ describe("verifyUrl", () => {
   });
 
   describe("取得前の拒否", () => {
-    it("本人のURLが上限に達していれば、未登録URLの証明が成立しても登録せずに409で拒否する", async () => {
+    it("本人のURLが上限に達していれば、未登録URLは外部通信の前に409で拒否する", async () => {
       const userId = await createTestUser();
       await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser);
       const url = `https://${uniqueHost()}/`;
-      const { deps } = createDeps({ [url]: linkPage(userId) });
+      const { deps, requests } = createDeps({ [url]: linkPage(userId) }, txtNotFound, {
+        rateLimited: true,
+      });
 
       await expect(verifyUrl(deps, { userId, url })).rejects.toMatchObject({
         status: 409,
         code: "URL_LIMIT_REACHED",
       });
+      expect(requests).toEqual([]);
       expect(await readIdentifierActivity(userId)).not.toHaveProperty(`url:${url}`);
-    });
-
-    it("本人のURLが上限に達していても、未登録URLの証明が不成立なら拒否せずに方法別の結果を返す", async () => {
-      const userId = await createTestUser();
-      await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser);
-      const url = `https://${uniqueHost()}/`;
-      const { deps } = createDeps({ [url]: pageWithoutLink });
-
-      await expect(verifyUrl(deps, { userId, url })).resolves.toMatchObject({
-        externalAccountId: null,
-        link: { result: "not_verified", failureCode: "LINK_NOT_FOUND" },
-        dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
-      });
     });
 
     it("本人のURLが上限に達していても、登録済みURLは再検証できる", async () => {

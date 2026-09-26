@@ -13,14 +13,22 @@ function sectionTitles(): (string | null)[] {
 }
 
 describe("PrivacyPolicyPage", () => {
-  it("保持する情報・公開先・連携解除と退会・バックアップの扱いを節ごとに示す", async () => {
+  it("保持する情報・公開先・連携解除と退会・バックアップ・運営者による確認の扱いを節ごとに示す", async () => {
     renderWithProviders(<PrivacyPolicyPage />);
 
     expect((await screen.findByRole("heading", { level: 1 })).textContent).toBe("プライバシーポリシー");
     expect(sectionTitles()).toEqual(
-      expect.arrayContaining(["保存する情報", "保存しない情報", "一般公開と連携先サービスへの提供", "連携解除と退会", "バックアップと移行"]),
+      expect.arrayContaining([
+        "保存する情報",
+        "保存しない情報",
+        "一般公開と連携先サービスへの提供",
+        "連携解除と退会",
+        "バックアップと移行",
+        "運営者による確認と利用の停止",
+      ]),
     );
     expect(screen.getByText(/メールアドレス・OAuthのトークン・セッション/)).toBeDefined();
+    expect(screen.getByText(/IPアドレスとブラウザーの種類（User-Agent）/)).toBeDefined();
   });
 
   it("英語でも表示する", async () => {

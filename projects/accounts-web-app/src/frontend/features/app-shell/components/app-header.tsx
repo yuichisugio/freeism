@@ -29,7 +29,7 @@ export function AppHeader() {
   const [hasSignOutFailed, setHasSignOutFailed] = useState(false);
 
   /**
-   * ログイン画面へ移動してからログアウトする。
+   * トップページへ移動してからログアウトする。
    * 先に移動することで、未保存の変更がある場合は移動の確認を経てからログアウトする。
    */
   const signOut = async () => {

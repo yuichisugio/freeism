@@ -8,9 +8,12 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "upload_source_maps": true,
   "placement": { "mode": "smart" },
+  // アプリケーションが出力するログだけを記録し、要求URLを含むinvocation logsは記録しない。
+  // staging・production・Previewはこの設定を継承する。
   "observability": {
     "enabled": true,
-    "head_sampling_rate": 1
+    "head_sampling_rate": 1,
+    "logs": { "invocation_logs": false }
   },
   // Workers Cacheは公開プロフィール専用のエントリーポイントだけに適用し、API・認証・画面の入口はキャッシュしない。
   // Previewはこの設定を継承しないため、キャッシュせずに毎回D1から生成する。

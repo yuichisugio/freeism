@@ -14,8 +14,9 @@ export const authMessages = defineMessages({
     lastUsed: "前回使用",
     startFailed: "ログインを開始できませんでした。時間をおいて再度お試しください。",
     requestExpired:
-      "ログインの要求の有効期限が切れました。元のサービスから連携を最初からやり直してください。Accountsだけにログインする場合は、ログイン画面を開き直してください。",
-    reopenLoginPage: "ログイン画面を開き直す",
+      "ログインの要求の有効期限が切れました。元のサービスから連携を最初からやり直してください。Accountsだけにログインする場合は、ログインをやり直してください。",
+    restartLogin: "ログインをやり直す",
+    agreement: { before: "ログインすると、", between: "と", after: "に同意したものとします。" },
     accountNotLinkedTitle: "この外部アカウントはまだ連携されていません",
     accountNotLinkedDescription:
       "同じメールアドレスのAccountsユーザーが既にあるため、新しいユーザーは作成していません。既存のログイン手段でログインし、「アカウント連携」画面からこの外部アカウントを明示的に連携してください。",
@@ -48,8 +49,9 @@ export const authMessages = defineMessages({
     lastUsed: "Last used",
     startFailed: "Could not start signing in. Please try again later.",
     requestExpired:
-      "The sign-in request has expired. Please start the connection again from the original service. To sign in to Accounts only, reopen the sign-in page.",
-    reopenLoginPage: "Reopen the sign-in page",
+      "The sign-in request has expired. Please start the connection again from the original service. To sign in to Accounts only, start signing in again.",
+    restartLogin: "Start signing in again",
+    agreement: { before: "By signing in, you agree to the ", between: " and ", after: "." },
     accountNotLinkedTitle: "This external account is not linked yet",
     accountNotLinkedDescription:
       "An Accounts user with the same email address already exists, so no new user was created. Sign in with your existing sign-in method and link this external account explicitly from the Account links page.",

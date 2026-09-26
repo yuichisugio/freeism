@@ -102,6 +102,27 @@ describe("useAccountLinks", () => {
     expect(result.current.table?.isDirty).toBe(true);
   });
 
+  it("編集を破棄すると、未保存の変更と直前の保存の失敗を消す", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(dataResponse(links))
+        .mockResolvedValueOnce(problemResponse(400, "CONSENT_REQUIRES_VERIFIED_ACCOUNT")),
+    );
+    const { result } = renderHook(() => useAccountLinks());
+    await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
+    act(() => result.current.setAccountPublic("eac_1", true));
+    await act(async () => {
+      await result.current.save();
+    });
+
+    act(() => result.current.discardEdits());
+
+    expect(result.current.saveState.status).toBe("idle");
+    expect(result.current.table?.isDirty).toBe(false);
+  });
+
   it("行単位の一括選択で、すべての連携先への公開を切り替える", async () => {
     vi.stubGlobal(
       "fetch",

@@ -94,10 +94,11 @@ export function useAccountLinks(consentClientId?: string) {
   };
 
   /**
-   * 編集中の公開設定を破棄する。
+   * 編集中の公開設定を破棄し、直前の保存結果の通知を消す。
    */
   const discardEdits = () => {
     setEdits(emptyVisibilityEdits);
+    setSaveState({ status: "idle" });
   };
 
   /**

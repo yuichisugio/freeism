@@ -84,7 +84,7 @@ type ProofPlan = { targets: ProofTarget[]; transferred: ExternalIdentifierRow[] 
  * 成功時だけ入力URLを登録し、証明と今回確認した識別子の関連を置き換える。
  * 登録済みURLの失敗・判断不能では直近の試行結果だけを更新し、未登録URLでは何も保存せず方法別の結果を返す。
  * リンク証明単独では、旧所有者の`oauth`・`dns_txt`が支える識別子を移動せず`HELD_BY_STRONGER_PROOF`とする。
- * @throws {ProblemError} 入力URLの不備（400）、レート制限の超過（429）、未登録URLの証明成立時のURL登録数の上限到達（409）、所有者の更新の競合（409）。
+ * @throws {ProblemError} 入力URLの不備（400）、未登録URLでのURL登録数の上限到達（409、外部通信の前）、レート制限の超過（429）、所有者の更新の競合（409）。
  */
 export async function verifyUrl(
   deps: VerifyUrlDeps,
@@ -94,6 +94,10 @@ export async function verifyUrl(
   const { userId } = input;
   const repository = new D1ExternalAccountRepository(deps.db);
   const registration = await readUrlRegistration(repository, userId, input.url);
+  // 上限に達した本人の未登録URLは、証明の成否によらず登録できないため、外部通信とレート制限の前に拒否する。
+  if (registration.inputIdentifier === undefined) {
+    assertUrlCapacity(registration);
+  }
 
   const { success } = await deps.rateLimiter.limit({ key: userId });
   if (!success) {
@@ -140,12 +144,9 @@ export async function verifyUrl(
   // 未登録URLは証明が成立した場合だけ登録する
   // --------------------------------------------------
 
-  if (registration.inputIdentifier === undefined) {
-    if (proofPlan === null) {
-      logVerificationAttempts(linkOutcome, dnsOutcome, Date.now() - startedAt);
-      return { externalAccountId: null, status: "unverified", ...attempts, affectedUserIds: [] };
-    }
-    assertUrlCapacity(registration);
+  if (registration.inputIdentifier === undefined && proofPlan === null) {
+    logVerificationAttempts(linkOutcome, dnsOutcome, Date.now() - startedAt);
+    return { externalAccountId: null, status: "unverified", ...attempts, affectedUserIds: [] };
   }
 
   // --------------------------------------------------

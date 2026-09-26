@@ -48,6 +48,18 @@ describe("selectProfilePurgeTargets", () => {
       ),
     ).toEqual([previousOwnerId]);
   });
+
+  it("本人が影響を受けるユーザーに含まれなければ、一般公開中の行があっても対象にしない", async () => {
+    const publicUserId = await createTestUser();
+    await createAccount(publicUserId, { isPublic: true });
+
+    expect(
+      await selectProfilePurgeTargets(
+        { db: testDb },
+        { actorUserId: publicUserId, affectedUserIds: [] },
+      ),
+    ).toEqual([]);
+  });
 });
 
 describe("連携解除後の公開プロフィールのpurge", () => {
@@ -91,23 +103,51 @@ describe("URL検証後の公開プロフィールのpurge", () => {
     vi.restoreAllMocks();
   });
 
-  it("一般公開中の行を持つ本人のURL検証の後に、本人の公開プロフィールをpurgeする", async () => {
-    const { userId, headers } = await loginAsNewUser();
-    await createAccount(userId, { isPublic: true });
-    // 外部ページの取得とDNS TXTの照会は、どちらも証拠の無い応答にする。
+  /**
+   * 外部ページの取得とDNS TXTの照会を、どちらも証拠の無い応答にする。
+   */
+  function mockNoEvidence() {
     vi.spyOn(globalThis, "fetch").mockImplementation(
       async () => new Response("<p>no link</p>", { headers: { "content-type": "text/html" } }),
     );
-    const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
+  }
 
-    const response = await exports.default.fetch(`${testOrigin}/api/external-urls`, {
+  /**
+   * 外部URLの「保存して検証する」「未検証で保存」を要求する。
+   */
+  function postExternalUrl(headers: Headers, url: string, mode: "verify" | "unverified") {
+    return exports.default.fetch(`${testOrigin}/api/external-urls`, {
       method: "POST",
       headers: new Headers([...headers, ["Content-Type", "application/json"]]),
-      body: JSON.stringify({ url: `https://${uniqueHost()}/`, mode: "verify" }),
+      body: JSON.stringify({ url, mode }),
     });
+  }
+
+  it("一般公開中の行を持つ本人が登録済みURLを再検証すると、不成立でも本人の公開プロフィールをpurgeする", async () => {
+    const { userId, headers } = await loginAsNewUser();
+    await createAccount(userId, { isPublic: true });
+    const url = `https://${uniqueHost()}/`;
+    expect((await postExternalUrl(headers, url, "unverified")).status).toBe(200);
+    mockNoEvidence();
+    const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
+
+    const response = await postExternalUrl(headers, url, "verify");
 
     expect(response.status).toBe(200);
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
+  });
+
+  it("未登録URLの検証が不成立で何も保存しなければ、一般公開中の行を持つ本人でもpurgeしない", async () => {
+    const { userId, headers } = await loginAsNewUser();
+    await createAccount(userId, { isPublic: true });
+    mockNoEvidence();
+    const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
+
+    const response = await postExternalUrl(headers, `https://${uniqueHost()}/`, "verify");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ data: { externalAccountId: null } });
+    expect(purge).not.toHaveBeenCalled();
   });
 });
 
