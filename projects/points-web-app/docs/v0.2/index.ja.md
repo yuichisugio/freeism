@@ -16,7 +16,7 @@
 - [Points–Markets OpenAPI](./points-markets.openapi.json)
 - [設計判断台帳](../../../../docs/web-app/v0.2/decision-register.md)
 
-- [Accountsの外部アカウント・所有権証明・公開・照合仕様](../../../accounts-web-app/docs/specification/v0.1/main.md)
+- [Accountsの外部アカウント・所有権証明・公開・照合仕様](../../../accounts-web-app/docs/specification/v0.1/main.ja.md)
 
 ## v0.2の境界
 

@@ -19,7 +19,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 
 経済履歴は退会時にも削除しない。プロフィールを`CLOSED`かつ匿名化し、台帳、FIX、予約、永久OAuth主体対応、監査eventは保持する。
 
-外部アカウントの所有権証明・管理・公開・照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsは独自の認証・sessionと重要操作の再認証を持ち、Accountsを情報連携先として利用する。
+外部アカウントの所有権証明・管理・公開・照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。Pointsは独自の認証・sessionと重要操作の再認証を持ち、Accountsを情報連携先として利用する。
 
 ## 2. ユーザーとプロフィール
 
@@ -40,7 +40,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - 公開設定をONにした評価軸の`balance`と`evaluationTotal`
 - 公開設定をONにしたFIX・譲渡・交換履歴
 
-Pointsへの提供同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含み、Accounts自身の一般公開設定とは独立する。連携アカウント一覧はPointsプロフィール自体の公開・非公開に従って表示する。表示要件の詳細は[プロフィール設定](profile-setting.md)、所有権証明・アカウント管理・Accounts APIの提供項目は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
+Pointsへの提供同意は、Pointsの公開プロフィール・公開API・落札証明での公開表示を含み、Accounts自身の一般公開設定とは独立する。連携アカウント一覧はPointsプロフィール自体の公開・非公開に従って表示する。表示要件の詳細は[プロフィール設定](profile-setting.md)、所有権証明・アカウント管理・Accounts APIの提供項目は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。
 
 メールは公開プロフィールへ出さず、本人識別にも使わない。
 
@@ -124,19 +124,19 @@ Pointsへの提供同意は、Pointsの公開プロフィール・公開API・�
 
 ### 7.1 入力
 
-FIX CSVの1行は最低限次を持つ。
+FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
 
-- `recipientProfileUrl`。入力は外部プロフィールURLだけとし、provider ID、account ID、内部Points user IDを入力列にしない
-- 評価軸ID
-- 符号付き評価額
-- 評価期間: UTCの年月は必須、日・時刻は任意
-- 評価軸内管理ID: 任意
-- memo: 任意、200文字以下
-- 既存`fixResultId`: 修正時だけ指定
+- 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
+- `evaluationCriterionId`: 評価軸ID
+- `amount`: 符号付き評価額
+- `evaluationAt`: 評価期間。UTCの年月は必須、日・時刻は任意
+- `managementId`: 評価軸内管理ID。任意
+- `memo`: 任意、200文字以下
+- `fixResultId`と`expectedRevision`: 修正時だけ両方を指定する
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
-外部プロフィールURLの正規化・所有者照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を正本とする。Pointsはvalidationと最終commitで照合結果を確認し、結果が変わった場合は全件を`409 VALIDATION_CHANGED`で止める。FIX revisionへ保存する照合snapshot、通信失敗の扱い、複数AccountsユーザーとPoints受領者の対応付け、および未受領FIXの帰属に関する未決事項は[未受領FIXとAccounts連携](unclaimed-fix-and-ownership.md)に記載する。
+受領者識別子の照合は、validateとcommitで指定した接続先Accountsで行う。URLの正規化・所有者照合は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。照合結果の扱い、validationとcommitの比較、通信失敗時の応答、FIX revisionへ保存する照合snapshotは[FIX取込時の照合](unclaimed-fix-and-ownership.md#6-fix取込時の照合)に従う。
 
 ### 7.2 不変性
 
@@ -145,7 +145,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - revisionの同一性は内容hash、source file hash、ADMIN、評価軸、request idで監査できる。
 - 新旧revisionの差を対象者・評価軸ごとに計算し、差分0は台帳を増やさない。
 - 同じrevisionを再送しても`sourceFixRevisionId`一意制約により二重反映しない。
-- 対象者が未登録なら`unclaimedFixEntry`へ、登録済みなら台帳へ反映する。
+- Points内の連携から受領者が決まらなければ`unclaimedFixEntry`へ、決まれば台帳へ反映する。
 
 ### 7.3 原子性
 
@@ -249,7 +249,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 ## 11. Public read API
 
 - 公開プロフィール、公開設定された残高と`evaluationTotal`
-- ユーザー情報の連携SNS・外部サービス名とアカウント名のうち、Accountsが提供元ごとに提供する項目。Pointsへの提供同意を公開表示の許可としてAccounts APIから取得し、Pointsプロフィール自体の公開・非公開に従って応答へ含める。Accounts自身の一般公開設定とは独立する。Accountsによる所有権証明・管理・API提供項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.md)を参照する
+- ユーザー情報の連携SNS・外部サービス名とアカウント名のうち、Accountsが提供元ごとに提供する項目。Pointsへの提供同意を公開表示の許可としてAccounts APIから取得し、Pointsプロフィール自体の公開・非公開に従って応答へ含める。Accounts自身の一般公開設定とは独立する。Accountsによる所有権証明・管理・API提供項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を参照する
 - 評価軸・パッケージ・revisionの公開情報
 - Shields.io等で使える短い残高表示
 - Marketsの公開落札証明へのcanonical link

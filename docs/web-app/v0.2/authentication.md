@@ -2,7 +2,7 @@
 
 ## 1. 目的と適用範囲
 
-本書は、`points.freeism.app`、`markets.freeism.app`、およびPointsが提供するOAuth 2.1 Provider／Resource APIの認証・認可を定める正本である。外部アカウントの登録・所有権証明・公開設定は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
+本書は、`points.freeism.app`、`markets.freeism.app`、およびPointsが提供するOAuth 2.1 Provider／Resource APIの認証・認可を定める正本である。外部アカウントの登録・所有権証明・公開設定は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。
 
 次の3種類を混同しない。
 
@@ -126,7 +126,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 
 ### 5.2 Accountsとの責務境界
 
-本節の永久対応はPointsへのログインと経済記録の再開を対象とする。外部アカウントの所有権証明・紐付け・解除は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従い、PointsはAccountsから提供を許可された照合結果を貢献者の特定に利用する。
+本節の永久対応はPointsへのログインと経済記録の再開を対象とする。外部アカウントの所有権証明・紐付け・解除は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に従い、PointsはAccountsから提供を許可された照合結果を貢献者の特定に利用する。
 
 ## 6. Google fresh認証
 
@@ -162,27 +162,29 @@ step-upでは専用Google Authorization Code flowを開始する。authorization
 - profile全体または評価軸別visibilityの`PRIVATE -> PUBLIC`を含む公開範囲拡大
 - ADMIN権限によるCSV export snapshot作成
 - OAuth Client、Client Secret、署名鍵の変更
+- 接続先Accountsの作成・有効化・取り下げ
 - Settlementの管理者再試行・reconciliation
 
 M2MのPoint Package Auction eligibility、capture、release、status取得はGoogle Sessionではなく、Client Credentials Token、専用scope、Client／Auction commandまたは予約所有権、冪等性で保護する。Auction eligibilityはDEC-256で確定している。
 
 Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、ADMIN、Google fresh、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時testで拒否する。
 
-| operation                                 | route／protocol                                                                                 | 追加条件                                                  |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Social Account明示link                    | Better Auth `linkSocial` wrapper                                                                | login済み、Google fresh                                   |
-| 未受領FIX claim                           | `/api/ownership/{id}/claim`                                                                     | Google fresh後の最新preview hash                          |
-| Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                                                               | Google fresh、明示consent                                 |
-| Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations`                                        | Google fresh、ACTIVE reservation 0                        |
-| ADMIN CSV確定                             | `/api/admin/{fixes,evaluation-criteria,point-packages,exchange-rates,substitutions}/csv/commit` | ADMIN、Google fresh、reason、idempotency                  |
-| 利用者CSV確定                             | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`           | 本人、Google fresh、idempotency                           |
-| ADMIN追加／削除                           | `/api/admin/admin-memberships*`                                                                 | ADMIN、Google fresh、reason、最後の1人保護                |
-| Account close                             | `/api/account/close`                                                                            | Google fresh、ACTIVE reservation 0、最後のADMIN保護       |
-| Account reopen                            | `/api/account/reopen`                                                                           | 制限付きCLOSED Session、Google fresh、最新`reopenSetHash` |
-| 公開範囲拡大                              | profile／評価軸visibility更新                                                                   | `PRIVATE -> PUBLIC`を1つでも含む時だけGoogle fresh        |
-| ADMIN CSV export                          | `/api/csv-exports`                                                                              | ADMINとして他者／全体を出力する時だけGoogle fresh         |
-| OAuth Client／Secret／署名鍵              | admin security mutation                                                                         | ADMIN、Google fresh、reason                               |
-| Settlement retry／reconciliation          | 専用step-up／reconciliation POST                                                                | ADMIN、Google fresh、対象束縛                             |
+| operation                                 | route／protocol                                                                                                     | 追加条件                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Social Account明示link                    | Better Auth `linkSocial` wrapper                                                                                    | login済み、Google fresh                                   |
+| 未受領FIX claim                           | `/api/unclaimed-fixes/claims`                                                                                       | Google fresh後の最新preview hash、idempotency             |
+| Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                                                                                   | Google fresh、明示consent                                 |
+| Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations`                                                            | Google fresh、ACTIVE reservation 0                        |
+| ADMIN CSV確定                             | `/api/admin/{fixes,evaluation-criteria,point-packages,exchange-rates,substitutions}/csv/commit`                     | ADMIN、Google fresh、reason、idempotency                  |
+| 利用者CSV確定                             | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`                               | 本人、Google fresh、idempotency                           |
+| ADMIN追加／削除                           | `/api/admin/admin-memberships*`                                                                                     | ADMIN、Google fresh、reason、最後の1人保護                |
+| Account close                             | `/api/account/close`                                                                                                | Google fresh、ACTIVE reservation 0、最後のADMIN保護       |
+| Account reopen                            | `/api/account/reopen`                                                                                               | 制限付きCLOSED Session、Google fresh、最新`reopenSetHash` |
+| 公開範囲拡大                              | profile／評価軸visibility更新                                                                                       | `PRIVATE -> PUBLIC`を1つでも含む時だけGoogle fresh        |
+| ADMIN CSV export                          | `/api/csv-exports`                                                                                                  | ADMINとして他者／全体を出力する時だけGoogle fresh         |
+| OAuth Client／Secret／署名鍵              | admin security mutation                                                                                             | ADMIN、Google fresh、reason                               |
+| 接続先Accountsの作成／有効化／取り下げ    | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | ADMIN、Google fresh、reason、idempotency                  |
+| Settlement retry／reconciliation          | 専用step-up／reconciliation POST                                                                                    | ADMIN、Google fresh、対象束縛                             |
 
 各operationはGoogle `auth_time` 899秒、900秒、901秒、Google未link、`sub`不一致を同じtable-driven contract testで検証する。900秒以内だけを許可し、個別routeがmiddlewareを迂回できないことを確認する。
 
@@ -190,7 +192,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 ### 7.1 外部アカウントの照合
 
-外部アカウントの登録、OAuth・Webページによる所有権証明、URL正規化、公開先ごとの同意、外部fetchの安全条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従う。Pointsは独立したOAuthクライアントとして、本人がPointsへの提供を許可したアカウントを照合する。本人がPointsを操作していない場合も、許可済みの情報を照合できる。
+外部アカウントの登録、OAuth・Webページによる所有権証明、URL正規化、公開先ごとの同意、外部fetchの安全条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Pointsは独立したOAuthクライアントとして、本人がPointsへの提供を許可したアカウントを照合する。本人がPointsを操作していない場合も、許可済みの情報を照合できる。
 
 未受領FIXの対象集合と帰属は[未受領FIX仕様](../../../projects/points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
@@ -354,7 +356,7 @@ Account closeは経済記録と永久主体対応の物理削除ではない。
 - 有効予約がある場合はcloseできない。
 - 最後のADMINである場合はcloseを拒否し、別のADMINを追加した後にだけ再実行できる。未定義の「ADMIN対象アーカイブ」経路は作らない。
 
-close後に同じ永久OAuth主体でloginした場合、認証callbackは新しいPoints userを作らず元の`pointsUserId`へCLOSED sessionを結び付ける。callbackだけで公開状態へ戻さず、利用者へ再開画面を表示する。Google freshを伴う明示POSTで`CLOSED -> ACTIVE`へ進め、Sessionを再rotateし、監査eventを追加する。匿名化済みのPoints表示名、説明、画像は、利用者が再設定する。外部URLの管理・提供条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を参照する。FIX、claim、ledger、残高、永久主体対応は同じuserに残す。
+close後に同じ永久OAuth主体でloginした場合、認証callbackは新しいPoints userを作らず元の`pointsUserId`へCLOSED sessionを結び付ける。callbackだけで公開状態へ戻さず、利用者へ再開画面を表示する。Google freshを伴う明示POSTで`CLOSED -> ACTIVE`へ進め、Sessionを再rotateし、監査eventを追加する。匿名化済みのPoints表示名、説明、画像は、利用者が再設定する。外部URLの管理・提供条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)を参照する。FIX、claim、ledger、残高、永久主体対応は同じuserに残す。
 
 ## 11. バージョンと本番Gate
 
@@ -372,6 +374,7 @@ Rate Limitは不正利用の抑止に使用するが、Account一意性、FIX二
 | ------------------------ | ------------------------------------------ |
 | Google／GitHub OAuth開始 | Better AuthのD1 rate limit＋Cloudflare WAF |
 | Points–Markets link開始  | user単位のD1 rate limit＋WAF               |
+| Accounts連携開始         | user単位のD1 rate limit（1時間10回）       |
 
 Turnstileは通常のloginでは表示しない。未認証のOAuth開始がrate limitへ接近した場合、明らかなbot pattern、WAF managed challenge後にだけ適応的に要求する。
 
@@ -433,7 +436,7 @@ Token、Cookie、Authorization Code、Client Secret、CSV本文、取得したWe
 - 同じFIX Revisionを二重claimできない。
 - claim途中失敗で全件rollbackする。
 - Accountsの紐付けや公開許可の変更後も既受領FIXが移動しない。
-- 外部アカウントの証明・検証のテスト要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に従い、Accounts側で検証する。
+- 外部アカウントの証明・検証のテスト要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に従い、Accounts側で検証する。
 
 ### 14.5 Points–Markets OAuth
 
