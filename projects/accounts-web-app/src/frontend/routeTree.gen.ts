@@ -10,128 +10,142 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AccountLinksRouteImport } from './routes/account-links'
-import { Route as DeveloperRouteImport } from './routes/developer'
-import { Route as HelpRouteImport } from './routes/help'
-import { Route as LicensesRouteImport } from './routes/licenses'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as TermsRouteImport } from './routes/terms'
+import { Route as Char123AccountsUserIdChar125RouteRouteImport } from './routes/{-$accountsUserId}/route'
+import { Route as Char123AccountsUserIdChar125AccountLinksRouteImport } from './routes/{-$accountsUserId}/account-links'
+import { Route as Char123AccountsUserIdChar125DeveloperRouteImport } from './routes/{-$accountsUserId}/developer'
+import { Route as Char123AccountsUserIdChar125HelpRouteImport } from './routes/{-$accountsUserId}/help'
+import { Route as Char123AccountsUserIdChar125LicensesRouteImport } from './routes/{-$accountsUserId}/licenses'
+import { Route as Char123AccountsUserIdChar125PrivacyRouteImport } from './routes/{-$accountsUserId}/privacy'
+import { Route as Char123AccountsUserIdChar125SettingsRouteImport } from './routes/{-$accountsUserId}/settings'
+import { Route as Char123AccountsUserIdChar125TermsRouteImport } from './routes/{-$accountsUserId}/terms'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountLinksRoute = AccountLinksRouteImport.update({
-  id: '/account-links',
-  path: '/account-links',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DeveloperRoute = DeveloperRouteImport.update({
-  id: '/developer',
-  path: '/developer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LicensesRoute = LicensesRouteImport.update({
-  id: '/licenses',
-  path: '/licenses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const Char123AccountsUserIdChar125RouteRoute =
+  Char123AccountsUserIdChar125RouteRouteImport.update({
+    id: '/{-$accountsUserId}',
+    path: '/{-$accountsUserId}',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char123AccountsUserIdChar125AccountLinksRoute =
+  Char123AccountsUserIdChar125AccountLinksRouteImport.update({
+    id: '/account-links',
+    path: '/account-links',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125DeveloperRoute =
+  Char123AccountsUserIdChar125DeveloperRouteImport.update({
+    id: '/developer',
+    path: '/developer',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125HelpRoute =
+  Char123AccountsUserIdChar125HelpRouteImport.update({
+    id: '/help',
+    path: '/help',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125LicensesRoute =
+  Char123AccountsUserIdChar125LicensesRouteImport.update({
+    id: '/licenses',
+    path: '/licenses',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125PrivacyRoute =
+  Char123AccountsUserIdChar125PrivacyRouteImport.update({
+    id: '/privacy',
+    path: '/privacy',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125SettingsRoute =
+  Char123AccountsUserIdChar125SettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
+const Char123AccountsUserIdChar125TermsRoute =
+  Char123AccountsUserIdChar125TermsRouteImport.update({
+    id: '/terms',
+    path: '/terms',
+    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account-links': typeof AccountLinksRoute
-  '/developer': typeof DeveloperRoute
-  '/help': typeof HelpRoute
-  '/licenses': typeof LicensesRoute
-  '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
-  '/terms': typeof TermsRoute
+  '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
+  '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
+  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
+  '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
+  '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
+  '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
+  '/{-$accountsUserId}/settings': typeof Char123AccountsUserIdChar125SettingsRoute
+  '/{-$accountsUserId}/terms': typeof Char123AccountsUserIdChar125TermsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account-links': typeof AccountLinksRoute
-  '/developer': typeof DeveloperRoute
-  '/help': typeof HelpRoute
-  '/licenses': typeof LicensesRoute
-  '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
-  '/terms': typeof TermsRoute
+  '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
+  '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
+  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
+  '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
+  '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
+  '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
+  '/{-$accountsUserId}/settings': typeof Char123AccountsUserIdChar125SettingsRoute
+  '/{-$accountsUserId}/terms': typeof Char123AccountsUserIdChar125TermsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account-links': typeof AccountLinksRoute
-  '/developer': typeof DeveloperRoute
-  '/help': typeof HelpRoute
-  '/licenses': typeof LicensesRoute
-  '/privacy': typeof PrivacyRoute
-  '/settings': typeof SettingsRoute
-  '/terms': typeof TermsRoute
+  '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
+  '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
+  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
+  '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
+  '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
+  '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
+  '/{-$accountsUserId}/settings': typeof Char123AccountsUserIdChar125SettingsRoute
+  '/{-$accountsUserId}/terms': typeof Char123AccountsUserIdChar125TermsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account-links'
-    | '/developer'
-    | '/help'
-    | '/licenses'
-    | '/privacy'
-    | '/settings'
-    | '/terms'
+    | '/{-$accountsUserId}'
+    | '/{-$accountsUserId}/account-links'
+    | '/{-$accountsUserId}/developer'
+    | '/{-$accountsUserId}/help'
+    | '/{-$accountsUserId}/licenses'
+    | '/{-$accountsUserId}/privacy'
+    | '/{-$accountsUserId}/settings'
+    | '/{-$accountsUserId}/terms'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account-links'
-    | '/developer'
-    | '/help'
-    | '/licenses'
-    | '/privacy'
-    | '/settings'
-    | '/terms'
+    | '/{-$accountsUserId}'
+    | '/{-$accountsUserId}/account-links'
+    | '/{-$accountsUserId}/developer'
+    | '/{-$accountsUserId}/help'
+    | '/{-$accountsUserId}/licenses'
+    | '/{-$accountsUserId}/privacy'
+    | '/{-$accountsUserId}/settings'
+    | '/{-$accountsUserId}/terms'
   id:
     | '__root__'
     | '/'
-    | '/account-links'
-    | '/developer'
-    | '/help'
-    | '/licenses'
-    | '/privacy'
-    | '/settings'
-    | '/terms'
+    | '/{-$accountsUserId}'
+    | '/{-$accountsUserId}/account-links'
+    | '/{-$accountsUserId}/developer'
+    | '/{-$accountsUserId}/help'
+    | '/{-$accountsUserId}/licenses'
+    | '/{-$accountsUserId}/privacy'
+    | '/{-$accountsUserId}/settings'
+    | '/{-$accountsUserId}/terms'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountLinksRoute: typeof AccountLinksRoute
-  DeveloperRoute: typeof DeveloperRoute
-  HelpRoute: typeof HelpRoute
-  LicensesRoute: typeof LicensesRoute
-  PrivacyRoute: typeof PrivacyRoute
-  SettingsRoute: typeof SettingsRoute
-  TermsRoute: typeof TermsRoute
+  Char123AccountsUserIdChar125RouteRoute: typeof Char123AccountsUserIdChar125RouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -143,67 +157,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account-links': {
-      id: '/account-links'
+    '/{-$accountsUserId}': {
+      id: '/{-$accountsUserId}'
+      path: '/{-$accountsUserId}'
+      fullPath: '/{-$accountsUserId}'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125RouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/{-$accountsUserId}/account-links': {
+      id: '/{-$accountsUserId}/account-links'
       path: '/account-links'
-      fullPath: '/account-links'
-      preLoaderRoute: typeof AccountLinksRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/account-links'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125AccountLinksRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/developer': {
-      id: '/developer'
+    '/{-$accountsUserId}/developer': {
+      id: '/{-$accountsUserId}/developer'
       path: '/developer'
-      fullPath: '/developer'
-      preLoaderRoute: typeof DeveloperRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/developer'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125DeveloperRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/help': {
-      id: '/help'
+    '/{-$accountsUserId}/help': {
+      id: '/{-$accountsUserId}/help'
       path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/help'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125HelpRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/licenses': {
-      id: '/licenses'
+    '/{-$accountsUserId}/licenses': {
+      id: '/{-$accountsUserId}/licenses'
       path: '/licenses'
-      fullPath: '/licenses'
-      preLoaderRoute: typeof LicensesRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/licenses'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125LicensesRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/privacy': {
-      id: '/privacy'
+    '/{-$accountsUserId}/privacy': {
+      id: '/{-$accountsUserId}/privacy'
       path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/privacy'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125PrivacyRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/settings': {
-      id: '/settings'
+    '/{-$accountsUserId}/settings': {
+      id: '/{-$accountsUserId}/settings'
       path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/settings'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125SettingsRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
-    '/terms': {
-      id: '/terms'
+    '/{-$accountsUserId}/terms': {
+      id: '/{-$accountsUserId}/terms'
       path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$accountsUserId}/terms'
+      preLoaderRoute: typeof Char123AccountsUserIdChar125TermsRouteImport
+      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
   }
 }
 
+interface Char123AccountsUserIdChar125RouteRouteChildren {
+  Char123AccountsUserIdChar125AccountLinksRoute: typeof Char123AccountsUserIdChar125AccountLinksRoute
+  Char123AccountsUserIdChar125DeveloperRoute: typeof Char123AccountsUserIdChar125DeveloperRoute
+  Char123AccountsUserIdChar125HelpRoute: typeof Char123AccountsUserIdChar125HelpRoute
+  Char123AccountsUserIdChar125LicensesRoute: typeof Char123AccountsUserIdChar125LicensesRoute
+  Char123AccountsUserIdChar125PrivacyRoute: typeof Char123AccountsUserIdChar125PrivacyRoute
+  Char123AccountsUserIdChar125SettingsRoute: typeof Char123AccountsUserIdChar125SettingsRoute
+  Char123AccountsUserIdChar125TermsRoute: typeof Char123AccountsUserIdChar125TermsRoute
+}
+
+const Char123AccountsUserIdChar125RouteRouteChildren: Char123AccountsUserIdChar125RouteRouteChildren =
+  {
+    Char123AccountsUserIdChar125AccountLinksRoute:
+      Char123AccountsUserIdChar125AccountLinksRoute,
+    Char123AccountsUserIdChar125DeveloperRoute:
+      Char123AccountsUserIdChar125DeveloperRoute,
+    Char123AccountsUserIdChar125HelpRoute:
+      Char123AccountsUserIdChar125HelpRoute,
+    Char123AccountsUserIdChar125LicensesRoute:
+      Char123AccountsUserIdChar125LicensesRoute,
+    Char123AccountsUserIdChar125PrivacyRoute:
+      Char123AccountsUserIdChar125PrivacyRoute,
+    Char123AccountsUserIdChar125SettingsRoute:
+      Char123AccountsUserIdChar125SettingsRoute,
+    Char123AccountsUserIdChar125TermsRoute:
+      Char123AccountsUserIdChar125TermsRoute,
+  }
+
+const Char123AccountsUserIdChar125RouteRouteWithChildren =
+  Char123AccountsUserIdChar125RouteRoute._addFileChildren(
+    Char123AccountsUserIdChar125RouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountLinksRoute: AccountLinksRoute,
-  DeveloperRoute: DeveloperRoute,
-  HelpRoute: HelpRoute,
-  LicensesRoute: LicensesRoute,
-  PrivacyRoute: PrivacyRoute,
-  SettingsRoute: SettingsRoute,
-  TermsRoute: TermsRoute,
+  Char123AccountsUserIdChar125RouteRoute:
+    Char123AccountsUserIdChar125RouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -8,6 +8,21 @@ import { defineConfig } from "vite-plus";
 import { handleWorkerOutboundRequest } from "./test/worker-outbound-service";
 
 /**
+ * 事前生成する画面の経路。
+ * 画面の経路はAccountsユーザーIDを任意で付ける（`/{-$accountsUserId}/...`）ため、自動の検出に含まれず、ここで指定する。
+ */
+const prerenderedPaths = [
+  "/",
+  "/account-links",
+  "/settings",
+  "/developer",
+  "/help",
+  "/licenses",
+  "/privacy",
+  "/terms",
+];
+
+/**
  * 開発・ビルド・lint・テストの設定。
  * 画面はTanStack Startで事前生成し、Cloudflare Vite PluginでWorkerとassetsを接続する。
  * @see https://developers.cloudflare.com/workers/framework-guides/web-apps/tanstack-start/
@@ -21,9 +36,10 @@ export default defineConfig(({ mode }) => ({
           cloudflare({ viteEnvironment: { name: "ssr" } }),
           tanstackStart({
             srcDirectory: "src/frontend",
-            // 静的なルートをすべて事前生成する。
+            // AccountsユーザーIDの無い経路を事前生成する（ID付きの`/{accountsUserId}/...`はassetsに無く、Workerが同じshellを返す）。
             // トップページ（`/`）だけ画面の内容を含め、ほかの画面は中身の無いshellになる（`__root.tsx`の`ssr`）。
             // `/help`などは`help.html`へ出力し、assetsがtrailing slashへ転送せずに返すようにする。
+            pages: prerenderedPaths.map((path) => ({ path })),
             prerender: { enabled: true, autoSubfolderIndex: false, crawlLinks: false },
           }),
           react(),

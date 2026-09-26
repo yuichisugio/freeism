@@ -27,7 +27,7 @@ beforeEach(() => {
  */
 function OpenLoginDialogButton({ errorCode }: { errorCode?: string }) {
   const loginDialog = useLoginDialog();
-  return <Button onPress={() => loginDialog.open(errorCode)}>open</Button>;
+  return <Button onPress={() => loginDialog.open({ errorCode })}>open</Button>;
 }
 
 /**

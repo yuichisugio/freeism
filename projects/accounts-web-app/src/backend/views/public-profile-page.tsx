@@ -56,6 +56,7 @@ const identifierLabels: Record<Exclude<IdentifierKind, "url">, string> = {
 
 /**
  * 日英併記の固定文言と最小限のスタイルを持つ文書。
+ * ファビコンは管理画面と同じassetsの`/favicon.svg`を指定する。
  */
 function Document({ title, children }: { title: string; children: Child }) {
   return (
@@ -64,6 +65,7 @@ function Document({ title, children }: { title: string; children: Child }) {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>{title}</title>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <style>{
           "body{font-family:system-ui,sans-serif;line-height:1.6;max-width:48rem;margin:0 auto;padding:1rem}" +
             ".badge{display:inline-block;border:1px solid currentColor;border-radius:.25rem;padding:0 .4rem;font-size:.85em}"

@@ -13,19 +13,16 @@ const authClientMock = vi.hoisted(() => ({
   signIn: { social: vi.fn<AuthClientCall>() },
   getLastUsedLoginMethod: vi.fn<() => string | null>(),
   useSession: vi.fn<() => { data: unknown; isPending: boolean }>(),
-  multiSession: { listDeviceSessions: vi.fn<AuthClientCall>(), setActive: vi.fn<AuthClientCall>() },
 }));
 
 vi.mock("../../../lib/auth-client", () => ({ authClient: authClientMock }));
 
 const alice = { session: { id: "session-a", token: "token-a", userId: "ausr_alice" }, user: { id: "ausr_alice", name: "Alice" } };
-const bob = { session: { id: "session-b", token: "token-b", userId: "ausr_bob" }, user: { id: "ausr_bob", name: "Bob" } };
 
 beforeEach(() => {
   vi.resetAllMocks();
   authClientMock.getLastUsedLoginMethod.mockReturnValue(null);
   authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
-  authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [], error: null });
 });
 
 describe("HomePage", () => {
@@ -54,41 +51,20 @@ describe("HomePage", () => {
     expect(within(dialog).getByRole("alert").textContent).toContain("この外部アカウントはまだ連携されていません");
   });
 
-  it("ログイン済みの場合は、ログインの操作を表示せず、ログイン中のユーザーと切替を示す", async () => {
+  it("ログイン済みの場合は、ログインの操作を表示しない（ユーザーの一覧と切替はヘッダーのメニューで行う）", async () => {
     authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
-    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice, bob], error: null });
-    authClientMock.multiSession.setActive.mockResolvedValue({ data: bob, error: null });
     renderWithProviders(<HomePage loginRequest={null} />);
 
-    const aliceItem = (await screen.findByText("Alice")).closest("li");
-    expect(aliceItem?.textContent).toContain("ausr_alice");
-    expect(within(aliceItem as HTMLElement).getByText("現在のセッション")).toBeDefined();
-    expect(screen.getByRole("link", { name: "アカウント連携へ" })).toBeDefined();
+    await screen.findByRole("heading", { level: 2, name: "簡単な使い方" });
     expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Googleでログイン" })).toBeNull();
-
-    await userEvent.click(screen.getByRole("button", { name: "Bobに切り替える" }));
-
-    expect(authClientMock.multiSession.setActive).toHaveBeenCalledWith({ sessionToken: "token-b" });
-    expect((await screen.findByRole("status")).textContent).toContain("切り替えました。");
+    expect(screen.queryByText("Alice")).toBeNull();
   });
 
-  it("ログイン済みでも、別のAccountsユーザーを追加するためにログイン用のダイアログを開ける", async () => {
-    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
-    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice], error: null });
-    renderWithProviders(<HomePage loginRequest={null} />);
-
-    await userEvent.click(await screen.findByRole("button", { name: "別のAccountsユーザーでログイン" }));
-
-    expect(within(await screen.findByRole("dialog")).getByRole("button", { name: "ORCIDでログイン" })).toBeDefined();
-  });
-
-  it("セッションの確認中は、ログインの操作もセッション一覧も表示しない", async () => {
+  it("セッションの確認中は、ログインの操作を表示しない", async () => {
     authClientMock.useSession.mockReturnValue({ data: null, isPending: true });
     renderWithProviders(<HomePage loginRequest={null} />);
 
     await screen.findByRole("heading", { level: 2, name: "簡単な使い方" });
     expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
-    expect(screen.queryByText("このブラウザーでログイン中のAccountsユーザー")).toBeNull();
   });
 });

@@ -64,6 +64,8 @@ export const publicProfileRoutes = new Hono<AppEnv>()
     secureHeaders({
       contentSecurityPolicy: {
         defaultSrc: ["'none'"],
+        // ファビコン（同じoriginの`/favicon.svg`）だけを読めるようにする。
+        imgSrc: ["'self'"],
         styleSrc: ["'unsafe-inline'"],
         baseUri: ["'none'"],
         formAction: ["'none'"],

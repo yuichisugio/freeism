@@ -79,6 +79,16 @@ describe("GET /profiles/{accountsUserId}", () => {
     expect(html).not.toContain(candidateUrl);
   });
 
+  it("CSPで同じoriginの画像だけを許可し、ファビコンを読めるようにする", async () => {
+    const userId = await createTestUser();
+
+    const response = await fetchProfile(`/profiles/${userId}`);
+
+    const contentSecurityPolicy = response.headers.get("Content-Security-Policy") ?? "";
+    expect(contentSecurityPolicy).toContain("default-src 'none'");
+    expect(contentSecurityPolicy).toContain("img-src 'self'");
+  });
+
   it("公開する外部アカウントが0件でも200でプロフィールを返す", async () => {
     const userId = await createTestUser();
     await createAccount(userId, { isPublic: false });

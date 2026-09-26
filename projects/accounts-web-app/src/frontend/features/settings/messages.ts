@@ -10,6 +10,11 @@ export const settingsMessages = defineMessages({
   ja: {
     title: "設定",
 
+    // 表示言語
+    languageTitle: "表示言語",
+    languageDescription:
+      "画面の表示言語です。選ぶとすぐに切り替わり、このブラウザーに保存します。保存していない場合は、ブラウザーの優先言語が日本語なら日本語、それ以外は英語で表示します。",
+
     // 表示名
     displayNameTitle: "表示名",
     displayNameDescription: "Accountsのプロフィールに表示する名前です。ほかの人と同じ名前も設定できます。",
@@ -76,6 +81,10 @@ export const settingsMessages = defineMessages({
   },
   en: {
     title: "Settings",
+
+    languageTitle: "Display language",
+    languageDescription:
+      "The language of these pages. Your choice applies immediately and is saved in this browser. If nothing is saved, Japanese is used when your browser's preferred language is Japanese, and English otherwise.",
 
     displayNameTitle: "Display name",
     displayNameDescription: "The name shown on your Accounts profile. It does not need to be unique.",

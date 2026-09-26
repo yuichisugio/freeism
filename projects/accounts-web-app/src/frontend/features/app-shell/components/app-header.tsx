@@ -1,49 +1,29 @@
 import { Button } from "@heroui/react";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
-import { authClient } from "../../../lib/auth-client";
-import { useI18n, useMessages } from "../../../lib/i18n/i18n-provider";
-import type { Language } from "../../../lib/i18n/language";
+import { commonMessages } from "../../../lib/i18n/common-messages";
+import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { useHydratedSession } from "../../../lib/use-hydrated-session";
+import { AccountMenu } from "../../auth/components/account-menu";
+import { useLoginDialog } from "../../auth/hooks/use-login-dialog";
 import { appShellMessages } from "../messages";
-
-const languageOptions: { value: Language; label: string }[] = [
-  { value: "ja", label: "日本語" },
-  { value: "en", label: "English" },
-];
 
 const navigationLinkClassName = "rounded px-2 py-1 text-sm hover:bg-default data-[status=active]:font-semibold";
 
 /**
  * 全画面共通のヘッダー。
- * ロゴとサービス名、管理画面への移動、表示言語の切替、ログアウトを置く。
+ * ロゴとサービス名、管理画面への移動、右端にアカウントのメニュー（未ログインでは「ログインする」）を置く。
+ * 管理画面へのリンクは、現在のユーザーのAccountsユーザーID付きの経路にする。
  * ロゴはファビコンと同じSVGを使う。
+ * @see ./app-header.test.tsx
  */
 export function AppHeader() {
   const messages = useMessages(appShellMessages);
-  const { language, setLanguage } = useI18n();
-  // 事前生成したトップページと描画を揃えるため、hydrationの後にログアウトを表示する。
+  const common = useMessages(commonMessages);
+  const loginDialog = useLoginDialog();
+  // 事前生成したトップページと描画を揃えるため、hydrationの後にセッションに応じた表示にする。
   const session = useHydratedSession();
-  const navigate = useNavigate();
-  const [hasSignOutFailed, setHasSignOutFailed] = useState(false);
-
-  /**
-   * トップページへ移動してからログアウトする。
-   * 先に移動することで、未保存の変更がある場合は移動の確認を経てからログアウトする。
-   */
-  const signOut = async () => {
-    setHasSignOutFailed(false);
-    await navigate({ to: "/" });
-    // 未保存の確認で「編集に戻る」を選んだ場合は移動していないため、ログアウトしない。
-    if (window.location.pathname !== "/") return;
-    try {
-      const result = await authClient.signOut();
-      if (result.error) setHasSignOutFailed(true);
-    } catch {
-      setHasSignOutFailed(true);
-    }
-  };
+  const userParams = { accountsUserId: session.data?.user.id };
 
   return (
     <header className="border-b border-default">
@@ -53,43 +33,29 @@ export function AppHeader() {
           {messages.appName}
         </Link>
         <nav aria-label={messages.mainNavigation} className="flex flex-wrap gap-1">
-          <Link to="/account-links" className={navigationLinkClassName}>
+          <Link to="/{-$accountsUserId}/account-links" params={userParams} className={navigationLinkClassName}>
             {messages.accountLinks}
           </Link>
-          <Link to="/settings" className={navigationLinkClassName}>
+          <Link to="/{-$accountsUserId}/settings" params={userParams} className={navigationLinkClassName}>
             {messages.settings}
           </Link>
-          <Link to="/developer" className={navigationLinkClassName}>
+          <Link to="/{-$accountsUserId}/developer" params={userParams} className={navigationLinkClassName}>
             {messages.developer}
           </Link>
-          <Link to="/help" className={navigationLinkClassName}>
+          <Link to="/{-$accountsUserId}/help" params={userParams} className={navigationLinkClassName}>
             {messages.help}
           </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-2">
-          <div role="group" aria-label={messages.language} className="flex gap-1">
-            {languageOptions.map((option) => (
-              <Button
-                key={option.value}
-                size="sm"
-                variant={language === option.value ? "secondary" : "ghost"}
-                aria-pressed={language === option.value}
-                onPress={() => setLanguage(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
-          {session.data ? (
-            <Button size="sm" variant="outline" onPress={() => void signOut()}>
-              {messages.signOut}
+        <div className="ml-auto">
+          {session.isPending ? null : session.data ? (
+            <AccountMenu
+              currentUser={{ sessionToken: session.data.session.token, displayName: session.data.user.name }}
+            />
+          ) : (
+            <Button size="sm" variant="primary" onPress={() => loginDialog.open()}>
+              {common.signIn}
             </Button>
-          ) : null}
-          {hasSignOutFailed ? (
-            <span role="alert" className="text-sm text-danger">
-              {messages.signOutFailed}
-            </span>
-          ) : null}
+          )}
         </div>
       </div>
     </header>
@@ -99,21 +65,22 @@ export function AppHeader() {
 /**
  * 全画面共通のフッター。
  * ヘルプ・OSSライセンス・プライバシーポリシー・利用規約へのリンクを置く。
+ * AccountsユーザーID付きの画面では、同じユーザーのIDを付けた経路にする。
  */
 export function AppFooter() {
   const messages = useMessages(appShellMessages);
   return (
     <footer className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4 py-6 text-sm text-muted">
-      <Link to="/help" className="underline">
+      <Link to="/{-$accountsUserId}/help" className="underline">
         {messages.help}
       </Link>
-      <Link to="/licenses" className="underline">
+      <Link to="/{-$accountsUserId}/licenses" className="underline">
         {messages.licenses}
       </Link>
-      <Link to="/privacy" className="underline">
+      <Link to="/{-$accountsUserId}/privacy" className="underline">
         {messages.privacy}
       </Link>
-      <Link to="/terms" className="underline">
+      <Link to="/{-$accountsUserId}/terms" className="underline">
         {messages.terms}
       </Link>
     </footer>

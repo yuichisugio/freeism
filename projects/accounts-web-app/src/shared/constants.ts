@@ -1,8 +1,13 @@
 /**
- * 画面とバックエンドで共有する上限値。
+ * 画面とバックエンドで共有する定数。
  * @see ../../docs/specification/v0.1/main.ja.md
  * @see ../../docs/specification/v0.1/verify-url.ja.md
  */
+
+/**
+ * AccountsユーザーID（`user.id`）の接頭辞。
+ */
+export const accountsUserIdPrefix = "ausr_";
 
 /**
  * 本人が保持できる`kind='url'`の識別子の上限。

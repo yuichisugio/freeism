@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { UnsavedChangesDialog } from "../features/app-shell/components/unsaved-changes-dialog";
-import { useUnsavedChangesGuard } from "../features/app-shell/hooks/use-unsaved-changes-guard";
-import { DeveloperPage } from "../features/developer/components/developer-page";
-import { useOAuthClients } from "../features/developer/hooks/use-oauth-clients";
-import { useResourceApiReference } from "../features/developer/hooks/use-resource-api-reference";
+import { UnsavedChangesDialog } from "../../features/app-shell/components/unsaved-changes-dialog";
+import { useUnsavedChangesGuard } from "../../features/app-shell/hooks/use-unsaved-changes-guard";
+import { DeveloperPage } from "../../features/developer/components/developer-page";
+import { useOAuthClients } from "../../features/developer/hooks/use-oauth-clients";
+import { useResourceApiReference } from "../../features/developer/hooks/use-resource-api-reference";
 
-export const Route = createFileRoute("/developer")({
+export const Route = createFileRoute("/{-$accountsUserId}/developer")({
   component: DeveloperRoute,
 });
 

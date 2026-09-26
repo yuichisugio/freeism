@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { renderHook } from "@testing-library/react";
 import { act } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
@@ -35,4 +36,17 @@ it("事前生成時とhydration中は確認中として描画し、hydrationの�
 
   expect(onRecoverableError).not.toHaveBeenCalled();
   expect(container.textContent).toBe("Alice");
+});
+
+it("確認を終えた後の再取得では、未ログインの表示を確認中へ戻さない", () => {
+  authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+  const { result, rerender } = renderHook(() => useHydratedSession());
+  expect(result.current.isPending).toBe(false);
+
+  // Better Authは未ログインの間の再取得（フォーカス時など）で`isPending`をtrueにする。
+  authClientMock.useSession.mockReturnValue({ data: null, isPending: true });
+  rerender();
+
+  expect(result.current.isPending).toBe(false);
+  expect(result.current.data).toBeNull();
 });

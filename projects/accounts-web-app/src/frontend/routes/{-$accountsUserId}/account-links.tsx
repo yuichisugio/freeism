@@ -1,33 +1,34 @@
 import { Card } from "@heroui/react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useLocation } from "@tanstack/react-router";
 
-import { ConsentPanel } from "../features/account-links/components/consent-panel";
-import { ExternalUrlForm } from "../features/account-links/components/external-url-form";
-import { ProfileUrlPanel } from "../features/account-links/components/profile-url-panel";
-import { ProviderLinkButtons } from "../features/account-links/components/provider-link-buttons";
-import { ServiceHintsDialog } from "../features/account-links/components/service-hints-dialog";
-import { UnlinkDialog } from "../features/account-links/components/unlink-dialog";
-import { VisibilityTable } from "../features/account-links/components/visibility-table";
-import { useAccountLinks } from "../features/account-links/hooks/use-account-links";
-import { useActiveUser } from "../features/account-links/hooks/use-active-user";
-import { useConsentRequest } from "../features/account-links/hooks/use-consent-request";
-import { useExternalUrlForm } from "../features/account-links/hooks/use-external-url-form";
-import { useProviderLink } from "../features/account-links/hooks/use-provider-link";
-import { useUnlink } from "../features/account-links/hooks/use-unlink";
-import { accountLinksMessages } from "../features/account-links/messages";
-import { ErrorNotice, LoadingState, SuccessNotice } from "../features/app-shell/components/status-messages";
-import { UnsavedChangesDialog } from "../features/app-shell/components/unsaved-changes-dialog";
-import { useUnsavedChangesGuard } from "../features/app-shell/hooks/use-unsaved-changes-guard";
-import { useMessages } from "../lib/i18n/i18n-provider";
-import type { RawSearch } from "../lib/search-params";
+import { ConsentPanel } from "../../features/account-links/components/consent-panel";
+import { ExternalUrlForm } from "../../features/account-links/components/external-url-form";
+import { ProfileUrlPanel } from "../../features/account-links/components/profile-url-panel";
+import { ProviderLinkButtons } from "../../features/account-links/components/provider-link-buttons";
+import { ServiceHintsDialog } from "../../features/account-links/components/service-hints-dialog";
+import { UnlinkDialog } from "../../features/account-links/components/unlink-dialog";
+import { VisibilityTable } from "../../features/account-links/components/visibility-table";
+import { useAccountLinks } from "../../features/account-links/hooks/use-account-links";
+import { useActiveUser } from "../../features/account-links/hooks/use-active-user";
+import { useConsentRequest } from "../../features/account-links/hooks/use-consent-request";
+import { useExternalUrlForm } from "../../features/account-links/hooks/use-external-url-form";
+import { useProviderLink } from "../../features/account-links/hooks/use-provider-link";
+import { useUnlink } from "../../features/account-links/hooks/use-unlink";
+import { accountLinksMessages } from "../../features/account-links/messages";
+import { ErrorNotice, LoadingState, SuccessNotice } from "../../features/app-shell/components/status-messages";
+import { UnsavedChangesDialog } from "../../features/app-shell/components/unsaved-changes-dialog";
+import { useUnsavedChangesGuard } from "../../features/app-shell/hooks/use-unsaved-changes-guard";
+import { useMessages } from "../../lib/i18n/i18n-provider";
+import type { RawSearch } from "../../lib/search-params";
 
 /**
  * 「アカウント連携」画面。
  * OAuth Providerの`consentPage`を兼ね、署名付きクエリがあれば同意画面モードで表示する。
  * 署名付きクエリを保つため、クエリはすべてそのまま残す。
- * @see ../../../docs/specification/v0.1/main.ja.md
+ * OAuth Providerの`consentPage`（IDの無い`/account-links`）で開いた場合も、クエリを保って現在のユーザーのID付きの経路へ移る（`UserScopeGate`）。
+ * @see ../../../../docs/specification/v0.1/main.ja.md
  */
-export const Route = createFileRoute("/account-links")({
+export const Route = createFileRoute("/{-$accountsUserId}/account-links")({
   validateSearch: (search: Record<string, unknown>) => search as RawSearch,
   component: AccountLinksPage,
 });
@@ -40,7 +41,8 @@ function AccountLinksPage() {
   const accountLinks = useAccountLinks(consentClientId);
   const urlForm = useExternalUrlForm({ onSaved: accountLinks.reload });
   const unlink = useUnlink({ onUnlinked: accountLinks.reload });
-  const providerLink = useProviderLink();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const providerLink = useProviderLink(pathname);
   const activeUser = useActiveUser(consentClientId !== undefined);
   // 同意画面から戻る間は外部へ移動するため、未保存の確認を出さない。
   const guard = useUnsavedChangesGuard((accountLinks.table?.isDirty ?? false) && !consent.isSubmitting);
@@ -62,7 +64,7 @@ function AccountLinksPage() {
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
       <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
         <h1 className="text-2xl font-semibold">{messages.title}</h1>
-        <Link to="/help" hash="account-links" className="text-sm underline">
+        <Link to="/{-$accountsUserId}/help" hash="account-links" className="text-sm underline">
           {messages.helpLink}
         </Link>
       </header>

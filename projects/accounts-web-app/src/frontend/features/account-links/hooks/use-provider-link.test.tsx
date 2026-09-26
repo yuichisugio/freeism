@@ -17,21 +17,21 @@ beforeEach(() => {
 describe("useProviderLink", () => {
   it("この画面へ戻る指定で追加連携を開始する", async () => {
     linkSocialMock.mockResolvedValue({ data: { url: "https://github.com/login/oauth/authorize", redirect: true }, error: null });
-    const { result } = renderHook(() => useProviderLink());
+    const { result } = renderHook(() => useProviderLink("/ausr_alice/account-links"));
 
     await act(() => result.current.link("github"));
 
     expect(linkSocialMock).toHaveBeenCalledWith({
       provider: "github",
-      callbackURL: "/account-links",
-      errorCallbackURL: "/account-links",
+      callbackURL: "/ausr_alice/account-links",
+      errorCallbackURL: "/ausr_alice/account-links",
     });
   });
 
   it("移動が取り消されて画面に留まっても（未保存の変更の確認で留まるなど）、再度押せる状態に戻す", async () => {
     // 成功時はBetter Authのクライアントが`window.location.href`へ代入し、移動が取り消されてもPromiseは成功として解決する。
     linkSocialMock.mockResolvedValue({ data: { url: "https://github.com/login/oauth/authorize", redirect: true }, error: null });
-    const { result } = renderHook(() => useProviderLink());
+    const { result } = renderHook(() => useProviderLink("/ausr_alice/account-links"));
 
     await act(() => result.current.link("github"));
 
@@ -42,7 +42,7 @@ describe("useProviderLink", () => {
   it("開始の応答が失敗の場合は、失敗を保持して再度押せる状態に戻す", async () => {
     const error = { status: 400, statusText: "Bad Request" };
     linkSocialMock.mockResolvedValue({ data: null, error });
-    const { result } = renderHook(() => useProviderLink());
+    const { result } = renderHook(() => useProviderLink("/ausr_alice/account-links"));
 
     await act(() => result.current.link("orcid"));
 

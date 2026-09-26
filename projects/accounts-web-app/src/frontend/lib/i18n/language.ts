@@ -11,11 +11,12 @@ export const defaultLanguage: Language = "ja";
 const languageStorageKey = "accounts.language";
 
 /**
- * ブラウザーの言語設定から初期言語を決める。
- * 日本語の場合は日本語、それ以外は英語とする。
+ * ブラウザーの優先言語（`navigator.languages`）から初期言語を決める。
+ * 先頭が日本語の場合は日本語、それ以外は英語とする。
+ * @see ./language.test.ts
  */
-export function detectLanguage(browserLanguage: string | undefined): Language {
-  return browserLanguage?.toLowerCase().startsWith("ja") ? "ja" : "en";
+export function detectLanguage(browserLanguages: readonly string[]): Language {
+  return browserLanguages[0]?.toLowerCase().startsWith("ja") ? "ja" : "en";
 }
 
 /**
@@ -24,11 +25,11 @@ export function detectLanguage(browserLanguage: string | undefined): Language {
  */
 export function readInitialLanguage(): Language {
   const stored = readStoredLanguage();
-  return stored ?? detectLanguage(window.navigator.language);
+  return stored ?? detectLanguage(window.navigator.languages);
 }
 
 /**
- * ヘッダーで切り替えた言語を保存する。
+ * 「設定」画面で選んだ言語を保存する。
  * 保存できない環境では、次回もブラウザー判定の言語になる。
  */
 export function storeLanguage(language: Language): void {

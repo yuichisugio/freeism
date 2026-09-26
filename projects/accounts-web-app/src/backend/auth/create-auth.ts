@@ -18,6 +18,7 @@ import {
 import { createAccessControl } from "better-auth/plugins/access";
 import { defaultStatements } from "better-auth/plugins/admin/access";
 
+import { accountsUserIdPrefix } from "../../shared/constants";
 import { loginProviderIds } from "../../shared/providers";
 import { createDatabase } from "../db/database";
 import { createRandomId } from "../db/id";
@@ -60,7 +61,7 @@ export function createResourceApiIdentifier(accountsOrigin: string): string {
  */
 export function generateAuthId({ model, size }: { model: string; size?: number }): string {
   if (model === "user") {
-    return createRandomId("ausr_");
+    return createRandomId(accountsUserIdPrefix);
   }
 
   return generateRandomString(size ?? 32, "a-z", "A-Z", "0-9");

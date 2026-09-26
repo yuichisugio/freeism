@@ -1,7 +1,7 @@
 import { defineMessages } from "../../lib/i18n/define-messages";
 
 /**
- * ログイン用のダイアログと、ログイン中のユーザーの一覧の文言。
+ * ログイン用のダイアログ、アカウントのメニュー、URLのユーザーに合わせる画面の文言。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
 export const authMessages = defineMessages({
@@ -28,17 +28,16 @@ export const authMessages = defineMessages({
     unknownErrorTitle: "ログインできませんでした",
     unknownErrorDescription: (errorCode: string) =>
       `もう一度お試しください。解決しない場合は時間をおいて再度お試しください（エラー: ${errorCode}）。`,
-    sessionsTitle: "このブラウザーでログイン中のAccountsユーザー",
-    signInAnotherUser: "別のAccountsユーザーでログイン",
+    accountMenuLabel: (displayName: string) => `アカウントのメニュー（${displayName}）`,
+    sessionsTitle: "このブラウザーでログイン中のユーザー",
     sessionsLoadFailed: "ログイン中のユーザーを読み込めませんでした。",
-    accountsUserId: "AccountsユーザーID",
-    currentSession: "現在のセッション",
-    switchTo: "切り替える",
-    switchToLabel: (displayName: string) => `${displayName}に切り替える`,
-    switching: "切り替え中…",
+    currentUser: "現在のユーザー",
+    addAccount: "アカウントを追加",
+    signOut: "ログアウト",
+    signOutFailed: "ログアウトできませんでした。もう一度お試しください。",
     switchFailed: "切り替えられませんでした。画面を再読み込みして再度お試しください。",
-    switched: "切り替えました。",
-    goToAccountLinks: "アカウント連携へ",
+    userScopeSignInRequired: (accountsUserId: string) =>
+      `この画面はAccountsユーザー「${accountsUserId}」の画面です。このユーザーでログインすると表示します。`,
   },
   en: {
     title: "Sign in to Accounts",
@@ -63,16 +62,15 @@ export const authMessages = defineMessages({
     unknownErrorTitle: "Could not sign in",
     unknownErrorDescription: (errorCode: string) =>
       `Please try again. If the problem persists, try again later (error: ${errorCode}).`,
-    sessionsTitle: "Accounts users signed in on this browser",
-    signInAnotherUser: "Sign in as another Accounts user",
+    accountMenuLabel: (displayName: string) => `Account menu (${displayName})`,
+    sessionsTitle: "Users signed in on this browser",
     sessionsLoadFailed: "Could not load the signed-in users.",
-    accountsUserId: "Accounts user ID",
-    currentSession: "Current session",
-    switchTo: "Switch",
-    switchToLabel: (displayName: string) => `Switch to ${displayName}`,
-    switching: "Switching…",
+    currentUser: "Current user",
+    addAccount: "Add account",
+    signOut: "Sign out",
+    signOutFailed: "Could not sign out. Please try again.",
     switchFailed: "Could not switch. Please reload the page and try again.",
-    switched: "Switched.",
-    goToAccountLinks: "Go to Account links",
+    userScopeSignInRequired: (accountsUserId: string) =>
+      `This page belongs to the Accounts user "${accountsUserId}". Sign in as this user to view it.`,
   },
 });

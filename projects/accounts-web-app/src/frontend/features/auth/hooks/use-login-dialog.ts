@@ -1,11 +1,20 @@
 import { createContext, useContext } from "react";
 
 /**
+ * ログイン用のダイアログを開くときの指定。
+ * `errorCode`は、ログイン失敗で戻された`?error=`のエラーコードで、案内とともに開く。
+ * `returnTo`は、ログインの成功・失敗の後に戻る画面（指定が無い場合は`useLogin`の既定）。
+ */
+export type LoginDialogOptions = {
+  errorCode?: string;
+  returnTo?: string;
+};
+
+/**
  * ログイン用のダイアログの操作。
- * `open`は、ログイン失敗で戻された`?error=`のエラーコードを受け取り、案内とともに開く。
  */
 export type LoginDialogControl = {
-  open: (errorCode?: string) => void;
+  open: (options?: LoginDialogOptions) => void;
 };
 
 export const LoginDialogContext = createContext<LoginDialogControl | null>(null);

@@ -13,10 +13,12 @@ export type LoginStartFailure = "expired" | "failed";
  * ログインの開始と、前回のログイン方法。
  * Google・GitHubとGeneric OAuthのORCIDは、Better Auth標準の`signIn.social()`で開始する。
  * OAuth Providerのログイン画面として開いた場合は、`oauthProviderClient`が署名付きクエリを要求へ引き継ぐ。
+ * 戻り先（`returnTo`）の指定が無い場合は、成功時に「アカウント連携」画面（ログイン後に現在のユーザーのID付きの経路へ移る）、失敗時にトップページのログイン用のダイアログへ戻る。
+ * 指定した場合は、成功時も失敗時もその画面へ戻る。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-login.test.ts
  */
-export function useLogin() {
+export function useLogin(returnTo?: string) {
   const [pendingProvider, setPendingProvider] = useState<LoginProviderId | null>(null);
   const [startFailure, setStartFailure] = useState<LoginStartFailure | null>(null);
   // cookie由来の値のため、描画のたびに読み直さず初回だけ読む。
@@ -33,8 +35,8 @@ export function useLogin() {
     try {
       const { error } = await authClient.signIn.social({
         provider,
-        callbackURL: "/account-links",
-        errorCallbackURL: "/",
+        callbackURL: returnTo ?? "/account-links",
+        errorCallbackURL: returnTo ?? "/",
       });
       if (error === null) return;
       // 署名付きクエリの期限を過ぎると、ログインの開始自体が`invalid_signature`で拒否される。

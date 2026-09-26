@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe("useLogin", () => {
   it.each(["google", "github", "orcid"] as const)(
-    "%sのログインは、成功時にアカウント連携へ、失敗時にログイン画面へ戻る指定で開始する",
+    "%sのログインは、成功時にアカウント連携へ、失敗時にトップページのログイン用のダイアログへ戻る指定で開始する",
     async (provider) => {
       authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
       const { result } = renderHook(() => useLogin());
@@ -38,6 +38,19 @@ describe("useLogin", () => {
       expect(result.current.startFailure).toBeNull();
     },
   );
+
+  it("戻り先を指定した場合は、成功時も失敗時もその画面へ戻る指定で開始する", async () => {
+    authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
+    const { result } = renderHook(() => useLogin("/ausr_bob/settings"));
+
+    await act(() => result.current.signIn("github"));
+
+    expect(authClientMock.signIn.social).toHaveBeenCalledWith({
+      provider: "github",
+      callbackURL: "/ausr_bob/settings",
+      errorCallbackURL: "/ausr_bob/settings",
+    });
+  });
 
   it("開始の応答が失敗の場合は、失敗を保持して再度押せる状態に戻す", async () => {
     authClientMock.signIn.social.mockResolvedValue({ data: null, error: { status: 500, statusText: "Error" } });

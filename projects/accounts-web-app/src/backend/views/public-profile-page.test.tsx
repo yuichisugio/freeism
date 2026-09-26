@@ -94,6 +94,12 @@ describe("renderPublicProfilePage", () => {
     expect(html).toContain("<h3>Web</h3>");
   });
 
+  it("管理画面と同じファビコンを指定する", async () => {
+    const html = await renderPublicProfilePage(profile);
+
+    expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>');
+  });
+
   it("外部アカウントが0件でもプロフィールを返す", async () => {
     const html = await renderPublicProfilePage({ ...profile, externalAccounts: [] });
 

@@ -13,6 +13,7 @@ import { AccountDeletionSection } from "./account-deletion-section";
 import { BackupExportSection } from "./backup-export-section";
 import { BackupRestoreSection } from "./backup-restore-section";
 import { DisplayNameSection } from "./display-name-section";
+import { LanguageSection } from "./language-section";
 
 // --------------------------------------------------
 // フックの状態
@@ -87,6 +88,23 @@ function accountDeletion(overrides: Partial<AccountDeletion> = {}): AccountDelet
 async function isButtonDisabled(name: string): Promise<boolean> {
   return (await screen.findByRole<HTMLButtonElement>("button", { name })).disabled;
 }
+
+// --------------------------------------------------
+// 表示言語
+// --------------------------------------------------
+
+describe("LanguageSection", () => {
+  it("現在の表示言語を選択済みにし、選んだ言語で画面を表示してこのブラウザーに保存する", async () => {
+    renderWithProviders(<LanguageSection />);
+
+    expect((await screen.findByRole<HTMLInputElement>("radio", { name: "日本語" })).checked).toBe(true);
+    await userEvent.click(screen.getByRole("radio", { name: "English" }));
+
+    expect(await screen.findByText("Display language")).toBeDefined();
+    expect(screen.getByRole<HTMLInputElement>("radio", { name: "English" }).checked).toBe(true);
+    expect(window.localStorage.getItem("accounts.language")).toBe("en");
+  });
+});
 
 // --------------------------------------------------
 // 表示名

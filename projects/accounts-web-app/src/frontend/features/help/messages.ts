@@ -27,9 +27,11 @@ export const helpMessages = defineMessages({
         title: "ログインとユーザーの切替",
         paragraphs: [],
         items: [
-          "トップページの「ログインする」から、Google・GitHub・ORCIDのいずれかのアカウントでログインします。初めての場合は、表示名「仮ユーザー」のAccountsユーザーを作成します。表示名は「設定」画面で変更できます。",
+          "ヘッダーまたはトップページの「ログインする」から、Google・GitHub・ORCIDのいずれかのアカウントでログインします。初めての場合は、表示名「仮ユーザー」のAccountsユーザーを作成します。表示名は「設定」画面で変更できます。",
           "同じメールアドレスのAccountsユーザーが既にある場合は、新しいユーザーを作成せずに案内を表示します。既存のログイン手段でログインし、「アカウント連携」画面からその外部アカウントを連携してください。",
-          "同じブラウザーで複数のAccountsユーザーにログインでき、トップページで切り替えられます。ログアウトすると、このブラウザーでログイン中のすべてのAccountsユーザーからログアウトします。",
+          "同じブラウザーで複数のAccountsユーザーにログインできます。ヘッダー右のアイコンを押すとメニューが開き、ログイン中のユーザーの切替、「アカウントを追加」による別のユーザーでのログイン、「ログアウト」ができます。ログアウトは現在のユーザーだけが対象で、ほかにログイン中のユーザーがいればそのユーザーに切り替わります。",
+          "ログイン後の画面のURLは、先頭にAccountsユーザーIDが付きます（例: /ausr_.../settings）。ほかのユーザーのURLを開くと、そのユーザーにログイン中なら切り替え、ログインしていなければログインを求めます。",
+          "表示言語は「設定」画面で日本語と英語から選べます。ログインしていなくても選べ、このブラウザーに保存します。",
         ],
       },
       {
@@ -122,9 +124,11 @@ export const helpMessages = defineMessages({
         title: "Signing in and switching users",
         paragraphs: [],
         items: [
-          "Press \"Sign in\" on the top page and sign in with your Google, GitHub, or ORCID account. If this is your first time, an Accounts user with the display name \"仮ユーザー\" (temporary user) is created. You can change the display name on the Settings page.",
+          "Press \"Sign in\" in the header or on the top page and sign in with your Google, GitHub, or ORCID account. If this is your first time, an Accounts user with the display name \"仮ユーザー\" (temporary user) is created. You can change the display name on the Settings page.",
           "If an Accounts user with the same email address already exists, no new user is created and guidance is shown. Sign in with your existing sign-in method and link the external account from the Account links page.",
-          "You can sign in to several Accounts users on the same browser and switch between them on the top page. Signing out signs out every Accounts user signed in on this browser.",
+          "You can sign in to several Accounts users on the same browser. Press the icon at the right of the header to open a menu where you can switch between signed-in users, sign in as another user with \"Add account\", and \"Sign out\". Signing out applies only to the current user; if another user is signed in, Accounts switches to that user.",
+          "After you sign in, page URLs start with your Accounts user ID (for example, /ausr_.../settings). If you open a URL for another user, Accounts switches to that user when they are signed in on this browser, and otherwise asks you to sign in.",
+          "You can choose Japanese or English as the display language on the Settings page, even without signing in. The choice is saved in this browser.",
         ],
       },
       {
