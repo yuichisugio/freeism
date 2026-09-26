@@ -383,6 +383,16 @@ describe("Points account close and reopen", () => {
     await expect(
       db.prepare("SELECT id FROM accounts_links WHERE id = ?").bind(accountsLinkId).first(),
     ).resolves.toBeNull();
+    const released = await db
+      .prepare(
+        `SELECT target, reason FROM audit_event
+         WHERE actor_points_user_id = ? AND action = 'ACCOUNTS_LINKS_RELEASED'`,
+      )
+      .bind(account.pointsUserId)
+      .all();
+    expect(released.results).toEqual([
+      { reason: "releasedLinkCount=1", target: account.pointsUserId },
+    ]);
     await expect(
       db
         .prepare(

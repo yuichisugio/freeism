@@ -1,7 +1,10 @@
+import { act } from "react";
+import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import {
+  AccountsConnectionAdminPanel,
   AccountsConnectionList,
   type AccountsConnectionView,
 } from "./accounts-connection-admin-panel";
@@ -66,5 +69,55 @@ describe("AccountsConnectionList", () => {
 
   it("接続先が無い場合はその旨を示す", () => {
     expect(render([])).toContain("接続先はまだありません。");
+  });
+});
+
+describe("AccountsConnectionAdminPanel", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    document.body.innerHTML = "";
+  });
+
+  it("送信中は操作ボタンを無効にし、一覧を読み直したら戻す", async () => {
+    vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
+    vi.stubGlobal("confirm", () => true);
+    const { promise: withdrawal, resolve: resolveWithdrawal } = Promise.withResolvers<Response>();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_path: string, init?: RequestInit) =>
+        init?.method === "POST"
+          ? withdrawal
+          : Promise.resolve(
+              Response.json({
+                data: [{ ...pendingConnection, status: "ACTIVE", clientId: "c-1" }],
+              }),
+            ),
+      ),
+    );
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => root.render(<AccountsConnectionAdminPanel />));
+
+    const reasonInput = container.querySelector("textarea")!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(
+        reasonInput,
+        "不要になったため",
+      );
+      reasonInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    const withdrawButton = () =>
+      [...container.querySelectorAll("button")].find(
+        (button) => button.textContent === "取り下げ",
+      )!;
+    expect(withdrawButton().disabled).toBe(false);
+
+    await act(async () => withdrawButton().click());
+    expect(withdrawButton().disabled).toBe(true);
+
+    await act(async () => resolveWithdrawal(Response.json({ data: {} })));
+    expect(withdrawButton().disabled).toBe(false);
+    act(() => root.unmount());
   });
 });

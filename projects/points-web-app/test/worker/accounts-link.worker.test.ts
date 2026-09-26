@@ -56,11 +56,18 @@ function createUserClient(user: TestPointsUser, sessionId = user.sessionId) {
       user: { id: user.authUserId },
     }),
   });
-  return (method: string, path: string, body?: unknown) =>
+  return (
+    method: string,
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = body === undefined
+      ? {}
+      : { "Content-Type": "application/json" },
+  ) =>
     app.fetch(
       new Request(`https://points.test${path}`, {
         method,
-        headers: body === undefined ? {} : { "Content-Type": "application/json" },
+        headers,
         body: body === undefined ? undefined : JSON.stringify(body),
       }),
       env,
@@ -380,6 +387,15 @@ describe("連携の戻り先", () => {
         "ACCOUNTS_ID_TOKEN_INVALID",
       );
       expect(await listLinks(request)).toEqual([]);
+      const audit = await db
+        .prepare("SELECT action, target, reason FROM audit_event WHERE actor_points_user_id = ?")
+        .bind(user.pointsUserId)
+        .first();
+      expect(audit).toEqual({
+        action: "ACCOUNTS_LINK_REJECTED",
+        target: connection.connectionId,
+        reason: "ACCOUNTS_ID_TOKEN_INVALID",
+      });
     },
   );
 });
@@ -406,6 +422,21 @@ describe("連携の開始", () => {
     expect(limited.status).toBe(429);
     expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
   });
+
+  it("JSON以外のContent-Typeを415で拒否する", async () => {
+    const connection = await createConnection();
+    const request = createUserClient(await seedPointsUser(db));
+
+    const response = await request(
+      "POST",
+      "/api/accounts-links/attempts",
+      { accountsConnectionId: connection.connectionId },
+      { "Content-Type": "text/plain" },
+    );
+
+    expect(response.status).toBe(415);
+    expect(await response.json()).toMatchObject({ code: "JSON_CONTENT_TYPE_REQUIRED" });
+  });
 });
 
 // --------------------------------------------------
@@ -430,6 +461,28 @@ describe("情報提供の停止と解除", () => {
     const deleted = await request("DELETE", `/api/accounts-links/${stopped!.id}`);
     expect(deleted.status).toBe(204);
     expect(await listLinks(request)).toEqual([]);
+  });
+
+  it("本人の解除でACCOUNTS_LINK_DELETEDの監査を残す", async () => {
+    const connection = await createConnection();
+    const user = await seedPointsUser(db);
+    const request = createUserClient(user);
+    await link(request, connection, newAccountsUserId());
+    const [linked] = await listLinks(request);
+
+    const response = await request("DELETE", `/api/accounts-links/${linked!.id}`);
+
+    expect(response.status).toBe(204);
+    const audit = await db
+      .prepare(
+        `SELECT action, target, result FROM audit_event
+         WHERE actor_points_user_id = ? AND action = 'ACCOUNTS_LINK_DELETED'`,
+      )
+      .bind(user.pointsUserId)
+      .all();
+    expect(audit.results).toEqual([
+      { action: "ACCOUNTS_LINK_DELETED", target: linked!.id, result: "SUCCESS" },
+    ]);
   });
 
   it("他人の連携は解除できない", async () => {

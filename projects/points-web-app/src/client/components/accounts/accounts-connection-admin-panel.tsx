@@ -169,6 +169,7 @@ export function AccountsConnectionAdminPanel() {
   const [accountsOrigin, setAccountsOrigin] = useState("");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/admin/accounts-connections");
@@ -184,10 +185,16 @@ export function AccountsConnectionAdminPanel() {
     void load();
   }, [load]);
 
+  /**
+   * 変更の要求を送り、結果を示して一覧を読み直す。
+   * 二重送信しないよう、一覧を読み直すまで操作ボタンを無効にする。
+   */
   async function run(action: string, path: string, body: Record<string, string>) {
+    setPending(true);
     const response = await postAdminOperation(path, { ...body, reason });
     setMessage(response.ok ? `${action}しました。` : await toFailureMessage(response, action));
     await load();
+    setPending(false);
     return response.ok;
   }
 
@@ -214,7 +221,7 @@ export function AccountsConnectionAdminPanel() {
     );
   }
 
-  const canSubmit = reason.trim().length > 0;
+  const canSubmit = reason.trim().length > 0 && !pending;
   return (
     <>
       <section className="form-card">

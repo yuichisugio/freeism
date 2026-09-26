@@ -138,6 +138,43 @@ async function seedLink(connectionId: string, accountsOrigin: string) {
   return linkId;
 }
 
+/**
+ * 接続先への連携の試行を、利用者を作って直接保存する。
+ */
+async function seedLinkAttempt(connectionId: string) {
+  const user = await seedPointsUser(db);
+  const now = Date.now();
+  await db
+    .prepare(
+      `INSERT INTO accounts_link_attempts
+         (state_hash, points_user_id, auth_session_id_hash, accounts_connection_id,
+          nonce, code_verifier, created_at, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      `state_${crypto.randomUUID()}`,
+      user.pointsUserId,
+      `session_${crypto.randomUUID()}`,
+      connectionId,
+      "nonce",
+      "code-verifier",
+      now,
+      now + 600_000,
+    )
+    .run();
+}
+
+/**
+ * 運営者が残した、接続先への指定した操作の監査の件数。
+ */
+async function countConnectionAudits(connectionId: string, action: string) {
+  const row = await db
+    .prepare("SELECT count(*) AS count FROM audit_event WHERE target = ? AND action = ?")
+    .bind(connectionId, action)
+    .first<{ count: number }>();
+  return row?.count;
+}
+
 // --------------------------------------------------
 // 認可
 // --------------------------------------------------
@@ -235,6 +272,23 @@ describe("接続先の作成", () => {
     expect(await second.json()).toEqual(await first.json());
   });
 
+  it("同じIdempotency-Keyで異なる内容を送るとIDEMPOTENCY_KEY_REUSEDにする", async () => {
+    const { accounts, request } = await setUp();
+    const headers = { "Idempotency-Key": crypto.randomUUID() };
+    const body = { accountsOrigin: accounts.origin, displayName: "Accounts", reason: "reason" };
+
+    await request("POST", "/api/admin/accounts-connections", body, headers);
+    const reused = await request(
+      "POST",
+      "/api/admin/accounts-connections",
+      { ...body, displayName: "Other Accounts" },
+      headers,
+    );
+
+    expect(reused.status).toBe(409);
+    expect(await reused.json()).toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
+  });
+
   it("不正なorigin・同じoriginの2件目・メタデータを取得できないAccountsを拒否する", async () => {
     const { accounts, request } = await setUp();
     await createConnection(request, accounts);
@@ -326,6 +380,29 @@ describe("接続先の有効化", () => {
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ code: "ACCOUNTS_CONNECTION_NOT_PENDING" });
   });
+
+  it("同じIdempotency-Keyの再送には保存した応答を返し、監査を1件だけ残す", async () => {
+    const { accounts, request } = await setUp();
+    const connection = await createConnection(request, accounts);
+    const clientId = `client_${crypto.randomUUID()}`;
+    accounts.registerClient(clientId, connection.registration!.jwks);
+    const activate = (headers: Record<string, string>) =>
+      request(
+        "POST",
+        `/api/admin/accounts-connections/${connection.id}/activation`,
+        { clientId, reason: "reason" },
+        headers,
+      );
+    const headers = { "Idempotency-Key": crypto.randomUUID() };
+
+    const first = await activate(headers);
+    const second = await activate(headers);
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual(await first.json());
+    expect(await countConnectionAudits(connection.id, "ACCOUNTS_CONNECTION_ACTIVATED")).toBe(1);
+  });
 });
 
 // --------------------------------------------------
@@ -333,12 +410,13 @@ describe("接続先の有効化", () => {
 // --------------------------------------------------
 
 describe("接続先の取り下げ", () => {
-  it("全ユーザー連携・トークンキャッシュ・秘密鍵を消し、WITHDRAWNにする", async () => {
+  it("全ユーザー連携・連携の試行・トークンキャッシュ・秘密鍵を消し、WITHDRAWNにする", async () => {
     const { accounts, admin, request } = await setUp();
     const connection = await createConnection(request, accounts);
     await activateConnection(request, accounts, connection);
     await seedLink(connection.id, accounts.origin);
     await seedLink(connection.id, accounts.origin);
+    await seedLinkAttempt(connection.id);
 
     const response = await request(
       "POST",
@@ -358,12 +436,14 @@ describe("接続先の取り下げ", () => {
     const remaining = await db
       .prepare(
         `SELECT (SELECT count(*) FROM accounts_links WHERE accounts_connection_id = ?) AS links,
+                (SELECT count(*) FROM accounts_link_attempts WHERE accounts_connection_id = ?)
+                  AS attempts,
                 (SELECT count(*) FROM accounts_client_tokens WHERE accounts_connection_id = ?)
                   AS tokens`,
       )
-      .bind(connection.id, connection.id)
-      .first<{ links: number; tokens: number }>();
-    expect(remaining).toEqual({ links: 0, tokens: 0 });
+      .bind(connection.id, connection.id, connection.id)
+      .first<{ links: number; attempts: number; tokens: number }>();
+    expect(remaining).toEqual({ links: 0, attempts: 0, tokens: 0 });
     const audits = await db
       .prepare(
         `SELECT action, target, reason FROM audit_event
@@ -419,5 +499,26 @@ describe("接続先の取り下げ", () => {
     const second = await withdraw();
     expect(second.status).toBe(409);
     expect(await second.json()).toMatchObject({ code: "ACCOUNTS_CONNECTION_WITHDRAWN" });
+  });
+
+  it("同じIdempotency-Keyの再送には保存した応答を返し、監査を1件だけ残す", async () => {
+    const { accounts, request } = await setUp();
+    const connection = await createConnection(request, accounts);
+    const headers = { "Idempotency-Key": crypto.randomUUID() };
+    const withdraw = () =>
+      request(
+        "POST",
+        `/api/admin/accounts-connections/${connection.id}/withdrawal`,
+        { reason: "reason" },
+        headers,
+      );
+
+    const first = await withdraw();
+    const second = await withdraw();
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual(await first.json());
+    expect(await countConnectionAudits(connection.id, "ACCOUNTS_CONNECTION_WITHDRAWN")).toBe(1);
   });
 });

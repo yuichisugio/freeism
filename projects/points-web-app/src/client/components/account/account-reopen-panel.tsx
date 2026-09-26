@@ -67,28 +67,32 @@ export function AccountReopenPanel({ preview }: Readonly<{ preview?: AccountReop
 
   return (
     <section className="form-card">
-      <h2>未受領FIXの一括受領</h2>
-      <p>
-        正負すべてを選択せず一括で受領します。負の結果により残高がマイナスになる場合があります。
-      </p>
+      <h2>アカウントの再開</h2>
       {value.axes.length === 0 ? (
-        <p className="status-card">未受領のFIXはありません。</p>
+        <p className="status-card">
+          未受領FIXは、再開後に設定画面でAccountsと連携してから受領できます。
+        </p>
       ) : (
-        <ul className="signed-list">
-          {value.axes.map((axis) => (
-            <li key={axis.evaluationCriterionId}>
-              <strong>{axis.netAmount}</strong>
-              <span>{axis.evaluationCriterionId}</span>
-              <small>
-                正 {axis.positiveCount}件 / 負 {axis.negativeCount}件 / 全 {axis.totalCount}件
-              </small>
-            </li>
-          ))}
-        </ul>
+        <>
+          <p>
+            再開時に次の未受領FIXを正負すべて一括で受領します。負の結果により残高がマイナスになる場合があります。
+          </p>
+          <ul className="signed-list">
+            {value.axes.map((axis) => (
+              <li key={axis.evaluationCriterionId}>
+                <strong>{axis.netAmount}</strong>
+                <span>{axis.evaluationCriterionId}</span>
+                <small>
+                  正 {axis.positiveCount}件 / 負 {axis.negativeCount}件 / 全 {axis.totalCount}件
+                </small>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <GoogleReauthButton />
       <button onClick={() => void reopen()} type="button">
-        正負すべてを一括受領して再開
+        アカウントを再開
       </button>
       {message ? (
         <p aria-live="polite" className="status-card">

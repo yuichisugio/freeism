@@ -70,6 +70,11 @@ async function assertCloseAllowed(db: D1Database, pointsUserId: string) {
   if (lastAdmin) throw new ClosePointsAccountError("ACCOUNT_CLOSE_LAST_ADMIN");
 }
 
+/**
+ * Pointsアカウントを閉鎖する。
+ * 同じbatchで全Accounts連携を削除し、解除した件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として残す。
+ * @see ../../../test/worker/account-close.worker.test.ts
+ */
 export async function closePointsAccount(
   db: D1Database,
   input: {
@@ -132,6 +137,27 @@ export async function closePointsAccount(
           JSON.stringify(responseBody),
           now,
           input.pointsUserId,
+        ),
+      db
+        .prepare(
+          `INSERT INTO audit_event
+             (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
+           SELECT ?, ?, 'ACCOUNTS_LINKS_RELEASED', ?,
+                  'releasedLinkCount=' ||
+                    (SELECT count(*) FROM accounts_links WHERE points_user_id = ?),
+                  ?, 'SUCCESS', ?
+           WHERE ${guardSql}`,
+        )
+        .bind(
+          `audit_${crypto.randomUUID()}`,
+          input.pointsUserId,
+          input.pointsUserId,
+          input.pointsUserId,
+          input.requestId,
+          now,
+          input.pointsUserId,
+          input.idempotencyKey,
+          payloadHash,
         ),
       db
         .prepare(`DELETE FROM accounts_links WHERE points_user_id = ? AND ${guardSql}`)

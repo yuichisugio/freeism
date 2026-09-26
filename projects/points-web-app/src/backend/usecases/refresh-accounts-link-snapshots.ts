@@ -32,6 +32,8 @@ export type AccountsSnapshotDependencies = {
 /**
  * 指定した連携のsnapshotを取得し直す。
  * 接続先ごとに資源APIクライアントを1つ作り、トークンを共有する。
+ * 応答の不正（`INVALID_RESPONSE`）はその連携だけの失敗として次の連携へ進む。
+ * それ以外の失敗は接続先全体の失敗なので、その接続先の残りの連携は取得しない。
  */
 export async function refreshAccountsLinkSnapshots(
   { db, kek, fetch, reportFailure, now = Date.now }: AccountsSnapshotDependencies,
@@ -48,6 +50,7 @@ export async function refreshAccountsLinkSnapshots(
       } catch (error) {
         if (!(error instanceof AccountsClientError)) throw error;
         await reportFailure({ operation: "accounts_list", code: error.code, connectionId });
+        if (error.code !== "INVALID_RESPONSE") break;
       }
     }
   }

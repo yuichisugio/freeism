@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 
 import type { AccountsFailure } from "../../src/backend/accounts/accounts-failure-reporter";
 import { deleteExpiredAccountsLinkAttempts } from "../../src/backend/infrastructure/db/d1-accounts-link-repository";
+import { listAccountsLinks } from "../../src/backend/usecases/list-accounts-links";
 import { refreshStaleAccountsLinkSnapshots } from "../../src/backend/usecases/refresh-accounts-link-snapshots";
 import {
   importTestKek,
@@ -30,22 +31,22 @@ async function setUp() {
     actorPointsUserId: admin.pointsUserId,
   });
   const failures: AccountsFailure[] = [];
-  const refresh = (now: number) =>
-    refreshStaleAccountsLinkSnapshots({
-      db,
-      kek,
-      fetch: accounts.fetch,
-      reportFailure: async (failure) => {
-        failures.push(failure);
-      },
-      now: () => now,
-    });
+  const dependencies = (now: number) => ({
+    db,
+    kek,
+    fetch: accounts.fetch,
+    reportFailure: async (failure: AccountsFailure) => {
+      failures.push(failure);
+    },
+    now: () => now,
+  });
+  const refresh = (now: number) => refreshStaleAccountsLinkSnapshots(dependencies(now));
 
   /**
    * 最後の取得時刻を指定して、情報提供中の連携を作る。
    */
-  async function seedLink(fetchedAt: number | null) {
-    const user = await seedPointsUser(db);
+  async function seedLink(fetchedAt: number | null, pointsUserId?: string) {
+    const user = pointsUserId === undefined ? await seedPointsUser(db) : { pointsUserId };
     const id = `alnk_${crypto.randomUUID()}`;
     await db
       .prepare(
@@ -69,7 +70,7 @@ async function setUp() {
     return id;
   }
 
-  return { accounts, connectionId, failures, refresh, seedLink };
+  return { accounts, connectionId, dependencies, failures, refresh, seedLink };
 }
 
 /**
@@ -146,27 +147,95 @@ describe("連携アカウント一覧の定期更新", () => {
     expect((await readLink(ids[50]!))?.fetchedAt).toBe(now - 25 * hourMs - 5000);
   });
 
-  it("404で情報提供停止にしてsnapshotを消し、通信失敗では前回のsnapshotを維持する", async () => {
+  it("404で情報提供停止にしてsnapshotを消す", async () => {
     const now = Date.now();
     const { accounts, failures, refresh, seedLink } = await setUp();
     const stopped = await seedLink(now - 25 * hourMs);
-    const unreachable = await seedLink(now - 26 * hourMs);
-    await markOtherLinksFresh(now, [stopped, unreachable]);
+    await markOtherLinksFresh(now, [stopped]);
     accounts.setList(() => null);
-    accounts.interceptNext("/api/v1/external-accounts", "network");
 
     await refresh(now);
 
-    expect(await readLink(unreachable)).toEqual({
-      provisionStatus: "PROVIDED",
-      externalAccountsJson: "[]",
-      fetchedAt: now - 26 * hourMs,
-    });
     expect(await readLink(stopped)).toEqual({
       provisionStatus: "NOT_PROVIDED",
       externalAccountsJson: null,
       fetchedAt: now,
     });
+    expect(failures).toEqual([]);
+  });
+
+  it("接続先全体の失敗では、その接続先の残りの連携を取得せずに1回だけ記録し、前回のsnapshotを維持する", async () => {
+    const now = Date.now();
+    const { accounts, failures, refresh, seedLink } = await setUp();
+    const unreachable = await seedLink(now - 26 * hourMs);
+    const skipped = await seedLink(now - 25 * hourMs);
+    await markOtherLinksFresh(now, [unreachable, skipped]);
+    accounts.setList(() => sampleExternalAccounts());
+    accounts.interceptNext("/api/v1/external-accounts", "network");
+
+    await refresh(now);
+
+    for (const [id, fetchedAt] of [
+      [unreachable, now - 26 * hourMs],
+      [skipped, now - 25 * hourMs],
+    ] as const) {
+      expect(await readLink(id)).toEqual({
+        provisionStatus: "PROVIDED",
+        externalAccountsJson: "[]",
+        fetchedAt,
+      });
+    }
+    expect(accounts.requests.filter(({ url }) => url.endsWith("/external-accounts"))).toHaveLength(
+      1,
+    );
+    expect(failures).toEqual([
+      { operation: "accounts_list", code: "NETWORK_ERROR", connectionId: expect.any(String) },
+    ]);
+  });
+
+  it("1件の応答が不正な場合は記録して、同じ接続先の次の連携を取得する", async () => {
+    const now = Date.now();
+    const { accounts, failures, refresh, seedLink } = await setUp();
+    const invalid = await seedLink(now - 26 * hourMs);
+    const valid = await seedLink(now - 25 * hourMs);
+    await markOtherLinksFresh(now, [invalid, valid]);
+    accounts.setList((accountsUserId) =>
+      accountsUserId === `ausr_${invalid}` ? [{ unexpected: true }] : sampleExternalAccounts(),
+    );
+
+    await refresh(now);
+
+    expect((await readLink(invalid))?.fetchedAt).toBe(now - 26 * hourMs);
+    expect(await readLink(valid)).toEqual({
+      provisionStatus: "PROVIDED",
+      externalAccountsJson: JSON.stringify(sampleExternalAccounts()),
+      fetchedAt: now,
+    });
+    expect(failures).toEqual([
+      { operation: "accounts_list", code: "INVALID_RESPONSE", connectionId: expect.any(String) },
+    ]);
+  });
+});
+
+// --------------------------------------------------
+// 本人の閲覧
+// --------------------------------------------------
+
+describe("本人の閲覧での取得し直し", () => {
+  it("接続先全体の失敗では、同じ接続先の残りの連携を取得せずに1回だけ記録する", async () => {
+    const now = Date.now();
+    const { accounts, dependencies, failures, seedLink } = await setUp();
+    const user = await seedPointsUser(db);
+    await seedLink(now - 2 * hourMs, user.pointsUserId);
+    await seedLink(now - hourMs, user.pointsUserId);
+    accounts.interceptNext("/api/v1/external-accounts", "network");
+
+    const links = await listAccountsLinks(dependencies(now), user.pointsUserId);
+
+    expect(links).toHaveLength(2);
+    expect(accounts.requests.filter(({ url }) => url.endsWith("/external-accounts"))).toHaveLength(
+      1,
+    );
     expect(failures).toEqual([
       { operation: "accounts_list", code: "NETWORK_ERROR", connectionId: expect.any(String) },
     ]);

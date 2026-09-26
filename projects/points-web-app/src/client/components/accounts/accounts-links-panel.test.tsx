@@ -26,7 +26,9 @@ const baseLink: AccountsLinkView = {
       service: "github",
       displayName: "Alice",
       identifiers: [{ type: "url", url: "https://github.com/alice" }],
+      linkedAt: "2026-09-01T00:00:00Z",
       verificationStatus: "verified",
+      verifications: [],
     },
   ],
 };

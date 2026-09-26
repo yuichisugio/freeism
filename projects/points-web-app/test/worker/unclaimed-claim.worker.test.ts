@@ -77,8 +77,16 @@ async function createCriterion(actorPointsUserId: string, suffix: string) {
 
 /** 誰にも照合されない状態で FIX を取り込み、未受領エントリーを作る。 */
 async function commitUnclaimed(actorPointsUserId: string, accountsOrigin: string, csv: string) {
+  return commitFix(actorPointsUserId, fakeAccounts(accountsOrigin, {}), csv);
+}
+
+/** 指定した照合結果で FIX を検証して取り込む。 */
+async function commitFix(
+  actorPointsUserId: string,
+  createResolver: CreateAccountsRecipientResolver,
+  csv: string,
+) {
   const bytes = new TextEncoder().encode(csv);
-  const createResolver = fakeAccounts(accountsOrigin, {});
   const accountsConnectionId = "acon_unused";
   const validated = await validateFixCsv(env.DB!, bytes, { accountsConnectionId, createResolver });
   if (validated.status !== "VALID") throw new Error(`FIX CSV is ${validated.status}`);
@@ -114,6 +122,39 @@ async function seedAccountsLink(pointsUserId: string, accountsOrigin: string, su
       .bind(accountsLinkId, pointsUserId, `acon_${suffix}`, accountsOrigin, `ausr_${suffix}`, now),
   ]);
   return { accountsLinkId, accountsUserId: `ausr_${suffix}` };
+}
+
+async function readBalance(pointsUserId: string, evaluationCriterionId: string) {
+  const account = await env
+    .DB!.prepare(
+      "SELECT balance FROM point_account WHERE points_user_id = ? AND evaluation_criterion_id = ?",
+    )
+    .bind(pointsUserId, evaluationCriterionId)
+    .first<{ balance: number }>();
+  return account?.balance ?? 0;
+}
+
+/** 連携の未受領 FIX を preview し、そのまま一括受領する。 */
+async function claimAll(
+  pointsUserId: string,
+  accountsLinkId: string,
+  createResolver: CreateAccountsRecipientResolver,
+) {
+  const preview = await previewUnclaimedFixes(env.DB!, {
+    accountsLinkId,
+    createResolver,
+    pointsUserId,
+  });
+  await claimUnclaimedFixes(env.DB!, {
+    accountsLinkId,
+    claimSetHash: preview.claimSetHash,
+    createResolver,
+    idempotencyKey: `claim-${crypto.randomUUID()}`,
+    now: new Date(),
+    pointsUserId,
+    requestId: `req_${crypto.randomUUID()}`,
+  });
+  return preview;
 }
 
 async function setup() {
@@ -189,6 +230,14 @@ describe("unclaimed FIX claim", () => {
       .bind(pointsUser.id)
       .first();
     expect(claim).toEqual({ accountsOrigin, accountsUserId: link.accountsUserId });
+    const audit = await env
+      .DB!.prepare(
+        `SELECT target, reason FROM audit_event
+         WHERE actor_points_user_id = ? AND action = 'UNCLAIMED_FIX_CLAIM'`,
+      )
+      .bind(pointsUser.id)
+      .all();
+    expect(audit.results).toEqual([{ reason: "claimedCount=1", target: link.accountsLinkId }]);
     await expect(
       previewUnclaimedFixes(env.DB!, {
         accountsLinkId: link.accountsLinkId,
@@ -557,5 +606,88 @@ describe("unclaimed FIX entries per Accounts origin", () => {
       { accountsOrigin: originA, deltaAmountScaled: -30_000 },
       { accountsOrigin: originB, deltaAmountScaled: 50_000 },
     ]);
+  });
+
+  it("sums to the latest revision per origin when a correction moves a profile URL to another Accounts origin", async () => {
+    const suffix = crypto.randomUUID();
+    const actor = await createUser(suffix);
+    const criterionId = await createCriterion(actor.id, suffix);
+    const originA = `https://accounts-a-${suffix.slice(0, 8)}.test`;
+    const originB = `https://accounts-b-${suffix.slice(0, 8)}.test`;
+    const url = `https://example.com/moved-${suffix}`;
+    const first = await commitUnclaimed(
+      actor.id,
+      originA,
+      [FIX_HEADER, `,,${url},,${criterionId},10,2026-07,,first`].join("\n"),
+    );
+    const { fixResultId } = first.results[0]!;
+
+    const corrected = await commitUnclaimed(
+      actor.id,
+      originB,
+      [FIX_HEADER, `${fixResultId},1,${url},,${criterionId},3,2026-07,,moved`].join("\n"),
+    );
+
+    const entries = await env
+      .DB!.prepare(
+        `SELECT accounts_origin AS accountsOrigin, delta_amount_scaled AS deltaAmountScaled
+         FROM unclaimed_fix_entry WHERE source_fix_revision_id = ?
+         ORDER BY accounts_origin`,
+      )
+      .bind(corrected.results[0]!.fixRevisionId)
+      .all();
+    expect(entries.results).toEqual([
+      { accountsOrigin: originA, deltaAmountScaled: -100_000 },
+      { accountsOrigin: originB, deltaAmountScaled: 30_000 },
+    ]);
+    const holder = await createUser(`${suffix}-holder`);
+    const link = await seedAccountsLink(holder.id, originB, `${suffix}-holder`);
+    await claimAll(
+      holder.id,
+      link.accountsLinkId,
+      fakeAccounts(originB, { [url]: { accountsUserId: link.accountsUserId, status: "matched" } }),
+    );
+    expect(await readBalance(holder.id, criterionId)).toBe(30_000);
+  });
+});
+
+describe("FIX corrections before the recipient claims", () => {
+  it("keeps a correction unclaimed while the earlier revision is still unclaimed", async () => {
+    const suffix = crypto.randomUUID();
+    const actor = await createUser(suffix);
+    const criterionId = await createCriterion(actor.id, suffix);
+    const accountsOrigin = `https://accounts-${suffix.slice(0, 8)}.test`;
+    const url = `https://example.com/corrected-${suffix}`;
+    const first = await commitUnclaimed(
+      actor.id,
+      accountsOrigin,
+      [FIX_HEADER, `,,${url},,${criterionId},10,2026-07,,first`].join("\n"),
+    );
+    const { fixResultId } = first.results[0]!;
+    const holder = await createUser(`${suffix}-holder`);
+    const link = await seedAccountsLink(holder.id, accountsOrigin, `${suffix}-holder`);
+    const createResolver = fakeAccounts(accountsOrigin, {
+      [url]: { accountsUserId: link.accountsUserId, status: "matched" },
+    });
+
+    await commitFix(
+      actor.id,
+      createResolver,
+      [FIX_HEADER, `${fixResultId},1,${url},,${criterionId},3,2026-07,,decreased`].join("\n"),
+    );
+    expect(await readBalance(holder.id, criterionId)).toBe(0);
+
+    const preview = await claimAll(holder.id, link.accountsLinkId, createResolver);
+    expect(preview.aggregates).toMatchObject([
+      { evaluationCriterionId: criterionId, netAmountScaled: 30_000 },
+    ]);
+    expect(await readBalance(holder.id, criterionId)).toBe(30_000);
+
+    await commitFix(
+      actor.id,
+      createResolver,
+      [FIX_HEADER, `${fixResultId},2,${url},,${criterionId},5,2026-07,,increased`].join("\n"),
+    );
+    expect(await readBalance(holder.id, criterionId)).toBe(50_000);
   });
 });

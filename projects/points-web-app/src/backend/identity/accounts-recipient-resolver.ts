@@ -215,12 +215,11 @@ export function recipientIdentifierKey(identifier: RecipientIdentifier): string 
 /**
  * 修正 revision で対象者を揃えるキー。
  * 照合結果ではなく入力識別子で決めるので、照合結果が変わっても対象者は揺れない。
+ * 照合した接続先の origin を含めるので、接続先が異なれば別の対象者になる。
  */
 export function recipientBusinessKey(
   identifier: RecipientIdentifier,
   accountsOrigin: string,
 ): string {
-  return identifier.type === "url"
-    ? `url:${identifier.value}`
-    : `accounts_user:${accountsOrigin}:${identifier.value}`;
+  return `${identifier.type}:${accountsOrigin}:${identifier.value}`;
 }

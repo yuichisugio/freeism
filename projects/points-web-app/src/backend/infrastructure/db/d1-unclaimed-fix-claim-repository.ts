@@ -243,7 +243,10 @@ export async function previewUnclaimedFixes(
   return preview;
 }
 
-/** preview と同じ集合であることを確かめて、未受領 FIX をまとめて受領する。 */
+/**
+ * preview と同じ集合であることを確かめて、未受領 FIX をまとめて受領する。
+ * 受領件数は監査 `UNCLAIMED_FIX_CLAIM` の `reason` に `claimedCount=N` として残す。
+ */
 export async function claimUnclaimedFixes(
   db: D1Database,
   input: {
@@ -383,13 +386,14 @@ export async function claimUnclaimedFixes(
   const audit = db
     .prepare(
       `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, request_id, result, created_at)
-       VALUES (?, ?, 'UNCLAIMED_FIX_CLAIM', ?, ?, 'SUCCESS', ?)`,
+         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
+       VALUES (?, ?, 'UNCLAIMED_FIX_CLAIM', ?, ?, ?, 'SUCCESS', ?)`,
     )
     .bind(
       `audit_${crypto.randomUUID()}`,
       input.pointsUserId,
       link.accountsLinkId,
+      `claimedCount=${preview.entries.length}`,
       input.requestId,
       claimedAt,
     );

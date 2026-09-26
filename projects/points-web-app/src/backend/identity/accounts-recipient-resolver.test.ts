@@ -206,12 +206,15 @@ describe("FIX recipient business key", () => {
   it("keeps the URL value as entered without normalization", () => {
     expect(
       recipientBusinessKey({ type: "url", value: "https://github.com/alice/" }, "https://a.test"),
-    ).toBe("url:https://github.com/alice/");
+    ).toBe("url:https://a.test:https://github.com/alice/");
   });
 
-  it("scopes an Accounts user ID by the Accounts origin", () => {
-    expect(
-      recipientBusinessKey({ type: "accounts_user", value: "ausr_1" }, "https://a.test"),
-    ).not.toBe(recipientBusinessKey({ type: "accounts_user", value: "ausr_1" }, "https://b.test"));
-  });
+  it.each(["url", "accounts_user"] as const)(
+    "scopes a %s identifier by the Accounts origin",
+    (type) => {
+      expect(recipientBusinessKey({ type, value: "ausr_1" }, "https://a.test")).not.toBe(
+        recipientBusinessKey({ type, value: "ausr_1" }, "https://b.test"),
+      );
+    },
+  );
 });

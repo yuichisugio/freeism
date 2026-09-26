@@ -28,10 +28,7 @@ interface PreviousEntry extends FixRevisionValue {
  * `recipientBusinessKey` と同じ値を返す。
  */
 export function recipientBusinessKeySql(alias: string): string {
-  return `CASE ${alias}.recipient_identifier_type
-    WHEN 'url' THEN 'url:' || ${alias}.recipient_identifier_value
-    ELSE 'accounts_user:' || ${alias}.accounts_origin || ':' || ${alias}.recipient_identifier_value
-  END`;
+  return `${alias}.recipient_identifier_type || ':' || ${alias}.accounts_origin || ':' || ${alias}.recipient_identifier_value`;
 }
 
 /** 検証済みの CSV 行から対象者キーを求める。 */
@@ -191,22 +188,24 @@ export async function commitFixRows(
     const fixRevisionId = `fixrev_${crypto.randomUUID()}`;
     if (isNew) heads.push({ createdAt: input.now.getTime(), fixResultId, fixRevisionId, revision });
     const oldValues = previous.get(fixResultId) ?? [];
-    const originalRecipients = new Map(
-      oldValues
-        .filter((value): value is PreviousEntry & { pointsUserId: string } =>
-          Boolean(value.pointsUserId),
-        )
-        .map((value) => [
-          `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
-          value.pointsUserId,
-        ]),
+    // 旧 revision にある対象者は、その受領者（未受領なら null）を引き継ぐ。
+    // 受領前の修正差分を先に台帳へ入れず、旧 revision と一緒に受領させるため。
+    const previousRecipients = new Map(
+      oldValues.map((value) => [
+        `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
+        value.pointsUserId,
+      ]),
     );
-    const resolvedRows = rows.map((row) => ({
-      ...row,
-      recipientPointsUserId:
-        originalRecipients.get(`${rowBusinessKey(row)}\u0000${row.evaluationCriterionId}`) ??
-        row.recipientPointsUserId,
-    }));
+    const resolvedRows = rows.map((row) => {
+      const previousRecipient = previousRecipients.get(
+        `${rowBusinessKey(row)}\u0000${row.evaluationCriterionId}`,
+      );
+      return {
+        ...row,
+        recipientPointsUserId:
+          previousRecipient === undefined ? row.recipientPointsUserId : previousRecipient,
+      };
+    });
     revisions.push({
       actorPointsUserId: input.actorPointsUserId,
       contentHash: await hashCanonicalPayload(resolvedRows),
