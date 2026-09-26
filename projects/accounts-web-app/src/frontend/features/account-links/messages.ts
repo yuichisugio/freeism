@@ -41,7 +41,9 @@ export const accountLinksMessages = defineMessages({
     unverifiedSaved: "URLを未検証で保存しました。",
     unverifiedAlreadyRegistered: "このURLは登録済みです。既存の登録と証明は変更していません。",
     verifySucceeded: "所有権を証明しました。",
-    verifyFailed: "証明は成立しませんでした。URLは未検証として保存しました。",
+    verifyFailed: "証明は成立しませんでした。URLは未検証の登録のままです。",
+    verifyFailedNotSaved:
+      "証明が成立しなかったため、URLは保存していません。未検証のまま登録する場合は「未検証で保存」を押してください。",
     reverifyFailedKeptExisting: "今回の確認では証明が成立しませんでしたが、以前に成立した証明は引き続き有効です。",
     linkAttempt: "公開ページのリンク確認",
     dnsAttempt: "DNS TXT",
@@ -206,7 +208,9 @@ export const accountLinksMessages = defineMessages({
     unverifiedSaved: "The URL was saved as unverified.",
     unverifiedAlreadyRegistered: "This URL is already registered. Existing registrations and proofs were not changed.",
     verifySucceeded: "Ownership was verified.",
-    verifyFailed: "Verification did not succeed. The URL was saved as unverified.",
+    verifyFailed: "Verification did not succeed. The URL remains registered as unverified.",
+    verifyFailedNotSaved:
+      "Verification did not succeed, so the URL was not saved. To register it without verification, press “Save without verifying”.",
     reverifyFailedKeptExisting: "This check did not verify ownership, but the previously verified proof remains valid.",
     linkAttempt: "Public page link",
     dnsAttempt: "DNS TXT",

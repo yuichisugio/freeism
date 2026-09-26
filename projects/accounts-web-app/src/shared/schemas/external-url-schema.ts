@@ -29,11 +29,12 @@ export const verificationAttemptSchema = v.object({
 
 /**
  * `mode: "verify"`の`data`。
+ * `externalAccountId`は、未登録URLの検証がどちらの方法でも成立せず登録しなかった場合に`null`（「未検証で保存」で登録できる）。
  * `link.evidenceUrl`は、リンク証明が成立した場合だけ証拠を確認したページ（最終取得URL）を返し、それ以外は`null`。
  * リンク証明が成立した場合、DNS TXTは試行しないため`dns`は`null`。
  */
 export const verifyUrlResultSchema = v.object({
-  externalAccountId: v.string(),
+  externalAccountId: v.nullable(v.string()),
   status: verificationStatusSchema,
   link: v.object({
     ...verificationAttemptSchema.entries,

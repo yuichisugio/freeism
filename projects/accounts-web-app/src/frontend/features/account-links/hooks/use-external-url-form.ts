@@ -57,6 +57,7 @@ export function useExternalUrlForm({ onSaved }: { onSaved: () => Promise<void> }
   /**
    * 入力したURLを保存する。
    * `verify`はリンク証明とDNS TXTを試し、`unverified`は検証せずに登録する。
+   * 未登録URLの検証が成立せず登録されなかった場合は、続けて「未検証で保存」できるよう入力を保つ。
    */
   const submit = async (mode: ExternalUrlMode) => {
     const parsed = v.safeParse(externalUrlSchema, { url, mode });
@@ -83,6 +84,9 @@ export function useExternalUrlForm({ onSaved }: { onSaved: () => Promise<void> }
               }),
             };
       setSubmitState({ status: "succeeded", outcome });
+      if (outcome.mode === "verify" && outcome.result.externalAccountId === null) {
+        return;
+      }
       setUrlState("");
       await onSaved();
     } catch (error) {

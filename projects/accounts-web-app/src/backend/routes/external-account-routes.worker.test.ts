@@ -144,14 +144,14 @@ describe("POST /api/external-urls", () => {
     expect(await readIdentifierActivity(userId)).toMatchObject({ [`url:${url}`]: false });
   });
 
-  it("本人のURLが上限に達していれば、mode: verifyでもURL_LIMIT_REACHEDの409を返す", async () => {
+  it("本人のURLが上限に達していれば、未検証で保存する要求にURL_LIMIT_REACHEDの409を返す", async () => {
     const { userId, headers } = await createLoggedInUser();
     await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser);
 
     const response = await requestBff("/api/external-urls", {
       method: "POST",
       headers,
-      body: { url: `https://${uniqueHost()}/`, mode: "verify" },
+      body: { url: `https://${uniqueHost()}/`, mode: "unverified" },
     });
 
     expect(response.status).toBe(409);

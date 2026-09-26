@@ -44,6 +44,25 @@ describe("useExternalUrlForm", () => {
     expect(onSaved).toHaveBeenCalledOnce();
   });
 
+  it("未登録URLの検証が不成立で登録されなかった場合は、入力を保ち一覧を再取得しない", async () => {
+    const verifyResult = {
+      externalAccountId: null,
+      status: "unverified",
+      link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
+      dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+    };
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(async () => dataResponse(verifyResult)));
+    const onSaved = vi.fn<() => Promise<void>>(async () => {});
+    const { result } = renderHook(() => useExternalUrlForm({ onSaved }));
+
+    act(() => result.current.setUrl("https://example.org/about"));
+    await act(() => result.current.submit("verify"));
+
+    expect(result.current.outcome).toEqual({ mode: "verify", result: verifyResult });
+    expect(result.current.url).toBe("https://example.org/about");
+    expect(onSaved).not.toHaveBeenCalled();
+  });
+
   it("「未検証で保存」の結果を保持する", async () => {
     vi.stubGlobal("fetch", vi.fn<typeof fetch>(async () => dataResponse({ externalAccountId: "eac_1", created: false })));
     const { result } = renderHook(() => useExternalUrlForm({ onSaved: vi.fn<() => Promise<void>>(async () => {}) }));

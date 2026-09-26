@@ -22,6 +22,7 @@ import { verifyLinkEvidence } from "../infrastructure/verification/verify-link-e
 import { auditLog } from "../logging/audit-log";
 import { ProblemError } from "../problem-details";
 import {
+  assertUrlCapacity,
   buildRegistrationIdentifiers,
   readUrlRegistration,
   type UrlRegistration,
@@ -56,6 +57,7 @@ export type VerifyUrlDeps = {
 /**
  * `verifyUrl`の結果。
  * `affectedUserIds`は公開内容が変わりうるユーザー（本人と識別子の旧所有者）で、プロフィールのpurge対象にする。
+ * 未登録URLの検証が成立せず何も保存しなかった場合、`externalAccountId`は`null`、`affectedUserIds`は空にする。
  */
 export type VerifyUrlOutput = VerifyUrlResult & { affectedUserIds: string[] };
 
@@ -76,12 +78,13 @@ type ProofPlan = { targets: ProofTarget[]; transferred: ExternalIdentifierRow[] 
 // --------------------------------------------------
 
 /**
- * 入力URLを検査・登録し、公開ページのリンク証明、不成立なら同じ要求でDNS TXTを確かめて結果を保存する。
+ * 入力URLを検査し、公開ページのリンク証明、不成立なら同じ要求でDNS TXTを確かめて結果を保存する。
  * 期待する公開プロフィールURLは、セッション本人のIDと環境設定の公開originから決める。
  * ページ取得・DNS照会はDB書込の前に行い、書込は1回のD1 batchで確定する。
- * 成功時だけ証明と今回確認した識別子の関連を置き換え、失敗・判断不能では直近の試行結果だけを更新する。
+ * 成功時だけ入力URLを登録し、証明と今回確認した識別子の関連を置き換える。
+ * 登録済みURLの失敗・判断不能では直近の試行結果だけを更新し、未登録URLでは何も保存せず方法別の結果を返す。
  * リンク証明単独では、旧所有者の`oauth`・`dns_txt`が支える識別子を移動せず`HELD_BY_STRONGER_PROOF`とする。
- * @throws {ProblemError} 入力URLの不備（400）、URL登録数の上限到達（409）、レート制限の超過（429）、所有者の更新の競合（409）。
+ * @throws {ProblemError} 入力URLの不備（400）、レート制限の超過（429）、未登録URLの証明成立時のURL登録数の上限到達（409）、所有者の更新の競合（409）。
  */
 export async function verifyUrl(
   deps: VerifyUrlDeps,
@@ -123,6 +126,27 @@ export async function verifyUrl(
       ? await planDnsProof(repository, userId, registration)
       : null;
   const proofPlan = linkPlan ?? dnsPlan;
+  const attempts: Pick<VerifyUrlResult, "link" | "dns"> = {
+    // 証拠を確認したページは、リンク証明が成功した場合だけ示す（DBも成功時だけ保存する）。
+    link: {
+      result: linkOutcome.result,
+      failureCode: linkOutcome.failureCode,
+      evidenceUrl: linkOutcome.result === "verified" ? linkEvidence.finalUrl : null,
+    },
+    dns: dnsOutcome === null ? null : { result: dnsOutcome.result, failureCode: dnsOutcome.failureCode },
+  };
+
+  // --------------------------------------------------
+  // 未登録URLは証明が成立した場合だけ登録する
+  // --------------------------------------------------
+
+  if (registration.inputIdentifier === undefined) {
+    if (proofPlan === null) {
+      logVerificationAttempts(linkOutcome, dnsOutcome, Date.now() - startedAt);
+      return { externalAccountId: null, status: "unverified", ...attempts, affectedUserIds: [] };
+    }
+    assertUrlCapacity(registration);
+  }
 
   // --------------------------------------------------
   // 書込文を組み立てる
@@ -240,21 +264,36 @@ export async function verifyUrl(
     throw error;
   });
 
-  const result: VerifyUrlResult = {
+  logVerificationAttempts(linkOutcome, dnsOutcome, Date.now() - startedAt);
+  const transferredCount = proofPlan?.transferred.length ?? 0;
+  if (transferredCount > 0) {
+    auditLog({
+      event: "identifier_transfer",
+      outcome: "success",
+      method: linkPlan === null ? "dns_txt" : "bidirectional_link",
+      count: transferredCount,
+    });
+  }
+
+  return {
     externalAccountId: accountId,
     status:
       proofPlan !== null || registration.inputIdentifier?.isActive === true
         ? "verified"
         : "unverified",
-    // 証拠を確認したページは、リンク証明が成功した場合だけ示す（DBも成功時だけ保存する）。
-    link: {
-      result: linkOutcome.result,
-      failureCode: linkOutcome.failureCode,
-      evidenceUrl: linkOutcome.result === "verified" ? linkEvidence.finalUrl : null,
-    },
-    dns: dnsOutcome === null ? null : { result: dnsOutcome.result, failureCode: dnsOutcome.failureCode },
+    ...attempts,
+    affectedUserIds,
   };
-  const durationMs = Date.now() - startedAt;
+}
+
+/**
+ * 試行した方法ごとの結果を監査ログへ記録する。
+ */
+function logVerificationAttempts(
+  linkOutcome: VerificationOutcome,
+  dnsOutcome: VerificationOutcome | null,
+  durationMs: number,
+): void {
   for (const [method, outcome] of [
     ["bidirectional_link", linkOutcome],
     ["dns_txt", dnsOutcome],
@@ -269,17 +308,6 @@ export async function verifyUrl(
       });
     }
   }
-  const transferredCount = proofPlan?.transferred.length ?? 0;
-  if (transferredCount > 0) {
-    auditLog({
-      event: "identifier_transfer",
-      outcome: "success",
-      method: linkPlan === null ? "dns_txt" : "bidirectional_link",
-      count: transferredCount,
-    });
-  }
-
-  return { ...result, affectedUserIds };
 }
 
 // --------------------------------------------------

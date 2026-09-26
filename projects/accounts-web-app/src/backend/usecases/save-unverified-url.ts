@@ -1,7 +1,11 @@
 import type { SaveUnverifiedUrlResult } from "../../shared/schemas/external-url-schema";
 import { runBatch, type Database } from "../db/database";
 import { D1ExternalAccountRepository } from "../db/repositories/d1-external-account-repository";
-import { buildRegistrationIdentifiers, readUrlRegistration } from "./url-registration";
+import {
+  assertUrlCapacity,
+  buildRegistrationIdentifiers,
+  readUrlRegistration,
+} from "./url-registration";
 
 /**
  * 「未検証で保存」。
@@ -19,6 +23,7 @@ export async function saveUnverifiedUrl(
   if (registration.inputIdentifier !== undefined) {
     return { externalAccountId: registration.externalAccountId, created: false };
   }
+  assertUrlCapacity(registration);
 
   await runBatch(deps.db, [
     repository.upsertExternalAccount({

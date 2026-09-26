@@ -27,7 +27,7 @@ import { createSafePageFetcher } from "../infrastructure/verification/safe-page-
 import type { ResolveTxt } from "../infrastructure/verification/verify-dns-txt-evidence";
 import { ProblemError } from "../problem-details";
 import { saveUnverifiedUrl } from "./save-unverified-url";
-import { verifyUrl, type VerifyUrlDeps } from "./verify-url";
+import { verifyUrl, type VerifyUrlDeps, type VerifyUrlOutput } from "./verify-url";
 
 const accountsOrigin = "https://accounts.freeism.app";
 const firstCheck = new Date("2026-09-20T00:00:00.000Z");
@@ -88,6 +88,17 @@ function createDeps(
   return { deps, requests: server.requests };
 }
 
+/**
+ * 検証結果から登録した外部アカウント行のIDを読む。
+ * 未登録の結果は、登録を期待するテストの失敗にする。
+ */
+function savedAccountId(result: VerifyUrlOutput): string {
+  if (result.externalAccountId === null) {
+    throw new Error("The URL was not registered.");
+  }
+  return result.externalAccountId;
+}
+
 // --------------------------------------------------
 // テスト
 // --------------------------------------------------
@@ -108,9 +119,9 @@ describe("verifyUrl", () => {
     });
     expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: true });
     expect(await readExternalAccounts(userId)).toEqual([
-      expect.objectContaining({ id: result.externalAccountId, service: null, linkedAt: now }),
+      expect.objectContaining({ id: savedAccountId(result), service: null, linkedAt: now }),
     ]);
-    expect(await readVerifications(result.externalAccountId)).toEqual([
+    expect(await readVerifications(savedAccountId(result))).toEqual([
       expect.objectContaining({
         method: "bidirectional_link",
         evidenceKey: url,
@@ -143,7 +154,7 @@ describe("verifyUrl", () => {
       [`provider_username:new-${suffix}`]: true,
       [`url:${newUrl}`]: true,
     });
-    expect(await readVerifications(result.externalAccountId)).toEqual([
+    expect(await readVerifications(savedAccountId(result))).toEqual([
       expect.objectContaining({
         evidenceKey: oldUrl,
         evidenceUrl: newUrl,
@@ -185,7 +196,7 @@ describe("verifyUrl", () => {
       [`url:${registeredUrl}`]: true,
       [`url:${url}`]: true,
     });
-    expect(await readVerifications(result.externalAccountId)).toEqual(
+    expect(await readVerifications(savedAccountId(result))).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           method: "bidirectional_link",
@@ -207,23 +218,55 @@ describe("verifyUrl", () => {
     ]);
   });
 
-  it("リンクとDNS TXTの両方が不成立なら、入力URLを未検証として保存し方法別の直近結果を残す", async () => {
+  it("未登録URLのリンクとDNS TXTの両方が不成立なら、登録せずに方法別の結果だけを返す", async () => {
     const userId = await createTestUser();
     const url = `https://${uniqueHost()}/`;
     const { deps } = createDeps({});
 
     const result = await verifyUrl(deps, { userId, url });
 
-    expect(result).toMatchObject({
+    expect(result).toEqual({
+      externalAccountId: null,
       status: "unverified",
       link: { result: "not_verified", failureCode: "PAGE_NOT_FOUND", evidenceUrl: null },
       dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+      affectedUserIds: [],
+    });
+    expect(await readExternalAccounts(userId)).toEqual([]);
+    expect(await readIdentifierActivity(userId)).toEqual({});
+  });
+
+  it("未検証で登録済みのURLの検証が不成立なら、登録を維持して方法別の直近結果を保存する", async () => {
+    const userId = await createTestUser();
+    const url = `https://${uniqueHost()}/`;
+    const saved = await saveUnverifiedUrl({ db: testDb }, { userId, url });
+    const { deps } = createDeps({});
+
+    const result = await verifyUrl(deps, { userId, url });
+
+    expect(result).toMatchObject({
+      externalAccountId: saved.externalAccountId,
+      status: "unverified",
+      link: { result: "not_verified", failureCode: "PAGE_NOT_FOUND" },
+      dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
     });
     expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: false });
-    expect(await readVerifications(result.externalAccountId)).toEqual(
+    expect(await readVerifications(saved.externalAccountId)).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ method: "bidirectional_link", result: "not_verified" }),
-        expect.objectContaining({ method: "dns_txt", result: "not_verified" }),
+        expect.objectContaining({
+          method: "bidirectional_link",
+          verifiedAt: null,
+          checkedAt: now,
+          result: "not_verified",
+          failureCode: "PAGE_NOT_FOUND",
+        }),
+        expect.objectContaining({
+          method: "dns_txt",
+          verifiedAt: null,
+          checkedAt: now,
+          result: "not_verified",
+          failureCode: "TXT_NOT_FOUND",
+        }),
       ]),
     );
   });
@@ -242,7 +285,7 @@ describe("verifyUrl", () => {
       link: { result: "not_verified", failureCode: "LINK_NOT_FOUND" },
     });
     expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: true });
-    expect(await readVerifications(result.externalAccountId)).toEqual(
+    expect(await readVerifications(savedAccountId(result))).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           method: "bidirectional_link",
@@ -270,6 +313,7 @@ describe("verifyUrl", () => {
     const result = await verifyUrl(deps, { userId, url });
 
     expect(result).toMatchObject({
+      externalAccountId: null,
       status: "unverified",
       link: { result: "indeterminate", failureCode: "MULTIPLE_ACCOUNTS_PROFILES" },
       dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
@@ -301,6 +345,7 @@ describe("verifyUrl", () => {
       const url = `https://${uniqueHost()}/`;
       await createVerifiedUrlAccount(previousOwner, [url], "dns_txt", firstCheck);
       const userId = await createTestUser();
+      const saved = await saveUnverifiedUrl({ db: testDb }, { userId, url });
       const { deps } = createDeps({ [url]: linkPage(userId) });
 
       const result = await verifyUrl(deps, { userId, url });
@@ -313,7 +358,7 @@ describe("verifyUrl", () => {
       });
       expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: false });
       expect(await readIdentifierActivity(previousOwner)).toEqual({ [`url:${url}`]: true });
-      expect(await readVerifications(result.externalAccountId)).toEqual(
+      expect(await readVerifications(saved.externalAccountId)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             method: "bidirectional_link",
@@ -360,14 +405,11 @@ describe("verifyUrl", () => {
       const result = await verifyUrl(deps, { userId, url });
 
       expect(result).toMatchObject({
+        externalAccountId: null,
         status: "unverified",
         link: { result: "indeterminate", failureCode: "HELD_BY_STRONGER_PROOF" },
-        affectedUserIds: [userId],
       });
-      expect(await readIdentifierActivity(userId)).toEqual({
-        [`url:${url}`]: false,
-        [`provider_username:${username}`]: false,
-      });
+      expect(await readIdentifierActivity(userId)).toEqual({});
       expect(await readIdentifierActivity(previousOwner)).toEqual({
         [`provider_username:${username}`]: true,
       });
@@ -455,17 +497,30 @@ describe("verifyUrl", () => {
   });
 
   describe("取得前の拒否", () => {
-    it("本人のURLが上限に達していれば、未登録URLの追加を外部通信の前に拒否する", async () => {
+    it("本人のURLが上限に達していれば、未登録URLの証明が成立しても登録せずに409で拒否する", async () => {
       const userId = await createTestUser();
       await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser);
       const url = `https://${uniqueHost()}/`;
-      const { deps, requests } = createDeps({ [url]: linkPage(userId) });
+      const { deps } = createDeps({ [url]: linkPage(userId) });
 
       await expect(verifyUrl(deps, { userId, url })).rejects.toMatchObject({
         status: 409,
         code: "URL_LIMIT_REACHED",
       });
-      expect(requests).toEqual([]);
+      expect(await readIdentifierActivity(userId)).not.toHaveProperty(`url:${url}`);
+    });
+
+    it("本人のURLが上限に達していても、未登録URLの証明が不成立なら拒否せずに方法別の結果を返す", async () => {
+      const userId = await createTestUser();
+      await fillUrlIdentifiers(userId, urlIdentifierLimitPerUser);
+      const url = `https://${uniqueHost()}/`;
+      const { deps } = createDeps({ [url]: pageWithoutLink });
+
+      await expect(verifyUrl(deps, { userId, url })).resolves.toMatchObject({
+        externalAccountId: null,
+        link: { result: "not_verified", failureCode: "LINK_NOT_FOUND" },
+        dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+      });
     });
 
     it("本人のURLが上限に達していても、登録済みURLは再検証できる", async () => {

@@ -140,6 +140,25 @@ describe("ExternalUrlForm", () => {
     expect(screen.getByText(/時間をおいて再検証してください/)).toBeDefined();
   });
 
+  it("未登録URLの検証が不成立で登録されなかった場合は、「未検証で保存」を案内する", async () => {
+    renderWithProviders(
+      <ExternalUrlForm
+        {...formProps}
+        outcome={{
+          mode: "verify",
+          result: {
+            externalAccountId: null,
+            status: "unverified",
+            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
+            dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+          },
+        }}
+      />,
+    );
+
+    expect(await screen.findByText(/URLは保存していません。.*「未検証で保存」/)).toBeDefined();
+  });
+
   it("再検証で今回の試行が成立しなくても、既存の証明が有効なら維持されていることを示す", async () => {
     renderWithProviders(
       <ExternalUrlForm

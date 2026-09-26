@@ -39,14 +39,13 @@ export type UrlRegistration = {
   inputIdentifier: ExternalIdentifierRow | undefined;
   /** 入力URLを持つ外部アカウント行のID。未登録なら新しく作る行のID。 */
   externalAccountId: string;
-  /** 入力URLを追加した後に、本人がさらに追加できる`url`行の数。 */
+  /** 入力URLを追加した後に、本人がさらに追加できる`url`行の数。上限に達した本人の未登録URLでは負になる。 */
   remainingUrlCapacity: number;
 };
 
 /**
  * 入力URLの構文と取得先の安全性を検査・正規化し、サービス判定と本人の登録状態を読む。
- * 入力URLが未登録で、本人の`url`行が上限に達している場合は追加を拒否する。
- * @throws {ProblemError} 入力URLの不備（400、`errors[].path`は`["url"]`）と、URL登録数の上限到達（409 `URL_LIMIT_REACHED`）。
+ * @throws {ProblemError} 入力URLの不備（400、`errors[].path`は`["url"]`）。
  */
 export async function readUrlRegistration(
   repository: D1ExternalAccountRepository,
@@ -75,10 +74,6 @@ export async function readUrlRegistration(
   const inputIdentifier = ownIdentifiers.find((identifier) =>
     isSameIdentifierKey(identifier, urlKey),
   );
-  if (inputIdentifier === undefined && urlIdentifierCount >= urlIdentifierLimitPerUser) {
-    throw new ProblemError(409, "URL_LIMIT_REACHED");
-  }
-
   return {
     url: normalized.url,
     host: normalized.host,
@@ -91,6 +86,16 @@ export async function readUrlRegistration(
     remainingUrlCapacity:
       urlIdentifierLimitPerUser - urlIdentifierCount - (inputIdentifier === undefined ? 1 : 0),
   };
+}
+
+/**
+ * 未登録の入力URLを登録する前に、本人の`url`行が上限に達していないことを確かめる。
+ * @throws {ProblemError} URL登録数の上限到達（409 `URL_LIMIT_REACHED`）。
+ */
+export function assertUrlCapacity(registration: UrlRegistration): void {
+  if (registration.remainingUrlCapacity < 0) {
+    throw new ProblemError(409, "URL_LIMIT_REACHED");
+  }
 }
 
 /**
