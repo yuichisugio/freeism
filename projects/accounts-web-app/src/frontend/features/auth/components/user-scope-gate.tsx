@@ -10,6 +10,7 @@ import { authMessages } from "../messages";
 /**
  * AccountsユーザーID付きの画面（`/{-$accountsUserId}/...`）の枠。
  * URLのユーザーと現在のセッションのユーザーが揃うまで画面の中身を表示せず、別のユーザーの内容を見せない。
+ * ユーザーの情報を扱わない画面（ヘルプ・規約など）は、URLのユーザーでログインしていなければ現在のユーザーのURLへ置き換えて表示する。
  * @see ../hooks/use-user-scope.ts
  * @see ./user-scope-gate.test.tsx
  */

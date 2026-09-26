@@ -4,11 +4,13 @@ import { restoreBackupResultSchema } from "../../../../shared/schemas/backup-sch
 import type { RestoreBackupResult } from "../../../../shared/schemas/backup-schema";
 import type { ProblemIssue } from "../../../../shared/schemas/problem-details-schema";
 import { BffError, requestBff } from "../../../lib/api-client";
+import { authClient } from "../../../lib/auth-client";
 import { readBackupFile } from "../backup-file";
 
 /**
  * 「設定」画面のJSON復元。
  * 送信前にファイルの容量・JSON構文・形式を検査し、サーバーの入力不備も同じ一覧で返す。
+ * 復元後は、戻した表示名をヘッダー・アカウントのメニューへ反映するため、現在のセッションを読み直させる。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-backup-restore.test.tsx
  */
@@ -43,6 +45,7 @@ export function useBackupRestore({ onRestored }: { onRestored: () => void }) {
       setResult(
         await requestBff("/api/backup/restore", restoreBackupResultSchema, { method: "POST", body: checked.backup }),
       );
+      authClient.$store.notify("$sessionSignal");
       onRestored();
     } catch (error) {
       const serverIssues = error instanceof BffError ? (error.problem?.errors ?? []) : [];

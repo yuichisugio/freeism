@@ -22,7 +22,7 @@ export type DeviceSessionsState =
 
 /**
  * 同じブラウザー内でログイン中のAccountsユーザーの一覧（Multi Session）。
- * ログアウト・切替などで現在のセッションが変わると、一覧を読み直す。
+ * ログアウト・切替などで現在のセッションが変わったときと、現在のユーザーの表示名が変わったときに、一覧を読み直す。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-device-sessions.test.ts
  */
@@ -31,6 +31,7 @@ export function useDeviceSessions() {
   // セッションのtokenはHttpOnlyのcookieにあるため、現在のセッションは標準の`useSession`で判別する。
   const session = authClient.useSession();
   const currentSessionId = session.isPending ? undefined : (session.data?.session.id ?? null);
+  const currentUserName = session.data?.user.name;
 
   useEffect(() => {
     if (currentSessionId === undefined) return;
@@ -41,7 +42,7 @@ export function useDeviceSessions() {
     return () => {
       isActive = false;
     };
-  }, [currentSessionId]);
+  }, [currentSessionId, currentUserName]);
 
   return state;
 }

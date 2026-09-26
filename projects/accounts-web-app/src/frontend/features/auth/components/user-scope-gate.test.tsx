@@ -41,7 +41,8 @@ beforeEach(() => {
 });
 
 /**
- * 画面の経路（`/{-$accountsUserId}/settings`）と同じ構成のルーターで、指定したURLを開く。
+ * 画面の経路（`/{-$accountsUserId}/settings`・`/{-$accountsUserId}/help`）と同じ構成のルーターで、指定したURLを開く。
+ * ヘルプは実際の経路と同じく、ユーザーの情報を扱わない画面として指定する。
  */
 function renderUserScopedPage(path: string) {
   const rootRoute = createRootRoute({
@@ -67,8 +68,14 @@ function renderUserScopedPage(path: string) {
     path: "settings",
     component: () => <p>settings page</p>,
   });
+  const helpRoute = createRoute({
+    getParentRoute: () => userScopeRoute,
+    path: "help",
+    staticData: { isUserIndependent: true },
+    component: () => <p>help page</p>,
+  });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([userScopeRoute.addChildren([settingsRoute])]),
+    routeTree: rootRoute.addChildren([userScopeRoute.addChildren([settingsRoute, helpRoute])]),
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   render(<RouterProvider router={router} />);
@@ -181,5 +188,28 @@ describe("UserScopeGate", () => {
 
     expect(await screen.findByRole("status")).toBeDefined();
     expect(screen.queryByText("settings page")).toBeNull();
+  });
+
+  describe("ユーザーの情報を扱わない画面（ヘルプなど）", () => {
+    it("未ログインでほかのユーザーのURLを開くと、ログインを求めずユーザーIDの無いURLへ置き換えて表示する", async () => {
+      authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+      authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [], error: null });
+      const router = renderUserScopedPage("/ausr_bob/help?lang=ja#faq");
+
+      expect(await screen.findByText("help page")).toBeDefined();
+      expect(router.state.location.pathname).toBe("/help");
+      expect(router.state.location.searchStr).toBe("?lang=ja");
+      expect(router.state.location.hash).toBe("faq");
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
+
+    it("URLのユーザーでログインしていない場合は、現在のユーザーのID付きのURLへ置き換えて表示する", async () => {
+      authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+      const router = renderUserScopedPage("/ausr_bob/help");
+
+      expect(await screen.findByText("help page")).toBeDefined();
+      expect(router.state.location.pathname).toBe("/ausr_alice/help");
+      expect(screen.queryByRole("dialog")).toBeNull();
+    });
   });
 });

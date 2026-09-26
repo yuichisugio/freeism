@@ -3,6 +3,7 @@ import * as v from "valibot";
 
 import { displayNameSchema, meSchema } from "../../../../shared/schemas/profile-schema";
 import { requestBff } from "../../../lib/api-client";
+import { authClient } from "../../../lib/auth-client";
 import { useBffResource } from "./use-bff-resource";
 
 /**
@@ -13,6 +14,7 @@ export type DisplayNameIssue = "required" | "tooLong";
 /**
  * 「設定」画面の表示名の編集と保存。
  * 未編集の間は保存済みの表示名を表示し、編集中の値と異なる場合を未保存の変更として扱う。
+ * 保存後は、ヘッダー・アカウントのメニューの表示名を更新するため、現在のセッションを読み直させる。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-display-name-form.test.tsx
  */
@@ -47,6 +49,7 @@ export function useDisplayNameForm() {
       me.replaceData(saved);
       setDraft(null);
       setIsSaved(true);
+      authClient.$store.notify("$sessionSignal");
     } catch (error) {
       setSaveError(error);
     } finally {

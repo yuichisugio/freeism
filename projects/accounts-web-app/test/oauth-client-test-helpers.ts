@@ -176,7 +176,14 @@ export async function loginAsNewUser(): Promise<{ userId: string; headers: Heade
  */
 export async function loginWithCookieCache(): Promise<{ userId: string; headers: Headers }> {
   const { userId, headers } = await loginAsNewUser();
-  const session = await exports.default.fetch(`${testOrigin}/api/auth/get-session`, { headers });
+  applySetCookies(headers, await exports.default.fetch(`${testOrigin}/api/auth/get-session`, { headers }));
+  return { userId, headers };
+}
+
+/**
+ * ブラウザーと同じく、応答のSet-Cookieを要求のCookieへ反映する。
+ */
+export function applySetCookies(headers: Headers, response: Response): void {
   const cookies = new Map(
     (headers.get("cookie") ?? "")
       .split(";")
@@ -184,12 +191,11 @@ export async function loginWithCookieCache(): Promise<{ userId: string; headers:
       .filter(Boolean)
       .map((part) => [part.slice(0, part.indexOf("=")), part.slice(part.indexOf("=") + 1)]),
   );
-  for (const setCookie of session.headers.getSetCookie()) {
+  for (const setCookie of response.headers.getSetCookie()) {
     const [pair = ""] = setCookie.split(";");
     cookies.set(pair.slice(0, pair.indexOf("=")), pair.slice(pair.indexOf("=") + 1));
   }
   headers.set("cookie", [...cookies].map(([name, value]) => `${name}=${value}`).join("; "));
-  return { userId, headers };
 }
 
 /**

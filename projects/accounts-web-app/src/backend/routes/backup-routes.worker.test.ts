@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { createUnsignedIdToken, getTestAuthContext } from "../../../test/auth-test-helpers";
 import { readExternalAccounts, testDb, uniqueHost } from "../../../test/external-account-test-helpers";
+import { applySetCookies, loginWithCookieCache } from "../../../test/oauth-client-test-helpers";
 import { jsonFileMaxBytes } from "../../shared/constants";
 import {
   backupSchema,
@@ -177,6 +178,21 @@ describe("POST /api/backup/restore", () => {
     expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0, clientConsentCount: 0 });
     const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
     expect(userRow?.name).toBe("仮ユーザー");
+  });
+
+  it("戻した表示名を、応答のセッションのcookie cacheで次のセッションの読取に反映する", async () => {
+    const { headers } = await loginWithCookieCache();
+    const backup: Backup = {
+      ...v.parse(backupSchema, JSON.parse(await exportBackupFile(headers))),
+      profile: { displayName: "復元した名前" },
+    };
+
+    const response = await requestBff("/api/backup/restore", { method: "POST", headers, body: backup });
+    expect(response.status).toBe(200);
+    applySetCookies(headers, response);
+
+    const session = await exports.default.fetch(`${origin}/api/auth/get-session`, { headers });
+    expect(((await session.json()) as { user: { name: string } }).user.name).toBe("復元した名前");
   });
 
   it("長い表示名の外部アカウントと連携先を含むファイルも、出力したまま復元できる", async () => {

@@ -73,6 +73,23 @@ describe("useDeviceSessions", () => {
     await waitFor(() => expect(result.current).toEqual({ status: "loaded", currentSessionId: null, sessions: [] }));
   });
 
+  it("現在のユーザーの表示名が変わると、一覧を読み直す", async () => {
+    const renamedAlice = deviceSession("session-a", "ausr_alice", "Alicia");
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    authClientMock.multiSession.listDeviceSessions
+      .mockResolvedValueOnce({ data: [alice, bob], error: null })
+      .mockResolvedValueOnce({ data: [renamedAlice, bob], error: null });
+    const { result, rerender } = renderHook(() => useDeviceSessions());
+    await waitFor(() => expect(result.current).toMatchObject({ status: "loaded", currentSessionId: "session-a" }));
+
+    authClientMock.useSession.mockReturnValue({ data: renamedAlice, isPending: false });
+    rerender();
+
+    await waitFor(() =>
+      expect(result.current).toMatchObject({ status: "loaded", sessions: [{ displayName: "Alicia" }, { displayName: "Bob" }] }),
+    );
+  });
+
   it("現在のセッションを確認している間は、一覧を読まない", () => {
     authClientMock.useSession.mockReturnValue({ data: null, isPending: true });
 

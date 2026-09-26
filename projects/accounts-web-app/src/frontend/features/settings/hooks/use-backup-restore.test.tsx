@@ -4,9 +4,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { jsonFileMaxBytes } from "../../../../shared/constants";
 import { BffError } from "../../../lib/api-client";
+import { authClient } from "../../../lib/auth-client";
 import { dataResponse, problemResponse } from "../../../test/bff-responses";
 import { findRequestBody, stubBff } from "../stub-bff.test-helper";
 import { useBackupRestore } from "./use-backup-restore";
+
+vi.mock("../../../lib/auth-client", () => ({ authClient: { $store: { notify: vi.fn<(signal: string) => void>() } } }));
 
 const validAccount = {
   metadata: {
@@ -35,6 +38,7 @@ const restoreResult = { updatedAccountCount: 0, addedCandidateCount: 1, clientCo
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.clearAllMocks();
 });
 
 /**
@@ -78,6 +82,8 @@ describe("useBackupRestore", () => {
     expect(result.current.result).toEqual(restoreResult);
     expect(result.current.issues).toEqual([]);
     expect(onRestored).toHaveBeenCalledOnce();
+    // 表示名が戻るため、ヘッダー・アカウントのメニューの表示名を現在のセッションから読み直させる。
+    expect(authClient.$store.notify).toHaveBeenCalledWith("$sessionSignal");
   });
 
   it("5MiBを超えるファイルは送信せずに上限超過の不備を返す", async () => {
@@ -143,6 +149,7 @@ describe("useBackupRestore", () => {
     expect(result.current.issues).toEqual([serverIssue]);
     expect(result.current.restoreError).toBeNull();
     expect(onRestored).not.toHaveBeenCalled();
+    expect(authClient.$store.notify).not.toHaveBeenCalled();
   });
 
   it("Web URLの上限超過は、ファイル全体の不備として同じ一覧で返す", async () => {

@@ -3,6 +3,7 @@ import { bodyLimit } from "hono/body-limit";
 
 import { jsonFileMaxBytes } from "../../shared/constants";
 import { backupSchema } from "../../shared/schemas/backup-schema";
+import { getAuth } from "../auth/auth";
 import { createDatabase } from "../db/database";
 import type { AppEnv } from "../hono-env";
 import { purgeProfileCache } from "../infrastructure/cache/profile-cache-purger";
@@ -61,6 +62,15 @@ export const backupRoutes = new Hono<AppEnv>()
       );
       // 表示名を戻すため、一般公開の有無によらず本人の公開プロフィールをpurgeする。
       purgeProfileCache(affectedUserIds);
+      // 戻した表示名を次のセッションの読取（ヘッダーの表示名）に反映するため、DBから読み直したセッションのcookie cacheを応答へ付ける。
+      const { headers: sessionHeaders } = await getAuth().api.getSession({
+        headers: c.req.raw.headers,
+        query: { disableCookieCache: true },
+        returnHeaders: true,
+      });
+      for (const setCookie of sessionHeaders.getSetCookie()) {
+        c.header("Set-Cookie", setCookie, { append: true });
+      }
       return dataResponse(c, result);
     },
   );

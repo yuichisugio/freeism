@@ -3,14 +3,18 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BffError } from "../../../lib/api-client";
+import { authClient } from "../../../lib/auth-client";
 import { dataResponse, problemResponse } from "../../../test/bff-responses";
 import { findRequestBody, stubBff } from "../stub-bff.test-helper";
 import { useDisplayNameForm } from "./use-display-name-form";
+
+vi.mock("../../../lib/auth-client", () => ({ authClient: { $store: { notify: vi.fn<(signal: string) => void>() } } }));
 
 const me = { accountsUserId: "user-1", displayName: "仮ユーザー", profileUrl: "https://accounts.example/profiles/user-1" };
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.clearAllMocks();
 });
 
 /**
@@ -71,6 +75,8 @@ describe("useDisplayNameForm", () => {
     expect(result.current.displayName).toBe("Alice");
     expect(result.current.isDirty).toBe(false);
     expect(result.current.isSaved).toBe(true);
+    // ヘッダー・アカウントのメニューの表示名を更新するため、現在のセッションを読み直させる。
+    expect(authClient.$store.notify).toHaveBeenCalledWith("$sessionSignal");
   });
 
   it("保存に失敗すると、入力中の表示名と失敗を保持する", async () => {
@@ -87,6 +93,7 @@ describe("useDisplayNameForm", () => {
     expect(result.current.isDirty).toBe(true);
     expect(result.current.isSaved).toBe(false);
     expect(result.current.saveError).toBeInstanceOf(BffError);
+    expect(authClient.$store.notify).not.toHaveBeenCalled();
   });
 
   it("読み込みに失敗すると、失敗を返し保存できない", async () => {

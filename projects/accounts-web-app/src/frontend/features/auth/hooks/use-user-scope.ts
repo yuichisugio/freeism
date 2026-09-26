@@ -1,9 +1,19 @@
-import { useLocation, useNavigate, useParams } from "@tanstack/react-router";
+import { useLocation, useMatches, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { authClient } from "../../../lib/auth-client";
 import { useHydratedSession } from "../../../lib/use-hydrated-session";
 import { useLoginDialog } from "./use-login-dialog";
+
+declare module "@tanstack/react-router" {
+  interface StaticDataRouteOption {
+    /**
+     * ユーザーの情報を扱わない画面（ヘルプ・規約など）か。
+     * URLのユーザーでこのブラウザーにログインしていなくても、ログインを求めずに現在のユーザーの画面として表示する。
+     */
+    isUserIndependent?: boolean;
+  }
+}
 
 /**
  * URLのAccountsユーザーIDと現在のセッションを揃える状態。
@@ -29,6 +39,7 @@ type ActivationResult = "switched" | "signInRequired" | "switchFailed";
  * URLのIDは表示するユーザーの切替だけに使い、BFFはCookieのセッションで本人を判定する。
  * - IDの無いURLは、ログイン済みなら現在のユーザーのID付きのURLへ置き換え、未ログインならそのまま表示する。
  * - IDが現在のユーザーと違えば、このブラウザーでログイン中のセッションにそのユーザーがあれば`setActive`で切り替え、無ければログイン用のダイアログを開き、ログイン後に同じURLへ戻す。
+ * - ユーザーの情報を扱わない画面（経路の`staticData.isUserIndependent`）では、URLのユーザーでログインしていなければ、現在のユーザーのID付き（未ログインならIDの無い）URLへ置き換える。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ../components/user-scope-gate.test.tsx
  */
@@ -38,6 +49,9 @@ export function useUserScope(): UserScope {
   // URLのユーザーでのログインに失敗して戻された場合は、Better Authが`?error=`を付ける。
   const loginErrorParam = useLocation({ select: (location) => location.search.error });
   const loginErrorCode = typeof loginErrorParam === "string" ? loginErrorParam : undefined;
+  const isUserIndependent = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.isUserIndependent === true),
+  });
   const navigate = useNavigate();
   const loginDialog = useLoginDialog();
   const session = useHydratedSession();
@@ -56,13 +70,23 @@ export function useUserScope(): UserScope {
     let isActive = true;
     void activateDeviceSession(urlUserId).then((result) => {
       if (!isActive || result === "switched") return;
+      if (result === "signInRequired" && isUserIndependent) {
+        void navigate({
+          to: ".",
+          params: { accountsUserId: sessionUserId ?? undefined },
+          search: true,
+          hash: true,
+          replace: true,
+        });
+        return;
+      }
       setFailure({ urlUserId, status: result });
       if (result === "signInRequired") loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
     });
     return () => {
       isActive = false;
     };
-  }, [urlUserId, sessionUserId, pathname, loginErrorCode, navigate, loginDialog]);
+  }, [urlUserId, sessionUserId, isUserIndependent, pathname, loginErrorCode, navigate, loginDialog]);
 
   if (sessionUserId === undefined) return { status: "checking" };
   if (urlUserId === undefined) return { status: sessionUserId === null ? "ready" : "checking" };
