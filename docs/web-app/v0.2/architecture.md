@@ -7,7 +7,7 @@
 - v0.2 は未リリースのテスト環境を作り直すため、後方互換性を持たせない。
 - Supabase PostgreSQL から D1 へのデータ移行、旧ユーザー・セッション・ポイント・オークションデータの移行は行わない。
 - 旧モノリスの観測記録や未確定案は `../archive/` に保存するが、v0.2 の規範にはしない。
-- Points・Marketsの横断仕様は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に参照する。外部アカウントの所有権証明・公開設定・情報提供は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を正本とする。
+- Points・Marketsの横断仕様は、この文書、`decision-register.md`、個別の v0.2 正本、v0.1 履歴の順に参照する。外部アカウントの所有権証明・公開設定・情報提供は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)を正本とする。
 
 ## 1. リポジトリと文書の境界
 
@@ -60,7 +60,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 ### 2.3 Accounts
 
-外部アカウントの登録・所有権証明・公開設定・照合API・OAuthクライアント管理は、独立したAccountsサービスが担当する。要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.md)に集約する。PointsとAccountsは各自でログイン・セッションを管理し、利用者が情報連携を許可する。
+外部アカウントの登録・所有権証明・公開設定・照合API・OAuthクライアント管理は、独立したAccountsサービスが担当する。要件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に集約する。PointsとAccountsは各自でログイン・セッションを管理し、利用者が情報連携を許可する。
 
 ### 2.4 廃止する境界
 

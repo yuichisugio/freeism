@@ -11,7 +11,7 @@ Freeism v0.2 is divided into Points, which handles points, and Markets, which ha
 
 ## Connecting Accounts
 
-Manage external account registration, ownership verification, and sharing settings at `accounts.freeism.app`. After signing in to Points, you can authorize information sharing with Accounts. See the [Accounts v0.1 specification](../../../../projects/accounts-web-app/docs/specification/v0.1/main.md) for sharing settings.
+Manage external account registration, ownership verification, and sharing settings at `accounts.freeism.app`. After signing in to Points, you can authorize information sharing with Accounts. See the [Accounts v0.1 specification](../../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md) for sharing settings.
 
 ## Markets
 

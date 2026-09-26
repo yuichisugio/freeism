@@ -10,7 +10,7 @@
 - 未受領FIXとAccountsの照合結果に基づく貢献者の特定
 - Points独自の認証・sessionとMarketsへのOAuth Provider/API提供
 
-外部アカウントの管理・所有権証明・公開・照合は、[Accounts v0.1仕様](../../../accounts-web-app/docs/specification/v0.1/main.md)に集約します。PointsはAccountsを別サービスの情報連携先として利用します。
+外部アカウントの管理・所有権証明・公開・照合は、[Accounts v0.1仕様](../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に集約します。PointsはAccountsを別サービスの情報連携先として利用します。
 
 商材情報を含むAuctionの作成・入札・落札はMarketsの責務です。Marketsは独立したListing resourceを持ちません。Taskとグループ機能はv0.2では実装しません。
 
@@ -33,3 +33,5 @@
 ## 開発環境
 
 旧 `projects/web-app` のREADMEに記載されていたmiseコマンドはarchive上の履歴であり、このアプリの現行コマンドではありません。初期化、開発、テスト、デプロイのコマンドは、実装計画に従ってこのプロジェクトのpackage scriptsへ定義します。
+
+`test/e2e/fix-and-claim.spec.ts`は、`POINTS_E2E_BASE_URL`・`POINTS_E2E_SESSION_COOKIE`・`POINTS_E2E_ACCOUNTS_LINK_ID`で指定する、未受領FIXのあるAccounts連携を前提データとします（claim previewの集計が空だと失敗します）。これらの環境変数が無い場合はskipします。

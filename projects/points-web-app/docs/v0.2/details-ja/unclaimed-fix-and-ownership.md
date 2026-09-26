@@ -56,15 +56,18 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
 - 照合に使う接続先は、validateとcommitの両方で`X-Accounts-Connection-Id` headerに指定する。未指定は`422 ACCOUNTS_CONNECTION_REQUIRED`、`ACTIVE`でない接続先は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
 - 行エラーが無い時だけ、Accountsの`QUERY /api/v1/identities/resolve`で照合する。同じ識別子は1回だけ照合し、1,000件ごとに要求を分ける。
 - 照合結果は次のとおり扱う。
-  - `matched`: 結果のAccountsユーザーIDを保存する。Points内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。連携が無い場合は未受領とする。
-  - `no_match`: 未受領とする。AccountsユーザーIDは保存しない。
+  - `matched`: 結果のAccountsユーザーIDを保存する。
+  - `no_match`: AccountsユーザーIDは保存しない。
   - `invalid_input`: その識別子を持つ行に、識別子の列を示す`RECIPIENT_IDENTIFIER_INVALID`の行エラーを付け、`422 CSV_VALIDATION_FAILED`とする。
+- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
+  - 修正revisionで、旧revisionに同じ対象者（後述の対象者キーと評価軸）の行がある場合は、旧revisionの状態を引き継ぐ。旧revisionの行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
+  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
 - validateの成功応答は、接続先ID、origin、照合の完了状態、行ごとの照合結果（`MATCHED`・`NO_MATCH`）とPoints内の連携の有無、`validationHash`を返す。`validationHash`には接続先ID、file hash、行ごとのorigin・照合結果・受領者を含める。
 - commitはAccountsで再照合して`validationHash`を再計算し、validate時と異なる場合は全件を`409 VALIDATION_CHANGED`で止めて再validateを要求する。Accounts側の紐付けの変更と、Points内の連携の変更の両方をこの比較で検出する。
 - Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
   - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
   - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
-- FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。URLは入力値そのまま、AccountsユーザーIDは接続先のorigin付きで比べる。
+- FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。修正revisionを別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新revisionの額（そのoriginで照合していなければ0）と一致する。
 - FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
 ## 7. 未受領FIXの受領資格
@@ -82,7 +85,7 @@ Accountsは現在の紐付けと公開許可を提供し、紐付けの履歴は
 
 ## 8. 一括claim
 
-受領は本人の連携ごとに、[受領資格](#7-未受領fixの受領資格)を満たす未claimの正負全件を対象にする。利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
+受領は本人の連携ごとに、[受領資格](#7-未受領fixの受領資格)を満たす未claimの正負全件を対象にする。同じ対象者の各revisionの未受領差分はまとめて受領し、受領額は最新revisionの額と一致する。利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
 
 - `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
 - Google fresh認証後にpreviewを再取得し、利用者が一括受領を確認してから、`POST /api/unclaimed-fixes/claims`へ`{ "accountsLinkId", "claimSetHash" }`と`Idempotency-Key`を付けて送る。成功は`201`で`claimId`、`claimedCount`、`claimSetHash`を返す。
@@ -102,7 +105,7 @@ Google fresh済みhash付きconfirm POST時、次を同じD1原子処理で行�
 
 ## 9. 監査と公開表示
 
-- PointsはAccounts照合結果の利用、受領資格の判定、claim件数と合計をappend-only auditへ残す。
+- PointsはAccounts照合結果の利用と受領資格の判定をappend-only auditへ残す。claimの監査`UNCLAIMED_FIX_CLAIM`は`reason`に`claimedCount=N`を残し、受領額は同じrequest idの`fixClaim`と、その`fixClaimItem`が指す台帳行から辿る。
 - 公開・保存できる外部アカウント情報はAccountsの公開許可と連携契約に従う。
 - 監査には必要な識別情報と安全な結果metadataを使い、秘密値やCSV本文を含めない。
 - Pointsの経済情報の公開は[プロフィール設定](profile-setting.md)に従う。
@@ -115,6 +118,7 @@ Google fresh済みhash付きconfirm POST時、次を同じD1原子処理で行�
 - 利用者の操作中以外でも、事前許可されたAccounts照合を利用できること。
 - 識別子列がちょうど一方でない行、`invalid_input`の行を行エラーにすること。
 - `matched`でもPoints内の連携が無い行を未受領にすること。
+- 修正revisionで、旧revisionが未受領の対象者の差分を未受領にし、受領済みの対象者の差分を同じ受領者へ反映すること。
 - validation後の照合結果・連携の変更、通信失敗、制限超過でFIXを全件0反映にすること。validateでは照合できなかったことを`no_match`と区別して示すこと。
 - 正負混在の全件一括claim、選択claim拒否、並行claimの二重反映防止。
 - claim previewの評価軸別正味合計・正件数・負件数、fresh後hash再取得、集合変化時の確定拒否。

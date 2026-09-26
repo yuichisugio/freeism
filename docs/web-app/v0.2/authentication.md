@@ -203,7 +203,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 - 正・負のどちらも登録できる。
 - Accountsの照合結果とPointsユーザーへの対応を確認した後、Google fresh sessionで最新previewと集合hashを確認し、claim可能な正負すべてを選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
 - 受領前に評価軸別の正味合計、正件数、負件数を表示する。
-- 最新Revisionだけを対象とする。
+- 同じ対象者について各Revisionの未受領差分をまとめて受領し、受領額は最新Revisionの額と一致する。受領者が未確定の対象者への修正差分は未受領とする。
 - 単一のPoints D1 transactionで処理し、1件でも失敗すれば全件を未受領のままにする。
 - 同じFIX Revisionの二重受領を一意制約で防ぐ。
 - 受領後の訂正は同じ受領者への差分台帳として反映する。

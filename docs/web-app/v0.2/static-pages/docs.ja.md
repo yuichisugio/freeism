@@ -12,7 +12,7 @@
 
 ## アプリ別仕様
 
-- Accounts: `projects/accounts-web-app/docs/specification/v0.1/main.md`
+- Accounts: `projects/accounts-web-app/docs/specification/v0.1/main.ja.md`
 - Points: `projects/points-web-app/docs/v0.2/index.ja.md`
 - Markets: `projects/markets-web-app/docs/v0.2/index.ja.md`
 

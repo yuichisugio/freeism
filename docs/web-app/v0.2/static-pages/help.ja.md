@@ -11,7 +11,7 @@ Freeism v0.2は、ポイントを扱うPointsと、商材・Auctionを扱うMark
 
 ## Accountsとの連携
 
-外部アカウントの登録・所有権証明・公開設定は `accounts.freeism.app` で管理します。Pointsへログインした後、Accountsとの情報連携を許可できます。公開設定の詳細は[Accounts v0.1仕様](../../../../projects/accounts-web-app/docs/specification/v0.1/main.md)を参照してください。
+外部アカウントの登録・所有権証明・公開設定は `accounts.freeism.app` で管理します。Pointsへログインした後、Accountsとの情報連携を許可できます。公開設定の詳細は[Accounts v0.1仕様](../../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)を参照してください。
 
 ## Markets
 

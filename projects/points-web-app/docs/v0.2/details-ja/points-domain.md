@@ -145,7 +145,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - revisionの同一性は内容hash、source file hash、ADMIN、評価軸、request idで監査できる。
 - 新旧revisionの差を対象者・評価軸ごとに計算し、差分0は台帳を増やさない。
 - 同じrevisionを再送しても`sourceFixRevisionId`一意制約により二重反映しない。
-- Points内の連携から受領者が決まらなければ`unclaimedFixEntry`へ、決まれば台帳へ反映する。
+- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。修正revisionで旧revisionの受領者を引き継ぐ規則を含め、受領者の決め方は[FIX取込時の照合](unclaimed-fix-and-ownership.md#6-fix取込時の照合)に従う。
 
 ### 7.3 原子性
 

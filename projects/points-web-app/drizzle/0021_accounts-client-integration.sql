@@ -1,5 +1,6 @@
 -- Ownership 系の表を削除し、Accounts 連携の表を追加する。
--- 作り直す FIX・受領の表は既存行を移行しない（未リリースのため）。
+-- FIX・受領・ownership の既存行は移行しない（未リリースのため）。
+-- 受領の行がある D1 では適用に失敗し、未受領 FIX がある D1 では旧 entry が空として扱われるため、0021 の適用前に D1 を作り直す。
 -- 表の作り直しで消える trigger は末尾で再作成する（原文は 0005・0006・0007）。
 -- 監視対象から外す OWNERSHIP_SCHEDULER_LAG の未解決 alert は解決済みにする。
 CREATE TABLE `accounts_client_tokens` (

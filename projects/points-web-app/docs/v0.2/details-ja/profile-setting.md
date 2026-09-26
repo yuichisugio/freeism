@@ -52,13 +52,13 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 
 ### 3.1 接続先Accountsサービスの管理
 
-- Pointsの運営者（ADMIN）が、`/admin/accounts-connections`で接続対象とするAccounts互換サービスを管理する。作成・有効化・取り下げは[重要操作](#5-重要操作)としてGoogle fresh、理由、`Idempotency-Key`を要求し、同じ`Idempotency-Key`の再送には保存した応答を返す。
-- 作成では、接続先のoriginとPoints内の表示名（1〜100文字）を受け付ける。originはHTTPSでpath・query・fragment・userinfoを含まない値とし、`APP_ENV=local`の時だけloopbackのHTTPも受け付ける。Pointsは接続先のメタデータを取得し、`issuer`がoriginと一致し、`private_key_jwt`、EdDSA、DPoP、PKCE S256、`openid`と`identities:read`、認可応答の`iss`に対応することを確認する。
+- Pointsの運営者（ADMIN）が、`/admin/accounts-connections`で接続対象とするAccounts互換サービスを管理する。作成・有効化・取り下げは[重要操作](#5-重要操作)としてGoogle fresh、理由、`Idempotency-Key`を要求し、同じ`Idempotency-Key`の再送には保存した応答を返す。有効化・取り下げの対象の接続先が存在しない場合は`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。
+- 作成では、接続先のoriginとPoints内の表示名（前後の空白を除いて1〜100文字）を受け付ける。originはHTTPSでpath・query・fragment・userinfoを含まない値とし、`APP_ENV=local`の時だけloopbackのHTTPも受け付ける。Pointsは接続先のメタデータを取得し、`issuer`がoriginと一致し、`private_key_jwt`、EdDSA、DPoP、PKCE S256、`openid`と`identities:read`、認可応答の`iss`に対応することを確認する。表示名が条件を満たさない場合は`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originが条件を満たさない場合は`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、メタデータを取得できない・条件を満たさない場合は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
 - 作成時に、Pointsが`private_key_jwt`のclient assertion用とDPoP用のEd25519鍵を1組ずつ生成する。秘密鍵と、後述のAccess Tokenは、Worker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）をKEKとするAES-256-GCMで暗号化してD1へ保存する。暗号化のAADには接続先IDと用途を含める。
 - 作成した接続先は`PENDING_CLIENT_REGISTRATION`となる。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、リダイレクトURL `{APP_ORIGIN}/api/accounts-links/callback`、client assertion用の公開JWK Setを表示する。運営者はこれをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。
-- 運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できた時だけ`ACTIVE`にし、取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`で`PENDING_CLIENT_REGISTRATION`のままとする。
+- 運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できた時だけ`ACTIVE`にし、取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`（メタデータを取得できない・条件を満たさない場合は`422 ACCOUNTS_DISCOVERY_INVALID`）で`PENDING_CLIENT_REGISTRATION`のままとする。Client IDが前後の空白を除いて空または255文字を超える場合は`422 ACCOUNTS_CLIENT_ID_INVALID`、接続先が`PENDING_CLIENT_REGISTRATION`でない場合は`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
 - 同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替える場合は、新しい接続先として追加する。利用者は新しい接続先で認証・同意して連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。
-- 取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先に対するすべてのユーザー連携・連携の試行・Access Tokenのキャッシュ・暗号化した秘密鍵を削除し、解除した連携の件数を監査に記録する。Accounts側の公開設定・情報提供同意、Pointsで確定済みの貢献・ポイント、FIX・claimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。
+- 取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先に対するすべてのユーザー連携・連携の試行・Access Tokenのキャッシュ・暗号化した秘密鍵を削除し、解除した連携の件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。Accounts側の公開設定・情報提供同意、Pointsで確定済みの貢献・ポイント、FIX・claimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。
 - 利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID・表示名・origin）だけを選択肢にする。
 - 接続先の設定・切り替え・取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証・外部アカウント情報・照合APIの条件は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
@@ -85,6 +85,7 @@ Accountsで先に登録・外部アカウントの連携を済ませた利用者
 
 - 認可要求は`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。
 - 試行は`state`とsession IDをSHA-256のhashで、`nonce`とcode verifierをそのまま保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの戻りで1回だけ使える。期限切れの試行は15分ごとのcronで削除する。
+- 開始の要求bodyはJSONとし、`Content-Type`が`application/json`でない場合は`415 JSON_CONTENT_TYPE_REQUIRED`とする。
 - 開始は利用者ごとに1時間10回までとし、超えた場合は`429 ACCOUNTS_LINK_RATE_LIMITED`とする。
 - 戻り先では、認可応答の`state`と`iss`（接続先のorigin）を検査し、認可コードを`private_key_jwt`とDPoP proofを付けて交換する。ID Tokenは、AccountsのJWKSによる署名と、`iss`・`aud`・`exp`・`iat`・`nonce`を検証する。認可応答で受け取るAccess Tokenは使わず、保存もしない。
 - 戻り先は`303`で`/settings/connections?accountsLinkResult=LINKED`、失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。失敗のcodeは`ACCOUNTS_LINK_ATTEMPT_INVALID`（試行の不一致・期限切れ・再使用、認可コードの不正）、`ACCOUNTS_AUTHORIZATION_DENIED`、`ACCOUNTS_ID_TOKEN_INVALID`、`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`、`ACCOUNTS_CONNECTION_NOT_ACTIVE`、`ACCOUNTS_UNAVAILABLE`（Accountsとの通信失敗など）とする。
@@ -101,7 +102,7 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 
 - Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。
 - 外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応がある場合にだけPointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応をそれぞれ確認する。
-- Pointsユーザーが退会（account close）した場合は、closeと同じD1原子処理で、そのPointsユーザーに連携しているすべてのAccountsユーザーとの対応を削除する。
+- Pointsユーザーが退会（account close）した場合は、closeと同じD1原子処理で、そのPointsユーザーに連携しているすべてのAccountsユーザーとの対応を削除する。削除した連携の件数は、[接続先の取り下げ](#31-接続先accountsサービスの管理)と同じ形式で監査に記録する。
 - Pointsでの個別解除・退会では、Accounts側のそのPointsへの公開設定と情報提供同意を維持する。情報提供を停止したい本人はAccountsで設定する。以後の一覧取得・照合も、Accounts APIが定める現在の提供条件に従う。
 - Accountsユーザーが退会した場合や、AccountsでPointsへの情報提供を停止した場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。
 - 連携・公開設定・退会による変更後も、Pointsで確定済みの貢献・ポイントの帰属を維持する。未受領FIXへの影響は[未受領FIXの受領資格](unclaimed-fix-and-ownership.md#7-未受領fixの受領資格)に従う。
@@ -109,7 +110,7 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 ### 3.5 連携アカウント一覧の取得
 
 - Pointsは接続先のClient Credentials（`identities:read`）のAccess Tokenで、`QUERY {origin}/api/v1/external-accounts`から連携アカウント一覧を取得する。Access TokenはDPoPへ結び付け、失効の60秒前まで暗号化して再利用する。Accountsが`401`を返した場合はトークンを取り直して1回だけ再送し、再送しても`401`なら`ACCOUNTS_CLIENT_UNAUTHORIZED`として記録する。
-- 取得結果は連携ごとのsnapshotとして保存する。`200`は状態`PROVIDED`と一覧、`404`は状態`NOT_PROVIDED`と一覧の削除とする。通信失敗・制限超過・不正な応答では前回のsnapshotを維持し、識別子・トークンを含めずに構造化ログとメトリクスへ記録する。
+- 取得結果は連携ごとのsnapshotとして保存する。`200`は状態`PROVIDED`と一覧、`404`は状態`NOT_PROVIDED`と一覧の削除とする。通信失敗・制限超過・不正な応答では前回のsnapshotを維持し、識別子・トークンを含めずに構造化ログとメトリクスへ記録する。その連携の応答だけが不正な場合（`INVALID_RESPONSE`）は、記録して次の連携の取得へ進む。それ以外のAccountsとのやり取りの失敗は接続先全体の失敗として1回だけ記録し、同じ接続先の残りの連携は取得しない。
 - 取得の契機は次のとおりとし、接続先が`ACTIVE`の連携だけを対象にする。
   - 連携の保存直後
   - 本人が設定画面の一覧（`GET /api/accounts-links`）を開いた時。最後の取得から60秒以上たった本人の連携を、最大20件取得し直す。
