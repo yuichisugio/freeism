@@ -13,7 +13,7 @@ import { provisionPointsUser } from "../../src/backend/usecases/provision-points
 import { validateFixCsv } from "../../src/backend/usecases/validate-fix-csv";
 
 const FIX_HEADER =
-  "fixResultId,expectedRevision,recipientProfileUrl,evaluationCriterionId,amount,evaluationAt,managementId,memo";
+  "fixResultId,expectedRevision,recipientProfileUrl,recipientAccountsUserId,evaluationCriterionId,amount,evaluationAt,managementId,memo";
 
 // --------------------------------------------------
 // fixtures
@@ -69,15 +69,17 @@ async function createCriterion(actorPointsUserId: string, suffix: string) {
 /** 誰にも照合されない状態で FIX を取り込み、未受領エントリーを作る。 */
 async function commitUnclaimed(actorPointsUserId: string, accountsOrigin: string, csv: string) {
   const bytes = new TextEncoder().encode(csv);
-  const resolveRecipients = fakeAccounts(accountsOrigin, {})("acon_unused");
-  const validated = await validateFixCsv(env.DB!, bytes, { resolveRecipients });
-  expect(validated.errors).toEqual([]);
+  const createResolver = fakeAccounts(accountsOrigin, {});
+  const accountsConnectionId = "acon_unused";
+  const validated = await validateFixCsv(env.DB!, bytes, { accountsConnectionId, createResolver });
+  if (validated.status !== "VALID") throw new Error(`FIX CSV is ${validated.status}`);
   await commitFixCsv(env.DB!, bytes, {
+    accountsConnectionId,
     actorPointsUserId,
+    createResolver,
     expectedValidationHash: validated.validationHash,
     idempotencyKey: `fix-${crypto.randomUUID()}`,
     reason: "unclaimed FIX",
-    resolveRecipients,
   });
 }
 
@@ -117,8 +119,8 @@ async function setup() {
     accountsOrigin,
     [
       FIX_HEADER,
-      `,,${aliceUrl},${criterionId},3,2026-07,,alice-positive`,
-      `,,${bobUrl},${criterionId},5,2026-07,,bob`,
+      `,,${aliceUrl},,${criterionId},3,2026-07,,alice-positive`,
+      `,,${bobUrl},,${criterionId},5,2026-07,,bob`,
     ].join("\n"),
   );
   const link = await seedAccountsLink(pointsUser.id, accountsOrigin, suffix);

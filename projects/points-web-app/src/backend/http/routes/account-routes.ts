@@ -1,9 +1,6 @@
 import type { Context, Hono } from "hono";
 
-import {
-  createUnconfiguredAccountsRecipientResolver,
-  type CreateAccountsRecipientResolver,
-} from "../../identity/accounts-recipient-resolver";
+import { type CreateAccountsRecipientResolver } from "../../identity/accounts-recipient-resolver";
 import { closePointsAccount, ClosePointsAccountError } from "../../usecases/close-points-account";
 import {
   previewPointsAccountReopen,
@@ -11,7 +8,7 @@ import {
 } from "../../usecases/preview-points-account-reopen";
 import { reopenPointsAccount } from "../../usecases/reopen-points-account";
 import type { BackendContext } from "../context";
-import { requireBindings } from "../context";
+import { requireBindings, type Bindings } from "../context";
 import { googleFreshMiddleware } from "../middleware/google-fresh-middleware";
 import { idempotencyKeyMiddleware, profileBodyLimit } from "../middleware/idempotency-middleware";
 import { createSessionMiddleware, type GetSession } from "../middleware/session-middleware";
@@ -48,10 +45,10 @@ function mapReopenError(context: Context<BackendContext>, error: unknown): Respo
 export function registerAccountRoutes(
   app: Hono<BackendContext>,
   getSession: GetSession,
-  dependencies: { createAccountsRecipientResolver?: CreateAccountsRecipientResolver } = {},
+  dependencies: {
+    accountsRecipientResolverFor: (bindings: Bindings) => CreateAccountsRecipientResolver;
+  },
 ) {
-  const createResolver =
-    dependencies.createAccountsRecipientResolver ?? createUnconfiguredAccountsRecipientResolver;
   const session = createSessionMiddleware(getSession);
 
   app.post(
@@ -78,10 +75,11 @@ export function registerAccountRoutes(
 
   app.get("/api/account/reopen-preview", session, async (context) => {
     try {
+      const bindings = requireBindings(context.env);
       const data = await previewPointsAccountReopen(
-        requireBindings(context.env).DB,
+        bindings.DB,
         context.get("pointsUser").id,
-        createResolver,
+        dependencies.accountsRecipientResolverFor(bindings),
       );
       return context.json({ data, meta: { requestId: `req_${crypto.randomUUID()}` } });
     } catch (error) {
@@ -118,9 +116,10 @@ export function registerAccountRoutes(
         );
       }
       try {
-        const result = await reopenPointsAccount(requireBindings(context.env).DB, {
+        const bindings = requireBindings(context.env);
+        const result = await reopenPointsAccount(bindings.DB, {
           authUserId: context.get("authSession").user.id,
-          createResolver,
+          createResolver: dependencies.accountsRecipientResolverFor(bindings),
           currentSessionId: context.get("authSession").session.id,
           idempotencyKey: context.req.header("Idempotency-Key")!,
           pointsUserId: context.get("pointsUser").id,

@@ -102,6 +102,8 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
 }
 
 export interface CommitFixInput {
+  /** 受領者の照合に使った接続先 Accounts。監査に記録する。 */
+  accountsConnectionId: string;
   actorPointsUserId: string;
   auditEventId: string;
   fileHash: string;
@@ -484,10 +486,24 @@ export async function commitFixRows(
       input.requestId,
       input.now.getTime(),
     );
+  const accountsResolvedAudit = db
+    .prepare(
+      `INSERT INTO audit_event
+         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
+       VALUES (?, ?, 'FIX_ACCOUNTS_RESOLVED', ?, ?, ?, 'SUCCESS', ?)`,
+    )
+    .bind(
+      `audit_${crypto.randomUUID()}`,
+      input.actorPointsUserId,
+      input.accountsConnectionId,
+      input.reason,
+      input.requestId,
+      input.now.getTime(),
+    );
   await runCsvAtomicBatch(
     db,
     composeCsvAtomicBatch({
-      audit: [...sealWrites, audit],
+      audit: [...sealWrites, audit, accountsResolvedAudit],
       domainWrites,
       idempotencyResult: [idempotency],
       ledger: ledgerWrites,
