@@ -33,7 +33,7 @@
 | --- | --- | --- |
 | `APP_ENV` | 変数 | `local`・`staging`・`production` |
 | `ACCOUNTS_ORIGIN` | 変数 | 公開origin。公開プロフィールURL・JWTの`iss`・OAuthのcallbackに使う |
-| `PREVIEW_HOST_PATTERN` | 変数 | staging・PreviewでPreviewのhostに一致させるパターン。`ACCOUNT_SUBDOMAIN`は実際のworkers.dev subdomainへ置き換える |
+| `PREVIEW_HOST_PATTERN` | 変数 | staging・PreviewでPreviewのhostに一致させるパターン。アカウントのworkers.devサブドメインを含む |
 | `BETTER_AUTH_SECRETS` | 秘密値 | cookie・OAuth token暗号化のversioned secrets。形式は[認証の秘密値の切り替え](#認証の秘密値の切り替え)を参照 |
 | `GOOGLE_CLIENT_ID`・`GOOGLE_CLIENT_SECRET` | 秘密値 | Google OAuthのクライアント |
 | `GITHUB_CLIENT_ID`・`GITHUB_CLIENT_SECRET` | 秘密値 | GitHub OAuthのクライアント |
@@ -44,7 +44,7 @@
 
 ## stagingでの確認
 
-1. `pnpm exec wrangler d1 create accounts-staging`でDBを作成し、`wrangler.jsonc`の`env.staging`の`database_id`と`PREVIEW_HOST_PATTERN`を実際の値にする。
+1. `pnpm exec wrangler d1 create accounts-staging`でDBを作成し、`wrangler.jsonc`の`env.staging`の`database_id`をそのIDにする。`PREVIEW_HOST_PATTERN`はアカウントのworkers.devサブドメインに合わせる。
 2. [環境変数](#環境変数)の秘密値を`--env staging`で登録する。
 3. `pnpm exec wrangler d1 migrations apply DB --env staging --remote`でmigrationを適用する。
 4. `CLOUDFLARE_ENV=staging pnpm build`でstagingの設定でビルドし、`pnpm exec wrangler deploy`でデプロイする。Cloudflare Vite Pluginはビルド時に環境を確定するため、`wrangler deploy`には`--env`を付けない。

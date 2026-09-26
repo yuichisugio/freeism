@@ -54,11 +54,11 @@
         "binding": "ASSETS",
         "run_worker_first": true
       },
-      // PREVIEW_HOST_PATTERNはPreviewのhostだけに一致させる。ACCOUNT_SUBDOMAINはCloudflareアカウントのworkers.dev subdomainへ置き換える。
+      // PREVIEW_HOST_PATTERNはPreviewのhostだけに一致させる。先頭の*はPreviewごとの接頭辞。
       "vars": {
         "APP_ENV": "staging",
         "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
-        "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.ACCOUNT_SUBDOMAIN.workers.dev"
+        "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.kyogoku.workers.dev"
       },
       "secrets": {
         "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
@@ -79,7 +79,7 @@
         "vars": {
           "APP_ENV": "staging",
           "ACCOUNTS_ORIGIN": "https://staging.accounts.freeism.app",
-          "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.ACCOUNT_SUBDOMAIN.workers.dev"
+          "PREVIEW_HOST_PATTERN": "*-accounts-worker-staging.kyogoku.workers.dev"
         },
         "secrets": {
           "required": ["BETTER_AUTH_SECRETS", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "ORCID_CLIENT_ID", "ORCID_CLIENT_SECRET", "BASIC_AUTH_USERNAME", "BASIC_AUTH_PASSWORD"]
