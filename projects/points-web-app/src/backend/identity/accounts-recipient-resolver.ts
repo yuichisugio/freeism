@@ -3,6 +3,7 @@ import type {
   AccountsResolveResult,
 } from "../accounts/accounts-api-schema";
 import { createAccountsResourceContext } from "../accounts/accounts-connection-context";
+import type { AccountsFailureReporter } from "../accounts/accounts-failure-reporter";
 import { AccountsClientError } from "../accounts/accounts-http";
 import { importAccountsKeyEncryptionKey } from "../accounts/accounts-key-vault";
 import {
@@ -93,10 +94,8 @@ export class AccountsRecipientResolutionError extends Error {
 
 /**
  * Accounts とのやり取りの失敗を照合の失敗へ変換する。
- * それ以外のエラーはそのまま返す。
  */
-function toResolutionError(error: unknown): unknown {
-  if (!(error instanceof AccountsClientError)) return error;
+function toResolutionError(error: AccountsClientError): AccountsRecipientResolutionError {
   const code =
     error.code === "CLIENT_UNAUTHORIZED" ? "ACCOUNTS_CLIENT_UNAUTHORIZED" : "ACCOUNTS_UNAVAILABLE";
   return new AccountsRecipientResolutionError(code, error.retryAfter, { cause: error });
@@ -130,9 +129,11 @@ function toAccountsResolveIdentifier({
 /**
  * 接続先 Accounts で照合する本番の照合関数を作る。
  * 同じ識別子は1回だけ照合し、Accounts の上限（1,000件）ごとに要求を分ける。
+ * Accounts とのやり取りの失敗は `reportFailure` へ記録してから投げる。
  */
 export function createAccountsRecipientResolver(
   openResourceContext: OpenAccountsResourceContext,
+  reportFailure: AccountsFailureReporter,
 ): CreateAccountsRecipientResolver {
   return (accountsConnectionId) => async (identifiers) => {
     try {
@@ -164,6 +165,12 @@ export function createAccountsRecipientResolver(
         results: identifiers.map((identifier) => resolved.get(recipientIdentifierKey(identifier))!),
       };
     } catch (error) {
+      if (!(error instanceof AccountsClientError)) throw error;
+      await reportFailure({
+        operation: "accounts_resolve",
+        code: error.code,
+        connectionId: accountsConnectionId,
+      });
       throw toResolutionError(error);
     }
   };
@@ -177,18 +184,22 @@ export function createD1AccountsRecipientResolver({
   db,
   keyEncryptionKey,
   fetch,
+  reportFailure,
 }: {
   db: D1Database;
   keyEncryptionKey: string;
   fetch: typeof globalThis.fetch;
+  reportFailure: AccountsFailureReporter;
 }): CreateAccountsRecipientResolver {
-  return createAccountsRecipientResolver(async (connectionId) =>
-    createAccountsResourceContext({
-      db,
-      kek: await importAccountsKeyEncryptionKey(keyEncryptionKey),
-      connectionId,
-      fetch,
-    }),
+  return createAccountsRecipientResolver(
+    async (connectionId) =>
+      createAccountsResourceContext({
+        db,
+        kek: await importAccountsKeyEncryptionKey(keyEncryptionKey),
+        connectionId,
+        fetch,
+      }),
+    reportFailure,
   );
 }
 

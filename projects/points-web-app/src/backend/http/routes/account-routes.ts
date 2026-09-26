@@ -7,6 +7,7 @@ import {
   PointsAccountReopenError,
 } from "../../usecases/preview-points-account-reopen";
 import { reopenPointsAccount } from "../../usecases/reopen-points-account";
+import { toAccountsResolutionProblem } from "../accounts-resolution-problem";
 import type { BackendContext } from "../context";
 import { requireBindings, type Bindings } from "../context";
 import { googleFreshMiddleware } from "../middleware/google-fresh-middleware";
@@ -29,6 +30,8 @@ function mapCloseError(context: Context<BackendContext>, error: unknown): Respon
 }
 
 function mapReopenError(context: Context<BackendContext>, error: unknown): Response {
+  const accountsProblem = toAccountsResolutionProblem(context, error);
+  if (accountsProblem) return accountsProblem;
   if (!(error instanceof PointsAccountReopenError)) throw error;
   if (error.code === "IDEMPOTENCY_KEY_REUSED") {
     return problem(context, 409, error.code, "Idempotency key reused");

@@ -1,11 +1,9 @@
 import type { Context, Hono } from "hono";
 
-import {
-  AccountsRecipientResolutionError,
-  type CreateAccountsRecipientResolver,
-} from "../../identity/accounts-recipient-resolver";
+import type { CreateAccountsRecipientResolver } from "../../identity/accounts-recipient-resolver";
 import { commitFixCsv } from "../../usecases/commit-fix-csv";
 import { validateFixCsv, type ValidatedFixCsv } from "../../usecases/validate-fix-csv";
+import { toAccountsResolutionProblem } from "../accounts-resolution-problem";
 import type { BackendContext } from "../context";
 import { requireBindings, type Bindings } from "../context";
 import { adminMiddleware } from "../middleware/admin-middleware";
@@ -49,11 +47,8 @@ function accountsConnectionRequired(context: Context<BackendContext>): Response 
  * FIX 取込で投げられたエラーを problem 応答へ変換する。
  */
 function mapFixError(context: Context<BackendContext>, error: unknown): Response {
-  if (
-    error instanceof AccountsRecipientResolutionError &&
-    error.code === "ACCOUNTS_CONNECTION_NOT_ACTIVE"
-  )
-    return problem(context, 409, error.code, "Accounts connection is not active");
+  const accountsProblem = toAccountsResolutionProblem(context, error);
+  if (accountsProblem) return accountsProblem;
   if (error instanceof Error && "errors" in error)
     return csvProblem(context, (error as Error & { errors: unknown[] }).errors);
   if (error instanceof Error && error.message === "VALIDATION_CHANGED")

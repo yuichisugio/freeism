@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import type { AccountsResolveIdentifier } from "../accounts/accounts-api-schema";
+import type { AccountsFailure } from "../accounts/accounts-failure-reporter";
 import { AccountsClientError } from "../accounts/accounts-http";
 import type { AccountsResourceClient } from "../accounts/accounts-resource-client";
 import {
@@ -19,24 +20,29 @@ const accountsOrigin = "https://accounts.example.test";
 type ResolveIdentifiers = AccountsResourceClient["resolveIdentifiers"];
 
 /**
- * 照合要求を記録し、`answer`の結果を返す資源APIクライアントで照合関数を作る。
+ * 照合要求と失敗の記録を残し、`answer`の結果を返す資源APIクライアントで照合関数を作る。
  */
 function createResolverWith(answer: ResolveIdentifiers) {
   const requests: AccountsResolveIdentifier[][] = [];
-  const resolve = createAccountsRecipientResolver(async (accountsConnectionId) =>
-    accountsConnectionId === "acon_active"
-      ? {
-          connection: { accountsOrigin },
-          resourceClient: {
-            resolveIdentifiers: (identifiers) => {
-              requests.push(identifiers);
-              return answer(identifiers);
+  const failures: AccountsFailure[] = [];
+  const resolve = createAccountsRecipientResolver(
+    async (accountsConnectionId) =>
+      accountsConnectionId === "acon_active"
+        ? {
+            connection: { accountsOrigin },
+            resourceClient: {
+              resolveIdentifiers: (identifiers) => {
+                requests.push(identifiers);
+                return answer(identifiers);
+              },
             },
-          },
-        }
-      : null,
+          }
+        : null,
+    async (failure) => {
+      failures.push(failure);
+    },
   )("acon_active");
-  return { requests, resolve };
+  return { failures, requests, resolve };
 }
 
 /** すべての識別子を`no_match`にする応答。 */
@@ -136,11 +142,18 @@ describe("createAccountsRecipientResolver", () => {
   });
 
   it("ACTIVEでない接続先はACCOUNTS_CONNECTION_NOT_ACTIVEで拒否する", async () => {
-    const resolve = createAccountsRecipientResolver(async () => null)("acon_withdrawn");
+    const failures: AccountsFailure[] = [];
+    const resolve = createAccountsRecipientResolver(
+      async () => null,
+      async (failure) => {
+        failures.push(failure);
+      },
+    )("acon_withdrawn");
 
     await expect(resolve([url("https://example.com/alice")])).rejects.toMatchObject({
       code: "ACCOUNTS_CONNECTION_NOT_ACTIVE",
     });
+    expect(failures).toEqual([]);
   });
 
   it("matchedなのにAccountsユーザーIDが無い応答はACCOUNTS_UNAVAILABLEにする", async () => {
@@ -160,12 +173,15 @@ describe("createAccountsRecipientResolver", () => {
     ["PAYLOAD_TOO_LARGE", "ACCOUNTS_UNAVAILABLE"],
     ["REQUEST_INVALID", "ACCOUNTS_UNAVAILABLE"],
     ["CLIENT_UNAUTHORIZED", "ACCOUNTS_CLIENT_UNAUTHORIZED"],
-  ] as const)("Accountsとのやり取りの失敗%sを%sにする", async (clientCode, code) => {
-    const { resolve } = createResolverWith(async () => {
+  ] as const)("Accountsとのやり取りの失敗%sを%sにし、記録する", async (clientCode, code) => {
+    const { failures, resolve } = createResolverWith(async () => {
       throw new AccountsClientError(clientCode);
     });
 
     await expect(resolve([url("https://example.com/alice")])).rejects.toMatchObject({ code });
+    expect(failures).toEqual([
+      { operation: "accounts_resolve", code: clientCode, connectionId: "acon_active" },
+    ]);
   });
 
   it("制限超過はRetry-Afterの値を引き継ぐ", async () => {

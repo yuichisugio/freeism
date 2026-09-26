@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 
+import { createAccountsFailureReporter } from "./accounts/accounts-failure-reporter";
 import { createPointsAuth } from "./auth/create-auth";
 import type { BackendContext, Bindings } from "./http/context";
 import {
@@ -22,13 +23,14 @@ import { registerProfileRoutes } from "./http/routes/profile-routes";
 import { registerPublicRoutes } from "./http/routes/public-routes";
 import { registerReconciliationRoutes } from "./http/routes/reconciliation-routes";
 import { registerTransactionRoutes } from "./http/routes/transaction-routes";
+import { registerUnclaimedFixRoutes } from "./http/routes/unclaimed-fix-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
   getSession: GetSession;
   /** Accounts への要求に使う `fetch`。テストではテスト用 Accounts へ差し替える。 */
   accountsFetch?: typeof fetch;
-  /** FIX 受領者の照合関数。指定しない場合は D1 の接続先と `accountsFetch` で照合する。 */
+  /** FIX 受領者・未受領 FIX の照合関数。指定しない場合は D1 の接続先と `accountsFetch` で照合する。 */
   createAccountsRecipientResolver?: CreateAccountsRecipientResolver;
 }
 
@@ -46,6 +48,7 @@ export function createPointsBackendApp(
       db: bindings.DB,
       keyEncryptionKey: bindings.ACCOUNTS_KEY_ENCRYPTION_KEY,
       fetch: dependencies.accountsFetch ?? fetch,
+      reportFailure: createAccountsFailureReporter(bindings),
     });
   registerAuthRoutes(app);
   registerAccountRoutes(app, dependencies.getSession, { accountsRecipientResolverFor });
@@ -67,6 +70,7 @@ export function createPointsBackendApp(
   registerPublicRoutes(app);
   registerReconciliationRoutes(app, dependencies.getSession);
   registerTransactionRoutes(app, dependencies.getSession);
+  registerUnclaimedFixRoutes(app, dependencies.getSession, { accountsRecipientResolverFor });
   return app;
 }
 

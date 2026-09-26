@@ -5,6 +5,10 @@ import {
   type RecipientIdentifier,
 } from "../../identity/accounts-recipient-resolver";
 
+/**
+ * 未受領 FIX を受領できない理由。
+ * `CLAIM_SET_CHANGED` では、利用者が確認し直せるように新しい preview を `latestPreview` に持つ。
+ */
 export class UnclaimedFixClaimError extends Error {
   constructor(
     readonly code:
@@ -12,6 +16,7 @@ export class UnclaimedFixClaimError extends Error {
       | "CLAIM_SET_CHANGED"
       | "IDEMPOTENCY_KEY_REUSED"
       | "NO_UNCLAIMED_FIXES",
+    readonly latestPreview?: UnclaimedFixClaimPreview,
   ) {
     super(code);
   }
@@ -259,8 +264,10 @@ export async function claimUnclaimedFixes(
   if (replay) return replay;
 
   const { link, preview } = await loadPreview(db, input);
-  if (preview.claimSetHash !== input.claimSetHash)
-    throw new UnclaimedFixClaimError("CLAIM_SET_CHANGED");
+  if (preview.claimSetHash !== input.claimSetHash) {
+    const { entries: _entries, ...latestPreview } = preview;
+    throw new UnclaimedFixClaimError("CLAIM_SET_CHANGED", latestPreview);
+  }
   if (preview.entries.length === 0) throw new UnclaimedFixClaimError("NO_UNCLAIMED_FIXES");
 
   const claimId = `fixclaim_${crypto.randomUUID()}`;
@@ -404,7 +411,11 @@ export async function claimUnclaimedFixes(
         payloadHash,
       );
       if (concurrentReplay) return concurrentReplay;
-      if (isForeignKeyConflict) throw new UnclaimedFixClaimError("CLAIM_SET_CHANGED");
+      if (isForeignKeyConflict)
+        throw new UnclaimedFixClaimError(
+          "CLAIM_SET_CHANGED",
+          await previewUnclaimedFixes(db, input),
+        );
     }
     throw error;
   }

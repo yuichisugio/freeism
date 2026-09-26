@@ -158,6 +158,7 @@ export const unclaimedFixEntries = sqliteTable(
   (table) => [
     uniqueIndex("unclaimed_fix_entry_source_subject_criterion_uidx").on(
       table.sourceFixRevisionId,
+      table.accountsOrigin,
       table.recipientIdentifierType,
       table.recipientIdentifierValue,
       table.evaluationCriterionId,
