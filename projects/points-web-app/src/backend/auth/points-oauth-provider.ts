@@ -20,27 +20,6 @@ export const pointsOAuthScopes = {
     "points.reservations.capture",
     "points.reservations.release",
   ],
-  SETTLEMENT: ["points.admin.settlement.retry"],
-} as const;
-
-export const pointsOAuthClients = {
-  USER: {
-    grantTypes: ["authorization_code", "refresh_token"] as const,
-    requirePKCE: true,
-    scopes: pointsOAuthScopes.USER,
-    subjectType: "pairwise" as const,
-  },
-  M2M: {
-    grantTypes: ["client_credentials"] as const,
-    requirePKCE: false,
-    scopes: pointsOAuthScopes.M2M,
-  },
-  SETTLEMENT: {
-    grantTypes: ["authorization_code"] as const,
-    requirePKCE: true,
-    scopes: pointsOAuthScopes.SETTLEMENT,
-    subjectType: "pairwise" as const,
-  },
 } as const;
 
 const linkBindingScopes = new Set([
@@ -56,36 +35,22 @@ export function requiresPointsLinkAttemptBinding(scope: string | null): boolean 
     .some((value) => linkBindingScopes.has(value));
 }
 
-export function createPointsOAuthProvider(config: {
-  APP_ORIGIN: string;
-  DB?: D1Database;
-  MARKETS_SETTLEMENT_RETRY_RESOURCE: string;
-  POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN?: string;
-  POINTS_OAUTH_PAIRWISE_SECRET: string;
-}) {
-  const bootstrapToken = config.POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN?.trim();
+export function createPointsOAuthProvider(config: { APP_ORIGIN: string; DB?: D1Database }) {
+  const pointsResource = `${config.APP_ORIGIN}/api/v1`;
   return oauthProvider({
-    allowDynamicClientRegistration: bootstrapToken !== undefined && bootstrapToken.length > 0,
-    clientRegistrationAllowedScopes: [
-      ...pointsOAuthScopes.USER,
-      ...pointsOAuthScopes.M2M,
-      ...pointsOAuthScopes.SETTLEMENT,
-    ],
+    accessTokenExpiresIn: 900,
+    allowDynamicClientRegistration: false,
+    clientPrivileges: ({ session }) => Boolean(session),
+    clientRegistrationDefaultResources: [pointsResource],
     consentPage: "/oauth/consent",
-    disableJwtPlugin: true,
     grantTypes: ["authorization_code", "refresh_token", "client_credentials"],
     loginPage: "/login",
-    pairwiseSecret: config.POINTS_OAUTH_PAIRWISE_SECRET,
+    m2mAccessTokenExpiresIn: 900,
     resources: [
       {
         allowedScopes: [...pointsOAuthScopes.USER, ...pointsOAuthScopes.M2M],
-        identifier: `${config.APP_ORIGIN}/api/v1`,
+        identifier: pointsResource,
         name: "Points Resource API",
-      },
-      {
-        allowedScopes: [...pointsOAuthScopes.SETTLEMENT],
-        identifier: config.MARKETS_SETTLEMENT_RETRY_RESOURCE,
-        name: "Markets Settlement Retry",
       },
     ],
     ...(config.DB === undefined
@@ -118,27 +83,6 @@ export function createPointsOAuthProvider(config: {
             shouldRedirect: async () => false,
           },
         }),
-    scopes: [...pointsOAuthScopes.USER, ...pointsOAuthScopes.M2M, ...pointsOAuthScopes.SETTLEMENT],
-    ...(bootstrapToken === undefined || bootstrapToken.length === 0
-      ? {}
-      : {
-          validateInitialAccessToken: async ({ initialAccessToken }) =>
-            (await constantTimeEqual(initialAccessToken, bootstrapToken)) ? {} : false,
-        }),
+    scopes: [...pointsOAuthScopes.USER, ...pointsOAuthScopes.M2M],
   });
-}
-
-async function constantTimeEqual(left: string, right: string): Promise<boolean> {
-  const encode = (value: string) => new TextEncoder().encode(value);
-  const [leftHash, rightHash] = await Promise.all([
-    crypto.subtle.digest("SHA-256", encode(left)),
-    crypto.subtle.digest("SHA-256", encode(right)),
-  ]);
-  const leftBytes = new Uint8Array(leftHash);
-  const rightBytes = new Uint8Array(rightHash);
-  let difference = 0;
-  for (let index = 0; index < leftBytes.length; index += 1) {
-    difference |= leftBytes[index]! ^ rightBytes[index]!;
-  }
-  return difference === 0;
 }

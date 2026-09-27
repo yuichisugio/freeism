@@ -49,7 +49,7 @@ export async function refreshAccountsLinkSnapshots(
         await saveAccountsLinkSnapshot(db, { accountsLinkId: link.id, result, fetchedAt: now() });
       } catch (error) {
         if (!(error instanceof AccountsClientError)) throw error;
-        await reportFailure({ operation: "accounts_list", code: error.code, connectionId });
+        await reportFailure({ operation: "accounts_list", code: error.code });
         if (error.code !== "INVALID_RESPONSE") break;
       }
     }

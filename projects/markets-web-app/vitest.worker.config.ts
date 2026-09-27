@@ -17,7 +17,6 @@ export default defineConfig({
           GOOGLE_CLIENT_SECRET: "test-google-client-secret",
           OPS_ALERT_FROM: "alerts@example.test",
           OPS_ALERT_TO: "ops@example.test",
-          OPS_RESOURCE_HASH_SALT: "test-markets-ops-resource-hash-salt",
           POINTS_AUDIENCE: "https://points.example.test/api/v1",
           POINTS_ISSUER: "https://points.example.test/api/auth",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),

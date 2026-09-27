@@ -2,7 +2,6 @@ import { expect, test } from "@playwright/test";
 
 import { assertGeneratedConfig, expectedWorkerName } from "../../scripts/deploy-generated";
 import { migrationCommand } from "../../scripts/migrate-d1";
-import { assertDrillEnvironment } from "../../scripts/drill-ops-alert";
 import { smokeChecks, smokeOrigin } from "../../scripts/smoke";
 
 test("release commands keep the Points environment and DB binding fixed", () => {
@@ -18,7 +17,6 @@ test("release commands keep the Points environment and DB binding fixed", () => 
     "wrangler.jsonc",
   ]);
   expect(expectedWorkerName("production")).toBe("points-worker-production");
-  expect(() => assertDrillEnvironment("production")).toThrow(/staging/);
 });
 
 test("generated deployment config must contain the expected flattened boundaries", () => {

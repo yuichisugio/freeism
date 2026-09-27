@@ -6,13 +6,9 @@ export type Bindings = Omit<Env, "DB"> & {
   GOOGLE_CLIENT_SECRET: string;
   POINTS_AUDIENCE: string;
   POINTS_ISSUER: string;
-  POINTS_M2M_CLIENT_ID: string;
-  POINTS_M2M_CLIENT_SECRET: string;
+  POINTS_CLIENT_ID: string;
+  POINTS_CLIENT_PRIVATE_KEY_JWK: string;
   POINTS_SERVICE: Fetcher;
-  POINTS_SETTLEMENT_CLIENT_ID: string;
-  POINTS_SETTLEMENT_CLIENT_SECRET: string;
-  POINTS_USER_CLIENT_ID: string;
-  POINTS_USER_CLIENT_SECRET: string;
 };
 
 export interface AuthenticatedSession {

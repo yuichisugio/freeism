@@ -2,16 +2,14 @@ import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
-  completeSettlementRetryCallback,
-  consumeSettlementRetryAuthorization,
-  createSettlementRetryAuthorization,
+  retrySettlement,
   readSafeSettlementStatus,
 } from "../../src/backend/settlement/admin-retry-authorization";
+import { validateSettlementPlan } from "../../src/backend/settlement/auction-settlement-workflow";
 import { reconcileSettlement } from "../../src/backend/settlement/reconcile-settlements";
 
 const db = env.DB;
 const now = "2033-05-18T03:33:20.000Z";
-const expiresAt = Date.parse(now) + 60_000;
 const planHash = `sha256:${"1".repeat(64)}`;
 const reasonHash = `sha256:${"2".repeat(64)}` as const;
 
@@ -124,75 +122,32 @@ async function seedRoundWinner(
   return { reservationKey, roundId };
 }
 
-async function authorize(settlement: Awaited<ReturnType<typeof seedSettlement>>, jti: string) {
-  const rawState = `state_${crypto.randomUUID()}`;
-  const authorization = await createSettlementRetryAuthorization(db, {
-    auctionId: settlement.auctionId,
-    authUserId: settlement.authUserId,
-    callbackUri: "https://markets.example.test/api/settlements/retry-callback",
-    expiresAt,
-    marketsUserId: settlement.marketsUserId,
-    nonce: `nonce_${jti}`,
-    pkceVerifier: `verifier_${jti}`,
-    rawState,
-    reasonHash,
-    sessionId: "session_1",
-    settlementId: settlement.settlementId,
-  });
-  const callback = await completeSettlementRetryCallback(db, {
-    claims: {
-      admin: true,
-      auctionId: settlement.auctionId,
-      aud: "https://markets.example.test",
-      authTime: 2_000_000_000 - 899,
-      clientId: "settlement-client",
-      exp: 2_000_000_060,
-      iat: 2_000_000_000,
-      iss: "https://points.example.test/api/auth",
-      jti,
-      reasonHash,
-      scope: "points.admin.settlement.retry",
-      settlementId: settlement.settlementId,
-      sub: "points-admin-1",
-      tokenClass: "SETTLEMENT_ADMIN_STEP_UP",
-    },
-    marketsUserId: settlement.marketsUserId,
-    rawState,
-    sessionId: "session_1",
-    verifiedAt: Date.parse(now),
-  });
-  return { authorization, callback };
-}
-
 describe("settlement admin retry", () => {
-  it("callback stores one pending JTI without starting a workflow, then same-session POST consumes once", async () => {
+  it("records one retry and returns the same outbox on an idempotent replay", async () => {
     const settlement = await seedSettlement();
-    const { callback } = await authorize(settlement, `jti_${crypto.randomUUID()}`);
-
-    expect(callback).toMatchObject({ status: "PENDING", workflowStarted: false });
-    expect(
-      await db
-        .prepare("SELECT count(*) AS count FROM settlement_outbox WHERE settlement_id = ?")
-        .bind(settlement.settlementId)
-        .first<{ count: number }>(),
-    ).toEqual({ count: 0 });
-
-    const accepted = await consumeSettlementRetryAuthorization(db, {
+    const input = {
+      idempotencyKey: `retry_${crypto.randomUUID()}`,
       marketsUserId: settlement.marketsUserId,
       now: Date.parse(now),
-      sessionId: "session_1",
+      reasonHash,
       settlementId: settlement.settlementId,
-    });
+    };
+    const accepted = await retrySettlement(db, input);
     expect(accepted).toMatchObject({ status: "ACCEPTED", workflowAttempt: 1 });
+    const state = await db.prepare("SELECT saga_state AS sagaState FROM settlements WHERE id = ?")
+      .bind(settlement.settlementId).first<{ sagaState: string }>();
+    expect(state?.sagaState).toBe("PLANNED");
+    await expect(validateSettlementPlan(db, {
+      auctionId: settlement.auctionId,
+      planHash,
+      settlementId: settlement.settlementId,
+      settlementRevision: 1,
+      workflowAttempt: accepted.workflowAttempt,
+    })).resolves.toMatchObject({ sagaState: "PLANNED", settlementId: settlement.settlementId });
+    expect(await retrySettlement(db, input)).toEqual(accepted);
     await expect(
-      consumeSettlementRetryAuthorization(db, {
-        marketsUserId: settlement.marketsUserId,
-        now: Date.parse(now),
-        sessionId: "session_1",
-        settlementId: settlement.settlementId,
-      }),
-    ).rejects.toThrow("ADMIN_ASSERTION_REPLAYED");
-
+      retrySettlement(db, { ...input, reasonHash: `sha256:${"3".repeat(64)}` }),
+    ).rejects.toThrow("IDEMPOTENCY_KEY_REUSED");
     const rows = await db
       .prepare(
         "SELECT status, workflow_attempt AS workflowAttempt FROM settlement_outbox WHERE settlement_id = ?",
@@ -202,29 +157,21 @@ describe("settlement admin retry", () => {
     expect(rows.results).toEqual([{ status: "PENDING", workflowAttempt: 1 }]);
   });
 
-  it("rejects a pending assertion from another session or changed target", async () => {
+  it("requires the seller and an actionable settlement", async () => {
     const settlement = await seedSettlement();
-    await authorize(settlement, `jti_${crypto.randomUUID()}`);
+    const input = {
+      idempotencyKey: `retry_${crypto.randomUUID()}`,
+      marketsUserId: "another-user",
+      now: Date.parse(now),
+      reasonHash,
+      settlementId: settlement.settlementId,
+    };
+    await expect(retrySettlement(db, input)).rejects.toThrow("SETTLEMENT_NOT_FOUND");
+    await db.prepare("UPDATE settlements SET saga_state = 'SETTLED' WHERE id = ?")
+      .bind(settlement.settlementId).run();
     await expect(
-      consumeSettlementRetryAuthorization(db, {
-        marketsUserId: settlement.marketsUserId,
-        now: Date.parse(now),
-        sessionId: "session_2",
-        settlementId: settlement.settlementId,
-      }),
-    ).rejects.toThrow("ADMIN_ASSERTION_SESSION_MISMATCH");
-    await db
-      .prepare("UPDATE settlement_retry_authorizations SET reason_hash = ? WHERE settlement_id = ?")
-      .bind(`sha256:${"3".repeat(64)}`, settlement.settlementId)
-      .run();
-    await expect(
-      consumeSettlementRetryAuthorization(db, {
-        marketsUserId: settlement.marketsUserId,
-        now: Date.parse(now),
-        sessionId: "session_1",
-        settlementId: settlement.settlementId,
-      }),
-    ).rejects.toThrow("ADMIN_ASSERTION_TARGET_CHANGED");
+      retrySettlement(db, { ...input, marketsUserId: settlement.marketsUserId }),
+    ).rejects.toThrow("SETTLEMENT_RETRY_NOT_ALLOWED");
   });
 
   it("returns safe status to the seller and related buyer without disclosing existence", async () => {
@@ -252,7 +199,7 @@ describe("settlement admin retry", () => {
         marketsUserId: buyerMarketsUserId,
         settlementId: settlement.settlementId,
       }),
-    ).resolves.toEqual(result);
+    ).resolves.toEqual({ ...result, manualActionAllowed: false });
     await expect(
       readSafeSettlementStatus(db, {
         marketsUserId: strangerMarketsUserId,

@@ -5,11 +5,12 @@ import { IndexPage } from "./index";
 import { FixedPageView } from "../content/fixed-pages";
 
 describe("Points shell", () => {
-  it("names the service and links to Markets", () => {
+  it("names the service and shows the empty balance state", () => {
     const html = renderToStaticMarkup(<IndexPage />);
 
     expect(html).toContain(">Freeism Points</h1>");
-    expect(html).toContain('href="https://markets.freeism.app"');
+    expect(html).toContain("表示できるポイント残高はまだありません。");
+    expect(html).not.toContain("Freeism Marketsへ");
   });
 });
 

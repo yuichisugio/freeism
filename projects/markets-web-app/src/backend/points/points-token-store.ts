@@ -39,7 +39,7 @@ export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsToken
   return {
     async read(accountId) {
       const context = await auth.$context;
-      const account = await context.internalAdapter.findAccountByProviderId(accountId, "points");
+      const account = await context.internalAdapter.findAccountByKey({ accountId, providerId: "points" });
       if (!account?.accessToken || !account.refreshToken) throw new Error("POINTS_TOKEN_NOT_FOUND");
       return {
         accessToken: await decryptOAuthToken(account.accessToken, context),
@@ -55,15 +55,12 @@ export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsToken
     },
     async remove(accountId) {
       const context = await auth.$context;
-      const account = await context.internalAdapter.findAccountByProviderId(accountId, "points");
+      const account = await context.internalAdapter.findAccountByKey({ accountId, providerId: "points" });
       if (account) await context.internalAdapter.deleteAccount(account.id);
     },
     async save(tokens) {
       const context = await auth.$context;
-      const existing = await context.internalAdapter.findAccountByProviderId(
-        tokens.accountId,
-        "points",
-      );
+      const existing = await context.internalAdapter.findAccountByKey({ accountId: tokens.accountId, providerId: "points" });
       const data = {
         accessToken: await setTokenUtil(tokens.accessToken, context),
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
@@ -86,10 +83,7 @@ export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsToken
     },
     async saveAccessToken(input) {
       const context = await auth.$context;
-      const existing = await context.internalAdapter.findAccountByProviderId(
-        input.accountId,
-        "points",
-      );
+      const existing = await context.internalAdapter.findAccountByKey({ accountId: input.accountId, providerId: "points" });
       if (!existing || existing.userId !== input.authUserId) {
         throw new Error("POINTS_ACCOUNT_NOT_FOUND");
       }

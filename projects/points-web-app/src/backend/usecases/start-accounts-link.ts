@@ -68,7 +68,6 @@ export async function startAccountsLink({
     await reportFailure({
       operation: "accounts_discovery",
       code: error.code,
-      connectionId: connection.id,
     });
     throw new AccountsProblemError(503, "ACCOUNTS_UNAVAILABLE");
   }

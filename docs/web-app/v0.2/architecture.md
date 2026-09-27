@@ -209,7 +209,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
 - Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
-- Points予約は15分。標準remote introspectionでpairwise subjectを検証した利用者用Clientのopaque delegation Access Tokenで予約し、capture/releaseは別のM2M用Clientが発行したopaque Client Credentials Tokenで行う。
+- Points予約は15分。標準JWKSで署名とaudienceを検証した利用者JWTで予約し、capture/releaseは同じClient IDのM2M Client Credentials JWTで行う。
 - ACTIVE connectionは利用者用Client IDと対応M2M用Client IDを保持する。利用者Tokenで予約を作る時は対応M2M用Client IDを既存reservation所有clientへ保存し、status／capture／releaseはそのM2M `client_id`だけを許可する。
 - 1 winnerの全評価軸予約は1回のPoints D1原子処理とし、部分予約を許可しない。
 - winner確定後、すべてのcapture/releaseを冪等に完了させる。capture後の自動refundやsaga巻き戻しは行わない。
@@ -221,7 +221,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
 - 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
 - apex `freeism.app`は`projects/main-web-app`の独立ポータルを配信し、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app`、`accounts.freeism.app`へ通常のHTTPSリンクで案内する。`www.freeism.app`はapexへ正規化する。
-- ポータルとドキュメントのhosting／DNSはPoints／Markets v0.2 migrationのdeploy対象に含めず、それぞれの独立した公開境界として扱う。DNS／redirectの範囲では、Wranglerが`freeism.app`と`docs.freeism.app`のWorker custom domainおよびapex DNSを所有し、Terraformはproxied `www.freeism.app`と`https://freeism.app/`への301正規化だけを所有する。既存のAccess、WAF、rate limit、Turnstile、通知は引き続きTerraformが所有する。
+- ポータルとドキュメントのhosting／DNSはPoints／Markets v0.2 migrationのdeploy対象に含めず、それぞれの独立した公開境界として扱う。DNS／redirectの範囲では、Wranglerが`freeism.app`と`docs.freeism.app`のWorker custom domainおよびapex DNSを所有し、Terraformはproxied `www.freeism.app`と`https://freeism.app/`への301正規化だけを所有する。Access、WAF、rate limit、通知はTerraformが所有する。
 - 廃止したapex／`www`からPointsへのredirectを再作成しない。`www`正規化ではsource pathとqueryを破棄する。
 - publicなper-PR preview環境はv0.2で作らない。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
@@ -257,7 +257,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Service Binding越しでもOAuth bearer tokenをBetter Auth標準Resource Clientのconfidential remote introspectionへ通し、`active`、issuer、audience/resource、期待する利用者用またはM2M用Client ID、scope、利用者Tokenのpairwise subjectを検証する。credentialはPoints／Markets Worker Secretだけに置いてbrowserへ出さない。利用者principalは利用者用Client＋pairwise `sub`あり＋利用者scopeだけ、M2M principalはM2M用Client＋利用者`sub`なし＋M2M scopeだけから導出し、独自token-class claim、JWT Access Token、内部Points user IDをcross-app identityにしない。
+- Service Binding越しでもPoints Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、別scopeを要求する。MarketsだけがOAuth Client秘密JWKをWorker Secretに保存する。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。

@@ -188,9 +188,7 @@ describe("連携アカウント一覧の定期更新", () => {
     expect(accounts.requests.filter(({ url }) => url.endsWith("/external-accounts"))).toHaveLength(
       1,
     );
-    expect(failures).toEqual([
-      { operation: "accounts_list", code: "NETWORK_ERROR", connectionId: expect.any(String) },
-    ]);
+    expect(failures).toEqual([{ operation: "accounts_list", code: "NETWORK_ERROR" }]);
   });
 
   it("1件の応答が不正な場合は記録して、同じ接続先の次の連携を取得する", async () => {
@@ -211,9 +209,7 @@ describe("連携アカウント一覧の定期更新", () => {
       externalAccountsJson: JSON.stringify(sampleExternalAccounts()),
       fetchedAt: now,
     });
-    expect(failures).toEqual([
-      { operation: "accounts_list", code: "INVALID_RESPONSE", connectionId: expect.any(String) },
-    ]);
+    expect(failures).toEqual([{ operation: "accounts_list", code: "INVALID_RESPONSE" }]);
   });
 });
 
@@ -236,9 +232,7 @@ describe("本人の閲覧での取得し直し", () => {
     expect(accounts.requests.filter(({ url }) => url.endsWith("/external-accounts"))).toHaveLength(
       1,
     );
-    expect(failures).toEqual([
-      { operation: "accounts_list", code: "NETWORK_ERROR", connectionId: expect.any(String) },
-    ]);
+    expect(failures).toEqual([{ operation: "accounts_list", code: "NETWORK_ERROR" }]);
   });
 });
 

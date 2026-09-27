@@ -1,3 +1,4 @@
+import { pointsClientPrivateKeyJwk } from "../fixtures/points-oauth";
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -541,12 +542,8 @@ describe("settlement capture", () => {
       },
       POINTS_AUDIENCE: "https://points.example.test",
       POINTS_ISSUER: "https://points.example.test/api/auth",
-      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
-      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
-      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
-      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
-      POINTS_USER_CLIENT_ID: "markets-user-client",
-      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
+      POINTS_CLIENT_ID: "markets-user-client",
+      POINTS_CLIENT_PRIVATE_KEY_JWK: pointsClientPrivateKeyJwk,
     } as Env;
     await expect(runScheduledSettlementMaintenance(scheduledEnv)).rejects.toThrow(
       "TEST_BUY_NOW_CLOSE_RESUME_DISPATCH_UNAVAILABLE",
@@ -707,13 +704,9 @@ describe("settlement capture", () => {
       DB: db,
       POINTS_AUDIENCE: "https://points.example.test",
       POINTS_ISSUER: "https://points.example.test/api/auth",
-      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
-      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
+      POINTS_CLIENT_ID: "markets-user-client",
+      POINTS_CLIENT_PRIVATE_KEY_JWK: pointsClientPrivateKeyJwk,
       POINTS_SERVICE: { fetch: vi.fn() },
-      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
-      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
-      POINTS_USER_CLIENT_ID: "markets-user-client",
-      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
     } as unknown as Env;
 
     await expect(runScheduledSettlementMaintenance(scheduledEnv)).resolves.toBeUndefined();

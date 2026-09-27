@@ -82,7 +82,6 @@ export function registerExportRoutes(app: Hono<BackendContext>, getSession: GetS
       try {
         const snapshot = await createCsvExportSnapshot(env.DB, {
           actorPointsUserId,
-          cursorSecret: env.CSV_EXPORT_CURSOR_SECRET,
           exportType: "PROFILE",
           idempotencyKey: context.req.header("Idempotency-Key")!,
           pageSize: pageSize as number,
@@ -114,7 +113,6 @@ export function registerExportRoutes(app: Hono<BackendContext>, getSession: GetS
       const page = await readCsvExportPage(env.DB, {
         actorPointsUserId: context.get("pointsUser").id,
         cursor,
-        cursorSecret: env.CSV_EXPORT_CURSOR_SECRET,
         exportId: context.req.param("exportId"),
       });
       const headers = new Headers({

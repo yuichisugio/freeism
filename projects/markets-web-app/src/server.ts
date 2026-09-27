@@ -11,7 +11,7 @@ import {
   inspectMarketsOpsAlerts,
   monitorMarketsOpsAlerts,
 } from "./backend/observability/ops-monitor";
-import { emitOpsMetric, hashOpsResourceId } from "./backend/observability/ops-metrics";
+import { emitOpsMetric } from "./backend/observability/ops-metrics";
 import { PointsApiClient } from "./backend/points/points-api-client";
 import { PointsOAuthClient } from "./backend/points/points-oauth-client";
 import { finalizeSettlement } from "./backend/settlement/finalize-settlement";
@@ -179,12 +179,8 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
   const oauth = new PointsOAuthClient(bindings.POINTS_SERVICE, {
     audience: bindings.POINTS_AUDIENCE,
     issuer: bindings.POINTS_ISSUER,
-    m2mClientId: bindings.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: bindings.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: bindings.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: bindings.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: bindings.POINTS_USER_CLIENT_ID,
-    userClientSecret: bindings.POINTS_USER_CLIENT_SECRET,
+    clientId: bindings.POINTS_CLIENT_ID,
+    privateKeyJwk: bindings.POINTS_CLIENT_PRIVATE_KEY_JWK,
   });
   const points = new PointsApiClient(bindings.POINTS_SERVICE, (scopes) =>
     oauth.getM2MAccessToken(scopes),
@@ -274,22 +270,17 @@ export async function runScheduledMarkets(controller: ScheduledController, worke
     () =>
       monitorMarketsOpsAlerts(workerEnv.DB, {
         environment: workerEnv.APP_ENV,
-        inspect: (db, now) => inspectMarketsOpsAlerts(db, now, workerEnv.OPS_RESOURCE_HASH_SALT),
+        inspect: inspectMarketsOpsAlerts,
         notify: (alert) =>
           deliverOpsAlert(workerEnv.OPS_ALERT_EMAIL, alert, {
             from: workerEnv.OPS_ALERT_FROM,
             to: workerEnv.OPS_ALERT_TO,
           }),
-        resourceHashSalt: workerEnv.OPS_RESOURCE_HASH_SALT,
       }),
     () => cleanupResolvedOpsAlerts(workerEnv.DB, new Date(), workerEnv.APP_ENV),
   ]);
   for (const [index, result] of results.entries()) {
     const succeeded = result.status === "fulfilled";
-    const resourceIdHash = await hashOpsResourceId(
-      `*/5 * * * *:${index}`,
-      workerEnv.OPS_RESOURCE_HASH_SALT,
-    );
     emitOpsMetric(workerEnv.OPS_METRICS, {
       app: "markets",
       attempt: 1,
@@ -300,7 +291,6 @@ export async function runScheduledMarkets(controller: ScheduledController, worke
       event: "cron_job",
       lagSeconds: 0,
       outcome: succeeded ? "SUCCEEDED" : "FAILED",
-      resourceIdHash,
       resourceState: `job-${index}`,
     });
     if (!succeeded) console.error("MARKETS_CRON_JOB_FAILED", { jobIndex: index });

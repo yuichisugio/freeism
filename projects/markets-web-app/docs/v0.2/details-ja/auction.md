@@ -162,12 +162,6 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 - browser timezone名を表示し、server timestampはUTC/RFC 3339で受け取る。
 - WebSocket updateはscreen readerへ過剰announceせず、重要状態変化だけをlive regionへ出す。
 
-### adaptive Turnstile
-
-- 通常のOAuth、link／unlink、bid、AutoBid、即決、Auction作成・編集操作へTurnstileを常時表示しない。Marketsのapp rate／risk signalが要求した場合だけ、APIは`TURNSTILE_REQUIRED`とoperation別actionを返し、UIがwidget tokenを取得して同じidempotency keyの操作を再送する。
-- WorkerはSiteverify responseのsuccess、環境別hostname、operation別action、`challenge_ts`期限を検査し、token hashをD1で一回だけ消費する。timeout、action／hostname不一致、期限切れ、replayはfail-closedとし、Secretやraw tokenをlog／auditへ残さない。
-- Cloudflare WAF managed challengeとapp Turnstileは別controlであり、一方の通過を他方の検証結果として扱わない。
-
 ## 10. 必須テスト
 
 - CSV 1,000/1,001、package revision競合、全件rollback
@@ -183,4 +177,3 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 - review comment 0／2,000／2,001 code pointと8,000 byte、emoji／結合文字、completionProofUrl空／HTTPS／2,048 byte／userinfo／fragmentのAPI／UI境界
 - proof hash／immutable cacheがreview revision追加後も不変で、current review／revision履歴だけが更新される
 - Points unlinkのGoogle fresh、callback pending、明示confirm、ACTIVE reservation 409全状態不変、receipt後UNLINKED、REAUTH_REQUIREDからrelink
-- 通常操作でTurnstileなし、risk時だけwidget表示、Siteverify hostname／action／期限／replay拒否、WAF challengeと独立

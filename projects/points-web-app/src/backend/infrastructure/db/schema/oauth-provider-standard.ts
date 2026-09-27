@@ -2,18 +2,30 @@ import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 import { session, user } from "./auth";
 
-// Generated from the installed Better Auth 1.7.0-rc.1 public CLI schema.
+export const jwks = sqliteTable("jwks", {
+  id: text("id").primaryKey(),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+  alg: text("alg"),
+  crv: text("crv"),
+});
+
+// Generated from the installed Better Auth 1.7.5 public CLI schema.
 export const oauthClient = sqliteTable(
   "oauth_client",
   {
     id: text("id").primaryKey(),
     clientId: text("client_id").notNull().unique(),
     clientSecret: text("client_secret"),
+    clientDiscoveryId: text("client_discovery_id"),
     disabled: integer("disabled", { mode: "boolean" }).default(false),
     skipConsent: integer("skip_consent", { mode: "boolean" }),
     enableEndSession: integer("enable_end_session", { mode: "boolean" }),
     subjectType: text("subject_type"),
     scopes: text("scopes", { mode: "json" }),
+    clientCredentialsScopes: text("client_credentials_scopes", { mode: "json" }).default([]),
     userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
     createdAt: integer("created_at", { mode: "timestamp_ms" }),
     updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
@@ -37,8 +49,7 @@ export const oauthClient = sqliteTable(
     jwksUri: text("jwks_uri"),
     grantTypes: text("grant_types", { mode: "json" }),
     responseTypes: text("response_types", { mode: "json" }),
-    public: integer("public", { mode: "boolean" }),
-    type: text("type"),
+    applicationType: text("application_type"),
     requirePKCE: integer("require_pkce", { mode: "boolean" }),
     dpopBoundAccessTokens: integer("dpop_bound_access_tokens", { mode: "boolean" }).default(false),
     referenceId: text("reference_id"),

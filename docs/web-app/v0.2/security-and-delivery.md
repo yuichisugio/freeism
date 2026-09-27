@@ -2,7 +2,7 @@
 
 ## 1. 防御層
 
-1. Cloudflare edge: DDoS、WAF、rate limit、Access、TLS、Turnstile
+1. Cloudflare edge: DDoS、WAF、rate limit、Access、TLS
 2. Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
 3. D1/DO/Workflow: unique/check constraint、CAS、append-only history、単調状態遷移
 4. CI/supply chain: exact pin、lockfile、advisory、ruleset、署名済みartifact
@@ -19,9 +19,9 @@
 - `disableCSRFCheck=false`、`disableOriginCheck=false`。
 - `trustedOrigins`は環境ごとの当該アプリ完全一致originだけとする。
 - OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
-- Points OAuthは環境別pairwise secretと`subject_type=pairwise`を標準pluginで使い、public subjectを発行しない。
-- Points OAuth Providerは`disableJwtPlugin: true`でAccess Tokenをopaqueにし、標準confidential remote introspectionの`active`、issuer、audience/resource、client、scope、期限と、利用者Tokenだけのpairwise subjectを検証する。利用者用、M2M用、Settlement retry用Client IDを分け、credentialは利用するWorkerの環境別Secretだけに置いてbrowserへ出さない。JWT Access Tokenの内部Points user IDをMarketsへ公開しない。
-- Client Credentialsもopaqueだが、別Clientの利用者scopeとM2M scopeを互いに素にする。利用者用Client＋pairwise `sub`あり＋利用者scopeだけを利用者principal、M2M用Client＋利用者`sub`なし＋M2M scopeだけをM2M principalへ分類し、独自token-class claim、Service Binding、Tokenの外形、emailを認可根拠にしない。
+- Points OAuthはBetter Auth 1.7.5の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、用途別scopeとともに分類する。
+- Points Resource APIは標準JWKS署名、issuer、audience、期限、Client ID、required scope、Clientの有効状態を検証する。利用者操作ではPoints userのACTIVE状態も確認する。Service Binding、Tokenの外形、emailを認可根拠にしない。
+- OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使い、秘密JWKはMarkets Worker Secretにだけ保存する。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
 - private/認証responseは`Cache-Control: private, no-store`。
 
 Better Authの詳細は[認証仕様](./authentication.md)を正本とする。
@@ -47,8 +47,7 @@ Settlement手動retryはMarkets内に別ADMIN roleを作らない。Marketsか�
 - グローバルな同格`ADMIN`だけを持つ。
 - owner、super admin、評価軸別admin、impersonation、`setBalance`を作らない。
 - ADMINは最大50人、最後のADMINを削除できない。
-- bootstrapはADMIN 0人かつSecrets指定Google `accountId`一致時に一度だけ行う。
-- 公開bootstrap routeを置かない。
+- 初期ADMINはGoogleでログイン後、対象のGoogle `account_id`とPoints userをD1で確認し、`wrangler d1 execute`で`admin_membership`へ追加する。
 - ADMIN mutationはfresh session、理由、before/after、request ID、env、結果をappend-only auditへ残す。
 
 ## 5. same-origin API
@@ -136,28 +135,6 @@ Webページ検証のURL正規化、外部fetch、SSRF対策、応答上限、�
 
 idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
 
-## 9. Turnstile
-
-- 通常のlogin、bidへ常時challengeを出さない。
-- abuse threshold接近、異常IP/ASN、連続失敗等のrisk signal時だけadaptiveに要求する。
-- tokenはWorkerからSiteverifyへ送ってserver-sideで検証し、hostname、action、期限、再利用を確認する。
-- Turnstile失敗をauthorization成功へfallbackしない。
-
-PointsとMarketsはenvironment別のSite Key／Secretとtoken replay tableをそれぞれ持ち、browserが別subdomainのSite Keyを流用しない。app-integrated challengeの対象operationと固定`action`は次のとおりである。
-
-| App     | operation                             | Turnstile `action`         |
-| ------- | ------------------------------------- | -------------------------- |
-| Points  | Google／GitHub OAuth開始              | `points_oauth_start`       |
-| Points  | CSV validate／commit                  | `points_csv`               |
-| Points  | 未受領FIX claim confirm               | `points_claim`             |
-| Markets | Google OAuth／Points link・unlink開始 | `markets_oauth_start`      |
-| Markets | Auction CSV validate／commit          | `markets_csv`              |
-| Markets | bid／buy-now                          | `markets_bid`              |
-| Markets | WebSocket upgrade                     | `markets_ws_upgrade`       |
-| Markets | Settlement手動retry confirm           | `markets_settlement_retry` |
-
-通常requestではTurnstile tokenを要求しない。risk判定時は`428 TURNSTILE_REQUIRED`とSite Key／固定actionだけを返し、clientが取得したtokenを同じoperationへ1回だけ再送する。Siteverify成功は認証、認可、freshness、rate limit、idempotencyを代替しない。Cloudflare WAF Managed Challengeはedgeの別防御であり、appのtoken／action／replay検証を満たしたことにはしない。
-
 ## 10. CSV
 
 - UTF-8、最大5MiB、最大1,000非空行、strict header/cell schema。
@@ -165,7 +142,7 @@ PointsとMarketsはenvironment別のSite Key／Secretとtoken replay tableをそ
 - server draftなし、確認後1回の原子commit。
 - 小数4桁、scale 10,000、minimumUnit倍数、安全整数、指数表記/Unicodeマイナス拒否。
 - 1件errorで全体0件反映。
-- exportはformula injectionを無害化する。
+- exportはformula injectionを無害化する。snapshotの読取はログイン中の作成者とexport IDを照合し、D1の有効期限を確認する。cursorは数値ordinalで表し、範囲外を拒否する。
 - file本文、自由入力cell、個人情報を通常logへ出さない。
 
 ### D1 bulk write制約
@@ -217,9 +194,9 @@ ADMINによる不正FIX、複数アカウントの談合、seller/buyerの虚偽
 正確性の根拠はD1／DOの不変条件とし、logやAnalytics Engine metricをtransaction成功の根拠にしない。両Workerはenvironment別に次を持つ。
 
 - Workers Observabilityを有効化する。stagingはlogs／tracesともhead sampling `1`、productionはlogs `1`、traces `0.05`を初期値とする。productionはWorkers PaidのWorkers Logs 7日保持、stagingもPaid環境として7日保持をrelease条件にする。
-- structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeとsalted ID hashだけを記録する。OAuth token、Cookie、Secret、email、外部URL／HTML、CSV cell、AutoBid上限、profile本文を記録しない。
-- `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、非個人のresource ID hashをindexに使う。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
-- app D1に`ops_alerts`を持ち、`alertKey`、type、resource ID hash、`OPEN|RESOLVED`、first／last observed、last notified、repeat count、safe detail codeを保存する。`OPEN`は期間で削除せず、`RESOLVED`だけを`resolvedAt`から180日保持する。5分monitor内の1日1回leaseで期限到来行を削除し、cutoff、削除件数、実行結果をappend-only auditへ残す。179日23:59:59は保持し、180日ちょうどを削除対象とする。
+- structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeを記録する。個別のresource IDは記録しない。OAuth token、Cookie、Secret、email、外部URL／HTML、CSV cell、AutoBid上限、profile本文も記録しない。
+- `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、固定されたevent名をindexに使う。個別のresource IDは含めない。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
+- app D1の運用alertには、type／signalとサーバー生成の内部resource IDを結合した`alertKey`、`OPEN|RESOLVED`、first／last observed、last notified、repeat count、safe detail codeを保存する。同じ`alertKey`で重複判定し、通知本文にもこのキーを含める。Pointsの`ops_alert`には別のresource ID列を置かない。`OPEN`は期間で削除せず、`RESOLVED`だけを`resolvedAt`から180日保持する。5分monitor内の1日1回leaseで期限到来行を削除し、cutoff、削除件数、実行結果をappend-only auditへ残す。179日23:59:59は保持し、180日ちょうどを削除対象とする。
 - 各Workerの5分Cron monitorがD1の正本状態を照会し、同じ`alertKey`へ冪等upsertする。`OPEN`遷移時、継続1時間ごと、`RESOLVED`遷移時だけ固定destinationの`OPS_ALERT_EMAIL` Email Routing bindingへ通知する。宛先はverified destinationとしてWrangler/IaCで固定し、request入力から選ばない。送信失敗はalert rowを未通知のまま保持し次回再送する。
 - Cloudflare native Notificationは、公式alert typeで確認できるincident／5xx率／usage threshold用とする。Worker runtime exception専用typeは捏造せずWorkers Logs／Tracesと相関し、app固有D1状態のalertはCron monitorが判定する。
 
@@ -278,7 +255,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - fork/PR由来cache、artifact、environment値をproduction deployへ流用しない。
 - production secretsはmain push workflowのproduction jobだけが参照する。
 - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
-- prerender buildは追跡済み`.dev.vars.example`のdummy値だけをbuild step内へ読み込み、実Worker Secretをartifactへ渡さない。deployは別stepで実行し、dummy環境変数を引き継がない。
+- prerender buildはWorker Secretを読み込まない。deployは別stepで実行し、Secretはデプロイ先の登録値を使う。
 - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
 ## 15. main ruleset

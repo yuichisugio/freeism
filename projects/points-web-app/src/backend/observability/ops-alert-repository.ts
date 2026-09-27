@@ -8,7 +8,6 @@ export type OpsAlertStatus = "OPEN" | "RESOLVED";
 
 export interface OpsAlertObservation {
   alertKey: string;
-  resourceIdHash: string;
   safeDetailCode: string;
   type: ManagedPointsAlertType | "ALERT_DELIVERY_FAILED" | "REJECTION_AUDIT_FAILURE";
 }
@@ -29,12 +28,11 @@ export async function observeOpsAlert(
   const record = await db
     .prepare(
       `INSERT INTO ops_alert
-         (alert_key, type, resource_id_hash, status, first_observed_at,
+         (alert_key, type, status, first_observed_at,
           last_observed_at, resolved_at, repeat_count, safe_detail_code)
-       VALUES (?, ?, ?, 'OPEN', ?, ?, NULL, 1, ?)
+       VALUES (?, ?, 'OPEN', ?, ?, NULL, 1, ?)
        ON CONFLICT(alert_key) DO UPDATE SET
          type = excluded.type,
-         resource_id_hash = excluded.resource_id_hash,
          status = 'OPEN',
          first_observed_at = CASE
            WHEN ops_alert.status = 'RESOLVED' THEN excluded.first_observed_at
@@ -47,19 +45,12 @@ export async function observeOpsAlert(
            ELSE ops_alert.repeat_count + 1
          END,
          safe_detail_code = excluded.safe_detail_code
-       RETURNING alert_key AS alertKey, type, resource_id_hash AS resourceIdHash,
+       RETURNING alert_key AS alertKey, type,
                  status, first_observed_at AS firstObservedAt,
                  last_observed_at AS lastObservedAt, resolved_at AS resolvedAt,
                  repeat_count AS repeatCount, safe_detail_code AS safeDetailCode`,
     )
-    .bind(
-      observation.alertKey,
-      observation.type,
-      observation.resourceIdHash,
-      now,
-      now,
-      observation.safeDetailCode,
-    )
+    .bind(observation.alertKey, observation.type, now, now, observation.safeDetailCode)
     .first<OpsAlertRecord>();
   if (!record) throw new Error("OPS_ALERT_WRITE_FAILED");
   return record;
@@ -75,7 +66,7 @@ export async function resolveOpsAlert(
       `UPDATE ops_alert
        SET status = 'RESOLVED', last_observed_at = ?, resolved_at = ?
        WHERE alert_key = ? AND status = 'OPEN'
-       RETURNING alert_key AS alertKey, type, resource_id_hash AS resourceIdHash,
+       RETURNING alert_key AS alertKey, type,
                  status, first_observed_at AS firstObservedAt,
                  last_observed_at AS lastObservedAt, resolved_at AS resolvedAt,
                  repeat_count AS repeatCount, safe_detail_code AS safeDetailCode`,
@@ -109,7 +100,7 @@ export async function listOpsAlertsDueForNotification(
   const rows = await db
     .prepare(
       `SELECT alert.alert_key AS alertKey, alert.type,
-              alert.resource_id_hash AS resourceIdHash, alert.status,
+              alert.status,
               alert.first_observed_at AS firstObservedAt,
               alert.last_observed_at AS lastObservedAt,
               alert.resolved_at AS resolvedAt, alert.repeat_count AS repeatCount,

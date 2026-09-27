@@ -39,11 +39,6 @@ export function createMarketsBackendApp(
   app.use("/api/auctions/:auctionId/buy-now", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use("/api/watchlist/:auctionId", jsonMutationBodyLimit, requestSecurityMiddleware);
   app.use(
-    "/api/settlements/:settlementId/retry-authorizations",
-    jsonMutationBodyLimit,
-    requestSecurityMiddleware,
-  );
-  app.use(
     "/api/v1/proofs/:proofId/review-revisions",
     jsonMutationBodyLimit,
     requestSecurityMiddleware,

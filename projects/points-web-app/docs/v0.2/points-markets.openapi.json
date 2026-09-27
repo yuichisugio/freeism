@@ -3,7 +3,7 @@
   "info": {
     "title": "Freeism Points–Markets API",
     "version": "0.2.0",
-    "description": "Points-owned canonical contract for the eleven APIs consumed by Markets. Better Auth discovery, authorization, token, introspection and revocation endpoints remain standard provider endpoints and are intentionally not duplicated as application operations."
+    "description": "Points-owned canonical contract for the twelve APIs consumed by Markets. Better Auth discovery, authorization, token, introspection and revocation endpoints remain standard provider endpoints and are intentionally not duplicated as application operations."
   },
   "servers": [
     {
@@ -32,14 +32,13 @@
   ],
   "x-freeism-oauth-contract": {
     "issuer": "https://points.freeism.app/api/auth",
-    "introspectionEndpoint": "https://points.freeism.app/api/auth/oauth2/introspect",
-    "opaqueAccessTokens": true,
-    "disableJwtPlugin": true,
-    "accessTokenJwtDecodeForbidden": true,
-    "accessTokenJwksVerificationForbidden": true,
+    "jwksEndpoint": "https://points.freeism.app/api/auth/jwks",
+    "accessTokenFormat": "jwt",
+    "accessTokenMaxTtlSeconds": 900,
+    "clientAuthentication": "private_key_jwt",
     "idTokenAcceptedAsResourceBearer": false,
-    "userPrincipal": "active pairwise sub, client, audience/resource, scope, expiry and saved connection must match",
-    "m2mPrincipal": "active token without user sub and with only M2M scopes; client and owned resources must match",
+    "userPrincipal": "verified issuer, audience, expiry, client, scope, Points auth user subject and active connection",
+    "m2mPrincipal": "verified issuer, audience, expiry, client, M2M scope and subject equal to client ID",
     "rejectCrossClientEnvironmentInactiveOrInsufficientScope": true
   },
   "x-freeism-standard-oauth-endpoints": {
@@ -583,6 +582,80 @@
                 }
               }
             },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "x-freeism-cache-control": "private, no-store"
+      }
+    },
+    "/api/v1/me/admin-membership": {
+      "get": {
+        "operationId": "getPointsAdminMembership",
+        "summary": "Check the current Points ADMIN membership for the connected user",
+        "security": [
+          {
+            "userOAuth": ["points.connection.read"]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Request-Id",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpaqueId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "Cache-Control": {
+                "description": "Exact cache policy: private, no-store",
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["data", "meta"],
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["isAdmin"],
+                      "properties": {
+                        "isAdmin": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/RequestMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "default": {
+            "description": "RFC 9457 Problem Details",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1206,7 +1279,7 @@
     "securitySchemes": {
       "userOAuth": {
         "type": "oauth2",
-        "description": "Opaque Authorization Code + PKCE access tokens for ordinary user operations. Refresh tokens may renew only this user scope set.",
+        "description": "JWT Authorization Code + PKCE access tokens for ordinary user operations. Refresh tokens may renew only this user scope set.",
         "flows": {
           "authorizationCode": {
             "authorizationUrl": "https://points.freeism.app/api/auth/oauth2/authorize",
@@ -1226,7 +1299,7 @@
             }
           }
         },
-        "x-freeism-access-token-format": "opaque",
+        "x-freeism-access-token-format": "jwt",
         "x-freeism-principal-class": "user"
       },
       "connectionUnlinkOAuth": {
@@ -1245,45 +1318,13 @@
             }
           }
         },
-        "x-freeism-access-token-format": "opaque",
+        "x-freeism-access-token-format": "jwt",
         "x-freeism-principal-class": "connection-unlink",
         "x-freeism-google-fresh-required": true
       },
-      "settlementAdminOAuth": {
-        "type": "oauth2",
-        "description": "Dedicated Authorization Code + PKCE step-up for a 60 second, target-bound, one-use settlement retry assertion. It is not a resource Bearer for the eleven operations.",
-        "flows": {
-          "authorizationCode": {
-            "authorizationUrl": "https://points.freeism.app/api/auth/oauth2/authorize",
-            "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
-            "scopes": {
-              "points.admin.settlement.retry": "Authorize one target-bound settlement retry"
-            },
-            "x-freeism-pkce": {
-              "required": true,
-              "method": "S256"
-            }
-          }
-        },
-        "x-freeism-principal-class": "settlement-admin-step-up",
-        "x-freeism-assertion": {
-          "pointsAdminRequired": true,
-          "googleFreshRequired": true,
-          "boundTo": [
-            "auctionId",
-            "settlementId",
-            "reasonHash",
-            "marketsSession",
-            "pairwiseSubject"
-          ],
-          "maxTtlSeconds": 60,
-          "jtiSingleUse": true,
-          "refreshTokenAllowed": false
-        }
-      },
       "m2mOAuth": {
         "type": "oauth2",
-        "description": "Opaque Client Credentials access tokens for Markets Worker M2M operations only. No user subject, user scope, refresh token, redirect URI, connection read, balance read, reservation create, unlink, or admin step-up.",
+        "description": "JWT Client Credentials access tokens for registered clients to perform M2M operations on their own connections and reservations. The subject is the client ID and M2M scopes are required.",
         "flows": {
           "clientCredentials": {
             "tokenUrl": "https://points.freeism.app/api/auth/oauth2/token",
@@ -1297,9 +1338,9 @@
             }
           }
         },
-        "x-freeism-access-token-format": "opaque",
+        "x-freeism-access-token-format": "jwt",
         "x-freeism-principal-class": "m2m",
-        "x-freeism-user-subject-required": false
+        "x-freeism-subject": "client_id"
       }
     },
     "responses": {
@@ -1633,12 +1674,7 @@
             "$ref": "#/components/schemas/Sha256Hash"
           }
         },
-        "required": [
-          "auctionItemId",
-          "pointPackageId",
-          "pointPackageRevisionId",
-          "contentHash"
-        ]
+        "required": ["auctionItemId", "pointPackageId", "pointPackageRevisionId", "contentHash"]
       },
       "AuctionEligibilityRequest": {
         "type": "object",
@@ -2330,11 +2366,7 @@
             "$ref": "#/components/schemas/NonNegativeIntegerString"
           }
         },
-        "required": [
-          "evaluationCriterionId",
-          "evaluationCriterionRevisionId",
-          "amountScaled"
-        ]
+        "required": ["evaluationCriterionId", "evaluationCriterionRevisionId", "amountScaled"]
       },
       "CreateReservationData": {
         "type": "object",
@@ -2880,14 +2912,7 @@
             "x-freeism-sort": ["value:asc"]
           }
         },
-        "required": [
-          "type",
-          "title",
-          "status",
-          "code",
-          "requestId",
-          "insufficientReservationIds"
-        ]
+        "required": ["type", "title", "status", "code", "requestId", "insufficientReservationIds"]
       },
       "CaptureConflictProblem": {
         "type": "object",

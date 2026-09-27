@@ -5,12 +5,14 @@ import { IndexPage } from "./index";
 import { FixedPageView } from "../content/fixed-pages";
 
 describe("Markets shell", () => {
-  it("names the service, states its auction responsibility, and links to Points", () => {
+  it("names the service, states its auction responsibility, and shows the main actions", () => {
     const html = renderToStaticMarkup(<IndexPage />);
 
     expect(html).toContain(">Freeism Markets</h1>");
     expect(html).toContain("商材の出品とAuction作成");
-    expect(html).toContain('href="https://points.freeism.app"');
+    expect(html).toContain('href="/auctions"');
+    expect(html).toContain('href="/login"');
+    expect(html).not.toContain('href="https://points.freeism.app"');
   });
 });
 

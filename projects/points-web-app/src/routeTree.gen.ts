@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsExportsRouteImport } from './routes/settings.exports'
@@ -62,6 +63,11 @@ const HelpRoute = HelpRouteImport.update({
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -159,6 +165,7 @@ const AccountReopenRoute = AccountReopenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -212,6 +220,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -240,6 +249,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -319,6 +331,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DeveloperRoute: typeof DeveloperRoute
   DocsRoute: typeof DocsRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -519,6 +539,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DeveloperRoute: DeveloperRoute,
   DocsRoute: DocsRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,

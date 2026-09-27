@@ -47,7 +47,7 @@ This file never contains secrets, tokens, OAuth codes, cookies, pairwise subject
 - Saved plan hash: pending
 - Reviewed create/update/delete addresses: pending
 - Apply time/exit: pending
-- Applied resource ID hashes: pending
+- Applied Terraform resource addresses and Cloudflare ID fingerprints: pending
 - Post-apply zero-diff exit: pending
 
 Remote state bootstrap, lock proof, staging apply, Wrangler remote inventory, and Task 6A Gate B remain blocked until owner review and credentials are supplied.

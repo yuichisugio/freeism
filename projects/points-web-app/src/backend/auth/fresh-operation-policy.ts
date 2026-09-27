@@ -178,13 +178,6 @@ const baseFreshOperationPolicies = [
     idempotency: true,
   },
   {
-    operation: "settlement-retry",
-    route: "oauth:settlement-retry",
-    admin: true,
-    reason: true,
-    idempotency: true,
-  },
-  {
     operation: "reconciliation",
     route: "/api/reconciliation/run",
     admin: true,

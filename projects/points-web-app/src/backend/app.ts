@@ -18,7 +18,7 @@ import { registerExportRoutes } from "./http/routes/export-routes";
 import { registerDistributionRoutes } from "./http/routes/distribution-routes";
 import { registerFixRoutes } from "./http/routes/fix-routes";
 import { registerOAuthResourceRoutes } from "./http/routes/oauth-resource-routes";
-import { registerOpsRoutes } from "./http/routes/ops-routes";
+import { registerOAuthClientRoutes } from "./http/routes/oauth-client-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
 import { registerPublicRoutes } from "./http/routes/public-routes";
 import { registerReconciliationRoutes } from "./http/routes/reconciliation-routes";
@@ -65,7 +65,7 @@ export function createPointsBackendApp(
   });
   registerFixRoutes(app, dependencies.getSession, { accountsRecipientResolverFor });
   registerOAuthResourceRoutes(app);
-  registerOpsRoutes(app);
+  registerOAuthClientRoutes(app, dependencies.getSession);
   registerProfileRoutes(app, dependencies.getSession);
   registerPublicRoutes(app);
   registerReconciliationRoutes(app, dependencies.getSession);

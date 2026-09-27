@@ -1,3 +1,4 @@
+import { pointsClientPrivateKeyJwk } from "../fixtures/points-oauth";
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -53,7 +54,7 @@ async function insertConnection(suffix: string, user: { authId: string; marketsU
       points_issuer, points_subject, user_client_id, m2m_client_id, granted_scopes,
       session_id, expires_at)
      VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'https://points.example.test/api/auth', ?,
-      'markets-user-client', 'markets-m2m-client', 'points.reservations.create', ?, ?)`,
+      'markets-user-client', 'markets-user-client', 'points.reservations.create', ?, ?)`,
   )
     .bind(
       id,
@@ -522,13 +523,9 @@ describe("settlement reservation round", () => {
       ...authEnv,
       POINTS_AUDIENCE: "https://points.example.test/api",
       POINTS_ISSUER: "https://points.example.test/api/auth",
-      POINTS_M2M_CLIENT_ID: "markets-m2m-client",
-      POINTS_M2M_CLIENT_SECRET: "markets-m2m-secret",
+      POINTS_CLIENT_ID: "markets-user-client",
+      POINTS_CLIENT_PRIVATE_KEY_JWK: pointsClientPrivateKeyJwk,
       POINTS_SERVICE: service,
-      POINTS_SETTLEMENT_CLIENT_ID: "markets-settlement-client",
-      POINTS_SETTLEMENT_CLIENT_SECRET: "markets-settlement-secret",
-      POINTS_USER_CLIENT_ID: "markets-user-client",
-      POINTS_USER_CLIENT_SECRET: "markets-user-secret",
     });
     const receipt = await deps.gateway.reserve({
       allocationQuantity: 1,

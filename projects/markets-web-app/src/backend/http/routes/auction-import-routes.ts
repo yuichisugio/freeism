@@ -33,12 +33,8 @@ function service(env: Bindings): ValidateAuctionImportService {
   const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
     audience: env.POINTS_AUDIENCE,
     issuer: env.POINTS_ISSUER,
-    m2mClientId: env.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: env.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: env.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: env.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: env.POINTS_USER_CLIENT_ID,
-    userClientSecret: env.POINTS_USER_CLIENT_SECRET,
+    clientId: env.POINTS_CLIENT_ID,
+    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
   });
   const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
   const packageRevisionReader = createPackageRevisionReader(api);
@@ -54,12 +50,8 @@ function commitService(env: Bindings): CommitAuctionImportService {
   const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
     audience: env.POINTS_AUDIENCE,
     issuer: env.POINTS_ISSUER,
-    m2mClientId: env.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: env.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: env.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: env.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: env.POINTS_USER_CLIENT_ID,
-    userClientSecret: env.POINTS_USER_CLIENT_SECRET,
+    clientId: env.POINTS_CLIENT_ID,
+    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
   });
   const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
   const reader = createPackageRevisionReader(api);

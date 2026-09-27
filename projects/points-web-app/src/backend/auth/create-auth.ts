@@ -1,5 +1,6 @@
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { betterAuth } from "better-auth/minimal";
+import type { BetterAuthOptions } from "better-auth";
 
 import * as schema from "../infrastructure/db/schema";
 import { createDb } from "../infrastructure/db/client";
@@ -8,18 +9,16 @@ import {
   reconcilePermanentOAuthSubjects,
 } from "../infrastructure/db/permanent-oauth-subject-repository";
 import type { Bindings } from "../http/context";
-import { bootstrapInitialAdmin } from "../usecases/bootstrap-admin";
 import { provisionPointsUser } from "../usecases/provision-points-user";
 import { createPointsAuthOptions } from "./auth-options";
 
-export function createPointsAuth(env: Bindings) {
+export function createPointsAuth(env: Bindings, options: { enableTestUtils?: boolean } = {}) {
   const database = drizzleAdapter(createDb(env.DB), {
     provider: "sqlite",
     schema,
   });
 
-  const options = createPointsAuthOptions(env, database);
-  options.databaseHooks = {
+  const databaseHooks = {
     account: {
       create: {
         after: async (account) => {
@@ -47,16 +46,15 @@ export function createPointsAuth(env: Bindings) {
         after: async (session) => {
           const pointsUser = await provisionPointsUser(env.DB, session.userId);
           await reconcilePermanentOAuthSubjects(env.DB, session.userId, pointsUser.id);
-          await bootstrapInitialAdmin(env.DB, {
-            authUserId: session.userId,
-            initialGoogleAccountId: env.INITIAL_ADMIN_GOOGLE_ACCOUNT_ID,
-            membershipId: `adm_${crypto.randomUUID()}`,
-            pointsUserId: pointsUser.id,
-          });
         },
       },
     },
+  } satisfies NonNullable<BetterAuthOptions["databaseHooks"]>;
+
+  const authOptions = {
+    ...createPointsAuthOptions(env, database, options.enableTestUtils),
+    databaseHooks,
   };
 
-  return betterAuth(options);
+  return betterAuth(authOptions);
 }

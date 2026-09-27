@@ -3,7 +3,7 @@ import type { z } from "zod";
 
 import { pointsOAuthScopes } from "../../auth/points-oauth-provider";
 import {
-  introspectResourceRequest,
+  verifyPointsResourceRequest,
   type PointsOAuthPrincipal,
 } from "../../auth/resource-token-introspection";
 import { canonicalJson, sha256Hex } from "../../csv/csv-validation-result";
@@ -50,19 +50,14 @@ export type AuthorizePointsResource = (
 ) => Promise<PointsOAuthPrincipal>;
 
 const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =>
-  introspectResourceRequest(
+  verifyPointsResourceRequest(
     request,
     {
       allowedScopes: kind === "USER" ? pointsOAuthScopes.USER : pointsOAuthScopes.M2M,
       audience: `${env.APP_ORIGIN}/api/v1`,
-      clientId:
-        kind === "USER" ? env.MARKETS_USER_OAUTH_CLIENT_ID : env.MARKETS_M2M_OAUTH_CLIENT_ID,
-      clientSecret:
-        kind === "USER"
-          ? env.MARKETS_USER_OAUTH_CLIENT_SECRET
-          : env.MARKETS_M2M_OAUTH_CLIENT_SECRET,
-      introspectionUrl: `${env.APP_ORIGIN}/api/auth/oauth2/introspect`,
+      db: env.DB,
       issuer: `${env.APP_ORIGIN}/api/auth`,
+      jwksUrl: `${env.APP_ORIGIN}/api/auth/jwks`,
       kind,
     },
     scopes,
@@ -186,7 +181,7 @@ export function registerOAuthResourceRoutes(
         payloadHash,
         requestedScopes: body.requestedScopes,
         stateHash: body.stateHash,
-        userClientId: env.MARKETS_USER_OAUTH_CLIENT_ID,
+        userClientId: principal.clientId,
       });
       return context.json(
         {
@@ -260,6 +255,31 @@ export function registerOAuthResourceRoutes(
           data: { ...connection, linkedAt: connection.linkedAt.toISOString() },
           meta: { requestId: requestId(context) },
         },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.get("/api/v1/me/admin-membership", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "USER", ["points.connection.read"]);
+      if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
+      const connection = await resolveActivePointsConnection(env.DB, {
+        issuer: principal.issuer,
+        pointsSubject: principal.subject,
+        userClientId: principal.clientId,
+      });
+      const membership = await env.DB.prepare(
+        "SELECT 1 FROM admin_membership WHERE points_user_id = ? AND role = 'ADMIN'",
+      )
+        .bind(connection.pointsUserId)
+        .first();
+      return context.json(
+        { data: { isAdmin: Boolean(membership) }, meta: { requestId: requestId(context) } },
         200,
         { "Cache-Control": "private, no-store" },
       );

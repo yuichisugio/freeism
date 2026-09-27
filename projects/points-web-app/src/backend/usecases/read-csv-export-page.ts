@@ -1,5 +1,5 @@
 import { encodeCsvHeader } from "../csv/csv-export";
-import { createCsvExportCursor, verifyCsvExportCursor } from "../csv/csv-export-cursor";
+import { createCsvExportCursor, parseCsvExportCursor } from "../csv/csv-export-cursor";
 import {
   findCsvExportSnapshot,
   readCsvExportRows,
@@ -12,27 +12,20 @@ export async function readCsvExportPage(
   input: {
     actorPointsUserId: string;
     cursor: string;
-    cursorSecret: string;
     exportId: string;
     now?: Date;
   },
 ) {
   const snapshot = await findCsvExportSnapshot(db, input);
   if (!snapshot) throw new Error("RESOURCE_NOT_FOUND");
-  const snapshotAt = new Date(snapshot.snapshotAt).toISOString();
-  const now = (input.now ?? new Date()).toISOString();
-  const cursor = await verifyCsvExportCursor({
-    cursor: input.cursor,
-    exportId: snapshot.exportId,
-    filterHash: snapshot.filterHash,
-    now,
-    secret: input.cursorSecret,
-    snapshotAt,
-  });
+  if ((input.now ?? new Date()).getTime() >= snapshot.expiresAt) {
+    throw new Error("CSV_EXPORT_CURSOR_EXPIRED");
+  }
+  const nextOrdinal = parseCsvExportCursor(input.cursor);
   const candidates = await readCsvExportRows(db, {
     exportId: snapshot.exportId,
     limit: snapshot.pageSize + 1,
-    nextOrdinal: cursor.nextOrdinal,
+    nextOrdinal,
   });
   const header = encodeCsvHeader(snapshot.header);
   let bytes = new TextEncoder().encode(header).byteLength;
@@ -42,19 +35,9 @@ export async function readCsvExportPage(
     rows.push(candidate);
     bytes += candidate.encodedBytes;
   }
-  const nextOrdinal = cursor.nextOrdinal + rows.length;
-  const finalPage = nextOrdinal >= snapshot.totalRows;
-  const nextCursor = finalPage
-    ? null
-    : await createCsvExportCursor({
-        exportId: snapshot.exportId,
-        expiresAt: new Date(snapshot.expiresAt).toISOString(),
-        filterHash: snapshot.filterHash,
-        nextOrdinal,
-        now,
-        secret: input.cursorSecret,
-        snapshotAt,
-      });
+  const followingOrdinal = nextOrdinal + rows.length;
+  const finalPage = followingOrdinal >= snapshot.totalRows;
+  const nextCursor = finalPage ? null : createCsvExportCursor(followingOrdinal);
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       const encoder = new TextEncoder();

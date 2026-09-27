@@ -1,9 +1,9 @@
-import { emitOpsMetric, hashOpsResourceId } from "../observability/ops-metrics";
+import { emitOpsMetric } from "../observability/ops-metrics";
 import { writeStructuredLog } from "../observability/structured-logger";
 
 /**
  * Accountsとのやり取りの失敗を、構造化ログとメトリクスへ出す。
- * 出すのはoperation・code・接続先IDのhashだけで、識別子・トークン・応答本文は出さない。
+ * 出すのはoperation・codeだけで、識別子・トークン・応答本文は出さない。
  * @see ../observability/structured-logger.ts
  */
 
@@ -21,7 +21,6 @@ export type AccountsOperation =
 export type AccountsFailure = {
   operation: AccountsOperation;
   code: string;
-  connectionId: string;
 };
 
 /**
@@ -35,11 +34,9 @@ export type AccountsFailureReporter = (failure: AccountsFailure) => Promise<void
  */
 export function createAccountsFailureReporter(env: {
   APP_ENV: string;
-  OPS_RESOURCE_HASH_SALT: string;
   OPS_METRICS: AnalyticsEngineDataset;
 }): AccountsFailureReporter {
-  return async ({ operation, code, connectionId }) => {
-    const resourceIdHash = await hashOpsResourceId(connectionId, env.OPS_RESOURCE_HASH_SALT);
+  return async ({ operation, code }) => {
     writeStructuredLog({
       app: "points",
       code,
@@ -48,7 +45,6 @@ export function createAccountsFailureReporter(env: {
       level: "warn",
       operation,
       outcome: "FAILED",
-      resourceIdHash,
       resourceType: "accounts_connection",
     });
     emitOpsMetric(env.OPS_METRICS, {
@@ -61,7 +57,6 @@ export function createAccountsFailureReporter(env: {
       event: "accounts_request",
       lagSeconds: 0,
       outcome: "FAILED",
-      resourceIdHash,
       resourceState: operation,
     });
   };

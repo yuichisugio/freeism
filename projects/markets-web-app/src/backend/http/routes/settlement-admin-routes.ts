@@ -1,19 +1,17 @@
 import type { Context, Hono } from "hono";
 
+import { createMarketsAuth } from "../../auth/create-auth";
 import { requireMarketsSession, type GetSession } from "../../auth/require-markets-session";
-import { createPointsOAuthState } from "../../points/oauth-state";
-import { PointsOAuthClient } from "../../points/points-oauth-client";
+import { PointsOAuthClient, PointsOAuthTokenEndpointError } from "../../points/points-oauth-client";
 import {
-  assertNoSettlementRetryReturnTargetInput,
-  completeSettlementRetryCallback,
-  consumeSettlementRetryAuthorization,
-  createSettlementRetryAuthorization,
-  getSettlementRetryAuthorizationForCallback,
+  createRefreshLeaseRepository,
+  withUserAccessToken,
+} from "../../points/refresh-lease-repository";
+import { createBetterAuthPointsTokenStore } from "../../points/points-token-store";
+import {
   normalizeSettlementRetryReason,
   readSafeSettlementStatus,
-  settlementRetryReturnPath,
-  validateSettlementRetryAssertionClaims,
-  verifySettlementRetryAssertion,
+  retrySettlement,
 } from "../../settlement/admin-retry-authorization";
 import { dispatchSettlementOutbox } from "../../settlement/outbox-dispatcher";
 import type { BackendContext, Bindings } from "../context";
@@ -23,12 +21,8 @@ function oauth(env: Bindings) {
   return new PointsOAuthClient(env.POINTS_SERVICE, {
     audience: env.POINTS_AUDIENCE,
     issuer: env.POINTS_ISSUER,
-    m2mClientId: env.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: env.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: env.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: env.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: env.POINTS_USER_CLIENT_ID,
-    userClientSecret: env.POINTS_USER_CLIENT_SECRET,
+    clientId: env.POINTS_CLIENT_ID,
+    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
   });
 }
 
@@ -47,25 +41,109 @@ function problem(
 async function authenticated(context: Context<BackendContext>, getSession: GetSession) {
   const actor = await requireMarketsSession(context, getSession);
   const authSession = actor ? context.get("authSession") : null;
-  const sessionId = authSession?.session.id;
-  if (!actor || !sessionId) return null;
-  return { actor, authUserId: authSession.user.id, sessionId };
+  if (!actor || !authSession) return null;
+  return { actor, authUserId: authSession.user.id };
 }
 
 function mapError(context: Context<BackendContext>, error: unknown) {
   const code = error instanceof Error ? error.message : "SETTLEMENT_RETRY_FAILED";
   if (code === "SETTLEMENT_NOT_FOUND") return problem(context, 404, code);
   if (code === "SETTLEMENT_RETRY_RATE_LIMITED") return problem(context, 429, code);
-  if (code.includes("AUTHENTICATION") || code.includes("SESSION"))
+  if (code === "POINTS_ADMIN_REQUIRED") return problem(context, 403, code);
+  if (code === "REAUTH_REQUIRED" || code === "AUTHENTICATION_REQUIRED") {
     return problem(context, 401, code);
-  if (
-    code.includes("REPLAYED") ||
-    code.includes("NOT_ALLOWED") ||
-    code.includes("TARGET_CHANGED")
-  ) {
+  }
+  if (code === "SETTLEMENT_RETRY_NOT_ALLOWED" || code === "IDEMPOTENCY_KEY_REUSED") {
     return problem(context, 409, code);
   }
   return problem(context, 400, code);
+}
+
+async function requirePointsAdmin(env: Bindings, authUserId: string, marketsUserId: string) {
+  const connection = await env.DB.prepare(
+    `SELECT id, auth_user_id AS authUserId, points_issuer AS pointsIssuer,
+            points_subject AS pointsSubject, user_client_id AS userClientId
+     FROM points_connection WHERE markets_user_id = ? AND status = 'ACTIVE'
+     ORDER BY created_at DESC LIMIT 1`,
+  )
+    .bind(marketsUserId)
+    .first<{
+      authUserId: string;
+      id: string;
+      pointsIssuer: string;
+      pointsSubject: string;
+      userClientId: string;
+    }>();
+  if (!connection || connection.authUserId !== authUserId) throw new Error("REAUTH_REQUIRED");
+  const pointsOauth = oauth(env);
+  const repository = createRefreshLeaseRepository(
+    env.DB,
+    createBetterAuthPointsTokenStore(createMarketsAuth(env)),
+  );
+  const response = await withUserAccessToken(
+    repository,
+    connection.id,
+    async (accessToken) => {
+      try {
+        const identity = await pointsOauth.introspectUserAccessToken(accessToken, [
+          "points.connection.read",
+        ]);
+        if (
+          identity.issuer !== connection.pointsIssuer ||
+          identity.subject !== connection.pointsSubject ||
+          identity.clientId !== connection.userClientId
+        ) {
+          return new Response(null, { status: 401 });
+        }
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          ["POINTS_USER_INTROSPECTION_INVALID", "POINTS_SCOPE_MISMATCH"].includes(error.message)
+        ) {
+          return new Response(null, { status: 401 });
+        }
+        throw error;
+      }
+      return env.POINTS_SERVICE.fetch(
+        new Request("https://points.service/api/v1/me/admin-membership", {
+          headers: { Accept: "application/json", Authorization: `Bearer ${accessToken}` },
+        }),
+      );
+    },
+    async (refreshToken) => {
+      try {
+        return await pointsOauth.refreshUserToken(refreshToken, ["points.connection.read"]);
+      } catch (error) {
+        if (
+          (error instanceof PointsOAuthTokenEndpointError && error.oauthError === "invalid_grant") ||
+          (error instanceof Error &&
+            [
+              "POINTS_REFRESH_TOKEN_MISSING",
+              "POINTS_USER_INTROSPECTION_INVALID",
+              "POINTS_SCOPE_MISMATCH",
+            ].includes(error.message))
+        ) {
+          throw new Error("REAUTH_REQUIRED");
+        }
+        throw error;
+      }
+    },
+  );
+  if (response.status === 401) throw new Error("REAUTH_REQUIRED");
+  if (!response.ok) throw new Error("POINTS_ADMIN_CHECK_FAILED");
+  const body: unknown = await response.json();
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    !("data" in body) ||
+    typeof body.data !== "object" ||
+    body.data === null ||
+    !("isAdmin" in body.data) ||
+    typeof body.data.isAdmin !== "boolean"
+  ) {
+    throw new Error("POINTS_ADMIN_CHECK_FAILED");
+  }
+  if (!body.data.isAdmin) throw new Error("POINTS_ADMIN_REQUIRED");
 }
 
 export function registerSettlementAdminRoutes(app: Hono<BackendContext>, getSession: GetSession) {
@@ -85,127 +163,24 @@ export function registerSettlementAdminRoutes(app: Hono<BackendContext>, getSess
     }
   });
 
-  app.post("/api/settlements/:settlementId/retry-authorizations", async (context) => {
-    const auth = await authenticated(context, getSession);
-    if (!auth) return problem(context, 401, "AUTHENTICATION_REQUIRED");
-    try {
-      assertNoSettlementRetryReturnTargetInput(new URL(context.req.url).searchParams);
-      const body = await context.req.json<{ reason?: unknown }>();
-      if (typeof body.reason !== "string") throw new Error("SETTLEMENT_RETRY_REASON_INVALID");
-      const env = requireBindings(context.env);
-      const settlementId = context.req.param("settlementId");
-      const target = await env.DB.prepare(
-        `SELECT s.auction_id AS auctionId FROM settlements s
-         JOIN auctions a ON a.id = s.auction_id
-         WHERE s.id = ? AND a.seller_markets_user_id = ?
-           AND s.saga_state = 'MANUAL_ACTION_REQUIRED'`,
-      )
-        .bind(settlementId, auth.actor.marketsUserId)
-        .first<{ auctionId: string }>();
-      if (!target) throw new Error("SETTLEMENT_RETRY_NOT_ALLOWED");
-      const reason = await normalizeSettlementRetryReason(body.reason);
-      const callbackUri = `${env.APP_ORIGIN}/api/settlements/retry-callback`;
-      const state = await createPointsOAuthState({ callbackUri, sessionId: auth.sessionId });
-      const authorization = await createSettlementRetryAuthorization(env.DB, {
-        auctionId: target.auctionId,
-        authUserId: auth.authUserId,
-        callbackUri,
-        expiresAt: state.expiresAt.getTime(),
-        marketsUserId: auth.actor.marketsUserId,
-        nonce: state.nonce,
-        pkceVerifier: state.pkceVerifier,
-        rawState: state.state,
-        reasonHash: reason.reasonHash,
-        sessionId: auth.sessionId,
-        settlementId,
-      });
-      return context.json(
-        {
-          data: {
-            authorizationId: authorization.id,
-            authorizationUrl: oauth(env).settlementAuthorizationUrl({
-              callbackUri,
-              nonce: state.nonce,
-              pkceChallenge: state.pkceChallenge,
-              resource: env.APP_ORIGIN,
-              state: state.state,
-            }),
-          },
-        },
-        200,
-        { "Cache-Control": "private, no-store" },
-      );
-    } catch (error) {
-      return mapError(context, error);
-    }
-  });
-
-  app.get("/api/settlements/retry-callback", async (context) => {
-    const auth = await authenticated(context, getSession);
-    if (!auth) return problem(context, 401, "AUTHENTICATION_REQUIRED");
-    try {
-      assertNoSettlementRetryReturnTargetInput(new URL(context.req.url).searchParams);
-      const code = context.req.query("code");
-      const rawState = context.req.query("state");
-      if (!code || !rawState) throw new Error("ADMIN_ASSERTION_CALLBACK_INVALID");
-      const env = requireBindings(context.env);
-      const authorization = await getSettlementRetryAuthorizationForCallback(env.DB, {
-        marketsUserId: auth.actor.marketsUserId,
-        rawState,
-        sessionId: auth.sessionId,
-      });
-      const assertion = await oauth(env).exchangeSettlementAuthorizationCode({
-        callbackUri: authorization.callbackUri,
-        code,
-        pkceVerifier: authorization.pkceVerifier,
-        resource: env.APP_ORIGIN,
-      });
-      const claims = await verifySettlementRetryAssertion(
-        env.POINTS_SERVICE,
-        env.POINTS_ISSUER,
-        assertion,
-      );
-      validateSettlementRetryAssertionClaims(
-        claims,
-        {
-          auctionId: authorization.auctionId,
-          audience: env.APP_ORIGIN,
-          clientId: env.POINTS_SETTLEMENT_CLIENT_ID,
-          issuer: env.POINTS_ISSUER,
-          nowSeconds: Math.floor(Date.now() / 1000),
-          reasonHash: authorization.reasonHash,
-          settlementId: authorization.settlementId,
-        },
-        true,
-      );
-      await completeSettlementRetryCallback(env.DB, {
-        claims,
-        marketsUserId: auth.actor.marketsUserId,
-        rawState,
-        sessionId: auth.sessionId,
-        verifiedAt: Date.now(),
-      });
-      return context.redirect(
-        new URL(settlementRetryReturnPath(authorization.settlementId), env.APP_ORIGIN).toString(),
-        303,
-      );
-    } catch (error) {
-      return mapError(context, error);
-    }
-  });
-
   app.post("/api/settlements/:settlementId/retry", async (context) => {
     const auth = await authenticated(context, getSession);
     if (!auth) return problem(context, 401, "AUTHENTICATION_REQUIRED");
     try {
-      const body = await context.req.json<{ pendingId?: string }>();
-      if (!body.pendingId) throw new Error("ADMIN_ASSERTION_NOT_FOUND");
+      const idempotencyKey = context.req.header("Idempotency-Key")?.trim();
+      if (!idempotencyKey || idempotencyKey.length > 200) {
+        throw new Error("IDEMPOTENCY_KEY_REQUIRED");
+      }
+      const body = await context.req.json<{ reason?: unknown }>();
+      if (typeof body.reason !== "string") throw new Error("SETTLEMENT_RETRY_REASON_INVALID");
       const env = requireBindings(context.env);
-      const accepted = await consumeSettlementRetryAuthorization(env.DB, {
-        authorizationId: body.pendingId,
+      const reason = await normalizeSettlementRetryReason(body.reason);
+      await requirePointsAdmin(env, auth.authUserId, auth.actor.marketsUserId);
+      const accepted = await retrySettlement(env.DB, {
+        idempotencyKey,
         marketsUserId: auth.actor.marketsUserId,
         now: Date.now(),
-        sessionId: auth.sessionId,
+        reasonHash: reason.reasonHash,
         settlementId: context.req.param("settlementId"),
       });
       context.executionCtx.waitUntil(

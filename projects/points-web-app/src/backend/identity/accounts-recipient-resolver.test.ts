@@ -179,9 +179,7 @@ describe("createAccountsRecipientResolver", () => {
     });
 
     await expect(resolve([url("https://example.com/alice")])).rejects.toMatchObject({ code });
-    expect(failures).toEqual([
-      { operation: "accounts_resolve", code: clientCode, connectionId: "acon_active" },
-    ]);
+    expect(failures).toEqual([{ operation: "accounts_resolve", code: clientCode }]);
   });
 
   it("制限超過はRetry-Afterの値を引き継ぐ", async () => {

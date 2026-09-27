@@ -47,8 +47,8 @@ Accountsのプロフィール・連携アカウント・公開設定のバック
 ### 4.2 並び順と一貫性
 
 - 各export typeはsourceごとの不変IDを最終tie-breakに持つ完全な昇順sort keyをschemaで固定する。event／revision／ledger系は`createdAt ASC, immutableId ASC`、現在設定系は論理parent ID、`displayOrder ASC`、item IDの順とする。requestごとの任意sortは受け付けない。
-- snapshot行は上記sort後の0始まり`ordinal`を持つ。cursorは`exportId`、次`ordinal`、filter hash、`snapshotAt`、`expiresAt`を含むopaqueなHMAC署名tokenとし、別snapshot、別filter、改ざん、逆行を拒否する。
-- cursorとsnapshotの有効期限は作成時刻から30分で固定し、page取得で延長しない。期限後は`410 CSV_EXPORT_CURSOR_EXPIRED`とし、利用者は新しいsnapshotから再開する。期限切れsnapshot rowはscheduled cleanupの対象とする。
+- snapshot行は上記sort後の0始まり`ordinal`を持つ。cursorは次に読む`ordinal`の10進整数とする。page取得時にsessionのPoints userとsnapshotの作成者、URLの`exportId`、cursorの整数範囲を確認する。
+- snapshotの有効期限は作成時刻から30分で固定し、page取得で延長しない。D1の`expires_at`を毎回確認し、期限後は`410 CSV_EXPORT_CURSOR_EXPIRED`とする。期限切れsnapshot rowはscheduled cleanupの対象とする。
 - 全pageはsource tableを再queryせず同じ物理化snapshotを読む。snapshot作成後にprofile、visibility、ledgerまたはrevisionが変化しても、そのexportの行集合、値、順序、`totalRows`は変わらない。中途のsource変化を混在させる`updatedAt <= snapshotAt`だけの擬似snapshotは使わない。
 
 ### 4.3 Workers memory上限
@@ -76,7 +76,7 @@ Accountsのプロフィール・連携アカウント・公開設定のバック
 - amount/timestamp/IDの安定format
 - CSV quote、CRLF／CR／LF正規化、Unicode、自由入力の`= + - @ tab CR LF`無害化、typedな負amount保持
 - page size 1／1,000／1,001、8MiB境界、最終pageのnext cursorなし、0件のheader-only page
-- stable sortの同時刻tie、cursor改ざん／別filter／別snapshot／30分期限、再読込みの同一page
+- stable sortの同時刻tie、cursor整数範囲／他者snapshot／30分期限、再読込みの同一page
 - page間にsourceを追加／更新してもsnapshotの行数／値／順序が不変
 - 50,000行／50MiB snapshotの受理境界と超過時の全0件、100行read chunkと2MiB application buffer上限
 - 不変revisionと差分台帳が欠落しないこと

@@ -9,7 +9,7 @@ import {
   monitorOpsAlerts,
 } from "../src/backend/observability/monitor-ops-alerts";
 import type { OpsAlertRecord } from "../src/backend/observability/ops-alert-repository";
-import { emitOpsMetric, hashOpsResourceId } from "../src/backend/observability/ops-metrics";
+import { emitOpsMetric } from "../src/backend/observability/ops-metrics";
 import { writeStructuredLog } from "../src/backend/observability/structured-logger";
 import { cleanupResolvedOpsAlerts } from "../src/backend/observability/cleanup-ops-alerts";
 import { cleanupExpiredCsvExports } from "../src/backend/usecases/cleanup-expired-csv-exports";
@@ -70,7 +70,6 @@ async function notifyOpsAlert(env: Env, alert: OpsAlertRecord): Promise<void> {
     subject: `[Points] ${alert.status}: ${alert.type}`,
     text: JSON.stringify({
       alertKey: alert.alertKey,
-      resourceIdHash: alert.resourceIdHash,
       safeDetailCode: alert.safeDetailCode,
       status: alert.status,
       type: alert.type,
@@ -82,9 +81,8 @@ async function notifyOpsAlert(env: Env, alert: OpsAlertRecord): Promise<void> {
 async function runCronJobs(env: Env, cron: string, jobs: Array<() => Promise<unknown>>) {
   const startedAt = Date.now();
   const results = await Promise.allSettled(jobs.map((job) => job()));
-  for (const [index, result] of results.entries()) {
+  for (const result of results) {
     const outcome = result.status === "fulfilled" ? "SUCCEEDED" : "FAILED";
-    const resourceIdHash = await hashOpsResourceId(`${cron}:${index}`, env.OPS_RESOURCE_HASH_SALT);
     writeStructuredLog({
       app: "points",
       code: result.status === "fulfilled" ? "CRON_JOB_OK" : "CRON_JOB_FAILED",
@@ -94,7 +92,6 @@ async function runCronJobs(env: Env, cron: string, jobs: Array<() => Promise<unk
       level: result.status === "fulfilled" ? "info" : "error",
       operation: cron,
       outcome,
-      resourceIdHash,
     });
     emitOpsMetric(env.OPS_METRICS, {
       app: "points",
@@ -106,7 +103,6 @@ async function runCronJobs(env: Env, cron: string, jobs: Array<() => Promise<unk
       event: "cron_job",
       lagSeconds: 0,
       outcome,
-      resourceIdHash,
       resourceState: cron,
     });
   }
@@ -119,7 +115,7 @@ export async function scheduledPoints(controller: ScheduledController, env: Env)
     await runCronJobs(env, cron, [
       () =>
         monitorOpsAlerts(env.DB!, {
-          inspect: (db, now) => inspectPointsOpsAlerts(db, now, env.OPS_RESOURCE_HASH_SALT),
+          inspect: inspectPointsOpsAlerts,
           notify: (alert) => notifyOpsAlert(env, alert),
         }),
       () => cleanupExpiredCsvExports(env.DB!),

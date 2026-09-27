@@ -4,7 +4,7 @@
 
 - Terraform `1.15.7` and `cloudflare/cloudflare` `5.21.1` are exact pins.
 - `production` workspace alone owns zone-wide apex/www DNS, root redirect, managed WAF, IP/path rate limit, and Email Routing enablement. `staging` must never create those resources.
-- `staging` owns only staging Access resources. Turnstile, native notification policies, and verified destination inventory are environment-specific.
+- `staging` owns only staging Access resources. Native notification policies and verified destination inventory are environment-specific.
 - `staging` is the internal Cloudflare name of the shared test environment. Only pushes to `test/*` deploy it; pushes to `main` deploy `production` directly and never promote a staging artifact.
 - Worker, custom domain, D1, Durable Object, Workflow, Service Binding, and Worker Secret resources remain Wrangler/application-owned. Terraform must not add them.
 - The `freeism-terraform-state` R2 bucket is a one-time bootstrap resource, not part of normal Terraform state and not a D1 backup.
@@ -31,77 +31,83 @@ Before the first Worker deployment, perform these account-level Dashboard action
 
 References: [workers.dev](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/) and [Workers Analytics Engine setup](https://developers.cloudflare.com/analytics/analytics-engine/get-started/).
 
-## Owner-reviewed bootstrap order
+## Bootstrap order
 
-The repository owner checks the Cloudflare account, environments, desired names, and proposed create/update/delete set before any mutation. Then perform these items in order:
+1. Confirm the Cloudflare account, staging and production environments, Worker names, D1 names and custom domains.
+2. Bootstrap the Terraform state bucket and apply the reviewed staging edge plan.
+3. Create the named Points and Markets D1 databases, apply migrations, set Google/GitHub OAuth application callbacks and required Worker Secrets.
+4. Deploy Points and verify login. Add the first ADMIN with the D1 command below if administrative operations are needed.
+5. Log in to Points and register Markets as an OAuth client from `/developer`. Store the issued Client ID and the matching private JWK in the Markets Worker, then deploy Markets.
+6. Run login, OAuth connection, M2M and Resource API checks against the staging origins. Promote only a tested configuration to production, using separate OAuth applications, Client ID and key pair in each environment.
 
-1. Confirm staging uses Workers Free without paid-only Worker-level limits. Separately confirm Workers Paid and D1 Time Travel retention of 30 days before any production deployment.
-2. Complete the one-time Workers and Analytics Engine account activation above.
-3. Bootstrap `freeism-terraform-state` using the check/apply/check procedure below.
-4. Create a bucket-scoped Object Read & Write credential. Save it as `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_ENDPOINT_URL_S3` in both `web-app-staging` and `web-app-production` GitHub Environments.
-5. Keep required reviewers and wait timers at zero for both GitHub Environments; do not add a production manual approval.
-6. Create separate staging and production Cloudflare API tokens with only the permissions required by each reviewed plan.
-7. Create the named Points and Markets staging D1 databases, custom domains, staging OAuth applications, pairwise secret, minimum Worker Secrets, and other already-reviewed staging bindings. Do not create production runtime resources yet.
-8. Create the staging E2E Access Service Token and store `CF_ACCESS_CLIENT_ID_STAGING` and `CF_ACCESS_CLIENT_SECRET_STAGING` only in `web-app-staging`.
-9. Apply both named staging D1 migration sets, deploy Points, complete Gate B and OAuth client bootstrap, and then deploy Markets. Do not reverse this D1 migrations -> Points -> Markets dependency order.
-10. Wait for both custom domains to finish TLS provisioning before smoke tests; a transient certificate/DNS failure while provisioning is not a successful smoke result.
-11. Configure environment-specific Analytics Engine bindings, five-minute monitor Cron, and verified alert destinations in child Worker configs.
-12. Regenerate binding types with pinned Wrangler and record only hashes of IDs/inventory in evidence.
+Google OAuth application settings are managed in Google Cloud. The Points GitHub OAuth application callback is `https://staging.points.freeism.app/api/auth/callback/github` in staging. Google callbacks are `https://staging.points.freeism.app/api/auth/callback/google` and `https://staging.markets.freeism.app/api/auth/callback/google`. Each app stores its own Google/GitHub credentials as Worker Secrets. `BETTER_AUTH_SECRETS` contains one or more comma-separated `version:secret` entries; each secret has at least 32 characters.
 
-Google OAuth App configuration is verified in Google Cloud; Better Auth static client inventory is verified through the app configuration. These are not fabricated as Terraform resources.
+### Initial Points ADMIN in D1
 
-## Staging authentication settings
-
-Before the first authentication smoke test, configure these external settings manually:
-
-- Add `https://staging.points.freeism.app/api/auth/callback/google` and `https://staging.markets.freeism.app/api/auth/callback/google` as authorized redirect URIs for the staging Google OAuth client. Store the client ID/secret only as Worker Secrets.
-- Create the Points staging **GitHub OAuth App** with homepage `https://staging.points.freeism.app` and callback `https://staging.points.freeism.app/api/auth/callback/github` for Points login. External account verification is configured through the [Accounts implementation plan](../../../projects/accounts-web-app/docs/implementation-plan/v0.1.md).
-- Set `INITIAL_ADMIN_GOOGLE_ACCOUNT_ID` to the intended administrator's Google OIDC `sub`, never their email address. If it is not known before first login, a temporary non-matching value may be used only to discover the real `provider_id=google` account ID in staging; replace it before admin acceptance.
-- `BETTER_AUTH_SECRETS` must contain one or more comma-separated `version:secret` entries. Each version is a unique positive JavaScript-safe integer and each secret is at least 32 characters. Points and Markets may use separate values, but neither may receive a bare unversioned secret.
-- For automated staging validation, Cloudflare's always-pass Turnstile test pair may be used: site key `1x00000000000000000000AA` and secret key `1x0000000000000000000000000000000AA`. These are public test credentials and must never be copied to production; production uses its own protected widget secret.
-
-Any temporary OAuth client IDs/secrets or other bootstrap placeholder is staging-only. It is not a production credential and must be replaced by the registered value before staging acceptance. Never infer that a placeholder proves authentication works.
-
-### One-time standard OAuth client registration
-
-Create the three confidential clients only through Better Auth's standard `/api/auth/oauth2/register` endpoint. For the bootstrap deployment, set a one-time `POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN`; without that binding, dynamic registration remains disabled.
-
-Use `registerPointsOAuthClients()` from `projects/points-web-app/src/backend/auth/register-points-oauth-clients.ts` in the secured bootstrap runner. It registers USER, M2M, and SETTLEMENT clients with separate grants, scopes, pairwise subject policy, redirect URIs, and resource links. Its required `onRegistered` callback persists each client ID and secret directly to the corresponding Points/Markets Worker Secrets before the next client is registered, so a later registration failure does not make an earlier secret unrecoverable. If a later GitHub deployment workflow needs the same credentials, copy them directly into the protected environment at registration time; do not print or write the response to an artifact.
-
-Run the secured staging runner without echoing the token:
+After the intended administrator signs in with Google, inspect the linked Google `account_id` and Points user ID. The `account_id` is the Google OIDC `sub`, not an email address. Run from `projects/points-web-app` and choose the exact environment:
 
 ```bash
-POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN="..." \
-  pnpm --filter @freeism/points-web-app oauth:bootstrap:staging
+pnpm exec wrangler d1 execute DB --remote --env staging --config wrangler.jsonc \
+  --command "SELECT p.id AS points_user_id, a.account_id AS google_sub FROM points_user p JOIN account a ON a.user_id = p.auth_user_id WHERE a.provider_id = 'google'"
 ```
 
-The runner registers and persists exactly three clients (`USER`, `M2M`, `SETTLEMENT`), deletes `POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN` from the Points Worker, and verifies that another registration attempt returns `403`. Confirm the six matching ID/secret names exist in each Worker's inventory, and that the bootstrap-token name no longer exists, without reading any value:
+Confirm exactly one row for the intended person, then replace `GOOGLE_SUB_FROM_QUERY` in the following command with that row's `google_sub` and execute it. The `NOT EXISTS` condition makes this a one-time initial assignment. Confirm the resulting `points_user_id` afterwards.
 
 ```bash
-pnpm --filter @freeism/points-web-app exec wrangler secret list --config wrangler.jsonc --env staging
-pnpm --filter @freeism/markets-web-app exec wrangler secret list --config wrangler.jsonc --env staging
+pnpm exec wrangler d1 execute DB --remote --env staging --config wrangler.jsonc \
+  --command "INSERT INTO admin_membership (id, points_user_id, role) SELECT 'adm_' || lower(hex(randomblob(16))), p.id, 'ADMIN' FROM points_user p JOIN account a ON a.user_id = p.auth_user_id WHERE a.provider_id = 'google' AND a.account_id = 'GOOGLE_SUB_FROM_QUERY' AND NOT EXISTS (SELECT 1 FROM admin_membership)"
+pnpm exec wrangler d1 execute DB --remote --env staging --config wrangler.jsonc \
+  --command "SELECT id, points_user_id, role FROM admin_membership"
 ```
 
-Points must contain the `MARKETS_{USER,M2M,SETTLEMENT}_OAUTH_CLIENT_{ID,SECRET}` names; Markets must contain the `POINTS_{USER,M2M,SETTLEMENT}_CLIENT_{ID,SECRET}` names. Then redeploy the same Points build and deploy/redeploy Markets. Finally verify an M2M opaque token and standard introspection before recording only hashes of the three client IDs in the evidence file. Never insert `oauth_client` rows or raw client secrets with SQL.
+For production, repeat the inspection and assignment with `--env production` and the production Points D1. Later ADMIN changes use the authenticated management API and its audit trail.
 
-## Staging runtime deployment order
+### Register a Markets OAuth client
 
-Use the checked-in package scripts and keep this order:
+Generate a separate Ed25519 key pair for each environment outside the repository. This example writes a private JWK readable only by the current user and a public JWKS for the Points form:
 
 ```bash
-pnpm --filter @freeism/points-web-app db:migrate:staging
-pnpm --filter @freeism/markets-web-app db:migrate:staging
+key_dir="$(mktemp -d)"
+KEY_DIR="$key_dir" node --input-type=module <<'NODE'
+import { generateKeyPairSync, randomUUID } from 'node:crypto';
+import { writeFileSync } from 'node:fs';
+const { privateKey, publicKey } = generateKeyPairSync('ed25519');
+const kid = randomUUID();
+const attributes = { alg: 'EdDSA', kid, use: 'sig' };
+writeFileSync(`${process.env.KEY_DIR}/private-jwk.json`, JSON.stringify({ ...privateKey.export({ format: 'jwk' }), ...attributes }), { mode: 0o600 });
+writeFileSync(`${process.env.KEY_DIR}/public-jwks.json`, JSON.stringify({ keys: [{ ...publicKey.export({ format: 'jwk' }), ...attributes }] }), { mode: 0o600 });
+NODE
+```
 
+Sign in to `https://staging.points.freeism.app/developer` and register Markets with its name, the public JWKS from `public-jwks.json`, and these callback URLs:
+
+- `https://staging.markets.freeism.app/api/points-connection/callback`
+- `https://staging.markets.freeism.app/api/points-connection/unlink/callback`
+
+The form accepts an optional HTTPS introduction URL and an optional description. The backend verifies owner, input, redirects and a maximum of five clients per user. Copy the issued Client ID into Markets `POINTS_CLIENT_ID` and the private JWK JSON into `POINTS_CLIENT_PRIVATE_KEY_JWK` without adding them to Git or logs. From `projects/markets-web-app`:
+
+```bash
+pnpm exec wrangler secret put POINTS_CLIENT_ID --config wrangler.jsonc --env staging
+pnpm exec wrangler secret put POINTS_CLIENT_PRIVATE_KEY_JWK --config wrangler.jsonc --env staging < "$key_dir/private-jwk.json"
+```
+
+If Markets is being deployed for the first time, provide those two values with Wrangler's `--secrets-file` option during the first deploy. Keep the private file outside the repository only until it is stored in the intended environment. To rotate, add both current and next public keys to the Points JWKS, switch Markets to the next private JWK, then remove the old public key after existing client assertions have expired. Repeat the registration and key generation separately for production.
+
+### Staging deployment
+
+```bash
 pnpm --filter @freeism/points-web-app build:staging
+pnpm --filter @freeism/points-web-app db:migrate:staging
 pnpm --filter @freeism/points-web-app deploy:staging
 
-# Complete the one-time OAuth bootstrap above after the Points endpoint is live.
+# Complete Points login and the Markets client registration above.
 
 pnpm --filter @freeism/markets-web-app build:staging
+pnpm --filter @freeism/markets-web-app db:migrate:staging
 pnpm --filter @freeism/markets-web-app deploy:staging
 ```
 
-After deployment, wait until Cloudflare has provisioned TLS for both custom domains. Only then run `smoke:staging` for Points followed by Markets. Keep `workers_dev` and preview URLs disabled throughout.
+After both custom domains have valid TLS, run each application's `smoke:staging` check. Verify a Points connection, a user JWT Access Token for the Points API, a scoped M2M token and a rejected request with a different audience. Record checks and identifiers only, without private keys or Token values.
 
 ## State bucket check/apply/check
 

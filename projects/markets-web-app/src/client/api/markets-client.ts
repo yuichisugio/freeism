@@ -111,7 +111,6 @@ export interface PublicProofReview {
 export interface SafeSettlementStatus {
   kind: "END_OF_AUCTION" | "BUY_NOW";
   manualActionAllowed: boolean;
-  pendingRetryAuthorization?: { expiresAt: string; pendingId: string } | null;
   progress: string;
   settlementId: string;
   state:
@@ -126,7 +125,6 @@ export interface SafeSettlementStatus {
 
 export interface MutationRequest {
   idempotencyKey: string;
-  turnstileToken?: string;
 }
 
 export type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
@@ -143,7 +141,6 @@ function isEnvelope<T>(value: unknown): value is Envelope<T> {
 function idempotencyHeaders(request: MutationRequest): HeadersInit {
   return {
     "Idempotency-Key": request.idempotencyKey,
-    ...(request.turnstileToken ? { "X-Turnstile-Token": request.turnstileToken } : {}),
   };
 }
 
@@ -184,7 +181,6 @@ export interface MarketsClient {
   commitAuctionImport(preview: AuctionImportPreview, request: MutationRequest): Promise<unknown>;
   confirmPointsConnection(pendingId: string, request: MutationRequest): Promise<unknown>;
   confirmPointsUnlink(pendingId: string, request: MutationRequest): Promise<unknown>;
-  confirmSettlementRetry(id: string, pendingId: string, request: MutationRequest): Promise<unknown>;
   history(
     kind: "created" | "bids" | "won",
     cursor?: string | null,
@@ -200,7 +196,7 @@ export interface MarketsClient {
     reason: string,
     request: MutationRequest,
   ): Promise<{ authorizationUrl: string }>;
-  startSettlementRetry(
+  retrySettlement(
     id: string,
     reason: string,
     request: MutationRequest,
@@ -287,11 +283,6 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
       request("/api/points-connection/confirm", jsonInit("POST", { pendingId }, operation)),
     confirmPointsUnlink: (pendingId, operation) =>
       request("/api/points-connection/unlink/confirm", jsonInit("POST", { pendingId }, operation)),
-    confirmSettlementRetry: (id, pendingId, operation) =>
-      request(
-        `/api/settlements/${encodeURIComponent(id)}/retry`,
-        jsonInit("POST", { pendingId }, operation),
-      ),
     history: (kind, cursor) => {
       const query = new URLSearchParams({ limit: "20" });
       if (cursor) query.set("cursor", cursor);
@@ -314,9 +305,9 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
       request("/api/points-connection/start", jsonInit("POST", {}, operation)),
     startPointsUnlink: (reason, operation) =>
       request("/api/points-connection/unlink/start", jsonInit("POST", { reason }, operation)),
-    startSettlementRetry: (id, reason, operation) =>
+    retrySettlement: (id, reason, operation) =>
       request(
-        `/api/settlements/${encodeURIComponent(id)}/retry-authorizations`,
+        `/api/settlements/${encodeURIComponent(id)}/retry`,
         jsonInit("POST", { reason }, operation),
       ),
     validateAuctionImport: (file, operation) =>

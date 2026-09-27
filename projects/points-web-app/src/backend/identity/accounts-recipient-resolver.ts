@@ -169,7 +169,6 @@ export function createAccountsRecipientResolver(
       await reportFailure({
         operation: "accounts_resolve",
         code: error.code,
-        connectionId: accountsConnectionId,
       });
       throw toResolutionError(error);
     }

@@ -116,7 +116,7 @@ export async function completeAccountsLink(
       });
     }
     if (problem.code === "ACCOUNTS_UNAVAILABLE") {
-      await reportFailure({ operation: "accounts_link_callback", code: error.code, connectionId });
+      await reportFailure({ operation: "accounts_link_callback", code: error.code });
     }
     throw problem;
   }

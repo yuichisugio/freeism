@@ -346,19 +346,3 @@ export const websocketSlotLeases = sqliteTable(
     check("websocket_slot_leases_auction_slot_check", sql`${table.auctionSlot} between 1 and 3`),
   ],
 );
-
-export const turnstileTokenReplays = sqliteTable(
-  "turnstile_token_replays",
-  {
-    tokenHash: text("token_hash").primaryKey(),
-    operation: text("operation").notNull(),
-    hostname: text("hostname").notNull(),
-    action: text("action").notNull(),
-    expiresAt: text("expires_at").notNull(),
-    usedAt: text("used_at").default(now).notNull(),
-  },
-  (table) => [
-    index("turnstile_token_replays_expiry_idx").on(table.expiresAt),
-    check("turnstile_token_replays_hash_check", sql`length(${table.tokenHash}) = 64`),
-  ],
-);

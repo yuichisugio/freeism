@@ -71,18 +71,18 @@ jobs:
           pnpm --filter @freeism/markets-web-app test:worker
 
       - name: Build and validate Points artifact
+        env:
+          APP_ORIGIN: "https://staging.points.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
         run: |
-          set -a
-          source projects/points-web-app/.dev.vars.example
-          set +a
           pnpm --filter @freeism/points-web-app build:staging
           pnpm --filter @freeism/points-web-app build:assert
 
       - name: Build and validate Markets artifact
+        env:
+          APP_ORIGIN: "https://staging.markets.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
         run: |
-          set -a
-          source projects/markets-web-app/.dev.vars.example
-          set +a
           pnpm --filter @freeism/markets-web-app build:staging
           pnpm --filter @freeism/markets-web-app build:assert
 

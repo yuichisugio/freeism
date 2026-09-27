@@ -12,7 +12,6 @@ const SNAPSHOT_MILLISECONDS = 30 * 60 * 1000;
 
 export interface CreateCsvExportSnapshotInput {
   actorPointsUserId: string;
-  cursorSecret: string;
   exportType: "PROFILE";
   idempotencyKey: string;
   now?: Date;
@@ -20,19 +19,9 @@ export interface CreateCsvExportSnapshotInput {
   targetPointsUserId: string;
 }
 
-async function response(snapshot: CsvExportSnapshotRecord, secret: string) {
-  const snapshotAt = new Date(snapshot.snapshotAt).toISOString();
-  const expiresAt = new Date(snapshot.expiresAt).toISOString();
+function response(snapshot: CsvExportSnapshotRecord) {
   return {
-    cursor: await createCsvExportCursor({
-      exportId: snapshot.exportId,
-      expiresAt,
-      filterHash: snapshot.filterHash,
-      nextOrdinal: 0,
-      now: snapshotAt,
-      secret,
-      snapshotAt,
-    }),
+    cursor: createCsvExportCursor(0),
     expiresAt: new Date(snapshot.expiresAt),
     exportId: snapshot.exportId,
     snapshotAt: new Date(snapshot.snapshotAt),
@@ -51,7 +40,7 @@ export async function createCsvExportSnapshot(db: D1Database, input: CreateCsvEx
   const replay = await findCsvExportReplay(db, input);
   if (replay) {
     if (replay.filterHash !== filterHash) throw new Error("IDEMPOTENCY_KEY_REUSED");
-    return response(replay, input.cursorSecret);
+    return response(replay);
   }
 
   const profile = await db
@@ -110,7 +99,7 @@ export async function createCsvExportSnapshot(db: D1Database, input: CreateCsvEx
     const concurrentReplay = await findCsvExportReplay(db, input);
     if (!concurrentReplay) throw error;
     if (concurrentReplay.filterHash !== filterHash) throw new Error("IDEMPOTENCY_KEY_REUSED");
-    return response(concurrentReplay, input.cursorSecret);
+    return response(concurrentReplay);
   }
-  return response(snapshot, input.cursorSecret);
+  return response(snapshot);
 }

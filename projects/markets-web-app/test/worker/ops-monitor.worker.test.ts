@@ -8,6 +8,7 @@ import {
   monitorMarketsOpsAlerts,
 } from "../../src/backend/observability/ops-monitor";
 import { OpsAlertRepository } from "../../src/backend/observability/ops-alert-repository";
+import { emitOpsMetric } from "../../src/backend/observability/ops-metrics";
 import { runMarketsCronJobs } from "../../src/server";
 
 declare global {
@@ -27,7 +28,7 @@ describe("Markets ops alert repository", () => {
   it("increments repeat_count when the same open alert is observed again", async () => {
     const repository = new OpsAlertRepository(env.DB);
     const input = {
-      dedupeKey: "settlement-outbox-stuck:resource-hash",
+      dedupeKey: "settlement-outbox-stuck:outbox-123",
       safeDetailCode: "PENDING_OVER_5_MINUTES",
       severity: "WARNING" as const,
       signal: "SETTLEMENT_OUTBOX_STUCK",
@@ -79,6 +80,23 @@ describe("Markets ops alert repository", () => {
 });
 
 describe("Markets ops monitor", () => {
+  it("indexes aggregated metrics by event without a resource identifier", () => {
+    const writeDataPoint = vi.fn();
+    emitOpsMetric({ writeDataPoint } as unknown as AnalyticsEngineDataset, {
+      app: "markets",
+      attempt: 1,
+      code: "CRON_JOB_OK",
+      count: 1,
+      durationMs: 100,
+      environment: "test",
+      event: "cron_job",
+      lagSeconds: 0,
+      outcome: "SUCCEEDED",
+      resourceState: "job-0",
+    });
+    expect(writeDataPoint).toHaveBeenCalledWith(expect.objectContaining({ indexes: ["cron_job"] }));
+  });
+
   it("observes a settlement outbox that has remained pending for five minutes", async () => {
     const now = new Date("2026-07-14T00:10:00.000Z");
     const suffix = crypto.randomUUID();
@@ -116,7 +134,7 @@ describe("Markets ops monitor", () => {
       ),
     ]);
 
-    const observations = await inspectMarketsOpsAlerts(env.DB, now.getTime(), "test-salt");
+    const observations = await inspectMarketsOpsAlerts(env.DB, now.getTime());
 
     expect(observations).toHaveLength(1);
     expect(observations[0]).toMatchObject({
@@ -124,14 +142,13 @@ describe("Markets ops monitor", () => {
       severity: "WARNING",
       signal: "SETTLEMENT_OUTBOX_STUCK",
     });
-    expect(observations[0]?.dedupeKey).not.toContain(outboxId);
+    expect(observations[0]?.dedupeKey).toBe(`settlement-outbox-stuck:${outboxId}`);
   });
 
   it("retries failed delivery and does not recursively email its failure alert", async () => {
     const suffix = crypto.randomUUID();
     const observation = {
       dedupeKey: `settlement-outbox-stuck:${suffix}`,
-      resourceIdHash: "b".repeat(64),
       safeDetailCode: "PENDING_OVER_5_MINUTES" as const,
       severity: "WARNING" as const,
       signal: "SETTLEMENT_OUTBOX_STUCK" as const,
@@ -146,6 +163,10 @@ describe("Markets ops monitor", () => {
       notify,
       now: Date.parse("2026-07-14T00:00:00.000Z"),
     });
+    const failedDelivery = await env.DB.prepare(
+      "SELECT dedupe_key AS dedupeKey FROM ops_alerts WHERE signal = 'ALERT_DELIVERY_FAILED'",
+    ).first<{ dedupeKey: string }>();
+    expect(failedDelivery?.dedupeKey).toBe(`alert-delivery-failed:${observation.dedupeKey}`);
     await monitorMarketsOpsAlerts(env.DB, {
       inspect: async () => [observation],
       notify,
@@ -174,7 +195,7 @@ describe("Markets ops alert delivery", () => {
     await deliverOpsAlert(
       { send } as unknown as SendEmail,
       {
-        dedupeKey: "settlement-outbox-stuck:hash",
+        dedupeKey: "settlement-outbox-stuck:outbox-123",
         deliveryAttemptCount: 0,
         firstSeenAt: "2026-07-14T00:00:00.000Z",
         lastSeenAt: "2026-07-14T00:00:00.000Z",
@@ -192,7 +213,7 @@ describe("Markets ops alert delivery", () => {
       from: "alerts@freeism.app",
       subject: "[Markets] OPEN: SETTLEMENT_OUTBOX_STUCK",
       text: JSON.stringify({
-        alertKey: "settlement-outbox-stuck:hash",
+        alertKey: "settlement-outbox-stuck:outbox-123",
         safeDetailCode: "PENDING_OVER_5_MINUTES",
         severity: "WARNING",
         status: "OPEN",

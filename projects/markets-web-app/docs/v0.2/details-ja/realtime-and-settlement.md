@@ -132,9 +132,9 @@ Cloudflare Workflowsの暗黙defaultへ依存せず、Workflow round／外部作
 ## 6. Points呼出し
 
 - Service Bindingの`fetch()`でPoints Hono APIを呼ぶ。
-- Service Bindingを信頼境界の代わりにせず、OAuth bearer token、issuer、audience/resource、client ID、scope、利用者Tokenのpairwise `sub`を検証する。
-- opaque user token: 標準introspectionで`active`、issuer、pairwise subject、audience/resource、client、scopeを検証したbalance read、reservation create。
-- opaque Client Credentials Token: 利用者`sub`が存在せずM2M scopeだけであることを標準introspectionで検証したreservation status、capture、release。利用者scopeと混在させず、利用者subjectとして扱わない。
+- Service Bindingを信頼境界の代わりにせず、OAuth bearer token、issuer、audience/resource、client ID、scope、利用者Tokenの`sub`を検証する。
+- 利用者JWT: 標準JWKS署名、issuer、Points API audience、期限、Client ID、scope、Points userと連携状態を検証したbalance read、reservation create。
+- M2M JWT: `sub=clientId`とM2M専用scopeを検証したreservation status、capture、release。利用者scopeと混在させない。
 - Marketsはcomponent額を正本にせず、内部の`priceTickCount * packageTick`を安全整数のscale済み`priceTicks`へ変換して`pointPackageRevisionId`、`quantity`とともに送り、Pointsが不変revisionからvectorを再計算する。
 - すべてのwinner/axisは同じPoints D1で1回にcaptureする。
 
@@ -156,18 +156,17 @@ Cloudflare Workflowsの暗黙defaultへ依存せず、Workflow round／外部作
 
 - same-origin browserは`GET /api/settlements/{settlementId}`で進行状態をpollできる。Markets sessionと対象Auction／Settlementへの閲覧権限を再検証し、request bodyやqueryのuser IDを信用しない。
 - responseはsettlement kind、一般化したsaga state、progress、manual action可否、updatedAt、request IDだけを返す。Points reservation ID、残高、評価軸、内部Points user ID、Token、raw failure response、除外候補を返さない。
-- seller、自身が関係するbuyer、stateへ束縛済みのretry flowを開始した同一Markets session以外は拒否する。Points ADMIN step-upは対象外Settlementの閲覧権限を追加しない。
+- sellerと自身が関係するbuyer以外は拒否する。Points ADMIN権限は対象外Settlementの閲覧権限を追加しない。
 - 即時購入のHTTP responseはこのrouteへのsettlement IDとpending状態を返し、hold作成だけを購入完了として表示しない。capture後のproof確定、確認済み未capture＋release後の`FAILED_RESTORED`、または結果不明でholdを維持するmanual actionへ単調に進む。
 
 ## 8. outboxとreconciler
 
 - Auction closeとoutbox insertを同じMarkets D1 transactionで確定する。
 - scheduler/reconcilerは未開始outbox、停滞saga、Points status不一致を走査する。
-- 同じAuctionのWorkflowはsingle-flightにする。Marketsに独自ADMIN roleを作らず、手動retryはPointsの同格ADMINと15分以内Google freshを専用Authorization Code + PKCEで検証する。
+- 同じAuctionのWorkflowはsingle-flightにする。Marketsに独自ADMIN roleを作らず、手動retryでは保存済みのPoints USER Tokenで`GET /api/v1/me/admin-membership`を呼び、現行のPoints ADMINを確認する。
 - `BUY_NOW`の手動retryは結果不明でholdを維持している`SETTLEMENT_MANUAL_ACTION_REQUIRED`だけを対象にし、status照合から再開する。`FAILED_RESTORED`、`CAPTURED`以降、反対outcomeを要求するretryを拒否する。
-- 専用scopeは`points.admin.settlement.retry`だけとし、通常user／Refresh／Client Credentials grantへ混ぜない。assertionはAuction、Settlement、reason hash、Markets Sessionへ束縛し、最大60秒とする。
-- GET callbackは検証済みclaimsを`PENDING`として`jti`一意で保存するだけで、Workflowを開始しない。同じSessionからのCSRF保護POSTが期限内`jti`を一回だけ`USED`へ進め、rate limitとsingle-flightを再検証し、`workflowAttempt`を増分した新しいretry outboxを確定してからretryする。
-- link／unlink／relinkの`returnTo`はqueryなしの固定`/settings/points-connection`、Settlement retryはstateへ対象を束縛したqueryなしの固定`/settlements/{settlementId}`とする。caller指定interfaceを作らず、query、fragment、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる入力を拒否する。callback queryの`returnTo`を遷移先に使わない。
+- MarketsはACTIVEなPoints連携のissuer、subject、Client ID、seller、理由、対象状態、1時間5回の上限、single-flightを検証する。同じSessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`で冪等keyを受け取り、`workflowAttempt`を増分したretry outboxを確定する。commit後にdispatcherがWorkflowを起動する。
+- link／unlink／relinkの`returnTo`はqueryなしの固定`/settings/points-connection`とする。caller指定interfaceを作らず、query、fragment、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる入力を拒否する。callback queryの`returnTo`を遷移先に使わない。
 - reconciliationはplan hash、Markets state、Points reservation/capture status、proofを比較し、修復は単調なforward actionだけを行う。
 
 ## 9. observability

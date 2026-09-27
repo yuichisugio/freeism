@@ -1,3 +1,5 @@
+import { importJWK, SignJWT, type JWK } from "jose";
+
 import type { PointsOAuthTokenSet } from "./points-token-store";
 
 const M2M_SCOPES = new Set([
@@ -8,17 +10,12 @@ const M2M_SCOPES = new Set([
   "points.reservations.release",
   "points.reservations.status",
 ]);
-const SETTLEMENT_RETRY_SCOPE = "points.admin.settlement.retry";
 
 export interface PointsOAuthClientConfig {
   audience: string;
   issuer: string;
-  m2mClientId: string;
-  m2mClientSecret: string;
-  settlementClientId: string;
-  settlementClientSecret: string;
-  userClientId: string;
-  userClientSecret: string;
+  clientId: string;
+  privateKeyJwk: string;
 }
 
 interface TokenResponse {
@@ -55,10 +52,6 @@ export interface IntrospectedUserToken extends PointsOAuthTokenSet {
   subject: string;
 }
 
-function basic(clientId: string, clientSecret: string) {
-  return `Basic ${btoa(`${clientId}:${clientSecret}`)}`;
-}
-
 function scopeSet(scope: string | undefined) {
   return new Set(scope?.split(" ").filter(Boolean) ?? []);
 }
@@ -83,19 +76,8 @@ export class PointsOAuthClient {
     private readonly service: Fetcher,
     private readonly config: PointsOAuthClientConfig,
   ) {
-    const clientIds = [config.userClientId, config.m2mClientId, config.settlementClientId];
-    const clientSecrets = [
-      config.userClientSecret,
-      config.m2mClientSecret,
-      config.settlementClientSecret,
-    ];
-    if (
-      clientIds.some((value) => value.length === 0) ||
-      clientSecrets.some((value) => value.length === 0) ||
-      new Set(clientIds).size !== 3 ||
-      new Set(clientSecrets).size !== 3
-    ) {
-      throw new Error("POINTS_OAUTH_CLIENTS_NOT_SEPARATE");
+    if (!config.clientId || !config.privateKeyJwk) {
+      throw new Error("POINTS_OAUTH_CLIENT_MISSING");
     }
   }
 
@@ -108,7 +90,7 @@ export class PointsOAuthClient {
   }) {
     const url = new URL(`${this.config.issuer}/oauth2/authorize`);
     url.search = new URLSearchParams({
-      client_id: this.config.userClientId,
+      client_id: this.config.clientId,
       code_challenge: input.pkceChallenge,
       code_challenge_method: "S256",
       nonce: input.nonce,
@@ -121,52 +103,6 @@ export class PointsOAuthClient {
     return url.toString();
   }
 
-  settlementAuthorizationUrl(input: {
-    callbackUri: string;
-    nonce: string;
-    pkceChallenge: string;
-    resource: string;
-    state: string;
-  }) {
-    const url = new URL(`${this.config.issuer}/oauth2/authorize`);
-    url.search = new URLSearchParams({
-      client_id: this.config.settlementClientId,
-      code_challenge: input.pkceChallenge,
-      code_challenge_method: "S256",
-      nonce: input.nonce,
-      redirect_uri: input.callbackUri,
-      resource: input.resource,
-      response_type: "code",
-      scope: SETTLEMENT_RETRY_SCOPE,
-      state: input.state,
-    }).toString();
-    return url.toString();
-  }
-
-  async exchangeSettlementAuthorizationCode(input: {
-    callbackUri: string;
-    code: string;
-    pkceVerifier: string;
-    resource: string;
-  }) {
-    const token = await this.token(
-      this.config.settlementClientId,
-      this.config.settlementClientSecret,
-      new URLSearchParams({
-        client_id: this.config.settlementClientId,
-        code: input.code,
-        code_verifier: input.pkceVerifier,
-        grant_type: "authorization_code",
-        redirect_uri: input.callbackUri,
-        resource: input.resource,
-      }),
-    );
-    if (token.scope !== SETTLEMENT_RETRY_SCOPE || token.refresh_token) {
-      throw new Error("POINTS_SETTLEMENT_ASSERTION_INVALID");
-    }
-    return token.access_token;
-  }
-
   async exchangeAuthorizationCode(input: {
     callbackUri: string;
     code: string;
@@ -174,10 +110,9 @@ export class PointsOAuthClient {
     requiredScopes: readonly string[];
   }): Promise<IntrospectedUserToken> {
     const token = await this.token(
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
       new URLSearchParams({
-        client_id: this.config.userClientId,
+        client_id: this.config.clientId,
         code: input.code,
         code_verifier: input.pkceVerifier,
         grant_type: "authorization_code",
@@ -188,14 +123,13 @@ export class PointsOAuthClient {
     if (!token.refresh_token) throw new Error("POINTS_REFRESH_TOKEN_MISSING");
     const introspection = await this.introspect(
       token.access_token,
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
     );
     const scopes = this.assertUserIntrospection(introspection, input.requiredScopes);
     return {
       accessToken: token.access_token,
       accessTokenExpiresAt: new Date(Date.now() + token.expires_in * 1000),
-      clientId: this.config.userClientId,
+      clientId: this.config.clientId,
       issuer: introspection.iss!,
       refreshToken: token.refresh_token,
       ...(token.refresh_token_expires_in
@@ -213,10 +147,9 @@ export class PointsOAuthClient {
     requiredScopes: readonly string[];
   }) {
     const token = await this.token(
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
       new URLSearchParams({
-        client_id: this.config.userClientId,
+        client_id: this.config.clientId,
         code: input.code,
         code_verifier: input.pkceVerifier,
         grant_type: "authorization_code",
@@ -226,14 +159,13 @@ export class PointsOAuthClient {
     );
     const introspection = await this.introspect(
       token.access_token,
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
     );
     const scopes = this.assertUserIntrospection(introspection, input.requiredScopes);
     return {
       accessToken: token.access_token,
       accessTokenExpiresAt: new Date(Date.now() + token.expires_in * 1000),
-      clientId: this.config.userClientId,
+      clientId: this.config.clientId,
       issuer: introspection.iss!,
       scopes,
       subject: introspection.sub!,
@@ -245,8 +177,7 @@ export class PointsOAuthClient {
       throw new Error("POINTS_M2M_SCOPE_INVALID");
     }
     const token = await this.token(
-      this.config.m2mClientId,
-      this.config.m2mClientSecret,
+      this.config.clientId,
       new URLSearchParams({
         grant_type: "client_credentials",
         resource: this.config.audience,
@@ -255,14 +186,13 @@ export class PointsOAuthClient {
     );
     const introspection = await this.introspect(
       token.access_token,
-      this.config.m2mClientId,
-      this.config.m2mClientSecret,
+      this.config.clientId,
     );
     if (
       !introspection.active ||
       introspection.iss !== this.config.issuer ||
-      introspection.client_id !== this.config.m2mClientId ||
-      introspection.sub !== undefined ||
+      introspection.client_id !== this.config.clientId ||
+      introspection.sub !== this.config.clientId ||
       !includesAudience(introspection.aud, this.config.audience) ||
       !introspection.exp ||
       introspection.exp * 1000 <= Date.now()
@@ -275,8 +205,7 @@ export class PointsOAuthClient {
 
   async refreshUserToken(refreshToken: string, requiredScopes: readonly string[]) {
     const token = await this.token(
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
       new URLSearchParams({
         grant_type: "refresh_token",
         refresh_token: refreshToken,
@@ -287,8 +216,7 @@ export class PointsOAuthClient {
     if (!nextRefreshToken) throw new Error("POINTS_REFRESH_TOKEN_MISSING");
     const introspection = await this.introspect(
       token.access_token,
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
     );
     const scopes = this.assertUserIntrospection(introspection, requiredScopes);
     return {
@@ -305,8 +233,7 @@ export class PointsOAuthClient {
   async introspectUserAccessToken(accessToken: string, requiredScopes: readonly string[]) {
     const introspection = await this.introspect(
       accessToken,
-      this.config.userClientId,
-      this.config.userClientSecret,
+      this.config.clientId,
     );
     const scopes = this.assertUserIntrospection(introspection, requiredScopes);
     return {
@@ -320,11 +247,8 @@ export class PointsOAuthClient {
   async revoke(token: string, hint: "access_token" | "refresh_token") {
     await this.service.fetch(
       new Request(`${this.config.issuer}/oauth2/revoke`, {
-        body: new URLSearchParams({ token, token_type_hint: hint }),
-        headers: {
-          Authorization: basic(this.config.userClientId, this.config.userClientSecret),
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        body: await this.authenticatedBody(`${this.config.issuer}/oauth2/revoke`, new URLSearchParams({ token, token_type_hint: hint })),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         method: "POST",
       }),
     );
@@ -337,8 +261,9 @@ export class PointsOAuthClient {
     if (
       !introspection.active ||
       introspection.iss !== this.config.issuer ||
-      introspection.client_id !== this.config.userClientId ||
+      introspection.client_id !== this.config.clientId ||
       !introspection.sub ||
+      introspection.sub === this.config.clientId ||
       !includesAudience(introspection.aud, this.config.audience) ||
       !introspection.exp ||
       introspection.exp * 1000 <= Date.now()
@@ -348,15 +273,12 @@ export class PointsOAuthClient {
     return assertScopes(introspection.scope, requiredScopes);
   }
 
-  private async introspect(token: string, clientId: string, clientSecret: string) {
+  private async introspect(token: string, clientId: string) {
     return readJson<IntrospectionResponse>(
       await this.service.fetch(
         new Request(`${this.config.issuer}/oauth2/introspect`, {
-          body: new URLSearchParams({ token }),
-          headers: {
-            Authorization: basic(clientId, clientSecret),
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
+          body: await this.authenticatedBody(`${this.config.issuer}/oauth2/introspect`, new URLSearchParams({ token, client_id: clientId })),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
           method: "POST",
         }),
       ),
@@ -364,14 +286,11 @@ export class PointsOAuthClient {
     );
   }
 
-  private async token(clientId: string, clientSecret: string, body: URLSearchParams) {
+  private async token(clientId: string, body: URLSearchParams) {
     const response = await this.service.fetch(
       new Request(`${this.config.issuer}/oauth2/token`, {
-        body,
-        headers: {
-          Authorization: basic(clientId, clientSecret),
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
+        body: await this.authenticatedBody(`${this.config.issuer}/oauth2/token`, body),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         method: "POST",
       }),
     );
@@ -396,5 +315,25 @@ export class PointsOAuthClient {
       throw new Error("POINTS_TOKEN_RESPONSE_INVALID");
     }
     return token;
+  }
+
+  private async authenticatedBody(endpoint: string, body: URLSearchParams) {
+    const jwk = JSON.parse(this.config.privateKeyJwk) as JWK;
+    if (jwk.kty !== "OKP" || jwk.crv !== "Ed25519" || !jwk.kid || !jwk.d) {
+      throw new Error("POINTS_CLIENT_PRIVATE_KEY_INVALID");
+    }
+    const assertion = await new SignJWT({})
+      .setProtectedHeader({ alg: "EdDSA", kid: jwk.kid, typ: "JWT" })
+      .setIssuer(this.config.clientId)
+      .setSubject(this.config.clientId)
+      .setAudience(endpoint)
+      .setIssuedAt()
+      .setExpirationTime("60s")
+      .setJti(crypto.randomUUID())
+      .sign(await importJWK(jwk, "EdDSA"));
+    body.set("client_id", this.config.clientId);
+    body.set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+    body.set("client_assertion", assertion);
+    return body;
   }
 }
