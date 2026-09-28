@@ -14,7 +14,6 @@ import { createDatabase } from "../db/database";
 import { D1OAuthClientRepository } from "../db/repositories/d1-oauth-client-repository";
 import { createRandomId } from "../db/id";
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVisibility,
   oauthClient,
@@ -66,16 +65,13 @@ async function registerClient(overrides: Record<string, unknown> = {}) {
 }
 
 /**
- * 別ユーザーの、指定クライアントへの提供先の記録と公開選択を保存する。
+ * 別ユーザーの、指定クライアントへの公開選択を保存する。
  */
 async function saveClientSettings(clientId: string) {
   const userId = createRandomId("ausr_");
   const accountId = createRandomId();
   await db.insert(user).values({ id: userId, name: "仮ユーザー", email: `${userId}@example.com` });
   await db.insert(externalAccounts).values({ id: accountId, userId });
-  await db
-    .insert(clientConsents)
-    .values({ userId, clientId, displayName: "Points" });
   await db.insert(externalAccountVisibility).values({ accountId, clientId, isPublic: true });
   return { userId, accountId };
 }
@@ -338,15 +334,10 @@ describe("OAuthクライアントの更新", () => {
 // --------------------------------------------------
 
 describe("OAuthクライアントの削除", () => {
-  it("標準のクライアントと、そのClient IDの同意・公開選択だけを削除する", async () => {
+  it("標準のクライアントと、そのClient IDの公開選択だけを削除する", async () => {
     const { headers, clientId } = await registerClient();
     const other = await registerClient();
     const settings = await saveClientSettings(clientId);
-    await db.insert(clientConsents).values({
-      userId: settings.userId,
-      clientId: other.clientId,
-      displayName: "Other",
-    });
     await db
       .insert(externalAccountVisibility)
       .values({ accountId: settings.accountId, clientId: other.clientId, isPublic: true });
@@ -358,12 +349,6 @@ describe("OAuthクライアントの削除", () => {
     expect(await db.select().from(oauthClient).where(eq(oauthClient.clientId, clientId))).toEqual(
       [],
     );
-    expect(
-      await db
-        .select({ clientId: clientConsents.clientId })
-        .from(clientConsents)
-        .where(eq(clientConsents.userId, settings.userId)),
-    ).toEqual([{ clientId: other.clientId }]);
     expect(
       await db
         .select({ clientId: externalAccountVisibility.clientId })

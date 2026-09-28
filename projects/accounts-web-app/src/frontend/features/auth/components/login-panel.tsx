@@ -13,7 +13,7 @@ const withoutUserId = { accountsUserId: undefined };
 /**
  * ログイン用のダイアログの中身。
  * ログイン失敗の案内、Providerのボタン・前回のログイン方法と、利用規約・プライバシーポリシーへの同意文を示す。
- * 署名付きクエリが期限切れの場合は、元のサービスからやり直す案内と、クエリを外してログインをやり直す導線を示す。
+ * 署名付きクエリが期限切れの場合は、元のサービスからやり直す案内と、その次の行にクエリを外してログインをやり直す導線を示す。
  * 利用規約・プライバシーポリシーは、署名付きクエリを持つログインの途中の画面を残すため新しいタブで開く。
  * ログインしていないユーザーのURLから開いた場合も読めるよう、AccountsユーザーIDの無い経路にする。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
@@ -38,10 +38,12 @@ export function LoginPanel({
       {login.startFailure === "failed" ? <ErrorText>{messages.startFailed}</ErrorText> : null}
       {login.startFailure === "expired" ? (
         <ErrorText>
-          {messages.requestExpired}{" "}
-          <Link to="/" onClick={onReopen}>
-            {messages.restartLogin}
-          </Link>
+          <span className="flex flex-col items-start gap-2">
+            {messages.requestExpired}
+            <Link to="/" onClick={onReopen}>
+              {messages.restartLogin}
+            </Link>
+          </span>
         </ErrorText>
       ) : null}
       <LoginProviderList

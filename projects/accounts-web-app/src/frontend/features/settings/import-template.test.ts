@@ -14,7 +14,6 @@ describe("buildImportTemplateText", () => {
   it("URL識別子だけを持つ未検証の外部アカウント1件の最小例にする", () => {
     const template = v.parse(backupSchema, JSON.parse(importTemplateText));
 
-    expect(template.clientConsents).toEqual([]);
     expect(template.externalAccounts).toHaveLength(1);
     expect(template.externalAccounts[0]?.metadata).toMatchObject({
       identifiers: [{ type: "url", url: expect.stringMatching(/^https:\/\//) as string }],

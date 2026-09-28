@@ -2,7 +2,7 @@ import * as v from "valibot";
 
 import {
   backupAccountItemLimit,
-  backupClientConsentLimit,
+  backupClientVisibilityLimit,
   backupExternalAccountLimit,
 } from "../constants";
 import { providerIds } from "../providers";
@@ -13,7 +13,7 @@ import { verificationMethodSchema, verificationResultSchema, verificationStatusS
 /**
  * JSONによるバックアップと移行の形式と、`/api/backup`の応答。
  * すべての階層で定義された項目だけを受け付ける。
- * 同じClient ID・識別子の値の食い違いや、Web URLの上限などの照合はバックエンドが復元前に検査する。
+ * 同じ識別子を持つアカウントの値の食い違いや、Web URLの上限などの照合はバックエンドが復元前に検査する。
  * @see ../../../docs/specification/v0.1/main.ja.md
  */
 
@@ -41,14 +41,6 @@ export const backupAccountMetadataSchema = v.strictObject({
   verifications: v.pipe(v.array(backupVerificationSchema), v.maxLength(backupAccountItemLimit)),
 });
 
-/**
- * 提供先の記録（公開設定の列にするクライアント）。
- */
-export const backupClientConsentSchema = v.strictObject({
-  clientId: v.pipe(v.string(), v.nonEmpty()),
-  displayName: v.string(),
-});
-
 export const backupExternalAccountSchema = v.strictObject({
   metadata: backupAccountMetadataSchema,
   isPublic: v.boolean(),
@@ -59,7 +51,7 @@ export const backupExternalAccountSchema = v.strictObject({
         isPublic: v.boolean(),
       }),
     ),
-    v.maxLength(backupClientConsentLimit),
+    v.maxLength(backupClientVisibilityLimit),
   ),
 });
 
@@ -75,7 +67,6 @@ export const backupSchema = v.strictObject({
   profile: v.strictObject({
     displayName: displayNameSchema,
   }),
-  clientConsents: v.pipe(v.array(backupClientConsentSchema), v.maxLength(backupClientConsentLimit)),
   externalAccounts: v.pipe(v.array(backupExternalAccountSchema), v.maxLength(backupExternalAccountLimit)),
 });
 
@@ -92,7 +83,6 @@ export type Backup = v.InferInput<typeof backupSchema>;
 export const restoreBackupResultSchema = v.object({
   updatedAccountCount: v.number(),
   addedCandidateCount: v.number(),
-  clientConsentCount: v.number(),
 });
 
 export type RestoreBackupResult = v.InferOutput<typeof restoreBackupResultSchema>;

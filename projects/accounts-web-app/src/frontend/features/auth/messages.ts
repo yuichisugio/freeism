@@ -29,13 +29,15 @@ export const authMessages = defineMessages({
     accountMenuLabel: (displayName: string) => `アカウントのメニュー（${displayName}）`,
     sessionsLabel: "このブラウザーでログイン中のユーザー",
     sessionsLoadFailed: "ログイン中のユーザーを読み込めませんでした。",
-    currentUser: "現在のユーザー",
+    currentUser: "現在",
     addAccount: "アカウントを追加",
-    signOutFrom: (displayName: string) => `${displayName}からログアウト`,
+    signOutFrom: (displayName: string) => `「${displayName}」からログアウト`,
     signOutFailed: "ログアウトできませんでした。もう一度お試しください。",
     switchFailed: "切り替えられませんでした。画面を再読み込みして再度お試しください。",
-    userScopeSignInRequired: (accountsUserId: string) =>
-      `この画面はFreeism Accountsユーザー「${accountsUserId}」の画面です。このユーザーでログインすると表示します。`,
+    userScopeSignInRequired: {
+      before: "この画面はFreeism Accountsユーザー「",
+      after: "」の画面です。このユーザーでログインすると表示します。",
+    },
     signInRequired: "表示するにはログインしてください",
   },
   en: {
@@ -62,13 +64,15 @@ export const authMessages = defineMessages({
     accountMenuLabel: (displayName: string) => `Account menu (${displayName})`,
     sessionsLabel: "Users signed in on this browser",
     sessionsLoadFailed: "Could not load the signed-in users.",
-    currentUser: "Current user",
+    currentUser: "Current",
     addAccount: "Add account",
-    signOutFrom: (displayName: string) => `Sign out of ${displayName}`,
+    signOutFrom: (displayName: string) => `Sign out of "${displayName}"`,
     signOutFailed: "Could not sign out. Please try again.",
     switchFailed: "Could not switch. Please reload the page and try again.",
-    userScopeSignInRequired: (accountsUserId: string) =>
-      `This page belongs to the Freeism Accounts user "${accountsUserId}". Sign in as this user to view it.`,
+    userScopeSignInRequired: {
+      before: 'This page belongs to the Freeism Accounts user "',
+      after: '". Sign in as this user to view it.',
+    },
     signInRequired: "Please sign in to view this page.",
   },
 });

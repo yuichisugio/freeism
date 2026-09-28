@@ -6,7 +6,7 @@ import { toProblemIssue } from "./problem-details-schema";
 
 /**
  * 形式の検査（必須項目・版番号・型・未知項目・件数上限・値の長さ上限）。
- * 同じClient ID・識別子の食い違いとWeb URLの上限は`plan-backup-restore.test.ts`で確認する。
+ * 同じ識別子を持つアカウントの食い違いとWeb URLの上限は`plan-backup-restore.test.ts`で確認する。
  */
 
 // --------------------------------------------------
@@ -20,7 +20,6 @@ function createBackup(): Backup {
     accountsUserId: "ausr_source",
     exportedAt: "2026-09-26T00:00:00.000Z",
     profile: { displayName: "サンプル" },
-    clientConsents: [{ clientId: "points-client", displayName: "Points" }],
     externalAccounts: [
       {
         metadata: {
@@ -90,9 +89,10 @@ describe("backupSchema", () => {
     [
       "型の不一致",
       (backup: Record<string, unknown>) => {
-        backup.clientConsents = [{ clientId: "points-client", displayName: 1 }];
+        const [account] = backup.externalAccounts as Record<string, unknown>[];
+        if (account) account.clientVisibility = [{ clientId: "points-client", isPublic: 1 }];
       },
-      { code: "INVALID_TYPE", path: "clientConsents.0.displayName" },
+      { code: "INVALID_TYPE", path: "externalAccounts.0.clientVisibility.0.isPublic" },
     ],
     [
       "最上位の未知項目",
@@ -134,7 +134,7 @@ describe("backupSchema", () => {
 
   it.each([
     ["externalAccounts", 300, "externalAccounts"],
-    ["clientConsents", 50, "clientConsents"],
+    ["clientVisibility", 50, "externalAccounts.0.clientVisibility"],
     ["identifiers", 20, "externalAccounts.0.metadata.identifiers"],
     ["verifications", 20, "externalAccounts.0.metadata.verifications"],
     ["verifications[].identifiers", 20, "externalAccounts.0.metadata.verifications.0.identifiers"],
@@ -146,10 +146,10 @@ describe("backupSchema", () => {
       if (!account || !verification) throw new Error("テストデータが不正です");
       const identifier = { type: "provider_account", provider: "github", accountId: "123" } as const;
       if (target === "externalAccounts") backup.externalAccounts = Array.from({ length: count }, () => account);
-      if (target === "clientConsents") {
-        backup.clientConsents = Array.from({ length: count }, (_, index) => ({
+      if (target === "clientVisibility") {
+        account.clientVisibility = Array.from({ length: count }, (_, index) => ({
           clientId: `client-${index}`,
-          displayName: "Client",
+          isPublic: true,
         }));
       }
       if (target === "identifiers") account.metadata.identifiers = Array.from({ length: count }, () => identifier);

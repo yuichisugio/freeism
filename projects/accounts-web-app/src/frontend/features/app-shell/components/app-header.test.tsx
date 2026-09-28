@@ -58,6 +58,13 @@ describe("AppHeader", () => {
     expect(homeLink.querySelector("svg")).not.toBeNull();
   });
 
+  it("トップページでは、現在のページの印をロゴに付けず「トップ」のタブだけに付ける", async () => {
+    renderWithProviders(<AppHeader />, { path: "/" });
+
+    expect((await screen.findByRole("link", { name: "トップ" })).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Freeism Accounts" }).getAttribute("aria-current")).toBeNull();
+  });
+
   it("メインメニューに「トップ」「アカウント連携」「その他」のタブだけを置く", async () => {
     renderWithProviders(<AppHeader />);
 
@@ -110,7 +117,7 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: "アカウント連携" }).getAttribute("aria-current")).toBeNull();
   });
 
-  it("メニューは見出しを置かず、現在のユーザー・ほかのユーザー・アカウントの追加・現在のユーザーのログアウトの順に並べる", async () => {
+  it("メニューは見出しを置かず、現在のユーザー・ほかのユーザー・アカウントの追加・「表示名」からのログアウトの順に並べる", async () => {
     const { menu } = await openAccountMenu();
 
     const items = within(menu).getAllByRole("menuitem");
@@ -118,11 +125,11 @@ describe("AppHeader", () => {
       expect.stringContaining("alice"),
       expect.stringContaining("Bob"),
       "アカウントを追加",
-      "aliceからログアウト",
+      "「alice」からログアウト",
     ]);
-    expect(items[0]?.textContent).toContain("現在のユーザー");
-    expect(items[1]?.textContent).toContain("ausr_bob");
-    expect(items[1]?.textContent).not.toContain("現在のユーザー");
+    // ユーザーの行はアバター（頭文字）を置かず、表示名・ユーザーID・「現在」チップだけにする。
+    expect(items[0]?.textContent).toBe("aliceausr_alice現在");
+    expect(items[1]?.textContent).toBe("Bobausr_bob");
     expect(within(menu).queryByText("このブラウザーでログイン中のユーザー")).toBeNull();
   });
 
@@ -135,8 +142,7 @@ describe("AppHeader", () => {
     await within(menu).findByRole("menuitem", { name: /Bob/ });
 
     const items = within(menu).getAllByRole("menuitem");
-    expect(items[0]?.textContent).toContain("現在のユーザー");
-    expect(items[0]?.textContent).toContain("alice");
+    expect(items[0]?.textContent).toBe("aliceausr_alice現在");
   });
 
   it("トップページで別のユーザーを押すと、そのユーザーのセッションへ切り替える", async () => {
@@ -179,7 +185,7 @@ describe("AppHeader", () => {
     authClientMock.multiSession.revoke.mockResolvedValue({ data: { status: true }, error: null });
     const { menu, router } = await openAccountMenu("/ausr_alice/settings");
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: "aliceからログアウト" }));
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "「alice」からログアウト" }));
 
     await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
     expect(router.state.location.pathname).toBe("/");
@@ -191,7 +197,7 @@ describe("AppHeader", () => {
     authClientMock.multiSession.revoke.mockResolvedValue({ data: null, error: { status: 500 } });
     const { menu } = await openAccountMenu();
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: "aliceからログアウト" }));
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "「alice」からログアウト" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain("ログアウトできませんでした");
     expect(authClientMock.$store.notify).not.toHaveBeenCalled();
@@ -232,7 +238,7 @@ describe("AppHeader: 未保存の変更がある画面からのログアウト",
     );
     await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
     const menu = await screen.findByRole("menu");
-    await userEvent.click(await within(menu).findByRole("menuitem", { name: "aliceからログアウト" }));
+    await userEvent.click(await within(menu).findByRole("menuitem", { name: "「alice」からログアウト" }));
     const dialog = await screen.findByRole("alertdialog");
     return { ...rendered, dialog };
   }
@@ -257,7 +263,7 @@ describe("AppHeader: 未保存の変更がある画面からのログアウト",
     await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
     await userEvent.click(screen.getByRole("button", { name: "保存" }));
     await userEvent.click(screen.getByRole("button", { name: "アカウントのメニュー（alice）" }));
-    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "aliceからログアウト" }));
+    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "「alice」からログアウト" }));
 
     await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
     expect(router.state.location.pathname).toBe("/");

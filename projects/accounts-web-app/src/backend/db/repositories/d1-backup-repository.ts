@@ -2,14 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 
 import type { IdentifierKey } from "../../domain/identity/identifier-key";
 import type { Database, DatabaseBatchItem } from "../database";
-import {
-  clientConsents,
-  externalAccounts,
-  externalAccountVisibility,
-  externalIdentifiers,
-  oauthClient,
-  user,
-} from "../schema";
+import { externalAccounts, externalAccountVisibility, externalIdentifiers, user } from "../schema";
 
 /**
  * JSONの出力・復元に使う読取と、復元をD1 batchへ渡す書込文の組立て。
@@ -82,11 +75,6 @@ export type RestoredIdentifier = IdentifierKey & { id: string; accountId: string
  */
 export type RestoredVisibility = { accountId: string; clientId: string; isPublic: boolean };
 
-/**
- * 復元で上書きする提供先の記録。
- */
-export type RestoredClientConsent = { clientId: string; displayName: string };
-
 // --------------------------------------------------
 // リポジトリ
 // --------------------------------------------------
@@ -112,22 +100,6 @@ export class D1BackupRepository {
       .where(eq(user.id, userId))
       .limit(1);
     return row?.name ?? "";
-  }
-
-  /**
-   * 本人の全`client_consents`行を読む。
-   * 表示名は現存するクライアントの名前、無ければ保存時の値にする。
-   */
-  async findClientConsents(userId: string): Promise<RestoredClientConsent[]> {
-    return this.db
-      .select({
-        clientId: clientConsents.clientId,
-        displayName: sql<string>`coalesce(${oauthClient.name}, ${clientConsents.displayName})`,
-      })
-      .from(clientConsents)
-      .leftJoin(oauthClient, eq(oauthClient.clientId, clientConsents.clientId))
-      .where(eq(clientConsents.userId, userId))
-      .orderBy(clientConsents.clientId);
   }
 
   /**
@@ -158,28 +130,6 @@ export class D1BackupRepository {
     return [
       this.db.update(user).set({ name: displayName, updatedAt: now }).where(eq(user.id, userId)),
     ];
-  }
-
-  /**
-   * 提供先の記録をClient IDで上書きする。
-   * 存在しないClient IDも保存し、入力に無いClient IDの行は維持する。
-   */
-  upsertClientConsents(
-    userId: string,
-    consents: readonly RestoredClientConsent[],
-  ): DatabaseBatchItem[] {
-    // `INSERT … SELECT`とupsertの構文の曖昧さを避けるため、SELECTに`where true`を付ける。
-    return toJsonBinds(consents).map((json) =>
-      this.db
-        .insert(clientConsents)
-        .select(
-          sql`select ${userId}, json_extract(value, '$.clientId'), json_extract(value, '$.displayName') from json_each(${json}) where true`,
-        )
-        .onConflictDoUpdate({
-          target: [clientConsents.userId, clientConsents.clientId],
-          set: { displayName: sql`excluded.display_name` },
-        }),
-    );
   }
 
   /**

@@ -30,11 +30,10 @@ const validBackup = {
   accountsUserId: "user-1",
   exportedAt: "2026-09-23T00:00:00Z",
   profile: { displayName: "サンプル" },
-  clientConsents: [{ clientId: "points-client", displayName: "Points" }],
   externalAccounts: [validAccount],
 };
 
-const restoreResult = { updatedAccountCount: 0, addedCandidateCount: 1, clientConsentCount: 1 };
+const restoreResult = { updatedAccountCount: 0, addedCandidateCount: 1 };
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -137,7 +136,7 @@ describe("useBackupRestore", () => {
   });
 
   it("サーバーが返した入力不備を同じ一覧で返す", async () => {
-    const serverIssue = { code: "INVALID_VALUE", message: "Client ID is not in clientConsents.", path: ["externalAccounts", 0, "clientVisibility", 0, "clientId"] };
+    const serverIssue = { code: "INVALID_VALUE", message: "The URL cannot be registered.", path: ["externalAccounts", 0, "metadata", "identifiers", 0, "url"] };
     stubBff({
       "POST /api/backup/restore": () => problemResponse(400, "INVALID_VALUE", [serverIssue]),
     });

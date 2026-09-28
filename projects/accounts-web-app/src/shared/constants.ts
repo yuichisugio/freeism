@@ -52,9 +52,9 @@ export const backupExternalAccountLimit = 300;
 export const backupAccountItemLimit = 20;
 
 /**
- * バックアップJSONの`clientConsents`の上限。
+ * バックアップJSONの各アカウントの`clientVisibility`の上限。
  */
-export const backupClientConsentLimit = 50;
+export const backupClientVisibilityLimit = 50;
 
 /**
  * 照合APIの1要求あたりの入力件数の上限。

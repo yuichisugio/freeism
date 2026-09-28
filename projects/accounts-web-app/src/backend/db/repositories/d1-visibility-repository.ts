@@ -1,15 +1,10 @@
 import { and, eq, inArray, sql } from "drizzle-orm";
 
 import { jsonEachValues, type Database, type DatabaseBatchItem } from "../database";
-import {
-  clientConsents,
-  externalAccounts,
-  externalAccountVisibility,
-  oauthClient,
-} from "../schema";
+import { externalAccounts, externalAccountVisibility, oauthClient } from "../schema";
 
 /**
- * 一般公開・提供先の記録・外部アカウント別の公開選択の読取と、D1 batchへ渡す書込文を組み立てる。
+ * 一般公開・外部アカウント別の公開選択の読取と、D1 batchへ渡す書込文を組み立てる。
  * 複数の値は1つのバインド値にして`json_each`で展開し、文の数を件数によらず一定にする。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
@@ -31,24 +26,25 @@ export class D1VisibilityRepository {
   }
 
   /**
-   * Client IDのうち、有効なクライアント（存在し`disabled`でない）を名前とともに読む。
+   * Client IDのうち、有効なクライアント（存在し`disabled`でない）を名前・紹介URLとともに、名前の順に読む。
    */
   async findActiveClients(
     clientIds: readonly string[],
-  ): Promise<{ clientId: string; name: string | null }[]> {
+  ): Promise<{ clientId: string; name: string | null; uri: string | null }[]> {
     if (clientIds.length === 0) {
       return [];
     }
 
     return this.db
-      .select({ clientId: oauthClient.clientId, name: oauthClient.name })
+      .select({ clientId: oauthClient.clientId, name: oauthClient.name, uri: oauthClient.uri })
       .from(oauthClient)
       .where(
         and(
           inArray(oauthClient.clientId, jsonEachValues(clientIds)),
           sql`coalesce(${oauthClient.disabled}, 0) = 0`,
         ),
-      );
+      )
+      .orderBy(oauthClient.name, oauthClient.clientId);
   }
 
   // --------------------------------------------------
@@ -85,53 +81,23 @@ export class D1VisibilityRepository {
   }
 
   /**
-   * 提供先の記録（`client_consents`）を、保存時のクライアント名とともに追加・更新する文。
-   */
-  upsertClientConsents(
-    userId: string,
-    consents: readonly { clientId: string; displayName: string }[],
-  ): DatabaseBatchItem {
-    // SQLiteの`INSERT … SELECT … ON CONFLICT`は、構文の曖昧さを避けるためSELECTに`where true`が必要。
-    return this.db
-      .insert(clientConsents)
-      .select(
-        sql`select ${userId}, json_extract(value, '$.clientId'), json_extract(value, '$.displayName') from json_each(${JSON.stringify(consents)}) where true`,
-      )
-      .onConflictDoUpdate({
-        target: [clientConsents.userId, clientConsents.clientId],
-        set: { displayName: sql`excluded.display_name` },
-      });
-  }
-
-  /**
-   * 指定クライアントについて、本人の全外部アカウント行の公開選択を、選択した組だけに置き換える文。
-   * 行の無い組は非公開として扱う。
+   * 指定クライアントについて、本人の全外部アカウント行の公開選択を、選択した組を公開（1）、それ以外を非公開（0）として書く文。
+   * 非公開の組も行として残し、すべて外したクライアントも「アカウント連携」画面の列に残す。
+   * 指定していないクライアントの行は変えない。
    */
   replaceClientVisibility(
     userId: string,
     clientIds: readonly string[],
     selections: readonly { accountId: string; clientId: string }[],
-  ): DatabaseBatchItem[] {
-    return [
-      this.db
-        .delete(externalAccountVisibility)
-        .where(
-          and(
-            inArray(externalAccountVisibility.clientId, jsonEachValues(clientIds)),
-            inArray(
-              externalAccountVisibility.accountId,
-              this.db
-                .select({ id: externalAccounts.id })
-                .from(externalAccounts)
-                .where(eq(externalAccounts.userId, userId)),
-            ),
-          ),
-        ),
-      this.db
-        .insert(externalAccountVisibility)
-        .select(
-          sql`select json_extract(value, '$.accountId'), json_extract(value, '$.clientId'), 1 from json_each(${JSON.stringify(selections)})`,
-        ),
-    ];
+  ): DatabaseBatchItem {
+    return this.db
+      .insert(externalAccountVisibility)
+      .select(
+        sql`select ${externalAccounts.id}, client.value, exists (select 1 from json_each(${JSON.stringify(selections)}) as selection where json_extract(selection.value, '$.accountId') = ${externalAccounts.id} and json_extract(selection.value, '$.clientId') = client.value) from ${externalAccounts}, json_each(${JSON.stringify(clientIds)}) as client where ${externalAccounts.userId} = ${userId}`,
+      )
+      .onConflictDoUpdate({
+        target: [externalAccountVisibility.accountId, externalAccountVisibility.clientId],
+        set: { isPublic: sql`excluded.is_public` },
+      });
   }
 }

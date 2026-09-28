@@ -401,6 +401,35 @@ describe("ExternalUrlForm", () => {
     expect((await screen.findByRole("alert")).textContent).toContain("IPアドレスやローカル");
   });
 
+  it("URLの形式の不備は、記号で囲まずに「https://から始まる」と示す", async () => {
+    renderWithProviders(<ExternalUrlForm {...formProps} error={new Error("400")} urlInputErrorCode="INVALID_URL" />);
+
+    const alertText = (await screen.findByRole("alert")).textContent;
+    expect(alertText).toContain("https://から始まる完全なURL");
+    expect(alertText).not.toContain("`");
+  });
+
+  it("DNS TXTが見つからない場合の案内は、記号で囲まずにレコード名を示す", async () => {
+    renderWithProviders(
+      <ExternalUrlForm
+        {...formProps}
+        outcome={{
+          mode: "verify",
+          result: {
+            externalAccountId: null,
+            status: "unverified",
+            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
+            dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+          },
+        }}
+      />,
+    );
+
+    const statusText = (await screen.findByRole("status")).textContent;
+    expect(statusText).toContain("_accounts.{ホスト名}に公開プロフィールURLのTXTレコードが見つかりませんでした。");
+    expect(statusText).not.toContain("`");
+  });
+
   it("スキームの無い入力もブラウザー標準の型検査で止めず、アプリの検査に任せる", async () => {
     renderWithProviders(<ExternalUrlForm {...formProps} url="github.com/alice" />);
 

@@ -107,21 +107,32 @@ describe("renderPublicProfilePage", () => {
     expect(html).toContain('<h1>Alice</h1><span class="mono">ausr_alice</span>');
   });
 
+  it("スタイルの書体名の引用符を文字参照にせず、CSSとして読める形で出力する", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    const style = /<style>([\s\S]*?)<\/style>/.exec(html)?.[1] ?? "";
+    expect(style).toContain('font-family:"Noto Sans JP"');
+    expect(style).not.toContain("&quot;");
+  });
+
   it("直近の結果・証拠URLを表示しない", async () => {
     const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
 
     expect(html).not.toMatch(/成功|判断できません|証拠/);
   });
 
-  it("「サービス名：識別子」を主URLへのrel=\"me\"リンクにし、ほかのURLは同じ項目に小さく並べる", async () => {
+  it("「サービス名：識別子」を主URLへのrel=\"me\"リンクにし、ほかのURLは同じ項目に小さく並べ、どちらも新しいタブで開く", async () => {
     const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
 
-    expect(html).toContain('<a href="https://github.com/alice" rel="me">GitHub：alice</a>');
+    expect(html).toContain(
+      '<a href="https://github.com/alice" rel="me noopener" target="_blank">GitHub：alice</a>',
+    );
 
     const webItem = findItem(html, "alice.example.com");
-    const primary = '<a href="https://alice.example.com/" rel="me">Web：alice.example.com</a>';
+    const primary =
+      '<a href="https://alice.example.com/" rel="me noopener" target="_blank">Web：alice.example.com</a>';
     const other =
-      '<a href="https://alice.example.com/about" rel="me">alice.example.com/about</a>';
+      '<a href="https://alice.example.com/about" rel="me noopener" target="_blank">alice.example.com/about</a>';
     expect(webItem).toContain(primary);
     expect(webItem).toContain(other);
     expect(webItem.indexOf(primary)).toBeLessThan(webItem.indexOf(other));
@@ -131,7 +142,7 @@ describe("renderPublicProfilePage", () => {
     const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
 
     const googleItem = findItem(html, "Google：1098");
-    expect(googleItem).not.toContain('rel="me"');
+    expect(googleItem).not.toContain('rel="me');
   });
 
   it("サービスアイコンをGoogleのfavicon配信から読み、背後に地球儀を置く", async () => {

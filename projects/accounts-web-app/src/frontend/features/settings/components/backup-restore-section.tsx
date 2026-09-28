@@ -14,7 +14,7 @@ import { SettingsSection } from "./settings-section";
 
 /**
  * データ取込。
- * JSONファイルを選択して「取り込む」で復元し、結果または不備の一覧を示す。
+ * JSONファイルを選択して「取り込む」で復元し、結果または不備の一覧を「取り込む」の直下に示す。
  * 出力JSONと同じ形式のテンプレートのダウンロードと、ほかのサービスのデータをその形式へ整形するようAIに頼む文面のコピーを置く。
  * テンプレートの `profile.displayName` には現在の表示名を入れる。
  * @see ./settings-sections.test.tsx
@@ -35,7 +35,7 @@ export function BackupRestoreSection({
 
   return (
     <SettingsSection title={messages.importTitle} description={messages.importDescription}>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <label
           className={`${buttonVariants({ variant: "outline", size: "sm" })} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-(--focus)`}
         >
@@ -52,7 +52,7 @@ export function BackupRestoreSection({
             }}
           />
         </label>
-        <span className="text-sm break-all text-muted">{backupRestore.file?.name ?? messages.noFileChosen}</span>
+        <span className="text-xs break-all text-muted">{backupRestore.file?.name ?? messages.noFileChosen}</span>
       </div>
       <Button
         size="sm"
@@ -62,6 +62,17 @@ export function BackupRestoreSection({
       >
         {backupRestore.isRestoring ? messages.importing : messages.importButton}
       </Button>
+      {backupRestore.issues.length > 0 ? <RestoreIssueList issues={backupRestore.issues} /> : null}
+      {backupRestore.restoreError === null ? null : (
+        <ErrorNotice error={backupRestore.restoreError} codeMessages={messages.codeMessages} />
+      )}
+      {result === null ? null : (
+        <SuccessNotice>
+          {result.addedCandidateCount > 0
+            ? `${messages.restored(result)} ${messages.restoredCandidateHint}`
+            : messages.restored(result)}
+        </SuccessNotice>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant="tertiary" onPress={() => downloadImportTemplate(importTemplateText)}>
           <DownloadIcon className="size-4" />
@@ -76,22 +87,11 @@ export function BackupRestoreSection({
         </span>
       </div>
       <details className="w-full text-sm">
-        <summary className="cursor-pointer text-muted">{messages.showAiPrompt}</summary>
-        <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-surface-secondary p-3 font-mono text-xs whitespace-pre-wrap">
+        <summary className="cursor-pointer text-xs text-muted">{messages.showAiPrompt}</summary>
+        <pre className="mt-2 max-h-[280px] overflow-auto rounded-lg border border-border bg-surface-secondary px-4 py-3 font-mono text-xs whitespace-pre-wrap">
           {aiPrompt}
         </pre>
       </details>
-      {backupRestore.issues.length > 0 ? <RestoreIssueList issues={backupRestore.issues} /> : null}
-      {backupRestore.restoreError === null ? null : (
-        <ErrorNotice error={backupRestore.restoreError} codeMessages={messages.codeMessages} />
-      )}
-      {result === null ? null : (
-        <SuccessNotice>
-          {result.addedCandidateCount > 0
-            ? `${messages.restored(result)} ${messages.restoredCandidateHint}`
-            : messages.restored(result)}
-        </SuccessNotice>
-      )}
     </SettingsSection>
   );
 }

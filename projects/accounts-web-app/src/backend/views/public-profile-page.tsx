@@ -89,42 +89,50 @@ const oauthServiceHosts: Partial<Record<string, string>> = {
 // --------------------------------------------------
 
 /**
- * 管理画面と同じ色の組をライト・ダークで持つ最小限のスタイル。
+ * 基準の寸法に、管理画面と同じ倍率（`--scale`）を掛けた値を返す。
+ * @see ../../../docs/specification/v0.1/design-system.ja.md
+ */
+const scaled = (basePx: number) => `calc(${basePx}px*var(--scale))`;
+
+/**
+ * 管理画面と同じ色の組と寸法の倍率をライト・ダークで持つ最小限のスタイル。
+ * Webフォントは読み込まず（CSPで外部の読み込みを許可しない）、見出しとロゴは閲覧者の端末にある丸ゴシックを使う。
  * サービスアイコンは、地球儀の上に不透明な背景のinlineの画像を中央揃えで重ねる。
  * 画像に寸法を指定しないため、読めない画像（`alt=""`）は大きさ0になり、地球儀だけが見える。
  */
 const styles = [
-  ":root{color-scheme:light dark;--background:#F2F4FA;--surface:#FFFFFF;--surface-secondary:#F5F7FC;--border:#E2E6F0;--foreground:#1B2033;--muted:#69708A;--accent:#3B6FF0;--accent-soft:#E8EEFE;--favicon-plate:#FFFFFF;--favicon-fallback:#69708A;--shadow:0 1px 2px rgba(27,32,51,.04),0 6px 20px rgba(27,32,51,.05);--shadow-pop:0 4px 12px rgba(27,32,51,.08),0 18px 44px rgba(27,32,51,.16)}",
-  "@media (prefers-color-scheme:dark){:root{--background:#10131C;--surface:#181C28;--surface-secondary:#1F2433;--border:#2A3042;--foreground:#E6E9F2;--muted:#969DB3;--accent:#7DA0FF;--accent-soft:#1E2A4A;--favicon-plate:#E6E9F2;--favicon-fallback:#4A5270;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);--shadow-pop:0 4px 12px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.5)}}",
+  ":root{color-scheme:light dark;--scale:1.1;--background:#F2F4FA;--surface:#FFFFFF;--surface-secondary:#F5F7FC;--border:#E2E6F0;--border-strong:#C7CDDC;--foreground:#1B2033;--muted:#69708A;--accent:#3B6FF0;--accent-soft:#E8EEFE;--link:#2553C9;--favicon-plate:#FFFFFF;--favicon-fallback:#69708A;--shadow:0 1px 2px rgba(27,32,51,.04),0 6px 20px rgba(27,32,51,.05);--shadow-pop:0 4px 12px rgba(27,32,51,.08),0 18px 44px rgba(27,32,51,.16)}",
+  "@media (prefers-color-scheme:dark){:root{--background:#10131C;--surface:#181C28;--surface-secondary:#1F2433;--border:#2A3042;--border-strong:#3C4560;--foreground:#E6E9F2;--muted:#969DB3;--accent:#7DA0FF;--accent-soft:#1E2A4A;--link:#9DB8FF;--favicon-plate:#E6E9F2;--favicon-fallback:#4A5270;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);--shadow-pop:0 4px 12px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.5)}}",
   "*{box-sizing:border-box}",
-  'body{margin:0;background:var(--background);color:var(--foreground);font-family:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;line-height:1.6}',
-  "a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}",
+  `body{margin:0;background:var(--background);color:var(--foreground);font-family:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;font-size:${scaled(14)};line-height:1.7}`,
+  'h1,h2,.brand{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;font-weight:700}h1,h2{margin:0;line-height:1.35}',
+  "a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}",
   "svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}",
-  ".profile-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;border-bottom:1px solid var(--border);background:var(--surface)}",
-  ".brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;color:var(--foreground)}.brand:hover{text-decoration:none}",
+  `.profile-header{display:flex;align-items:center;justify-content:space-between;gap:${scaled(12)};padding:${scaled(16)} ${scaled(24)};border-bottom:1px solid var(--border);background:var(--surface)}`,
+  `.brand{display:flex;align-items:center;gap:${scaled(8)};font-size:${scaled(16)};color:var(--foreground)}.brand:hover{text-decoration:none}.brand img{width:${scaled(28)};height:${scaled(28)}}`,
   ".lang-switch{position:relative}",
-  ".lang-switch summary{list-style:none;height:40px;display:inline-flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);font-size:13px;cursor:pointer;white-space:nowrap}",
-  ".lang-switch summary::-webkit-details-marker{display:none}",
-  ".lang-switch summary svg{width:20px;height:20px}.lang-switch summary .caret{width:16px;height:16px;color:var(--muted)}",
+  `.lang-switch summary{list-style:none;height:${scaled(40)};display:inline-flex;align-items:center;gap:${scaled(8)};padding:0 ${scaled(12)};border:1px solid var(--border);border-radius:999px;background:var(--surface);font-size:${scaled(13)};cursor:pointer;white-space:nowrap}`,
+  ".lang-switch summary::-webkit-details-marker{display:none}.lang-switch summary:hover{border-color:var(--border-strong)}",
+  `.lang-switch summary svg{width:${scaled(20)};height:${scaled(20)}}.lang-switch summary .caret{width:${scaled(16)};height:${scaled(16)};color:var(--muted)}`,
   ".lang-switch[open] summary{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}.lang-switch[open] .caret{transform:rotate(180deg)}",
-  ".lang-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:5;width:200px;margin:0;padding:8px;list-style:none;display:flex;flex-direction:column;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-pop)}",
-  ".menu-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:14px;color:var(--foreground)}.menu-item:hover{background:var(--surface-secondary);text-decoration:none}",
-  ".menu-item svg{width:16px;height:16px;margin-left:auto;color:var(--accent);stroke-width:2.6}",
-  ".profile-page{max-width:640px;margin-inline:auto;padding:32px 24px 40px;display:flex;flex-direction:column;gap:24px}",
-  ".profile-hero h1{margin:0;font-size:26px;line-height:1.3;overflow-wrap:anywhere}",
-  '.mono{font-family:"M PLUS 1 Code",ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted)}',
-  ".profile-section{display:flex;flex-direction:column;gap:12px}.profile-section h2{margin:0;font-size:16px}",
-  ".proof-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}",
-  ".proof-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow)}",
-  ".svc-badge{position:relative;display:inline-block;width:36px;height:36px;font-size:0;line-height:34px;text-align:center;border:1px solid var(--border);border-radius:12px;background:var(--favicon-plate)}",
-  ".favicon-fallback{position:absolute;top:9px;left:9px;width:16px;height:16px;color:var(--favicon-fallback)}",
-  ".favicon{position:relative;vertical-align:middle;max-width:20px;max-height:20px;background:var(--favicon-plate)}",
-  ".acct-text{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}",
-  ".acct-name{font-weight:500}.acct-name a{color:var(--foreground)}",
-  ".other-urls{margin-left:8px;font-size:12px;font-weight:400}.other-urls a{color:var(--muted);margin-right:8px}",
-  ".proof-meta{font-size:12px;color:var(--muted)}",
-  ".notfound{padding:56px 24px;text-align:center}.notfound h1{margin:0;font-size:20px}",
-  "@media (max-width:560px){.profile-header{padding:12px 16px}.profile-page{padding:24px 16px 32px}}",
+  `.lang-menu{position:absolute;top:calc(100% + ${scaled(8)});right:0;z-index:5;width:${scaled(200)};margin:0;padding:${scaled(8)};list-style:none;display:flex;flex-direction:column;gap:${scaled(4)};background:var(--surface);border:1px solid var(--border);border-radius:${scaled(20)};box-shadow:var(--shadow-pop)}`,
+  `.menu-item{display:flex;align-items:center;gap:${scaled(12)};padding:${scaled(8)} ${scaled(12)};border-radius:${scaled(14)};line-height:1.35;color:var(--foreground)}.menu-item:hover{background:var(--surface-secondary);text-decoration:none}`,
+  `.menu-item svg{width:${scaled(16)};height:${scaled(16)};margin-left:auto;color:var(--accent);stroke-width:2.6}`,
+  `.profile-page{max-width:${scaled(640)};margin-inline:auto;padding:${scaled(32)} ${scaled(24)} ${scaled(40)};display:flex;flex-direction:column;gap:${scaled(24)}}`,
+  `.profile-hero h1{font-size:${scaled(26)};overflow-wrap:anywhere}`,
+  `.mono{font-family:"M PLUS 1 Code",ui-monospace,Menlo,monospace;font-size:${scaled(12)};color:var(--muted)}`,
+  `.profile-section{display:flex;flex-direction:column;gap:${scaled(12)}}.profile-section h2{font-size:${scaled(16)}}`,
+  `.proof-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:${scaled(12)}}`,
+  `.proof-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:${scaled(12)};align-items:start;padding:${scaled(16)};background:var(--surface);border:1px solid var(--border);border-radius:${scaled(20)};box-shadow:var(--shadow)}`,
+  `.svc-badge{position:relative;display:inline-block;width:${scaled(36)};height:${scaled(36)};font-size:0;line-height:${scaled(34)};text-align:center;border:1px solid var(--border);border-radius:${scaled(12)};background:var(--favicon-plate)}`,
+  `.favicon-fallback{position:absolute;inset:0;margin:auto;width:${scaled(20)};height:${scaled(20)};color:var(--favicon-fallback)}`,
+  `.favicon{position:relative;vertical-align:middle;max-width:${scaled(20)};max-height:${scaled(20)};background:var(--favicon-plate)}`,
+  `.acct-text{display:flex;flex-direction:column;gap:${scaled(4)};min-width:0;line-height:1.35;overflow-wrap:anywhere}`,
+  ".acct-name{font-weight:500}",
+  `.other-urls{margin-left:${scaled(8)};font-size:${scaled(12)};font-weight:400}.other-urls a{color:var(--muted);margin-right:${scaled(8)}}`,
+  `.proof-meta{font-size:${scaled(12)};color:var(--muted)}`,
+  `.notfound{padding:${scaled(56)} ${scaled(24)};text-align:center}.notfound h1{font-size:${scaled(20)}}`,
+  `@media (max-width:640px){.profile-header{padding:${scaled(12)} ${scaled(16)}}.profile-page{padding:${scaled(24)} ${scaled(16)} ${scaled(32)}}}`,
 ].join("");
 
 // --------------------------------------------------
@@ -175,7 +183,8 @@ function Document({
         <title>{title}</title>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         {head}
-        <style>{styles}</style>
+        {/* `<style>`の中は文字参照を解釈しないため、書体名の引用符をエスケープせずに出力する（固定の文字列だけを入れる）。 */}
+        <style dangerouslySetInnerHTML={{ __html: styles }} />
       </head>
       <body>
         <IconSymbols />
@@ -273,6 +282,7 @@ function formatUrlForDisplay(url: string): string {
 /**
  * 外部アカウント1件。
  * 「サービス名：識別子」を主URL（最初のURL識別子）への`rel="me"`リンクにし、ほかのURL識別子は同じ行に小さく並べる。
+ * 外部のページは、公開プロフィールを残すため新しいタブで開く。
  * 識別子はユーザー名・主URL・固有IDの順に最初にあるものを使い、表示名は使わない。
  */
 function ExternalAccountItem({
@@ -307,14 +317,14 @@ function ExternalAccountItem({
           {primaryUrl === undefined ? (
             label
           ) : (
-            <a href={primaryUrl} rel="me">
+            <a href={primaryUrl} rel="me noopener" target="_blank">
               {label}
             </a>
           )}
           {otherUrls.length === 0 ? null : (
             <span class="other-urls">
               {otherUrls.map((url) => (
-                <a key={url} href={url} rel="me">
+                <a key={url} href={url} rel="me noopener" target="_blank">
                   {formatUrlForDisplay(url)}
                 </a>
               ))}

@@ -25,7 +25,7 @@ export function SettingsSection({
     <Card
       role="region"
       aria-labelledby={titleId}
-      className={`grid grid-cols-[var(--q-label-w)_minmax(0,1fr)] gap-x-6 gap-y-3 max-sm:grid-cols-1 ${isDanger ? "border-danger/40" : ""}`}
+      className={`grid grid-cols-[var(--q-label-w)_minmax(0,1fr)] gap-x-6 gap-y-3 max-sm:grid-cols-1 max-sm:px-5 ${isDanger ? "border-danger/40" : ""}`}
     >
       <div className="flex flex-col gap-1">
         <h2 id={titleId} className={`font-display text-lg font-bold ${isDanger ? "text-danger" : ""}`}>

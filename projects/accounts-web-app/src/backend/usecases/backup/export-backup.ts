@@ -54,16 +54,22 @@ export function serializeBackup(backup: Backup): string {
 }
 
 /**
- * 本人の表示名・全外部アカウント（候補を含む）・全提供先の記録からバックアップJSONを組み立てる。
- * `verifications`は現在の証明行から作り、`clientVisibility`は`clientConsents`の各Client IDを網羅する（設定行が無ければ`false`）。
+ * 本人の表示名・全外部アカウント（候補を含む）からバックアップJSONを組み立てる。
+ * `verifications`は現在の証明行から作る。
+ * `clientVisibility`は、本人の公開選択の行に現れる各Client IDを網羅する（その外部アカウントに行が無ければ`false`）。
  */
 async function buildBackup(deps: ExportBackupDeps, input: { userId: string }): Promise<Backup> {
-  const backupRepository = new D1BackupRepository(deps.db);
-  const [displayName, clientConsents, externalAccounts] = await Promise.all([
-    backupRepository.findDisplayName(input.userId),
-    backupRepository.findClientConsents(input.userId),
+  const [displayName, externalAccounts] = await Promise.all([
+    new D1BackupRepository(deps.db).findDisplayName(input.userId),
     new D1ExternalAccountRepository(deps.db).findOwnExternalAccountDetails(input.userId),
   ]);
+  const clientIds = [
+    ...new Set(
+      externalAccounts.flatMap((externalAccount) =>
+        externalAccount.externalAccountVisibility.map((visibility) => visibility.clientId),
+      ),
+    ),
+  ].toSorted();
 
   return {
     schemaVersion: 1,
@@ -71,7 +77,6 @@ async function buildBackup(deps: ExportBackupDeps, input: { userId: string }): P
     accountsUserId: input.userId,
     exportedAt: deps.now.toISOString(),
     profile: { displayName },
-    clientConsents,
     externalAccounts: externalAccounts.map((externalAccount) => {
       const identifierById = new Map(
         externalAccount.externalIdentifiers.map((identifier) => [
@@ -109,9 +114,9 @@ async function buildBackup(deps: ExportBackupDeps, input: { userId: string }): P
           })),
         },
         isPublic: externalAccount.isPublic,
-        clientVisibility: clientConsents.map((consent) => ({
-          clientId: consent.clientId,
-          isPublic: visibilityByClientId.get(consent.clientId) ?? false,
+        clientVisibility: clientIds.map((clientId) => ({
+          clientId,
+          isPublic: visibilityByClientId.get(clientId) ?? false,
         })),
       };
     }),

@@ -1,5 +1,6 @@
 import { AlertDialog, Button } from "@heroui/react";
 
+import { AlertIcon } from "../../app-shell/components/icons";
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { developerMessages } from "../messages";
@@ -30,20 +31,20 @@ export function DeleteOAuthClientDialog({
           if (!open) onCancel();
         }}
       >
-        <AlertDialog.Container>
+        <AlertDialog.Container placement="center">
           <AlertDialog.Dialog>
             <AlertDialog.Header>
-              <AlertDialog.Icon status="danger" />
+              <AlertIcon className="size-5 shrink-0 text-danger" />
               <AlertDialog.Heading>{messages.deleteTitle}</AlertDialog.Heading>
             </AlertDialog.Header>
             <AlertDialog.Body>
               <p>{messages.deleteDescription}</p>
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Button variant="tertiary" isDisabled={isDeleting} onPress={onCancel}>
+              <Button size="sm" variant="tertiary" isDisabled={isDeleting} onPress={onCancel}>
                 {common.cancel}
               </Button>
-              <Button variant="danger" isDisabled={isDeleting} onPress={onConfirm}>
+              <Button size="sm" variant="danger" isDisabled={isDeleting} onPress={onConfirm}>
                 {isDeleting ? messages.deleting : messages.deleteClient}
               </Button>
             </AlertDialog.Footer>

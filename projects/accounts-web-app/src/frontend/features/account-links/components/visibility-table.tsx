@@ -55,7 +55,8 @@ export function VisibilityTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-surface">
-      <div ref={observeScrollWidth} className="max-h-(--table-max-h) overflow-auto">
+      {/* 見出しの読み上げ用の文字（sr-only の絶対配置）をこの枠の中に留め、ページを伸ばさない。 */}
+      <div ref={observeScrollWidth} className="relative max-h-(--table-max-h) overflow-auto">
         <table
           className="w-full min-w-[calc(var(--col-lead)+var(--col-dest)*var(--dest-count))] border-separate border-spacing-0 text-sm max-sm:[--col-dest:var(--col-dest-compact)] max-sm:[--col-lead:var(--col-lead-compact)] [&_tbody_tr:last-child>*]:border-b-0"
           style={{ "--dest-count": columns.length } as CSSProperties}
@@ -195,11 +196,12 @@ function AccountRows({
                 <ServiceFavicon host={iconHost} />
               </span>
             )}
+            {/* 行間は`text-*`を付けた要素ごとに指定する（`leading-*`の値は子へ継承されないため）。 */}
             <div className="flex min-w-0 flex-col gap-1 leading-tight">
-              <span className="text-md font-medium wrap-anywhere">
+              <span className="text-md leading-tight font-medium wrap-anywhere">
                 <span className="max-sm:block">{serviceName}</span>
                 <span className="max-sm:hidden">{messages.accountLabelSeparator}</span>
-                <span className="max-sm:block max-sm:font-mono max-sm:text-xs max-sm:font-normal max-sm:text-muted">
+                <span className="leading-tight max-sm:block max-sm:font-mono max-sm:text-xs max-sm:font-normal max-sm:text-muted">
                   {identifier}
                 </span>
               </span>
@@ -220,7 +222,7 @@ function AccountRows({
                   type="button"
                   aria-expanded={isExpanded}
                   onClick={onToggleDetail}
-                  className="inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-xs text-muted hover:bg-surface-secondary hover:text-foreground"
+                  className="inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-xs leading-tight text-muted hover:bg-surface-secondary hover:text-foreground"
                 >
                   {messages.details}
                   <ChevronDownIcon className={`size-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />

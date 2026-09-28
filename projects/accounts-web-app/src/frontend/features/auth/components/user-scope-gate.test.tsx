@@ -99,14 +99,23 @@ describe("UserScopeGate", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("ログインしていない場合、ログインが必要な画面はログインを求める1文だけを表示し、ログイン用のダイアログを開いて同じURLへ戻す", async () => {
+  it("ログインしていない場合、ログインが必要な画面はダイアログを自動で開かず、ログインを求める1文と「ログインする」だけを表示する", async () => {
+    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+    renderUserScopedPage("/account-links");
+
+    expect(await screen.findByText("表示するにはログインしてください")).toBeDefined();
+    expect(screen.getByRole("button", { name: "ログインする" })).toBeDefined();
+    expect(screen.queryByText("account links page")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("ログインしていない場合、「ログインする」でログイン用のダイアログを開き、ログイン後に同じURLへ戻す", async () => {
     authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
     authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
     renderUserScopedPage("/account-links");
 
+    await userEvent.click(await screen.findByRole("button", { name: "ログインする" }));
     const dialog = await screen.findByRole("dialog");
-    expect(screen.getByText("表示するにはログインしてください")).toBeDefined();
-    expect(screen.queryByText("account links page")).toBeNull();
     within(dialog).getByRole("button", { name: "GitHubでログイン" }).click();
 
     await waitFor(() =>
@@ -116,18 +125,6 @@ describe("UserScopeGate", () => {
         errorCallbackURL: "/account-links",
       }),
     );
-  });
-
-  it("ログインしていない場合、ログイン用のダイアログを閉じても「ログインする」で開き直せる", async () => {
-    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
-    renderUserScopedPage("/account-links");
-    const dialog = await screen.findByRole("dialog");
-
-    await userEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    await userEvent.click(screen.getByRole("button", { name: "ログインする" }));
-
-    expect(await screen.findByRole("dialog")).toBeDefined();
   });
 
   it("ログインしていない場合、ログインの失敗で戻されたときは失敗の案内とともにダイアログを開く", async () => {
@@ -192,14 +189,27 @@ describe("UserScopeGate", () => {
     expect(await screen.findByText("settings page")).toBeDefined();
   });
 
-  it("URLのユーザーでログインしていない場合は、ログイン用のダイアログを開き、ログイン後に同じURLへ戻す", async () => {
+  it("URLのユーザーでログインしていない場合は、ダイアログを自動で開かず、そのユーザーでのログインを求める", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderUserScopedPage("/ausr_bob/settings");
+
+    // AccountsユーザーIDは等幅の書体で示す。
+    const accountsUserId = await screen.findByText("ausr_bob");
+    expect(accountsUserId.className).toContain("font-mono");
+    expect(accountsUserId.parentElement?.textContent).toBe(
+      "この画面はFreeism Accountsユーザー「ausr_bob」の画面です。このユーザーでログインすると表示します。",
+    );
+    expect(screen.queryByText("settings page")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("URLのユーザーでログインしていない場合は、「ログインする」でログイン用のダイアログを開き、ログイン後に同じURLへ戻す", async () => {
     authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
     authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
     renderUserScopedPage("/ausr_bob/settings");
 
+    await userEvent.click(await screen.findByRole("button", { name: "ログインする" }));
     const dialog = await screen.findByRole("dialog");
-    expect(screen.queryByText("settings page")).toBeNull();
-    expect(screen.getByText(/ausr_bob/)).toBeDefined();
     within(dialog).getByRole("button", { name: "Googleでログイン" }).click();
 
     await waitFor(() =>

@@ -6,36 +6,39 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-/* -------------------------------------------------- Tailwind のテーマ（書体・文字サイズ・行間・角丸） */
+/*
+ * -------------------------------------------------- Tailwind のテーマ（書体・文字サイズ・行間・角丸）
+ * 寸法は基準値に `--scale` を掛ける（`--scale` は下のトークンで定義する）。
+ */
 @theme {
   --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
   --font-sans: "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
   --font-mono: "M PLUS 1 Code", ui-monospace, Menlo, monospace;
 
-  --text-2xs: 11px;
+  --text-2xs: calc(11px * var(--scale));
   --text-2xs--line-height: 1.7;
-  --text-xs: 12px;
+  --text-xs: calc(12px * var(--scale));
   --text-xs--line-height: 1.7;
-  --text-sm: 13px;
+  --text-sm: calc(13px * var(--scale));
   --text-sm--line-height: 1.7;
-  --text-md: 14px;
+  --text-md: calc(14px * var(--scale));
   --text-md--line-height: 1.7;
-  --text-lg: 16px;
+  --text-lg: calc(16px * var(--scale));
   --text-lg--line-height: 1.7;
-  --text-xl: 20px;
+  --text-xl: calc(20px * var(--scale));
   --text-xl--line-height: 1.7;
-  --text-2xl: 26px;
+  --text-2xl: calc(26px * var(--scale));
   --text-2xl--line-height: 1.7;
-  --text-3xl: 30px;
+  --text-3xl: calc(30px * var(--scale));
   --text-3xl--line-height: 1.7;
 
   --leading-tight: 1.35;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  --radius-sm: calc(8px * var(--scale));
+  --radius-md: calc(12px * var(--scale));
+  --radius-lg: calc(14px * var(--scale));
+  --radius-xl: calc(20px * var(--scale));
+  --radius-2xl: calc(24px * var(--scale));
 }
 
 /* -------------------------------------------------- HeroUI に無い色のユーティリティ */
@@ -90,43 +93,51 @@
   --brand-google-green: #34a853;
   --brand-orcid: #a6ce39;
 
+  /*
+   * 寸法の倍率。
+   * 文字サイズ・間隔・角丸・操作部品・レイアウトの寸法は、基準値にこの値を掛ける。
+   * ブレークポイント・`--table-max-h`・枠線の太さ・影は掛けない。
+   */
+  --scale: 1.1;
+
   --leading: 1.7;
 
   /*
    * 手書きの CSS から使う間隔。
-   * Tailwind の数値（`p-4` など）と同じ値。
+   * Tailwind の数値（`p-4` など）と同じ値にするため、`--spacing`（HeroUI がレイヤーの中で定義する）もここで上書きする。
    */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-14: 56px;
+  --spacing: calc(4px * var(--scale));
+  --space-1: calc(4px * var(--scale));
+  --space-2: calc(8px * var(--scale));
+  --space-3: calc(12px * var(--scale));
+  --space-4: calc(16px * var(--scale));
+  --space-5: calc(20px * var(--scale));
+  --space-6: calc(24px * var(--scale));
+  --space-8: calc(32px * var(--scale));
+  --space-10: calc(40px * var(--scale));
+  --space-14: calc(56px * var(--scale));
 
-  --icon-sm: 16px;
-  --icon-md: 20px;
-  --control-h: 40px;
-  --control-h-sm: 32px;
-  --input-h: 44px;
-  --checkbox: 22px;
-  --avatar: 34px;
-  --page-max: 1000px;
+  --icon-sm: calc(16px * var(--scale));
+  --icon-md: calc(20px * var(--scale));
+  --control-h: calc(40px * var(--scale));
+  --control-h-sm: calc(32px * var(--scale));
+  --input-h: calc(44px * var(--scale));
+  --checkbox: calc(22px * var(--scale));
+  --avatar: calc(34px * var(--scale));
+  --page-max: calc(1000px * var(--scale));
   --prose-max: 65ch;
-  --menu-w: 320px;
-  --lang-menu-w: 200px;
-  --provider-w: 280px;
-  --dialog-w: 440px;
-  --q-label-w: 200px;
-  --col-lead: 288px;
-  --col-lead-compact: 168px;
-  --col-dest: 112px;
-  --col-dest-compact: 72px;
-  --consent-w: 480px;
+  --menu-w: calc(320px * var(--scale));
+  --lang-menu-w: calc(200px * var(--scale));
+  --provider-w: calc(280px * var(--scale));
+  --dialog-w: calc(440px * var(--scale));
+  --q-label-w: calc(200px * var(--scale));
+  --col-lead: calc(288px * var(--scale));
+  --col-lead-compact: calc(168px * var(--scale));
+  --col-dest: calc(112px * var(--scale));
+  --col-dest-compact: calc(72px * var(--scale));
+  --consent-w: calc(480px * var(--scale));
   --table-max-h: 90vh;
-  --sticky-offset: 72px;
+  --sticky-offset: calc(72px * var(--scale));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -218,6 +229,7 @@
   --field-border-focus: var(--accent);
   --field-focus: var(--surface);
   --field-radius: var(--radius-lg);
+  --radius: calc(8px * var(--scale));
   --field-shadow: 0 0 0 0 transparent;
   --surface-shadow: var(--shadow);
   --overlay-shadow: var(--shadow-pop);
@@ -292,6 +304,16 @@
     width: var(--control-h-sm);
   }
 
+  /*
+   * ボタンの中のアイコン: どの幅でも --icon-sm。
+   * HeroUI は 640px 未満で 20px にするため、同じセレクタで上書きする。
+   * 大きさのユーティリティ（`size-5` など）を付けたアイコンは、そちらに従う。
+   */
+  .button svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+  }
+
   /* セカンダリ（`outline`）: 面と枠。 */
   .button--outline {
     --button-bg: var(--surface);
@@ -326,11 +348,11 @@
   }
 
   /*
-   * チップ: 高さ 24px、pill。
+   * チップ: 高さ 24px（× --scale）、pill。
    * 状態を示すだけで押せない。
    */
   .chip {
-    height: 24px;
+    height: calc(24px * var(--scale));
     gap: var(--space-1);
     padding-inline: var(--space-3);
     border-radius: 9999px;
@@ -344,8 +366,9 @@
     --chip-fg: var(--muted);
   }
 
-  /* 枠カード。 */
+  /* 枠カード: 中の間隔は --space-4。 */
   .card {
+    gap: var(--space-4);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: var(--space-5) var(--space-6);
@@ -371,6 +394,39 @@
     font-size: var(--text-xl);
     font-weight: 700;
     line-height: var(--leading-tight);
+  }
+
+  /* 本文は --foreground。見出し→本文→ボタンの間隔は --space-4。 */
+  .modal__body {
+    color: var(--foreground);
+    line-height: var(--leading);
+  }
+
+  .modal__header + .modal__body,
+  .modal__body + .modal__footer {
+    margin-top: var(--space-4);
+  }
+
+  /* 閉じるボタン: ゴーストの小さい icon-only ボタンと同じ見た目にし、見出しと同じ行の右端に置く。 */
+  .modal__close-trigger {
+    top: var(--space-6);
+    inset-inline-end: var(--space-6);
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
+    border-radius: 9999px;
+    background-color: transparent;
+    color: var(--muted);
+
+    &:hover {
+      background-color: var(--surface-secondary);
+      color: var(--foreground);
+    }
+  }
+
+  /* 見出しを閉じるボタンと重ねず、縦の中心を揃える。 */
+  .modal__close-trigger ~ .modal__header {
+    padding-top: var(--space-1);
+    padding-inline-end: calc(var(--control-h-sm) + var(--space-3));
   }
 
   /* ポップオーバー（アカウント切替メニューなど）。 */
@@ -406,16 +462,30 @@
     background-color: var(--danger-soft);
   }
 
+  .alert__content {
+    gap: var(--space-2);
+  }
+
+  .alert--danger .alert__title {
+    font-weight: 700;
+  }
+
   .alert__description {
     color: var(--foreground);
   }
 
   /*
-   * 入力欄: 高さ --input-h。
+   * 入力欄: 高さ --input-h、内側の余白は左右 --space-4。
    * フォーカスで枠を主色・面を --surface にする指定は、HeroUI の変数（--field-border-focus・--field-focus）で行う。
    */
   .input {
     min-height: var(--input-h);
+    padding: 0 var(--space-4);
+    font-size: var(--text-md);
+  }
+
+  .textarea {
+    padding: var(--space-3) var(--space-4);
     font-size: var(--text-md);
   }
 
@@ -448,7 +518,41 @@
   .checkbox__indicator,
   .checkbox [data-slot="checkbox-default-indicator--checkmark"],
   .checkbox[data-indeterminate="true"] [data-slot="checkbox-default-indicator--indeterminate"] {
-    width: 14px;
-    height: 14px;
+    width: calc(14px * var(--scale));
+    height: calc(14px * var(--scale));
+  }
+
+  /*
+   * 確認ダイアログ: 幅 --dialog-w、角丸 --radius-2xl。
+   * 見出しは --text-xl の太字にし、注意アイコン（各ダイアログで置く --icon-md のアイコン）を見出しの左に並べる。
+   * 本文は --foreground。見出し→本文→ボタンの間隔は --space-4。
+   */
+  .alert-dialog__dialog {
+    max-width: var(--dialog-w);
+    border-radius: var(--radius-2xl);
+  }
+
+  .alert-dialog__header {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-1);
+  }
+
+  .alert-dialog__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+
+  .alert-dialog__body {
+    color: var(--foreground);
+    line-height: var(--leading);
+  }
+
+  .alert-dialog__header + .alert-dialog__body,
+  .alert-dialog__body + .alert-dialog__footer {
+    margin-top: var(--space-4);
   }
 }

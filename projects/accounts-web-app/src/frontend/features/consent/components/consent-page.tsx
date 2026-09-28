@@ -76,7 +76,7 @@ function ConsentCard({
   return (
     <section
       aria-labelledby="consent-title"
-      className="mx-auto flex w-full max-w-(--consent-w) flex-col gap-5 rounded-xl border border-border bg-surface px-6 py-5 shadow-surface max-sm:p-4"
+      className="mx-auto flex w-full max-w-(--consent-w) flex-col gap-4 rounded-xl border border-border bg-surface px-6 py-5 shadow-surface max-sm:p-4"
     >
       <div className="flex flex-col gap-3">
         <h1 id="consent-title" className="text-xl">
@@ -197,7 +197,7 @@ function ConsentAccountList({
           isIndeterminate={bulkState === "some"}
           isDisabled={bulkState === "empty"}
           onChange={onAllSelectedChange}
-          className="py-2 text-sm font-medium"
+          className="py-3 text-sm font-medium"
         >
           <span className="flex-1">{messages.listHeading}</span>
         </PickRow>
@@ -216,7 +216,7 @@ function ConsentAccountList({
             >
               {iconHost === undefined ? null : <ServiceFavicon host={iconHost} />}
               <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
-                <span className="text-md font-medium wrap-anywhere">{accountLabel}</span>
+                <span className="text-md leading-tight font-medium wrap-anywhere">{accountLabel}</span>
                 <span className="flex flex-wrap items-center gap-1">
                   {account.verificationStatus === "verified" ? (
                     listVerifiedMethods(account).map((method) => (

@@ -309,6 +309,17 @@ describe("BackupRestoreSection", () => {
     expect(alert.textContent).toContain("ファイル全体: JSONの構文が正しくありません。");
   });
 
+  it("不備の一覧は「取り込む」の直下（テンプレートの操作より上）に示す", async () => {
+    const issues = [{ code: "INVALID_JSON", message: "", path: null }];
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ issues })} />);
+
+    const alert = await screen.findByRole("alert");
+    const importButton = screen.getByRole("button", { name: "取り込む" });
+    const templateButton = screen.getByRole("button", { name: "テンプレートをダウンロード" });
+    expect(importButton.compareDocumentPosition(alert) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(alert.compareDocumentPosition(templateButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("Web URLの上限超過は、URLを整理してから再実行するよう案内する", async () => {
     const issues = [{ code: "URL_LIMIT_REACHED", message: "", path: null }];
     renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ issues })} />);
@@ -319,11 +330,13 @@ describe("BackupRestoreSection", () => {
   });
 
   it("取込の成功を件数とともにstatusで示す", async () => {
-    const result = { updatedAccountCount: 2, addedCandidateCount: 1, clientConsentCount: 3 };
+    const result = { updatedAccountCount: 2, addedCandidateCount: 1 };
     renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ result })} />);
 
     const statusTexts = (await screen.findAllByRole("status")).map((status) => status.textContent).join("\n");
     expect(statusTexts).toContain("公開設定を戻した外部アカウント: 2件");
+    expect(statusTexts).toContain("登録候補として追加: 1件");
+    expect(statusTexts).not.toContain("連携先");
     expect(statusTexts).toContain("所有権を証明すると有効になります");
   });
 });

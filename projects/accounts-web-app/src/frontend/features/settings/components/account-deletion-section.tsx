@@ -1,5 +1,6 @@
 import { AlertDialog, Button, Input, Label, TextField } from "@heroui/react";
 
+import { AlertIcon } from "../../app-shell/components/icons";
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { ErrorNotice } from "../../app-shell/components/status-messages";
@@ -31,10 +32,10 @@ export function AccountDeletionSection({ accountDeletion }: { accountDeletion: A
             if (!open) accountDeletion.closeDialog();
           }}
         >
-          <AlertDialog.Container>
-            <AlertDialog.Dialog className="max-w-(--dialog-w)">
+          <AlertDialog.Container placement="center">
+            <AlertDialog.Dialog>
               <AlertDialog.Header>
-                <AlertDialog.Icon status="danger" />
+                <AlertIcon className="size-5 shrink-0 text-danger" />
                 <AlertDialog.Heading>{messages.deletionDialogTitle}</AlertDialog.Heading>
               </AlertDialog.Header>
               <AlertDialog.Body className="flex flex-col gap-4">
@@ -45,7 +46,7 @@ export function AccountDeletionSection({ accountDeletion }: { accountDeletion: A
                   isDisabled={accountDeletion.isDeleting}
                 >
                   <Label>{messages.deletionConfirmLabel}</Label>
-                  <Input className="font-mono" autoComplete="off" spellCheck={false} placeholder="DELETE" />
+                  <Input className="font-mono text-sm" autoComplete="off" spellCheck={false} placeholder="DELETE" />
                 </TextField>
                 {accountDeletion.deleteError === null ? null : <ErrorNotice error={accountDeletion.deleteError} />}
               </AlertDialog.Body>

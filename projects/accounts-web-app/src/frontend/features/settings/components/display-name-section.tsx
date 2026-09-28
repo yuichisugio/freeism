@@ -39,9 +39,9 @@ export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
             validationBehavior="aria"
             className="w-full"
           >
-            <div className="flex items-center gap-3">
-              <Input className="flex-1" />
-              <span className={`text-sm tabular-nums ${isInvalid ? "text-danger" : "text-muted"}`}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input className="max-w-[360px] min-w-0 flex-[1_1_220px]" />
+              <span className={`text-xs tabular-nums ${isInvalid ? "text-danger" : "text-muted"}`}>
                 {messages.displayNameCount(form.displayNameLength)}
               </span>
             </div>

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { ArrowRightIcon, CheckIcon, LogoutIcon, PersonIcon, PlusIcon } from "../../app-shell/components/icons";
+import { ErrorText } from "../../app-shell/components/status-messages";
 import { useAccountSwitcher } from "../hooks/use-account-switcher";
 import { useDeviceSessions } from "../hooks/use-device-sessions";
 import { useLoginDialog } from "../hooks/use-login-dialog";
@@ -25,7 +26,8 @@ const sessionKeyPrefix = "session:";
 
 /**
  * ヘッダー右の人のアイコンから開くアカウント切替メニュー。
- * 見出しを置かず、現在のユーザー（先頭・強調・「現在のユーザー」チップ）、このブラウザーでログイン中のほかのユーザー（押すと切替）、「アカウントを追加」、区切り、「{表示名}からログアウト」の順に並べる。
+ * 見出しを置かず、現在のユーザー（先頭・強調・「現在」チップ）、このブラウザーでログイン中のほかのユーザー（押すと切替）、「アカウントを追加」、区切り、「「{表示名}」からログアウト」の順に並べる。
+ * ユーザーの行はアバターを置かず、表示名とAccountsユーザーIDだけにする。
  * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ../../app-shell/components/app-header.test.tsx
  */
@@ -57,11 +59,12 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="relative">
+      {/* 狭い幅でもロゴを押し出さないよう、失敗の案内はヘッダーの行に並べず、人のアイコンの下に重ねる。 */}
       {switcher.failure === null ? null : (
-        <span role="alert" className="text-sm text-danger">
-          {switcher.failure === "switch" ? messages.switchFailed : messages.signOutFailed}
-        </span>
+        <div className="absolute end-0 top-full z-10 mt-2 w-(--menu-w) max-w-[calc(100vw-var(--space-8))] rounded-md shadow-overlay">
+          <ErrorText>{switcher.failure === "switch" ? messages.switchFailed : messages.signOutFailed}</ErrorText>
+        </div>
       )}
       <Dropdown>
         <Dropdown.Trigger
@@ -70,11 +73,10 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
         >
           <PersonIcon className="size-5" />
         </Dropdown.Trigger>
-        <Dropdown.Popover placement="bottom end" className="w-(--menu-w) max-w-[calc(100vw-2rem)]">
+        <Dropdown.Popover placement="bottom end" className="w-(--menu-w) max-sm:w-[calc(100vw-var(--space-8))]">
           <Dropdown.Menu onAction={handleAction} className="p-2">
             <Dropdown.Section aria-label={messages.sessionsLabel}>
               <Dropdown.Item id={currentUserKey} textValue={currentUser.displayName} className="bg-surface-secondary">
-                <UserAvatar displayName={currentUser.displayName} isCurrent />
                 <UserText displayName={currentUser.displayName} accountsUserId={currentUser.accountsUserId} isCurrent />
                 <Chip color="success" variant="soft" className="ml-auto">
                   <CheckIcon className="size-3" />
@@ -92,7 +94,6 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
                   id={`${sessionKeyPrefix}${session.sessionId}`}
                   textValue={session.displayName}
                 >
-                  <UserAvatar displayName={session.displayName} />
                   <UserText displayName={session.displayName} accountsUserId={session.accountsUserId} />
                   <ArrowRightIcon className="ml-auto size-4 shrink-0 text-muted" />
                 </Dropdown.Item>
@@ -115,24 +116,6 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
         </Dropdown.Popover>
       </Dropdown>
     </div>
-  );
-}
-
-/**
- * 表示名の頭文字のアバター。
- * 現在のユーザーは主色の面にする。
- */
-function UserAvatar({ displayName, isCurrent = false }: { displayName: string; isCurrent?: boolean }) {
-  const initial = Array.from(displayName)[0]?.toUpperCase() ?? "";
-  return (
-    <span
-      aria-hidden="true"
-      className={`grid size-(--avatar) shrink-0 place-items-center rounded-full font-display font-bold ${
-        isCurrent ? "bg-accent text-accent-foreground" : "bg-accent-soft text-accent"
-      }`}
-    >
-      {initial}
-    </span>
   );
 }
 

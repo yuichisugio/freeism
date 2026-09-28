@@ -10,7 +10,8 @@ import { accountLinksMessages } from "../messages";
 
 /**
  * 「ログインで証明」カード。
- * Google・GitHub・ORCIDの追加連携のボタンを3列で並べ、狭い幅ではサービス名だけにする。
+ * Google・GitHub・ORCIDの追加連携のボタンを3列で並べ、各ボタンを列の幅いっぱいに広げる（HeroUIのボタンは既定で内容の幅）。
+ * 狭い幅ではサービス名だけにする。
  * 連携の失敗（Better Authの`?error=`）の案内も表示する。
  * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  */
@@ -28,7 +29,7 @@ export function ProviderLinkButtons({
   const messages = useMessages(accountLinksMessages);
   return (
     <Card className="gap-4">
-      <Card.Header className="gap-1">
+      <Card.Header className="gap-4">
         <h2 className="text-lg">{messages.oauthProofTitle}</h2>
         <Card.Description className="text-xs text-muted">{messages.oauthProofDescription}</Card.Description>
       </Card.Header>
@@ -43,7 +44,7 @@ export function ProviderLinkButtons({
                 aria-label={messages.addProvider(serviceName)}
                 isDisabled={pendingProvider !== null}
                 onPress={() => onLink(provider)}
-                className="min-w-0 px-3"
+                className="w-full min-w-0 px-3"
               >
                 <LoginProviderIcon provider={provider} className="size-5 shrink-0" />
                 <span className="truncate max-sm:hidden">{messages.addProvider(serviceName)}</span>

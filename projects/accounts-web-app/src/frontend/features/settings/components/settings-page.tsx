@@ -1,5 +1,5 @@
-import { Button, Card } from "@heroui/react";
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
@@ -9,7 +9,7 @@ import { PageMain } from "../../app-shell/components/page-main";
 import { SaveBar } from "../../app-shell/components/save-bar";
 import { UnsavedChangesDialog } from "../../app-shell/components/unsaved-changes-dialog";
 import { useUnsavedChangesGuard } from "../../app-shell/hooks/use-unsaved-changes-guard";
-import { useLoginDialog } from "../../auth/hooks/use-login-dialog";
+import { SignInRequiredCard } from "../../auth/components/sign-in-required-card";
 import { DeveloperSection } from "../../developer/components/developer-section";
 import { useOAuthClients } from "../../developer/hooks/use-oauth-clients";
 import { useAccountDeletion } from "../hooks/use-account-deletion";
@@ -38,19 +38,26 @@ export function SettingsPage() {
 
   return (
     <PageMain>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <h1 className="text-2xl">{messages.title}</h1>
         <Link
           to="/{-$accountsUserId}/help"
-          className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-sm text-muted hover:text-foreground"
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-foreground hover:border-accent hover:no-underline"
         >
-          <HelpIcon className="size-4" />
+          <HelpIcon className="size-4 text-accent" />
           {messages.helpLink}
         </Link>
       </div>
       {session.data === null ? <GuestSettings /> : <SignedInSettings />}
     </PageMain>
   );
+}
+
+/**
+ * 設問カードの縦の並び（カードの間は --space-4）。
+ */
+function SettingsCardList({ children }: { children: ReactNode }) {
+  return <div className="flex flex-col gap-4">{children}</div>;
 }
 
 // --------------------------------------------------
@@ -63,21 +70,13 @@ export function SettingsPage() {
  */
 function GuestSettings() {
   const messages = useMessages(settingsMessages);
-  const common = useMessages(commonMessages);
-  const loginDialog = useLoginDialog();
-  const pathname = useLocation({ select: (location) => location.pathname });
 
   return (
-    <>
-      <Card className="flex-row flex-wrap items-center justify-between gap-4">
-        <p>{messages.guestSignInRequired}</p>
-        <Button variant="primary" onPress={() => loginDialog.open({ returnTo: pathname })}>
-          {common.signIn}
-        </Button>
-      </Card>
+    <SettingsCardList>
+      <SignInRequiredCard message={messages.guestSignInRequired} />
       <LanguageSection />
       <ThemeSection />
-    </>
+    </SettingsCardList>
   );
 }
 
@@ -107,13 +106,15 @@ function SignedInSettings() {
 
   return (
     <>
-      <DisplayNameSection form={displayNameForm} />
-      <LanguageSection />
-      <ThemeSection />
-      <BackupExportSection backupExport={backupExport} />
-      <BackupRestoreSection displayName={displayNameForm.me?.displayName ?? ""} backupRestore={backupRestore} />
-      <DeveloperSection state={oauthClients} />
-      <AccountDeletionSection accountDeletion={accountDeletion} />
+      <SettingsCardList>
+        <DisplayNameSection form={displayNameForm} />
+        <LanguageSection />
+        <ThemeSection />
+        <BackupExportSection backupExport={backupExport} />
+        <BackupRestoreSection displayName={displayNameForm.me?.displayName ?? ""} backupRestore={backupRestore} />
+        <DeveloperSection state={oauthClients} />
+        <AccountDeletionSection accountDeletion={accountDeletion} />
+      </SettingsCardList>
       {displayNameForm.isDirty ? (
         <SaveBar
           dirtyCount={1}

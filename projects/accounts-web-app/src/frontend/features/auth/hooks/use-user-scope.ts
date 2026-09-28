@@ -23,12 +23,12 @@ declare module "@tanstack/react-router" {
 /**
  * URLのAccountsユーザーIDと現在のセッションを揃える状態。
  * `checking`はセッションの確認・切替・ID付きのURLへの置き換えの途中。
- * `signInRequired`は、URLのユーザーでこのブラウザーにログインしていない状態で、`openLogin`でログイン用のダイアログを開き直せる。
+ * `signInRequired`は、URLのユーザーでこのブラウザーにログインしていない状態。
  * `guestSignInRequired`は、ログインが必要な画面を未ログインで開いた状態。
  */
 export type UserScope =
   | { status: "checking" | "ready" | "switchFailed" | "guestSignInRequired" }
-  | { status: "signInRequired"; accountsUserId: string; openLogin: () => void };
+  | { status: "signInRequired"; accountsUserId: string };
 
 /**
  * URLのユーザーへの切替が済まなかった結果。
@@ -44,8 +44,10 @@ type ActivationResult = "switched" | "signInRequired" | "switchFailed";
  * 画面のURL（`/{accountsUserId}/...`）のユーザーと、現在の有効セッションのユーザーを揃える。
  * URLのIDは表示するユーザーの切替だけに使い、BFFはCookieのセッションで本人を判定する。
  * - IDの無いURLは、ログイン済みなら現在のユーザーのID付きのURLへ置き換える。
- *   未ログインなら、未ログインでも表示する画面（経路の`staticData.allowsGuest`・`isUserIndependent`）はそのまま表示し、ほかの画面はログイン用のダイアログを開いてログイン後に同じURLへ戻す。
- * - IDが現在のユーザーと違えば、このブラウザーでログイン中のセッションにそのユーザーがあれば`setActive`で切り替え、無ければログイン用のダイアログを開き、ログイン後に同じURLへ戻す。
+ *   未ログインなら、未ログインでも表示する画面（経路の`staticData.allowsGuest`・`isUserIndependent`）はそのまま表示し、ほかの画面はログインを求める。
+ * - IDが現在のユーザーと違えば、このブラウザーでログイン中のセッションにそのユーザーがあれば`setActive`で切り替え、無ければログインを求める。
+ * - ログインを求める画面では、ログイン用のダイアログを自動で開かない。
+ *   ログインに失敗して`?error=`付きで戻されたときだけ、失敗の案内とともに開く。
  * - ユーザーの情報を扱わない画面（経路の`staticData.isUserIndependent`）では、URLのユーザーでログインしていなければ、現在のユーザーのID付き（未ログインならIDの無い）URLへ置き換える。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ../components/user-scope-gate.test.tsx
@@ -74,7 +76,7 @@ export function useUserScope(): UserScope {
     if (urlUserId === undefined) {
       if (sessionUserId !== null) {
         void navigate({ to: ".", params: { accountsUserId: sessionUserId }, search: true, hash: true, replace: true });
-      } else if (!allowsGuest) {
+      } else if (!allowsGuest && loginErrorCode !== undefined) {
         loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
       }
       return;
@@ -94,7 +96,9 @@ export function useUserScope(): UserScope {
         return;
       }
       setFailure({ urlUserId, status: result });
-      if (result === "signInRequired") loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
+      if (result === "signInRequired" && loginErrorCode !== undefined) {
+        loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
+      }
     });
     return () => {
       isActive = false;
@@ -109,11 +113,7 @@ export function useUserScope(): UserScope {
   if (urlUserId === sessionUserId) return { status: "ready" };
   if (failure?.urlUserId !== urlUserId) return { status: "checking" };
   if (failure.status === "switchFailed") return { status: "switchFailed" };
-  return {
-    status: "signInRequired",
-    accountsUserId: urlUserId,
-    openLogin: () => loginDialog.open({ returnTo: pathname }),
-  };
+  return { status: "signInRequired", accountsUserId: urlUserId };
 }
 
 // --------------------------------------------------

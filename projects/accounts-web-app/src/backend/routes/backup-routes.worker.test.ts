@@ -15,7 +15,7 @@ import {
 } from "../../shared/schemas/backup-schema";
 import { dataResponseSchema, problemDetailsSchema } from "../../shared/schemas/problem-details-schema";
 import { createRandomId } from "../db/id";
-import { clientConsents, externalAccounts, user } from "../db/schema";
+import { externalAccounts, externalAccountVisibility, user } from "../db/schema";
 
 const origin = "http://localhost:5173";
 
@@ -154,7 +154,7 @@ describe("POST /api/backup/restore", () => {
       restoreBackupResultSchema,
     );
 
-    expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0, clientConsentCount: 0 });
+    expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0 });
     const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
     expect(userRow?.name).toBe("仮ユーザー");
   });
@@ -171,7 +171,7 @@ describe("POST /api/backup/restore", () => {
       restoreBackupResultSchema,
     );
 
-    expect(result).toEqual({ updatedAccountCount: 0, addedCandidateCount: 1, clientConsentCount: 0 });
+    expect(result).toEqual({ updatedAccountCount: 0, addedCandidateCount: 1 });
     const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
     expect(userRow?.name).toBe("テスト");
   });
@@ -191,16 +191,18 @@ describe("POST /api/backup/restore", () => {
     expect(((await session.json()) as { user: { name: string } }).user.name).toBe("復元した名前");
   });
 
-  it("長い表示名の外部アカウントと連携先を含むファイルも、出力したまま復元できる", async () => {
+  it("長い表示名の外部アカウントと公開選択を含むファイルも、出力したまま復元できる", async () => {
     const { userId, headers } = await createLoggedInUser();
-    const longName = "あ".repeat(90);
+    const [externalAccount] = await readExternalAccounts(userId);
     await testDb
       .update(externalAccounts)
-      .set({ displayName: longName })
+      .set({ displayName: "あ".repeat(90) })
       .where(eq(externalAccounts.userId, userId));
-    await testDb
-      .insert(clientConsents)
-      .values({ userId, clientId: createRandomId("client-"), displayName: longName });
+    await testDb.insert(externalAccountVisibility).values({
+      accountId: externalAccount?.id ?? "",
+      clientId: createRandomId("client-"),
+      isPublic: true,
+    });
     const json = await exportBackupFile(headers);
 
     const result = await readData(
@@ -208,7 +210,7 @@ describe("POST /api/backup/restore", () => {
       restoreBackupResultSchema,
     );
 
-    expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0, clientConsentCount: 1 });
+    expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0 });
   });
 
   it("5MiBちょうどのファイルを受け付け、1 byte超えると413 `REQUEST_TOO_LARGE`にしてデータを変更しない", async () => {
@@ -263,22 +265,18 @@ describe("POST /api/backup/restore", () => {
   it("照合の不備も項目ごとに400で返す", async () => {
     const { headers } = await createLoggedInUser();
     const backup = v.parse(backupSchema, JSON.parse(await exportBackupFile(headers)));
+    const [account] = backup.externalAccounts;
+    if (!account) throw new Error("テストデータが不正です");
 
     const response = await requestBff("/api/backup/restore", {
       method: "POST",
       headers,
-      body: {
-        ...backup,
-        clientConsents: [
-          { clientId: "points-client", displayName: "Points" },
-          { clientId: "points-client", displayName: "Points 2" },
-        ],
-      },
+      body: { ...backup, externalAccounts: [account, { ...account, isPublic: !account.isPublic }] },
     });
 
     expect(response.status).toBe(400);
     expect((await readProblem(response)).errors).toEqual([
-      expect.objectContaining({ code: "INVALID_VALUE", path: ["clientConsents", 1, "displayName"] }),
+      expect.objectContaining({ code: "INVALID_VALUE", path: ["externalAccounts", 1, "isPublic"] }),
     ]);
   });
 });

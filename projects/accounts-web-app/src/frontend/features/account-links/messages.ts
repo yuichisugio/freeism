@@ -36,7 +36,7 @@ export const accountLinksMessages = defineMessages({
     urlCount: (count: number, limit: number) => `登録済みのURL: ${count} / ${limit}件`,
     urlLimitReached: "登録できるURLの上限に達しています。不要なURLを連携解除してから追加してください。",
     urlInputErrors: {
-      INVALID_URL: "URLの形式が正しくありません。`https://`から始まる完全なURLを入力してください。",
+      INVALID_URL: "URLの形式が正しくありません。https://から始まる完全なURLを入力してください。",
       UNSUPPORTED_SCHEME: "HTTPSのURLだけを登録できます。",
       TRAILING_DOT_HOST: "ホスト名の末尾のドットを除いて入力してください。",
       PORT_NOT_ALLOWED: "ポート番号を指定したURLは登録できません。",
@@ -147,7 +147,7 @@ export const accountLinksMessages = defineMessages({
       HELD_BY_STRONGER_PROOF:
         "この識別子はOAuthまたはDNS TXTで証明済みの別のユーザーに紐付いているため、リンク確認では移動しません。OAuthまたはDNS TXTで証明してください。",
       TXT_NOT_FOUND:
-        "`_accounts.{ホスト名}`に公開プロフィールURLのTXTレコードが見つかりませんでした。追加直後は反映に時間がかかるため、時間をおいて再検証してください。",
+        "_accounts.{ホスト名}に公開プロフィールURLのTXTレコードが見つかりませんでした。追加直後は反映に時間がかかるため、時間をおいて再検証してください。",
       DNS_TIMEOUT: "DNSの照会が時間内に終わりませんでした。時間をおいて再検証してください。",
       DNS_LOOKUP_FAILED: "DNSの照会に失敗しました。時間をおいて再検証してください。",
       MULTIPLE_ACCOUNTS_PROFILES:
@@ -188,7 +188,7 @@ export const accountLinksMessages = defineMessages({
     urlCount: (count: number, limit: number) => `Registered URLs: ${count} / ${limit}`,
     urlLimitReached: "You have reached the URL limit. Unlink URLs you no longer need before adding more.",
     urlInputErrors: {
-      INVALID_URL: "The URL is not valid. Enter a full URL starting with `https://`.",
+      INVALID_URL: "The URL is not valid. Enter a full URL starting with https://.",
       UNSUPPORTED_SCHEME: "Only HTTPS URLs can be registered.",
       TRAILING_DOT_HOST: "Remove the trailing dot from the host name.",
       PORT_NOT_ALLOWED: "URLs with a port number cannot be registered.",
@@ -284,7 +284,7 @@ export const accountLinksMessages = defineMessages({
       HELD_BY_STRONGER_PROOF:
         "This identifier belongs to another user who proved it with OAuth or DNS TXT, so a page link cannot move it. Prove it with OAuth or DNS TXT.",
       TXT_NOT_FOUND:
-        "No TXT record with your public profile URL was found at `_accounts.{host}`. New records can take time to propagate, so verify again later.",
+        "No TXT record with your public profile URL was found at _accounts.{host}. New records can take time to propagate, so verify again later.",
       DNS_TIMEOUT: "The DNS lookup took too long. Verify again later.",
       DNS_LOOKUP_FAILED: "The DNS lookup failed. Verify again later.",
       MULTIPLE_ACCOUNTS_PROFILES:

@@ -7,7 +7,8 @@ import type { ProblemIssue } from "../../../shared/schemas/problem-details-schem
 
 /**
  * 「アカウント連携」画面全体の「保存」。
- * 一般公開・提供先の記録・外部アカウント別の公開選択を1回のD1 batchで保存し、提供していないクライアントの標準`oauthConsent`を削除する。
+ * 一般公開・外部アカウント別の公開選択を1回のD1 batchで保存し、提供していないクライアントの標準`oauthConsent`を削除する。
+ * 入力のクライアントごとに、本人の全外部アカウント行へ選択の有無を公開・非公開として書く。
  * 未検証の外部アカウントの公開選択も保存する（提供の判定には数えない）。
  * @throws {ProblemError} 本人の行でない外部アカウント・有効でないクライアントは400 `INVALID_VALUE`。
  * @returns 公開プロフィールの再生成（purge）が必要なユーザー。一般公開を変えた場合だけ本人を含む。
@@ -30,7 +31,7 @@ export async function saveVisibilitySettings(
   // --------------------------------------------------
 
   const ownAccounts = new Map(accountStates.map((state) => [state.id, state]));
-  const clientNames = new Map(activeClients.map((client) => [client.clientId, client.name]));
+  const activeClientIds = new Set(activeClients.map((client) => client.clientId));
   const invalidIssues: ProblemIssue[] = [
     ...settings.accounts.flatMap((account, index) =>
       ownAccounts.has(account.externalAccountId)
@@ -44,7 +45,7 @@ export async function saveVisibilitySettings(
           ],
     ),
     ...settings.clients.flatMap((client, index) => [
-      ...(clientNames.has(client.clientId)
+      ...(activeClientIds.has(client.clientId)
         ? []
         : [
             invalidValue("clientId is not an active OAuth client.", ["clients", index, "clientId"]),
@@ -88,14 +89,7 @@ export async function saveVisibilitySettings(
         .filter((account) => !account.isPublic)
         .map((account) => account.externalAccountId),
     }),
-    repository.upsertClientConsents(
-      userId,
-      settings.clients.map((client) => ({
-        clientId: client.clientId,
-        displayName: clientNames.get(client.clientId) ?? client.clientId,
-      })),
-    ),
-    ...repository.replaceClientVisibility(userId, clientIds, selections),
+    repository.replaceClientVisibility(userId, clientIds, selections),
     new D1ClientProvisionRepository(deps.db).reconcileOAuthConsents([userId]),
   ]);
 

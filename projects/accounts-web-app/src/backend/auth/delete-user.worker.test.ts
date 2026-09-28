@@ -26,7 +26,6 @@ import {
 } from "../../../test/resource-api-test-helpers";
 import { PublicProfileEntrypoint } from "../../public-profile";
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVisibility,
   oauthClient,
@@ -37,7 +36,7 @@ import { verifyClientAccessToken } from "./verify-client-access-token";
 const resourceUrl = `${testOrigin}/api/v1/external-accounts`;
 
 /**
- * 退会するユーザー（一般公開した外部アカウントと登録OAuthクライアントを持つ）と、そのクライアントへ同意した別ユーザーを作る。
+ * 退会するユーザー（一般公開した外部アカウントと登録OAuthクライアントを持つ）と、そのクライアントへの公開選択を持つ別ユーザーを作る。
  */
 async function setUpWithdrawingUser() {
   const withdrawing = await loginAsNewUser();
@@ -69,13 +68,10 @@ async function setUpWithdrawingUser() {
   const otherUserId = await createTestUser();
   const other = await createVerifiedUrlAccount(otherUserId, [`https://${uniqueHost()}/`], "dns_txt", new Date());
   await testDb
-    .insert(clientConsents)
-    .values({ userId: otherUserId, clientId: data.clientId, displayName: "Points" });
-  await testDb
     .insert(externalAccountVisibility)
     .values({ accountId: other.accountId, clientId: data.clientId, isPublic: true });
 
-  return { ...withdrawing, clientId: data.clientId, clientKey, otherUserId };
+  return { ...withdrawing, clientId: data.clientId, clientKey };
 }
 
 describe("退会（標準deleteUser）", () => {
@@ -83,8 +79,8 @@ describe("退会（標準deleteUser）", () => {
     vi.restoreAllMocks();
   });
 
-  it("セッション・公開プロフィール・登録クライアントとトークンを終了し、他ユーザーの同意・公開選択は残す", async () => {
-    const { userId, headers, clientId, clientKey, otherUserId } = await setUpWithdrawingUser();
+  it("セッション・公開プロフィール・登録クライアントとトークンを終了し、他ユーザーの公開選択は残す", async () => {
+    const { userId, headers, clientId, clientKey } = await setUpWithdrawingUser();
     const dpopKey = await generateTestKeyPair("dpop-key");
     const tokenResponse = await requestClientAccessToken({ clientId, clientKey, dpopKey });
     const { access_token: accessToken } = (await tokenResponse.json()) as { access_token: string };
@@ -126,10 +122,7 @@ describe("退会（標準deleteUser）", () => {
     expect(verified).toMatchObject({ ok: false, status: 401 });
     const retried = await requestClientAccessToken({ clientId, clientKey, dpopKey });
     expect(retried.status).toBeGreaterThanOrEqual(400);
-    // 他ユーザーの同意・公開選択
-    expect(
-      await testDb.select().from(clientConsents).where(eq(clientConsents.userId, otherUserId)),
-    ).toHaveLength(1);
+    // 他ユーザーの公開選択
     expect(
       await testDb
         .select()

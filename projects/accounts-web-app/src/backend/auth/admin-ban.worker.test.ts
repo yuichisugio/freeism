@@ -151,7 +151,7 @@ describe("ban・unban", () => {
     expect(response.status).toBe(200);
     const profile = await exports.default.fetch(`${origin}/profiles/${target.userId}`);
     expect(profile.status).toBe(200);
-    expect(await profile.text()).toContain(`<a href="${target.url}" rel="me">`);
+    expect(await profile.text()).toContain(`<a href="${target.url}" rel="me noopener"`);
     expect(await isUserVisible({ db: testDb }, { userId: target.userId })).toBe(true);
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([target.userId]));
   });

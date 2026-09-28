@@ -23,7 +23,7 @@ import {
   testRedirectUri,
 } from "../../../test/resource-api-test-helpers";
 import { createRandomId } from "../db/id";
-import { clientConsents, externalAccounts, externalAccountVisibility } from "../db/schema";
+import { externalAccounts, externalAccountVisibility } from "../db/schema";
 
 /**
  * 利用側サービスの連携開始から、同意画面（`/consent`）での`oauth2.consent`までの往復。
@@ -226,7 +226,7 @@ describe("連携開始と同意画面", () => {
   });
 
   it("accept:falseはaccess_deniedで戻り、保存済みの同意と公開設定を変えない", async () => {
-    const { userId, headers, accountId, clientId } = await setUpUser();
+    const { headers, accountId, clientId } = await setUpUser();
     await saveVisibility(headers, {
       clients: [{ clientId, visibleAccountIds: [accountId] }],
     });
@@ -242,9 +242,6 @@ describe("連携開始と同意画面", () => {
     );
     expect(redirect.searchParams.get("error")).toBe("access_denied");
     expect(redirect.searchParams.get("code")).toBeNull();
-    expect(
-      await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId)),
-    ).toEqual([expect.objectContaining({ clientId })]);
     expect(
       await testDb
         .select()

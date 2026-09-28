@@ -80,7 +80,7 @@ describe("連携解除後の公開プロフィールのpurge", () => {
     expect(response.status).toBe(200);
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
     const profile = await exports.default.fetch(`${testOrigin}/profiles/${userId}`);
-    expect(await profile.text()).not.toContain('rel="me"');
+    expect(await profile.text()).not.toContain('rel="me noopener"');
   });
 
   it("一般公開中の行が無い本人の解除ではpurgeしない", async () => {
@@ -191,6 +191,6 @@ describe("公開設定の保存後の公開プロフィールのpurge", () => {
     expect(response.status).toBe(200);
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
     const profile = await exports.default.fetch(`${testOrigin}/profiles/${userId}`);
-    expect(await profile.text()).toContain('rel="me"');
+    expect(await profile.text()).toContain('rel="me noopener"');
   });
 });

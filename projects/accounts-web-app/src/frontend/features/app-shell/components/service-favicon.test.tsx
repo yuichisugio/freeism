@@ -17,6 +17,28 @@ describe("ServiceFavicon", () => {
     expect(image?.getAttribute("alt")).toBe("");
   });
 
+  it("配信の既定画像（16px）が返ったら、地球儀のアイコンに差し替える", () => {
+    const { container } = render(<ServiceFavicon host="hanako.dev" />);
+    const image = container.querySelector("img") as HTMLImageElement;
+
+    Object.defineProperty(image, "naturalWidth", { value: 16 });
+    fireEvent.load(image);
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("svg")).not.toBeNull();
+  });
+
+  it("64pxで取得できたファビコンはそのまま表示する", () => {
+    const { container } = render(<ServiceFavicon host="github.com" />);
+    const image = container.querySelector("img") as HTMLImageElement;
+
+    Object.defineProperty(image, "naturalWidth", { value: 64 });
+    fireEvent.load(image);
+
+    expect(container.querySelector("img")).not.toBeNull();
+    expect(container.querySelector("svg")).toBeNull();
+  });
+
   it("読み込みに失敗したら、地球儀のアイコンに差し替える", () => {
     const { container } = render(<ServiceFavicon host="hanako.dev" />);
 

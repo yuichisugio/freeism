@@ -73,7 +73,7 @@ export const linkedAccountSchema = v.object({
 
 /**
  * 公開先の列にするOAuthクライアント。
- * 保存済みの有効な提供先と、`consentClientId`で指定した今回の認可要求の連携先（`isConsentRequest: true`）を含む。
+ * 本人の公開選択の行（非公開を含む）に現れる有効なクライアントと、`consentClientId`で指定した今回の認可要求の連携先（`isConsentRequest: true`）を含む。
  */
 export const linkedClientSchema = v.object({
   clientId: v.string(),

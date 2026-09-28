@@ -13,7 +13,7 @@ export type DocumentSection = {
 
 /**
  * プライバシーポリシー・利用規約など、見出しと節で構成する文書ページ。
- * カードに見出しと本文を置き、本文は読みやすい幅（`--prose-max`）にする。
+ * カードは他の画面と同じ幅（`PageMain`の`--page-max`）に広げ、見出しと本文をカードの幅いっぱいに置く。
  * 各節の見出しには`id`を付け、ほかの画面から`#id`で案内できるようにする。
  * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  */
@@ -31,7 +31,7 @@ export function DocumentPage({
       <article className="flex flex-col gap-6 rounded-xl border border-border bg-surface px-6 py-5 text-sm shadow-surface max-sm:p-4">
         <header className="flex flex-col gap-2">
           <h1 className="text-xl">{title}</h1>
-          <p className="max-w-(--prose-max)">{introduction}</p>
+          <p>{introduction}</p>
         </header>
         {sections.map((section) => (
           <DocumentSectionView key={section.id} section={section} />
@@ -50,7 +50,7 @@ function DocumentSectionView({ section }: { section: DocumentSection }) {
     <section
       id={section.id}
       aria-labelledby={headingId}
-      className="flex max-w-(--prose-max) scroll-mt-(--sticky-offset) flex-col gap-2"
+      className="flex scroll-mt-(--sticky-offset) flex-col gap-2"
     >
       <h2 id={headingId} className="text-md">
         {section.title}

@@ -1,5 +1,5 @@
 /**
- * Better Authの標準表と独自6表、relationsをまとめたDrizzle schema。
+ * Better Authの標準表と独自5表、relationsをまとめたDrizzle schema。
  */
 export * from "./accounts";
 export * from "./auth";

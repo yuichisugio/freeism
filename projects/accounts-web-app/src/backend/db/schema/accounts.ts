@@ -19,7 +19,7 @@ import type {
 import { account, user } from "./auth";
 
 /**
- * Accounts独自の6表。
+ * Accounts独自の5表。
  * 日時はUTC epoch millisecondsのINTEGER、真偽は0/1のINTEGERで保存し、外部キーはすべて`ON DELETE CASCADE`にする。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
@@ -145,32 +145,14 @@ export const verificationIdentifiers = sqliteTable(
 );
 
 // --------------------------------------------------
-// 提供先と公開設定
+// 公開設定
 // --------------------------------------------------
 
 /**
- * OAuthクライアントの提供先の記録（公開設定の列にするクライアントと、保存時のクライアント名）。
- * 提供しているか（証明済みの外部アカウントを1件以上公開選択しているか）は、`external_account_visibility`と`external_identifiers`から判定する。
- * `client_id`は公開`oauthClient.clientId`を保存し、存在しないClient IDの復元設定も保持するためFKを設けない。
- */
-export const clientConsents = sqliteTable(
-  "client_consents",
-  {
-    userId: text("user_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    clientId: text("client_id").notNull(),
-    displayName: text("display_name").notNull(),
-  },
-  (table) => [
-    primaryKey({ name: "client_consents_pk", columns: [table.userId, table.clientId] }),
-    // クライアント削除で、そのClient IDの全ユーザーの行を検索する。
-    index("client_consents_client_id_idx").on(table.clientId),
-  ],
-);
-
-/**
  * 外部アカウントごとのOAuthクライアント向け公開選択。
+ * 公開設定の保存では、保存したクライアントについて本人の全外部アカウント行に`is_public`の0/1で行を持つ。
+ * 本人の行に現れるClient IDが「アカウント連携」画面の列になり、提供の判定は`is_public=1`の行だけで行う。
+ * `client_id`は公開`oauthClient.clientId`を保存し、存在しないClient IDの復元設定も保持するためFKを設けない。
  */
 export const externalAccountVisibility = sqliteTable(
   "external_account_visibility",

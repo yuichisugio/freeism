@@ -52,7 +52,7 @@ export function HelpPage() {
 
   return (
     <PageMain>
-      <h1 className="text-2xl">{messages.title}</h1>
+      <h1 className="pt-2 text-2xl">{messages.title}</h1>
       <div className="grid grid-cols-[var(--q-label-w)_minmax(0,1fr)] items-start gap-8 max-[820px]:grid-cols-1">
         <nav
           aria-label={messages.tableOfContents}
@@ -116,9 +116,9 @@ function HelpTopicSection({ topic, developerChip }: { topic: HelpTopic; develope
         ) : null}
       </h2>
       {topic.items.map((item) => (
-        <Accordion.Item key={item.id} id={item.id} className="rounded-lg border border-border bg-surface">
+        <Accordion.Item key={item.id} id={item.id} className="rounded-lg border border-solid border-border bg-surface">
           <Accordion.Heading>
-            <Accordion.Trigger className="gap-3 rounded-lg px-4 py-3 text-md">
+            <Accordion.Trigger className="gap-3 rounded-lg px-4 py-3 font-sans text-md">
               {item.question}
               <Accordion.Indicator>
                 <ChevronDownIcon />

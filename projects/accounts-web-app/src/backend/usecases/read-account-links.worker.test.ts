@@ -10,7 +10,6 @@ import {
 } from "../../../test/external-account-test-helpers";
 import { createRandomId } from "../db/id";
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVerifications,
   externalAccountVisibility,
@@ -232,16 +231,28 @@ describe("readAccountLinks", () => {
     expect(links.accounts).toEqual([]);
   });
 
-  it("保存済みの提供先は有効なクライアントだけを返し、認可要求の連携先を加える", async () => {
+  it("本人の公開選択の行（非公開を含む）に現れる有効なクライアントを列にし、認可要求の連携先を加える", async () => {
     const userId = await createTestUser();
+    const { externalAccountId } = await saveUnverifiedUrl(
+      { db: testDb },
+      { userId, url: `https://${uniqueHost()}/` },
+    );
     const savedClientId = await createClient("Points");
     const disabledClientId = await createClient("Disabled", { disabled: true });
     const requestClientId = await createClient("Markets");
-    await testDb.insert(clientConsents).values([
-      { userId, clientId: savedClientId, displayName: "Points" },
-      { userId, clientId: disabledClientId, displayName: "Disabled" },
-      { userId, clientId: "deleted-client", displayName: "Deleted" },
+    const othersClientId = await createClient("Others");
+    await testDb.insert(externalAccountVisibility).values([
+      { accountId: externalAccountId, clientId: savedClientId, isPublic: false },
+      { accountId: externalAccountId, clientId: disabledClientId, isPublic: true },
+      { accountId: externalAccountId, clientId: "deleted-client", isPublic: true },
     ]);
+    const otherUser = await saveUnverifiedUrl(
+      { db: testDb },
+      { userId: await createTestUser(), url: `https://${uniqueHost()}/` },
+    );
+    await testDb
+      .insert(externalAccountVisibility)
+      .values({ accountId: otherUser.externalAccountId, clientId: othersClientId, isPublic: true });
 
     const links = await readAccountLinks(
       { db: testDb, accountsOrigin },
@@ -264,12 +275,16 @@ describe("readAccountLinks", () => {
     ]);
   });
 
-  it("認可要求の連携先が保存済みの提供先なら、その列を認可要求として示す", async () => {
+  it("認可要求の連携先が既に列にあるクライアントなら、その列を認可要求として示す", async () => {
     const userId = await createTestUser();
+    const { externalAccountId } = await saveUnverifiedUrl(
+      { db: testDb },
+      { userId, url: `https://${uniqueHost()}/` },
+    );
     const clientId = await createClient("Points");
     await testDb
-      .insert(clientConsents)
-      .values({ userId, clientId, displayName: "Points" });
+      .insert(externalAccountVisibility)
+      .values({ accountId: externalAccountId, clientId, isPublic: false });
 
     const links = await readAccountLinks(
       { db: testDb, accountsOrigin },

@@ -16,7 +16,6 @@ function createBackupOfBytes(bytes: number): Backup {
     accountsUserId: "",
     exportedAt: "2026-09-26T00:00:00.000Z",
     profile: { displayName: "表示名" },
-    clientConsents: [],
     externalAccounts: [],
   };
   const baseBytes = new TextEncoder().encode(JSON.stringify(backup, null, 2)).length;

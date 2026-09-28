@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -16,7 +15,7 @@ import {
 } from "../../../test/resource-api-test-helpers";
 import type { AccountLinks } from "../../shared/schemas/account-link-schema";
 import { createRandomId } from "../db/id";
-import { clientConsents, externalAccounts } from "../db/schema";
+import { externalAccounts } from "../db/schema";
 
 // --------------------------------------------------
 // テストデータ
@@ -76,8 +75,8 @@ describe("PUT /api/visibility", () => {
     );
   });
 
-  it("証明済みの公開選択が無いクライアントも保存し、提供先の記録を残す", async () => {
-    const { userId, headers, candidateId, clientId } = await setUpUser();
+  it("チェックの無い組も非公開として保存し、すべて外したクライアントも一覧の列に残す", async () => {
+    const { headers, verifiedId, candidateId, clientId } = await setUpUser();
     const { clientId: otherClientId } = await registerTestClient(headers, "Markets");
 
     const response = await saveVisibility(headers, {
@@ -88,11 +87,16 @@ describe("PUT /api/visibility", () => {
     });
 
     expect(response.status).toBe(200);
-    expect(
-      (await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId)))
-        .map((row) => row.clientId)
-        .toSorted(),
-    ).toEqual([clientId, otherClientId].toSorted());
+    const links = await readAccountLinks(headers);
+    expect(links.clients.map((client) => client.clientId).toSorted()).toEqual(
+      [clientId, otherClientId].toSorted(),
+    );
+    expect(links.accounts.map(({ id, visibility }) => ({ id, visibility }))).toEqual(
+      expect.arrayContaining([
+        { id: verifiedId, visibility: { [clientId]: false, [otherClientId]: false } },
+        { id: candidateId, visibility: { [clientId]: false, [otherClientId]: true } },
+      ]),
+    );
   });
 
   it("証明済みの公開選択を外して保存すると、公開選択の無いクライアントの標準oauthConsentを削除する", async () => {
@@ -117,6 +121,7 @@ describe("PUT /api/visibility", () => {
     const links = await readAccountLinks(headers);
     expect(links.accounts.find((account) => account.id === candidateId)?.visibility).toEqual({
       [clientId]: true,
+      [otherClientId]: false,
     });
   });
 
@@ -156,7 +161,11 @@ describe("PUT /api/visibility", () => {
           isPublic: true,
           visibility: { [clientId]: true, [otherClientId]: true },
         },
-        { id: candidateId, isPublic: false, visibility: { [otherClientId]: true } },
+        {
+          id: candidateId,
+          isPublic: false,
+          visibility: { [clientId]: false, [otherClientId]: true },
+        },
       ]),
     );
   });

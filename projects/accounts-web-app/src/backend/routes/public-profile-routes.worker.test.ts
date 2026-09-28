@@ -58,7 +58,7 @@ function expectCacheHeaders(response: Response) {
 }
 
 describe("GET /profiles/{accountsUserId}", () => {
-  it("一般公開した証明済みの外部アカウントをrel=\"me\"付きで返し、表示名とIDを表示し、非公開の行・候補・外部アカウントの表示名・メールアドレスは含めない", async () => {
+  it("一般公開した証明済みの外部アカウントをrel=\"me\"付きの新しいタブのリンクで返し、表示名とIDを表示し、非公開の行・候補・外部アカウントの表示名・メールアドレスは含めない", async () => {
     const userId = await createTestUser();
     const publicAccount = await createAccount(userId, { isPublic: true });
     const privateAccount = await createAccount(userId, { isPublic: false });
@@ -83,7 +83,7 @@ describe("GET /profiles/{accountsUserId}", () => {
     expect(response.status).toBe(200);
     expectCacheHeaders(response);
     expect(response.headers.get("ETag")).toBeTruthy();
-    expect(html).toContain(`<a href="${publicAccount.url}" rel="me">Web：${publicAccount.host}</a>`);
+    expect(html).toContain(`<a href="${publicAccount.url}" rel="me noopener" target="_blank">Web：${publicAccount.host}</a>`);
     expect(html).toContain("証明方法: DNS TXT");
     expect(html).toContain(`<h1>仮ユーザー</h1><span class="mono">${userId}</span>`);
     expect(html).not.toContain("外部の表示名");
@@ -134,7 +134,7 @@ describe("GET /profiles/{accountsUserId}", () => {
     expect(response.status).toBe(200);
     expect(html).toContain('<html lang="en">');
     expect(html).toContain("<h2>Verified external accounts</h2>");
-    expect(html).toContain(`<a href="${url}" rel="me">Web: ${host}</a>`);
+    expect(html).toContain(`<a href="${url}" rel="me noopener" target="_blank">Web: ${host}</a>`);
     expect(html).toContain("Method: DNS TXT");
     expect(html).toContain("Verified: <time");
     expect(html).not.toContain("証明済みのアカウント");

@@ -1,5 +1,6 @@
 import { AlertDialog, Button } from "@heroui/react";
 
+import { AlertIcon } from "./icons";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { appShellMessages } from "../messages";
 
@@ -25,20 +26,20 @@ export function UnsavedChangesDialog({
           if (!open) onKeepEditing();
         }}
       >
-        <AlertDialog.Container>
+        <AlertDialog.Container placement="center">
           <AlertDialog.Dialog>
             <AlertDialog.Header>
-              <AlertDialog.Icon status="warning" />
+              <AlertIcon className="size-5 shrink-0 text-warning" />
               <AlertDialog.Heading>{messages.unsavedTitle}</AlertDialog.Heading>
             </AlertDialog.Header>
             <AlertDialog.Body>
               <p>{messages.unsavedDescription}</p>
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Button variant="tertiary" onPress={onKeepEditing}>
+              <Button size="sm" variant="tertiary" onPress={onKeepEditing}>
                 {messages.keepEditing}
               </Button>
-              <Button variant="danger" onPress={onDiscard}>
+              <Button size="sm" variant="danger" onPress={onDiscard}>
                 {messages.discardAndLeave}
               </Button>
             </AlertDialog.Footer>

@@ -1,5 +1,6 @@
 import { AlertDialog, Button } from "@heroui/react";
 
+import { AlertIcon } from "../../app-shell/components/icons";
 import { ErrorNotice } from "../../app-shell/components/status-messages";
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
@@ -36,10 +37,10 @@ export function UnlinkDialog({
           if (!open) onCancel();
         }}
       >
-        <AlertDialog.Container>
+        <AlertDialog.Container placement="center">
           <AlertDialog.Dialog>
             <AlertDialog.Header>
-              <AlertDialog.Icon status="danger" />
+              <AlertIcon className="size-5 shrink-0 text-danger" />
               <AlertDialog.Heading>
                 {target?.kind === "verification" ? messages.unlinkVerificationTitle : messages.unlinkAccountTitle}
               </AlertDialog.Heading>

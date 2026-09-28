@@ -6,8 +6,8 @@ import type {
   LinkedVerification,
 } from "../../shared/schemas/account-link-schema";
 import type { Database } from "../db/database";
-import { D1ClientConsentRepository } from "../db/repositories/d1-client-consent-repository";
 import { D1ExternalAccountRepository } from "../db/repositories/d1-external-account-repository";
+import { D1VisibilityRepository } from "../db/repositories/d1-visibility-repository";
 import { buildAccountsProfileUrl } from "../domain/verification/accounts-profile-url";
 
 /**
@@ -29,39 +29,37 @@ const attemptMethodOrder = { bidirectional_link: 0, dns_txt: 1, oauth: 2 } as co
 
 /**
  * 本人の外部アカウント一覧と、公開先の列にするOAuthクライアントを読む。
- * クライアントは保存済みの有効な提供先と、`consentClientId`で指定した今回の認可要求の連携先とする。
+ * クライアントは、本人の公開選択の行（非公開を含む）に現れる有効なクライアントと、`consentClientId`で指定した今回の認可要求の連携先とする。
+ * 認可要求の連携先がまだ列に無い場合は、末尾の列にする。
  */
 export async function readAccountLinks(
   deps: { db: Database; accountsOrigin: string },
   input: { userId: string; consentClientId?: string },
 ): Promise<AccountLinks> {
   const accountRepository = new D1ExternalAccountRepository(deps.db);
-  const clientRepository = new D1ClientConsentRepository(deps.db);
-  const [externalAccounts, linkedClients, consentClient] = await Promise.all([
-    accountRepository.findOwnExternalAccountDetails(input.userId),
-    clientRepository.findLinkedClients(input.userId),
+  const externalAccounts = await accountRepository.findOwnExternalAccountDetails(input.userId);
+  const linkedClientIds = new Set(
+    externalAccounts.flatMap((externalAccount) =>
+      externalAccount.externalAccountVisibility.map((visibility) => visibility.clientId),
+    ),
+  );
+  const activeClients = await new D1VisibilityRepository(deps.db).findActiveClients(
     input.consentClientId === undefined
-      ? undefined
-      : clientRepository.findActiveClient(input.consentClientId),
-  ]);
+      ? [...linkedClientIds]
+      : [...linkedClientIds, input.consentClientId],
+  );
 
-  const clients: LinkedClient[] = linkedClients.map((client) => ({
-    clientId: client.clientId,
-    name: client.name ?? client.clientId,
-    uri: client.uri,
-    isConsentRequest: client.clientId === consentClient?.clientId,
-  }));
-  if (
-    consentClient !== undefined &&
-    !clients.some((client) => client.clientId === consentClient.clientId)
-  ) {
-    clients.push({
-      clientId: consentClient.clientId,
-      name: consentClient.name ?? consentClient.clientId,
-      uri: consentClient.uri,
-      isConsentRequest: true,
-    });
-  }
+  const clients: LinkedClient[] = activeClients
+    .map((client) => ({
+      clientId: client.clientId,
+      name: client.name ?? client.clientId,
+      uri: client.uri,
+      isConsentRequest: client.clientId === input.consentClientId,
+    }))
+    .toSorted(
+      (left, right) =>
+        Number(!linkedClientIds.has(left.clientId)) - Number(!linkedClientIds.has(right.clientId)),
+    );
 
   return {
     profileUrl: buildAccountsProfileUrl({

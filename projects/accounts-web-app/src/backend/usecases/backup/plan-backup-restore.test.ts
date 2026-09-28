@@ -9,19 +9,13 @@ import { planBackupRestore, type ExistingIdentifier } from "./plan-backup-restor
 
 type BackupAccount = Backup["externalAccounts"][number];
 
-const pointsConsent = { clientId: "points-client", displayName: "Points" };
-
-function createBackup(
-  externalAccounts: BackupAccount[],
-  clientConsents: Backup["clientConsents"] = [pointsConsent],
-): Backup {
+function createBackup(externalAccounts: BackupAccount[]): Backup {
   return {
     schemaVersion: 1,
     accountsOrigin: "https://accounts.freeism.app",
     accountsUserId: "ausr_source",
     exportedAt: "2026-09-26T00:00:00.000Z",
     profile: { displayName: "サンプル" },
-    clientConsents,
     externalAccounts,
   };
 }
@@ -183,11 +177,6 @@ describe("planBackupRestore 既存行との対応付け", () => {
 
     expect(plan.updatedAccounts.map((account) => account.id)).toEqual(["eac_current"]);
   });
-
-  it("提供先の記録は同じClient IDを1件にまとめる", () => {
-    const plan = readPlan(planBackupRestore(createBackup([], [pointsConsent, pointsConsent]), []));
-    expect(plan.clientConsents).toEqual([pointsConsent]);
-  });
 });
 
 // --------------------------------------------------
@@ -195,30 +184,6 @@ describe("planBackupRestore 既存行との対応付け", () => {
 // --------------------------------------------------
 
 describe("planBackupRestore 入力不備", () => {
-  it("同じClient IDの表示名の食い違いを不備にする", () => {
-    const result = planBackupRestore(
-      createBackup([], [pointsConsent, { clientId: "points-client", displayName: "Points 2" }]),
-      [],
-    );
-    expect(readIssues(result)).toEqual([
-      { code: "INVALID_VALUE", path: "clientConsents.1.displayName" },
-    ]);
-  });
-
-  it("clientConsentsに無いClient IDの公開選択を不備にする", () => {
-    const result = planBackupRestore(
-      createBackup([
-        createAccount([{ type: "url", url: "https://example.org/a" }], {
-          clientVisibility: [{ clientId: "unknown-client", isPublic: true }],
-        }),
-      ]),
-      [],
-    );
-    expect(readIssues(result)).toEqual([
-      { code: "INVALID_VALUE", path: "externalAccounts.0.clientVisibility.0.clientId" },
-    ]);
-  });
-
   it("同じ識別子を持つJSONアカウントの一般公開・公開選択の食い違いを不備にする", () => {
     const result = planBackupRestore(
       createBackup([
@@ -294,20 +259,16 @@ describe("planBackupRestore 入力不備", () => {
 
   it("不備を1件で止めずにまとめて返す", () => {
     const result = planBackupRestore(
-      createBackup(
-        [
-          createAccount([{ type: "url", url: "https://localhost/" }], {
-            clientVisibility: [{ clientId: "unknown-client", isPublic: true }],
-          }),
-        ],
-        [pointsConsent, { ...pointsConsent, displayName: "Points 2" }],
-      ),
+      createBackup([
+        createAccount([{ type: "url", url: "https://localhost/" }]),
+        createAccount([{ type: "url", url: "https://example.org/a" }], { isPublic: true }),
+        createAccount([{ type: "url", url: "https://example.org/a" }], { isPublic: false }),
+      ]),
       [],
     );
     expect(readIssues(result).map((issue) => issue.path)).toEqual([
-      "clientConsents.1.displayName",
-      "externalAccounts.0.clientVisibility.0.clientId",
       "externalAccounts.0.metadata.identifiers.0.url",
+      "externalAccounts.2.isPublic",
     ]);
   });
 });

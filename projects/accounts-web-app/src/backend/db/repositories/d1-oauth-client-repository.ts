@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 
 import type { Database, DatabaseBatchItem } from "../database";
-import { clientConsents, externalAccountVisibility, oauthClient } from "../schema";
+import { externalAccountVisibility, oauthClient } from "../schema";
 
 /**
  * OAuthクライアントについて、Better Authの標準APIで扱えない書込（承認済みの公開鍵更新）と、独自表の後始末を行う。
@@ -29,11 +29,11 @@ export class D1OAuthClientRepository {
   }
 
   /**
-   * Client IDに対する全ユーザーの提供先の記録と公開選択を削除する文。
+   * Client IDに対する全ユーザーの公開選択を削除する文。
+   * `external_account_visibility.client_id`にはFKが無く、クライアントの削除ではCASCADEされないため明示的に削除する。
    */
   deleteClientSettings(clientId: string): DatabaseBatchItem[] {
     return [
-      this.db.delete(clientConsents).where(eq(clientConsents.clientId, clientId)),
       this.db
         .delete(externalAccountVisibility)
         .where(eq(externalAccountVisibility.clientId, clientId)),

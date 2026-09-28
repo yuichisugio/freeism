@@ -36,7 +36,7 @@ export function DeveloperSection({ state }: { state: OAuthClientsState }) {
       {state.status === "ready" ? (
         <>
           <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-medium">{messages.clientListTitle}</h3>
+            <h3 className="text-md">{messages.clientListTitle}</h3>
             <Button size="sm" variant="outline" isDisabled={!state.canCreate} onPress={state.startCreating}>
               <PlusIcon className="size-4" />
               {messages.createClient}
@@ -48,7 +48,7 @@ export function DeveloperSection({ state }: { state: OAuthClientsState }) {
             onEdit={state.editClient}
             onDelete={state.requestDelete}
           />
-          {state.canCreate ? null : <p className="text-sm text-muted">{messages.clientLimitReached}</p>}
+          {state.canCreate ? null : <p className="text-xs text-muted">{messages.clientLimitReached}</p>}
           <OAuthClientEditor state={state} />
           <FeedbackNotice feedback={state.feedback} />
         </>

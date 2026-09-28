@@ -17,7 +17,6 @@ export function buildImportTemplateText(displayName: string): string {
     accountsUserId: "sample-user",
     exportedAt: "2026-01-01T00:00:00Z",
     profile: { displayName },
-    clientConsents: [],
     externalAccounts: [
       {
         metadata: {

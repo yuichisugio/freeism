@@ -36,8 +36,7 @@ export const settingsMessages = defineMessages({
 
     // データ取込
     importTitle: "データ取込",
-    importDescription:
-      "データ出力のファイルか、テンプレート形式の JSON を取り込めます。登録済みの URL が含まれている場合、その行の公開設定はファイルの値に戻ります。",
+    importDescription: "データ出力のファイルか、テンプレート形式の JSON を取り込めます。",
     chooseFile: "ファイルを選択",
     noFileChosen: "選択されていません",
     importButton: "取り込む",
@@ -57,7 +56,7 @@ export const settingsMessages = defineMessages({
         templateText,
       ].join("\n"),
     restored: (result: RestoreBackupResult) =>
-      `取り込みました。公開設定を戻した外部アカウント: ${result.updatedAccountCount}件、登録候補として追加: ${result.addedCandidateCount}件、連携先: ${result.clientConsentCount}件。`,
+      `取り込みました。公開設定を戻した外部アカウント: ${result.updatedAccountCount}件、登録候補として追加: ${result.addedCandidateCount}件。`,
     restoredCandidateHint: "登録候補は「アカウント連携」画面で所有権を証明すると有効になります。",
     restoreIssuesTitle: "JSONに不備があるため復元できませんでした。次の内容を修正してから再実行してください。",
     issueWholeFile: "ファイル全体",
@@ -108,8 +107,7 @@ export const settingsMessages = defineMessages({
     exported: "Exported your data.",
 
     importTitle: "Import data",
-    importDescription:
-      "Import an exported file or a JSON file in the template format. If it contains a URL you have already registered, that entry's visibility settings are restored to the values in the file.",
+    importDescription: "Import an exported file or a JSON file in the template format.",
     chooseFile: "Choose file",
     noFileChosen: "No file chosen",
     importButton: "Import",
@@ -129,7 +127,7 @@ export const settingsMessages = defineMessages({
         templateText,
       ].join("\n"),
     restored: (result: RestoreBackupResult) =>
-      `Imported. External accounts with restored settings: ${result.updatedAccountCount}, added as candidates: ${result.addedCandidateCount}, connected services: ${result.clientConsentCount}.`,
+      `Imported. External accounts with restored settings: ${result.updatedAccountCount}, added as candidates: ${result.addedCandidateCount}.`,
     restoredCandidateHint: "Candidates become active after you prove ownership on the Account links page.",
     restoreIssuesTitle: "The JSON file could not be imported. Please fix the following problems and try again.",
     issueWholeFile: "Whole file",

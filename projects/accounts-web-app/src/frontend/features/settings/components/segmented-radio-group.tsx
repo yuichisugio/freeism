@@ -23,11 +23,11 @@ export function SegmentedRadioGroup<TValue extends string>({
       // 選択肢はoptionsの値だけのため、選ばれた値を同じ型として扱う。
       onChange={(next) => onChange(next as TValue)}
       orientation="horizontal"
-      className="inline-flex flex-row flex-wrap gap-1 rounded-full border border-border bg-surface p-1"
+      className="inline-flex flex-row flex-wrap gap-0.5 rounded-full border border-border bg-surface p-1"
     >
       {options.map((option) => (
         <Radio key={option.value} value={option.value}>
-          <Radio.Content className="h-(--control-h-sm) rounded-full px-4 text-muted not-data-selected:data-hovered:text-foreground data-selected:bg-accent data-selected:text-accent-foreground data-focus-visible:outline-2 data-focus-visible:outline-offset-2 data-focus-visible:outline-(--focus)">
+          <Radio.Content className="rounded-full px-4 py-0.5 font-normal text-muted not-data-selected:data-hovered:text-foreground data-selected:bg-accent data-selected:text-accent-foreground data-focus-visible:outline-2 data-focus-visible:outline-offset-2 data-focus-visible:outline-(--focus)">
             {option.label}
           </Radio.Content>
         </Radio>

@@ -3,7 +3,6 @@ import type { Backup } from "../../../shared/schemas/backup-schema";
 import type { ProblemIssue } from "../../../shared/schemas/problem-details-schema";
 import { createRandomId } from "../../db/id";
 import type {
-  RestoredClientConsent,
   RestoredExternalAccount,
   RestoredIdentifier,
   RestoredVisibility,
@@ -42,7 +41,6 @@ export type ExistingIdentifier = {
  */
 export type RestorePlan = {
   displayName: string;
-  clientConsents: RestoredClientConsent[];
   createdAccounts: RestoredExternalAccount[];
   updatedAccounts: RestoredExternalAccount[];
   identifiers: RestoredIdentifier[];
@@ -76,8 +74,7 @@ export function planBackupRestore(
   existingIdentifiers: readonly ExistingIdentifier[],
 ): RestorePlanResult {
   const issues: ProblemIssue[] = [];
-  const clientConsents = collectClientConsents(backup, issues);
-  const accountKeys = collectAccountKeys(backup, clientConsents, issues);
+  const accountKeys = collectAccountKeys(backup, issues);
 
   const existingAccountIdByKey = new Map(
     existingIdentifiers.map((identifier) => [serializeIdentifierKey(identifier), identifier.accountId]),
@@ -109,51 +106,16 @@ export function planBackupRestore(
   );
   return {
     ok: true,
-    plan: buildPlan(backup, [...clientConsents.values()], groups, existingAccountIdByKey, activeAccountIds),
+    plan: buildPlan(backup, groups, existingAccountIdByKey, activeAccountIds),
   };
 }
 
 /**
- * 提供先の記録をClient IDごとにまとめ、同じClient IDの表示名の食い違いを入力不備にする。
- */
-function collectClientConsents(
-  backup: Backup,
-  issues: ProblemIssue[],
-): Map<string, RestoredClientConsent> {
-  const consents = new Map<string, RestoredClientConsent>();
-  backup.clientConsents.forEach((consent, index) => {
-    const first = consents.get(consent.clientId);
-    if (first === undefined) {
-      consents.set(consent.clientId, consent);
-      return;
-    }
-    if (first.displayName !== consent.displayName) {
-      issues.push(conflictIssue(["clientConsents", index, "displayName"], "client ID"));
-    }
-  });
-  return consents;
-}
-
-/**
  * 各JSONアカウントの識別子を、重複を除いた識別子キーにする。
- * 登録できないURLと、`clientConsents`に無いClient IDの公開選択を入力不備にする。
+ * 登録できないURLを入力不備にする。
  */
-function collectAccountKeys(
-  backup: Backup,
-  clientConsents: Map<string, RestoredClientConsent>,
-  issues: ProblemIssue[],
-): Map<string, IdentifierKey>[] {
+function collectAccountKeys(backup: Backup, issues: ProblemIssue[]): Map<string, IdentifierKey>[] {
   return backup.externalAccounts.map((account, accountIndex) => {
-    account.clientVisibility.forEach((visibility, visibilityIndex) => {
-      if (!clientConsents.has(visibility.clientId)) {
-        issues.push({
-          code: "INVALID_VALUE",
-          message: "The client ID is not included in clientConsents.",
-          path: ["externalAccounts", accountIndex, "clientVisibility", visibilityIndex, "clientId"],
-        });
-      }
-    });
-
     const keys = new Map<string, IdentifierKey>();
     account.metadata.identifiers.forEach((identifier, identifierIndex) => {
       const key = toIdentifierKey(identifier);
@@ -221,7 +183,7 @@ function groupAccounts(
     }
 
     if (account.isPublic !== group.account.isPublic) {
-      issues.push(conflictIssue(["externalAccounts", accountIndex, "isPublic"], "external account"));
+      issues.push(conflictIssue(["externalAccounts", accountIndex, "isPublic"]));
     }
     account.clientVisibility.forEach((visibility, visibilityIndex) => {
       const current = group.visibility.get(visibility.clientId);
@@ -229,10 +191,7 @@ function groupAccounts(
         group.visibility.set(visibility.clientId, visibility.isPublic);
       } else if (current !== visibility.isPublic) {
         issues.push(
-          conflictIssue(
-            ["externalAccounts", accountIndex, "clientVisibility", visibilityIndex, "isPublic"],
-            "external account",
-          ),
+          conflictIssue(["externalAccounts", accountIndex, "clientVisibility", visibilityIndex, "isPublic"]),
         );
       }
     });
@@ -282,12 +241,12 @@ function findConnectedAccounts(
 }
 
 /**
- * 同じClient ID・識別子の値の食い違いを表す入力不備。
+ * 同じ外部アカウントにまとめたJSONアカウント間の値の食い違いを表す入力不備。
  */
-function conflictIssue(path: (string | number)[], target: "client ID" | "external account"): ProblemIssue {
+function conflictIssue(path: (string | number)[]): ProblemIssue {
   return {
     code: "INVALID_VALUE",
-    message: `The value conflicts with another entry for the same ${target}.`,
+    message: "The value conflicts with another entry for the same external account.",
     path,
   };
 }
@@ -302,14 +261,12 @@ function conflictIssue(path: (string | number)[], target: "client ID" | "externa
  */
 function buildPlan(
   backup: Backup,
-  clientConsents: RestoredClientConsent[],
   groups: readonly AccountGroup[],
   existingAccountIdByKey: ReadonlyMap<string, string>,
   activeAccountIds: ReadonlySet<string>,
 ): RestorePlan {
   const plan: RestorePlan = {
     displayName: backup.profile.displayName,
-    clientConsents,
     createdAccounts: [],
     updatedAccounts: [],
     identifiers: [],

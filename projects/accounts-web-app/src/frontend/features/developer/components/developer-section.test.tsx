@@ -49,17 +49,15 @@ describe("DeveloperSection: 一覧", () => {
     expect(screen.queryByRole("textbox", { name: /アプリ名/ })).toBeNull();
   });
 
-  it("登録済みのクライアントのアプリ名とClient IDを表で示し、Client IDをコピーできる", async () => {
-    const user = userEvent.setup();
+  it("登録済みのクライアントのアプリ名・Client ID・「編集」「削除」を表で示す（コピーは編集フォームで行う）", async () => {
     renderSection(2);
 
     const row = (await screen.findByRole("cell", { name: "App 1" })).closest("tr")!;
-    expect(within(row).getByText("client-1")).toBeDefined();
-    expect(within(row).getByRole("button", { name: "App 1を編集" })).toBeDefined();
-    expect(within(row).getByRole("button", { name: "App 1を削除" })).toBeDefined();
-    await user.click(within(row).getByRole("button", { name: "App 1のClient IDをコピー" }));
-
-    expect(await navigator.clipboard.readText()).toBe("client-1");
+    expect(within(row).getByRole("cell", { name: "client-1" })).toBeDefined();
+    expect(within(row).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+      "App 1を編集",
+      "App 1を削除",
+    ]);
     expect(screen.queryByRole("textbox", { name: /アプリ名/ })).toBeNull();
   });
 

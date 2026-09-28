@@ -15,7 +15,6 @@ import { countOAuthConsents, insertOAuthConsent } from "../../../../test/resourc
 import { backupSchema, type Backup } from "../../../shared/schemas/backup-schema";
 import { createRandomId } from "../../db/id";
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVerifications,
   externalAccountVisibility,
@@ -44,7 +43,7 @@ async function createClient(name: string): Promise<string> {
 }
 
 /**
- * 証明済みの外部アカウント（URL 2件をリンク証明）と未検証のURLを持ち、登録済みクライアントと存在しないClient IDを提供先に記録したユーザーを作る。
+ * 証明済みの外部アカウント（URL 2件をリンク証明）と未検証のURLを持ち、登録済みクライアントと存在しないClient IDへの公開選択を持つユーザーを作る。
  */
 async function createUserWithBackupTargets() {
   const userId = await createTestUser();
@@ -72,10 +71,6 @@ async function createUserWithBackupTargets() {
     host,
   });
 
-  await testDb.insert(clientConsents).values([
-    { userId, clientId, displayName: "Points" },
-    { userId, clientId: missingClientId, displayName: "Deleted client" },
-  ]);
   await testDb.insert(externalAccountVisibility).values([
     { accountId: verified.accountId, clientId, isPublic: true },
     { accountId: verified.accountId, clientId: missingClientId, isPublic: true },
@@ -105,7 +100,7 @@ function restore(userId: string, backup: Backup) {
 // --------------------------------------------------
 
 /**
- * 本人の表示名・外部アカウント・識別子・証明・公開選択・提供先の記録を、比較できる形で読む。
+ * 本人の表示名・外部アカウント・識別子・証明・公開選択を、比較できる形で読む。
  */
 async function readUserState(userId: string) {
   const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
@@ -134,11 +129,6 @@ async function readUserState(userId: string) {
       .innerJoin(externalAccounts, eq(externalAccounts.id, externalAccountVisibility.accountId))
       .where(eq(externalAccounts.userId, userId))
       .orderBy(externalAccountVisibility.accountId, externalAccountVisibility.clientId),
-    consents: await testDb
-      .select()
-      .from(clientConsents)
-      .where(eq(clientConsents.userId, userId))
-      .orderBy(clientConsents.clientId),
   };
 }
 
@@ -153,20 +143,25 @@ async function readVisibility(accountId: string) {
   return Object.fromEntries(rows.map((row) => [row.clientId, row.isPublic]));
 }
 
-/**
- * 本人の提供先の記録を`clientId → displayName`の形で読む。
- */
-async function readClientRecords(userId: string) {
-  const rows = await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId));
-  return Object.fromEntries(rows.map((row) => [row.clientId, row.displayName]));
-}
-
 // --------------------------------------------------
 // 出力→変更→復元
 // --------------------------------------------------
 
 describe("restoreBackup", () => {
-  it("行全体を解除した外部アカウントを候補として取り込み、公開設定・提供先の記録・表示名をバックアップ時に戻す", async () => {
+  it("出力の各外部アカウントの公開選択は、本人の公開選択の行に現れるClient IDを網羅する", async () => {
+    const target = await createUserWithBackupTargets();
+
+    const backup = await exportAndParse(target.userId);
+
+    const clientIds = [target.clientId, target.missingClientId].toSorted();
+    expect(
+      backup.externalAccounts.map((account) =>
+        account.clientVisibility.map((visibility) => visibility.clientId),
+      ),
+    ).toEqual([clientIds, clientIds]);
+  });
+
+  it("行全体を解除した外部アカウントを候補として取り込み、公開設定・表示名をバックアップ時に戻す", async () => {
     const target = await createUserWithBackupTargets();
     const backup = await exportAndParse(target.userId);
 
@@ -176,7 +171,6 @@ describe("restoreBackup", () => {
       .update(externalAccountVisibility)
       .set({ isPublic: true })
       .where(eq(externalAccountVisibility.accountId, target.unverifiedAccountId));
-    await testDb.update(clientConsents).set({ displayName: "変更後" }).where(eq(clientConsents.userId, target.userId));
     await testDb.update(user).set({ name: "変更後の名前" }).where(eq(user.id, target.userId));
 
     const result = await restore(target.userId, backup);
@@ -184,16 +178,11 @@ describe("restoreBackup", () => {
     expect(result).toEqual({
       updatedAccountCount: 1,
       addedCandidateCount: 1,
-      clientConsentCount: 2,
       affectedUserIds: [target.userId],
     });
     const state = await readUserState(target.userId);
     expect(state.name).toBe("バックアップ時の名前");
-    expect(await readClientRecords(target.userId)).toEqual({
-      [target.clientId]: "Points",
-      [target.missingClientId]: "Deleted client",
-    });
-    // 出力は`clientConsents`の各Client IDを網羅するため、設定行が無かったクライアントも非公開として保存する。
+    // 出力は本人の公開選択の行に現れる各Client IDを網羅するため、設定行が無かったクライアントも非公開として保存する。
     expect(await readVisibility(target.unverifiedAccountId)).toEqual({
       [target.clientId]: false,
       [target.missingClientId]: false,
@@ -304,7 +293,6 @@ describe("restoreBackup", () => {
       accountsUserId: userId,
       exportedAt: now.toISOString(),
       profile: { displayName: "本人" },
-      clientConsents: [],
       externalAccounts: [
         account([`https://${host}/a`, `https://${host}/b`]),
         account([`https://${host.toUpperCase()}/b`, `https://${host}/c`]),
@@ -321,22 +309,16 @@ describe("restoreBackup", () => {
     ]);
   });
 
-  it("バックアップのclientConsentsに無いクライアントの提供先の記録と公開選択を維持する", async () => {
+  it("バックアップに無いクライアントの公開選択を維持する", async () => {
     const target = await createUserWithBackupTargets();
     const backup = await exportAndParse(target.userId);
     const laterClientId = await createClient("Later");
-    await testDb.insert(clientConsents).values({
-      userId: target.userId,
-      clientId: laterClientId,
-      displayName: "Later",
-    });
     await testDb
       .insert(externalAccountVisibility)
       .values({ accountId: target.verifiedAccountId, clientId: laterClientId, isPublic: true });
 
     await restore(target.userId, backup);
 
-    expect((await readClientRecords(target.userId))[laterClientId]).toBe("Later");
     expect((await readVisibility(target.verifiedAccountId))[laterClientId]).toBe(true);
   });
 
@@ -419,7 +401,6 @@ describe("restoreBackup", () => {
       accountsUserId: userId,
       exportedAt: now.toISOString(),
       profile: { displayName: "本人" },
-      clientConsents: [{ clientId: "points-client", displayName: "Points" }],
       externalAccounts: Array.from({ length: 300 }, (_, accountIndex) => ({
         metadata: {
           service: "gitlab",

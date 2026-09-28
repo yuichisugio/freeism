@@ -29,10 +29,8 @@ export function LicensesView({ state }: { state: LicensesState }) {
   const messages = useMessages(licensesMessages);
   return (
     <PageMain>
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl">{messages.title}</h1>
-        <p className="text-sm text-muted">{messages.description}</p>
-      </div>
+      <h1 className="pt-2 text-2xl">{messages.title}</h1>
+      <p className="text-sm text-muted">{messages.description}</p>
       {state.status === "loading" ? <LoadingState /> : null}
       {state.status === "notBuilt" ? <p role="status">{messages.notBuilt}</p> : null}
       {state.status === "failed" ? <ErrorText>{messages.loadFailed}</ErrorText> : null}
@@ -60,7 +58,8 @@ function LicensesTable({ licenses }: { licenses: DependencyLicense[] }) {
   const messages = useMessages(licensesMessages);
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-surface">
-      <div className="@container max-h-(--table-max-h) overflow-auto">
+      {/* 読み上げ用の文言（`sr-only`の絶対配置）の基準をスクロール領域にし、スクロールで隠れた行の分だけ画面がフッターより下へ伸びないようにする。 */}
+      <div className="@container relative max-h-(--table-max-h) overflow-auto">
         <table className="w-full min-w-140 border-separate border-spacing-0 text-sm [&_tbody_tr:last-child>*]:border-b-0">
           <caption className="sr-only">{messages.tableCaption}</caption>
           <thead>

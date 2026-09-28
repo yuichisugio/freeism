@@ -1,10 +1,22 @@
-import { Link } from "@tanstack/react-router";
+import { createLink, Link } from "@tanstack/react-router";
+import type { ComponentPropsWithRef } from "react";
 
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { useHydratedSession } from "../../../lib/use-hydrated-session";
 import { AccountMenu } from "../../auth/components/account-menu";
 import { appShellMessages } from "../messages";
 import { LogoIcon } from "./icons";
+
+/**
+ * 現在のページの印（`aria-current`）を付けないリンク。
+ * ロゴは「トップ」のタブと同じ行き先のため、現在のページの印はタブだけに付ける。
+ */
+const UnmarkedLink = createLink(function UnmarkedAnchor({
+  "aria-current": _ariaCurrent,
+  ...props
+}: ComponentPropsWithRef<"a">) {
+  return <a {...props} />;
+});
 
 const tabClassName =
   "rounded-full px-4 py-1 text-sm whitespace-nowrap text-muted hover:text-foreground hover:no-underline aria-[current=page]:bg-accent-soft aria-[current=page]:font-medium aria-[current=page]:text-accent";
@@ -27,14 +39,13 @@ export function AppHeader({ hasTabs = true }: { hasTabs?: boolean }) {
 
   return (
     <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-6 py-4 max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-3 max-sm:px-4 max-sm:py-3">
-      <Link
+      <UnmarkedLink
         to="/"
-        activeOptions={{ exact: true }}
         className="flex items-center gap-2 justify-self-start font-display text-lg font-bold text-foreground hover:no-underline"
       >
         <LogoIcon className="size-7" />
         {messages.appName}
-      </Link>
+      </UnmarkedLink>
       {hasTabs ? (
         <nav
           aria-label={messages.mainNavigation}

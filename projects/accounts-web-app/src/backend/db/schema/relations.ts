@@ -1,7 +1,6 @@
 import { relations } from "drizzle-orm";
 
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVerifications,
   externalAccountVisibility,
@@ -11,7 +10,7 @@ import {
 import { account, user } from "./auth";
 
 /**
- * 独自6表のDrizzle relations。
+ * 独自5表のDrizzle relations。
  * 生成された標準表のrelationsと合わせてDrizzleへ渡し、Better Authの`advanced.database.joins`と独自の結合取得で使う。
  * 同じ表間の関連はそれぞれ1つのため、`relationName`は付けない。
  * @see ../../../../docs/specification/v0.1/main.ja.md
@@ -23,7 +22,6 @@ import { account, user } from "./auth";
 
 export const userAccountsRelations = relations(user, ({ many }) => ({
   externalAccounts: many(externalAccounts),
-  clientConsents: many(clientConsents),
 }));
 
 export const accountVerificationsRelations = relations(account, ({ many }) => ({
@@ -73,10 +71,6 @@ export const verificationIdentifiersRelations = relations(verificationIdentifier
     fields: [verificationIdentifiers.identifierId],
     references: [externalIdentifiers.id],
   }),
-}));
-
-export const clientConsentsRelations = relations(clientConsents, ({ one }) => ({
-  user: one(user, { fields: [clientConsents.userId], references: [user.id] }),
 }));
 
 export const externalAccountVisibilityRelations = relations(

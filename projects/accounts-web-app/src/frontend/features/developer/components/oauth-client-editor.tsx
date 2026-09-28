@@ -60,7 +60,7 @@ function FieldMark({ isRequired }: { isRequired: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={`ml-2 rounded-full px-2 py-0.5 text-2xs font-medium ${isRequired ? "bg-danger-soft text-danger" : "bg-surface-secondary text-muted"}`}
+      className={`ml-2 rounded-full px-2 text-xs leading-5 font-normal ${isRequired ? "bg-danger-soft text-danger" : "bg-surface-secondary text-muted"}`}
     >
       {isRequired ? messages.requiredMark : messages.optionalMark}
     </span>
@@ -72,7 +72,8 @@ function FieldMark({ isRequired }: { isRequired: boolean }) {
  */
 function FieldLabel({ children, isRequired }: { children: ReactNode; isRequired: boolean }) {
   return (
-    <Label>
+    // 必須は印で示すため、HeroUIが必須の項目名に付ける「*」は出さない。
+    <Label className="after:content-none">
       {children}
       <FieldMark isRequired={isRequired} />
     </Label>
@@ -210,7 +211,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
             <CopyButton key={editTarget.client.clientId} text={editTarget.client.clientId} label={messages.copyClientId} />
           </div>
         ) : (
-          <p className="text-sm text-muted">{messages.clientIdIssuedOnRegister}</p>
+          <p className="text-xs text-muted">{messages.clientIdIssuedOnRegister}</p>
         )}
       </div>
 
