@@ -10,7 +10,7 @@ import { useLoginDialog } from "../hooks/use-login-dialog";
  * ログインを求めるカード。
  * 左に1文、右に「ログインする」を置き、押すとログイン用のダイアログを開いてログイン後に同じ画面へ戻す。
  * ダイアログは自動で開かない。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./user-scope-gate.test.tsx
  */
 export function SignInRequiredCard({ message }: { message: ReactNode }) {

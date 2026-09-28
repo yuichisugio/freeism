@@ -20,7 +20,7 @@ type LoginDialogRequest = LoginDialogOptions & { openCount: number };
  * どの幅でも画面の中央に表示する。
  * アカウント切替メニューの「アカウントを追加」、ログインを求めるカードの「ログインする」、ログインが必要な失敗の案内、利用側サービスから開いたログイン画面、ログインに失敗して`?error=`付きで戻されたときに開く。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./login-dialog.test.tsx
  */
 export function LoginDialogProvider({ children }: { children: ReactNode }) {

@@ -70,6 +70,36 @@ describe("useAccountLinks", () => {
     expect(result.current.table?.rows[0]?.cells.map((cell) => cell.isSelected)).toEqual([false, true]);
   });
 
+  it("保存中は選択の変更を受け付けず、保存の完了後に編集を空にする", async () => {
+    let resolveSave: (response: Response) => void = () => undefined;
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(dataResponse(links))
+      .mockReturnValueOnce(new Promise((resolve) => (resolveSave = resolve)))
+      .mockResolvedValueOnce(dataResponse(links));
+    vi.stubGlobal("fetch", fetchMock);
+    const { result } = renderHook(() => useAccountLinks());
+    await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
+    act(() => result.current.select([{ kind: "profile" }], ["eac_1"], true));
+
+    let saving: Promise<boolean> = Promise.resolve(false);
+    act(() => {
+      saving = result.current.save();
+    });
+    act(() => result.current.select([{ kind: "profile" }], ["eac_1"], false));
+
+    expect(result.current.saveState.status).toBe("saving");
+    expect(result.current.table?.rows[0]?.cells[0]?.isSelected).toBe(true);
+
+    await act(async () => {
+      resolveSave(dataResponse({ ok: true }));
+      expect(await saving).toBe(true);
+    });
+    expect(fetchMock.mock.calls.filter(([path]) => path === "/api/visibility")).toHaveLength(1);
+    expect(result.current.saveState.status).toBe("saved");
+    expect(result.current.table?.changeCount).toBe(0);
+  });
+
   it("保存が拒否された場合は編集を保ったまま失敗を示す", async () => {
     vi.stubGlobal(
       "fetch",

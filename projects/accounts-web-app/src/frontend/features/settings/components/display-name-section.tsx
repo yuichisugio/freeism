@@ -11,6 +11,7 @@ import { SettingsSection } from "./settings-section";
 /**
  * 表示名の入力と文字数。
  * 保存・破棄は画面下の保存バーで行い、Enterでも保存する。
+ * 保存中は、送信した値を変えさせないため入力欄を無効にする。
  * @see ./settings-sections.test.tsx
  */
 export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
@@ -35,6 +36,7 @@ export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
             value={form.displayName}
             onChange={form.changeDisplayName}
             isInvalid={isInvalid}
+            isDisabled={form.isSaving}
             isRequired
             validationBehavior="aria"
             className="w-full"

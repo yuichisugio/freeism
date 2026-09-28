@@ -1,12 +1,14 @@
 # Accounts デザインシステム v0.1
 
-- 由来: UI モック v6（`accounts-ui-v6.html`、案C-1「青と丸ゴシック」）。トークンの値と規則は本文書を正とする。
-- 関連仕様: [アカウント統合サービス v0.1](./main.ja.md)、[外部URLの登録と検証](./verify-url.ja.md)。
-- 命名規則: [Webアプリ v0.2 命名規則](../../../../../docs/web-app/v0.2/naming-convention.md)。
-- 実装: [`src/frontend/styles.css`](../../../src/frontend/styles.css)、[`src/backend/views/public-profile-page.tsx`](../../../src/backend/views/public-profile-page.tsx)。
+- 由来: UI モック（[`design-system.ja.html`](./design-system.ja.html)、案C-1「青と丸ゴシック」。公開時のモック v7 と同じ内容で、以後はこのファイルを直接更新する）。トークンの値と規則は本文書を正とする。
+- 関連仕様: [アカウント統合サービス v0.1](../main.ja.md)、[外部URLの登録と検証](../verify-url.ja.md)。
+- 命名規則: [Webアプリ v0.2 命名規則](../../../../../../docs/web-app/v0.2/naming-convention.md)。
+- 実装: [`src/frontend/styles.css`](../../../../src/frontend/styles.css)、[`src/backend/views/public-profile-page.tsx`](../../../../src/backend/views/public-profile-page.tsx)。
+- 資産一式: [`design-system/`](./README.ja.md)（トークン・部品の CSS・アイコン・書体の読み込み。他のサービスで同じ見た目を再現するために使う）。
 
 ## 目次
 
+- [再現に必要なもの](#再現に必要なもの)
 - [1. 目的と適用範囲](#1-目的と適用範囲)
 - [2. トーン](#2-トーン)
 - [3. トークン](#3-トークン)
@@ -15,6 +17,21 @@
 - [6. 画面一覧と構成要素](#6-画面一覧と構成要素)
 - [7. HeroUI v3 / Tailwind 4 への落とし込み](#7-heroui-v3--tailwind-4-への落とし込み)
 - [8. 実装が必要な新規操作](#8-実装が必要な新規操作)
+
+## 再現に必要なもの
+
+他のサービスで同じ見た目を再現するときは、本文書（規則）、[`design-system.ja.html`](./design-system.ja.html)（見本）、[`design-system/`](./README.ja.md)（資産）を合わせて使う。導入手順は資産の [README](./README.ja.md) に置く。
+
+| 必要なもの | 資産 |
+| --- | --- |
+| 書体（Zen Maru Gothic・Noto Sans JP・M PLUS 1 Code） | [`fonts.html`](./fonts.html) |
+| トークン（ライト・ダークの3ブロック、`--scale`） | [`tokens.css`](./tokens.css) |
+| 部品の見た目（HeroUI v3 + Tailwind CSS 4） | [`heroui-overrides.css`](./heroui-overrides.css) |
+| 部品の見た目（HeroUI を使わない画面） | [`components.css`](./components.css) |
+| アイコン | [`icons.svg`](./icons.svg) |
+| JavaScript を使わないページの CSS | [`public-profile-inline.css`](./public-profile-inline.css) |
+
+資産の値は実装（`styles.css`・`public-profile-page.tsx`・`icons.tsx`）と同じにし、実装を変えたら資産も合わせる。
 
 ## 1. 目的と適用範囲
 
@@ -294,9 +311,11 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 ### 4.7 保存バー
 
+- 保存の送信中は、その画面の入力（表のチェック、フォームの入力欄、一覧の「編集」「削除」、同意画面の選択）を無効にし、送信した内容と同じときだけ完了時に下書きを消す。
 - 「アカウント連携」の保存バーは表と情報メッセージの下に常に表示し、`position: sticky; bottom: var(--space-4)` で追従する。
 - 見た目は `--surface`、`--border` の枠、`--radius-pill`、`--shadow-pop` とし、右寄せにする。640px 以下は全幅にして `--radius-xl` にする。
 - 左に状態、右に「破棄」（ghost、小）と「公開設定を保存」（primary、小）を置く。狭い幅でも折り返さず1行に並べ、640px 未満は状態を `--text-xs`、間隔を `--space-1`、バーの左の余白とボタンの左右の余白を `--space-3` にして、360px 幅でも「未保存の変更なし」「未保存 n件」を省略せずに収める。
+- 全幅のときも中身は右に寄せ、状態と「破棄」の間隔を「破棄」と「公開設定を保存」の間隔と同じにする。余った幅はバーの左に回す。
 - 変更が0件のときは「未保存の変更なし」（`--muted`）と表示し、「破棄」「公開設定を保存」を無効にする。1件以上のときは「未保存 n件」チップ（highlight）を表示する。
 - 保存バーは画面に1つにする。
 - 「その他」の表示名は、未保存の変更があるときだけ同じ形の保存バー（「破棄」「保存」）を出す。表示名が不正なときは「保存」を無効にする。言語とテーマは選んだ時点で反映し、保存バーの対象にしない。
@@ -376,7 +395,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 ### 4.15 トースト
 
-- 保存・コピーなどの完了は、画面下中央のトーストで短く知らせる。
+- 保存・コピーなどの完了は、画面下中央のトーストで知らせ、3秒後に消す。
 - 見た目は `--foreground` の面、`--background` の文字、`--radius-pill`、`--shadow-pop` とし、`role="status"` を付ける。
 
 ### 4.16 フォーカスと動き
@@ -486,7 +505,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 | ログインする | Google・GitHub・ORCID |
 | アカウント所有の証明 | ログインか URL で証明 |
 | 公開先を選ぶ | プロフィールと連携先ごと |
-| 連携先とつなぐ | Points などから利用 |
+| 連携先とつなぐ | Freeism Points などから利用 |
 
 ### 6.2 ログインダイアログ
 
@@ -510,7 +529,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 ### 6.5 アカウント連携
 
 - 画面タイトル「アカウント連携」と「使い方」リンクを置く。
-- 「公開プロフィールURL」カード: URL（`--font-mono`、`--text-lg`、外部リンク）と「コピー」（secondary、小）。640px 以下はURLを1行使い、「コピー」を下に回す。
+- 「公開プロフィールURL」カード: URL（`--font-mono`、`--text-lg`、外部リンク）と「コピー」（secondary、小）。コピー後の「コピーしました」は3秒後に消す。640px 以下はURLを1行使い、「コピー」を下に回す。
 - 「URLで証明」カード: 見出しの右に「登録済みのURL: n / 150件」、3つの手順、URL入力欄・「検証する」（primary）・「未検証で保存」（secondary）、「困った場合はこちら」（使い方へのリンク）。検証の結果は入力欄の下に出す（[6.9](#69-url検証の結果)）。
 - 「ログインで証明」カード: 説明文と「Googleを連携」「GitHubを連携」「ORCIDを連携」を3列で並べ、各ボタンを列の幅いっぱいに広げる。640px 以下はサービス名だけにする。
 - 節見出し「公開設定」、表（[4.4](#44-表)）、情報メッセージ（[4.5](#45-情報メッセージ)）、保存バー（[4.7](#47-保存バー)）の順に置く。
@@ -538,7 +557,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 | 失敗 | 証明が成立しなかったため、URLは保存していません。未検証のまま登録する場合は「未検証で保存」を押してください。 | warning チップ「{方法}: 証拠を確認できませんでした」と案内文 |
 | 保留 | （失敗と同じ） | default チップ「{方法}: 判断できませんでした」と案内文 |
 
-案内文は [外部URLの登録と検証](./verify-url.ja.md) の失敗理由ごとの文言を使う。
+案内文は [外部URLの登録と検証](../verify-url.ja.md) の失敗理由ごとの文言を使う。
 
 ### 6.10 確認ダイアログ
 
@@ -730,7 +749,7 @@ HeroUI だけが持つ変数は、トークンを参照させる。
 ### 7.7 書体の読み込み
 
 - `__root.tsx` の `head` の `links` に Google Fonts の `preconnect` とスタイルシート（[3.2](#32-タイポグラフィ) のウェイト、`display=swap`）を追加する。
-- 公開プロフィールの `Document` にも同じ `<link>` を置く。
+- 公開プロフィールは CSP（`default-src 'none'`）のため Web フォントを読み込まず、端末にある書体名の指定だけにする（[5.5](#55-公開プロフィール)）。
 
 ### 7.8 公開プロフィールの HTML
 

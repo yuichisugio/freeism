@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
  * 「その他」画面の設問カード（1つの設定・機能に1枚）。
  * 左列に見出しと説明、右列に操作を置き、640px以下は1列にする。
  * 退会のカードは枠と見出しを危険の色にする（`tone="danger"`）。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function SettingsSection({
   title,

@@ -191,6 +191,29 @@ describe("useOAuthClients: 保存", () => {
     expect(result.current.feedback).toEqual({ kind: "saved" });
   });
 
+  it("保存中に入力が変わった場合は、登録結果を編集対象にしつつ入力を未保存の変更として残す", async () => {
+    const created = { ...buildClient(9), name: "New App", redirectUris: ["https://new.example/callback"] };
+    let resolveCreate: (response: Response) => void = () => undefined;
+    const { result } = await renderLoaded(1, (request) =>
+      request.method === "POST" ? new Promise((resolve) => (resolveCreate = resolve)) : undefined,
+    );
+    fillNewClient(result);
+
+    let saving: Promise<void> = Promise.resolve();
+    act(() => {
+      saving = result.current.save();
+    });
+    act(() => result.current.changeField("name", "Edited App"));
+    await act(async () => {
+      resolveCreate(dataResponse(created));
+      await saving;
+    });
+
+    expect(result.current.editTarget).toEqual({ kind: "existing", client: created });
+    expect(result.current.form.name).toBe("Edited App");
+    expect(result.current.isDirty).toBe(true);
+  });
+
   it("上限到達で登録できなかった場合は、エラーと入力内容を保持する", async () => {
     const { result } = await renderLoaded(1, (request) =>
       request.method === "POST" ? problemResponse(409, "CLIENT_LIMIT_REACHED") : undefined,

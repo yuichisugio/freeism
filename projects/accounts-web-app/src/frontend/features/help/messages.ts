@@ -24,7 +24,7 @@ const apiDocumentPaths = {
  * 話題の`id`は節の`id`になり、ほかの画面から`/help#id`で案内するときのリンク先になる。
  * 本文の`` `コード` ``と`**強調**`は、表示時に`code`・`b`要素にする。
  * @see ../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./components/help-page.test.tsx
  */
 export const helpMessages = defineMessages({

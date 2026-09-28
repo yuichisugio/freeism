@@ -12,7 +12,7 @@ import { AttemptResult } from "./verification-details";
 /**
  * 「URLで証明」カード。
  * 手順・登録済みのURLの件数・URLの入力欄と「検証する」「未検証で保存」・使い方への案内を置き、検証の結果を入力欄の下に示す。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ../../../../../docs/specification/v0.1/verify-url.ja.md
  */
 export function ExternalUrlForm({

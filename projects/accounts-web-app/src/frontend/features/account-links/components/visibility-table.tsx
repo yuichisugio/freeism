@@ -17,13 +17,15 @@ import { AccountDetail } from "./account-detail";
  * 公開設定の表。
  * 外部アカウントを行、プロフィール（一般公開）と各連携先（OAuthクライアント）を列にし、セルのチェックで公開先を選ぶ。
  * 見出し行と先頭列を固定して枠の中で縦横にスクロールし、640px以下は先頭列を2段・公開先を短い幅にした圧縮表示にする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * 保存中（`isSelectionDisabled`）はセル・行・列・全体のチェックを無効にする。
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./account-links-views.test.tsx
  */
 export function VisibilityTable({
   table,
   reverifyingAccountId,
   reverifyFailure,
+  isSelectionDisabled,
   onSelect,
   onRequestUnlink,
   onReverify,
@@ -31,6 +33,7 @@ export function VisibilityTable({
   table: VisibilityTableModel;
   reverifyingAccountId: string | null;
   reverifyFailure: { accountId: string; error: unknown } | null;
+  isSelectionDisabled: boolean;
   onSelect: (destinations: Destination[], accountIds: string[], isSelected: boolean) => void;
   onRequestUnlink: (target: UnlinkTarget) => void;
   onReverify: (account: LinkedAccount) => void;
@@ -93,6 +96,7 @@ export function VisibilityTable({
                 <SelectionCheckbox
                   label={messages.bulkAllLabel}
                   values={rows.flatMap((row) => row.cells.map((cell) => cell.isSelected))}
+                  isDisabled={isSelectionDisabled}
                   onChange={(isSelected) => onSelect(destinations, accountIds, isSelected)}
                   className="max-sm:hidden"
                 />
@@ -103,6 +107,7 @@ export function VisibilityTable({
                   <SelectionCheckbox
                     label={messages.bulkColumnLabel(formatDestinationName(column.destination, messages))}
                     values={rows.map((row) => row.cells[columnIndex]?.isSelected === true)}
+                    isDisabled={isSelectionDisabled}
                     onChange={(isSelected) => onSelect([column.destination], accountIds, isSelected)}
                     className={destinationCheckboxClassName}
                   />
@@ -118,6 +123,7 @@ export function VisibilityTable({
                 isReverifying={reverifyingAccountId === row.account.id}
                 reverifyError={reverifyFailure?.accountId === row.account.id ? reverifyFailure.error : null}
                 onToggleDetail={() => toggleDetail(row.account.id)}
+                isSelectionDisabled={isSelectionDisabled}
                 onSelect={onSelect}
                 onRequestUnlink={onRequestUnlink}
                 onReverify={onReverify}
@@ -160,6 +166,7 @@ function AccountRows({
   isReverifying,
   reverifyError,
   onToggleDetail,
+  isSelectionDisabled,
   onSelect,
   onRequestUnlink,
   onReverify,
@@ -170,6 +177,7 @@ function AccountRows({
   isReverifying: boolean;
   reverifyError: unknown;
   onToggleDetail: () => void;
+  isSelectionDisabled: boolean;
   onSelect: (destinations: Destination[], accountIds: string[], isSelected: boolean) => void;
   onRequestUnlink: (target: UnlinkTarget) => void;
   onReverify: (account: LinkedAccount) => void;
@@ -188,6 +196,7 @@ function AccountRows({
             <SelectionCheckbox
               label={messages.rowLabel(label)}
               values={cells.map((cell) => cell.isSelected)}
+              isDisabled={isSelectionDisabled}
               onChange={(isSelected) => onSelect(destinations, [account.id], isSelected)}
               className="max-sm:hidden"
             />
@@ -241,6 +250,7 @@ function AccountRows({
               <SelectionCheckbox
                 label={messages.cellLabel(label, formatDestinationName(destination, messages))}
                 values={[cell.isSelected]}
+                isDisabled={isSelectionDisabled}
                 onChange={(isSelected) => onSelect([destination], [account.id], isSelected)}
                 className={destinationCheckboxClassName}
               />
@@ -275,16 +285,18 @@ function AccountRows({
 
 /**
  * 1つ以上のセルの選択をまとめて示すチェックボックス。
- * すべて選択でON、一部選択で中間表示にし、対象が無ければ無効にする。
+ * すべて選択でON、一部選択で中間表示にし、対象が無いか`isDisabled`のときは無効にする。
  */
 function SelectionCheckbox({
   label,
   values,
+  isDisabled,
   onChange,
   className,
 }: {
   label: string;
   values: boolean[];
+  isDisabled: boolean;
   onChange: (isSelected: boolean) => void;
   className?: string;
 }) {
@@ -294,7 +306,7 @@ function SelectionCheckbox({
       aria-label={label}
       isSelected={values.length > 0 && selectedCount === values.length}
       isIndeterminate={selectedCount > 0 && selectedCount < values.length}
-      isDisabled={values.length === 0}
+      isDisabled={isDisabled || values.length === 0}
       onChange={onChange}
       className={className}
     >

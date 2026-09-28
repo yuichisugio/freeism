@@ -15,7 +15,7 @@ export type DocumentSection = {
  * プライバシーポリシー・利用規約など、見出しと節で構成する文書ページ。
  * カードは他の画面と同じ幅（`PageMain`の`--page-max`）に広げ、見出しと本文をカードの幅いっぱいに置く。
  * 各節の見出しには`id`を付け、ほかの画面から`#id`で案内できるようにする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function DocumentPage({
   title,

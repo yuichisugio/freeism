@@ -9,7 +9,7 @@ import { accountLinksMessages } from "../messages";
  * 「公開プロフィールURL」カード。
  * 本人の公開プロフィールURL（DNS TXTの値を兼ねる）を新しいタブで開く外部リンクにし、右に「コピー」を置く。
  * 狭い幅ではURLを1行使い、「コピー」を次の行に回す。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function ProfileUrlPanel({ profileUrl }: { profileUrl: string }) {
   const messages = useMessages(accountLinksMessages);

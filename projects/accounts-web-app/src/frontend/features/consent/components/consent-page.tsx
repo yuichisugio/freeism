@@ -21,7 +21,7 @@ import { consentMessages } from "../messages";
  * 同意画面（OAuth Providerの`consentPage`）。
  * 中央の1枚のカードに、見出し・連携するアカウント・紹介ページと戻り先・利用目的・選択リスト・情報メッセージ・ボタンを上から並べる。
  * 選択リストは今回の連携先の列だけを選ばせ、「同意して戻る」でその列だけを保存してから標準の`oauth2.consent`を送る。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./consent-page.test.tsx
  */
@@ -104,6 +104,7 @@ function ConsentCard({
         clientName={clientName}
         rows={selection.rows}
         bulkState={selection.bulkState}
+        isDisabled={consent.isSubmitting}
         onSelectedChange={selection.setSelected}
         onAllSelectedChange={selection.setAllSelected}
       />
@@ -172,17 +173,20 @@ function ClientDetails({ client, redirectHost }: { client: LinkedClient | null; 
  * 今回の連携先の列だけの選択リスト。
  * 見出し行に「アカウント」と一括チェック（未検証の行を含む全行が対象）、各行にアイコン・「サービス名：識別子」・チップ・右端のチェックを置く。
  * 行全体を押してもチェックを切り替えられる。
+ * 送信中（`isDisabled`）は、送った選択を変えさせないため、すべてのチェックを無効にする。
  */
 function ConsentAccountList({
   clientName,
   rows,
   bulkState,
+  isDisabled,
   onSelectedChange,
   onAllSelectedChange,
 }: {
   clientName: string;
   rows: readonly ConsentRow[];
   bulkState: BulkState;
+  isDisabled: boolean;
   onSelectedChange: (accountId: string, isSelected: boolean) => void;
   onAllSelectedChange: (isSelected: boolean) => void;
 }) {
@@ -195,7 +199,7 @@ function ConsentAccountList({
           label={messages.bulkLabel(clientName)}
           isSelected={bulkState === "all"}
           isIndeterminate={bulkState === "some"}
-          isDisabled={bulkState === "empty"}
+          isDisabled={isDisabled || bulkState === "empty"}
           onChange={onAllSelectedChange}
           className="py-3 text-sm font-medium"
         >
@@ -211,6 +215,7 @@ function ConsentAccountList({
             <PickRow
               label={messages.rowLabel(accountLabel, clientName)}
               isSelected={isSelected}
+              isDisabled={isDisabled}
               onChange={(next) => onSelectedChange(account.id, next)}
               className="min-h-16 py-3"
             >

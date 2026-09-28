@@ -29,6 +29,17 @@ describe("SaveBar", () => {
     }
   });
 
+  it("全幅になる狭い幅でも、状態と「破棄」の間を空けず、ボタン同士と同じ間隔で右に寄せる", async () => {
+    renderWithProviders(<SaveBar dirtyCount={0} saveLabel="公開設定を保存" onDiscard={vi.fn<() => void>()} onSave={vi.fn<() => void>()} />);
+
+    const status = await screen.findByRole("status");
+    const bar = status.parentElement!;
+    expect(bar.className).toContain("justify-end");
+    for (const child of bar.children) {
+      expect(child.className).not.toMatch(/\bm[se]-auto\b/);
+    }
+  });
+
   it("未保存の変更があるときは、件数を示して「破棄」と保存を押せる", async () => {
     const onDiscard = vi.fn<() => void>();
     const onSave = vi.fn<() => void>();

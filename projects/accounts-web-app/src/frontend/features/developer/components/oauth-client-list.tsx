@@ -9,18 +9,21 @@ import { developerMessages } from "../messages";
  * 本人のOAuthクライアントの一覧（アプリ名・Client ID・「編集」「削除」）。
  * セルは折り返さず、狭い幅では枠の中で横にスクロールし、先頭列（アプリ名）を左端に留める。
  * 編集中の行は主色の淡い面にする。
+ * 保存中（`isDisabled`）は、編集対象を変えさせないため「編集」「削除」を無効にする。
  * Client IDのコピーは編集フォームで行う。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./developer-section.test.tsx
  */
 export function OAuthClientList({
   clients,
   editTarget,
+  isDisabled,
   onEdit,
   onDelete,
 }: {
   clients: OAuthClientDetail[];
   editTarget: EditTarget | null;
+  isDisabled: boolean;
   onEdit: (client: OAuthClientDetail) => void;
   onDelete: (client: OAuthClientDetail) => void;
 }) {
@@ -64,6 +67,7 @@ export function OAuthClientList({
                         size="sm"
                         variant="ghost"
                         aria-label={messages.editClientLabel(client.name)}
+                        isDisabled={isDisabled}
                         onPress={() => onEdit(client)}
                       >
                         {messages.editClient}
@@ -72,6 +76,7 @@ export function OAuthClientList({
                         size="sm"
                         variant="ghost"
                         aria-label={messages.deleteClientLabel(client.name)}
+                        isDisabled={isDisabled}
                         onPress={() => onDelete(client)}
                       >
                         {messages.deleteClient}

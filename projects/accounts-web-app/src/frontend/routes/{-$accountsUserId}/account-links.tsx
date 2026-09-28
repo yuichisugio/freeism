@@ -26,7 +26,7 @@ import type { RawSearch } from "../../lib/search-params";
  * 公開プロフィールURL → URLで証明 → ログインで証明 → 公開設定（表・情報メッセージ・保存バー）の縦1列にする。
  * 追加連携の失敗はBetter Authが`?error=`を付けて戻すため、クエリを受け取る。
  * @see ../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export const Route = createFileRoute("/{-$accountsUserId}/account-links")({
   validateSearch: (search: Record<string, unknown>) => search as RawSearch,
@@ -96,6 +96,7 @@ function AccountLinksPage() {
             table={table}
             reverifyingAccountId={reverify.pendingAccountId}
             reverifyFailure={reverify.failure}
+            isSelectionDisabled={saveState.status === "saving"}
             onSelect={accountLinks.select}
             onRequestUnlink={unlink.request}
             onReverify={(account) => void reverify.reverify(account)}

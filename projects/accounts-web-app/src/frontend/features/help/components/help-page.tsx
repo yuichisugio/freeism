@@ -18,7 +18,7 @@ const filterInputId = "help-filter";
  * PC幅は左に目次を固定し、820px以下は目次を本文の上の折りたたみにする。
  * 本文の先頭の「絞り込み」で、質問と本文に語句を含む質問だけを開いて表示する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./help-page.test.tsx
  */
 export function HelpPage() {

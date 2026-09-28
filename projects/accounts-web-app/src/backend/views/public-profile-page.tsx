@@ -79,7 +79,7 @@ export function readPublicProfileLanguage(value: string | undefined): PublicProf
 
 /**
  * 基準の寸法に、管理画面と同じ倍率（`--scale`）を掛けた値を返す。
- * @see ../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 const scaled = (basePx: number) => `calc(${basePx}px*var(--scale))`;
 

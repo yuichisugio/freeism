@@ -15,6 +15,7 @@ import { OAuthClientList } from "./oauth-client-list";
 /**
  * 「その他」画面の「開発者向け」。
  * 登録済みのOAuthクライアントの一覧と「新しいクライアントを登録」を置き、登録・編集のフォームは一覧の下に開く。
+ * 保存中は編集対象を変えさせないため、一覧の操作と「新しいクライアントを登録」を無効にする。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./developer-section.test.tsx
  */
@@ -37,7 +38,12 @@ export function DeveloperSection({ state }: { state: OAuthClientsState }) {
         <>
           <div className="flex w-full flex-wrap items-center justify-between gap-2">
             <h3 className="text-md">{messages.clientListTitle}</h3>
-            <Button size="sm" variant="outline" isDisabled={!state.canCreate} onPress={state.startCreating}>
+            <Button
+              size="sm"
+              variant="outline"
+              isDisabled={!state.canCreate || state.isSaving}
+              onPress={state.startCreating}
+            >
               <PlusIcon className="size-4" />
               {messages.createClient}
             </Button>
@@ -45,6 +51,7 @@ export function DeveloperSection({ state }: { state: OAuthClientsState }) {
           <OAuthClientList
             clients={state.clients}
             editTarget={state.editTarget}
+            isDisabled={state.isSaving}
             onEdit={state.editClient}
             onDelete={state.requestDelete}
           />

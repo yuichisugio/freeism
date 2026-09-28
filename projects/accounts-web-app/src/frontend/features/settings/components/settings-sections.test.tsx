@@ -172,6 +172,12 @@ describe("DisplayNameSection", () => {
     expect(changeDisplayName).toHaveBeenCalledWith("A");
   });
 
+  it("保存中は入力欄を無効にする", async () => {
+    renderWithProviders(<DisplayNameSection form={displayNameForm({ displayName: "Alice", isDirty: true, isSaving: true })} />);
+
+    expect((await screen.findByRole<HTMLInputElement>("textbox", { name: "表示名" })).disabled).toBe(true);
+  });
+
   it("入力不備は理由をテキストで示す", async () => {
     renderWithProviders(
       <DisplayNameSection

@@ -28,7 +28,7 @@ const tabClassName =
  * 画面へのタブは、現在のユーザーのAccountsユーザーID付きの経路にする。
  * 640px 未満ではタブを2段目の中央に回し、はみ出すときだけ横にスクロールする。
  * 同意画面は`hasTabs={false}`でタブを置かない。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./app-header.test.tsx
  */
 export function AppHeader({ hasTabs = true }: { hasTabs?: boolean }) {

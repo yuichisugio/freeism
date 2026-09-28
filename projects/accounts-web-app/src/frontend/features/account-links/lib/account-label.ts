@@ -5,7 +5,7 @@ import { formatServiceName } from "../../../../shared/service-names";
 
 /**
  * 行の表示に使う、外部アカウントのサービス名・識別子・サービスアイコン。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./account-label.test.ts
  */
 export type AccountDescription = {

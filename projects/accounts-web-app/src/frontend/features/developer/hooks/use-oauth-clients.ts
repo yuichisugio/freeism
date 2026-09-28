@@ -194,10 +194,21 @@ export function useOAuthClients() {
 
   /**
    * 入力内容を登録または更新する。
+   * 成功した場合は保存結果を編集対象にし、入力欄は送信した入力のままのときだけ保存結果にする。
    * 失敗した場合は入力内容を維持し、同じ内容で再度保存できるようにする。
    */
   const save = async () => {
     if (!canSave || validation.input === null || editTarget === null) return;
+    const sentForm = form;
+    /**
+     * 保存したクライアントを編集対象にする。
+     */
+    const showSavedClient = (client: OAuthClientDetail) => {
+      const clientForm = toOAuthClientForm(client);
+      setEditTarget({ kind: "existing", client });
+      setSavedForm(clientForm);
+      setForm((current) => (current === sentForm ? clientForm : current));
+    };
     setIsSaving(true);
     setFeedback(null);
     try {
@@ -207,7 +218,7 @@ export function useOAuthClients() {
           body: validation.input,
         });
         setClients((current) => [...current, created]);
-        openEditor({ kind: "existing", client: created });
+        showSavedClient(created);
         setFeedback({ kind: "created" });
       } else {
         const updated = await requestBff(oauthClientPath(editTarget.client.clientId), oauthClientDetailSchema, {
@@ -215,7 +226,7 @@ export function useOAuthClients() {
           body: validation.input,
         });
         setClients((current) => current.map((client) => (client.clientId === updated.clientId ? updated : client)));
-        openEditor({ kind: "existing", client: updated });
+        showSavedClient(updated);
         setFeedback({ kind: "saved" });
       }
     } catch (error) {

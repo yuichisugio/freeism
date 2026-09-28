@@ -11,7 +11,7 @@ import { SettingsSection } from "./settings-section";
 /**
  * 退会。
  * 「退会」で確認のダイアログを開き、「DELETE」と入力するまで「退会する」を押せない。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./settings-sections.test.tsx
  */
 export function AccountDeletionSection({ accountDeletion }: { accountDeletion: AccountDeletion }) {

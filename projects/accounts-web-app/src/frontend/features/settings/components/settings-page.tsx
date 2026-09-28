@@ -29,7 +29,7 @@ import { ThemeSection } from "./theme-section";
  * 設問カードを表示名・言語・テーマ・データ出力・データ取込・開発者向け・退会の順に縦1列で置く。
  * 未ログインでは言語とテーマだけを表示し、ほかの設定はログインを求める1文にする。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./settings-page.test.tsx
  */
 export function SettingsPage() {

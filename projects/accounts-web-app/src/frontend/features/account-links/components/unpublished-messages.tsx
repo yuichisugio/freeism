@@ -6,7 +6,7 @@ import { accountLinksMessages } from "../messages";
 /**
  * 公開設定の表の下に置く情報メッセージ。
  * 保存済みの状態で証明済みの行の選択が0件の公開先ごとに、情報を提供しないこと（プロフィールは公開プロフィールを表示しないこと）を示す。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function UnpublishedMessages({ columns }: { columns: VisibilityColumn[] }) {
   const messages = useMessages(accountLinksMessages);

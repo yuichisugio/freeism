@@ -30,7 +30,8 @@ export const validJwksText = JSON.stringify({ keys: [{ kty: "EC", crv: "P-256", 
 // BFF
 // --------------------------------------------------
 
-type BffRoute = (request: { method: string; url: string; body: unknown }) => Response | undefined;
+// 保存中の状態を確かめるため、応答を保留する`Promise`も返せる。
+type BffRoute = (request: { method: string; url: string; body: unknown }) => Response | Promise<Response> | undefined;
 
 /**
  * `fetch`をモックし、呼出しを`route`へ渡す。

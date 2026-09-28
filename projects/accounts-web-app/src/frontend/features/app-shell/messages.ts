@@ -2,7 +2,7 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 
 /**
  * ヘッダー・フッター・共通部品（保存バー・未保存の確認）の文言。
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export const appShellMessages = defineMessages({
   ja: {

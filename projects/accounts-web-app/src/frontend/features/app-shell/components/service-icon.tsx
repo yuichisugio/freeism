@@ -14,7 +14,7 @@ const defaultFaviconMaxWidth = 16;
  * アイコンを台（`--favicon-plate`）に載せてダークでも見えるようにする。
  * OAuth Providerはログインボタンと同じブランドのアイコンを使い、ファビコンの配信を使わない（配信はORCIDにも16pxの画像を返すため）。
  * 台は36pxとし、狭い幅の表では表側のCSSで28pxに上書きする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./service-icon.test.tsx
  */
 export function ServiceIcon({ icon }: { icon: ServiceIconSource }) {

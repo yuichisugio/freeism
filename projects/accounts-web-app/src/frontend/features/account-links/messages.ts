@@ -4,7 +4,7 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 /**
  * 「アカウント連携」画面の文言。
  * `failure_code`・エラーコードから次の操作の案内を導く対応表もここに置く。
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
  */
 export const accountLinksMessages = defineMessages({

@@ -249,30 +249,7 @@ describe("OAuthの同期の失敗とProvider別の取得", () => {
   });
 });
 
-describe("標準の解除・退会と独自表", () => {
-  it("unlinkAccountでは、ログインから時間が経ったセッションでも解除でき、CASCADEでoauth証明と関連だけが消える", async () => {
-    const { user, accounts } = await createUserWithGoogleAccounts(2);
-    const [unlinkedAccount, remainingAccount] = accounts;
-    const headers = await loginWithOldSession(user.id);
-
-    await testAuth.api.unlinkAccount({ headers, body: { accountId: unlinkedAccount?.id ?? "" } });
-
-    const verifications = await db
-      .select({ authAccountId: externalAccountVerifications.authAccountId })
-      .from(externalAccountVerifications)
-      .innerJoin(externalAccounts, eq(externalAccounts.id, externalAccountVerifications.accountId))
-      .where(eq(externalAccounts.userId, user.id));
-    expect(verifications).toEqual([{ authAccountId: remainingAccount?.id }]);
-
-    // 外部アカウント行と識別子は残り、支えを失った識別子の候補化は後続のbatchで行う。
-    expect(
-      await db.select().from(externalAccounts).where(eq(externalAccounts.userId, user.id)),
-    ).toHaveLength(2);
-    expect(
-      await db.select().from(externalIdentifiers).where(eq(externalIdentifiers.userId, user.id)),
-    ).toHaveLength(2);
-  });
-
+describe("標準の退会と独自表", () => {
   it("deleteUserでは、ログインから時間が経ったセッションでも退会でき、本人の独自表データが消える", async () => {
     const { user } = await createUserWithGoogleAccounts(1);
     const [identifier] = await db

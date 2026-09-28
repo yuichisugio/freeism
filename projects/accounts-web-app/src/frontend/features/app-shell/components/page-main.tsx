@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /**
  * 画面の本文の枠。
  * トップ・アカウント連携・その他・使い方・法務ページで同じ最大幅（`--page-max`）と余白にする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function PageMain({ children }: { children: ReactNode }) {
   return (

@@ -5,7 +5,7 @@
 - [v0.1仕様](./docs/specification/v0.1/main.ja.md)
 - [v0.2仕様](./docs/specification/v0.2/main.ja.md)
 - [URL登録・検証仕様](./docs/specification/v0.1/verify-url.ja.md)
-- [デザインシステム](./docs/specification/v0.1/design-system.ja.md)
+- [デザインシステム](./docs/specification/v0.1/design-system/design-system.ja.md)
 - [v0.1実装計画](./docs/implementation-plan/v0.1.md)
 
 ## 開発
@@ -51,6 +51,8 @@
 4. `CLOUDFLARE_ENV=staging pnpm build`でstagingの設定でビルドし、`pnpm exec wrangler deploy`でデプロイする。Cloudflare Vite Pluginはビルド時に環境を確定するため、`wrangler deploy`には`--env`を付けない。
 5. `https://staging.accounts.freeism.app`でBasic認証を通して画面を開き、Google・GitHub・ORCIDのログイン、URLの検証、公開プロフィール（Basic認証なし）、OAuthクライアントの登録と`/api/v1/*`の呼出しを確認する。
 6. PRのPreviewは、同じビルドの後に`pnpm exec wrangler preview`で更新する。PreviewはstagingのD1を共有する。Previewではログインを確認し、追加連携はstagingで確認する。
+
+本番（`env.production`）は画面・JS・CSSをWorkerを通さずassetsから返すため、セキュリティヘッダーは`public/_headers`（ビルドで`dist/client/_headers`へ出力）で付ける。値は`src/backend/app.ts`の`secureHeaders()`と合わせる。
 
 ## 認証の秘密値の切り替え
 

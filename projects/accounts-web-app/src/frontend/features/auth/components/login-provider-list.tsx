@@ -17,7 +17,7 @@ type LoginProviderListProps = {
 /**
  * Google・GitHub・ORCIDのログインボタン（サービスのアイコン付き、同じ幅で縦に中央へ並べる）。
  * 前回のログイン方法は主ボタンにし、色だけでなく「前回使用」のチップ（ボタンの説明として読み上げる）で示す。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function LoginProviderList({ pendingProvider, lastUsedMethod, onSignIn }: LoginProviderListProps) {
   const messages = useMessages(authMessages);

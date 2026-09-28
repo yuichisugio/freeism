@@ -17,7 +17,7 @@ export type LoginRequest = { errorCode: string | undefined };
  * サービス名と説明、「アカウント連携へ」と「使い方」、簡単な使い方の4つの手順を置く静的な内容で、ビルド時に事前生成する。
  * ログインは「アカウント連携」を開いたときのログイン用のダイアログから行う。
  * OAuth Providerのログイン画面を兼ね、`loginRequest`があればログイン用のダイアログを自動で開く。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./home-page.test.tsx
  */
 export function HomePage({ loginRequest }: { loginRequest: LoginRequest | null }) {

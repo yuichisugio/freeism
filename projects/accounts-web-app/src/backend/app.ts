@@ -33,6 +33,7 @@ export const app = new Hono<AppEnv>();
 // 全体に適用するミドルウェア
 // --------------------------------------------------
 
+// 本番でassetsから直接返す画面・JS・CSSには、public/_headersで同じ値を付ける（設定を変えたら合わせる）。
 app.use(secureHeaders());
 app.use(
   languageDetector({

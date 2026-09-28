@@ -20,7 +20,7 @@ declare module "@tanstack/react-router" {
 
 /**
  * 画面の書体（見出し: Zen Maru Gothic、本文: Noto Sans JP、URL・ID: M PLUS 1 Code）。
- * @see ../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 const fontStylesheetUrl =
   "https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap";

@@ -14,7 +14,8 @@ import type { DeveloperMessages } from "../messages";
 /**
  * 一覧の下に開くOAuthクライアントの登録・編集のフォーム。
  * 各項目は、項目名と「必須」「任意」の印、その直下に説明文、その下に入力欄の順に置く。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * 保存中は、送信した入力を変えさせないため、入力欄と行の追加・削除、クライアントの「削除」を無効にする。
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ./developer-section.test.tsx
  */
 
@@ -89,7 +90,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
   const headingId = useId();
   const redirectUrisLabelId = useId();
   const redirectUrisHintId = useId();
-  const { editTarget, form, fieldErrors, feedback } = state;
+  const { editTarget, form, fieldErrors, feedback, isSaving } = state;
   if (editTarget === null) return null;
 
   const nameError = fieldErrorText(messages, fieldErrors.name, serverIssueText(feedback, "name"));
@@ -115,6 +116,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
         value={form.name}
         onChange={(value) => state.changeField("name", value)}
         isInvalid={nameError !== undefined}
+        isDisabled={isSaving}
         isRequired
         validationBehavior="aria"
       >
@@ -130,6 +132,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
         value={form.uri}
         onChange={(value) => state.changeField("uri", value)}
         isInvalid={uriError !== undefined}
+        isDisabled={isSaving}
         validationBehavior="aria"
       >
         <FieldLabel isRequired={false}>{messages.uriLabel}</FieldLabel>
@@ -142,6 +145,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
         value={form.description}
         onChange={(value) => state.changeField("description", value)}
         isInvalid={descriptionError !== undefined}
+        isDisabled={isSaving}
         validationBehavior="aria"
       >
         <FieldLabel isRequired={false}>{messages.descriptionLabel}</FieldLabel>
@@ -171,6 +175,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
                 value={redirectUri}
                 onChange={(value) => state.changeRedirectUri(index, value)}
                 isInvalid={rowError !== undefined}
+                isDisabled={isSaving}
                 isRequired
                 validationBehavior="aria"
               >
@@ -182,7 +187,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
                 variant="ghost"
                 className="mt-1.5"
                 aria-label={messages.removeRedirectUri(index + 1)}
-                isDisabled={form.redirectUris.length === 1}
+                isDisabled={isSaving || form.redirectUris.length === 1}
                 onPress={() => state.removeRedirectUri(index)}
               >
                 {messages.remove}
@@ -194,7 +199,13 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
           <p className="text-sm text-danger">{redirectUrisServerError}</p>
         )}
         <div>
-          <Button size="sm" variant="tertiary" aria-label={messages.addRedirectUriLabel} onPress={state.addRedirectUri}>
+          <Button
+            size="sm"
+            variant="tertiary"
+            aria-label={messages.addRedirectUriLabel}
+            isDisabled={isSaving}
+            onPress={state.addRedirectUri}
+          >
             <PlusIcon className="size-4" />
             {messages.addRedirectUri}
           </Button>
@@ -219,6 +230,7 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
         value={form.jwksText}
         onChange={(value) => state.changeField("jwksText", value)}
         isInvalid={jwksError !== undefined}
+        isDisabled={isSaving}
         isRequired
         validationBehavior="aria"
       >
@@ -230,13 +242,18 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <Button type="submit" variant="primary" isDisabled={!state.canSave}>
-          {state.isSaving ? common.saving : common.save}
+          {isSaving ? common.saving : common.save}
         </Button>
-        <Button variant="outline" isDisabled={state.isSaving} onPress={state.cancelEditing}>
+        <Button variant="outline" isDisabled={isSaving} onPress={state.cancelEditing}>
           {common.cancel}
         </Button>
         {editTarget.kind === "existing" ? (
-          <Button className="ml-auto" variant="danger" onPress={() => state.requestDelete(editTarget.client)}>
+          <Button
+            className="ml-auto"
+            variant="danger"
+            isDisabled={isSaving}
+            onPress={() => state.requestDelete(editTarget.client)}
+          >
             {messages.deleteClient}
           </Button>
         ) : null}

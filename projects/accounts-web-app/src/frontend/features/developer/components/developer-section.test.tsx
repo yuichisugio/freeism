@@ -107,6 +107,23 @@ describe("DeveloperSection: 登録・編集フォーム", () => {
     expect(saveButton.hasAttribute("disabled")).toBe(false);
   });
 
+  it("保存中は入力欄と、一覧・フォームの「編集」「削除」「新しいクライアントを登録」を無効にする", async () => {
+    const user = userEvent.setup();
+    renderSection(2, (request) => (request.method === "PUT" ? new Promise(() => undefined) : undefined));
+
+    await user.type(await openEditor(user, "App 1"), " 改");
+    await user.click(screen.getByRole("button", { name: "保存" }));
+
+    const form = screen.getByRole("form", { name: "App 1" });
+    expect(within(form).getAllByRole<HTMLInputElement | HTMLTextAreaElement>("textbox").every((field) => field.disabled)).toBe(
+      true,
+    );
+    for (const name of ["App 2を編集", "App 2を削除", "新しいクライアントを登録", "リダイレクトURLを追加"]) {
+      expect(screen.getByRole("button", { name }).hasAttribute("disabled")).toBe(true);
+    }
+    expect(within(form).getByRole("button", { name: "削除" }).hasAttribute("disabled")).toBe(true);
+  });
+
   it("「キャンセル」でフォームを閉じ、入力を破棄する", async () => {
     const user = userEvent.setup();
     renderSection(1);

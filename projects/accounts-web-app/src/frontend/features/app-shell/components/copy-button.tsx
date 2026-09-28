@@ -7,7 +7,8 @@ import { CopyIcon } from "./icons";
 
 /**
  * 文字列をコピーするボタン。
- * 結果は`role="status"`のテキストで読み上げる。
+ * 結果は`role="status"`のテキストで読み上げ、「コピーしました」は3秒後に消す。
+ * @see ../../../lib/use-copy-text.ts
  */
 export function CopyButton({ text, label }: { text: string; label?: string }) {
   const common = useMessages(commonMessages);

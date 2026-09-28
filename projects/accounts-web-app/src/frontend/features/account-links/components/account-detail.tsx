@@ -12,7 +12,7 @@ import { accountLinksMessages } from "../messages";
  * 公開設定の表の行の「詳細」。
  * 証明済みの行は成功した証明ごとのブロックと「すべての連携解除」、未検証の行は直近の検証結果・案内・「再検証」・「すべての連携解除」を示す。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function AccountDetail({
   account,

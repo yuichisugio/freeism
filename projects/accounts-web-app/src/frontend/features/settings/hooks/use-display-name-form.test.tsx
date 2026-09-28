@@ -91,6 +91,32 @@ describe("useDisplayNameForm", () => {
     expect(authClient.$store.notify).toHaveBeenCalledWith("$sessionSignal");
   });
 
+  it("保存中に入力が変わった場合は、保存の完了後もその入力を未保存の変更として残す", async () => {
+    let resolveSave: (response: Response) => void = () => undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(dataResponse(me))
+        .mockReturnValueOnce(new Promise((resolve) => (resolveSave = resolve))),
+    );
+    const { result } = await renderLoadedForm();
+    act(() => result.current.changeDisplayName("Alice"));
+
+    let saving: Promise<void> = Promise.resolve();
+    act(() => {
+      saving = result.current.save();
+    });
+    act(() => result.current.changeDisplayName("Bob"));
+    await act(async () => {
+      resolveSave(dataResponse({ ...me, displayName: "Alice" }));
+      await saving;
+    });
+
+    expect(result.current.displayName).toBe("Bob");
+    expect(result.current.isDirty).toBe(true);
+  });
+
   it("保存に失敗すると、入力中の表示名と失敗を保持する", async () => {
     stubBff({
       "GET /api/me": () => dataResponse(me),

@@ -28,7 +28,7 @@ const sessionKeyPrefix = "session:";
  * ヘッダー右の人のアイコンから開くアカウント切替メニュー。
  * 見出しを置かず、現在のユーザー（先頭・強調・「現在」チップ）、このブラウザーでログイン中のほかのユーザー（押すと切替）、「アカウントを追加」、区切り、「「{表示名}」からログアウト」の順に並べる。
  * ユーザーの行はアバターを置かず、表示名とAccountsユーザーIDだけにする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  * @see ../../app-shell/components/app-header.test.tsx
  */
 export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {

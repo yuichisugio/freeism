@@ -2,7 +2,7 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 
 /**
  * OSSライセンス画面の文言。
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export const licensesMessages = defineMessages({
   ja: {

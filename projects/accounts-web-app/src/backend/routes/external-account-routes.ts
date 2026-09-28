@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 
-import { getAuth } from "../auth/auth";
 import { createDatabase } from "../db/database";
 import type { AppEnv } from "../hono-env";
 import { purgeProfileCache } from "../infrastructure/cache/profile-cache-purger";
@@ -31,12 +30,8 @@ export const externalAccountRoutes = new Hono<AppEnv>()
         { actorUserId: userId, affectedUserIds: [userId] },
       );
       await unlinkExternalAccount(
-        { db, auth: getAuth() },
-        {
-          userId,
-          headers: c.req.raw.headers,
-          externalAccountId: c.req.param("externalAccountId"),
-        },
+        { db },
+        { userId, externalAccountId: c.req.param("externalAccountId") },
       );
       purgeProfileCache(purgeTargets);
       return dataResponse(c, { ok: true as const });
@@ -54,10 +49,9 @@ export const externalAccountRoutes = new Hono<AppEnv>()
         { actorUserId: userId, affectedUserIds: [userId] },
       );
       await unlinkVerification(
-        { db, auth: getAuth(), now: new Date() },
+        { db, now: new Date() },
         {
           userId,
-          headers: c.req.raw.headers,
           externalAccountId: c.req.param("externalAccountId"),
           verificationId: c.req.param("verificationId"),
         },

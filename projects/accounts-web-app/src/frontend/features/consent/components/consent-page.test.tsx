@@ -158,6 +158,23 @@ describe("ConsentPage", () => {
     });
   });
 
+  it("「同意して戻る」の送信中は、選択リストのチェックと一括チェックを無効にする", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(dataResponse(links))
+      .mockResolvedValueOnce(dataResponse({ ok: true }));
+    authClientMock.oauth2.consent.mockReturnValue(new Promise(() => undefined));
+    await renderConsentPage({ fetchMock });
+
+    await userEvent.click(screen.getByRole("checkbox", { name: "GitHub：yamada-hanakoをPointsに公開" }));
+    await userEvent.click(screen.getByRole("button", { name: "同意して戻る" }));
+
+    await waitFor(() => expect(authClientMock.oauth2.consent).toHaveBeenCalled());
+    const checkboxes = within(screen.getByRole("list")).getAllByRole<HTMLInputElement>("checkbox");
+    expect(checkboxes).toHaveLength(3);
+    expect(checkboxes.every((checkbox) => checkbox.disabled)).toBe(true);
+  });
+
   it("「同意しない」は選択を保存せずに拒否を送る", async () => {
     const { fetchMock } = await renderConsentPage();
 

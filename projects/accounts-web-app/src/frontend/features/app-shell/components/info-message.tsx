@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 /**
  * 情報メッセージ（info トーン）。
  * エラーではない案内（公開先ごとに証明済みの選択が0件のときなど）に使い、主色の淡い面と情報アイコンで示す。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function InfoMessage({ children }: { children: ReactNode }) {
   return (

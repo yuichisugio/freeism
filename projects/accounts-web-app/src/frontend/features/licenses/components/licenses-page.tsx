@@ -23,7 +23,7 @@ export function LicensesPage() {
  * ライセンス一覧の表示。
  * 読み込み中・ビルド前・失敗・0件をテキストで区別する。
  * 一覧は、見出し行と先頭列を固定して縦横にスクロールする表にする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function LicensesView({ state }: { state: LicensesState }) {
   const messages = useMessages(licensesMessages);

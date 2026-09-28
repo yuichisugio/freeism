@@ -129,7 +129,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 公開プロフィールは、外部サイトがJavaScriptを実行せず確認できるHTMLを返す。掲載する外部URLの`rel="me"`と出力条件は[公開プロフィールへの掲載](verify-url.ja.md#公開プロフィールへの掲載)に従う
 - 公開プロフィールURLは、`https://accounts.freeism.app/profiles/{accountsUserId}`とする
 - 公開プロフィールは、GitHubなどの外部アカウントとAccountsユーザーIDの対応を表示することを主な用途とする
-- 公開プロフィールには、表示名・AccountsユーザーIDと、一般公開した証明済みの外部アカウントごとにサービスアイコン・「サービス名：識別子」・証明方法・証明日時を表示する。項目は[表示・提供する情報](#表示提供する情報)、配置は[デザインシステム](design-system.ja.md#55-公開プロフィール)に従う
+- 公開プロフィールには、表示名・AccountsユーザーIDと、一般公開した証明済みの外部アカウントごとにサービスアイコン・「サービス名：識別子」・証明方法・証明日時を表示する。項目は[表示・提供する情報](#表示提供する情報)、配置は[デザインシステム](design-system/design-system.ja.md#55-公開プロフィール)に従う
 - 公開プロフィールのキャッシュはURL単位のため、表示言語は`?lang=ja`・`?lang=en`の別URLで切り替える。`lang`が無い場合と対応しない値の場合は日本語とする。両言語のURLを`<link rel="alternate" hreflang>`で示し、言語の切替はJavaScriptを使わないリンクで行う
 
 ## 登録とログイン
@@ -168,7 +168,7 @@ Pointsの接続先選択、画面文言、ユーザー連携の追加・変更�
 - 成功した証明に基づく現在の紐付けは、本人による解除または別の本人の再証明による更新まで有効とする。再検証の直近結果と現在の紐付けを分けて保存し、後日の検証失敗だけでは現在の紐付けを変更しない
 - 別のユーザーに紐付くWeb URLも、申請者のAccountsプロフィールを示す証拠を再証明できた場合は、確認した識別子の現在の所有者を申請者へ更新する。その識別子を以前の所有者の一覧・照合から外し、新しい所有者の公開設定を適用する。他の識別子と証明は、今回確認した範囲に従って維持・更新する。リンク証明（`bidirectional_link`）単独の成功では、確認した識別子のうち1つでも別のユーザーの`dns_txt`または`oauth`の有効な証明が支えていれば、そのリンク証明全体を`indeterminate`として所有者を変更せず、同じ要求でDNS TXTの確認へ進む。本人には、別の方法で証明済みの利用者に紐付いていることを案内する。確認した識別子がすべてリンク証明だけに支えられている場合は再証明で移動する
 - 管理画面の「すべての連携解除」は外部アカウントの表示行全体を対象にし、その行の識別子・証明方法・公開設定を終了する。OAuthのログイン手段を含む場合は、標準の認証連携の解除を先に行い、最後のログイン手段として拒否された場合は何も変更しない
-- 成功した証明ごとに「この証明を解除」の操作を置き、対象の証明行1件を終了する。OAuthの証明では、標準`unlinkAccount`に対象の標準`account`の行ID（`account.id`）を渡して認証連携を解除し、対応する`oauth`証明と対象関連を終了する。最後のログイン手段の解除は標準の結果に従って拒否し、何も変更しない。双方向リンク（`bidirectional_link`）・DNS TXT（`dns_txt`）の証明では、その証明行と対象関連を削除する。DNS TXTの証明は外部アカウント行ごとに持つため、押した行の証明だけを終了し、同じhostのほかの行の証明は残す
+- 成功した証明ごとに「この証明を解除」の操作を置き、対象の証明行1件を終了する。OAuthの証明では、対象の標準`account`行（`account.id`）も削除して認証連携を解除する。最後のログイン手段（本人の標準`account`行が残らなくなる解除）は拒否し、何も変更しない。双方向リンク（`bidirectional_link`）・DNS TXT（`dns_txt`）の証明では、その証明行と対象関連を削除する。DNS TXTの証明は外部アカウント行ごとに持つため、押した行の証明だけを終了し、同じhostのほかの行の証明は残す
 - 証明を解除しても、ほかの証明が支える識別子と、外部アカウント行・公開設定は維持する。最後の成功証明を解除した行は、公開選択を保持したまま未検証の行として残る
 - URL識別子を持つ未検証の行には「再検証」を置き、その行のURLで[URL登録・検証仕様](verify-url.ja.md)の検証を行う。URL識別子の無い行（Googleなど）は、「ログインで証明」から同じ外部アカウントで再連携して証明する
 - OAuthアカウントの紐付け先を変更する場合は、元のAccountsユーザーで連携を解除した後、移動先のAccountsユーザーで所有権を改めて証明して連携する。元のユーザーには別のログイン手段を残して解除する
@@ -641,7 +641,7 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 
 ## 管理画面と監査
 
-ログイン後の管理機能は、ヘッダーのタブで切り替える「トップ」「アカウント連携」「その他」の3画面にまとめる。利用側サービスから開始した連携では、タブの無い同意画面を表示する。各機能の条件は参照先の仕様、画面の配置・部品・主要な文言は[デザインシステム](design-system.ja.md)に従う。
+ログイン後の管理機能は、ヘッダーのタブで切り替える「トップ」「アカウント連携」「その他」の3画面にまとめる。利用側サービスから開始した連携では、タブの無い同意画面を表示する。各機能の条件は参照先の仕様、画面の配置・部品・主要な文言は[デザインシステム](design-system/design-system.ja.md)に従う。
 
 | 画面名 | 経路 | 扱う機能 |
 | --- | --- | --- |
@@ -684,7 +684,7 @@ URL登録、証拠からの抽出、照合APIで共通の[URL正規化規則](ve
 - 表示名、OAuthクライアント設定、公開設定に未保存の変更がある状態で、別画面への移動または編集対象クライアントの切り替えを行う場合は、確認を表示する。「変更を破棄して移動」を選ぶと現在の編集対象の未保存の変更を破棄し、保存済みの設定を維持して移動・切り替えを行う。「編集に戻る」を選ぶと移動・切り替えを取りやめ、編集中の内容を維持する
 - UIは日本語と英語を提供する。保存した表示言語が無い場合の初期言語は、権限の要らないブラウザーの優先言語（`navigator.languages`の先頭）が日本語の場合に日本語、それ以外の場合に英語とする。事前生成したページは日本語で描画し、描画後に保存した言語・初期言語へ切り替える
 - 日時は`YYYY/MM/DD HH:MM (UTC)`の形式でUTCのまま表示する。英語の画面も同じ形式とする
-- 外部アカウントのサービスアイコンは、OAuth Provider（Google・GitHub・ORCID）の行はログインボタンと同じブランドのアイコンにし、それ以外の行はURL識別子のホスト名から`https://www.google.com/s2/favicons?domain={host}&sz=64`を画像として読み込み、読み込めない場合は地球儀のアイコンを表示する（[デザインシステム](design-system.ja.md#412-サービスアイコンfavicon)）。公開プロフィールと本人画面のアイコン取得にGoogleのfavicon APIを使い、閲覧者のブラウザーからホスト名が送られる旨をプライバシーポリシーに記載する。CSPで画像の取得元を制限する応答では、`img-src`に`https://www.google.com`と`https://*.gstatic.com`を許可する
+- 外部アカウントのサービスアイコンは、OAuth Provider（Google・GitHub・ORCID）の行はログインボタンと同じブランドのアイコンにし、それ以外の行はURL識別子のホスト名から`https://www.google.com/s2/favicons?domain={host}&sz=64`を画像として読み込み、読み込めない場合は地球儀のアイコンを表示する（[デザインシステム](design-system/design-system.ja.md#412-サービスアイコンfavicon)）。公開プロフィールと本人画面のアイコン取得にGoogleのfavicon APIを使い、閲覧者のブラウザーからホスト名が送られる旨をプライバシーポリシーに記載する。CSPで画像の取得元を制限する応答では、`img-src`に`https://www.google.com`と`https://*.gstatic.com`を許可する
 - 使い方（`/help`）は、話題ごとの質問と回答を開閉して読む形式とし、目次と絞り込みの検索欄を置く。開発者向けの話題には「開発者向け」の印を付ける。掲載内容は[文書化要件](#文書化要件)に従う
 - 読み込み中、登録がない状態、成功、失敗を画面で判別できるようにする
 - 状態や失敗理由はテキストで示し、確認操作・エラー・通知をキーボードとスクリーンリーダーで判別できるようにする
@@ -935,7 +935,7 @@ Better Auth 1.7系安定版と対応するプラグイン・CLIをそろえる�
 - Google・GitHub・ORCIDの認証、state・PKCE、OIDCのissuer・nonceの検査はBetter Authの標準フローへ接続する。ORCIDはGeneric OAuthを用いる
 - 共通ログインフローから標準のユーザー・セッション作成へ接続する。新規ユーザーの表示名は`databaseHooks.user.create.before`で「仮ユーザー」にし、その後は本人が設定した値を維持する。Providerから得た表示名は外部アカウントの表示名として保存する
 - Better Authの`user.email`には、ユーザーを作成した外部アカウントのProviderからBetter Authの標準処理で得たメールアドレスを保存し、その後のログイン・追加連携では更新しない。メールアドレスを返さないORCIDは、Generic OAuthの`mapProfileToUser`で`{ORCID iD}@orcid.invalid`と`emailVerified: false`を渡す（[Better Authの案内](https://better-auth.com/docs/concepts/oauth#handling-providers-without-email)）。`user.email`は認証ライブラリの内部用とし、画面に表示するメールアドレスには本人向けの`external_accounts.email`を使う。本人識別はProviderと固有IDで行い、外部への情報提供は本仕様の項目から組み立てる
-- 追加連携は`linkSocial()`、解除は`unlinkAccount()`へ接続する。OAuthの紐付け先変更は、元ユーザーでの解除と移動先での新しい認証・連携という標準操作の組み合わせで行う
+- 追加連携は`linkSocial()`へ接続する。解除はAccountsのAPIが標準`account`行を独自表の整理と同じbatchで削除する。OAuthの紐付け先変更は、元ユーザーでの解除と移動先での新しい認証・連携という標準操作の組み合わせで行う
 - OAuthのログイン・追加連携・再連携では、標準`account`の作成・更新後に、外部アカウント行・Provider識別子・`oauth`証明・表示名・メールアドレスを冪等に作成・更新する。新しく作る外部アカウントの公開選択はOFFとする。別の所有者の有効な識別子と衝突する場合は、同じbatchで[Web識別子の移動](#読み取りと更新の単位)と同じ手順を行う。この書込が失敗した場合は、次回のログイン時に標準`account`から再構成する
 - 識別子・表示名・メールアドレスは、Providerごとに次の検証済み応答から得る
 
@@ -959,7 +959,7 @@ ORCIDの固有IDはURL形式でないiD（例: `0000-0002-1825-0097`）とする
 | `verification_identifiers` | `verification_id TEXT`、`identifier_id TEXT` | 複合PK `(verification_id, identifier_id)`、FK `verification_id → external_account_verifications.id`・`identifier_id → external_identifiers.id`、INDEX `(identifier_id)` |
 | `external_account_visibility` | `account_id TEXT`、`client_id TEXT`、`is_public INTEGER=0` | 複合PK `(account_id, client_id)`、FK `account_id → external_accounts.id`、INDEX `(client_id, account_id, is_public)` |
 
-標準の`unlinkAccount()`が`account`行を削除すると、`auth_account_id`で参照する`oauth`証明とその対象関連が同じ文で削除され、ほかの証明と識別子行は残る。標準の`deleteUser`が`user`行を削除すると、本人の独自表データが同じ文で削除される。支える成功証明が無くなった識別子は、続くbatchで`is_active=0`の候補にする。
+`account`行を削除すると、`auth_account_id`で参照する`oauth`証明とその対象関連が同じ文で削除され、ほかの証明と識別子行は残る。標準の`deleteUser`が`user`行を削除すると、本人の独自表データが同じ文で削除される。解除では、`account`行の削除・支える成功証明が無くなった識別子の候補化（`is_active=0`）・`oauthConsent`の整理を1回のbatchで確定する。
 
 `external_accounts.email`は、OAuthのログイン・追加連携・再連携でProviderから得たメールアドレスを保存し、本人向けの外部アカウント一覧だけで表示する。一般公開・OAuthクライアント・JSON出力には含めない。
 
@@ -988,7 +988,7 @@ erDiagram
 - **登録・検証**：セッション本人の入力URLを検査・正規化する。未登録URLも受け付け、公開ページのリンク証明を先に確認する。不成立なら同じ要求で入力URLのhostのDNS TXTを確認する。ページ取得・DNS照会はDB書込の前に行う。成功時だけ、未登録の入力URLを登録し、各方法の結果と、証明行と今回確認した識別子との対象関連を保存して`is_active=1`にする。未登録の入力URLを登録する前に本人の`url`行が150未満であることを確認する。未登録の入力URLでどちらも成立しなければ、外部アカウント・識別子・証明の行を作らず方法別の結果を返す。「未検証で保存」は、`url`行が150未満であることを確認してから、入力URLを`is_active=0`の識別子として登録する。リンク証明では、最終取得URLが個別対応サービスのプロフィールURLなら、そのURL規則で確定したユーザー名・プロフィールURLを入力URLと同じ外部アカウント・同じ証明へ含める。最終取得URLがそれ以外の場合のリンク証明は入力URLだけを対象とする。DNSの対象は入力URLと同じhostで本人が登録済みのURLとし、対象URLを含む各外部アカウントにhostを`evidence_key`とする`dns_txt`証明行を作る。外部アカウントは統合しない。
 - **再検証**：登録済みURLの検証が成功した場合に限り、その証拠行の対象識別子を今回確認した集合へ更新し、他の成功証明が支える識別子の有効性は維持する。`not_verified`・`indeterminate`では直近の`checked_at`・`result`・`failure_code`だけを更新し、過去に成功した証明の対象集合と`verified_at`、現在の有効な紐付けを維持する。
 - **Web識別子の移動**：新しい本人の証明が成功したとき、今回確認したキーごとに旧所有者の識別子行とその全証明との関連を削除し、新所有者の行・成功証明を有効にする。旧所有者の他の識別子と、それを支える証明は残す。対象識別子がなくなった証明と表示行・公開設定は終了し、新所有者には本人の公開選択を適用する。リンク証明単独の成功では、今回確認したキーのうち1つでも旧所有者の`dns_txt`または`oauth`の有効な証明が支えていれば、どのキーも移動せずにリンク証明全体を`indeterminate`とする。すべてのキーがリンク証明だけに支えられている場合は移動する。OAuthのログイン・追加連携・再連携で得たユーザー名・プロフィールURLが別の所有者の有効な識別子と衝突する場合も、この手順で今回の本人へ移動する。OAuth固有IDとOAuth認証行はこの手順では移動しない。
-- **解除・再連携**：OAuthの証明を含む解除では、標準`unlinkAccount`（標準`account.id`を指定）を先に実行する。`account`行の削除でCASCADEにより対応する`oauth`証明と対象関連を終了し、続くbatchで支えを失った識別子を`is_active=0`にする。双方向リンク・DNS TXTの証明の解除では、対象の証明行（`external_account_verifications.id`）をbatchで削除し、同じbatchで支えを失った識別子を`is_active=0`にする。証明ごとの解除では、ほかの成功した方法が支える識別子と外部アカウント行・公開選択を残す。表示行全体を解除する操作では、標準の解除が成功した後のbatchで`external_accounts`行を削除し、その行の全識別子・証明・公開設定をCASCADEで終了する。最後のログイン手段の解除は標準の結果に従って拒否し、独自表を変更しない。OAuthの所有者変更は元ユーザーで解除してから、新ユーザーが標準フローで再連携する。
+- **解除・再連携**：解除は1回のbatchで確定し、途中で失敗した場合は標準`account`行を含めて何も変更しない。OAuthの証明を含む解除では、同じbatchで本人の標準`account`行（`account.id`）を削除し、CASCADEで対応する`oauth`証明と対象関連を終了する。双方向リンク・DNS TXTの証明の解除では、対象の証明行（`external_account_verifications.id`）を削除する。いずれも同じbatchで支えを失った識別子を`is_active=0`にし、提供しなくなったクライアントの`oauthConsent`を削除する。証明ごとの解除では、ほかの成功した方法が支える識別子と外部アカウント行・公開選択を残す。表示行全体を解除する操作では、同じbatchで`external_accounts`行を削除し、その行の全識別子・証明・公開設定をCASCADEで終了する。解除後に本人の標準`account`行が残らない場合（最後のログイン手段）は、batchの前に拒否し、何も変更しない。OAuthの所有者変更は元ユーザーで解除してから、新ユーザーが標準フローで再連携する。
 - **公開・照合**：一般公開は`external_accounts.is_public=1`、クライアント提供は対象行の`external_account_visibility.is_public=1`を必要とする。いずれも現在`is_active=1`で成功済み証明の対象に含まれる識別子だけを提供し、クライアントAPIでは有効な`oauthClient.clientId`と認証済み主体も確認する。公開プロフィールは、`is_public=1`で`is_active=1`の識別子を持つ外部アカウントが0件なら404とする。提供中の判定は、本人の外部アカウントのうち、そのクライアントへの`external_account_visibility.is_public=1`と`is_active=1`の識別子を持つ行が存在すること（`EXISTS`）とし、一覧取得、`accounts_user`の照合、`oauthConsent`の整理で同じ条件を使う。URL・Provider識別子の照合は、照合した識別子の行に公開選択と証明の条件をかける。画面全体の保存は、一般公開と個別選択を一括更新する。個別選択は、保存したクライアントについて本人の全外部アカウント行へ公開・非公開を書き、保存に含めないクライアントの行は変えない。照合APIは保存済みキーだけを読み、外部通信しない。
 - **提供の整理**：提供中でない`(user_id, client_id)`の`oauth_consent`行を削除する文を、公開設定の保存・復元・URLの検証（識別子を失う旧所有者を含む）・OAuthのログインと連携の同期・2種類の解除の各batchの末尾（識別子の有効性の更新の後）に加える。提供が1件以上になる変化では`oauth_consent`を作らない。同意画面の`accept: true`は、Better Authの`hooks.before`で提供中であることを確認してから標準の同意処理へ進める。
 - **復元**：5MiB・形式・重複・本人権限と、復元後の本人の`url`行が150件以内であることを先に検査する。バックアップ内で現在も本人に有効な識別子・証明・連携日時・検証日時は維持して公開選択だけ戻し、本人に有効でない項目は`is_active=0`の候補として取り込む。バックアップにないアカウントとクライアント向け設定は維持する。バックアップ内の公開選択はClient IDで上書きし、現在存在しないClient IDも保存する。提供中でなくなった組み合わせの標準`oauthConsent`は、公開設定の保存と同じく削除する。候補の過去の証明情報を現在の証明として扱わない。本人の既存行（候補を含む）と識別子キーが一致する項目はその行を更新する。JSONの1アカウントが既存の複数行に当たる場合と、JSONの複数のアカウントが既存の1行に当たり公開選択が食い違う場合は入力不備とする。候補を再証明するとき、`service`・`displayName`は[サービス別の識別](verify-url.ja.md#サービス別の識別)に従ってバックエンドが再判定し、JSONの値は採用しない。
@@ -1037,7 +1037,7 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 | `databaseHooks.user.create.before` | 新規ユーザーの表示名を「仮ユーザー」にする |
 | `advanced.database.generateId` | `user.id`を`ausr_`形式で生成する |
 | `advanced.database.joins: true` | Drizzleのrelationsを使う結合取得 |
-| `session.freshAge: 0` | 外部アカウントの解除と退会を、ログインからの経過時間によらず有効なセッションで実行する |
+| `session.freshAge: 0` | 退会（標準`deleteUser`）を、ログインからの経過時間によらず有効なセッションで実行する |
 | `user.deleteUser.enabled: true` | 本人による退会を標準`deleteUser`で実行する |
 | `session.cookieCache.enabled: true` | セッションのcookie cache。Accountsの状態変更API（解除・退会・公開設定・クライアント設定・復元・Admin API）と、本人の表示名を返す`/api/me`では標準`disableCookieCache`でDBのセッションを読む |
 | `session.cookieCache.strategy: "jwe"` | cookie cacheの暗号化 |
@@ -1046,9 +1046,9 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 | `rateLimit.storage: "database"` | Better Auth標準の認証APIの頻度制御 |
 | `advanced.ipAddress.ipAddressHeaders: ["cf-connecting-ip"]` | レート制限とセッションのIPをCloudflareの接続元IPから取得する |
 | `advanced.backgroundTasks.handler` | Workersの`waitUntil`への接続。応答の成立に必要な保存は完了を待つ |
-| `disabledPaths: ["/token", "/get-access-token", "/refresh-token", "/account-info", "/oauth2/register", "/oauth2/create-client", "/oauth2/update-client", "/oauth2/delete-client", "/unlink-account", "/update-user"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする。外部ProviderのTokenとProvider側のプロフィールを返す`/get-access-token`・`/refresh-token`・`/account-info`は、Tokenをバックエンドだけで扱うため無効にする。クライアントの登録・更新・削除、連携解除、表示名の更新はHTTPの標準経路を塞ぎ、件数上限・必須項目・独自表の整合を確認するAccountsのAPIからサーバー側の標準APIを呼ぶ |
+| `disabledPaths: ["/token", "/get-access-token", "/refresh-token", "/account-info", "/oauth2/register", "/oauth2/create-client", "/oauth2/update-client", "/oauth2/delete-client", "/unlink-account", "/update-user"]` | OAuth Providerと併用するため、JWTプラグインの`/token`を無効にする。外部ProviderのTokenとProvider側のプロフィールを返す`/get-access-token`・`/refresh-token`・`/account-info`は、Tokenをバックエンドだけで扱うため無効にする。クライアントの登録・更新・削除、連携解除、表示名の更新はHTTPの標準経路を塞ぎ、件数上限・必須項目・独自表の整合を確認するAccountsのAPIから行う。クライアントと表示名はサーバー側の標準APIを呼び、連携解除は標準`account`行の削除を独自表の整理と同じbatchで行う |
 
-OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonceを標準フローで扱う。Providerで対応するプロトコルに従って検査する。Google・GitHubとGeneric OAuthのORCIDは、1.7の`signIn.social()`・`linkSocial()`・`unlinkAccount()`へ接続する。
+OAuth・OIDCのstate、PKCEの`code_verifier`・`code_challenge`、OIDCのnonceを標準フローで扱う。Providerで対応するプロトコルに従って検査する。Google・GitHubとGeneric OAuthのORCIDは、1.7の`signIn.social()`・`linkSocial()`へ接続する。
 
 | プラグイン | 利用目的 |
 | --- | --- |

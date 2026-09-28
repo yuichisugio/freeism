@@ -4,7 +4,7 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 
 /**
  * 「その他」画面の文言。
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export const settingsMessages = defineMessages({
   ja: {

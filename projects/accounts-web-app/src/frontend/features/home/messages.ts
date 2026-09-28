@@ -10,7 +10,7 @@ export type HomeStep = {
 
 /**
  * トップページの文言。
- * @see ../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export const homeMessages = defineMessages({
   ja: {
@@ -23,7 +23,7 @@ export const homeMessages = defineMessages({
       { title: "ログインする", note: "Google・GitHub・ORCID" },
       { title: "アカウント所有の証明", note: "ログインか URL で証明" },
       { title: "公開先を選ぶ", note: "プロフィールと連携先ごと" },
-      { title: "連携先とつなぐ", note: "Points などから利用" },
+      { title: "連携先とつなぐ", note: "Freeism Points などから利用" },
     ] satisfies HomeStep[],
   },
   en: {
@@ -36,7 +36,7 @@ export const homeMessages = defineMessages({
       { title: "Sign in", note: "Google, GitHub, or ORCID" },
       { title: "Prove ownership", note: "By signing in or with a URL" },
       { title: "Choose where to publish", note: "For your profile and each service" },
-      { title: "Connect a service", note: "Use it from services such as Points" },
+      { title: "Connect a service", note: "Use it from services such as Freeism Points" },
     ] satisfies HomeStep[],
   },
 });

@@ -3,7 +3,7 @@ import { Radio, RadioGroup } from "@heroui/react";
 /**
  * 1つを選ぶ設定の分割ボタン（言語・テーマ）。
  * 意味は`RadioGroup`のまま、見た目を枠の中に選択肢を並べ、選択中を主色の面にする。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function SegmentedRadioGroup<TValue extends string>({
   label,

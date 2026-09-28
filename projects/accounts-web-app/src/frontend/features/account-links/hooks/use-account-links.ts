@@ -55,18 +55,20 @@ export function useAccountLinks() {
 
   /**
    * 公開設定をまとめて保存し、成功したかを返す。
+   * 保存の完了時は、送信した編集のままのときだけ編集を空にする。
    */
   const save = async (): Promise<boolean> => {
     if (links === null) return false;
+    const sentEdits = edits;
     setSaveState({ status: "saving" });
     try {
       await requestBff("/api/visibility", okSchema, {
         method: "PUT",
-        body: buildVisibilityInput(links, edits),
+        body: buildVisibilityInput(links, sentEdits),
       });
       // 再取得の完了まで編集後の値を表示し、保存済みの値へ表示が戻らないようにする。
       await reload();
-      setEdits(emptyVisibilityEdits);
+      setEdits((current) => (current === sentEdits ? emptyVisibilityEdits : current));
       setSaveState({ status: "saved" });
       return true;
     } catch (error) {
@@ -96,8 +98,10 @@ export function useAccountLinks() {
     /**
      * 指定した公開先×外部アカウントの選択をまとめて変更する。
      * 編集すると直前の保存結果の通知を消す。
+     * 保存中は、送信中の編集と保存状態を保つため何もしない。
      */
     select: (destinations: readonly Destination[], accountIds: readonly string[], isSelected: boolean) => {
+      if (saveState.status === "saving") return;
       setEdits((current) => setSelection(current, destinations, accountIds, isSelected));
       setSaveState({ status: "idle" });
     },

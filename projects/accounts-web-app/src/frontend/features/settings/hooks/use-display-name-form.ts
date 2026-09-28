@@ -42,9 +42,14 @@ export function useDisplayNameForm() {
     setSaveError(null);
   };
 
+  /**
+   * 表示名を保存する。
+   * 保存の完了時は、入力が送信した値のままのときだけ保存済みの表示へ戻す。
+   */
   const save = async () => {
     const parsed = v.safeParse(displayNameSchema, displayName);
     if (!parsed.success) return;
+    const sentDraft = draft;
     setIsSaving(true);
     setSaveError(null);
     try {
@@ -53,7 +58,7 @@ export function useDisplayNameForm() {
         body: { displayName: parsed.output },
       });
       me.replaceData(saved);
-      setDraft(null);
+      setDraft((current) => (current === sentDraft ? null : current));
       setIsSaved(true);
       authClient.$store.notify("$sessionSignal");
     } catch (error) {

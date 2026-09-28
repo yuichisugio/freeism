@@ -45,6 +45,7 @@ describe("HomePage", () => {
       expect.stringContaining("公開先を選ぶ"),
       expect.stringContaining("連携先とつなぐ"),
     ]);
+    expect(items[3]!.textContent).toContain("Freeism Points などから利用");
   });
 
   it("ログイン状態にかかわらず「ログインする」ボタンを置かない", async () => {

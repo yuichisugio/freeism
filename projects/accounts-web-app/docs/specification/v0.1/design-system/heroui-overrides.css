@@ -1,14 +1,22 @@
 /*
- * 画面全体のスタイル。
- * 色・書体・角丸・間隔・寸法はデザインシステムのトークンで決め、HeroUI v3 と Tailwind 4 の変数へ当てる。
- * @see ../../docs/specification/v0.1/design-system/design-system.ja.md
+ * HeroUI v3 と Tailwind CSS 4 を使う画面向けの上書き。
+ * `src/frontend/styles.css` のうち、Tailwind の `@theme`、HeroUI の変数とトークンの対応、`@layer base`、`@layer components` をそのまま切り出したもの。
+ * tokens.css の後に読み込む。
+ *
+ *   @import "tailwindcss";
+ *   @import "@heroui/styles";
+ *   @import "./tokens.css";
+ *   @import "./heroui-overrides.css";
+ *
+ * `@theme` の値は tokens.css の同じ名前のトークンと同じにする（Tailwind がユーティリティ `text-md`・`rounded-xl` などを作るために `@theme` にも置く）。
+ * 確認した版: `@heroui/react` と `@heroui/styles` 3.2.6、`tailwindcss` 4.3.3。
+ * @see ./README.ja.md
+ * @see ./design-system.ja.md
  */
-@import "tailwindcss";
-@import "@heroui/styles";
 
 /*
  * -------------------------------------------------- Tailwind のテーマ（書体・文字サイズ・行間・角丸）
- * 寸法は基準値に `--scale` を掛ける（`--scale` は下のトークンで定義する）。
+ * 寸法は基準値に `--scale` を掛ける（`--scale` は tokens.css で定義する）。
  */
 @theme {
   --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
@@ -52,167 +60,15 @@
 }
 
 /*
- * -------------------------------------------------- トークン
- * HeroUI の変数はレイヤーの中で定義されるため、レイヤーに入れないここのブロックが優先される。
- * テーマは `<html>` の `data-theme` で切り替え、属性が無いときはシステムの設定に従う。
- */
-:root {
-  color-scheme: light;
-  --background: #f2f4fa;
-  --surface: #ffffff;
-  --surface-secondary: #f5f7fc;
-  --border: #e2e6f0;
-  --border-strong: #c7cddc;
-  --foreground: #1b2033;
-  --muted: #69708a;
-  --accent: #3b6ff0;
-  --accent-hover: #2f5fd9;
-  --accent-soft: #e8eefe;
-  --accent-foreground: #ffffff;
-  --highlight: #ffd84d;
-  --highlight-foreground: #3a2e00;
-  --success: #1f9d63;
-  --success-soft: #e3f5ec;
-  --warning: #b8740f;
-  --warning-soft: #fdf1dc;
-  --danger: #d94848;
-  --danger-soft: #fce9e9;
-  --danger-foreground: #ffffff;
-  --focus: #3b6ff0;
-  --link: #2553c9;
-  --favicon-plate: #ffffff;
-  --favicon-fallback: #69708a;
-  --backdrop: rgba(27, 32, 51, 0.42);
-  --shadow: 0 1px 2px rgba(27, 32, 51, 0.04), 0 6px 20px rgba(27, 32, 51, 0.05);
-  --shadow-pop: 0 4px 12px rgba(27, 32, 51, 0.08), 0 18px 44px rgba(27, 32, 51, 0.16);
-
-  /* ブランドアイコンの色はテーマで変えない。 */
-  --brand-on: #ffffff;
-  --brand-google-blue: #4285f4;
-  --brand-google-red: #ea4335;
-  --brand-google-yellow: #fbbc05;
-  --brand-google-green: #34a853;
-  --brand-orcid: #a6ce39;
-  --brand-github: #24292f;
-
-  /*
-   * 寸法の倍率。
-   * 文字サイズ・間隔・角丸・操作部品・レイアウトの寸法は、基準値にこの値を掛ける。
-   * ブレークポイント・`--table-max-h`・枠線の太さ・影は掛けない。
-   */
-  --scale: 1.1;
-
-  --leading: 1.7;
-
-  /*
-   * 手書きの CSS から使う間隔。
-   * Tailwind の数値（`p-4` など）と同じ値にするため、`--spacing`（HeroUI がレイヤーの中で定義する）もここで上書きする。
-   */
-  --spacing: calc(4px * var(--scale));
-  --space-1: calc(4px * var(--scale));
-  --space-2: calc(8px * var(--scale));
-  --space-3: calc(12px * var(--scale));
-  --space-4: calc(16px * var(--scale));
-  --space-5: calc(20px * var(--scale));
-  --space-6: calc(24px * var(--scale));
-  --space-8: calc(32px * var(--scale));
-  --space-10: calc(40px * var(--scale));
-  --space-14: calc(56px * var(--scale));
-
-  --icon-sm: calc(16px * var(--scale));
-  --icon-md: calc(20px * var(--scale));
-  --control-h: calc(40px * var(--scale));
-  --control-h-sm: calc(32px * var(--scale));
-  --input-h: calc(44px * var(--scale));
-  --checkbox: calc(22px * var(--scale));
-  --avatar: calc(34px * var(--scale));
-  --page-max: calc(1000px * var(--scale));
-  --prose-max: 65ch;
-  --menu-w: calc(320px * var(--scale));
-  --lang-menu-w: calc(200px * var(--scale));
-  --provider-w: calc(280px * var(--scale));
-  --dialog-w: calc(440px * var(--scale));
-  --q-label-w: calc(200px * var(--scale));
-  --col-lead: calc(288px * var(--scale));
-  --col-lead-compact: calc(168px * var(--scale));
-  --col-dest: calc(112px * var(--scale));
-  --col-dest-compact: calc(72px * var(--scale));
-  --consent-w: calc(480px * var(--scale));
-  --table-max-h: 90vh;
-  --sticky-offset: calc(72px * var(--scale));
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --background: #10131c;
-    --surface: #181c28;
-    --surface-secondary: #1f2433;
-    --border: #2a3042;
-    --border-strong: #3c4560;
-    --foreground: #e6e9f2;
-    --muted: #969db3;
-    --accent: #7da0ff;
-    --accent-hover: #93b1ff;
-    --accent-soft: #1e2a4a;
-    --accent-foreground: #0c1328;
-    --highlight: #ffd84d;
-    --highlight-foreground: #3a2e00;
-    --success: #5bd69a;
-    --success-soft: #13301f;
-    --warning: #f0b45a;
-    --warning-soft: #33260f;
-    --danger: #f08080;
-    --danger-soft: #3a1a1c;
-    --danger-foreground: #2a0e0e;
-    --focus: #93b1ff;
-    --link: #9db8ff;
-    --favicon-plate: #e6e9f2;
-    --favicon-fallback: #4a5270;
-    --backdrop: rgba(0, 0, 0, 0.6);
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3);
-    --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.4), 0 18px 44px rgba(0, 0, 0, 0.5);
-  }
-}
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --background: #10131c;
-  --surface: #181c28;
-  --surface-secondary: #1f2433;
-  --border: #2a3042;
-  --border-strong: #3c4560;
-  --foreground: #e6e9f2;
-  --muted: #969db3;
-  --accent: #7da0ff;
-  --accent-hover: #93b1ff;
-  --accent-soft: #1e2a4a;
-  --accent-foreground: #0c1328;
-  --highlight: #ffd84d;
-  --highlight-foreground: #3a2e00;
-  --success: #5bd69a;
-  --success-soft: #13301f;
-  --warning: #f0b45a;
-  --warning-soft: #33260f;
-  --danger: #f08080;
-  --danger-soft: #3a1a1c;
-  --danger-foreground: #2a0e0e;
-  --focus: #93b1ff;
-  --link: #9db8ff;
-  --favicon-plate: #e6e9f2;
-  --favicon-fallback: #4a5270;
-  --backdrop: rgba(0, 0, 0, 0.6);
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3);
-  --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.4), 0 18px 44px rgba(0, 0, 0, 0.5);
-}
-
-/*
  * -------------------------------------------------- HeroUI の変数とトークンの対応
- * HeroUI だけが持つ変数をトークンに向ける。
+ * トークンと同じ名前の HeroUI の変数（`--background`・`--surface`・`--accent` など）は、tokens.css の定義がそのまま効く。
+ * HeroUI だけが持つ変数はここでトークンに向ける。
  * HeroUI のダークの値は `data-theme="dark"` でしか当たらないため、固定値を持つ変数もすべてここで向け、システムがダークのときも同じ見た目にする。
  * `var()` の参照なので、テーマの切替で参照先のトークンが変わると追従する。
+ * `--spacing` は Tailwind の数値（`p-4` など）を `--space-N` と同じ値にするための上書き（HeroUI がレイヤーの中で定義する）。
  */
 :root {
+  --spacing: calc(4px * var(--scale));
   --overlay: var(--surface);
   --surface-tertiary: var(--surface-secondary);
   --default: var(--surface-secondary);

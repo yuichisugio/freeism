@@ -13,7 +13,7 @@ import { accountLinksMessages } from "../messages";
  * Google・GitHub・ORCIDの追加連携のボタンを3列で並べ、各ボタンを列の幅いっぱいに広げる（HeroUIのボタンは既定で内容の幅）。
  * 狭い幅ではサービス名だけにする。
  * 連携の失敗（Better Authの`?error=`）の案内も表示する。
- * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system/design-system.ja.md
  */
 export function ProviderLinkButtons({
   pendingProvider,

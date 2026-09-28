@@ -60,9 +60,11 @@ const qiitaAccount = createLinkedAccount({
 function renderTable({
   accounts = [githubAccount, qiitaAccount],
   edits = emptyVisibilityEdits,
+  isSelectionDisabled = false,
 }: {
   accounts?: ReturnType<typeof createLinkedAccount>[];
   edits?: typeof emptyVisibilityEdits;
+  isSelectionDisabled?: boolean;
 } = {}) {
   const handlers = {
     onSelect: vi.fn<VisibilityTableProps["onSelect"]>(),
@@ -74,6 +76,7 @@ function renderTable({
       table={buildVisibilityTable(createAccountLinks({ accounts, clients: [points] }), edits)}
       reverifyingAccountId={null}
       reverifyFailure={null}
+      isSelectionDisabled={isSelectionDisabled}
       {...handlers}
     />,
   );
@@ -114,6 +117,14 @@ describe("VisibilityTable", () => {
       [[pointsColumn], ["eac_github", "eac_qiita"], true],
       [[profile, pointsColumn], ["eac_github", "eac_qiita"], true],
     ]);
+  });
+
+  it("保存中はセル・行・列・全体のチェックをすべて無効にする", async () => {
+    renderTable({ isSelectionDisabled: true });
+
+    const checkboxes = (await screen.findAllByRole("checkbox")) as HTMLInputElement[];
+    expect(checkboxes).toHaveLength(9);
+    expect(checkboxes.every((checkbox) => checkbox.disabled)).toBe(true);
   });
 
   it("一括のチェックは一部だけ選ばれていれば中間表示にする", async () => {
@@ -213,6 +224,7 @@ describe("VisibilityTable", () => {
         )}
         reverifyingAccountId={null}
         reverifyFailure={null}
+        isSelectionDisabled={false}
         onSelect={vi.fn<VisibilityTableProps["onSelect"]>()}
         onRequestUnlink={vi.fn<VisibilityTableProps["onRequestUnlink"]>()}
         onReverify={vi.fn<VisibilityTableProps["onReverify"]>()}
