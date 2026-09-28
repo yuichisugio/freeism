@@ -1,24 +1,35 @@
 import { useState } from "react";
 
-import { oauthClientListSchema } from "../../../../shared/schemas/oauth-client-schema";
 import { BffError } from "../../../lib/api-client";
 import { authClient } from "../../../lib/auth-client";
-import { useBffResource } from "./use-bff-resource";
 
 /**
- * 「設定」画面の退会。
- * 終了する登録OAuthクライアントを読み込み、「内容を確認した」の確認後にBetter Auth標準の`deleteUser`で退会する。
+ * 退会の確認で入力を求める文字列。
+ */
+const deletionConfirmationText = "DELETE";
+
+/**
+ * 「その他」画面の退会。
+ * 確認のダイアログで「DELETE」と完全一致する入力を受けてから、Better Auth標準の`deleteUser`で退会する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-account-deletion.test.tsx
  */
 export function useAccountDeletion({ onDeleted }: { onDeleted: () => void }) {
-  const clients = useBffResource("/api/oauth-clients", oauthClientListSchema);
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<unknown>(null);
 
-  // 終了するクライアントを本人が確認できるよう、一覧を読み込めた後に限り実行できる。
-  const canDelete = isConfirmed && clients.data !== null && !isDeleting;
+  const canDelete = confirmationText === deletionConfirmationText && !isDeleting;
+
+  /**
+   * 確認を閉じ、入力と失敗を空に戻す。
+   */
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setConfirmationText("");
+    setDeleteError(null);
+  };
 
   const deleteAccount = async () => {
     if (!canDelete) return;
@@ -40,12 +51,11 @@ export function useAccountDeletion({ onDeleted }: { onDeleted: () => void }) {
   };
 
   return {
-    clients: clients.data?.clients ?? null,
-    clientsError: clients.error,
-    isClientsLoading: clients.isLoading,
-    reloadClients: clients.reload,
-    isConfirmed,
-    changeConfirmed: (value: boolean) => setIsConfirmed(value),
+    isDialogOpen,
+    openDialog: () => setIsDialogOpen(true),
+    closeDialog,
+    confirmationText,
+    changeConfirmationText: (value: string) => setConfirmationText(value),
     canDelete,
     isDeleting,
     deleteError,

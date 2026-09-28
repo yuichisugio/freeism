@@ -16,24 +16,17 @@ import {
   ProblemError,
   problemResponse,
 } from "../problem-details";
-import { exportBackup, readBackupSummary } from "../usecases/backup/export-backup";
+import { exportBackup } from "../usecases/backup/export-backup";
 import { restoreBackup } from "../usecases/backup/restore-backup";
 
 /**
- * JSONによるバックアップの出力・出力前の確認・復元（`/api/backup`）。
+ * JSONによるバックアップの出力・復元（`/api/backup`）。
  * @see ../../shared/schemas/backup-schema.ts
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ./backup-routes.worker.test.ts
  */
 export const backupRoutes = new Hono<AppEnv>()
   .onError(handleBffError)
-  .get("/summary", requireSession({ fresh: false }), async (c) => {
-    const summary = await readBackupSummary(
-      { db: createDatabase(c.env.DB), accountsOrigin: c.env.ACCOUNTS_ORIGIN, now: new Date() },
-      { userId: c.get("sessionUser").id },
-    );
-    return dataResponse(c, summary);
-  })
   .get("/", auditRequest("backup_exported"), requireSession({ fresh: false }), async (c) => {
     const { fileName, json } = await exportBackup(
       { db: createDatabase(c.env.DB), accountsOrigin: c.env.ACCOUNTS_ORIGIN, now: new Date() },

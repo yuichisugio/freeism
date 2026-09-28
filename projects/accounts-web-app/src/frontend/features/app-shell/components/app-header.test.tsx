@@ -89,6 +89,15 @@ describe("AppHeader", () => {
     expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
   });
 
+  it("同意画面のヘッダーは、タブを置かずにロゴと人のアイコンだけにする", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<AppHeader hasTabs={false} />);
+
+    expect(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Freeism Accounts" })).toBeTruthy();
+    expect(screen.queryByRole("navigation", { name: "メインメニュー" })).toBeNull();
+  });
+
   it("開いている画面のタブを現在のページとして示す", async () => {
     authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
     renderWithProviders(<AppHeader />, { path: "/ausr_alice/settings" });

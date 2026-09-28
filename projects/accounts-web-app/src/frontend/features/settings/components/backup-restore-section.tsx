@@ -1,45 +1,74 @@
-import { Alert, Button } from "@heroui/react";
-import { useId } from "react";
+import { Alert, Button, buttonVariants } from "@heroui/react";
 
 import type { ProblemIssue } from "../../../../shared/schemas/problem-details-schema";
+import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
+import { useCopyText } from "../../../lib/use-copy-text";
+import { CopyIcon, DownloadIcon, UploadIcon } from "../../app-shell/components/icons";
 import { ErrorNotice, SuccessNotice } from "../../app-shell/components/status-messages";
 import { formatIssuePath } from "../backup-file";
 import type { BackupRestore } from "../hooks/use-backup-restore";
+import { downloadImportTemplate, importTemplateText } from "../import-template";
 import { settingsMessages } from "../messages";
 import { SettingsSection } from "./settings-section";
 
 /**
- * JSON復元。
- * ファイルを選択して「復元する」で実行し、結果または不備の一覧を示す。
+ * データ取込。
+ * JSONファイルを選択して「取り込む」で復元し、結果または不備の一覧を示す。
+ * 出力JSONと同じ形式のテンプレートのダウンロードと、ほかのサービスのデータをその形式へ整形するようAIに頼む文面のコピーを置く。
  * @see ./settings-sections.test.tsx
  */
 export function BackupRestoreSection({ backupRestore }: { backupRestore: BackupRestore }) {
   const messages = useMessages(settingsMessages);
-  const fileInputId = useId();
+  const common = useMessages(commonMessages);
+  const aiPromptCopy = useCopyText();
+  const aiPrompt = messages.aiPrompt(importTemplateText);
   const { result } = backupRestore;
 
   return (
-    <SettingsSection title={messages.restoreTitle} description={messages.restoreDescription}>
-      <div className="flex flex-col gap-1">
-        <label htmlFor={fileInputId} className="text-sm font-medium">
-          {messages.restoreFileLabel}
+    <SettingsSection title={messages.importTitle} description={messages.importDescription}>
+      <div className="flex flex-wrap items-center gap-3">
+        <label
+          className={`${buttonVariants({ variant: "outline", size: "sm" })} cursor-pointer has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-(--focus)`}
+        >
+          <UploadIcon className="size-4" />
+          {messages.chooseFile}
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            onChange={(event) => backupRestore.selectFile(event.currentTarget.files?.[0] ?? null)}
+          />
         </label>
-        <input
-          id={fileInputId}
-          type="file"
-          accept="application/json,.json"
-          className="text-sm"
-          onChange={(event) => backupRestore.selectFile(event.currentTarget.files?.[0] ?? null)}
-        />
+        <span className="text-sm break-all text-muted">{backupRestore.file?.name ?? messages.noFileChosen}</span>
       </div>
       <Button
-        variant="secondary"
+        size="sm"
+        variant="primary"
         isDisabled={!backupRestore.canRestore}
         onPress={() => void backupRestore.restore()}
       >
-        {backupRestore.isRestoring ? messages.restoring : messages.restoreButton}
+        {backupRestore.isRestoring ? messages.importing : messages.importButton}
       </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="tertiary" onPress={downloadImportTemplate}>
+          <DownloadIcon className="size-4" />
+          {messages.downloadTemplate}
+        </Button>
+        <Button size="sm" variant="tertiary" onPress={() => void aiPromptCopy.copy(aiPrompt)}>
+          <CopyIcon className="size-4" />
+          {messages.copyAiPrompt}
+        </Button>
+        <span role="status" className="text-sm text-muted">
+          {aiPromptCopy.status === "copied" ? common.copied : aiPromptCopy.status === "failed" ? common.copyFailed : ""}
+        </span>
+      </div>
+      <details className="w-full text-sm">
+        <summary className="cursor-pointer text-muted">{messages.showAiPrompt}</summary>
+        <pre className="mt-2 max-h-80 overflow-auto rounded-lg bg-surface-secondary p-3 font-mono text-xs whitespace-pre-wrap">
+          {aiPrompt}
+        </pre>
+      </details>
       {backupRestore.issues.length > 0 ? <RestoreIssueList issues={backupRestore.issues} /> : null}
       {backupRestore.restoreError === null ? null : (
         <ErrorNotice error={backupRestore.restoreError} codeMessages={messages.codeMessages} />
@@ -56,13 +85,13 @@ export function BackupRestoreSection({ backupRestore }: { backupRestore: BackupR
 }
 
 /**
- * 復元できなかったJSONの不備の一覧。
+ * 取り込めなかったJSONの不備の一覧。
  * 位置と、エラーコードの文言・具体的な理由を並べる。
  */
 function RestoreIssueList({ issues }: { issues: ProblemIssue[] }) {
   const messages = useMessages(settingsMessages);
   return (
-    <Alert status="danger" role="alert">
+    <Alert status="danger" role="alert" className="w-full">
       <Alert.Indicator />
       <Alert.Content>
         <Alert.Title>{messages.restoreIssuesTitle}</Alert.Title>
@@ -72,7 +101,7 @@ function RestoreIssueList({ issues }: { issues: ProblemIssue[] }) {
             <li key={index}>
               <code className="break-all">{formatIssuePath(issue.path) ?? messages.issueWholeFile}</code>
               {`: ${messages.codeMessages[issue.code] ?? issue.code}`}
-              {issue.message === "" ? null : <span className="block text-muted">{issue.message}</span>}
+              {issue.message === "" ? null : <span className="block text-xs text-muted">{issue.message}</span>}
             </li>
           ))}
         </ul>

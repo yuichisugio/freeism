@@ -15,10 +15,11 @@ const tabClassName =
  * 未ログインでは右端に何も置かない。
  * 画面へのタブは、現在のユーザーのAccountsユーザーID付きの経路にする。
  * 640px 未満ではタブを2段目の中央に回し、はみ出すときだけ横にスクロールする。
+ * 同意画面は`hasTabs={false}`でタブを置かない。
  * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ./app-header.test.tsx
  */
-export function AppHeader() {
+export function AppHeader({ hasTabs = true }: { hasTabs?: boolean }) {
   const messages = useMessages(appShellMessages);
   // 事前生成したトップページと描画を揃えるため、hydrationの後にセッションに応じた表示にする。
   const session = useHydratedSession();
@@ -34,20 +35,22 @@ export function AppHeader() {
         <LogoIcon className="size-7" />
         {messages.appName}
       </Link>
-      <nav
-        aria-label={messages.mainNavigation}
-        className="flex justify-center gap-0.5 rounded-full border border-border bg-surface p-1 max-sm:col-span-full max-sm:row-start-2 max-sm:max-w-full max-sm:justify-self-center max-sm:justify-center-safe max-sm:overflow-x-auto max-sm:[scrollbar-width:none]"
-      >
-        <Link to="/" activeOptions={{ exact: true }} className={tabClassName}>
-          {messages.home}
-        </Link>
-        <Link to="/{-$accountsUserId}/account-links" params={userParams} className={tabClassName}>
-          {messages.accountLinks}
-        </Link>
-        <Link to="/{-$accountsUserId}/settings" params={userParams} className={tabClassName}>
-          {messages.other}
-        </Link>
-      </nav>
+      {hasTabs ? (
+        <nav
+          aria-label={messages.mainNavigation}
+          className="flex justify-center gap-0.5 rounded-full border border-border bg-surface p-1 max-sm:col-span-full max-sm:row-start-2 max-sm:max-w-full max-sm:justify-self-center max-sm:justify-center-safe max-sm:overflow-x-auto max-sm:[scrollbar-width:none]"
+        >
+          <Link to="/" activeOptions={{ exact: true }} className={tabClassName}>
+            {messages.home}
+          </Link>
+          <Link to="/{-$accountsUserId}/account-links" params={userParams} className={tabClassName}>
+            {messages.accountLinks}
+          </Link>
+          <Link to="/{-$accountsUserId}/settings" params={userParams} className={tabClassName}>
+            {messages.other}
+          </Link>
+        </nav>
+      ) : null}
       <div className="col-start-3 flex items-center justify-self-end max-sm:col-start-2 max-sm:row-start-1">
         {session.data ? (
           <AccountMenu

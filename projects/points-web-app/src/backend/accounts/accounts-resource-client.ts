@@ -44,7 +44,7 @@ export type AccountsAccessTokenSource = {
 
 /**
  * 一覧取得の結果。
- * `NOT_PROVIDED`は、対象ユーザーが存在しない・同意OFF・ban・退会のいずれか（Accountsは区別しない）。
+ * `NOT_PROVIDED`は、対象ユーザーが存在しない・Accountsが提供していない（このクライアントへ公開する証明済みの外部アカウントが0件）・ban・退会のいずれか（Accountsは区別しない）。
  */
 export type AccountsExternalAccountListResult =
   | { status: "PROVIDED"; externalAccounts: AccountsProvidedExternalAccount[] }

@@ -1,237 +1,301 @@
-import { Button, Checkbox, Chip, Link } from "@heroui/react";
+import { Checkbox, Chip } from "@heroui/react";
 import { useState } from "react";
+import type { CSSProperties } from "react";
 
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
-import { ErrorNotice, SuccessNotice } from "../../app-shell/components/status-messages";
-import { commonMessages } from "../../../lib/i18n/common-messages";
-import { formatDateTime } from "../../../lib/i18n/format";
-import { useI18n, useMessages } from "../../../lib/i18n/i18n-provider";
-import type { VisibilitySaveState } from "../hooks/use-account-links";
-import { formatAccountLabel } from "../lib/account-label";
-import type { VisibilityColumn, VisibilityRow, VisibilityTable as VisibilityTableModel } from "../lib/visibility-draft";
+import { CheckIcon, ChevronDownIcon } from "../../app-shell/components/icons";
+import { ServiceFavicon } from "../../app-shell/components/service-favicon";
+import { useMessages } from "../../../lib/i18n/i18n-provider";
+import type { UnlinkTarget } from "../hooks/use-unlink";
+import { describeAccount, formatAccountLabel } from "../lib/account-label";
+import type { Destination, VisibilityRow, VisibilityTable as VisibilityTableModel } from "../lib/visibility-draft";
 import { accountLinksMessages } from "../messages";
-import { VerificationList } from "./verification-details";
+import type { AccountLinksMessages } from "../messages";
+import { AccountDetail } from "./account-detail";
 
 /**
- * 外部アカウントを行、一般公開と各連携先（OAuthクライアント）を列にした公開設定の表。
- * 一般公開・公開選択の変更は、表の上下に置く同じ保存ボタンでまとめて反映する。
- * @see ../../../../../docs/specification/v0.1/main.ja.md
+ * 公開設定の表。
+ * 外部アカウントを行、プロフィール（一般公開）と各連携先（OAuthクライアント）を列にし、セルのチェックで公開先を選ぶ。
+ * 見出し行と先頭列を固定して枠の中で縦横にスクロールし、640px以下は先頭列を2段・公開先を短い幅にした圧縮表示にする。
+ * @see ../../../../../docs/specification/v0.1/design-system.ja.md
+ * @see ./account-links-views.test.tsx
  */
 export function VisibilityTable({
   table,
-  saveState,
-  onAccountPublicChange,
-  onClientVisibilityChange,
-  onAccountVisibilityForAllClientsChange,
-  onSave,
-  onDiscard,
-  onRequestUnlinkAccount,
-  onRequestUnlinkOAuth,
+  reverifyingAccountId,
+  reverifyFailure,
+  onSelect,
+  onRequestUnlink,
+  onReverify,
 }: {
   table: VisibilityTableModel;
-  saveState: VisibilitySaveState;
-  onAccountPublicChange: (accountId: string, isPublic: boolean) => void;
-  onClientVisibilityChange: (clientId: string, accountIds: string[], isVisible: boolean) => void;
-  onAccountVisibilityForAllClientsChange: (accountId: string, isVisible: boolean) => void;
-  onSave: () => void;
-  onDiscard: () => void;
-  onRequestUnlinkAccount: (account: LinkedAccount) => void;
-  onRequestUnlinkOAuth: (account: LinkedAccount, verificationId: string) => void;
+  reverifyingAccountId: string | null;
+  reverifyFailure: { accountId: string; error: unknown } | null;
+  onSelect: (destinations: Destination[], accountIds: string[], isSelected: boolean) => void;
+  onRequestUnlink: (target: UnlinkTarget) => void;
+  onReverify: (account: LinkedAccount) => void;
 }) {
   const messages = useMessages(accountLinksMessages);
-  const [lastSavedFrom, setLastSavedFrom] = useState<SaveBarPosition>("top");
-  const hasClients = table.columns.length > 0;
-  const verifiedAccountIds = table.rows
-    .filter((row) => row.account.verificationStatus === "verified")
-    .map((row) => row.account.id);
+  const [expandedAccountIds, setExpandedAccountIds] = useState<ReadonlySet<string>>(new Set());
+  const { columns, rows } = table;
+  const destinations = columns.map((column) => column.destination);
+  const accountIds = rows.map((row) => row.account.id);
 
-  if (table.rows.length === 0) return <p>{messages.noAccounts}</p>;
+  if (rows.length === 0) return <p className="text-sm text-muted">{messages.noAccounts}</p>;
 
   /**
-   * 表の上または下の保存・破棄の操作。
-   * 保存の結果は、押した保存ボタンの側にだけ示す。
+   * 行の「詳細」を開閉する。
    */
-  const renderSaveBar = (position: SaveBarPosition) => (
-    <VisibilitySaveBar
-      table={table}
-      saveState={lastSavedFrom === position ? saveState : { status: "idle" }}
-      isSaving={saveState.status === "saving"}
-      onSave={() => {
-        setLastSavedFrom(position);
-        onSave();
-      }}
-      onDiscard={onDiscard}
-    />
-  );
+  const toggleDetail = (accountId: string) =>
+    setExpandedAccountIds((current) => {
+      const next = new Set(current);
+      if (!next.delete(accountId)) next.add(accountId);
+      return next;
+    });
 
   return (
-    <div className="flex flex-col gap-3">
-      {renderSaveBar("top")}
-      {hasClients ? null : <p className="text-sm text-muted">{messages.noClients}</p>}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-surface">
+      <div ref={observeScrollWidth} className="max-h-(--table-max-h) overflow-auto">
+        <table
+          className="w-full min-w-[calc(var(--col-lead)+var(--col-dest)*var(--dest-count))] border-separate border-spacing-0 text-sm max-sm:[--col-dest:var(--col-dest-compact)] max-sm:[--col-lead:var(--col-lead-compact)] [&_tbody_tr:last-child>*]:border-b-0"
+          style={{ "--dest-count": columns.length } as CSSProperties}
+        >
           <caption className="sr-only">{messages.tableCaption}</caption>
           <thead>
-            <tr className="border-b border-default align-top">
-              <th scope="col" className="p-2 text-left">
-                {messages.accountColumn}
+            <tr>
+              <th scope="col" className={`${headCellClassName} ${leadCellClassName} z-3`}>
+                <span className="sr-only">{messages.accountColumn}</span>
               </th>
-              <th scope="col" className="p-2 text-left">
-                {messages.publicColumn}
-              </th>
-              {hasClients ? (
-                <th scope="col" className="p-2 text-left">
-                  {messages.bulkRow}
-                </th>
-              ) : null}
-              {table.columns.map((column) => (
-                <ClientColumnHeader
-                  key={column.client.clientId}
-                  column={column}
-                  table={table}
-                  verifiedAccountIds={verifiedAccountIds}
-                  onBulkChange={(isVisible) => onClientVisibilityChange(column.client.clientId, verifiedAccountIds, isVisible)}
-                />
-              ))}
+              {columns.map((column) => {
+                const name = formatDestinationName(column.destination, messages);
+                return (
+                  <th key={destinationKey(column.destination)} scope="col" className={`${headCellClassName} ${destinationCellClassName} z-2`}>
+                    <div className="flex flex-col items-center gap-2">
+                      <span
+                        title={name}
+                        className="text-sm font-medium text-foreground max-sm:max-w-(--col-dest-compact) max-sm:truncate max-sm:text-2xs"
+                      >
+                        {name}
+                      </span>
+                      <Chip color={column.isPublished ? "success" : "default"} variant="soft">
+                        {column.isPublished ? messages.published : messages.unpublished}
+                      </Chip>
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {table.rows.map((row) => (
-              <AccountRow
+            <tr>
+              <th scope="row" className={`${bulkCellClassName} ${leadCellClassName} z-1`}>
+                <SelectionCheckbox
+                  label={messages.bulkAllLabel}
+                  values={rows.flatMap((row) => row.cells.map((cell) => cell.isSelected))}
+                  onChange={(isSelected) => onSelect(destinations, accountIds, isSelected)}
+                  className="max-sm:hidden"
+                />
+                <span className="hidden text-xs text-muted max-sm:inline">{messages.bulkShort}</span>
+              </th>
+              {columns.map((column, columnIndex) => (
+                <td key={destinationKey(column.destination)} className={`${bulkCellClassName} ${destinationCellClassName}`}>
+                  <SelectionCheckbox
+                    label={messages.bulkColumnLabel(formatDestinationName(column.destination, messages))}
+                    values={rows.map((row) => row.cells[columnIndex]?.isSelected === true)}
+                    onChange={(isSelected) => onSelect([column.destination], accountIds, isSelected)}
+                    className={destinationCheckboxClassName}
+                  />
+                </td>
+              ))}
+            </tr>
+            {rows.map((row) => (
+              <AccountRows
                 key={row.account.id}
                 row={row}
-                columns={table.columns}
-                onPublicChange={(isPublic) => onAccountPublicChange(row.account.id, isPublic)}
-                onClientVisibilityChange={(clientId, isVisible) =>
-                  onClientVisibilityChange(clientId, [row.account.id], isVisible)
-                }
-                onAllClientsChange={(isVisible) => onAccountVisibilityForAllClientsChange(row.account.id, isVisible)}
-                onRequestUnlinkAccount={() => onRequestUnlinkAccount(row.account)}
-                onRequestUnlinkOAuth={(verificationId) => onRequestUnlinkOAuth(row.account, verificationId)}
+                destinations={destinations}
+                isExpanded={expandedAccountIds.has(row.account.id)}
+                isReverifying={reverifyingAccountId === row.account.id}
+                reverifyError={reverifyFailure?.accountId === row.account.id ? reverifyFailure.error : null}
+                onToggleDetail={() => toggleDetail(row.account.id)}
+                onSelect={onSelect}
+                onRequestUnlink={onRequestUnlink}
+                onReverify={onReverify}
               />
             ))}
           </tbody>
         </table>
       </div>
-      {renderSaveBar("bottom")}
     </div>
   );
 }
 
 // --------------------------------------------------
-// 保存・破棄
+// セルの見た目
 // --------------------------------------------------
 
-type SaveBarPosition = "top" | "bottom";
-
-/**
- * 表の上下に置く「公開設定を保存」「編集内容を破棄」と、未保存の変更の短い表示。
- * `saveState`は、このボタンで保存した場合の結果の表示に使う。
- */
-function VisibilitySaveBar({
-  table,
-  saveState,
-  isSaving,
-  onSave,
-  onDiscard,
-}: {
-  table: VisibilityTableModel;
-  saveState: VisibilitySaveState;
-  isSaving: boolean;
-  onSave: () => void;
-  onDiscard: () => void;
-}) {
-  const messages = useMessages(accountLinksMessages);
-  const common = useMessages(commonMessages);
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="primary" isDisabled={!table.isDirty || isSaving} onPress={onSave}>
-          {isSaving ? common.saving : messages.saveVisibility}
-        </Button>
-        <Button variant="secondary" isDisabled={!table.isDirty || isSaving} onPress={onDiscard}>
-          {messages.discardVisibility}
-        </Button>
-        {table.isDirty ? <span className="text-sm font-semibold">{messages.unsavedChanges}</span> : null}
-      </div>
-      {saveState.status === "saved" ? <SuccessNotice>{messages.visibilitySaved}</SuccessNotice> : null}
-      {saveState.status === "error" ? <ErrorNotice error={saveState.error} codeMessages={messages.errorCodes} /> : null}
-    </div>
-  );
-}
-
-// --------------------------------------------------
-// 列の見出し
-// --------------------------------------------------
-
-/**
- * 連携先の列の見出し。
- * 証明済みの外部アカウントの一括選択を置く。
- */
-function ClientColumnHeader({
-  column,
-  table,
-  verifiedAccountIds,
-  onBulkChange,
-}: {
-  column: VisibilityColumn;
-  table: VisibilityTableModel;
-  verifiedAccountIds: string[];
-  onBulkChange: (isVisible: boolean) => void;
-}) {
-  const messages = useMessages(accountLinksMessages);
-  const { client } = column;
-  const selectedCount = table.rows.filter(
-    (row) => verifiedAccountIds.includes(row.account.id) && row.visibleClientIds.includes(client.clientId),
-  ).length;
-  return (
-    <th scope="col" className="p-2 text-left">
-      <div className="flex flex-col gap-2">
-        <span className="font-semibold">{client.name}</span>
-        {client.uri === null ? null : (
-          <Link href={client.uri} target="_blank" rel="noreferrer" className="text-xs">
-            {messages.clientLink}
-          </Link>
-        )}
-        <Checkbox
-          aria-label={messages.bulkColumnLabel(client.name)}
-          isDisabled={verifiedAccountIds.length === 0}
-          isSelected={verifiedAccountIds.length > 0 && selectedCount === verifiedAccountIds.length}
-          isIndeterminate={selectedCount > 0 && selectedCount < verifiedAccountIds.length}
-          onChange={onBulkChange}
-        >
-          <Checkbox.Content>
-            <Checkbox.Control>
-              <Checkbox.Indicator />
-            </Checkbox.Control>
-            <span className="text-xs font-normal">{messages.bulkColumnHint}</span>
-          </Checkbox.Content>
-        </Checkbox>
-      </div>
-    </th>
-  );
-}
+// 背景色・余白・縦位置はセルの種類ごとに決め、同じ性質のユーティリティを重ねない。
+const cellClassName = "border-b border-border";
+const headCellClassName = `${cellClassName} sticky top-0 bg-surface pt-4 pb-3 align-top text-xs font-normal text-muted max-sm:py-3`;
+const bodyCellClassName = `${cellClassName} py-4 align-middle max-sm:py-3`;
+const bulkCellClassName = `${cellClassName} bg-surface-secondary py-2 align-middle`;
+const leadCellClassName =
+  "sticky left-0 w-(--col-lead) min-w-(--col-lead) px-4 text-left font-normal shadow-[inset_-1px_0_0_var(--border)] max-sm:pr-2 max-sm:pl-3";
+const destinationCellClassName = "min-w-(--col-dest) px-2 text-center max-sm:px-0.5";
+// チェックボックスの枠を中身の幅にし、公開先の列の中央に置く。
+const destinationCheckboxClassName = "mx-auto w-fit";
 
 // --------------------------------------------------
 // 行
 // --------------------------------------------------
 
 /**
- * 表のセルに置く、ラベルを持たないチェックボックス。
+ * 外部アカウント1行と、開いているときはその下の全幅の詳細行。
+ * 先頭列に行全体の一括チェック・サービスアイコン・「サービス名：識別子」・証明方法のチップ・「詳細」を置く。
  */
-function CellCheckbox({
+function AccountRows({
+  row,
+  destinations,
+  isExpanded,
+  isReverifying,
+  reverifyError,
+  onToggleDetail,
+  onSelect,
+  onRequestUnlink,
+  onReverify,
+}: {
+  row: VisibilityRow;
+  destinations: Destination[];
+  isExpanded: boolean;
+  isReverifying: boolean;
+  reverifyError: unknown;
+  onToggleDetail: () => void;
+  onSelect: (destinations: Destination[], accountIds: string[], isSelected: boolean) => void;
+  onRequestUnlink: (target: UnlinkTarget) => void;
+  onReverify: (account: LinkedAccount) => void;
+}) {
+  const messages = useMessages(accountLinksMessages);
+  const { account, cells } = row;
+  const { serviceName, identifier, iconHost } = describeAccount(account);
+  const label = formatAccountLabel(account, messages.accountLabelSeparator);
+  const verifiedMethods = [...new Set(account.verifications.map((verification) => verification.method))];
+
+  return (
+    <>
+      <tr>
+        <th scope="row" className={`${bodyCellClassName} ${leadCellClassName} z-1 bg-surface`}>
+          <div className="flex min-w-0 items-center gap-3 max-sm:gap-2">
+            <SelectionCheckbox
+              label={messages.rowLabel(label)}
+              values={cells.map((cell) => cell.isSelected)}
+              onChange={(isSelected) => onSelect(destinations, [account.id], isSelected)}
+              className="max-sm:hidden"
+            />
+            {iconHost === undefined ? null : (
+              <span className="shrink-0 max-sm:[&>span]:size-7">
+                <ServiceFavicon host={iconHost} />
+              </span>
+            )}
+            <div className="flex min-w-0 flex-col gap-1 leading-tight">
+              <span className="text-md font-medium wrap-anywhere">
+                <span className="max-sm:block">{serviceName}</span>
+                <span className="max-sm:hidden">{messages.accountLabelSeparator}</span>
+                <span className="max-sm:block max-sm:font-mono max-sm:text-xs max-sm:font-normal max-sm:text-muted">
+                  {identifier}
+                </span>
+              </span>
+              <span className="flex flex-wrap items-center gap-1">
+                {account.verificationStatus === "verified" ? (
+                  verifiedMethods.map((method) => (
+                    <Chip key={method} color="success" variant="soft" className="max-sm:hidden">
+                      <CheckIcon className="size-3" />
+                      {messages.methods[method]}
+                    </Chip>
+                  ))
+                ) : (
+                  <Chip color="default" variant="soft">
+                    {messages.statusUnverified}
+                  </Chip>
+                )}
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  onClick={onToggleDetail}
+                  className="inline-flex cursor-pointer items-center gap-0.5 rounded-full px-2 py-0.5 text-xs text-muted hover:bg-surface-secondary hover:text-foreground"
+                >
+                  {messages.details}
+                  <ChevronDownIcon className={`size-3.5 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                </button>
+              </span>
+            </div>
+          </div>
+        </th>
+        {cells.map((cell, columnIndex) => {
+          const destination = destinations[columnIndex] as Destination;
+          return (
+            <td
+              key={destinationKey(destination)}
+              className={`${bodyCellClassName} ${destinationCellClassName} ${cell.isChanged ? "bg-highlight" : "bg-surface"}`}
+            >
+              <SelectionCheckbox
+                label={messages.cellLabel(label, formatDestinationName(destination, messages))}
+                values={[cell.isSelected]}
+                onChange={(isSelected) => onSelect([destination], [account.id], isSelected)}
+                className={destinationCheckboxClassName}
+              />
+            </td>
+          );
+        })}
+      </tr>
+      {isExpanded ? (
+        <tr>
+          <td colSpan={cells.length + 1} className="border-b border-border bg-surface-secondary p-0 text-left">
+            {/* 詳細はスクロール領域の幅に合わせ、横スクロールしても左端に留める。 */}
+            <div className="sticky left-0 flex w-(--scroll-w) flex-col gap-3 p-4">
+              <AccountDetail
+                account={account}
+                serviceName={serviceName}
+                isReverifying={isReverifying}
+                reverifyError={reverifyError}
+                onRequestUnlink={onRequestUnlink}
+                onReverify={onReverify}
+              />
+            </div>
+          </td>
+        </tr>
+      ) : null}
+    </>
+  );
+}
+
+// --------------------------------------------------
+// 部品
+// --------------------------------------------------
+
+/**
+ * 1つ以上のセルの選択をまとめて示すチェックボックス。
+ * すべて選択でON、一部選択で中間表示にし、対象が無ければ無効にする。
+ */
+function SelectionCheckbox({
   label,
-  isSelected,
-  isIndeterminate,
+  values,
   onChange,
+  className,
 }: {
   label: string;
-  isSelected: boolean;
-  isIndeterminate?: boolean;
+  values: boolean[];
   onChange: (isSelected: boolean) => void;
+  className?: string;
 }) {
+  const selectedCount = values.filter(Boolean).length;
   return (
-    <Checkbox aria-label={label} isSelected={isSelected} isIndeterminate={isIndeterminate} onChange={onChange}>
+    <Checkbox
+      aria-label={label}
+      isSelected={values.length > 0 && selectedCount === values.length}
+      isIndeterminate={selectedCount > 0 && selectedCount < values.length}
+      isDisabled={values.length === 0}
+      onChange={onChange}
+      className={className}
+    >
       <Checkbox.Content>
         <Checkbox.Control>
           <Checkbox.Indicator />
@@ -242,102 +306,26 @@ function CellCheckbox({
 }
 
 /**
- * 外部アカウント1行。
- * 外部アカウントの情報・証明方法ごとの結果・解除操作と、公開先ごとのチェックボックスを置く。
+ * 公開先の表示名。
  */
-function AccountRow({
-  row,
-  columns,
-  onPublicChange,
-  onClientVisibilityChange,
-  onAllClientsChange,
-  onRequestUnlinkAccount,
-  onRequestUnlinkOAuth,
-}: {
-  row: VisibilityRow;
-  columns: VisibilityColumn[];
-  onPublicChange: (isPublic: boolean) => void;
-  onClientVisibilityChange: (clientId: string, isVisible: boolean) => void;
-  onAllClientsChange: (isVisible: boolean) => void;
-  onRequestUnlinkAccount: () => void;
-  onRequestUnlinkOAuth: (verificationId: string) => void;
-}) {
-  const messages = useMessages(accountLinksMessages);
-  const { language } = useI18n();
-  const { account } = row;
-  const label = formatAccountLabel(account);
-  const oauthVerificationIds = account.verifications.flatMap((verification) =>
-    verification.method === "oauth" ? [verification.id] : [],
-  );
-  const visibleCount = row.visibleClientIds.length;
+function formatDestinationName(destination: Destination, messages: AccountLinksMessages): string {
+  return destination.kind === "profile" ? messages.profileColumn : destination.client.name;
+}
 
-  return (
-    <tr className="border-b border-default align-top">
-      <th scope="row" className="p-2 text-left font-normal">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold">{label}</span>
-            <Chip size="sm" color={account.verificationStatus === "verified" ? "success" : "default"}>
-              {account.verificationStatus === "verified" ? messages.statusVerified : messages.statusUnverified}
-            </Chip>
-          </div>
-          {account.email === null ? null : (
-            <p className="text-xs text-muted">
-              {messages.email}: {account.email}
-            </p>
-          )}
-          {account.linkedAt === null ? null : (
-            <p className="text-xs text-muted">
-              {messages.linkedAt}: {formatDateTime(account.linkedAt, language)}
-            </p>
-          )}
-          {account.hasImportedVerifications ? <p className="text-xs">{messages.importedCandidate}</p> : null}
-          <div>
-            <p className="text-xs font-semibold">{messages.identifiers}</p>
-            <ul className="text-xs">
-              {account.identifiers.map((identifier) => (
-                <li key={identifier.id} className="break-all">
-                  {messages.identifierTypes[identifier.type]}: {identifier.value}
-                  {identifier.isActive ? null : ` (${messages.candidateIdentifier})`}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <VerificationList verifications={account.verifications} latestAttempt={account.latestAttempt} />
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="danger-soft" onPress={onRequestUnlinkAccount}>
-              {messages.unlinkAccount}
-            </Button>
-            {oauthVerificationIds.map((verificationId) => (
-              <Button key={verificationId} size="sm" variant="outline" onPress={() => onRequestUnlinkOAuth(verificationId)}>
-                {messages.unlinkOAuthOnly}
-              </Button>
-            ))}
-          </div>
-        </div>
-      </th>
-      <td className="p-2">
-        <CellCheckbox label={messages.publicCellLabel(label)} isSelected={row.isPublic} onChange={onPublicChange} />
-      </td>
-      {columns.length > 0 ? (
-        <td className="p-2">
-          <CellCheckbox
-            label={messages.bulkRowLabel(label)}
-            isSelected={visibleCount === columns.length}
-            isIndeterminate={visibleCount > 0 && visibleCount < columns.length}
-            onChange={onAllClientsChange}
-          />
-        </td>
-      ) : null}
-      {columns.map((column) => (
-        <td key={column.client.clientId} className="p-2">
-          <CellCheckbox
-            label={messages.clientCellLabel(label, column.client.name)}
-            isSelected={row.visibleClientIds.includes(column.client.clientId)}
-            onChange={(isVisible) => onClientVisibilityChange(column.client.clientId, isVisible)}
-          />
-        </td>
-      ))}
-    </tr>
-  );
+/**
+ * 公開先のReactのkey。
+ */
+function destinationKey(destination: Destination): string {
+  return destination.kind === "profile" ? "profile" : `client:${destination.client.clientId}`;
+}
+
+/**
+ * スクロール領域の表示幅を`--scroll-w`に入れる（callback ref）。
+ * 詳細行の中身を、横スクロールしても表示幅いっぱいに左端へ留めるために使う。
+ */
+function observeScrollWidth(element: HTMLDivElement | null) {
+  if (element === null) return;
+  const observer = new ResizeObserver(() => element.style.setProperty("--scroll-w", `${element.clientWidth}px`));
+  observer.observe(element);
+  return () => observer.disconnect();
 }

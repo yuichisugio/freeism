@@ -229,19 +229,19 @@ async function openAuthorization(
 }
 
 /**
- * 認可要求が「アカウント連携」画面（同意画面）へ移動したことを確認し、画面が`oauth2.consent`へ渡す署名付きクエリを返す。
+ * 認可要求が同意画面（`/consent`）へ移動したことを確認し、画面が`oauth2.consent`へ渡す署名付きクエリを返す。
  */
 function readConsentPageQuery(response: Response): string {
   expect(response.status).toBe(302);
   const location = new URL(response.headers.get("location") ?? "", testOrigin);
-  expect(location.pathname).toBe("/account-links");
+  expect(location.pathname).toBe("/consent");
   expect(location.searchParams.get("sig")).toEqual(expect.any(String));
   return location.search.slice(1);
 }
 
 /**
  * 同意画面で「同意して戻る」を押す（Better Auth標準の`oauth2.consent`）。
- * 画面は、同意ONと公開対象を保存してから`accept: true`を送る。
+ * 画面は、今回のクライアントの公開選択だけを保存してから`accept: true`を送る。
  * @returns 利用側の戻り先URL
  */
 async function acceptOnConsentPage(

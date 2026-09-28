@@ -1,4 +1,4 @@
-import { HeadContent, Outlet, ScriptOnce, Scripts, createRootRoute } from "@tanstack/react-router";
+import { HeadContent, Outlet, ScriptOnce, Scripts, createRootRoute, useMatches } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { AppFooter, AppHeader } from "../features/app-shell/components/app-header";
@@ -8,6 +8,15 @@ import { LoginDialogProvider } from "../features/auth/components/login-dialog";
 import { I18nProvider, useMessages } from "../lib/i18n/i18n-provider";
 import { themeInitScript } from "../lib/theme";
 import appCss from "../styles.css?url";
+
+declare module "@tanstack/react-router" {
+  interface StaticDataRouteOption {
+    /**
+     * ヘッダーのタブとフッターを置かない画面か（同意画面）。
+     */
+    hidesNavigation?: boolean;
+  }
+}
 
 /**
  * 画面の書体（見出し: Zen Maru Gothic、本文: Noto Sans JP、URL・ID: M PLUS 1 Code）。
@@ -61,14 +70,18 @@ function RootDocument({ children }: { children: ReactNode }) {
 /**
  * 全画面共通の枠。
  * ログイン用のダイアログは、どの画面からも開けるよう共通の枠に置く。
+ * 同意画面（`staticData.hidesNavigation`）では、ヘッダーのタブとフッターを置かない。
  */
 function RootLayout() {
+  const hidesNavigation = useMatches({
+    select: (matches) => matches.some((match) => match.staticData.hidesNavigation === true),
+  });
   return (
     <I18nProvider>
       <LoginDialogProvider>
-        <AppHeader />
+        <AppHeader hasTabs={!hidesNavigation} />
         <Outlet />
-        <AppFooter />
+        {hidesNavigation ? null : <AppFooter />}
       </LoginDialogProvider>
     </I18nProvider>
   );

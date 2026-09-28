@@ -8,6 +8,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { act, useSyncExternalStore } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -115,6 +116,18 @@ describe("UserScopeGate", () => {
         errorCallbackURL: "/account-links",
       }),
     );
+  });
+
+  it("ログインしていない場合、ログイン用のダイアログを閉じても「ログインする」で開き直せる", async () => {
+    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+    renderUserScopedPage("/account-links");
+    const dialog = await screen.findByRole("dialog");
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "ログインする" }));
+
+    expect(await screen.findByRole("dialog")).toBeDefined();
   });
 
   it("ログインしていない場合、ログインの失敗で戻されたときは失敗の案内とともにダイアログを開く", async () => {

@@ -1,26 +1,27 @@
 import { Chip } from "@heroui/react";
 
-import type { LatestAttempt, LinkedVerification } from "../../../../shared/schemas/account-link-schema";
 import type { VerificationAttempt } from "../../../../shared/schemas/external-url-schema";
 import type { VerificationResult } from "../../../../shared/schemas/verification-schema";
-import { formatDateTime } from "../../../lib/i18n/format";
-import { useI18n, useMessages } from "../../../lib/i18n/i18n-provider";
+import { AlertIcon, CheckIcon, InfoIcon } from "../../app-shell/components/icons";
+import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { accountLinksMessages } from "../messages";
 
-const resultColors = {
-  verified: "success",
-  not_verified: "warning",
-  indeterminate: "default",
-} as const satisfies Record<VerificationResult, "success" | "warning" | "default">;
+const resultChips = {
+  verified: { color: "success", Icon: CheckIcon },
+  not_verified: { color: "warning", Icon: AlertIcon },
+  indeterminate: { color: "default", Icon: InfoIcon },
+} as const satisfies Record<VerificationResult, { color: "success" | "warning" | "default"; Icon: typeof CheckIcon }>;
 
 /**
- * 試行結果のテキスト付きバッジ。
- * 色だけでなく方法名と結果の文言で区別する。
+ * 試行結果のチップ（「{方法}: {結果}」）。
+ * 色だけでなくアイコンと結果の文言で区別する。
  */
-export function VerificationBadge({ label, result }: { label: string; result: VerificationResult }) {
+export function VerificationResultChip({ label, result }: { label: string; result: VerificationResult }) {
   const messages = useMessages(accountLinksMessages);
+  const { color, Icon } = resultChips[result];
   return (
-    <Chip size="sm" color={resultColors[result]}>
+    <Chip color={color} variant="soft">
+      <Icon className="size-3" />
       {`${label}: ${messages.results[result]}`}
     </Chip>
   );
@@ -32,50 +33,9 @@ export function VerificationBadge({ label, result }: { label: string; result: Ve
 export function AttemptResult({ label, attempt }: { label: string; attempt: VerificationAttempt }) {
   const messages = useMessages(accountLinksMessages);
   return (
-    <div className="flex flex-col gap-1">
-      <VerificationBadge label={label} result={attempt.result} />
-      {attempt.failureCode === null ? null : (
-        <p className="text-sm">{messages.failureGuidance[attempt.failureCode]}</p>
-      )}
+    <div className="flex flex-col items-start gap-1">
+      <VerificationResultChip label={label} result={attempt.result} />
+      {attempt.failureCode === null ? null : <p className="text-muted">{messages.failureGuidance[attempt.failureCode]}</p>}
     </div>
-  );
-}
-
-/**
- * 外部アカウントの成功した証明ごとの方法・証明日時・証拠と、未検証の行の直近の試行の結果・案内。
- */
-export function VerificationList({
-  verifications,
-  latestAttempt,
-}: {
-  verifications: LinkedVerification[];
-  latestAttempt: LatestAttempt | null;
-}) {
-  const messages = useMessages(accountLinksMessages);
-  const { language } = useI18n();
-  if (latestAttempt !== null) {
-    return (
-      <AttemptResult label={`${messages.checkedAt} ${formatDateTime(latestAttempt.checkedAt, language)}`} attempt={latestAttempt} />
-    );
-  }
-  if (verifications.length === 0) return <p className="text-sm text-muted">{messages.noVerification}</p>;
-  return (
-    <ul className="flex flex-col gap-2">
-      {verifications.map((verification) => (
-        <li key={verification.id} className="flex flex-col gap-1">
-          <VerificationBadge label={messages.methods[verification.method]} result="verified" />
-          <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted">
-            <dt>{messages.verifiedAt}</dt>
-            <dd>{formatDateTime(verification.verifiedAt, language)}</dd>
-            {verification.evidence === null ? null : (
-              <>
-                <dt>{messages.evidenceUrl}</dt>
-                <dd className="break-all">{verification.evidence}</dd>
-              </>
-            )}
-          </dl>
-        </li>
-      ))}
-    </ul>
   );
 }

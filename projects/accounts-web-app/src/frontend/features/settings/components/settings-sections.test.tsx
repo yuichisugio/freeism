@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BffError } from "../../../lib/api-client";
 import { renderWithProviders } from "../../../test/render-with-providers";
@@ -14,6 +14,16 @@ import { BackupExportSection } from "./backup-export-section";
 import { BackupRestoreSection } from "./backup-restore-section";
 import { DisplayNameSection } from "./display-name-section";
 import { LanguageSection } from "./language-section";
+import { ThemeSection } from "./theme-section";
+
+beforeEach(() => {
+  window.localStorage.clear();
+  document.documentElement.removeAttribute("data-theme");
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // --------------------------------------------------
 // フックの状態
@@ -26,6 +36,7 @@ function displayNameForm(overrides: Partial<DisplayNameForm> = {}): DisplayNameF
     isLoading: false,
     reload: vi.fn<() => void>(),
     displayName: "仮ユーザー",
+    displayNameLength: 5,
     issue: null,
     isDirty: false,
     canSave: false,
@@ -33,6 +44,7 @@ function displayNameForm(overrides: Partial<DisplayNameForm> = {}): DisplayNameF
     isSaved: false,
     saveError: null,
     changeDisplayName: vi.fn<(value: string) => void>(),
+    discard: vi.fn<() => void>(),
     save: vi.fn<() => Promise<void>>(),
     ...overrides,
   };
@@ -40,10 +52,6 @@ function displayNameForm(overrides: Partial<DisplayNameForm> = {}): DisplayNameF
 
 function backupExport(overrides: Partial<BackupExport> = {}): BackupExport {
   return {
-    summary: { externalAccountCount: 3, unverifiedAccountCount: 1, clientConsentCount: 2, includesPrivateData: true },
-    summaryError: null,
-    isSummaryLoading: false,
-    reloadSummary: vi.fn<() => void>(),
     isExporting: false,
     isExported: false,
     exportError: null,
@@ -68,12 +76,11 @@ function backupRestore(overrides: Partial<BackupRestore> = {}): BackupRestore {
 
 function accountDeletion(overrides: Partial<AccountDeletion> = {}): AccountDeletion {
   return {
-    clients: [],
-    clientsError: null,
-    isClientsLoading: false,
-    reloadClients: vi.fn<() => void>(),
-    isConfirmed: false,
-    changeConfirmed: vi.fn<(isConfirmed: boolean) => void>(),
+    isDialogOpen: false,
+    openDialog: vi.fn<() => void>(),
+    closeDialog: vi.fn<() => void>(),
+    confirmationText: "",
+    changeConfirmationText: vi.fn<(value: string) => void>(),
     canDelete: false,
     isDeleting: false,
     deleteError: null,
@@ -89,20 +96,55 @@ async function isButtonDisabled(name: string): Promise<boolean> {
   return (await screen.findByRole<HTMLButtonElement>("button", { name })).disabled;
 }
 
+/**
+ * ダウンロードさせたファイルの名前と内容を記録する。
+ */
+function captureDownloads() {
+  const downloads: { fileName: string; blob: Blob }[] = [];
+  let lastBlob: Blob | null = null;
+  vi.spyOn(URL, "createObjectURL").mockImplementation((blob) => {
+    lastBlob = blob as Blob;
+    return "blob:download";
+  });
+  vi.spyOn(URL, "revokeObjectURL").mockReturnValue(undefined);
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+    if (lastBlob !== null) downloads.push({ fileName: this.download, blob: lastBlob });
+  });
+  return downloads;
+}
+
 // --------------------------------------------------
-// 表示言語
+// 言語
 // --------------------------------------------------
 
 describe("LanguageSection", () => {
-  it("現在の表示言語を選択済みにし、選んだ言語で画面を表示してこのブラウザーに保存する", async () => {
+  it("現在の言語を選択済みにし、選んだ言語ですぐに表示してこのブラウザーに保存する", async () => {
     renderWithProviders(<LanguageSection />);
 
-    expect((await screen.findByRole<HTMLInputElement>("radio", { name: "日本語" })).checked).toBe(true);
+    expect(await screen.findByText("既定はブラウザーの言語です。")).toBeDefined();
+    expect(screen.getByRole<HTMLInputElement>("radio", { name: "日本語" }).checked).toBe(true);
     await userEvent.click(screen.getByRole("radio", { name: "English" }));
 
-    expect(await screen.findByText("Display language")).toBeDefined();
+    expect(await screen.findByRole("heading", { name: "Language" })).toBeDefined();
     expect(screen.getByRole<HTMLInputElement>("radio", { name: "English" }).checked).toBe(true);
     expect(window.localStorage.getItem("accounts.language")).toBe("en");
+  });
+});
+
+// --------------------------------------------------
+// テーマ
+// --------------------------------------------------
+
+describe("ThemeSection", () => {
+  it("既定はシステムで、選んだテーマをすぐに反映してこのブラウザーに保存する", async () => {
+    renderWithProviders(<ThemeSection />);
+
+    expect((await screen.findByRole<HTMLInputElement>("radio", { name: "システム" })).checked).toBe(true);
+    await userEvent.click(screen.getByRole("radio", { name: "ダーク" }));
+
+    expect(screen.getByRole<HTMLInputElement>("radio", { name: "ダーク" }).checked).toBe(true);
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(window.localStorage.getItem("accounts.theme")).toBe("dark");
   });
 });
 
@@ -111,29 +153,34 @@ describe("LanguageSection", () => {
 // --------------------------------------------------
 
 describe("DisplayNameSection", () => {
-  it("未変更の間は「保存」ボタンを押せない", async () => {
+  it("保存済みの表示名と文字数を表示し、AccountsユーザーIDは表示しない", async () => {
     renderWithProviders(<DisplayNameSection form={displayNameForm()} />);
 
-    expect(await isButtonDisabled("保存")).toBe(true);
-    expect(screen.getByText("AccountsユーザーID: user-1")).toBeDefined();
+    expect((await screen.findByRole<HTMLInputElement>("textbox", { name: "表示名" })).value).toBe("仮ユーザー");
+    expect(screen.getByText("5 / 50")).toBeDefined();
+    expect(screen.getByText("公開プロフィールと連携先に表示されます。")).toBeDefined();
+    expect(screen.queryByText(/ユーザーID/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "保存" })).toBeNull();
   });
 
-  it("入力不備は理由をテキストで示し、「保存」ボタンを押せない", async () => {
+  it("入力すると変更を伝える", async () => {
+    const changeDisplayName = vi.fn<(value: string) => void>();
+    renderWithProviders(<DisplayNameSection form={displayNameForm({ displayName: "", changeDisplayName })} />);
+
+    await userEvent.type(await screen.findByRole("textbox", { name: "表示名" }), "A");
+
+    expect(changeDisplayName).toHaveBeenCalledWith("A");
+  });
+
+  it("入力不備は理由をテキストで示す", async () => {
     renderWithProviders(
-      <DisplayNameSection form={displayNameForm({ displayName: "あ".repeat(51), issue: "tooLong", isDirty: true })} />,
+      <DisplayNameSection
+        form={displayNameForm({ displayName: "あ".repeat(51), displayNameLength: 51, issue: "tooLong", isDirty: true })}
+      />,
     );
 
     expect(await screen.findByText("表示名は50文字以内で入力してください。")).toBeDefined();
-    expect(await isButtonDisabled("保存")).toBe(true);
-  });
-
-  it("保存できる状態で「保存」ボタンを押すと保存する", async () => {
-    const save = vi.fn<() => Promise<void>>();
-    renderWithProviders(<DisplayNameSection form={displayNameForm({ isDirty: true, canSave: true, save })} />);
-
-    await userEvent.click(await screen.findByRole("button", { name: "保存" }));
-
-    expect(save).toHaveBeenCalledOnce();
+    expect(screen.getByText("51 / 50")).toBeDefined();
   });
 
   it("保存の成功をstatus、失敗をalertで示す", async () => {
@@ -154,23 +201,18 @@ describe("DisplayNameSection", () => {
 });
 
 // --------------------------------------------------
-// JSON出力
+// データ出力
 // --------------------------------------------------
 
 describe("BackupExportSection", () => {
-  it("出力前に件数の見込みと非公開情報を含むことを示す", async () => {
-    renderWithProviders(<BackupExportSection backupExport={backupExport()} />);
+  it("説明と「データ出力」ボタンだけを示し、押すと出力する", async () => {
+    const exportBackup = vi.fn<() => Promise<void>>();
+    renderWithProviders(<BackupExportSection backupExport={backupExport({ exportBackup })} />);
 
-    expect(await screen.findByText("外部アカウント: 3件（うち未検証・登録候補 1件）")).toBeDefined();
-    expect(screen.getByText("情報提供同意: 2件")).toBeDefined();
-    expect(screen.getByText(/非公開の情報（未検証の登録・非公開の設定・情報提供同意）を含みます/)).toBeDefined();
-    expect(await isButtonDisabled("JSONを出力")).toBe(false);
-  });
+    expect(await screen.findByText("このサービスに保存したデータを出力します。")).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: "データ出力" }));
 
-  it("件数の見込みを読み込むまでは出力できない", async () => {
-    renderWithProviders(<BackupExportSection backupExport={backupExport({ summary: null, isSummaryLoading: true })} />);
-
-    expect(await isButtonDisabled("JSONを出力")).toBe(true);
+    expect(exportBackup).toHaveBeenCalledOnce();
   });
 
   it("上限超過の失敗を専用の文言で示す", async () => {
@@ -182,7 +224,7 @@ describe("BackupExportSection", () => {
 });
 
 // --------------------------------------------------
-// 復元
+// データ取込
 // --------------------------------------------------
 
 describe("BackupRestoreSection", () => {
@@ -191,15 +233,49 @@ describe("BackupRestoreSection", () => {
     renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ selectFile })} />);
     const file = new File(["{}"], "backup.json", { type: "application/json" });
 
-    await userEvent.upload(await screen.findByLabelText("バックアップJSONファイル"), file);
+    await userEvent.upload(await screen.findByLabelText("ファイルを選択"), file);
 
     expect(selectFile).toHaveBeenCalledWith(file);
   });
 
-  it("ファイルを選択するまでは「復元する」ボタンを押せない", async () => {
+  it("ファイルを選択するまでは「取り込む」ボタンを押せず、選択後はファイル名を示す", async () => {
     renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
 
-    expect(await isButtonDisabled("復元する")).toBe(true);
+    expect(await screen.findByText("選択されていません")).toBeDefined();
+    expect(await isButtonDisabled("取り込む")).toBe(true);
+  });
+
+  it("選択したファイル名を示し、「取り込む」ボタンで取り込む", async () => {
+    const restore = vi.fn<() => Promise<void>>();
+    const file = new File(["{}"], "accounts-backup.json", { type: "application/json" });
+    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ file, canRestore: true, restore })} />);
+
+    expect(await screen.findByText("accounts-backup.json")).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: "取り込む" }));
+
+    expect(restore).toHaveBeenCalledOnce();
+  });
+
+  it("「テンプレートをダウンロード」で出力JSONと同じ形式のテンプレートをダウンロードさせる", async () => {
+    const downloads = captureDownloads();
+    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "テンプレートをダウンロード" }));
+
+    expect(downloads.map((download) => download.fileName)).toEqual(["accounts-import-template.json"]);
+    expect(JSON.parse(await downloads[0]!.blob.text())).toMatchObject({ schemaVersion: 1 });
+  });
+
+  it("「AIに整形を頼む文面をコピー」で依頼文とテンプレートをコピーする", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
+
+    await user.click(await screen.findByRole("button", { name: "AIに整形を頼む文面をコピー" }));
+
+    const copied = await navigator.clipboard.readText();
+    expect(copied).toContain("テンプレート");
+    expect(copied).toContain('"schemaVersion": 1');
+    expect(await screen.findByText("コピーしました。")).toBeDefined();
   });
 
   it("不備の位置と理由を一覧でalertとして示す", async () => {
@@ -224,13 +300,13 @@ describe("BackupRestoreSection", () => {
     );
   });
 
-  it("復元の成功を件数とともにstatusで示す", async () => {
+  it("取込の成功を件数とともにstatusで示す", async () => {
     const result = { updatedAccountCount: 2, addedCandidateCount: 1, clientConsentCount: 3 };
     renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ result })} />);
 
-    const status = await screen.findByRole("status");
-    expect(status.textContent).toContain("公開設定を戻した外部アカウント: 2件");
-    expect(status.textContent).toContain("所有権を証明すると有効になります");
+    const statusTexts = (await screen.findAllByRole("status")).map((status) => status.textContent).join("\n");
+    expect(statusTexts).toContain("公開設定を戻した外部アカウント: 2件");
+    expect(statusTexts).toContain("所有権を証明すると有効になります");
   });
 });
 
@@ -239,40 +315,51 @@ describe("BackupRestoreSection", () => {
 // --------------------------------------------------
 
 describe("AccountDeletionSection", () => {
-  it("登録OAuthクライアントが無いことをテキストで示す", async () => {
-    renderWithProviders(<AccountDeletionSection accountDeletion={accountDeletion()} />);
+  it("説明と「退会」ボタンを示し、押すと退会の確認を開く", async () => {
+    const openDialog = vi.fn<() => void>();
+    renderWithProviders(<AccountDeletionSection accountDeletion={accountDeletion({ openDialog })} />);
 
-    expect(await screen.findByText("登録したOAuthクライアントはありません。")).toBeDefined();
+    expect(await screen.findByText("Freeism Accounts のデータをすべて削除します。")).toBeDefined();
+    await userEvent.click(screen.getByRole("button", { name: "退会" }));
+
+    expect(openDialog).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("checkbox")).toBeNull();
   });
 
-  it("終了する登録OAuthクライアントを示す", async () => {
-    const clients = [
-      { clientId: "client-1", name: "<b>Points</b>", uri: null, description: null, redirectUris: [], jwks: { keys: [{ kty: "EC" }] } },
-    ];
-    renderWithProviders(<AccountDeletionSection accountDeletion={accountDeletion({ clients })} />);
-
-    // 外部由来の名前はHTMLとして解釈せず、文字列のまま表示する。
-    expect(await screen.findByText("<b>Points</b>")).toBeDefined();
-    expect(screen.getByText("(client-1)")).toBeDefined();
-  });
-
-  it("確認前は「退会する」ボタンを押せず、チェックで確認を伝える", async () => {
-    const changeConfirmed = vi.fn<(isConfirmed: boolean) => void>();
-    renderWithProviders(<AccountDeletionSection accountDeletion={accountDeletion({ changeConfirmed })} />);
-
-    expect(await isButtonDisabled("退会する")).toBe(true);
-    await userEvent.click(screen.getByRole("checkbox", { name: "内容を確認した" }));
-    expect(changeConfirmed).toHaveBeenCalledWith(true);
-  });
-
-  it("確認後は「退会する」ボタンで退会する", async () => {
-    const deleteAccount = vi.fn<() => Promise<void>>();
+  it("確認では取り消せないことを示し、「DELETE」の入力を伝える", async () => {
+    const changeConfirmationText = vi.fn<(value: string) => void>();
     renderWithProviders(
-      <AccountDeletionSection accountDeletion={accountDeletion({ isConfirmed: true, canDelete: true, deleteAccount })} />,
+      <AccountDeletionSection accountDeletion={accountDeletion({ isDialogOpen: true, changeConfirmationText })} />,
     );
 
-    await userEvent.click(await screen.findByRole("button", { name: "退会する" }));
+    const dialog = await screen.findByRole("alertdialog");
+    expect(within(dialog).getByRole("heading", { name: "退会しますか？" })).toBeDefined();
+    expect(dialog.textContent).toContain("この操作は取り消せません。必要なら先に「データ出力」で保存してください。");
+    expect(within(dialog).getByRole<HTMLButtonElement>("button", { name: "退会する" }).disabled).toBe(true);
+    await userEvent.type(within(dialog).getByRole("textbox", { name: "確認のため「DELETE」と入力" }), "D");
+
+    expect(changeConfirmationText).toHaveBeenCalledWith("D");
+  });
+
+  it("入力が一致したら「退会する」ボタンで退会する", async () => {
+    const deleteAccount = vi.fn<() => Promise<void>>();
+    renderWithProviders(
+      <AccountDeletionSection
+        accountDeletion={accountDeletion({ isDialogOpen: true, confirmationText: "DELETE", canDelete: true, deleteAccount })}
+      />,
+    );
+
+    await userEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "退会する" }));
 
     expect(deleteAccount).toHaveBeenCalledOnce();
+  });
+
+  it("「キャンセル」で確認を閉じる", async () => {
+    const closeDialog = vi.fn<() => void>();
+    renderWithProviders(<AccountDeletionSection accountDeletion={accountDeletion({ isDialogOpen: true, closeDialog })} />);
+
+    await userEvent.click(within(await screen.findByRole("alertdialog")).getByRole("button", { name: "キャンセル" }));
+
+    expect(closeDialog).toHaveBeenCalledOnce();
   });
 });

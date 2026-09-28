@@ -8,7 +8,7 @@ import { authClient } from "../../../lib/auth-client";
 import { readBackupFile } from "../backup-file";
 
 /**
- * 「設定」画面のJSON復元。
+ * 「その他」画面のデータ取込（バックアップJSONからの復元）。
  * 送信前にファイルの容量・JSON構文・形式を検査し、サーバーの入力不備も同じ一覧で返す。
  * 復元後は、戻した表示名をヘッダー・アカウントのメニューへ反映するため、現在のセッションを読み直させる。
  * @see ../../../../../docs/specification/v0.1/main.ja.md

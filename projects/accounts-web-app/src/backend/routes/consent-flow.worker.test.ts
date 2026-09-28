@@ -24,10 +24,10 @@ import { createRandomId } from "../db/id";
 import { clientConsents, externalAccounts, externalAccountVisibility } from "../db/schema";
 
 /**
- * 利用側サービスの連携開始から、「アカウント連携」画面（同意画面）での`oauth2.consent`までの往復。
- * 画面の`useConsentRequest`は、公開設定を保存してから`accept: true`、拒否は`accept: false`を送る。
+ * 利用側サービスの連携開始から、同意画面（`/consent`）での`oauth2.consent`までの往復。
+ * 画面の`useConsentRequest`は、今回のクライアントの公開選択だけを保存してから`accept: true`、拒否は`accept: false`を送る。
  * `accept: true`は、今回のクライアントへ証明済みの外部アカウントを1件以上公開選択している場合だけ受け付ける。
- * @see ../../frontend/features/account-links/hooks/use-consent-request.ts
+ * @see ../../frontend/features/consent/hooks/use-consent-request.ts
  */
 
 // --------------------------------------------------
@@ -82,7 +82,7 @@ function authorize(
 function readConsentPageQuery(response: Response): string {
   expect(response.status).toBe(302);
   const location = new URL(response.headers.get("location") ?? "", testOrigin);
-  expect(location.pathname).toBe("/account-links");
+  expect(location.pathname).toBe("/consent");
   expect(location.searchParams.get("sig")).toEqual(expect.any(String));
   return location.search.slice(1);
 }
@@ -125,7 +125,7 @@ describe("連携開始と同意画面", () => {
     vi.restoreAllMocks();
   });
 
-  it("ログイン後の認可要求は、署名付きクエリを付けて「アカウント連携」画面へ302で移動する", async () => {
+  it("ログイン後の認可要求は、署名付きクエリを付けて同意画面へ302で移動する", async () => {
     const { headers, clientId } = await setUpUser();
 
     const response = await authorize(headers, clientId, { prompt: "consent" });

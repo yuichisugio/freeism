@@ -1,201 +1,307 @@
 // @vitest-environment happy-dom
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import type { LinkedVerification } from "../../../../shared/schemas/account-link-schema";
 import { renderWithProviders } from "../../../test/render-with-providers";
-import type { VisibilitySaveState } from "../hooks/use-account-links";
 import { createAccountLinks, createLinkedAccount, createLinkedClient } from "../lib/account-links-fixtures";
-import { buildVisibilityTable, emptyVisibilityEdits, setClientVisibility } from "../lib/visibility-draft";
-import { ConsentPanel } from "./consent-panel";
+import { buildVisibilityTable, emptyVisibilityEdits, setSelection } from "../lib/visibility-draft";
+import type { Destination } from "../lib/visibility-draft";
 import { ExternalUrlForm } from "./external-url-form";
 import { ProfileUrlPanel } from "./profile-url-panel";
+import { ProviderLinkButtons } from "./provider-link-buttons";
+import { UnlinkDialog } from "./unlink-dialog";
+import { UnpublishedMessages } from "./unpublished-messages";
 import { VisibilityTable } from "./visibility-table";
 
 type VisibilityTableProps = Parameters<typeof VisibilityTable>[0];
 
-const tableHandlers = {
-  saveState: { status: "idle" } as const,
-  onAccountPublicChange: vi.fn<VisibilityTableProps["onAccountPublicChange"]>(),
-  onClientVisibilityChange: vi.fn<VisibilityTableProps["onClientVisibilityChange"]>(),
-  onAccountVisibilityForAllClientsChange: vi.fn<VisibilityTableProps["onAccountVisibilityForAllClientsChange"]>(),
-  onSave: vi.fn<VisibilityTableProps["onSave"]>(),
-  onDiscard: vi.fn<VisibilityTableProps["onDiscard"]>(),
-  onRequestUnlinkAccount: vi.fn<VisibilityTableProps["onRequestUnlinkAccount"]>(),
-  onRequestUnlinkOAuth: vi.fn<VisibilityTableProps["onRequestUnlinkOAuth"]>(),
+const points = createLinkedClient({ clientId: "points", name: "Points" });
+const profile: Destination = { kind: "profile" };
+const pointsColumn: Destination = { kind: "client", client: points };
+
+const linkVerification: LinkedVerification = {
+  id: "evf_link",
+  method: "bidirectional_link",
+  verifiedAt: "2026-09-12T14:05:00Z",
+  evidence: "https://github.com/alice",
+  identifiers: [{ id: "eid_1", type: "url", provider: null, value: "https://github.com/alice", isActive: true }],
 };
+const oauthVerification: LinkedVerification = {
+  id: "evf_oauth",
+  method: "oauth",
+  verifiedAt: "2026-09-12T14:03:00Z",
+  evidence: null,
+  identifiers: [{ id: "eid_2", type: "provider_account", provider: "github", value: "1843221", isActive: true }],
+};
+const githubAccount = createLinkedAccount({
+  id: "eac_github",
+  service: "github",
+  identifiers: [
+    { id: "eid_1", type: "url", provider: null, value: "https://github.com/alice", isActive: true },
+    { id: "eid_3", type: "provider_username", provider: "github", value: "alice", isActive: true },
+  ],
+  verifications: [oauthVerification, linkVerification],
+});
+const qiitaAccount = createLinkedAccount({
+  id: "eac_qiita",
+  service: "qiita",
+  verificationStatus: "unverified",
+  identifiers: [{ id: "eid_4", type: "url", provider: null, value: "https://qiita.com/hanako", isActive: false }],
+  primaryUrl: "https://qiita.com/hanako",
+  latestAttempt: { checkedAt: "2026-09-25T16:20:00Z", result: "not_verified", failureCode: "LINK_NOT_FOUND" },
+});
+
+/**
+ * 表を描画する。
+ * 操作の呼出しを確かめるため、ハンドラーをモックにして返す。
+ */
+function renderTable({
+  accounts = [githubAccount, qiitaAccount],
+  edits = emptyVisibilityEdits,
+}: {
+  accounts?: ReturnType<typeof createLinkedAccount>[];
+  edits?: typeof emptyVisibilityEdits;
+} = {}) {
+  const handlers = {
+    onSelect: vi.fn<VisibilityTableProps["onSelect"]>(),
+    onRequestUnlink: vi.fn<VisibilityTableProps["onRequestUnlink"]>(),
+    onReverify: vi.fn<VisibilityTableProps["onReverify"]>(),
+  };
+  renderWithProviders(
+    <VisibilityTable
+      table={buildVisibilityTable(createAccountLinks({ accounts, clients: [points] }), edits)}
+      reverifyingAccountId={null}
+      reverifyFailure={null}
+      {...handlers}
+    />,
+  );
+  return handlers;
+}
 
 describe("VisibilityTable", () => {
-  it("未検証の行だけを選択した連携先があっても、変更があれば保存できる", async () => {
-    const links = createAccountLinks({
-      accounts: [createLinkedAccount({ verificationStatus: "unverified" })],
-      clients: [createLinkedClient({ name: "Points" })],
-    });
-
-    renderWithProviders(
-      <VisibilityTable
-        table={buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true))}
-        {...tableHandlers}
-      />,
-    );
-
-    for (const button of await screen.findAllByRole("button", { name: "公開設定を保存" })) {
-      expect(button.hasAttribute("disabled")).toBe(false);
-    }
-  });
-
-  it("表の上と下に保存・破棄の操作を置き、変更が無い間は押せない", async () => {
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
-
-    renderWithProviders(<VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />);
-    const saveButtons = await screen.findAllByRole("button", { name: "公開設定を保存" });
-    const discardButtons = screen.getAllByRole("button", { name: "編集内容を破棄" });
-
-    expect(saveButtons).toHaveLength(2);
-    expect(discardButtons).toHaveLength(2);
-    expect(screen.queryByText("未保存の変更があります")).toBeNull();
-    for (const button of [...saveButtons, ...discardButtons]) {
-      expect(button.hasAttribute("disabled")).toBe(true);
-    }
-  });
-
-  it("未保存の変更がある場合は、保存・破棄できることと未保存であることを示す", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn<VisibilityTableProps["onSave"]>();
-    const onDiscard = vi.fn<VisibilityTableProps["onDiscard"]>();
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
-
-    renderWithProviders(
-      <VisibilityTable
-        table={buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true))}
-        {...tableHandlers}
-        onSave={onSave}
-        onDiscard={onDiscard}
-      />,
-    );
-    const [topSaveButton, bottomSaveButton] = await screen.findAllByRole("button", { name: "公開設定を保存" });
-    await user.click(topSaveButton as HTMLElement);
-    await user.click(bottomSaveButton as HTMLElement);
-    await user.click(screen.getAllByRole("button", { name: "編集内容を破棄" })[1] as HTMLElement);
-
-    expect(screen.getAllByText("未保存の変更があります")).toHaveLength(2);
-    expect(onSave).toHaveBeenCalledTimes(2);
-    expect(onDiscard).toHaveBeenCalledTimes(1);
-  });
-
-  it("保存の結果は、押した保存ボタンの近くに1回だけ示す", async () => {
-    const user = userEvent.setup();
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
-    const table = buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true));
-
-    /**
-     * 保存ボタンを押すと保存済みの状態にする表。
-     */
-    function SavingTable() {
-      const [saveState, setSaveState] = useState<VisibilitySaveState>({ status: "idle" });
-      return <VisibilityTable table={table} {...tableHandlers} saveState={saveState} onSave={() => setSaveState({ status: "saved" })} />;
-    }
-    renderWithProviders(<SavingTable />);
-
-    const bottomSaveButton = (await screen.findAllByRole("button", { name: "公開設定を保存" }))[1] as HTMLElement;
-    await user.click(bottomSaveButton);
-
-    const notices = await screen.findAllByText("公開設定を保存しました。");
-    expect(notices).toHaveLength(1);
-    expect(bottomSaveButton.compareDocumentPosition(notices[0] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByRole("table").compareDocumentPosition(notices[0] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-  });
-
-  it("一般公開と連携先を表の列に置き、同意のスイッチは置かない", async () => {
-    const links = createAccountLinks({
-      accounts: [createLinkedAccount({ id: "eac_1", displayName: "Alice" })],
-      clients: [createLinkedClient({ clientId: "points", name: "Points" })],
-    });
-
-    renderWithProviders(<VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />);
+  it("プロフィールと連携先を列にし、保存済みの状態から「公開中」「非公開」を示す", async () => {
+    renderTable({ accounts: [createLinkedAccount({ isPublic: true, visibility: { points: false } })] });
     const table = await screen.findByRole("table");
 
-    expect(within(table).getByRole("columnheader", { name: /一般公開/ })).toBeDefined();
-    expect(within(table).getByRole("checkbox", { name: "GitHub: Aliceを一般公開" })).toBeDefined();
-    expect(within(table).getByRole("columnheader", { name: /Points/ })).toBeDefined();
-    expect(within(table).queryByRole("switch")).toBeNull();
+    expect(within(table).getByRole("columnheader", { name: /プロフィール.*公開中/ })).toBeDefined();
+    expect(within(table).getByRole("columnheader", { name: /Points.*非公開/ })).toBeDefined();
   });
 
-  it("行と連携先の組ごとに、読み上げ可能な名前のチェックボックスを置く", async () => {
+  it("行を「サービス名：識別子」と成功した方法のチップで示し、未検証の行は「未検証」とする", async () => {
+    renderTable();
+    const table = await screen.findByRole("table");
+
+    const githubRow = within(table).getByRole("rowheader", { name: /GitHub：alice/ });
+    expect(within(githubRow).getByText("OAuth")).toBeDefined();
+    expect(within(githubRow).getByText("双方向リンク")).toBeDefined();
+    expect(within(within(table).getByRole("rowheader", { name: /Qiita：qiita\.com\/hanako/ })).getByText("未検証")).toBeDefined();
+  });
+
+  it("セル・行・列・全体のチェックで、対象の公開先と行をまとめて選ぶ（一括は未検証の行も含む）", async () => {
     const user = userEvent.setup();
-    const onClientVisibilityChange = vi.fn<VisibilityTableProps["onClientVisibilityChange"]>();
-    const links = createAccountLinks({
-      accounts: [createLinkedAccount({ id: "eac_1", displayName: "Alice" })],
-      clients: [createLinkedClient({ clientId: "points", name: "Points" })],
-    });
+    const { onSelect } = renderTable();
 
-    renderWithProviders(
-      <VisibilityTable
-        table={buildVisibilityTable(links, emptyVisibilityEdits)}
-        {...tableHandlers}
-        onClientVisibilityChange={onClientVisibilityChange}
-      />,
-    );
-    await user.click(await screen.findByRole("checkbox", { name: "GitHub: AliceをPointsに公開" }));
+    await user.click(await screen.findByRole("checkbox", { name: "GitHub：aliceをPointsに公開" }));
+    await user.click(screen.getByRole("checkbox", { name: "GitHub：aliceをすべての公開先に公開" }));
+    await user.click(screen.getByRole("checkbox", { name: "すべての行を一括でPointsに公開" }));
+    await user.click(screen.getByRole("checkbox", { name: "すべての行をすべての公開先に一括で公開" }));
 
-    expect(onClientVisibilityChange).toHaveBeenCalledWith("points", ["eac_1"], true);
+    expect(onSelect.mock.calls).toEqual([
+      [[pointsColumn], ["eac_github"], true],
+      [[profile, pointsColumn], ["eac_github"], true],
+      [[pointsColumn], ["eac_github", "eac_qiita"], true],
+      [[profile, pointsColumn], ["eac_github", "eac_qiita"], true],
+    ]);
   });
 
-  it("OAuthの証明を持つ行にだけ「OAuthの認証連携だけ解除する」を置く", async () => {
-    const links = createAccountLinks({
+  it("一括のチェックは一部だけ選ばれていれば中間表示にする", async () => {
+    renderTable({ edits: setSelection(emptyVisibilityEdits, [pointsColumn], ["eac_github"], true) });
+
+    const bulk = (await screen.findByRole("checkbox", { name: "すべての行を一括でPointsに公開" })) as HTMLInputElement;
+    expect(bulk.indeterminate).toBe(true);
+  });
+
+  it("保存済みから変更したセルを強調する", async () => {
+    renderTable({ edits: setSelection(emptyVisibilityEdits, [pointsColumn], ["eac_github"], true) });
+
+    const changed = await screen.findByRole("checkbox", { name: "GitHub：aliceをPointsに公開" });
+    const unchanged = screen.getByRole("checkbox", { name: "GitHub：aliceをプロフィールに公開" });
+    expect(changed.closest("td")?.className).toContain("bg-highlight");
+    expect(unchanged.closest("td")?.className).not.toContain("bg-highlight");
+  });
+
+  it("証明済みの行の「詳細」は、成功した方法ごとの証明日時・証拠・識別子と解除の操作を示す", async () => {
+    const user = userEvent.setup();
+    const { onRequestUnlink } = renderTable();
+    const githubRow = await screen.findByRole("rowheader", { name: /GitHub：alice/ });
+
+    await user.click(within(githubRow).getByRole("button", { name: "詳細" }));
+    const blocks = screen.getAllByRole("group", { name: /の証明$/ });
+
+    expect(blocks).toHaveLength(2);
+    const linkBlock = blocks[1] as HTMLElement;
+    expect(within(linkBlock).getByText("成功")).toBeDefined();
+    expect(within(linkBlock).getByText("2026/09/12 14:05 (UTC)")).toBeDefined();
+    expect(within(linkBlock).getByText("証拠を確認したページ")).toBeDefined();
+    expect(within(blocks[0] as HTMLElement).getByText("固有ID 1843221")).toBeDefined();
+    await user.click(within(linkBlock).getByRole("button", { name: "この証明を解除" }));
+    await user.click(screen.getByRole("button", { name: "すべての連携解除" }));
+
+    expect(onRequestUnlink.mock.calls).toEqual([
+      [{ kind: "verification", account: githubAccount, verification: linkVerification }],
+      [{ kind: "account", account: githubAccount }],
+    ]);
+  });
+
+  it("未検証の行の「詳細」は、直近の検証結果・案内・「再検証」を示す", async () => {
+    const user = userEvent.setup();
+    const { onReverify } = renderTable();
+    const qiitaRow = await screen.findByRole("rowheader", { name: /Qiita/ });
+
+    await user.click(within(qiitaRow).getByRole("button", { name: "詳細" }));
+    await user.click(screen.getByRole("button", { name: "再検証" }));
+
+    expect(screen.getByText("直近の検証 2026/09/25 16:20 (UTC)：証拠を確認できませんでした")).toBeDefined();
+    expect(screen.getByText(/公開プロフィールURLが見つかりませんでした/)).toBeDefined();
+    expect(onReverify).toHaveBeenCalledWith(qiitaAccount);
+  });
+
+  it("試行もURLも無い未検証の行は、未検証であることと「ログインで証明」への案内を示し、「再検証」を置かない", async () => {
+    const user = userEvent.setup();
+    renderTable({
       accounts: [
         createLinkedAccount({
-          id: "eac_oauth",
-          verifications: [
-            {
-              id: "evf_1",
-              method: "oauth",
-              verifiedAt: "2026-09-01T00:00:00Z",
-              evidence: null,
-              identifiers: [],
-            },
-          ],
+          service: "google",
+          email: "hanako@example.com",
+          verificationStatus: "unverified",
+          identifiers: [{ id: "eid_1", type: "provider_account", provider: "google", value: "1", isActive: false }],
+          primaryUrl: null,
         }),
-        createLinkedAccount({ id: "eac_web", displayName: "Blog", verifications: [] }),
       ],
     });
 
-    renderWithProviders(<VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />);
+    await user.click(await screen.findByRole("button", { name: "詳細" }));
 
-    expect(await screen.findAllByRole("button", { name: "連携解除" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "OAuthの認証連携だけ解除する" })).toHaveLength(1);
-    expect(screen.getByText("OAuth: 成功")).toBeDefined();
+    expect(screen.getByText("まだ検証していません。")).toBeDefined();
+    expect(screen.getByText(/「ログインで証明」/)).toBeDefined();
+    expect(screen.queryByRole("button", { name: "再検証" })).toBeNull();
   });
 
   it("外部アカウントが無い場合は追加の案内を表示する", async () => {
-    renderWithProviders(
-      <VisibilityTable table={buildVisibilityTable(createAccountLinks({ accounts: [] }), emptyVisibilityEdits)} {...tableHandlers} />,
-    );
+    renderTable({ accounts: [] });
 
     expect(await screen.findByText(/連携済みの外部アカウントはありません/)).toBeDefined();
   });
 
-  it("外部の表示名に含まれるHTMLを文字列として表示する", async () => {
-    const links = createAccountLinks({ accounts: [createLinkedAccount({ displayName: "<img src=x onerror=alert(1)>" })] });
-
+  it("外部の識別子に含まれるHTMLを文字列として表示する", async () => {
     const { container } = renderWithProviders(
-      <VisibilityTable table={buildVisibilityTable(links, emptyVisibilityEdits)} {...tableHandlers} />,
+      <VisibilityTable
+        table={buildVisibilityTable(
+          createAccountLinks({
+            accounts: [
+              createLinkedAccount({
+                service: "github",
+                identifiers: [
+                  { id: "eid_1", type: "provider_username", provider: "github", value: "<img src=x onerror=alert(1)>", isActive: true },
+                ],
+              }),
+            ],
+          }),
+          emptyVisibilityEdits,
+        )}
+        reverifyingAccountId={null}
+        reverifyFailure={null}
+        onSelect={vi.fn<VisibilityTableProps["onSelect"]>()}
+        onRequestUnlink={vi.fn<VisibilityTableProps["onRequestUnlink"]>()}
+        onReverify={vi.fn<VisibilityTableProps["onReverify"]>()}
+      />,
     );
 
-    expect(await screen.findByText("GitHub: <img src=x onerror=alert(1)>")).toBeDefined();
-    expect(container.querySelector("img")).toBeNull();
+    expect(await screen.findByRole("rowheader", { name: /GitHub：<img src=x onerror=alert\(1\)>/ })).toBeDefined();
+    expect(container.querySelector("img[src=x]")).toBeNull();
+  });
+});
+
+describe("UnpublishedMessages", () => {
+  it("保存済みの状態で証明済みの選択が0件の公開先ごとに、情報を提供しないことを示す", async () => {
+    const table = buildVisibilityTable(
+      createAccountLinks({
+        accounts: [createLinkedAccount({ isPublic: false, visibility: { points: false } })],
+        clients: [points, createLinkedClient({ clientId: "kotoba", name: "Kotoba" })],
+      }),
+      emptyVisibilityEdits,
+    );
+    const published = { ...table, columns: table.columns.map((column, index) => ({ ...column, isPublished: index === 2 })) };
+
+    renderWithProviders(<UnpublishedMessages columns={published.columns} />);
+
+    expect(
+      await screen.findByText("プロフィール：公開する外部アカウントが選択されていないため、公開プロフィールは表示されません。"),
+    ).toBeDefined();
+    expect(screen.getByText("Points：公開する外部アカウントが選択されていないため、Points に情報を提供しません。")).toBeDefined();
+    expect(screen.queryByText(/Kotoba：/)).toBeNull();
+  });
+});
+
+describe("UnlinkDialog", () => {
+  const dialogProps = {
+    isSubmitting: false,
+    error: null,
+    onConfirm: vi.fn<() => void>(),
+    onCancel: vi.fn<() => void>(),
+  };
+
+  it("DNS TXTの証明の解除は、押した行だけが対象であることを示す", async () => {
+    const dns: LinkedVerification = { ...linkVerification, id: "evf_dns", method: "dns_txt", evidence: "_accounts.hanako.dev" };
+    const account = createLinkedAccount({ verifications: [oauthVerification, dns] });
+
+    renderWithProviders(<UnlinkDialog {...dialogProps} target={{ kind: "verification", account, verification: dns }} />);
+
+    expect(await screen.findByText("この証明を解除しますか？")).toBeDefined();
+    expect(screen.getByText(/同じホストの他の行の証明は残ります。/)).toBeDefined();
+    expect(screen.queryByText(/未検証になります/)).toBeNull();
+  });
+
+  it("最後の証明の解除は、行と公開設定が残り未検証になることを示す", async () => {
+    const account = createLinkedAccount({ verifications: [linkVerification] });
+
+    renderWithProviders(<UnlinkDialog {...dialogProps} target={{ kind: "verification", account, verification: linkVerification }} />);
+
+    expect(await screen.findByText(/「双方向リンク」による証明を終了します。行と公開設定は残り、未検証になります。/)).toBeDefined();
+  });
+
+  it("すべての連携解除は、行の識別子・証明・公開設定がすべて終わることを示す", async () => {
+    renderWithProviders(<UnlinkDialog {...dialogProps} target={{ kind: "account", account: githubAccount }} />);
+
+    expect(await screen.findByText("外部アカウントの連携を解除しますか？")).toBeDefined();
+    expect(screen.getByText(/GitHub：aliceの識別子・証明方法・公開設定をすべて終了します。/)).toBeDefined();
   });
 });
 
 describe("ProfileUrlPanel", () => {
-  it("公開プロフィールURLを、新しいタブで開く外部リンクとして表示する", async () => {
+  it("公開プロフィールURLを、新しいタブで開く外部リンクとして表示し、コピーを置く", async () => {
     renderWithProviders(<ProfileUrlPanel profileUrl="https://accounts.example/profiles/ausr_1" />);
 
-    const link = await screen.findByRole("link", { name: "https://accounts.example/profiles/ausr_1" });
+    const link = await screen.findByRole("link", { name: /https:\/\/accounts\.example\/profiles\/ausr_1/ });
     expect(link.getAttribute("href")).toBe("https://accounts.example/profiles/ausr_1");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toBe("noopener");
+    expect(screen.getByRole("button", { name: "コピー" })).toBeDefined();
+  });
+});
+
+describe("ProviderLinkButtons", () => {
+  it("Google・GitHub・ORCIDの連携ボタンを置く", async () => {
+    const onLink = vi.fn<(provider: "google" | "github" | "orcid") => void>();
+    renderWithProviders(<ProviderLinkButtons pendingProvider={null} hasStartFailed={false} callbackError={null} onLink={onLink} />);
+
+    await userEvent.click(await screen.findByRole("button", { name: "ORCIDを連携" }));
+
+    expect(screen.getByRole("button", { name: "Googleを連携" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "GitHubを連携" })).toBeDefined();
+    expect(onLink).toHaveBeenCalledWith("orcid");
   });
 });
 
@@ -209,32 +315,20 @@ describe("ExternalUrlForm", () => {
     outcome: null,
     error: null,
     urlInputErrorCode: null,
-    urlCount: 0,
+    urlCount: 4,
   };
 
-  it("検証の結果を方法ごとに示し、failure_codeから次の操作を案内する", async () => {
-    renderWithProviders(
-      <ExternalUrlForm
-        {...formProps}
-        outcome={{
-          mode: "verify",
-          result: {
-            externalAccountId: "eac_1",
-            status: "unverified",
-            link: { result: "indeterminate", failureCode: "ACCESS_RESTRICTED", evidenceUrl: null },
-            dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
-          },
-        }}
-      />,
-    );
+  it("手順・件数・「検証する」「未検証で保存」・困った場合の案内を置く", async () => {
+    renderWithProviders(<ExternalUrlForm {...formProps} />, { path: "/ausr_1/account-links" });
 
-    expect(await screen.findByText("公開ページのリンク確認: 判断できませんでした")).toBeDefined();
-    expect(screen.getByText(/ページへのアクセスが制限されていました/)).toBeDefined();
-    expect(screen.getByText("DNS TXT: 証拠を確認できませんでした")).toBeDefined();
-    expect(screen.getByText(/時間をおいて再検証してください/)).toBeDefined();
+    expect(await screen.findByText("「公開プロフィールURL」")).toBeDefined();
+    expect(screen.getByText("登録済みのURL: 4 / 150件")).toBeDefined();
+    expect(screen.getByRole("button", { name: "検証する" })).toBeDefined();
+    expect(screen.getByRole("button", { name: "未検証で保存" })).toBeDefined();
+    expect(screen.getByRole("link", { name: "困った場合はこちら" }).getAttribute("href")).toBe("/ausr_1/help#url-verification");
   });
 
-  it("未登録URLの検証が不成立で登録されなかった場合は、「未検証で保存」を案内する", async () => {
+  it("未登録URLの検証が保留でも、失敗と同じ要約で「未検証で保存」を案内し、方法ごとの結果と案内を示す", async () => {
     renderWithProviders(
       <ExternalUrlForm
         {...formProps}
@@ -243,14 +337,42 @@ describe("ExternalUrlForm", () => {
           result: {
             externalAccountId: null,
             status: "unverified",
-            link: { result: "not_verified", failureCode: "LINK_NOT_FOUND", evidenceUrl: null },
-            dns: { result: "not_verified", failureCode: "TXT_NOT_FOUND" },
+            link: { result: "indeterminate", failureCode: "MULTIPLE_ACCOUNTS_PROFILES", evidenceUrl: null },
+            dns: { result: "indeterminate", failureCode: "DNS_TIMEOUT" },
           },
         }}
       />,
     );
 
-    expect(await screen.findByText(/URLは保存していません。.*「未検証で保存」/)).toBeDefined();
+    expect(
+      await screen.findByText(
+        "証明が成立しなかったため、URLは保存していません。未検証のまま登録する場合は「未検証で保存」を押してください。",
+      ),
+    ).toBeDefined();
+    expect(screen.getByText("双方向リンク: 判断できませんでした")).toBeDefined();
+    expect(screen.getByText(/別のFreeism Accountsユーザーの公開プロフィールURL/)).toBeDefined();
+    expect(screen.getByText("DNS TXT: 判断できませんでした")).toBeDefined();
+  });
+
+  it("成功した場合は、証拠を確認したページを示す", async () => {
+    renderWithProviders(
+      <ExternalUrlForm
+        {...formProps}
+        outcome={{
+          mode: "verify",
+          result: {
+            externalAccountId: "eac_1",
+            status: "verified",
+            link: { result: "verified", failureCode: null, evidenceUrl: "https://github.com/alice" },
+            dns: null,
+          },
+        }}
+      />,
+    );
+
+    expect(await screen.findByText("所有権を証明しました。")).toBeDefined();
+    expect(screen.getByText("双方向リンク: 成功")).toBeDefined();
+    expect(screen.getByText("https://github.com/alice")).toBeDefined();
   });
 
   it("再検証で今回の試行が成立しなくても、既存の証明が有効なら維持されていることを示す", async () => {
@@ -291,63 +413,7 @@ describe("ExternalUrlForm", () => {
   it("URLの上限に達している場合は案内を表示し、判定はバックエンドに任せる", async () => {
     renderWithProviders(<ExternalUrlForm {...formProps} urlCount={150} />);
 
-    expect((await screen.findByRole("button", { name: "保存して検証する" })).hasAttribute("disabled")).toBe(false);
+    expect((await screen.findByRole("button", { name: "検証する" })).hasAttribute("disabled")).toBe(false);
     expect(screen.getByText(/上限に達しています/)).toBeDefined();
-  });
-});
-
-describe("ConsentPanel", () => {
-  const panelProps = {
-    request: { clientId: "points", redirectHost: "points.example", expiresAt: null },
-    client: createLinkedClient({ name: "Points", uri: "https://points.example/" }),
-    isListReady: true,
-    activeUser: { accountsUserId: "ausr_1", displayName: "Alice", profileUrl: "https://accounts.example/profiles/ausr_1" },
-    isExpired: false,
-    hasFailed: false,
-    isSubmitting: false,
-    canAccept: true,
-    onAccept: vi.fn<() => void>(),
-    onDeny: vi.fn<() => void>(),
-  };
-
-  it("連携先・戻り先のhost・アクティブユーザー・利用目的を表示する", async () => {
-    renderWithProviders(<ConsentPanel {...panelProps} />);
-
-    expect(await screen.findByText("Pointsが情報の提供を求めています")).toBeDefined();
-    expect(screen.getByText("points.example")).toBeDefined();
-    expect(screen.getByText("Alice (ausr_1)")).toBeDefined();
-    expect(screen.getByText(/公開表示し、貢献者の照合に使うことがあります/)).toBeDefined();
-    expect(screen.getByText("この画面は表示から10分で失効します。")).toBeDefined();
-  });
-
-  it("失効した場合はやり直しを案内し、2つの操作を非活性にする", async () => {
-    renderWithProviders(<ConsentPanel {...panelProps} isExpired />);
-
-    expect((await screen.findByRole("alert")).textContent).toContain("元のサービスから連携を最初からやり直してください");
-    expect(screen.getByRole("button", { name: "同意して戻る" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("button", { name: "同意しない" }).hasAttribute("disabled")).toBe(true);
-  });
-
-  it("今回の連携先が一覧に無い場合は、やり直しを案内して「同意しない」だけを残す", async () => {
-    renderWithProviders(<ConsentPanel {...panelProps} client={null} />);
-
-    expect((await screen.findByRole("alert")).textContent).toContain("連携先のサービスが見つかりません");
-    expect(screen.getByRole("button", { name: "同意して戻る" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("button", { name: "同意しない" }).hasAttribute("disabled")).toBe(false);
-  });
-
-  it("一覧の取得前は、連携先が無いことや選択が必要なことを表示しない", async () => {
-    renderWithProviders(<ConsentPanel {...panelProps} client={null} isListReady={false} canAccept={false} />);
-
-    await screen.findByText("この画面は表示から10分で失効します。");
-    expect(screen.queryByRole("alert")).toBeNull();
-    expect(screen.queryByText(/証明済みの外部アカウントを1件以上選択してください/)).toBeNull();
-  });
-
-  it("証明済みの選択が無い場合は「同意して戻る」だけを非活性にする", async () => {
-    renderWithProviders(<ConsentPanel {...panelProps} canAccept={false} />);
-
-    expect((await screen.findByRole("button", { name: "同意して戻る" })).hasAttribute("disabled")).toBe(true);
-    expect(screen.getByRole("button", { name: "同意しない" }).hasAttribute("disabled")).toBe(false);
   });
 });

@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
+import type { LinkedAccount, LinkedVerification } from "../../../../shared/schemas/account-link-schema";
 import { okSchema } from "../../../../shared/schemas/problem-details-schema";
 import { requestBff } from "../../../lib/api-client";
 
 /**
- * 「連携解除」（行全体）と「この証明を解除」（証明1件）。
+ * 「すべての連携解除」（行全体）と「この証明を解除」（証明1件）。
  * 確認ダイアログで確定してから解除する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-unlink.test.tsx
@@ -13,9 +13,13 @@ import { requestBff } from "../../../lib/api-client";
 
 export type UnlinkTarget =
   | { kind: "account"; account: LinkedAccount }
-  | { kind: "verification"; account: LinkedAccount; verificationId: string };
+  | { kind: "verification"; account: LinkedAccount; verification: LinkedVerification };
 
-type UnlinkState = { status: "idle" } | { status: "submitting" } | { status: "failed"; error: unknown } | { status: "done" };
+type UnlinkState =
+  | { status: "idle" }
+  | { status: "submitting" }
+  | { status: "failed"; error: unknown }
+  | { status: "done"; kind: UnlinkTarget["kind"] };
 
 /**
  * 解除する対象のBFFのパス。
@@ -24,7 +28,7 @@ function unlinkPath(target: UnlinkTarget): string {
   const accountPath = `/api/external-accounts/${encodeURIComponent(target.account.id)}`;
   return target.kind === "account"
     ? accountPath
-    : `${accountPath}/verifications/${encodeURIComponent(target.verificationId)}`;
+    : `${accountPath}/verifications/${encodeURIComponent(target.verification.id)}`;
 }
 
 /**
@@ -61,7 +65,7 @@ export function useUnlink({ onUnlinked }: { onUnlinked: () => Promise<void> }) {
     try {
       await requestBff(unlinkPath(target), okSchema, { method: "DELETE" });
       setTarget(null);
-      setState({ status: "done" });
+      setState({ status: "done", kind: target.kind });
       await onUnlinked();
     } catch (error) {
       setState({ status: "failed", error });
@@ -75,6 +79,9 @@ export function useUnlink({ onUnlinked }: { onUnlinked: () => Promise<void> }) {
     confirm,
     isSubmitting: state.status === "submitting",
     error: state.status === "failed" ? state.error : null,
-    isDone: state.status === "done",
+    /**
+     * 直前に完了した解除の種類（完了の通知に使う）。
+     */
+    doneKind: state.status === "done" ? state.kind : null,
   };
 }

@@ -86,17 +86,6 @@ export type Backup = v.InferInput<typeof backupSchema>;
 // --------------------------------------------------
 
 /**
- * `GET /api/backup/summary`の`data`。
- * 出力前に本人へ示す件数と、非公開の情報（未検証の登録・非公開の設定・提供先の記録）を含むか。
- */
-export const backupSummarySchema = v.object({
-  externalAccountCount: v.number(),
-  unverifiedAccountCount: v.number(),
-  clientConsentCount: v.number(),
-  includesPrivateData: v.boolean(),
-});
-
-/**
  * `POST /api/backup/restore`の`data`。
  * `updatedAccountCount`は既存の行に対応付けて公開設定を戻した件数、`addedCandidateCount`は登録候補として取り込んだ件数。
  */
@@ -106,5 +95,4 @@ export const restoreBackupResultSchema = v.object({
   clientConsentCount: v.number(),
 });
 
-export type BackupSummary = v.InferOutput<typeof backupSummarySchema>;
 export type RestoreBackupResult = v.InferOutput<typeof restoreBackupResultSchema>;

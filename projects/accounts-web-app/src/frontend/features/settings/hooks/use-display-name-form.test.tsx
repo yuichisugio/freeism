@@ -57,8 +57,20 @@ describe("useDisplayNameForm", () => {
     expect(result.current.canSave).toBe(false);
 
     act(() => result.current.changeDisplayName("👨‍👩‍👧".repeat(50)));
+    expect(result.current.displayNameLength).toBe(50);
     expect(result.current.issue).toBeNull();
     expect(result.current.canSave).toBe(true);
+  });
+
+  it("破棄すると保存済みの表示名に戻し、未保存の変更が無くなる", async () => {
+    stubBff({ "GET /api/me": () => dataResponse(me) });
+    const { result } = await renderLoadedForm();
+
+    act(() => result.current.changeDisplayName("Alice"));
+    act(() => result.current.discard());
+
+    expect(result.current.displayName).toBe("仮ユーザー");
+    expect(result.current.isDirty).toBe(false);
   });
 
   it("保存に成功すると、前後の空白を除いた表示名を送り、未保存の変更が無くなる", async () => {

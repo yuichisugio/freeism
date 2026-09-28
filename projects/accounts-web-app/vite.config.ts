@@ -14,6 +14,7 @@ import { handleWorkerOutboundRequest } from "./test/worker-outbound-service";
 const prerenderedPaths = [
   "/",
   "/account-links",
+  "/consent",
   "/settings",
   "/help",
   "/licenses",

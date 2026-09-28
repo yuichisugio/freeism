@@ -1,4 +1,4 @@
-import { Button, Description, FieldError, Input, Label, TextField } from "@heroui/react";
+import { FieldError, Input, TextField } from "@heroui/react";
 
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
@@ -9,12 +9,14 @@ import { LoadStatus } from "./load-status";
 import { SettingsSection } from "./settings-section";
 
 /**
- * 表示名の編集と保存。
+ * 表示名の入力と文字数。
+ * 保存・破棄は画面下の保存バーで行い、Enterでも保存する。
  * @see ./settings-sections.test.tsx
  */
 export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
   const messages = useMessages(settingsMessages);
   const common = useMessages(commonMessages);
+  const isInvalid = form.issue !== null;
 
   return (
     <SettingsSection title={messages.displayNameTitle} description={messages.displayNameDescription}>
@@ -22,30 +24,31 @@ export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
         <LoadStatus error={form.loadError} onRetry={form.reload} />
       ) : (
         <form
-          className="space-y-3"
+          className="w-full"
           onSubmit={(event) => {
             event.preventDefault();
             if (form.canSave) void form.save();
           }}
         >
           <TextField
+            aria-label={messages.displayNameTitle}
             value={form.displayName}
             onChange={form.changeDisplayName}
-            isInvalid={form.issue !== null}
+            isInvalid={isInvalid}
             isRequired
             validationBehavior="aria"
+            className="w-full"
           >
-            <Label>{messages.displayNameLabel}</Label>
-            <Input />
-            <Description>{messages.displayNameHint}</Description>
+            <div className="flex items-center gap-3">
+              <Input className="flex-1" />
+              <span className={`text-sm tabular-nums ${isInvalid ? "text-danger" : "text-muted"}`}>
+                {messages.displayNameCount(form.displayNameLength)}
+              </span>
+            </div>
             <FieldError>
               {form.issue === "required" ? messages.displayNameRequired : messages.displayNameTooLong}
             </FieldError>
           </TextField>
-          <p className="text-sm text-muted">{messages.accountsUserId(form.me.accountsUserId)}</p>
-          <Button type="submit" variant="primary" isDisabled={!form.canSave}>
-            {form.isSaving ? common.saving : common.save}
-          </Button>
         </form>
       )}
       {form.saveError === null ? null : <ErrorNotice error={form.saveError} />}

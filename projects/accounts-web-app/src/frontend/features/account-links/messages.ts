@@ -4,25 +4,33 @@ import { defineMessages } from "../../lib/i18n/define-messages";
 /**
  * 「アカウント連携」画面の文言。
  * `failure_code`・エラーコードから次の操作の案内を導く対応表もここに置く。
+ * @see ../../../../docs/specification/v0.1/design-system.ja.md
  * @see ../../../../docs/specification/v0.1/verify-url.ja.md
  */
 export const accountLinksMessages = defineMessages({
   ja: {
     title: "アカウント連携",
-    helpLink: "使い方（ヘルプ）",
+    helpLink: "使い方",
     // --------------------------------------------------
     // 公開プロフィールURL
     // --------------------------------------------------
-    profileUrlLabel: "あなたの公開プロフィールURL",
+    profileUrlTitle: "公開プロフィールURL",
+    opensInNewTab: "（新しいタブで開く）",
     // --------------------------------------------------
-    // URLの登録・検証
+    // URLで証明
     // --------------------------------------------------
-    urlFormTitle: "外部URLの追加・検証",
+    urlProofTitle: "URLで証明",
+    urlProofSteps: [
+      { before: "証明したいサービスのページに、上の", strong: "「公開プロフィールURL」", after: "を記載する。" },
+      { before: "", strong: "「その証明したいサービスのURL」", after: "を下に入力する。" },
+      { before: "「検証する」を押す。", strong: "", after: "" },
+    ],
     urlLabel: "外部ページのURL",
     urlPlaceholder: "https://github.com/your-name",
-    verifyUrl: "保存して検証する",
+    verifyUrl: "検証する",
     saveUnverifiedUrl: "未検証で保存",
     verifying: "検証中…",
+    troubleLink: "困った場合はこちら",
     urlRequired: "URLを入力してください。",
     urlTooLong: "URLが長すぎます。",
     urlCount: (count: number, limit: number) => `登録済みのURL: ${count} / ${limit}件`,
@@ -43,75 +51,75 @@ export const accountLinksMessages = defineMessages({
     verifyFailedNotSaved:
       "証明が成立しなかったため、URLは保存していません。未検証のまま登録する場合は「未検証で保存」を押してください。",
     reverifyFailedKeptExisting: "今回の確認では証明が成立しませんでしたが、以前に成立した証明は引き続き有効です。",
-    linkAttempt: "公開ページのリンク確認",
-    dnsAttempt: "DNS TXT",
-    evidenceUrl: "証拠を確認したページ",
     // --------------------------------------------------
-    // 一覧表
+    // ログインで証明
     // --------------------------------------------------
+    oauthProofTitle: "ログインで証明",
+    oauthProofDescription: "各サービスにログインすると、そのアカウントを証明済みとして追加します。",
+    addProvider: (provider: string) => `${provider}を連携`,
+    // --------------------------------------------------
+    // 公開設定の表
+    // --------------------------------------------------
+    visibilityTitle: "公開設定",
     tableCaption: "外部アカウントと公開先",
     accountColumn: "外部アカウント",
-    publicColumn: "一般公開",
-    bulkRow: "すべての連携先",
-    bulkRowLabel: (account: string) => `${account}をすべての連携先に公開`,
-    bulkColumnLabel: (client: string) => `証明済みを一括選択（${client}）`,
-    bulkColumnHint: "証明済みを一括選択",
-    publicCellLabel: (account: string) => `${account}を一般公開`,
-    clientCellLabel: (account: string, client: string) => `${account}を${client}に公開`,
+    profileColumn: "プロフィール",
+    published: "公開中",
+    unpublished: "非公開",
+    bulkShort: "一括",
+    bulkAllLabel: "すべての行をすべての公開先に一括で公開",
+    bulkColumnLabel: (destination: string) => `すべての行を一括で${destination}に公開`,
+    rowLabel: (account: string) => `${account}をすべての公開先に公開`,
+    cellLabel: (account: string, destination: string) => `${account}を${destination}に公開`,
+    accountLabelSeparator: "：",
+    statusUnverified: "未検証",
+    details: "詳細",
     saveVisibility: "公開設定を保存",
-    discardVisibility: "編集内容を破棄",
-    unsavedChanges: "未保存の変更があります",
     visibilitySaved: "公開設定を保存しました。",
-    noAccounts: "連携済みの外部アカウントはありません。OAuthの追加連携またはURLの追加から始めてください。",
-    noClients: "情報提供先の連携サービスはまだありません。",
-    clientLink: "紹介ページ",
+    noAccounts: "連携済みの外部アカウントはありません。「URLで証明」または「ログインで証明」から追加してください。",
+    unpublishedProfile: "プロフィール：公開する外部アカウントが選択されていないため、公開プロフィールは表示されません。",
+    unpublishedClient: (client: string) =>
+      `${client}：公開する外部アカウントが選択されていないため、${client} に情報を提供しません。`,
     // --------------------------------------------------
-    // 外部アカウントの行
+    // 行の詳細
     // --------------------------------------------------
-    statusVerified: "証明済み",
-    statusUnverified: "未検証（登録候補）",
-    importedCandidate: "バックアップから取り込んだ登録候補です。所有権を改めて証明すると有効になります。",
-    linkedAt: "連携日時",
-    email: "メールアドレス",
-    identifiers: "識別子",
-    candidateIdentifier: "候補",
+    verificationGroupLabel: (method: string) => `${method}の証明`,
+    verifiedAt: "証明日時",
+    evidenceLabels: {
+      oauth: "証拠",
+      bidirectional_link: "証拠を確認したページ",
+      dns_txt: "TXTレコード名",
+    } satisfies Record<VerificationMethod, string>,
+    oauthEvidence: (service: string) => `${service} のログイン`,
+    identifier: "識別子",
     identifierTypes: { url: "URL", provider_account: "固有ID", provider_username: "ユーザー名" } as Record<
       "url" | "provider_account" | "provider_username",
       string
     >,
-    verifiedAt: "証明日時",
-    checkedAt: "直近の検証",
-    noVerification: "証明の記録はありません。",
-    unlinkAccount: "連携解除",
-    unlinkOAuthOnly: "OAuthの認証連携だけ解除する",
+    unlinkVerification: "この証明を解除",
+    unlinkAccount: "すべての連携解除",
+    latestAttempt: (checkedAt: string, result: string) => `直近の検証 ${checkedAt}：${result}`,
+    neverChecked: "まだ検証していません。",
+    reverify: "再検証",
+    reverifying: "検証中…",
+    noUrlGuidance: "URLの無い外部アカウントは、上の「ログインで証明」から同じアカウントでログインし直すと証明できます。",
+    importedCandidate: "バックアップから取り込んだ登録候補です。所有権を改めて証明すると有効になります。",
     // --------------------------------------------------
     // 解除
     // --------------------------------------------------
     unlinkAccountTitle: "外部アカウントの連携を解除しますか？",
     unlinkAccountDescription: (account: string) =>
       `${account}の識別子・証明方法・公開設定をすべて終了します。OAuthのログイン手段を含む場合は、その認証連携も解除します。`,
-    unlinkOAuthTitle: "OAuthの認証連携だけ解除しますか？",
-    unlinkOAuthDescription: (account: string) =>
-      `${account}のOAuthによる証明とログイン手段を終了します。公開ページのリンク・DNS TXTで証明した識別子と、外部アカウントの行・公開設定は残ります。`,
+    unlinkVerificationTitle: "この証明を解除しますか？",
+    unlinkOAuthDescription: (account: string) => `${account}のOAuthによる証明とログイン手段を終了します。`,
+    unlinkProofDescription: (account: string, method: string) => `${account}の「${method}」による証明を終了します。`,
+    unlinkOAuthKeeps: "双方向リンク・DNS TXTで証明した識別子と、外部アカウントの行・公開設定は残ります。",
+    unlinkProofKeeps: "ほかの証明が残るため、証明済みのままです。",
+    unlinkLastProof: "行と公開設定は残り、未検証になります。",
+    unlinkDnsScope: "この行の DNS TXT の証明だけを解除します。同じホストの他の行の証明は残ります。",
     unlinkConfirm: "解除する",
-    unlinked: "連携を解除しました。",
-    // --------------------------------------------------
-    // OAuthの追加連携
-    // --------------------------------------------------
-    addProviderTitle: "OAuthで追加連携",
-    addProvider: (provider: string) => `${provider}を連携`,
-    // --------------------------------------------------
-    // ヒント
-    // --------------------------------------------------
-    hintsOpen: "サービス別のヒント",
-    hintsTitle: "サービス別のヒント",
-    hints: [
-      "X: ウェブサイト欄のリンクは短縮URLになるため、自己紹介文などに`https://`から始まる完全な公開プロフィールURLを書いてください。",
-      "Mastodon: Accountsで外部URLを一般公開した後に、Mastodonのプロフィールを再保存すると認証済みリンクになります。",
-      "GitHub・Codeberg・Hugging Faceなどの組織アカウント: 最後に所有権を証明した個人のAccountsユーザーに紐付きます。",
-      "DNS TXT: レコードの追加後、反映やキャッシュの更新に時間がかかることがあります。時間をおいて再検証してください。",
-      "GitHubなどのプロフィールURLで証明すると、そのアカウントのユーザー名とプロフィールURLにも証明が適用されます。記事などのコンテンツURLは入力したURLだけが対象です。",
-    ],
+    accountUnlinked: "連携を解除しました。",
+    verificationUnlinked: "証明を解除しました。",
     // --------------------------------------------------
     // 同意画面
     // --------------------------------------------------
@@ -120,7 +128,7 @@ export const accountLinksMessages = defineMessages({
     consentServiceUrl: "紹介ページ",
     consentPurpose:
       "同意すると、下の表で選択した外部アカウントのサービス名・表示名・識別子・連携日時・証明方法ごとの検証結果を、この連携先へ提供します。連携先はそれらを公開表示し、貢献者の照合に使うことがあります。同意と選択は後からこの画面で変更できます。",
-    consentActiveUser: "連携するAccountsユーザー",
+    consentActiveUser: "連携するFreeism Accountsユーザー",
     consentExpiryNotice: "この画面は表示から10分で失効します。",
     consentExpired: "連携の要求の有効期限が切れました。元のサービスから連携を最初からやり直してください。",
     consentFailed: "連携の要求を処理できませんでした。期限切れの可能性があるため、元のサービスから連携を最初からやり直してください。",
@@ -133,7 +141,7 @@ export const accountLinksMessages = defineMessages({
     // --------------------------------------------------
     methods: {
       oauth: "OAuth",
-      bidirectional_link: "公開ページのリンク確認",
+      bidirectional_link: "双方向リンク",
       dns_txt: "DNS TXT",
     } satisfies Record<VerificationMethod, string>,
     results: {
@@ -159,7 +167,7 @@ export const accountLinksMessages = defineMessages({
       DNS_TIMEOUT: "DNSの照会が時間内に終わりませんでした。時間をおいて再検証してください。",
       DNS_LOOKUP_FAILED: "DNSの照会に失敗しました。時間をおいて再検証してください。",
       MULTIPLE_ACCOUNTS_PROFILES:
-        "別のAccountsユーザーの公開プロフィールURLも見つかりました。証拠のページのURLを整理してから再検証してください。",
+        "別のFreeism Accountsユーザーの公開プロフィールURLも見つかりました。証拠のページのURLを整理してから再検証してください。",
     } satisfies Record<VerificationFailureCode, string>,
     errorCodes: {
       URL_LIMIT_REACHED: "登録できるURLの上限（150件）に達しています。不要なURLを連携解除してから追加してください。",
@@ -170,20 +178,27 @@ export const accountLinksMessages = defineMessages({
     } as Partial<Record<string, string>>,
     oauthErrors: {
       account_already_linked_to_different_user:
-        "この外部アカウントは別のAccountsユーザーに連携済みです。元のAccountsユーザーで連携を解除してから、もう一度連携してください。元のユーザーのログイン手段がこのアカウントだけの場合は、別のログイン手段を追加してから解除するか、元のユーザーを退会してください。",
+        "この外部アカウントは別のFreeism Accountsユーザーに連携済みです。元のFreeism Accountsユーザーで連携を解除してから、もう一度連携してください。元のユーザーのログイン手段がこのアカウントだけの場合は、別のログイン手段を追加してから解除するか、元のユーザーを退会してください。",
     } as Partial<Record<string, string>>,
     oauthErrorFallback: "外部アカウントを連携できませんでした。もう一度お試しください。",
   },
   en: {
     title: "Account links",
-    helpLink: "How to use (Help)",
-    profileUrlLabel: "Your public profile URL",
-    urlFormTitle: "Add and verify an external URL",
+    helpLink: "Guide",
+    profileUrlTitle: "Public profile URL",
+    opensInNewTab: " (opens in a new tab)",
+    urlProofTitle: "Prove with a URL",
+    urlProofSteps: [
+      { before: "On the page of the service you want to prove, add the ", strong: "“Public profile URL”", after: " above." },
+      { before: "Enter ", strong: "“the URL of that service”", after: " below." },
+      { before: "Press “Verify”.", strong: "", after: "" },
+    ],
     urlLabel: "External page URL",
     urlPlaceholder: "https://github.com/your-name",
-    verifyUrl: "Save and verify",
+    verifyUrl: "Verify",
     saveUnverifiedUrl: "Save without verifying",
     verifying: "Verifying…",
+    troubleLink: "Having trouble?",
     urlRequired: "Enter a URL.",
     urlTooLong: "The URL is too long.",
     urlCount: (count: number, limit: number) => `Registered URLs: ${count} / ${limit}`,
@@ -204,66 +219,69 @@ export const accountLinksMessages = defineMessages({
     verifyFailedNotSaved:
       "Verification did not succeed, so the URL was not saved. To register it without verification, press “Save without verifying”.",
     reverifyFailedKeptExisting: "This check did not verify ownership, but the previously verified proof remains valid.",
-    linkAttempt: "Public page link",
-    dnsAttempt: "DNS TXT",
-    evidenceUrl: "Page where the evidence was found",
+    oauthProofTitle: "Prove by signing in",
+    oauthProofDescription: "Sign in to a service to add that account as verified.",
+    addProvider: (provider: string) => `Link ${provider}`,
+    visibilityTitle: "Sharing settings",
     tableCaption: "External accounts and where they are shared",
     accountColumn: "External account",
-    publicColumn: "Public",
-    bulkRow: "All services",
-    bulkRowLabel: (account: string) => `Share ${account} with all connected services`,
-    bulkColumnLabel: (client: string) => `Select all verified (${client})`,
-    bulkColumnHint: "Select all verified",
-    publicCellLabel: (account: string) => `Make ${account} public`,
-    clientCellLabel: (account: string, client: string) => `Share ${account} with ${client}`,
+    profileColumn: "Profile",
+    published: "Shared",
+    unpublished: "Not shared",
+    bulkShort: "All",
+    bulkAllLabel: "Share all rows with all destinations",
+    bulkColumnLabel: (destination: string) => `Share all rows with ${destination}`,
+    rowLabel: (account: string) => `Share ${account} with all destinations`,
+    cellLabel: (account: string, destination: string) => `Share ${account} with ${destination}`,
+    accountLabelSeparator: ": ",
+    statusUnverified: "Unverified",
+    details: "Details",
     saveVisibility: "Save sharing settings",
-    discardVisibility: "Discard edits",
-    unsavedChanges: "You have unsaved changes",
     visibilitySaved: "Sharing settings were saved.",
-    noAccounts: "No external accounts are linked yet. Start by linking with OAuth or adding a URL.",
-    noClients: "There are no connected services to share with yet.",
-    clientLink: "Service page",
-    statusVerified: "Verified",
-    statusUnverified: "Unverified (candidate)",
-    importedCandidate: "Imported from a backup as a candidate. It becomes active after you prove ownership again.",
-    linkedAt: "Linked at",
-    email: "Email",
-    identifiers: "Identifiers",
-    candidateIdentifier: "candidate",
+    noAccounts: "No external accounts are linked yet. Add one with “Prove with a URL” or “Prove by signing in”.",
+    unpublishedProfile: "Profile: no external account is selected, so your public profile is not shown.",
+    unpublishedClient: (client: string) =>
+      `${client}: no external account is selected, so no information is provided to ${client}.`,
+    verificationGroupLabel: (method: string) => `${method} proof`,
+    verifiedAt: "Verified at",
+    evidenceLabels: {
+      oauth: "Evidence",
+      bidirectional_link: "Page where the evidence was found",
+      dns_txt: "TXT record name",
+    } satisfies Record<VerificationMethod, string>,
+    oauthEvidence: (service: string) => `Sign-in with ${service}`,
+    identifier: "Identifier",
     identifierTypes: { url: "URL", provider_account: "Account ID", provider_username: "User name" } as Record<
       "url" | "provider_account" | "provider_username",
       string
     >,
-    verifiedAt: "Verified at",
-    checkedAt: "Last checked",
-    noVerification: "No proof has been recorded.",
-    unlinkAccount: "Unlink",
-    unlinkOAuthOnly: "Unlink only the OAuth connection",
+    unlinkVerification: "Remove this proof",
+    unlinkAccount: "Unlink everything",
+    latestAttempt: (checkedAt: string, result: string) => `Last checked ${checkedAt}: ${result}`,
+    neverChecked: "Not verified yet.",
+    reverify: "Verify again",
+    reverifying: "Verifying…",
+    noUrlGuidance: "An external account without a URL can be proved by signing in with the same account again from “Prove by signing in” above.",
+    importedCandidate: "Imported from a backup as a candidate. It becomes active after you prove ownership again.",
     unlinkAccountTitle: "Unlink this external account?",
     unlinkAccountDescription: (account: string) =>
       `All identifiers, proofs and sharing settings of ${account} will end. If it includes an OAuth sign-in method, that connection is also removed.`,
-    unlinkOAuthTitle: "Unlink only the OAuth connection?",
-    unlinkOAuthDescription: (account: string) =>
-      `The OAuth proof and sign-in method of ${account} will end. Identifiers proven by a public page link or DNS TXT, the account row and its sharing settings are kept.`,
+    unlinkVerificationTitle: "Remove this proof?",
+    unlinkOAuthDescription: (account: string) => `The OAuth proof and sign-in method of ${account} will end.`,
+    unlinkProofDescription: (account: string, method: string) => `The “${method}” proof of ${account} will end.`,
+    unlinkOAuthKeeps: "Identifiers proven by a two-way link or DNS TXT, the account row and its sharing settings are kept.",
+    unlinkProofKeeps: "Other proofs remain, so the account stays verified.",
+    unlinkLastProof: "The row and its sharing settings are kept, and it becomes unverified.",
+    unlinkDnsScope: "Only the DNS TXT proof of this row is removed. Proofs of other rows on the same host are kept.",
     unlinkConfirm: "Unlink",
-    unlinked: "The link was removed.",
-    addProviderTitle: "Link with OAuth",
-    addProvider: (provider: string) => `Link ${provider}`,
-    hintsOpen: "Tips for each service",
-    hintsTitle: "Tips for each service",
-    hints: [
-      "X: links in the website field are shortened, so write your full public profile URL starting with `https://` in your bio.",
-      "Mastodon: after making the external URL public in Accounts, save your Mastodon profile again to get a verified link.",
-      "Organization accounts on GitHub, Codeberg, Hugging Face and others are linked to the person who proved ownership most recently.",
-      "DNS TXT: a new record can take time to propagate and caches to expire. Verify again later.",
-      "Proving with a profile URL such as GitHub also applies the proof to that account's user name and profile URL. Content URLs such as articles cover only the URL you entered.",
-    ],
+    accountUnlinked: "The link was removed.",
+    verificationUnlinked: "The proof was removed.",
     consentTitle: (client: string) => `${client} is requesting access to your information`,
     consentRedirectHost: "Return to",
     consentServiceUrl: "Service page",
     consentPurpose:
       "If you allow it, the service name, display name, identifiers, link date and per-method verification results of the external accounts selected below are provided to this service. The service may display them publicly and use them to match contributors. You can change your consent and selection on this page later.",
-    consentActiveUser: "Accounts user to connect",
+    consentActiveUser: "Freeism Accounts user to connect",
     consentExpiryNotice: "This page expires 10 minutes after it was opened.",
     consentExpired: "The request has expired. Please start the connection again from the original service.",
     consentFailed: "The request could not be processed. It may have expired, so please start the connection again from the original service.",
@@ -273,7 +291,7 @@ export const accountLinksMessages = defineMessages({
     consentAcceptBlocked: "Select at least one verified external account to allow sharing.",
     methods: {
       oauth: "OAuth",
-      bidirectional_link: "Public page link",
+      bidirectional_link: "Two-way link",
       dns_txt: "DNS TXT",
     } satisfies Record<VerificationMethod, string>,
     results: {
@@ -299,7 +317,7 @@ export const accountLinksMessages = defineMessages({
       DNS_TIMEOUT: "The DNS lookup took too long. Verify again later.",
       DNS_LOOKUP_FAILED: "The DNS lookup failed. Verify again later.",
       MULTIPLE_ACCOUNTS_PROFILES:
-        "Public profile URLs of other Accounts users were also found. Clean up the URLs on the evidence page and verify again.",
+        "Public profile URLs of other Freeism Accounts users were also found. Clean up the URLs on the evidence page and verify again.",
     } satisfies Record<VerificationFailureCode, string>,
     errorCodes: {
       URL_LIMIT_REACHED: "You have reached the limit of 150 URLs. Unlink URLs you no longer need before adding more.",
@@ -310,8 +328,10 @@ export const accountLinksMessages = defineMessages({
     } as Partial<Record<string, string>>,
     oauthErrors: {
       account_already_linked_to_different_user:
-        "This external account is already linked to another Accounts user. Unlink it from that user first, then link it again. If it is that user's only sign-in method, add another sign-in method before unlinking, or delete that user.",
+        "This external account is already linked to another Freeism Accounts user. Unlink it from that user first, then link it again. If it is that user's only sign-in method, add another sign-in method before unlinking, or delete that user.",
     } as Partial<Record<string, string>>,
     oauthErrorFallback: "The external account could not be linked. Please try again.",
   },
 });
+
+export type AccountLinksMessages = (typeof accountLinksMessages)["ja"];

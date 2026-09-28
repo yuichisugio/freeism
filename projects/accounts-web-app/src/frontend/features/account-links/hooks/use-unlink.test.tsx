@@ -2,12 +2,20 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { LinkedVerification } from "../../../../shared/schemas/account-link-schema";
 import { BffError } from "../../../lib/api-client";
 import { dataResponse, problemResponse } from "../../../test/bff-responses";
 import { createLinkedAccount } from "../lib/account-links-fixtures";
 import { useUnlink } from "./use-unlink";
 
-const account = createLinkedAccount({ id: "eac_1" });
+const verification: LinkedVerification = {
+  id: "evf 1",
+  method: "dns_txt",
+  verifiedAt: "2026-09-01T00:00:00Z",
+  evidence: "_accounts.example.org",
+  identifiers: [],
+};
+const account = createLinkedAccount({ id: "eac_1", verifications: [verification] });
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -30,7 +38,7 @@ describe("useUnlink", () => {
     const onUnlinked = vi.fn<() => Promise<void>>(async () => {});
     const { result } = renderHook(() => useUnlink({ onUnlinked }));
 
-    act(() => result.current.request({ kind: "verification", account, verificationId: "evf 1" }));
+    act(() => result.current.request({ kind: "verification", account, verification }));
     await act(() => result.current.confirm());
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -38,7 +46,7 @@ describe("useUnlink", () => {
       expect.objectContaining({ method: "DELETE" }),
     );
     expect(result.current.target).toBeNull();
-    expect(result.current.isDone).toBe(true);
+    expect(result.current.doneKind).toBe("verification");
     expect(onUnlinked).toHaveBeenCalledOnce();
   });
 

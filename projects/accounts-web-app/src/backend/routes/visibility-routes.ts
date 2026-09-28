@@ -10,8 +10,8 @@ import { dataResponse, handleBffError, parseJsonBody } from "../problem-details"
 import { saveVisibilitySettings } from "../usecases/visibility/save-visibility-settings";
 
 /**
- * 「アカウント連携」画面全体の公開設定の保存（`/api/visibility`）。
- * 同意画面の「同意して戻る」も、今回の連携先を同意ONにしてこの保存を先に行う。
+ * 公開設定の保存（`/api/visibility`）。
+ * 「アカウント連携」画面は全体を、同意画面の「同意して戻る」は今回の連携先の公開選択だけを送り、`oauth2.consent`より先に保存する。
  * @see ../../shared/schemas/visibility-schema.ts
  * @see ./visibility-routes.worker.test.ts
  */

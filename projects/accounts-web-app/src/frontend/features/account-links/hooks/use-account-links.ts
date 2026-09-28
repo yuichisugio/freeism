@@ -4,14 +4,8 @@ import { accountLinksSchema } from "../../../../shared/schemas/account-link-sche
 import type { AccountLinks } from "../../../../shared/schemas/account-link-schema";
 import { okSchema } from "../../../../shared/schemas/problem-details-schema";
 import { requestBff } from "../../../lib/api-client";
-import {
-  buildVisibilityInput,
-  buildVisibilityTable,
-  emptyVisibilityEdits,
-  setAccountPublic,
-  setClientVisibility,
-} from "../lib/visibility-draft";
-import type { VisibilityEdits } from "../lib/visibility-draft";
+import { buildVisibilityInput, buildVisibilityTable, emptyVisibilityEdits, setSelection } from "../lib/visibility-draft";
+import type { Destination, VisibilityEdits } from "../lib/visibility-draft";
 
 /**
  * 「アカウント連携」画面の一覧の取得と、公開設定の編集・保存。
@@ -25,19 +19,9 @@ type LoadState = { status: "loading" } | { status: "error"; error: unknown } | {
 export type VisibilitySaveState = { status: "idle" } | { status: "saving" } | { status: "saved" } | { status: "error"; error: unknown };
 
 /**
- * 一覧を取得するBFFのパス。
- * 同意画面では今回の連携先を列に含めるため`consentClientId`を付ける。
- */
-function accountLinksPath(consentClientId: string | undefined): string {
-  return consentClientId === undefined
-    ? "/api/account-links"
-    : `/api/account-links?${new URLSearchParams({ consentClientId }).toString()}`;
-}
-
-/**
  * 一覧の取得・再取得と、公開設定の編集状態を管理する。
  */
-export function useAccountLinks(consentClientId?: string) {
+export function useAccountLinks() {
   const [loadState, setLoadState] = useState<LoadState>({ status: "loading" });
   const [edits, setEdits] = useState<VisibilityEdits>(emptyVisibilityEdits);
   const [saveState, setSaveState] = useState<VisibilitySaveState>({ status: "idle" });
@@ -52,12 +36,12 @@ export function useAccountLinks(consentClientId?: string) {
    */
   const reload = useCallback(async () => {
     try {
-      const links = await requestBff(accountLinksPath(consentClientId), accountLinksSchema);
+      const links = await requestBff("/api/account-links", accountLinksSchema);
       setLoadState({ status: "ready", links });
     } catch (error) {
       setLoadState({ status: "error", error });
     }
-  }, [consentClientId]);
+  }, []);
 
   useEffect(() => {
     void reload();
@@ -99,15 +83,6 @@ export function useAccountLinks(consentClientId?: string) {
     setSaveState({ status: "idle" });
   };
 
-  /**
-   * 編集操作。
-   * 編集すると直前の保存結果の通知を消す。
-   */
-  const edit = (update: (current: VisibilityEdits) => VisibilityEdits) => {
-    setEdits(update);
-    setSaveState({ status: "idle" });
-  };
-
   const table = links === null ? null : buildVisibilityTable(links, edits);
 
   return {
@@ -118,19 +93,13 @@ export function useAccountLinks(consentClientId?: string) {
     reload,
     save,
     discardEdits,
-    setAccountPublic: (accountId: string, isPublic: boolean) =>
-      edit((current) => setAccountPublic(current, accountId, isPublic)),
-    setClientVisibility: (clientId: string, accountIds: readonly string[], isVisible: boolean) =>
-      edit((current) => setClientVisibility(current, clientId, accountIds, isVisible)),
     /**
-     * 1つの外部アカウントを、すべての連携先についてまとめて公開・非公開にする。
+     * 指定した公開先×外部アカウントの選択をまとめて変更する。
+     * 編集すると直前の保存結果の通知を消す。
      */
-    setAccountVisibilityForAllClients: (accountId: string, isVisible: boolean) =>
-      edit((current) =>
-        (links?.clients ?? []).reduce(
-          (next, client) => setClientVisibility(next, client.clientId, [accountId], isVisible),
-          current,
-        ),
-      ),
+    select: (destinations: readonly Destination[], accountIds: readonly string[], isSelected: boolean) => {
+      setEdits((current) => setSelection(current, destinations, accountIds, isSelected));
+      setSaveState({ status: "idle" });
+    },
   };
 }

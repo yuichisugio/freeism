@@ -1,18 +1,21 @@
+import { PageMain } from "./page-main";
+
 /**
  * 文書ページの1つの節。
- * `items`は箇条書き、`externalLinks`は新しいタブで開く外部ページへのリンクの一覧で表示する。
+ * `paragraphs`は段落、`items`は箇条書きで表示する。
  */
 export type DocumentSection = {
   id: string;
   title: string;
   paragraphs: string[];
   items: string[];
-  externalLinks?: { label: string; url: string }[];
 };
 
 /**
- * ヘルプ・プライバシーポリシー・利用規約など、見出しと節で構成する文書ページ。
+ * プライバシーポリシー・利用規約など、見出しと節で構成する文書ページ。
+ * カードに見出しと本文を置き、本文は読みやすい幅（`--prose-max`）にする。
  * 各節の見出しには`id`を付け、ほかの画面から`#id`で案内できるようにする。
+ * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  */
 export function DocumentPage({
   title,
@@ -24,15 +27,17 @@ export function DocumentPage({
   sections: DocumentSection[];
 }) {
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">{title}</h1>
-        <p>{introduction}</p>
-      </header>
-      {sections.map((section) => (
-        <DocumentSectionView key={section.id} section={section} />
-      ))}
-    </main>
+    <PageMain>
+      <article className="flex flex-col gap-6 rounded-xl border border-border bg-surface px-6 py-5 text-sm shadow-surface max-sm:p-4">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-xl">{title}</h1>
+          <p className="max-w-(--prose-max)">{introduction}</p>
+        </header>
+        {sections.map((section) => (
+          <DocumentSectionView key={section.id} section={section} />
+        ))}
+      </article>
+    </PageMain>
   );
 }
 
@@ -42,28 +47,21 @@ export function DocumentPage({
 function DocumentSectionView({ section }: { section: DocumentSection }) {
   const headingId = `${section.id}-heading`;
   return (
-    <section id={section.id} aria-labelledby={headingId} className="flex scroll-mt-4 flex-col gap-3">
-      <h2 id={headingId} className="text-lg font-semibold">
+    <section
+      id={section.id}
+      aria-labelledby={headingId}
+      className="flex max-w-(--prose-max) scroll-mt-(--sticky-offset) flex-col gap-2"
+    >
+      <h2 id={headingId} className="text-md">
         {section.title}
       </h2>
       {section.paragraphs.map((paragraph) => (
         <p key={paragraph}>{paragraph}</p>
       ))}
       {section.items.length === 0 ? null : (
-        <ul className="list-disc pl-6">
+        <ul className="flex list-disc flex-col gap-1 pl-5">
           {section.items.map((item) => (
             <li key={item}>{item}</li>
-          ))}
-        </ul>
-      )}
-      {section.externalLinks === undefined ? null : (
-        <ul className="list-disc pl-6">
-          {section.externalLinks.map((link) => (
-            <li key={link.url}>
-              <a href={link.url} className="underline" target="_blank" rel="noopener noreferrer">
-                {link.label}
-              </a>
-            </li>
           ))}
         </ul>
       )}

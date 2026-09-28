@@ -1,13 +1,11 @@
 // @vitest-environment happy-dom
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BffError } from "../../../lib/api-client";
-import { dataResponse, problemResponse } from "../../../test/bff-responses";
+import { problemResponse } from "../../../test/bff-responses";
 import { stubBff } from "../stub-bff.test-helper";
 import { useBackupExport } from "./use-backup-export";
-
-const summary = { externalAccountCount: 3, unverifiedAccountCount: 1, clientConsentCount: 2, includesPrivateData: true };
 
 let downloadedFileNames: string[] = [];
 
@@ -26,17 +24,16 @@ afterEach(() => {
 });
 
 describe("useBackupExport", () => {
-  it("出力前に件数の見込みと非公開情報を含むかを読み込む", async () => {
-    stubBff({ "GET /api/backup/summary": () => dataResponse(summary) });
+  it("表示時にはBFFを呼ばない", () => {
+    const fetchMock = stubBff({});
 
-    const { result } = renderHook(() => useBackupExport());
+    renderHook(() => useBackupExport());
 
-    await waitFor(() => expect(result.current.summary).toEqual(summary));
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("出力するとJSONファイルを応答のファイル名でダウンロードさせる", async () => {
     stubBff({
-      "GET /api/backup/summary": () => dataResponse(summary),
       "GET /api/backup": () =>
         new Response("{}", {
           headers: { "Content-Type": "application/json", "Content-Disposition": 'attachment; filename="accounts-user-1.json"' },
@@ -53,7 +50,6 @@ describe("useBackupExport", () => {
 
   it("応答にファイル名が無ければ既定のファイル名にする", async () => {
     stubBff({
-      "GET /api/backup/summary": () => dataResponse(summary),
       "GET /api/backup": () => new Response("{}", { headers: { "Content-Type": "application/json" } }),
     });
     const { result } = renderHook(() => useBackupExport());
@@ -64,10 +60,7 @@ describe("useBackupExport", () => {
   });
 
   it("上限超過で出力できない場合は、ダウンロードせずに失敗を返す", async () => {
-    stubBff({
-      "GET /api/backup/summary": () => dataResponse(summary),
-      "GET /api/backup": () => problemResponse(413, "EXPORT_TOO_LARGE"),
-    });
+    stubBff({ "GET /api/backup": () => problemResponse(413, "EXPORT_TOO_LARGE") });
     const { result } = renderHook(() => useBackupExport());
 
     await act(() => result.current.exportBackup());

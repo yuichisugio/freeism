@@ -38,14 +38,36 @@ function fillNewClient(result: { current: ReturnType<typeof useOAuthClients> }) 
 }
 
 describe("useOAuthClients: 読込みと選択", () => {
-  it("読込み後に最初のクライアントを編集対象にし、未変更では保存できない", async () => {
+  it("読込み後はフォームを閉じたままにする", async () => {
     const { result } = await renderLoaded(2);
 
     expect(result.current.clients).toHaveLength(2);
+    expect(result.current.editTarget).toBeNull();
+    expect(result.current.isDirty).toBe(false);
+  });
+
+  it("「編集」でクライアントの内容をフォームへ入れ、未変更では保存できない", async () => {
+    const { result } = await renderLoaded(2);
+
+    act(() => result.current.editClient(buildClient(1)));
+
     expect(result.current.editTarget).toEqual({ kind: "existing", client: buildClient(1) });
     expect(result.current.form.name).toBe("App 1");
     expect(result.current.isDirty).toBe(false);
     expect(result.current.canSave).toBe(false);
+  });
+
+  it("「キャンセル」でフォームを閉じ、入力を破棄する", async () => {
+    const { result } = await renderLoaded(1);
+    act(() => result.current.editClient(buildClient(1)));
+    act(() => result.current.changeField("name", "Edited"));
+
+    act(() => result.current.cancelEditing());
+
+    expect(result.current.editTarget).toBeNull();
+    expect(result.current.isDirty).toBe(false);
+    act(() => result.current.editClient(buildClient(1)));
+    expect(result.current.form.name).toBe("App 1");
   });
 
   it("0件なら編集対象を持たない", async () => {
@@ -61,7 +83,7 @@ describe("useOAuthClients: 読込みと選択", () => {
 
     expect(result.current.canCreate).toBe(false);
     act(() => result.current.startCreating());
-    expect(result.current.editTarget?.kind).toBe("existing");
+    expect(result.current.editTarget).toBeNull();
   });
 
   it("一覧の読込みに失敗したらエラーを保持する", async () => {
@@ -76,6 +98,7 @@ describe("useOAuthClients: 読込みと選択", () => {
 describe("useOAuthClients: 入力検証", () => {
   it("必須項目・リダイレクトURL規則・公開鍵のJSON構文を満たさなければ保存できない", async () => {
     const { result } = await renderLoaded(1);
+    act(() => result.current.editClient(buildClient(1)));
 
     act(() => result.current.changeField("name", ""));
     expect(result.current.fieldErrors.name).toBe("required");
@@ -111,6 +134,7 @@ describe("useOAuthClients: 入力検証", () => {
 
   it("リダイレクトURLの行を追加・削除できる", async () => {
     const { result } = await renderLoaded(1);
+    act(() => result.current.editClient(buildClient(1)));
 
     act(() => result.current.addRedirectUri());
     act(() => result.current.changeRedirectUri(1, "http://localhost:3000/callback"));
@@ -150,6 +174,7 @@ describe("useOAuthClients: 保存", () => {
       sentBody = request.body;
       return dataResponse(updated);
     });
+    act(() => result.current.editClient(buildClient(1)));
 
     act(() => result.current.changeField("name", " Renamed "));
     await act(() => result.current.save());
@@ -186,6 +211,7 @@ describe("useOAuthClients: 保存", () => {
     const { result } = await renderLoaded(1, (request) =>
       request.method === "PUT" ? problemResponse(500, "CLIENT_KEY_SAVE_FAILED") : undefined,
     );
+    act(() => result.current.editClient(buildClient(1)));
 
     act(() => result.current.changeField("name", "Renamed"));
     await act(() => result.current.save());
@@ -201,9 +227,10 @@ describe("useOAuthClients: 保存", () => {
 describe("useOAuthClients: 編集対象の切替", () => {
   it("未保存の変更がある状態の切替は保留し、破棄を選ぶと切り替える", async () => {
     const { result } = await renderLoaded(2);
+    act(() => result.current.editClient(buildClient(1)));
     act(() => result.current.changeField("name", "Edited"));
 
-    act(() => result.current.selectClient(buildClient(2)));
+    act(() => result.current.editClient(buildClient(2)));
     expect(result.current.isSwitchConfirming).toBe(true);
     expect(result.current.editTarget).toEqual({ kind: "existing", client: buildClient(1) });
 
@@ -216,6 +243,7 @@ describe("useOAuthClients: 編集対象の切替", () => {
 
   it("未保存の変更がある状態で新規登録へ切り替え、編集に戻ると入力内容を維持する", async () => {
     const { result } = await renderLoaded(2);
+    act(() => result.current.editClient(buildClient(1)));
     act(() => result.current.changeField("name", "Edited"));
 
     act(() => result.current.startCreating());
@@ -229,8 +257,9 @@ describe("useOAuthClients: 編集対象の切替", () => {
 
   it("未変更なら確認せずに切り替える", async () => {
     const { result } = await renderLoaded(2);
+    act(() => result.current.editClient(buildClient(1)));
 
-    act(() => result.current.selectClient(buildClient(2)));
+    act(() => result.current.editClient(buildClient(2)));
 
     expect(result.current.isSwitchConfirming).toBe(false);
     expect(result.current.editTarget).toEqual({ kind: "existing", client: buildClient(2) });
@@ -238,12 +267,13 @@ describe("useOAuthClients: 編集対象の切替", () => {
 });
 
 describe("useOAuthClients: 削除", () => {
-  it("確認後に削除すると一覧から外し、編集対象を解除する", async () => {
+  it("一覧から確認して削除すると一覧から外し、そのクライアントのフォームを閉じる", async () => {
     const { result, fetchMock } = await renderLoaded(2, (request) =>
       request.method === "DELETE" && request.url === "/api/oauth-clients/client-1" ? dataResponse({ ok: true }) : undefined,
     );
+    act(() => result.current.editClient(buildClient(1)));
 
-    act(() => result.current.requestDelete());
+    act(() => result.current.requestDelete(buildClient(1)));
     expect(result.current.isDeleteConfirming).toBe(true);
     await act(() => result.current.confirmDelete());
 
@@ -254,12 +284,37 @@ describe("useOAuthClients: 削除", () => {
     expect(result.current.feedback).toEqual({ kind: "deleted" });
   });
 
+  it("別のクライアントを削除しても、開いているフォームの入力を維持する", async () => {
+    const { result } = await renderLoaded(2, (request) =>
+      request.method === "DELETE" && request.url === "/api/oauth-clients/client-2" ? dataResponse({ ok: true }) : undefined,
+    );
+    act(() => result.current.editClient(buildClient(1)));
+    act(() => result.current.changeField("name", "Edited"));
+
+    act(() => result.current.requestDelete(buildClient(2)));
+    await act(() => result.current.confirmDelete());
+
+    expect(result.current.clients.map((client) => client.clientId)).toEqual(["client-1"]);
+    expect(result.current.editTarget).toEqual({ kind: "existing", client: buildClient(1) });
+    expect(result.current.form.name).toBe("Edited");
+  });
+
+  it("確認を取りやめると削除しない", async () => {
+    const { result, fetchMock } = await renderLoaded(1);
+
+    act(() => result.current.requestDelete(buildClient(1)));
+    act(() => result.current.cancelDelete());
+
+    expect(result.current.isDeleteConfirming).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("削除に失敗した場合はクライアントを残し、エラーを保持する", async () => {
     const { result } = await renderLoaded(1, (request) =>
       request.method === "DELETE" ? problemResponse(404, "NOT_FOUND") : undefined,
     );
 
-    act(() => result.current.requestDelete());
+    act(() => result.current.requestDelete(buildClient(1)));
     await act(() => result.current.confirmDelete());
 
     expect(result.current.clients).toHaveLength(1);

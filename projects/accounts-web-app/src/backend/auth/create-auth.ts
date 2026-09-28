@@ -275,7 +275,7 @@ export function createAuth(
       }),
       oauthProvider({
         loginPage: "/",
-        consentPage: "/account-links",
+        consentPage: "/consent",
         scopes: ["openid", identitiesReadScope],
         // Refresh Tokenを発行しないため、`refresh_token`を除く。
         grantTypes: ["authorization_code", "client_credentials"],

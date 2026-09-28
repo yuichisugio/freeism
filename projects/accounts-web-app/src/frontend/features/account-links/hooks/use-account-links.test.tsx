@@ -28,17 +28,6 @@ describe("useAccountLinks", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/account-links", expect.objectContaining({ method: "GET" }));
   });
 
-  it("同意画面では今回の連携先を指定して取得する", async () => {
-    const fetchMock = vi.fn<typeof fetch>(async () => dataResponse(links));
-    vi.stubGlobal("fetch", fetchMock);
-
-    renderHook(() => useAccountLinks("points client"));
-
-    await waitFor(() =>
-      expect(fetchMock).toHaveBeenCalledWith("/api/account-links?consentClientId=points+client", expect.anything()),
-    );
-  });
-
   it("取得に失敗した場合は失敗を保持する", async () => {
     vi.stubGlobal("fetch", vi.fn<typeof fetch>(async () => problemResponse(401, "UNAUTHORIZED")));
 
@@ -62,9 +51,9 @@ describe("useAccountLinks", () => {
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
 
     act(() => {
-      result.current.setClientVisibility("points", ["eac_1"], true);
+      result.current.select([{ kind: "client", client: createLinkedClient({ clientId: "points" }) }], ["eac_1"], true);
     });
-    expect(result.current.table?.isDirty).toBe(true);
+    expect(result.current.table?.changeCount).toBe(1);
 
     await act(async () => {
       expect(await result.current.save()).toBe(true);
@@ -77,8 +66,8 @@ describe("useAccountLinks", () => {
       clients: [{ clientId: "points", visibleAccountIds: ["eac_1"] }],
     });
     expect(result.current.saveState.status).toBe("saved");
-    expect(result.current.table?.isDirty).toBe(false);
-    expect(result.current.table?.rows[0]?.visibleClientIds).toEqual(["points"]);
+    expect(result.current.table?.changeCount).toBe(0);
+    expect(result.current.table?.rows[0]?.cells.map((cell) => cell.isSelected)).toEqual([false, true]);
   });
 
   it("保存が拒否された場合は編集を保ったまま失敗を示す", async () => {
@@ -92,13 +81,13 @@ describe("useAccountLinks", () => {
     const { result } = renderHook(() => useAccountLinks());
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
 
-    act(() => result.current.setAccountPublic("eac_1", true));
+    act(() => result.current.select([{ kind: "profile" }], ["eac_1"], true));
     await act(async () => {
       expect(await result.current.save()).toBe(false);
     });
 
     expect(result.current.saveState.status).toBe("error");
-    expect(result.current.table?.isDirty).toBe(true);
+    expect(result.current.table?.changeCount).toBe(1);
   });
 
   it("編集を破棄すると、未保存の変更と直前の保存の失敗を消す", async () => {
@@ -111,7 +100,7 @@ describe("useAccountLinks", () => {
     );
     const { result } = renderHook(() => useAccountLinks());
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
-    act(() => result.current.setAccountPublic("eac_1", true));
+    act(() => result.current.select([{ kind: "profile" }], ["eac_1"], true));
     await act(async () => {
       await result.current.save();
     });
@@ -119,25 +108,6 @@ describe("useAccountLinks", () => {
     act(() => result.current.discardEdits());
 
     expect(result.current.saveState.status).toBe("idle");
-    expect(result.current.table?.isDirty).toBe(false);
-  });
-
-  it("行単位の一括選択で、すべての連携先への公開を切り替える", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(async () =>
-        dataResponse(
-          createAccountLinks({
-            clients: [createLinkedClient({ clientId: "a" }), createLinkedClient({ clientId: "b" })],
-          }),
-        ),
-      ),
-    );
-    const { result } = renderHook(() => useAccountLinks());
-    await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
-
-    act(() => result.current.setAccountVisibilityForAllClients("eac_1", true));
-
-    expect(result.current.table?.rows[0]?.visibleClientIds).toEqual(["a", "b"]);
+    expect(result.current.table?.changeCount).toBe(0);
   });
 });

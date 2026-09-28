@@ -3,7 +3,7 @@ import { vi } from "vitest";
 import { problemResponse } from "../../test/bff-responses";
 
 /**
- * 「設定」画面のテスト用に、BFFの応答を`"METHOD /path"`ごとに差し替える。
+ * 「その他」画面のテスト用に、BFFの応答を`"METHOD /path"`ごとに差し替える。
  * 未定義の要求は404の問題詳細を返す。
  */
 export function stubBff(handlers: Record<string, () => Response>) {

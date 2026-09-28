@@ -29,7 +29,7 @@ export function readInitialLanguage(): Language {
 }
 
 /**
- * 「設定」画面で選んだ言語を保存する。
+ * 「その他」画面で選んだ言語を保存する。
  * 保存できない環境では、次回もブラウザー判定の言語になる。
  */
 export function storeLanguage(language: Language): void {

@@ -130,6 +130,37 @@ describe("PUT /api/visibility", () => {
     expect(await countOAuthConsents(userId, otherClientId)).toBe(0);
   });
 
+  it("同意画面のように1つのクライアントだけを送ると、ほかのクライアントの公開選択と一般公開を変えない", async () => {
+    const { headers, verifiedId, candidateId, clientId } = await setUpUser();
+    const { clientId: otherClientId } = await registerTestClient(headers, "Markets");
+    await saveVisibility(headers, {
+      accounts: [{ externalAccountId: verifiedId, isPublic: true }],
+      clients: [
+        { clientId, visibleAccountIds: [candidateId] },
+        { clientId: otherClientId, visibleAccountIds: [verifiedId, candidateId] },
+      ],
+    });
+
+    const response = await saveVisibility(headers, {
+      clients: [{ clientId, visibleAccountIds: [verifiedId] }],
+    });
+
+    expect(response.status).toBe(200);
+    const links = await readAccountLinks(headers);
+    expect(
+      links.accounts.map(({ id, isPublic, visibility }) => ({ id, isPublic, visibility })),
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          id: verifiedId,
+          isPublic: true,
+          visibility: { [clientId]: true, [otherClientId]: true },
+        },
+        { id: candidateId, isPublic: false, visibility: { [otherClientId]: true } },
+      ]),
+    );
+  });
+
   it("後から追加した外部アカウントは、既存のクライアントにも一般公開にも公開しない", async () => {
     const { userId, headers, verifiedId, clientId } = await setUpUser();
     await saveVisibility(headers, {

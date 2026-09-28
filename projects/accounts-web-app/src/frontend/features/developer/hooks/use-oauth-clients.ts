@@ -14,9 +14,10 @@ import {
 import type { OAuthClientFieldErrors, OAuthClientForm, OAuthClientTextField } from "../oauth-client-form";
 
 /**
- * 「開発者向け」画面のOAuthクライアント一覧・編集・削除の状態と操作。
+ * 「その他」画面の「開発者向け」のOAuthクライアント一覧・登録・編集・削除の状態と操作。
+ * 登録・編集のフォームは初期状態で閉じ、「新しいクライアントを登録」か一覧の「編集」で開く。
  * 未保存の変更がある状態の編集対象の切替は保留し、確認の結果で切り替える。
- * 別画面への移動の確認はrouteで`useUnsavedChangesGuard`を使う。
+ * 別画面への移動の確認は画面で`useUnsavedChangesGuard`を使う。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-oauth-clients.test.tsx
  */
@@ -72,7 +73,7 @@ export function useOAuthClients() {
   const [pendingTarget, setPendingTarget] = useState<EditTarget | null>(null);
   const [feedback, setFeedback] = useState<OAuthClientFeedback | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<OAuthClientDetail | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [reloadCount, setReloadCount] = useState(0);
 
@@ -113,11 +114,16 @@ export function useOAuthClients() {
     openEditor(target);
   };
 
-  const selectClient = (client: OAuthClientDetail) => switchTarget({ kind: "existing", client });
+  const editClient = (client: OAuthClientDetail) => switchTarget({ kind: "existing", client });
 
   const startCreating = () => {
     if (canCreate) switchTarget({ kind: "new" });
   };
+
+  /**
+   * フォームを閉じ、入力を破棄する。
+   */
+  const cancelEditing = () => openEditor(null);
 
   const discardAndSwitch = () => {
     if (pendingTarget !== null) openEditor(pendingTarget);
@@ -131,7 +137,7 @@ export function useOAuthClients() {
   // --------------------------------------------------
 
   /**
-   * 画面表示時と`reload`で一覧を読み込み、最初のクライアントを編集対象にする。
+   * 画面表示時と`reload`で一覧を読み込み、フォームを閉じる。
    */
   useEffect(() => {
     let isCurrent = true;
@@ -140,7 +146,7 @@ export function useOAuthClients() {
       (data) => {
         if (!isCurrent) return;
         setClients(data.clients);
-        openEditor(data.clients[0] === undefined ? null : { kind: "existing", client: data.clients[0] });
+        openEditor(null);
         setLoadState({ status: "ready" });
       },
       (error: unknown) => {
@@ -219,27 +225,28 @@ export function useOAuthClients() {
     }
   };
 
-  const requestDelete = () => setIsDeleteConfirming(true);
+  const requestDelete = (client: OAuthClientDetail) => setDeleteTarget(client);
 
-  const cancelDelete = () => setIsDeleteConfirming(false);
+  const cancelDelete = () => setDeleteTarget(null);
 
   /**
-   * 編集中のクライアントを削除し、編集対象を解除する。
+   * 確認したクライアントを削除する。
+   * 削除したクライアントを編集中ならフォームを閉じ、別のクライアントの編集中なら入力を維持する。
    */
   const confirmDelete = async () => {
-    if (editTarget?.kind !== "existing") return;
-    const { clientId } = editTarget.client;
+    if (deleteTarget === null) return;
+    const { clientId } = deleteTarget;
     setIsDeleting(true);
     try {
       await requestBff(oauthClientPath(clientId), okSchema, { method: "DELETE" });
       setClients((current) => current.filter((client) => client.clientId !== clientId));
-      openEditor(null);
+      if (editTarget?.kind === "existing" && editTarget.client.clientId === clientId) openEditor(null);
       setFeedback({ kind: "deleted" });
     } catch (error) {
       setFeedback({ kind: "deleteFailed", error });
     } finally {
       setIsDeleting(false);
-      setIsDeleteConfirming(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -250,8 +257,9 @@ export function useOAuthClients() {
     clients,
     canCreate,
     editTarget,
-    selectClient,
+    editClient,
     startCreating,
+    cancelEditing,
     isSwitchConfirming: pendingTarget !== null,
     discardAndSwitch,
     keepEditing,
@@ -266,7 +274,7 @@ export function useOAuthClients() {
     isSaving,
     save,
     feedback,
-    isDeleteConfirming,
+    isDeleteConfirming: deleteTarget !== null,
     isDeleting,
     requestDelete,
     cancelDelete,

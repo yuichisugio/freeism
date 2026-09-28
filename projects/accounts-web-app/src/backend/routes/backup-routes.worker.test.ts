@@ -4,12 +4,11 @@ import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
 import { createUnsignedIdToken, getTestAuthContext } from "../../../test/auth-test-helpers";
-import { readExternalAccounts, testDb, uniqueHost } from "../../../test/external-account-test-helpers";
+import { readExternalAccounts, testDb } from "../../../test/external-account-test-helpers";
 import { applySetCookies, loginWithCookieCache } from "../../../test/oauth-client-test-helpers";
 import { jsonFileMaxBytes } from "../../shared/constants";
 import {
   backupSchema,
-  backupSummarySchema,
   restoreBackupResultSchema,
   type Backup,
 } from "../../shared/schemas/backup-schema";
@@ -96,7 +95,6 @@ async function exportBackupFile(headers: Headers): Promise<string> {
 describe("バックアップのセッション確認", () => {
   it.each([
     ["GET", "/api/backup"],
-    ["GET", "/api/backup/summary"],
     ["POST", "/api/backup/restore"],
   ])("セッションの無い%s %sは401を返す", async (method, path) => {
     const response = await requestBff(path, { method, body: method === "POST" ? {} : undefined });
@@ -141,26 +139,6 @@ describe("GET /api/backup", () => {
         isPublic: false,
       }),
     ]);
-  });
-});
-
-describe("GET /api/backup/summary", () => {
-  it("件数と非公開情報を含むかを返す", async () => {
-    const { headers } = await createLoggedInUser();
-    await requestBff("/api/external-urls", {
-      method: "POST",
-      headers,
-      body: { url: `https://${uniqueHost()}/`, mode: "unverified" },
-    });
-
-    const summary = await readData(await requestBff("/api/backup/summary", { headers }), backupSummarySchema);
-
-    expect(summary).toEqual({
-      externalAccountCount: 2,
-      unverifiedAccountCount: 1,
-      clientConsentCount: 0,
-      includesPrivateData: true,
-    });
   });
 });
 

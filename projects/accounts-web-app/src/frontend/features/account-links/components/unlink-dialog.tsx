@@ -6,10 +6,12 @@ import { useMessages } from "../../../lib/i18n/i18n-provider";
 import type { UnlinkTarget } from "../hooks/use-unlink";
 import { formatAccountLabel } from "../lib/account-label";
 import { accountLinksMessages } from "../messages";
+import type { AccountLinksMessages } from "../messages";
 
 /**
- * 「連携解除」「OAuthの認証連携だけ解除する」の確認。
+ * 「すべての連携解除」「この証明を解除」の確認。
  * 拒否された場合は、確認を開いたまま理由を示す。
+ * @see ../../../../../docs/specification/v0.1/main.ja.md
  */
 export function UnlinkDialog({
   target,
@@ -26,7 +28,6 @@ export function UnlinkDialog({
 }) {
   const messages = useMessages(accountLinksMessages);
   const common = useMessages(commonMessages);
-  const label = target === null ? "" : formatAccountLabel(target.account);
   return (
     <AlertDialog>
       <AlertDialog.Backdrop
@@ -40,22 +41,18 @@ export function UnlinkDialog({
             <AlertDialog.Header>
               <AlertDialog.Icon status="danger" />
               <AlertDialog.Heading>
-                {target?.kind === "verification" ? messages.unlinkOAuthTitle : messages.unlinkAccountTitle}
+                {target?.kind === "verification" ? messages.unlinkVerificationTitle : messages.unlinkAccountTitle}
               </AlertDialog.Heading>
             </AlertDialog.Header>
             <AlertDialog.Body className="flex flex-col gap-3">
-              <p>
-                {target?.kind === "verification"
-                  ? messages.unlinkOAuthDescription(label)
-                  : messages.unlinkAccountDescription(label)}
-              </p>
+              <p className="text-sm">{target === null ? null : describeUnlink(target, messages)}</p>
               {error === null ? null : <ErrorNotice error={error} codeMessages={messages.errorCodes} />}
             </AlertDialog.Body>
             <AlertDialog.Footer>
-              <Button variant="tertiary" onPress={onCancel}>
+              <Button size="sm" variant="tertiary" onPress={onCancel}>
                 {common.cancel}
               </Button>
-              <Button variant="danger" isDisabled={isSubmitting} onPress={onConfirm}>
+              <Button size="sm" variant="danger" isDisabled={isSubmitting} onPress={onConfirm}>
                 {messages.unlinkConfirm}
               </Button>
             </AlertDialog.Footer>
@@ -64,4 +61,23 @@ export function UnlinkDialog({
       </AlertDialog.Backdrop>
     </AlertDialog>
   );
+}
+
+/**
+ * 解除で終わるものと残るものの説明。
+ * 証明の解除では、最後の証明なら行が未検証として残ることを、DNS TXTなら押した行だけが対象であることを添える。
+ */
+function describeUnlink(target: UnlinkTarget, messages: AccountLinksMessages): string {
+  const label = formatAccountLabel(target.account, messages.accountLabelSeparator);
+  if (target.kind === "account") return messages.unlinkAccountDescription(label);
+  const { method } = target.verification;
+  const isLastProof = target.account.verifications.every(({ id }) => id === target.verification.id);
+  const sentences = [
+    method === "oauth"
+      ? messages.unlinkOAuthDescription(label)
+      : messages.unlinkProofDescription(label, messages.methods[method]),
+    isLastProof ? messages.unlinkLastProof : method === "oauth" ? messages.unlinkOAuthKeeps : messages.unlinkProofKeeps,
+    method === "dns_txt" ? messages.unlinkDnsScope : null,
+  ];
+  return sentences.filter((sentence) => sentence !== null).join("");
 }
