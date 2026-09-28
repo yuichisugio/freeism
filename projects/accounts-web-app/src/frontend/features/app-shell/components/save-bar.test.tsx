@@ -15,14 +15,18 @@ describe("SaveBar", () => {
     expect(screen.getByRole("button", { name: "公開設定を保存" }).hasAttribute("disabled")).toBe(true);
   });
 
-  it("狭い幅では状態を小さい文字にして間隔を詰め、状態と2つのボタンを1行に収める", async () => {
+  it("狭い幅では状態を小さい文字にし、間隔と左右の余白を詰めて、状態と2つのボタンを1行に収める", async () => {
     renderWithProviders(<SaveBar dirtyCount={0} saveLabel="公開設定を保存" onDiscard={vi.fn<() => void>()} onSave={vi.fn<() => void>()} />);
 
     const status = await screen.findByText("未保存の変更なし");
     const bar = screen.getByRole("status").parentElement!;
     expect(status.className).toContain("max-sm:text-xs");
-    expect(bar.className).toContain("max-sm:gap-2");
+    expect(bar.className).toContain("max-sm:gap-1");
+    expect(bar.className).toContain("max-sm:pl-3");
     expect(bar.className).not.toContain("flex-wrap");
+    for (const button of screen.getAllByRole("button")) {
+      expect(button.className).toContain("max-sm:px-3");
+    }
   });
 
   it("未保存の変更があるときは、件数を示して「破棄」と保存を押せる", async () => {

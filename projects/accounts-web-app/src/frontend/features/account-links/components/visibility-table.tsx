@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
 import { CheckIcon, ChevronDownIcon } from "../../app-shell/components/icons";
-import { ServiceFavicon } from "../../app-shell/components/service-favicon";
+import { ServiceIcon } from "../../app-shell/components/service-icon";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import type { UnlinkTarget } from "../hooks/use-unlink";
 import { describeAccount, formatAccountLabel } from "../lib/account-label";
@@ -176,7 +176,7 @@ function AccountRows({
 }) {
   const messages = useMessages(accountLinksMessages);
   const { account, cells } = row;
-  const { serviceName, identifier, iconHost } = describeAccount(account);
+  const { serviceName, identifier, icon } = describeAccount(account);
   const label = formatAccountLabel(account, messages.accountLabelSeparator);
   const verifiedMethods = [...new Set(account.verifications.map((verification) => verification.method))];
 
@@ -191,9 +191,9 @@ function AccountRows({
               onChange={(isSelected) => onSelect(destinations, [account.id], isSelected)}
               className="max-sm:hidden"
             />
-            {iconHost === undefined ? null : (
+            {icon === undefined ? null : (
               <span className="shrink-0 max-sm:[&>span]:size-7">
-                <ServiceFavicon host={iconHost} />
+                <ServiceIcon icon={icon} />
               </span>
             )}
             {/* 行間は`text-*`を付けた要素ごとに指定する（`leading-*`の値は子へ継承されないため）。 */}

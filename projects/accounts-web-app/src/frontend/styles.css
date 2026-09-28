@@ -48,6 +48,7 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-favicon-plate: var(--favicon-plate);
   --color-favicon-fallback: var(--favicon-fallback);
+  --color-brand-github: var(--brand-github);
 }
 
 /*
@@ -92,6 +93,7 @@
   --brand-google-yellow: #fbbc05;
   --brand-google-green: #34a853;
   --brand-orcid: #a6ce39;
+  --brand-github: #24292f;
 
   /*
    * 寸法の倍率。

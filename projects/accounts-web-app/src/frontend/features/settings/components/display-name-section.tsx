@@ -40,7 +40,7 @@ export function DisplayNameSection({ form }: { form: DisplayNameForm }) {
             className="w-full"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <Input className="max-w-[360px] min-w-0 flex-[1_1_220px]" />
+              <Input className="max-w-[calc(360px*var(--scale))] min-w-0 flex-[1_1_calc(220px*var(--scale))]" />
               <span className={`text-xs tabular-nums ${isInvalid ? "text-danger" : "text-muted"}`}>
                 {messages.displayNameCount(form.displayNameLength)}
               </span>

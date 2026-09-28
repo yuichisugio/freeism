@@ -80,6 +80,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 | `--brand-on` | ブランド色の上の図形 | `#FFFFFF` |
 | `--brand-google-blue` / `-red` / `-yellow` / `-green` | Google のロゴ | `#4285F4` / `#EA4335` / `#FBBC05` / `#34A853` |
 | `--brand-orcid` | ORCID のロゴ | `#A6CE39` |
+| `--brand-github` | サービスアイコンの台に載せる GitHub のロゴ | `#24292F` |
 
 ### 3.2 タイポグラフィ
 
@@ -295,7 +296,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 - 「アカウント連携」の保存バーは表と情報メッセージの下に常に表示し、`position: sticky; bottom: var(--space-4)` で追従する。
 - 見た目は `--surface`、`--border` の枠、`--radius-pill`、`--shadow-pop` とし、右寄せにする。640px 以下は全幅にして `--radius-xl` にする。
-- 左に状態、右に「破棄」（ghost、小）と「公開設定を保存」（primary、小）を置く。狭い幅でも折り返さず1行に並べ、640px 未満は状態を `--text-xs`、間隔を `--space-2` にして収める。
+- 左に状態、右に「破棄」（ghost、小）と「公開設定を保存」（primary、小）を置く。狭い幅でも折り返さず1行に並べ、640px 未満は状態を `--text-xs`、間隔を `--space-1`、バーの左の余白とボタンの左右の余白を `--space-3` にして、360px 幅でも「未保存の変更なし」「未保存 n件」を省略せずに収める。
 - 変更が0件のときは「未保存の変更なし」（`--muted`）と表示し、「破棄」「公開設定を保存」を無効にする。1件以上のときは「未保存 n件」チップ（highlight）を表示する。
 - 保存バーは画面に1つにする。
 - 「その他」の表示名は、未保存の変更があるときだけ同じ形の保存バー（「破棄」「保存」）を出す。表示名が不正なときは「保存」を無効にする。言語とテーマは選んだ時点で反映し、保存バーの対象にしない。
@@ -356,9 +357,11 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 ### 4.12 サービスアイコン（favicon）
 
-- `https://www.google.com/s2/favicons?domain={host}&sz=64` を `<img>` で 20px に表示する。
+- OAuth Provider（Google・GitHub・ORCID）の行は、ログインボタンと同じブランドのアイコンを 20px で表示する。Google のファビコン配信は ORCID にも 16px の画像を返すため、OAuth Provider には配信を使わない。
+- URL の行は `https://www.google.com/s2/favicons?domain={host}&sz=64` を `<img>` で 20px に表示する。
 - 取得できないホストには、配信が HTTP 404 で 16px の既定画像を返す。ブラウザーは 404 の画像も表示して `onerror` が起きないため、読み込み後の実寸（`naturalWidth`）が 16px 以下なら地球儀アイコン（`--favicon-fallback`）に差し替える。読み込み自体に失敗したとき（`onerror`）も同じにする。
-- ファビコンは `--favicon-plate` の台（36px、`--radius-md`、`--border` の枠）に載せ、ダークでも見えるようにする。
+- 公開プロフィールは JavaScript を使わないため、ブランドのアイコンはページ内の `<symbol>` で持ち、ファビコンは配信の画像をそのまま表示する（未知のホストは配信の既定画像になる。読み込みに失敗したときは背後の地球儀が見える）。
+- アイコンは `--favicon-plate` の台（36px、`--radius-md`、`--border` の枠）に載せ、ダークでも見えるようにする。
 
 ### 4.13 リンク
 
@@ -632,7 +635,7 @@ IDの無い `/settings` を未ログインで開いた場合は、言語とテ�
 
 1. `@import "tailwindcss";` と `@import "@heroui/styles";`。
 2. `@theme`: 書体（`--font-display`、`--font-sans`、`--font-mono`）、文字サイズ（[7.5](#75-tailwind-の名前空間との対応)）、角丸。
-3. `@theme inline`: HeroUI に無い色（`--color-border-strong`、`--color-highlight`、`--color-highlight-foreground`、`--color-favicon-plate`、`--color-favicon-fallback`）。
+3. `@theme inline`: HeroUI に無い色（`--color-border-strong`、`--color-highlight`、`--color-highlight-foreground`、`--color-favicon-plate`、`--color-favicon-fallback`、`--color-brand-github`）。
 4. レイヤーに入れないトークン: `:root`（ライト）、`@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`、`:root[data-theme="dark"]` の3ブロック。値は [3](#3-トークン) の表と同じにする。
 5. `:root` に HeroUI の変数とトークンの対応（[7.3](#73-heroui-の変数との対応)）。
 6. `@layer base`: `body` の書体・サイズ・行間、見出し、リンク、`:focus-visible`。
@@ -671,6 +674,7 @@ HeroUI だけが持つ変数は、トークンを参照させる。
 | `--field-border-focus` | `var(--accent)` | フォーカス時の入力欄の枠 |
 | `--field-focus` | `var(--surface)` | フォーカス時の入力欄の面 |
 | `--field-radius` | `var(--radius-lg)` | 入力欄の角丸 |
+| `--radius` | `calc(8px * var(--scale))` | HeroUI の部品が既定で使う角丸の基準を倍率に合わせる |
 | `--field-shadow` | `0 0 0 0 transparent` | 入力欄は影なし |
 | `--surface-shadow` | `var(--shadow)` | カードの影 |
 | `--overlay-shadow` | `var(--shadow-pop)` | ダイアログ・ポップオーバーの影 |

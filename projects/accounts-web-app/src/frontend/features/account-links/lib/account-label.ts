@@ -1,24 +1,17 @@
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
+import { selectServiceIcon } from "../../../../shared/service-icon";
+import type { ServiceIconSource } from "../../../../shared/service-icon";
 import { formatServiceName } from "../../../../shared/service-names";
 
 /**
- * 行の表示に使う、外部アカウントのサービス名・識別子・サービスアイコンのホスト。
+ * 行の表示に使う、外部アカウントのサービス名・識別子・サービスアイコン。
  * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ./account-label.test.ts
  */
 export type AccountDescription = {
   serviceName: string;
   identifier: string;
-  iconHost: string | undefined;
-};
-
-/**
- * URLを持たないことがあるOAuth Providerの、アイコン用のホスト。
- */
-const oauthServiceHosts: Partial<Record<string, string>> = {
-  google: "google.com",
-  github: "github.com",
-  orcid: "orcid.org",
+  icon: ServiceIconSource | undefined;
 };
 
 /**
@@ -29,8 +22,9 @@ export function formatUrlForDisplay(url: string): string {
 }
 
 /**
- * 外部アカウントを見分けるためのサービス名・識別子・アイコンのホスト。
+ * 外部アカウントを見分けるためのサービス名・識別子・サービスアイコン。
  * 識別子は、ユーザー名、URL、メールアドレス（本人画面だけ）、固有IDの順に、取得できたものを使う。
+ * アイコンは、OAuth Providerの行はProviderのブランド、それ以外はURLのホストのファビコンにし、どちらも無ければ出さない。
  */
 export function describeAccount(account: LinkedAccount): AccountDescription {
   const findIdentifier = (type: LinkedAccount["identifiers"][number]["type"]) =>
@@ -42,10 +36,11 @@ export function describeAccount(account: LinkedAccount): AccountDescription {
     account.email ??
     findIdentifier("provider_account") ??
     account.id;
-  const iconHost =
-    (account.service === null ? undefined : oauthServiceHosts[account.service]) ??
-    (url === undefined ? undefined : new URL(url).hostname);
-  return { serviceName: formatServiceName(account.service), identifier, iconHost };
+  return {
+    serviceName: formatServiceName(account.service),
+    identifier,
+    icon: selectServiceIcon(account.service, url),
+  };
 }
 
 /**

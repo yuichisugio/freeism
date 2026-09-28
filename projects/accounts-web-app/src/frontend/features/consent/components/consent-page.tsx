@@ -9,7 +9,7 @@ import { useHydratedSession } from "../../../lib/use-hydrated-session";
 import { describeAccount, formatAccountLabel } from "../../account-links/lib/account-label";
 import { CheckIcon, ExternalLinkIcon } from "../../app-shell/components/icons";
 import { InfoMessage } from "../../app-shell/components/info-message";
-import { ServiceFavicon } from "../../app-shell/components/service-favicon";
+import { ServiceIcon } from "../../app-shell/components/service-icon";
 import { ErrorNotice, ErrorText, LoadingState } from "../../app-shell/components/status-messages";
 import { useConsentRequest } from "../hooks/use-consent-request";
 import type { ConsentRequest } from "../hooks/use-consent-request";
@@ -205,7 +205,7 @@ function ConsentAccountList({
       {rows.map(({ account, isSelected }) => {
         // 行の表示は「アカウント連携」画面の表と揃える。
         const accountLabel = formatAccountLabel(account, messages.accountSeparator);
-        const { iconHost } = describeAccount(account);
+        const { icon } = describeAccount(account);
         return (
           <li key={account.id}>
             <PickRow
@@ -214,7 +214,7 @@ function ConsentAccountList({
               onChange={(next) => onSelectedChange(account.id, next)}
               className="min-h-16 py-3"
             >
-              {iconHost === undefined ? null : <ServiceFavicon host={iconHost} />}
+              {icon === undefined ? null : <ServiceIcon icon={icon} />}
               <span className="flex min-w-0 flex-1 flex-col gap-1 leading-tight">
                 <span className="text-md leading-tight font-medium wrap-anywhere">{accountLabel}</span>
                 <span className="flex flex-wrap items-center gap-1">

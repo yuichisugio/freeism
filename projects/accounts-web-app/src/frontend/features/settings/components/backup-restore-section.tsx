@@ -88,7 +88,7 @@ export function BackupRestoreSection({
       </div>
       <details className="w-full text-sm">
         <summary className="cursor-pointer text-xs text-muted">{messages.showAiPrompt}</summary>
-        <pre className="mt-2 max-h-[280px] overflow-auto rounded-lg border border-border bg-surface-secondary px-4 py-3 font-mono text-xs whitespace-pre-wrap">
+        <pre className="mt-2 max-h-[calc(280px*var(--scale))] overflow-auto rounded-lg border border-border bg-surface-secondary px-4 py-3 font-mono text-xs whitespace-pre-wrap">
           {aiPrompt}
         </pre>
       </details>

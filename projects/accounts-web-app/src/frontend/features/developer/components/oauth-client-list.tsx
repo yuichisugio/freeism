@@ -28,7 +28,7 @@ export function OAuthClientList({
 
   return (
     <div className="relative w-full overflow-auto rounded-lg border border-border">
-      <table className="w-full min-w-[440px] border-separate border-spacing-0 text-sm whitespace-nowrap [&_tbody_tr:last-child>*]:border-b-0">
+      <table className="w-full min-w-[calc(440px*var(--scale))] border-separate border-spacing-0 text-sm whitespace-nowrap [&_tbody_tr:last-child>*]:border-b-0">
         <thead>
           <tr className="text-left text-xs text-muted">
             <th scope="col" className={`${cellClassName} ${leadCellClassName} bg-surface font-normal`}>

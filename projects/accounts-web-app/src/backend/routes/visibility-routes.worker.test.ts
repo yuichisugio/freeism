@@ -99,6 +99,20 @@ describe("PUT /api/visibility", () => {
     );
   });
 
+  it("保存した列の公開選択を持つ外部アカウントをすべて連携解除すると、その列を一覧から除く", async () => {
+    const { headers, verifiedId, candidateId, clientId } = await setUpUser();
+    await saveVisibility(headers, { clients: [{ clientId, visibleAccountIds: [verifiedId] }] });
+
+    for (const externalAccountId of [verifiedId, candidateId]) {
+      const response = await fetchBff(headers, `/api/external-accounts/${externalAccountId}`, {
+        method: "DELETE",
+      });
+      expect(response.status).toBe(200);
+    }
+
+    expect((await readAccountLinks(headers)).clients).toEqual([]);
+  });
+
   it("証明済みの公開選択を外して保存すると、公開選択の無いクライアントの標準oauthConsentを削除する", async () => {
     const { userId, headers, verifiedId, candidateId, clientId } = await setUpUser();
     const { clientId: otherClientId } = await registerTestClient(headers, "Markets");

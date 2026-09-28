@@ -75,5 +75,10 @@ export function useAccountSwitcher() {
     }
   };
 
-  return { failure, switchTo, signOut };
+  /**
+   * 失敗の案内を消す（メニューを開き直したとき）。
+   */
+  const clearFailure = () => setFailure(null);
+
+  return { failure, switchTo, signOut, clearFailure };
 }

@@ -93,7 +93,7 @@ export class D1VisibilityRepository {
     return this.db
       .insert(externalAccountVisibility)
       .select(
-        sql`select ${externalAccounts.id}, client.value, exists (select 1 from json_each(${JSON.stringify(selections)}) as selection where json_extract(selection.value, '$.accountId') = ${externalAccounts.id} and json_extract(selection.value, '$.clientId') = client.value) from ${externalAccounts}, json_each(${JSON.stringify(clientIds)}) as client where ${externalAccounts.userId} = ${userId}`,
+        sql`select ${externalAccounts.id}, client.value, (${externalAccounts.id}, client.value) in (select json_extract(selection.value, '$.accountId'), json_extract(selection.value, '$.clientId') from json_each(${JSON.stringify(selections)}) as selection) from ${externalAccounts}, json_each(${JSON.stringify(clientIds)}) as client where ${externalAccounts.userId} = ${userId}`,
       )
       .onConflictDoUpdate({
         target: [externalAccountVisibility.accountId, externalAccountVisibility.clientId],

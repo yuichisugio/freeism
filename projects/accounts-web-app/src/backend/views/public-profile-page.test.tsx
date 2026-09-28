@@ -145,14 +145,29 @@ describe("renderPublicProfilePage", () => {
     expect(googleItem).not.toContain('rel="me');
   });
 
-  it("サービスアイコンをGoogleのfavicon配信から読み、背後に地球儀を置く", async () => {
+  it("OAuth Providerの行はfaviconを読まず、ページ内のブランドのアイコンを表示する", async () => {
     const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
 
-    for (const host of ["github.com", "alice.example.com", "google.com"]) {
-      const src = `https://www.google.com/s2/favicons?domain=${host}&amp;sz=64`;
-      expect(html).toContain(`<img class="favicon" src="${src}" alt=""`);
+    for (const [text, provider] of [
+      ["GitHub：alice", "github"],
+      ["Google：1098", "google"],
+    ] as const) {
+      const item = findItem(html, text);
+      expect(item).toContain(`<use href="#i-${provider}"`);
+      expect(item).not.toContain("<img");
     }
-    expect(findItem(html, "Google：1098")).toContain('<use href="#i-globe"');
+    for (const provider of ["google", "github", "orcid"]) {
+      expect(html).toContain(`<symbol id="i-${provider}"`);
+    }
+  });
+
+  it("URLの行はサービスアイコンをGoogleのfavicon配信から読み、背後に地球儀を置く", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    const webItem = findItem(html, "Web：alice.example.com");
+    const src = "https://www.google.com/s2/favicons?domain=alice.example.com&amp;sz=64";
+    expect(webItem).toContain(`<img class="favicon" src="${src}" alt=""`);
+    expect(webItem).toContain('<use href="#i-globe"');
   });
 
   it("両言語のalternateリンクと、JavaScriptなしの言語ドロップダウンを置く", async () => {

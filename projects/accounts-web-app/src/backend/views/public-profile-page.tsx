@@ -3,6 +3,8 @@ import type { Child } from "hono/jsx";
 
 import { buildFaviconUrl } from "../../shared/favicon-url";
 import { formatUtcDateTime } from "../../shared/format-date-time";
+import { selectServiceIcon } from "../../shared/service-icon";
+import type { ServiceIconSource } from "../../shared/service-icon";
 import { formatServiceName } from "../../shared/service-names";
 import type { VerificationMethod } from "../domain/identity/verification-method";
 import type {
@@ -72,19 +74,6 @@ export function readPublicProfileLanguage(value: string | undefined): PublicProf
 }
 
 // --------------------------------------------------
-// サービスアイコン
-// --------------------------------------------------
-
-/**
- * URLを持たないことがあるOAuth Providerの、アイコン用のhost。
- */
-const oauthServiceHosts: Partial<Record<string, string>> = {
-  google: "google.com",
-  github: "github.com",
-  orcid: "orcid.org",
-};
-
-// --------------------------------------------------
 // スタイル
 // --------------------------------------------------
 
@@ -97,7 +86,8 @@ const scaled = (basePx: number) => `calc(${basePx}px*var(--scale))`;
 /**
  * 管理画面と同じ色の組と寸法の倍率をライト・ダークで持つ最小限のスタイル。
  * Webフォントは読み込まず（CSPで外部の読み込みを許可しない）、見出しとロゴは閲覧者の端末にある丸ゴシックを使う。
- * サービスアイコンは、地球儀の上に不透明な背景のinlineの画像を中央揃えで重ねる。
+ * OAuth Providerのアイコンは台の中央に置く。
+ * faviconは、地球儀の上に不透明な背景のinlineの画像を中央揃えで重ねる。
  * 画像に寸法を指定しないため、読めない画像（`alt=""`）は大きさ0になり、地球儀だけが見える。
  */
 const styles = [
@@ -125,7 +115,7 @@ const styles = [
   `.proof-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:${scaled(12)}}`,
   `.proof-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:${scaled(12)};align-items:start;padding:${scaled(16)};background:var(--surface);border:1px solid var(--border);border-radius:${scaled(20)};box-shadow:var(--shadow)}`,
   `.svc-badge{position:relative;display:inline-block;width:${scaled(36)};height:${scaled(36)};font-size:0;line-height:${scaled(34)};text-align:center;border:1px solid var(--border);border-radius:${scaled(12)};background:var(--favicon-plate)}`,
-  `.favicon-fallback{position:absolute;inset:0;margin:auto;width:${scaled(20)};height:${scaled(20)};color:var(--favicon-fallback)}`,
+  `.favicon-fallback,.brand-icon{position:absolute;inset:0;margin:auto;width:${scaled(20)};height:${scaled(20)}}.favicon-fallback{color:var(--favicon-fallback)}`,
   `.favicon{position:relative;vertical-align:middle;max-width:${scaled(20)};max-height:${scaled(20)};background:var(--favicon-plate)}`,
   `.acct-text{display:flex;flex-direction:column;gap:${scaled(4)};min-width:0;line-height:1.35;overflow-wrap:anywhere}`,
   ".acct-name{font-weight:500}",
@@ -141,6 +131,7 @@ const styles = [
 
 /**
  * ページ内で`<use>`から参照するアイコン。
+ * OAuth Providerのロゴは、管理画面のログインボタンと同じ形を固定の色で持つ（全体の`svg`の線の指定を受けないよう、塗りと線を図形ごとに指定する）。
  */
 function IconSymbols() {
   return (
@@ -155,6 +146,33 @@ function IconSymbols() {
       </symbol>
       <symbol id="i-check" viewBox="0 0 24 24">
         <path d="m5 12.5 4.5 4.5L19 7.5" />
+      </symbol>
+      <symbol id="i-google" viewBox="0 0 24 24">
+        <g fill="none" stroke-width="3.6" stroke-linecap="butt">
+          <path d="M17.3 6.7A7.5 7.5 0 0 0 4.95 9.43" stroke="#EA4335" />
+          <path d="M4.95 9.43a7.5 7.5 0 0 0 0 5.14" stroke="#FBBC05" />
+          <path d="M4.95 14.57A7.5 7.5 0 0 0 17.3 17.3" stroke="#34A853" />
+          <path d="M17.3 17.3A7.5 7.5 0 0 0 19.5 12H12" stroke="#4285F4" />
+        </g>
+      </symbol>
+      <symbol id="i-github" viewBox="0 0 16 16">
+        <path
+          fill="#24292F"
+          stroke="none"
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+        />
+      </symbol>
+      <symbol id="i-orcid" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="11" fill="#A6CE39" stroke="none" />
+        <rect x="6.6" y="9.6" width="2" height="7.4" rx=".4" fill="#FFFFFF" stroke="none" />
+        <circle cx="7.6" cy="7.3" r="1.25" fill="#FFFFFF" stroke="none" />
+        <path
+          d="M11.2 9.9h2.3a3.55 3.55 0 0 1 0 7.1h-2.3z"
+          fill="none"
+          stroke="#FFFFFF"
+          stroke-width="1.8"
+          stroke-linejoin="round"
+        />
       </symbol>
     </svg>
   );
@@ -243,18 +261,28 @@ function Header({ language }: { language: PublicProfileLanguage }) {
 
 /**
  * サービスアイコン。
- * 画像を読めないときは背後の地球儀が見える。
+ * OAuth Providerはページ内のブランドのアイコンにする。
+ * faviconはJavaScriptで実寸を確かめられないため配信の画像をそのまま表示し、画像を読めないときは背後の地球儀が見える。
  */
-function ServiceIcon({ host }: { host: string | undefined }) {
+function ServiceIcon({ icon }: { icon: ServiceIconSource | undefined }) {
+  if (icon?.type === "provider") {
+    return (
+      <span class="svc-badge">
+        <svg class="brand-icon" aria-hidden="true">
+          <use href={`#i-${icon.provider}`} />
+        </svg>
+      </span>
+    );
+  }
   return (
     <span class="svc-badge">
       <svg class="favicon-fallback" aria-hidden="true">
         <use href="#i-globe" />
       </svg>
-      {host === undefined ? null : (
+      {icon === undefined ? null : (
         <img
           class="favicon"
-          src={buildFaviconUrl(host)}
+          src={buildFaviconUrl(icon.host)}
           alt=""
           loading="lazy"
           referrerpolicy="no-referrer"
@@ -305,13 +333,10 @@ function ExternalAccountItem({
     externalAccount.identifiers[0]?.value;
   const serviceName = formatServiceName(externalAccount.service);
   const label = `${serviceName}${texts.separator}${identifier ?? ""}`;
-  const iconHost =
-    (externalAccount.service === null ? undefined : oauthServiceHosts[externalAccount.service]) ??
-    (primaryUrl === undefined ? undefined : new URL(primaryUrl).hostname);
 
   return (
     <li class="proof-item">
-      <ServiceIcon host={iconHost} />
+      <ServiceIcon icon={selectServiceIcon(externalAccount.service, primaryUrl)} />
       <div class="acct-text">
         <span class="acct-name">
           {primaryUrl === undefined ? (

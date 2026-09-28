@@ -76,7 +76,7 @@ export function ExternalUrlForm({
               validationBehavior="aria"
               isInvalid={validationMessage !== undefined || serverInputErrorMessage !== undefined}
               isDisabled={isSubmitting}
-              className="min-w-0 flex-[1_1_240px]"
+              className="min-w-0 flex-[1_1_calc(240px*var(--scale))]"
             >
               {/* スキームの無い入力もブラウザー標準の型検査で送信を止めず、アプリの検査で案内する。 */}
               <Input type="text" inputMode="url" placeholder={messages.urlPlaceholder} className="font-mono text-sm" />

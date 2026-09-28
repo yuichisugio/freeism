@@ -173,6 +173,18 @@ describe("AppHeader", () => {
     expect((await screen.findByRole("alert")).textContent).toContain("切り替えられませんでした");
   });
 
+  it("失敗の案内は、メニューを開き直すと消す", async () => {
+    authClientMock.multiSession.setActive.mockResolvedValue({ data: null, error: { status: 401 } });
+    const { menu } = await openAccountMenu();
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /Bob/ }));
+    await screen.findByRole("alert");
+
+    await userEvent.click(screen.getByRole("button", { name: "アカウントのメニュー（alice）" }));
+
+    await screen.findByRole("menu");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
   it("「アカウントを追加」は、別のユーザーとしてログインするダイアログを開く", async () => {
     const { menu } = await openAccountMenu();
 

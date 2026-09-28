@@ -46,8 +46,8 @@ type ActivationResult = "switched" | "signInRequired" | "switchFailed";
  * - IDの無いURLは、ログイン済みなら現在のユーザーのID付きのURLへ置き換える。
  *   未ログインなら、未ログインでも表示する画面（経路の`staticData.allowsGuest`・`isUserIndependent`）はそのまま表示し、ほかの画面はログインを求める。
  * - IDが現在のユーザーと違えば、このブラウザーでログイン中のセッションにそのユーザーがあれば`setActive`で切り替え、無ければログインを求める。
- * - ログインを求める画面では、ログイン用のダイアログを自動で開かない。
- *   ログインに失敗して`?error=`付きで戻されたときだけ、失敗の案内とともに開く。
+ * - ログイン用のダイアログは自動で開かない。
+ *   ログインに失敗して`?error=`付きで戻されたときだけ、未ログインでも表示する画面を含めて、失敗の案内とともに開く。
  * - ユーザーの情報を扱わない画面（経路の`staticData.isUserIndependent`）では、URLのユーザーでログインしていなければ、現在のユーザーのID付き（未ログインならIDの無い）URLへ置き換える。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ../components/user-scope-gate.test.tsx
@@ -76,7 +76,7 @@ export function useUserScope(): UserScope {
     if (urlUserId === undefined) {
       if (sessionUserId !== null) {
         void navigate({ to: ".", params: { accountsUserId: sessionUserId }, search: true, hash: true, replace: true });
-      } else if (!allowsGuest && loginErrorCode !== undefined) {
+      } else if (loginErrorCode !== undefined) {
         loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
       }
       return;
@@ -103,7 +103,7 @@ export function useUserScope(): UserScope {
     return () => {
       isActive = false;
     };
-  }, [urlUserId, sessionUserId, isUserIndependent, allowsGuest, pathname, loginErrorCode, navigate, loginDialog]);
+  }, [urlUserId, sessionUserId, isUserIndependent, pathname, loginErrorCode, navigate, loginDialog]);
 
   if (sessionUserId === undefined) return { status: "checking" };
   if (urlUserId === undefined) {

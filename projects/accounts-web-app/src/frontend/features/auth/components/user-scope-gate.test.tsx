@@ -135,6 +135,15 @@ describe("UserScopeGate", () => {
     expect(within(dialog).getByRole("alert").textContent).toContain("GitHubからメールアドレスを取得できませんでした");
   });
 
+  it("ログインしていない場合、未ログインでも表示する画面でも、ログインの失敗で戻されたときは失敗の案内とともにダイアログを開く", async () => {
+    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+    renderUserScopedPage("/settings?error=access_denied");
+
+    expect(await screen.findByText("settings page")).toBeDefined();
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("alert").textContent).toContain("ログインできませんでした");
+  });
+
   it("ログイン済みでユーザーIDの無いURLを開くと、クエリとハッシュを保って現在のユーザーのID付きのURLへ置き換える", async () => {
     authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
     const router = renderUserScopedPage("/settings?sig=abc&exp=1#top");

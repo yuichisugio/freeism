@@ -126,7 +126,7 @@ function HelpTopicSection({ topic, developerChip }: { topic: HelpTopic; develope
             </Accordion.Trigger>
           </Accordion.Heading>
           <Accordion.Panel>
-            <Accordion.Body className="flex flex-col gap-3 text-foreground">
+            <Accordion.Body className="flex max-w-(--prose-max) flex-col gap-3 text-foreground">
               <HelpBlocks blocks={item.blocks} />
             </Accordion.Body>
           </Accordion.Panel>

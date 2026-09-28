@@ -66,7 +66,12 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
           <ErrorText>{switcher.failure === "switch" ? messages.switchFailed : messages.signOutFailed}</ErrorText>
         </div>
       )}
-      <Dropdown>
+      {/* 開き直したら、前の操作の失敗の案内を消す。 */}
+      <Dropdown
+        onOpenChange={(isOpen) => {
+          if (isOpen) switcher.clearFailure();
+        }}
+      >
         <Dropdown.Trigger
           aria-label={messages.accountMenuLabel(currentUser.displayName)}
           className="grid size-10 place-items-center rounded-full border border-border bg-surface text-foreground hover:border-border-strong aria-expanded:border-accent aria-expanded:bg-accent-soft aria-expanded:text-accent"
