@@ -8,6 +8,7 @@ import { downloadFile } from "./download-file";
  * テンプレートから作ったJSONも、バックアップJSONと同じ検査と規則で取り込む。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  * @see ./import-template.test.ts
+ * @see ../../../backend/routes/backup-routes.worker.test.ts
  */
 export function buildImportTemplateText(displayName: string): string {
   const importTemplate: Backup = {

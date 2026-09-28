@@ -171,6 +171,18 @@ describe("連携開始と同意画面", () => {
     expect(query.get("redirect_uri")).toBe(testRedirectUri);
   });
 
+  it("未ログインの認可要求は、署名付きクエリを付けてログイン画面（トップページ）へ302で移動する", async () => {
+    const { clientId } = await setUpUser();
+
+    const response = await authorize(new Headers(), clientId, { prompt: "consent" });
+
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("location") ?? "", testOrigin);
+    expect(location.pathname).toBe("/");
+    expect(location.searchParams.get("sig")).toEqual(expect.any(String));
+    expect(location.searchParams.get("client_id")).toBe(clientId);
+  });
+
   it("証明済みの外部アカウントを公開選択して保存してからaccept:trueを送ると、認可コードを付けて戻り先へ戻る", async () => {
     const { userId, headers, accountId, clientId } = await setUpUser();
     const oauthQuery = readConsentPageQuery(

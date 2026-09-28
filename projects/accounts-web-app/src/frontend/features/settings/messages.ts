@@ -36,7 +36,8 @@ export const settingsMessages = defineMessages({
 
     // データ取込
     importTitle: "データ取込",
-    importDescription: "データ出力のファイルか、テンプレート形式の JSON を取り込めます。",
+    importDescription:
+      "データ出力のファイルか、テンプレート形式の JSON を取り込めます。登録済みの URL が含まれている場合、その行の公開設定はファイルの値に戻ります。",
     chooseFile: "ファイルを選択",
     noFileChosen: "選択されていません",
     importButton: "取り込む",
@@ -107,7 +108,8 @@ export const settingsMessages = defineMessages({
     exported: "Exported your data.",
 
     importTitle: "Import data",
-    importDescription: "Import an exported file or a JSON file in the template format.",
+    importDescription:
+      "Import an exported file or a JSON file in the template format. If it contains a URL you have already registered, that entry's visibility settings are restored to the values in the file.",
     chooseFile: "Choose file",
     noFileChosen: "No file chosen",
     importButton: "Import",

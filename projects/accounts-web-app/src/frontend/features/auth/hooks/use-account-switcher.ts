@@ -4,6 +4,16 @@ import { useState } from "react";
 import { authClient } from "../../../lib/auth-client";
 import type { DeviceSessionSummary } from "./use-device-sessions";
 
+declare module "@tanstack/react-router" {
+  interface HistoryState {
+    /**
+     * ログアウトのためのトップページへの移動を識別する値。
+     * 移動が完了した履歴の項目がこの値を持つときだけ、そのログアウトを続ける。
+     */
+    signOutRequestId?: string;
+  }
+}
+
 /**
  * アカウントのメニューの操作に失敗した種類。
  */
@@ -48,9 +58,11 @@ export function useAccountSwitcher() {
    */
   const signOut = async (sessionToken: string) => {
     setFailure(null);
-    await navigate({ to: "/" });
-    // 未保存の確認で「編集に戻る」を選んだ場合は移動していないため、ログアウトしない。
-    if (router.state.location.pathname !== "/") return;
+    // 確認で止められた移動の`navigate`は、後で別の移動が完了したときにまとめて完了する。
+    // そのため、完了した移動がこのログアウトの移動であるときだけ続ける。
+    const signOutRequestId = crypto.randomUUID();
+    await navigate({ to: "/", state: { signOutRequestId } });
+    if (router.state.location.state.signOutRequestId !== signOutRequestId) return;
     try {
       const { error } = await authClient.multiSession.revoke({ sessionToken });
       if (error !== null) {

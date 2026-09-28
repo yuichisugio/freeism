@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { createUnsignedIdToken, getTestAuthContext } from "../../../test/auth-test-helpers";
 import { readExternalAccounts, testDb } from "../../../test/external-account-test-helpers";
 import { applySetCookies, loginWithCookieCache } from "../../../test/oauth-client-test-helpers";
+import { buildImportTemplateText } from "../../frontend/features/settings/import-template";
 import { jsonFileMaxBytes } from "../../shared/constants";
 import {
   backupSchema,
@@ -156,6 +157,23 @@ describe("POST /api/backup/restore", () => {
     expect(result).toEqual({ updatedAccountCount: 1, addedCandidateCount: 0, clientConsentCount: 0 });
     const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
     expect(userRow?.name).toBe("仮ユーザー");
+  });
+
+  it("データ取込のテンプレートをそのまま取り込むと、未検証の外部アカウントを1件追加する", async () => {
+    const { userId, headers } = await createLoggedInUser();
+
+    const result = await readData(
+      await requestBff("/api/backup/restore", {
+        method: "POST",
+        headers,
+        rawBody: buildImportTemplateText("テスト"),
+      }),
+      restoreBackupResultSchema,
+    );
+
+    expect(result).toEqual({ updatedAccountCount: 0, addedCandidateCount: 1, clientConsentCount: 0 });
+    const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
+    expect(userRow?.name).toBe("テスト");
   });
 
   it("戻した表示名を、応答のセッションのcookie cacheで次のセッションの読取に反映する", async () => {

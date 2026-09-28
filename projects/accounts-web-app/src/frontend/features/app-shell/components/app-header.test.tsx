@@ -1,10 +1,13 @@
 // @vitest-environment happy-dom
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../test/render-with-providers";
+import { useUnsavedChangesGuard } from "../hooks/use-unsaved-changes-guard";
 import { AppFooter, AppHeader } from "./app-header";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 
 // 応答はテストごとに必要な項目だけを返すため、呼出しの型を緩める。
 type AuthClientCall = (...args: unknown[]) => Promise<unknown>;
@@ -178,9 +181,10 @@ describe("AppHeader", () => {
 
     await userEvent.click(within(menu).getByRole("menuitem", { name: "aliceからログアウト" }));
 
-    await waitFor(() => expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" }));
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
     expect(router.state.location.pathname).toBe("/");
-    expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" });
   });
 
   it("ログアウトに失敗した場合は、失敗を示す", async () => {
@@ -191,6 +195,85 @@ describe("AppHeader", () => {
 
     expect((await screen.findByRole("alert")).textContent).toContain("ログアウトできませんでした");
     expect(authClientMock.$store.notify).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * 未保存の変更を持つ編集画面の代わり。
+ * 「保存」を押すまで未保存の変更がある状態にし、別画面への移動を確認ダイアログで止める。
+ */
+function DirtyEditor() {
+  const [isDirty, setIsDirty] = useState(true);
+  const guard = useUnsavedChangesGuard(isDirty);
+  return (
+    <>
+      <button type="button" onClick={() => setIsDirty(false)}>
+        保存
+      </button>
+      <UnsavedChangesDialog isOpen={guard.isConfirming} onDiscard={guard.discardAndLeave} onKeepEditing={guard.keepEditing} />
+    </>
+  );
+}
+
+describe("AppHeader: 未保存の変更がある画面からのログアウト", () => {
+  /**
+   * aliceでログインし、未保存の変更がある設定画面でログアウトを押して、確認ダイアログを開く。
+   */
+  async function signOutWithUnsavedChanges() {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice, bob], error: null });
+    authClientMock.multiSession.revoke.mockResolvedValue({ data: { status: true }, error: null });
+    const rendered = renderWithProviders(
+      <>
+        <AppHeader />
+        <DirtyEditor />
+      </>,
+      { path: "/ausr_alice/settings" },
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
+    const menu = await screen.findByRole("menu");
+    await userEvent.click(await within(menu).findByRole("menuitem", { name: "aliceからログアウト" }));
+    const dialog = await screen.findByRole("alertdialog");
+    return { ...rendered, dialog };
+  }
+
+  it("「編集に戻る」を選ぶとログアウトせず、その後に保存してトップページへ移動してもログアウトしない", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "編集に戻る" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    await userEvent.click(screen.getByRole("link", { name: "トップ" }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(authClientMock.multiSession.revoke).not.toHaveBeenCalled();
+    expect(authClientMock.$store.notify).not.toHaveBeenCalled();
+  });
+
+  it("「編集に戻る」の後に保存してもう一度ログアウトすると、セッションの終了は1回だけ行う", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "編集に戻る" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    await userEvent.click(screen.getByRole("button", { name: "アカウントのメニュー（alice）" }));
+    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "aliceからログアウト" }));
+
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("「変更を破棄して移動」を選ぶと、トップページへ移動してからログアウトする", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "変更を破棄して移動" }));
+
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" });
   });
 });
 
