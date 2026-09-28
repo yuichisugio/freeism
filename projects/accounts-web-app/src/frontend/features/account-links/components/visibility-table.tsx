@@ -1,4 +1,4 @@
-import { Button, Checkbox, Chip, Link, Switch } from "@heroui/react";
+import { Button, Checkbox, Chip, Link } from "@heroui/react";
 import { useState } from "react";
 
 import type { LinkedAccount } from "../../../../shared/schemas/account-link-schema";
@@ -14,14 +14,13 @@ import { VerificationList } from "./verification-details";
 
 /**
  * 外部アカウントを行、一般公開と各連携先（OAuthクライアント）を列にした公開設定の表。
- * 一般公開・情報提供同意・公開選択の変更は、表の上下に置く同じ保存ボタンでまとめて反映する。
+ * 一般公開・公開選択の変更は、表の上下に置く同じ保存ボタンでまとめて反映する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  */
 export function VisibilityTable({
   table,
   saveState,
   onAccountPublicChange,
-  onClientConsentChange,
   onClientVisibilityChange,
   onAccountVisibilityForAllClientsChange,
   onSave,
@@ -32,18 +31,16 @@ export function VisibilityTable({
   table: VisibilityTableModel;
   saveState: VisibilitySaveState;
   onAccountPublicChange: (accountId: string, isPublic: boolean) => void;
-  onClientConsentChange: (clientId: string, consented: boolean) => void;
   onClientVisibilityChange: (clientId: string, accountIds: string[], isVisible: boolean) => void;
   onAccountVisibilityForAllClientsChange: (accountId: string, isVisible: boolean) => void;
   onSave: () => void;
   onDiscard: () => void;
   onRequestUnlinkAccount: (account: LinkedAccount) => void;
-  onRequestUnlinkOAuth: (account: LinkedAccount, authAccountId: string) => void;
+  onRequestUnlinkOAuth: (account: LinkedAccount, verificationId: string) => void;
 }) {
   const messages = useMessages(accountLinksMessages);
   const [lastSavedFrom, setLastSavedFrom] = useState<SaveBarPosition>("top");
   const hasClients = table.columns.length > 0;
-  const blockedColumns = table.columns.filter((column) => column.lacksVerifiedSelection);
   const verifiedAccountIds = table.rows
     .filter((row) => row.account.verificationStatus === "verified")
     .map((row) => row.account.id);
@@ -59,7 +56,6 @@ export function VisibilityTable({
       table={table}
       saveState={lastSavedFrom === position ? saveState : { status: "idle" }}
       isSaving={saveState.status === "saving"}
-      hasBlockedColumns={blockedColumns.length > 0}
       onSave={() => {
         setLastSavedFrom(position);
         onSave();
@@ -94,7 +90,6 @@ export function VisibilityTable({
                   column={column}
                   table={table}
                   verifiedAccountIds={verifiedAccountIds}
-                  onConsentChange={(consented) => onClientConsentChange(column.client.clientId, consented)}
                   onBulkChange={(isVisible) => onClientVisibilityChange(column.client.clientId, verifiedAccountIds, isVisible)}
                 />
               ))}
@@ -112,18 +107,11 @@ export function VisibilityTable({
                 }
                 onAllClientsChange={(isVisible) => onAccountVisibilityForAllClientsChange(row.account.id, isVisible)}
                 onRequestUnlinkAccount={() => onRequestUnlinkAccount(row.account)}
-                onRequestUnlinkOAuth={(authAccountId) => onRequestUnlinkOAuth(row.account, authAccountId)}
+                onRequestUnlinkOAuth={(verificationId) => onRequestUnlinkOAuth(row.account, verificationId)}
               />
             ))}
           </tbody>
         </table>
-      </div>
-      <div aria-live="polite" className="flex flex-col gap-1">
-        {blockedColumns.map((column) => (
-          <p key={column.client.clientId} className="text-sm text-danger">
-            {messages.lacksVerifiedSelection(column.client.name)}
-          </p>
-        ))}
       </div>
       {renderSaveBar("bottom")}
     </div>
@@ -137,21 +125,19 @@ export function VisibilityTable({
 type SaveBarPosition = "top" | "bottom";
 
 /**
- * 表の上下に置く「公開設定を保存」「編集内容を破棄」と、未保存の変更・保存できない理由の短い表示。
+ * 表の上下に置く「公開設定を保存」「編集内容を破棄」と、未保存の変更の短い表示。
  * `saveState`は、このボタンで保存した場合の結果の表示に使う。
  */
 function VisibilitySaveBar({
   table,
   saveState,
   isSaving,
-  hasBlockedColumns,
   onSave,
   onDiscard,
 }: {
   table: VisibilityTableModel;
   saveState: VisibilitySaveState;
   isSaving: boolean;
-  hasBlockedColumns: boolean;
   onSave: () => void;
   onDiscard: () => void;
 }) {
@@ -160,14 +146,13 @@ function VisibilitySaveBar({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="primary" isDisabled={!table.canSave || isSaving} onPress={onSave}>
+        <Button variant="primary" isDisabled={!table.isDirty || isSaving} onPress={onSave}>
           {isSaving ? common.saving : messages.saveVisibility}
         </Button>
         <Button variant="secondary" isDisabled={!table.isDirty || isSaving} onPress={onDiscard}>
           {messages.discardVisibility}
         </Button>
         {table.isDirty ? <span className="text-sm font-semibold">{messages.unsavedChanges}</span> : null}
-        {hasBlockedColumns ? <span className="text-sm">{messages.saveBlocked}</span> : null}
       </div>
       {saveState.status === "saved" ? <SuccessNotice>{messages.visibilitySaved}</SuccessNotice> : null}
       {saveState.status === "error" ? <ErrorNotice error={saveState.error} codeMessages={messages.errorCodes} /> : null}
@@ -181,19 +166,17 @@ function VisibilitySaveBar({
 
 /**
  * 連携先の列の見出し。
- * 情報提供同意のON・OFFと、証明済みの外部アカウントの一括選択を置き、保存できない理由を列に示す。
+ * 証明済みの外部アカウントの一括選択を置く。
  */
 function ClientColumnHeader({
   column,
   table,
   verifiedAccountIds,
-  onConsentChange,
   onBulkChange,
 }: {
   column: VisibilityColumn;
   table: VisibilityTableModel;
   verifiedAccountIds: string[];
-  onConsentChange: (consented: boolean) => void;
   onBulkChange: (isVisible: boolean) => void;
 }) {
   const messages = useMessages(accountLinksMessages);
@@ -202,10 +185,7 @@ function ClientColumnHeader({
     (row) => verifiedAccountIds.includes(row.account.id) && row.visibleClientIds.includes(client.clientId),
   ).length;
   return (
-    <th
-      scope="col"
-      className={`p-2 text-left ${column.lacksVerifiedSelection ? "outline outline-2 outline-danger" : ""}`}
-    >
+    <th scope="col" className="p-2 text-left">
       <div className="flex flex-col gap-2">
         <span className="font-semibold">{client.name}</span>
         {client.uri === null ? null : (
@@ -213,14 +193,6 @@ function ClientColumnHeader({
             {messages.clientLink}
           </Link>
         )}
-        <Switch size="sm" isSelected={column.consented} onChange={onConsentChange}>
-          <Switch.Content>
-            <Switch.Control>
-              <Switch.Thumb />
-            </Switch.Control>
-            <span className="text-xs font-normal">{messages.consentLabel(client.name)}</span>
-          </Switch.Content>
-        </Switch>
         <Checkbox
           aria-label={messages.bulkColumnLabel(client.name)}
           isDisabled={verifiedAccountIds.length === 0}
@@ -235,11 +207,6 @@ function ClientColumnHeader({
             <span className="text-xs font-normal">{messages.bulkColumnHint}</span>
           </Checkbox.Content>
         </Checkbox>
-        {column.lacksVerifiedSelection ? (
-          <Chip size="sm" color="danger">
-            {messages.lacksVerifiedSelection(client.name)}
-          </Chip>
-        ) : null}
       </div>
     </th>
   );
@@ -293,14 +260,14 @@ function AccountRow({
   onClientVisibilityChange: (clientId: string, isVisible: boolean) => void;
   onAllClientsChange: (isVisible: boolean) => void;
   onRequestUnlinkAccount: () => void;
-  onRequestUnlinkOAuth: (authAccountId: string) => void;
+  onRequestUnlinkOAuth: (verificationId: string) => void;
 }) {
   const messages = useMessages(accountLinksMessages);
   const { language } = useI18n();
   const { account } = row;
   const label = formatAccountLabel(account);
-  const oauthAccountIds = account.verifications.flatMap((verification) =>
-    verification.method === "oauth" && verification.authAccountId !== null ? [verification.authAccountId] : [],
+  const oauthVerificationIds = account.verifications.flatMap((verification) =>
+    verification.method === "oauth" ? [verification.id] : [],
   );
   const visibleCount = row.visibleClientIds.length;
 
@@ -336,13 +303,13 @@ function AccountRow({
               ))}
             </ul>
           </div>
-          <VerificationList verifications={account.verifications} />
+          <VerificationList verifications={account.verifications} latestAttempt={account.latestAttempt} />
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="danger-soft" onPress={onRequestUnlinkAccount}>
               {messages.unlinkAccount}
             </Button>
-            {oauthAccountIds.map((authAccountId) => (
-              <Button key={authAccountId} size="sm" variant="outline" onPress={() => onRequestUnlinkOAuth(authAccountId)}>
+            {oauthVerificationIds.map((verificationId) => (
+              <Button key={verificationId} size="sm" variant="outline" onPress={() => onRequestUnlinkOAuth(verificationId)}>
                 {messages.unlinkOAuthOnly}
               </Button>
             ))}

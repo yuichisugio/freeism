@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { renderWithProviders } from "../../../test/render-with-providers";
@@ -26,21 +25,34 @@ beforeEach(() => {
 });
 
 describe("HomePage", () => {
-  it("簡単な使い方を紹介し、ヘルプへのリンクを置く", async () => {
+  it("サービス名と説明を見出しに置き、「アカウント連携へ」と「使い方」へのリンクを置く", async () => {
     renderWithProviders(<HomePage loginRequest={null} />);
 
-    expect(await screen.findByRole("heading", { level: 2, name: "簡単な使い方" })).toBeDefined();
-    expect(screen.getByRole("link", { name: "詳しい使い方はヘルプへ" }).getAttribute("href")).toBe("/help");
+    expect(await screen.findByRole("heading", { level: 1, name: "Freeism Accounts" })).toBeDefined();
+    expect(screen.getByText("アカウントが自分のものだと証明できるサービス")).toBeDefined();
+    expect(screen.getByRole("link", { name: "アカウント連携へ" }).getAttribute("href")).toBe("/account-links");
+    expect(screen.getByRole("link", { name: "使い方" }).getAttribute("href")).toBe("/help");
   });
 
-  it("ログインしていない場合は「ログインする」からログイン用のダイアログを開ける", async () => {
+  it("簡単な使い方として4つの手順を順に示す", async () => {
     renderWithProviders(<HomePage loginRequest={null} />);
 
-    expect(screen.queryByRole("button", { name: "Googleでログイン" })).toBeNull();
-    await userEvent.click(await screen.findByRole("button", { name: "ログインする" }));
+    const steps = await screen.findByRole("region", { name: "簡単な使い方" });
+    const items = within(steps).getAllByRole("listitem");
+    expect(items.map((item) => item.textContent)).toEqual([
+      expect.stringContaining("ログインする"),
+      expect.stringContaining("アカウント所有の証明"),
+      expect.stringContaining("公開先を選ぶ"),
+      expect.stringContaining("連携先とつなぐ"),
+    ]);
+  });
 
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getByRole("button", { name: "Googleでログイン" })).toBeDefined();
+  it("ログイン状態にかかわらず「ログインする」ボタンを置かない", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<HomePage loginRequest={null} />);
+
+    await screen.findByRole("heading", { level: 1, name: "Freeism Accounts" });
+    expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
   });
 
   it("利用側サービスから開いたログイン画面は、ログイン用のダイアログを自動で開き、失敗の案内を示す", async () => {
@@ -49,22 +61,5 @@ describe("HomePage", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("button", { name: "GitHubでログイン" })).toBeDefined();
     expect(within(dialog).getByRole("alert").textContent).toContain("この外部アカウントはまだ連携されていません");
-  });
-
-  it("ログイン済みの場合は、ログインの操作を表示しない（ユーザーの一覧と切替はヘッダーのメニューで行う）", async () => {
-    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
-    renderWithProviders(<HomePage loginRequest={null} />);
-
-    await screen.findByRole("heading", { level: 2, name: "簡単な使い方" });
-    expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
-    expect(screen.queryByText("Alice")).toBeNull();
-  });
-
-  it("セッションの確認中は、ログインの操作を表示しない", async () => {
-    authClientMock.useSession.mockReturnValue({ data: null, isPending: true });
-    renderWithProviders(<HomePage loginRequest={null} />);
-
-    await screen.findByRole("heading", { level: 2, name: "簡単な使い方" });
-    expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
   });
 });

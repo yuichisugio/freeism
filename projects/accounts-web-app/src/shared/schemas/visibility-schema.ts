@@ -2,8 +2,8 @@ import * as v from "valibot";
 
 /**
  * `PUT /api/visibility`の入力。
- * 一般公開・情報提供同意・外部アカウント別の公開選択を1回でまとめて保存する。
- * 同意ONのクライアントに証明済みの選択が無い場合、バックエンドは全体を400 `CONSENT_REQUIRES_VERIFIED_ACCOUNT`（`errors[].path`は`["clients", i]`）にする。
+ * 一般公開と外部アカウント別のクライアント向け公開選択を1回でまとめて保存する。
+ * `clients`の各クライアントは提供先として記録し、`visibleAccountIds`でそのクライアントへの公開選択を置き換える。
  * @see ../../../docs/specification/v0.1/main.ja.md
  */
 export const visibilitySchema = v.strictObject({
@@ -16,7 +16,6 @@ export const visibilitySchema = v.strictObject({
   clients: v.array(
     v.strictObject({
       clientId: v.pipe(v.string(), v.nonEmpty()),
-      consented: v.boolean(),
       visibleAccountIds: v.array(v.pipe(v.string(), v.nonEmpty())),
     }),
   ),

@@ -38,7 +38,7 @@ export async function exportBackup(
 }
 
 /**
- * 出力前に示す件数と、非公開の情報（未検証の登録・非公開の設定・情報提供同意）を含むかを返す。
+ * 出力前に示す件数と、非公開の情報（未検証の登録・非公開の設定・提供先の記録）を含むかを返す。
  */
 export async function readBackupSummary(
   deps: ExportBackupDeps,
@@ -76,7 +76,7 @@ export function serializeBackup(backup: Backup): string {
 }
 
 /**
- * 本人の表示名・全外部アカウント（候補を含む）・全情報提供同意からバックアップJSONを組み立てる。
+ * 本人の表示名・全外部アカウント（候補を含む）・全提供先の記録からバックアップJSONを組み立てる。
  * `verifications`は現在の証明行から作り、`clientVisibility`は`clientConsents`の各Client IDを網羅する（設定行が無ければ`false`）。
  */
 async function buildBackup(deps: ExportBackupDeps, input: { userId: string }): Promise<Backup> {

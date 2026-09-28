@@ -9,7 +9,6 @@ import {
   buildVisibilityTable,
   emptyVisibilityEdits,
   setAccountPublic,
-  setClientConsent,
   setClientVisibility,
 } from "../lib/visibility-draft";
 import type { VisibilityEdits } from "../lib/visibility-draft";
@@ -72,15 +71,14 @@ export function useAccountLinks(consentClientId?: string) {
 
   /**
    * 公開設定をまとめて保存し、成功したかを返す。
-   * `forcedConsentClientId`は同意画面の「同意して戻る」で同意ONとして保存する連携先。
    */
-  const save = async (forcedConsentClientId?: string): Promise<boolean> => {
+  const save = async (): Promise<boolean> => {
     if (links === null) return false;
     setSaveState({ status: "saving" });
     try {
       await requestBff("/api/visibility", okSchema, {
         method: "PUT",
-        body: buildVisibilityInput(links, edits, forcedConsentClientId),
+        body: buildVisibilityInput(links, edits),
       });
       // 再取得の完了まで編集後の値を表示し、保存済みの値へ表示が戻らないようにする。
       await reload();
@@ -120,14 +118,8 @@ export function useAccountLinks(consentClientId?: string) {
     reload,
     save,
     discardEdits,
-    /**
-     * 同意ONとして保存する場合の表（同意画面の「同意して戻る」の可否に使う）。
-     */
-    tableWithForcedConsent: (clientId: string) => (links === null ? null : buildVisibilityTable(links, edits, clientId)),
     setAccountPublic: (accountId: string, isPublic: boolean) =>
       edit((current) => setAccountPublic(current, accountId, isPublic)),
-    setClientConsent: (clientId: string, consented: boolean) =>
-      edit((current) => setClientConsent(current, clientId, consented)),
     setClientVisibility: (clientId: string, accountIds: readonly string[], isVisible: boolean) =>
       edit((current) => setClientVisibility(current, clientId, accountIds, isVisible)),
     /**

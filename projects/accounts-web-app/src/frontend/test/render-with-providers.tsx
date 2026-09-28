@@ -33,7 +33,7 @@ export function renderWithProviders(
   const routeTree = rootRoute.addChildren([
     createRoute({ getParentRoute: () => rootRoute, path: "/" }),
     userScopeRoute.addChildren(
-      ["account-links", "settings", "developer", "help"].map((path) =>
+      ["account-links", "settings", "help", "licenses", "privacy", "terms"].map((path) =>
         createRoute({ getParentRoute: () => userScopeRoute, path }),
       ),
     ),

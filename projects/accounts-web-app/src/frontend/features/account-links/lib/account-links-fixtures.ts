@@ -14,6 +14,8 @@ export function createLinkedAccount(overrides: Partial<LinkedAccount> = {}): Lin
     verificationStatus: "verified",
     identifiers: [{ id: "eid_1", type: "url", provider: null, value: "https://github.com/alice", isActive: true }],
     verifications: [],
+    latestAttempt: null,
+    primaryUrl: "https://github.com/alice",
     visibility: {},
     hasImportedVerifications: false,
     ...overrides,
@@ -28,7 +30,6 @@ export function createLinkedClient(overrides: Partial<LinkedClient> = {}): Linke
     clientId: "points",
     name: "Points",
     uri: "https://points.example/",
-    consented: false,
     isConsentRequest: false,
     ...overrides,
   };

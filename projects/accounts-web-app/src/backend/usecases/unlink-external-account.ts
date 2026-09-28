@@ -1,6 +1,7 @@
 import type { Auth } from "../auth/create-auth";
 import { unlinkAuthAccount } from "../auth/unlink-auth-account";
 import { runBatch, type Database } from "../db/database";
+import { D1ClientProvisionRepository } from "../db/repositories/d1-client-provision-repository";
 import { D1ExternalAccountRepository } from "../db/repositories/d1-external-account-repository";
 import { ProblemError } from "../problem-details";
 
@@ -9,6 +10,7 @@ import { ProblemError } from "../problem-details";
  * 行がOAuthの証明を含む場合は、標準の認証連携の解除を先に行い、拒否された場合は独自表を変更しない。
  * その後、外部アカウント行を削除し、行の識別子・証明・対象関連・公開設定をCASCADEで終了する。
  * 証明と識別子の関連は同じ行の中だけにあるため、ほかの行の識別子の有効性は変わらない。
+ * 解除で提供しなくなったクライアントの標準`oauthConsent`は、同じbatchで削除する。
  * @throws {ProblemError} 本人の行でない場合は404 `NOT_FOUND`、最後のログイン手段の場合は400 `LAST_LOGIN_METHOD`。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ./unlink-external-account.worker.test.ts
@@ -31,5 +33,8 @@ export async function unlinkExternalAccount(
     await unlinkAuthAccount(deps.auth, input.headers, authAccountId);
   }
 
-  await runBatch(deps.db, [repository.deleteExternalAccount(input.userId, externalAccount.id)]);
+  await runBatch(deps.db, [
+    repository.deleteExternalAccount(input.userId, externalAccount.id),
+    new D1ClientProvisionRepository(deps.db).reconcileOAuthConsents([input.userId]),
+  ]);
 }

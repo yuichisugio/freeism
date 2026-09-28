@@ -41,8 +41,8 @@ beforeEach(() => {
 });
 
 /**
- * 画面の経路（`/{-$accountsUserId}/settings`・`/{-$accountsUserId}/help`）と同じ構成のルーターで、指定したURLを開く。
- * ヘルプは実際の経路と同じく、ユーザーの情報を扱わない画面として指定する。
+ * 画面の経路（`/{-$accountsUserId}/account-links`・`/settings`・`/help`）と同じ構成のルーターで、指定したURLを開く。
+ * 「その他」（`settings`）は未ログインでも表示する画面、ヘルプはユーザーの情報を扱わない画面として指定する。
  */
 function renderUserScopedPage(path: string) {
   const rootRoute = createRootRoute({
@@ -63,9 +63,15 @@ function renderUserScopedPage(path: string) {
       </UserScopeGate>
     ),
   });
+  const accountLinksRoute = createRoute({
+    getParentRoute: () => userScopeRoute,
+    path: "account-links",
+    component: () => <p>account links page</p>,
+  });
   const settingsRoute = createRoute({
     getParentRoute: () => userScopeRoute,
     path: "settings",
+    staticData: { allowsGuest: true },
     component: () => <p>settings page</p>,
   });
   const helpRoute = createRoute({
@@ -75,7 +81,7 @@ function renderUserScopedPage(path: string) {
     component: () => <p>help page</p>,
   });
   const router = createRouter({
-    routeTree: rootRoute.addChildren([userScopeRoute.addChildren([settingsRoute, helpRoute])]),
+    routeTree: rootRoute.addChildren([userScopeRoute.addChildren([accountLinksRoute, settingsRoute, helpRoute])]),
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   render(<RouterProvider router={router} />);
@@ -83,12 +89,40 @@ function renderUserScopedPage(path: string) {
 }
 
 describe("UserScopeGate", () => {
-  it("ログインしていない場合は、ユーザーIDの無いURLのまま画面を表示する", async () => {
+  it("ログインしていない場合、未ログインでも表示する画面は、ユーザーIDの無いURLのまま表示する", async () => {
     authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
     const router = renderUserScopedPage("/settings");
 
     expect(await screen.findByText("settings page")).toBeDefined();
     expect(router.state.location.pathname).toBe("/settings");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("ログインしていない場合、ログインが必要な画面はログインを求める1文だけを表示し、ログイン用のダイアログを開いて同じURLへ戻す", async () => {
+    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+    authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
+    renderUserScopedPage("/account-links");
+
+    const dialog = await screen.findByRole("dialog");
+    expect(screen.getByText("表示するにはログインしてください")).toBeDefined();
+    expect(screen.queryByText("account links page")).toBeNull();
+    within(dialog).getByRole("button", { name: "GitHubでログイン" }).click();
+
+    await waitFor(() =>
+      expect(authClientMock.signIn.social).toHaveBeenCalledWith({
+        provider: "github",
+        callbackURL: "/account-links",
+        errorCallbackURL: "/account-links",
+      }),
+    );
+  });
+
+  it("ログインしていない場合、ログインの失敗で戻されたときは失敗の案内とともにダイアログを開く", async () => {
+    authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+    renderUserScopedPage("/account-links?error=email_not_found");
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("alert").textContent).toContain("GitHubからメールアドレスを取得できませんでした");
   });
 
   it("ログイン済みでユーザーIDの無いURLを開くと、クエリとハッシュを保って現在のユーザーのID付きのURLへ置き換える", async () => {

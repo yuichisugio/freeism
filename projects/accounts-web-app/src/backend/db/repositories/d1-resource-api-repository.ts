@@ -3,7 +3,6 @@ import { and, eq, isNotNull, sql } from "drizzle-orm";
 import type { IdentifierKey } from "../../domain/identity/identifier-key";
 import type { Database } from "../database";
 import {
-  clientConsents,
   externalAccounts,
   externalAccountVerifications,
   externalAccountVisibility,
@@ -11,11 +10,12 @@ import {
   user,
   verificationIdentifiers,
 } from "../schema";
+import { providedToClient } from "./d1-client-provision-repository";
 
 /**
  * 資源APIの読取。
- * 提供の条件は、ユーザーが存在してbanされておらず、問い合わせ元への情報提供同意がONで、
- * 外部アカウントを問い合わせ元へ公開選択し、識別子が現在有効で成功した証明の対象に含まれることとする。
+ * 提供の条件は、ユーザーが存在してbanされておらず、外部アカウントを問い合わせ元へ公開選択し、識別子が現在有効で成功した証明の対象に含まれることとする。
+ * ユーザー単位の判定（一覧・AccountsユーザーIDの照合）は、`providedToClient`の条件を使う。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
 
@@ -38,21 +38,19 @@ export class D1ResourceApiRepository {
   // --------------------------------------------------
 
   /**
-   * ユーザーが存在してbanされておらず、クライアントへの情報提供同意がONか確認する。
+   * ユーザーが存在してbanされておらず、クライアントへ提供しているか確認する。
    */
-  async hasConsentedUser(userId: string, clientId: string): Promise<boolean> {
+  async hasProvidingUser(userId: string, clientId: string): Promise<boolean> {
     const [row] = await this.db
       .select({ id: user.id })
       .from(user)
-      .innerJoin(
-        clientConsents,
+      .where(
         and(
-          eq(clientConsents.userId, user.id),
-          eq(clientConsents.clientId, clientId),
-          eq(clientConsents.consented, true),
+          eq(user.id, userId),
+          sql`coalesce(${user.banned}, 0) = 0`,
+          providedToClient(user.id, clientId),
         ),
       )
-      .where(and(eq(user.id, userId), sql`coalesce(${user.banned}, 0) = 0`))
       .limit(1);
     return row !== undefined;
   }
@@ -108,8 +106,6 @@ export class D1ResourceApiRepository {
         and ei.value = json_extract(j.value, '$.value')
         and ei.is_active = 1
       inner join ${user} u on u.id = ei.user_id and coalesce(u.banned, 0) = 0
-      inner join ${clientConsents} cc
-        on cc.user_id = ei.user_id and cc.client_id = ${clientId} and cc.consented = 1
       inner join ${externalAccountVisibility} v
         on v.account_id = ei.account_id and v.client_id = ${clientId} and v.is_public = 1
       where exists (
@@ -121,7 +117,7 @@ export class D1ResourceApiRepository {
   }
 
   /**
-   * AccountsユーザーIDの配列を1つのバインド値で渡し、存在してbanされておらず、クライアントへの情報提供同意がONのユーザーを読む。
+   * AccountsユーザーIDの配列を1つのバインド値で渡し、存在してbanされておらず、クライアントへ提供しているユーザーを読む。
    */
   async resolveAccountsUsers(clientId: string, userIds: readonly string[]): Promise<ResolvedRow[]> {
     if (userIds.length === 0) {
@@ -132,8 +128,7 @@ export class D1ResourceApiRepository {
       select j.key as inputIndex, u.id as userId
       from json_each(${JSON.stringify(userIds)}) j
       inner join ${user} u on u.id = j.value and coalesce(u.banned, 0) = 0
-      inner join ${clientConsents} cc
-        on cc.user_id = u.id and cc.client_id = ${clientId} and cc.consented = 1
+      where ${providedToClient(sql`u.id`, clientId)}
     `);
   }
 }

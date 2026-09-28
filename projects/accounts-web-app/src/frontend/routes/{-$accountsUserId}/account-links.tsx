@@ -49,9 +49,8 @@ function AccountLinksPage() {
 
   const { links, table, loadState } = accountLinks;
   const consentClient = links?.clients.find((client) => client.clientId === consentClientId) ?? null;
-  const tableWithConsent = consentClientId === undefined ? null : accountLinks.tableWithForcedConsent(consentClientId);
   const canAccept =
-    tableWithConsent?.columns.every((column) => !column.lacksVerifiedSelection) === true &&
+    table?.columns.find((column) => column.client.clientId === consentClientId)?.hasVerifiedSelection === true &&
     accountLinks.saveState.status !== "saving";
   const urlCount =
     links?.accounts.reduce(
@@ -79,7 +78,7 @@ function AccountLinksPage() {
           hasFailed={consent.hasFailed}
           isSubmitting={consent.isSubmitting}
           canAccept={canAccept}
-          onAccept={() => void consent.accept(() => accountLinks.save(consentClientId))}
+          onAccept={() => void consent.accept(() => accountLinks.save())}
           onDeny={() => void consent.deny()}
         />
       )}
@@ -126,13 +125,14 @@ function AccountLinksPage() {
             table={table}
             saveState={accountLinks.saveState}
             onAccountPublicChange={accountLinks.setAccountPublic}
-            onClientConsentChange={accountLinks.setClientConsent}
             onClientVisibilityChange={accountLinks.setClientVisibility}
             onAccountVisibilityForAllClientsChange={accountLinks.setAccountVisibilityForAllClients}
             onSave={() => void accountLinks.save()}
             onDiscard={accountLinks.discardEdits}
             onRequestUnlinkAccount={(account) => unlink.request({ kind: "account", account })}
-            onRequestUnlinkOAuth={(account, authAccountId) => unlink.request({ kind: "oauth", account, authAccountId })}
+            onRequestUnlinkOAuth={(account, verificationId) =>
+              unlink.request({ kind: "verification", account, verificationId })
+            }
           />
         </>
       )}

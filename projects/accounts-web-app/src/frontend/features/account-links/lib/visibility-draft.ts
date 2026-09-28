@@ -14,11 +14,10 @@ import type { VisibilityInput } from "../../../../shared/schemas/visibility-sche
  */
 export type VisibilityEdits = {
   accountPublic: Readonly<Record<string, boolean>>;
-  clientConsent: Readonly<Record<string, boolean>>;
   clientVisibility: Readonly<Record<string, Readonly<Record<string, boolean>>>>;
 };
 
-export const emptyVisibilityEdits: VisibilityEdits = { accountPublic: {}, clientConsent: {}, clientVisibility: {} };
+export const emptyVisibilityEdits: VisibilityEdits = { accountPublic: {}, clientVisibility: {} };
 
 /**
  * 表の1行（外部アカウント）。
@@ -31,19 +30,17 @@ export type VisibilityRow = {
 
 /**
  * 表の1列（OAuthクライアント）。
- * `lacksVerifiedSelection`は同意ONで証明済みの外部アカウントが1件も選択されていないこと。
+ * `hasVerifiedSelection`は証明済みの外部アカウントを1件以上選択していること（そのクライアントへ提供する条件）。
  */
 export type VisibilityColumn = {
   client: LinkedClient;
-  consented: boolean;
-  lacksVerifiedSelection: boolean;
+  hasVerifiedSelection: boolean;
 };
 
 export type VisibilityTable = {
   rows: VisibilityRow[];
   columns: VisibilityColumn[];
   isDirty: boolean;
-  canSave: boolean;
 };
 
 // --------------------------------------------------
@@ -55,13 +52,6 @@ export type VisibilityTable = {
  */
 export function setAccountPublic(edits: VisibilityEdits, accountId: string, isPublic: boolean): VisibilityEdits {
   return { ...edits, accountPublic: { ...edits.accountPublic, [accountId]: isPublic } };
-}
-
-/**
- * クライアントへの情報提供同意を変更する。
- */
-export function setClientConsent(edits: VisibilityEdits, clientId: string, consented: boolean): VisibilityEdits {
-  return { ...edits, clientConsent: { ...edits.clientConsent, [clientId]: consented } };
 }
 
 /**
@@ -86,11 +76,6 @@ function resolveAccountPublic(account: LinkedAccount, edits: VisibilityEdits): b
   return edits.accountPublic[account.id] ?? account.isPublic;
 }
 
-function resolveConsent(client: LinkedClient, edits: VisibilityEdits, forcedConsentClientId?: string): boolean {
-  if (client.clientId === forcedConsentClientId) return true;
-  return edits.clientConsent[client.clientId] ?? client.consented;
-}
-
 function resolveVisibility(client: LinkedClient, account: LinkedAccount, edits: VisibilityEdits): boolean {
   return edits.clientVisibility[client.clientId]?.[account.id] ?? account.visibility[client.clientId] ?? false;
 }
@@ -102,25 +87,18 @@ function resolveVisibility(client: LinkedClient, account: LinkedAccount, edits: 
 export function isVisibilityDirty(links: AccountLinks, edits: VisibilityEdits): boolean {
   return (
     links.accounts.some((account) => resolveAccountPublic(account, edits) !== account.isPublic) ||
-    links.clients.some(
-      (client) =>
-        resolveConsent(client, edits) !== client.consented ||
-        links.accounts.some(
-          (account) => resolveVisibility(client, account, edits) !== (account.visibility[client.clientId] ?? false),
-        ),
+    links.clients.some((client) =>
+      links.accounts.some(
+        (account) => resolveVisibility(client, account, edits) !== (account.visibility[client.clientId] ?? false),
+      ),
     )
   );
 }
 
 /**
- * 一覧表の表示内容と保存可否を組み立てる。
- * `forcedConsentClientId`は同意画面の「同意して戻る」で同意ONとして保存する連携先。
+ * 一覧表の表示内容と未保存の変更の有無を組み立てる。
  */
-export function buildVisibilityTable(
-  links: AccountLinks,
-  edits: VisibilityEdits,
-  forcedConsentClientId?: string,
-): VisibilityTable {
+export function buildVisibilityTable(links: AccountLinks, edits: VisibilityEdits): VisibilityTable {
   const rows = links.accounts.map((account) => ({
     account,
     isPublic: resolveAccountPublic(account, edits),
@@ -128,33 +106,25 @@ export function buildVisibilityTable(
       .filter((client) => resolveVisibility(client, account, edits))
       .map((client) => client.clientId),
   }));
-  const columns = links.clients.map((client) => {
-    const consented = resolveConsent(client, edits, forcedConsentClientId);
-    const hasVerifiedSelection = rows.some(
+  const columns = links.clients.map((client) => ({
+    client,
+    hasVerifiedSelection: rows.some(
       (row) => row.account.verificationStatus === "verified" && row.visibleClientIds.includes(client.clientId),
-    );
-    return { client, consented, lacksVerifiedSelection: consented && !hasVerifiedSelection };
-  });
-  const isDirty = isVisibilityDirty(links, edits);
-  const isValid = columns.every((column) => !column.lacksVerifiedSelection);
-  return { rows, columns, isDirty, canSave: isDirty && isValid };
+    ),
+  }));
+  return { rows, columns, isDirty: isVisibilityDirty(links, edits) };
 }
 
 /**
  * `PUT /api/visibility`の入力を組み立てる。
  * 表示中の全行と全クライアントの編集後の値を送る。
  */
-export function buildVisibilityInput(
-  links: AccountLinks,
-  edits: VisibilityEdits,
-  forcedConsentClientId?: string,
-): VisibilityInput {
-  const table = buildVisibilityTable(links, edits, forcedConsentClientId);
+export function buildVisibilityInput(links: AccountLinks, edits: VisibilityEdits): VisibilityInput {
+  const table = buildVisibilityTable(links, edits);
   return {
     accounts: table.rows.map((row) => ({ externalAccountId: row.account.id, isPublic: row.isPublic })),
     clients: table.columns.map((column) => ({
       clientId: column.client.clientId,
-      consented: column.consented,
       visibleAccountIds: table.rows
         .filter((row) => row.visibleClientIds.includes(column.client.clientId))
         .map((row) => row.account.id),

@@ -1,2 +1,421 @@
+/*
+ * 画面全体のスタイル。
+ * 色・書体・角丸・間隔・寸法はデザインシステムのトークンで決め、HeroUI v3 と Tailwind 4 の変数へ当てる。
+ * @see ../../docs/specification/v0.1/design-system.ja.md
+ */
 @import "tailwindcss";
 @import "@heroui/styles";
+
+/* -------------------------------------------------- Tailwind のテーマ（書体・文字サイズ・行間・角丸） */
+@theme {
+  --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
+  --font-sans: "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
+  --font-mono: "M PLUS 1 Code", ui-monospace, Menlo, monospace;
+
+  --text-2xs: 11px;
+  --text-2xs--line-height: 1.7;
+  --text-xs: 12px;
+  --text-xs--line-height: 1.7;
+  --text-sm: 13px;
+  --text-sm--line-height: 1.7;
+  --text-md: 14px;
+  --text-md--line-height: 1.7;
+  --text-lg: 16px;
+  --text-lg--line-height: 1.7;
+  --text-xl: 20px;
+  --text-xl--line-height: 1.7;
+  --text-2xl: 26px;
+  --text-2xl--line-height: 1.7;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 1.7;
+
+  --leading-tight: 1.35;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+}
+
+/* -------------------------------------------------- HeroUI に無い色のユーティリティ */
+@theme inline {
+  --color-border-strong: var(--border-strong);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-favicon-plate: var(--favicon-plate);
+  --color-favicon-fallback: var(--favicon-fallback);
+}
+
+/*
+ * -------------------------------------------------- トークン
+ * HeroUI の変数はレイヤーの中で定義されるため、レイヤーに入れないここのブロックが優先される。
+ * テーマは `<html>` の `data-theme` で切り替え、属性が無いときはシステムの設定に従う。
+ */
+:root {
+  color-scheme: light;
+  --background: #f2f4fa;
+  --surface: #ffffff;
+  --surface-secondary: #f5f7fc;
+  --border: #e2e6f0;
+  --border-strong: #c7cddc;
+  --foreground: #1b2033;
+  --muted: #69708a;
+  --accent: #3b6ff0;
+  --accent-hover: #2f5fd9;
+  --accent-soft: #e8eefe;
+  --accent-foreground: #ffffff;
+  --highlight: #ffd84d;
+  --highlight-foreground: #3a2e00;
+  --success: #1f9d63;
+  --success-soft: #e3f5ec;
+  --warning: #b8740f;
+  --warning-soft: #fdf1dc;
+  --danger: #d94848;
+  --danger-soft: #fce9e9;
+  --danger-foreground: #ffffff;
+  --focus: #3b6ff0;
+  --link: #2553c9;
+  --favicon-plate: #ffffff;
+  --favicon-fallback: #69708a;
+  --backdrop: rgba(27, 32, 51, 0.42);
+  --shadow: 0 1px 2px rgba(27, 32, 51, 0.04), 0 6px 20px rgba(27, 32, 51, 0.05);
+  --shadow-pop: 0 4px 12px rgba(27, 32, 51, 0.08), 0 18px 44px rgba(27, 32, 51, 0.16);
+
+  /* ブランドアイコンの色はテーマで変えない。 */
+  --brand-on: #ffffff;
+  --brand-google-blue: #4285f4;
+  --brand-google-red: #ea4335;
+  --brand-google-yellow: #fbbc05;
+  --brand-google-green: #34a853;
+  --brand-orcid: #a6ce39;
+
+  --leading: 1.7;
+
+  /*
+   * 手書きの CSS から使う間隔。
+   * Tailwind の数値（`p-4` など）と同じ値。
+   */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --input-h: 44px;
+  --checkbox: 22px;
+  --avatar: 34px;
+  --page-max: 1000px;
+  --prose-max: 65ch;
+  --menu-w: 320px;
+  --lang-menu-w: 200px;
+  --provider-w: 280px;
+  --dialog-w: 440px;
+  --q-label-w: 200px;
+  --col-lead: 288px;
+  --col-lead-compact: 168px;
+  --col-dest: 112px;
+  --col-dest-compact: 72px;
+  --consent-w: 480px;
+  --table-max-h: 90vh;
+  --sticky-offset: 72px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --background: #10131c;
+    --surface: #181c28;
+    --surface-secondary: #1f2433;
+    --border: #2a3042;
+    --border-strong: #3c4560;
+    --foreground: #e6e9f2;
+    --muted: #969db3;
+    --accent: #7da0ff;
+    --accent-hover: #93b1ff;
+    --accent-soft: #1e2a4a;
+    --accent-foreground: #0c1328;
+    --highlight: #ffd84d;
+    --highlight-foreground: #3a2e00;
+    --success: #5bd69a;
+    --success-soft: #13301f;
+    --warning: #f0b45a;
+    --warning-soft: #33260f;
+    --danger: #f08080;
+    --danger-soft: #3a1a1c;
+    --danger-foreground: #2a0e0e;
+    --focus: #93b1ff;
+    --link: #9db8ff;
+    --favicon-plate: #e6e9f2;
+    --favicon-fallback: #4a5270;
+    --backdrop: rgba(0, 0, 0, 0.6);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3);
+    --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.4), 0 18px 44px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #10131c;
+  --surface: #181c28;
+  --surface-secondary: #1f2433;
+  --border: #2a3042;
+  --border-strong: #3c4560;
+  --foreground: #e6e9f2;
+  --muted: #969db3;
+  --accent: #7da0ff;
+  --accent-hover: #93b1ff;
+  --accent-soft: #1e2a4a;
+  --accent-foreground: #0c1328;
+  --highlight: #ffd84d;
+  --highlight-foreground: #3a2e00;
+  --success: #5bd69a;
+  --success-soft: #13301f;
+  --warning: #f0b45a;
+  --warning-soft: #33260f;
+  --danger: #f08080;
+  --danger-soft: #3a1a1c;
+  --danger-foreground: #2a0e0e;
+  --focus: #93b1ff;
+  --link: #9db8ff;
+  --favicon-plate: #e6e9f2;
+  --favicon-fallback: #4a5270;
+  --backdrop: rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3);
+  --shadow-pop: 0 4px 12px rgba(0, 0, 0, 0.4), 0 18px 44px rgba(0, 0, 0, 0.5);
+}
+
+/*
+ * -------------------------------------------------- HeroUI の変数とトークンの対応
+ * HeroUI だけが持つ変数をトークンに向ける。
+ * HeroUI のダークの値は `data-theme="dark"` でしか当たらないため、固定値を持つ変数もすべてここで向け、システムがダークのときも同じ見た目にする。
+ * `var()` の参照なので、テーマの切替で参照先のトークンが変わると追従する。
+ */
+:root {
+  --overlay: var(--surface);
+  --surface-tertiary: var(--surface-secondary);
+  --default: var(--surface-secondary);
+  --default-foreground: var(--foreground);
+  --segment: var(--surface);
+  --segment-foreground: var(--foreground);
+  --separator: var(--border);
+  --accent-soft-foreground: var(--accent);
+  --success-soft-foreground: var(--success);
+  --warning-soft-foreground: var(--warning);
+  --danger-soft-foreground: var(--danger);
+  --field-background: var(--surface-secondary);
+  --field-foreground: var(--foreground);
+  --field-border: transparent;
+  --field-border-width: 1px;
+  --field-border-focus: var(--accent);
+  --field-focus: var(--surface);
+  --field-radius: var(--radius-lg);
+  --field-shadow: 0 0 0 0 transparent;
+  --surface-shadow: var(--shadow);
+  --overlay-shadow: var(--shadow-pop);
+  --disabled-opacity: 0.45;
+}
+
+/* -------------------------------------------------- 基本の要素 */
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    line-height: var(--leading);
+  }
+
+  /* `--tw-leading`は、`text-*`のユーティリティを付けた見出しでも行間を --leading-tight にするため。 */
+  h1,
+  h2,
+  h3 {
+    --tw-leading: var(--leading-tight);
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    text-wrap: balance;
+  }
+
+  a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+}
+
+/* -------------------------------------------------- HeroUI の部品の見た目 */
+@layer components {
+  /* ボタン: 通常 --control-h、小 --control-h-sm、形は pill。 */
+  .button {
+    height: var(--control-h);
+    padding-inline: var(--space-5);
+    border-radius: 9999px;
+    font-size: var(--text-md);
+    text-decoration: none;
+  }
+
+  .button--sm {
+    height: var(--control-h-sm);
+    padding-inline: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .button--icon-only {
+    width: var(--control-h);
+    padding: 0;
+  }
+
+  .button--icon-only.button--sm {
+    width: var(--control-h-sm);
+  }
+
+  /* セカンダリ（`outline`）: 面と枠。 */
+  .button--outline {
+    --button-bg: var(--surface);
+    --button-bg-hover: var(--surface-secondary);
+    --button-bg-pressed: var(--surface-secondary);
+    --button-fg: var(--foreground);
+
+    &:hover {
+      border-color: var(--border-strong);
+    }
+  }
+
+  /* ソフト（`secondary`）: 主色の淡い面。 */
+  .button--secondary {
+    --button-bg: var(--accent-soft);
+    --button-bg-hover: color-mix(in srgb, var(--accent-soft) 85%, var(--accent));
+    --button-bg-pressed: var(--button-bg-hover);
+    --button-fg: var(--accent);
+  }
+
+  .button--tertiary {
+    --button-fg: var(--foreground);
+  }
+
+  .button--ghost {
+    --button-bg-hover: var(--surface-secondary);
+    --button-fg: var(--muted);
+
+    &:hover {
+      --button-fg: var(--foreground);
+    }
+  }
+
+  /*
+   * チップ: 高さ 24px、pill。
+   * 状態を示すだけで押せない。
+   */
+  .chip {
+    height: 24px;
+    gap: var(--space-1);
+    padding-inline: var(--space-3);
+    border-radius: 9999px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .chip--default.chip--soft {
+    --chip-bg: var(--surface-secondary);
+    --chip-fg: var(--muted);
+  }
+
+  /* 枠カード。 */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+
+    @media (width < 40rem) {
+      padding: var(--space-4);
+    }
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
+
+  /* ダイアログ。 */
+  .modal__dialog {
+    border-radius: var(--radius-2xl);
+  }
+
+  .modal__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+
+  /* ポップオーバー（アカウント切替メニューなど）。 */
+  .dropdown__popover,
+  .popover {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+  }
+
+  .menu-item {
+    border-radius: var(--radius-lg);
+  }
+
+  /* 情報メッセージ・エラー通知: 淡い面、影なし。 */
+  .alert {
+    border-radius: var(--radius-md);
+    box-shadow: none;
+  }
+
+  .alert--accent {
+    background-color: var(--accent-soft);
+  }
+
+  .alert--success {
+    background-color: var(--success-soft);
+  }
+
+  .alert--warning {
+    background-color: var(--warning-soft);
+  }
+
+  .alert--danger {
+    background-color: var(--danger-soft);
+  }
+
+  .alert__description {
+    color: var(--foreground);
+  }
+
+  /*
+   * 入力欄: 高さ --input-h。
+   * フォーカスで枠を主色・面を --surface にする指定は、HeroUI の変数（--field-border-focus・--field-focus）で行う。
+   */
+  .input {
+    min-height: var(--input-h);
+    font-size: var(--text-md);
+  }
+}

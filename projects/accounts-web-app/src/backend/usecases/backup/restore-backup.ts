@@ -1,6 +1,7 @@
 import type { Backup, RestoreBackupResult } from "../../../shared/schemas/backup-schema";
 import { runBatch, type Database } from "../../db/database";
 import { D1BackupRepository } from "../../db/repositories/d1-backup-repository";
+import { D1ClientProvisionRepository } from "../../db/repositories/d1-client-provision-repository";
 import { ProblemError } from "../../problem-details";
 import { planBackupRestore } from "./plan-backup-restore";
 
@@ -19,7 +20,8 @@ import { planBackupRestore } from "./plan-backup-restore";
 export type RestoreBackupOutput = RestoreBackupResult & { affectedUserIds: string[] };
 
 /**
- * 表示名・情報提供同意・外部アカウントの一般公開とクライアント別の公開選択を戻し、本人に紐付いていない外部アカウントを登録候補として取り込む。
+ * 表示名・提供先の記録・外部アカウントの一般公開とクライアント別の公開選択を戻し、本人に紐付いていない外部アカウントを登録候補として取り込む。
+ * 戻した公開選択で提供しなくなったクライアントの標準`oauthConsent`は削除する。
  * 本人に有効な識別子・証明・連携日時・検証日時は維持し、登録候補の過去の証明情報は現在の証明にしない。
  * バックアップに無い外部アカウント・クライアントの設定は維持する。
  * 追加する識別子はすべて候補（`is_active=0`）のため、有効識別子の部分UNIQUEには当たらない。
@@ -39,14 +41,11 @@ export async function restoreBackup(
   await runBatch(deps.db, [
     ...repository.updateDisplayName(input.userId, plan.displayName, deps.now),
     ...repository.upsertClientConsents(input.userId, plan.clientConsents),
-    ...repository.deleteOAuthConsents(
-      input.userId,
-      plan.clientConsents.filter((consent) => !consent.consented).map((consent) => consent.clientId),
-    ),
     ...repository.insertExternalAccounts(input.userId, plan.createdAccounts),
     ...repository.updateExternalAccounts(input.userId, plan.updatedAccounts),
     ...repository.insertIdentifiers(input.userId, plan.identifiers),
     ...repository.upsertVisibility(plan.visibility),
+    new D1ClientProvisionRepository(deps.db).reconcileOAuthConsents([input.userId]),
   ]);
 
   return {

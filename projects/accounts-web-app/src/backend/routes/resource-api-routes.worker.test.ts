@@ -165,7 +165,7 @@ async function setUpProvision() {
   const candidateId = await createCandidateAccount(owner.userId, candidateUrl);
   const saved = await saveVisibility(owner.headers, {
     clients: [
-      { clientId, consented: true, visibleAccountIds: [github.accountId, blogId, candidateId] },
+      { clientId, visibleAccountIds: [github.accountId, blogId, candidateId] },
     ],
   });
   expect(saved.status).toBe(200);
@@ -254,48 +254,34 @@ describe("QUERY /api/v1/external-accounts", () => {
     });
   });
 
-  it("証明を失った外部アカウントは返さず、提供対象が0件なら空配列を返す", async () => {
-    const { caller, owner } = await setUpProvision();
-    await testDb
-      .update(externalIdentifiers)
-      .set({ isActive: false })
-      .where(eq(externalIdentifiers.userId, owner.userId));
-
-    const response = await listExternalAccounts(caller, owner.userId);
-
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ externalAccounts: [] });
-  });
-
-  it("存在しないユーザー・同意の無いユーザー・ban中のユーザーは同じ404にする", async () => {
-    const { clientId, caller, owner, github } = await setUpProvision();
+  it("存在しないユーザー・提供対象の無いユーザー・証明を失ったユーザー・ban中のユーザーは同じ404にする", async () => {
+    const { clientId, caller, owner } = await setUpProvision();
     const withdrawn = await loginAsNewUser();
-    const { accountId } = await createVerifiedUrlAccount(
+    await createVerifiedUrlAccount(
       withdrawn.userId,
       [`https://${uniqueHost()}/`],
       "dns_txt",
       new Date(),
     );
-    await saveVisibility(withdrawn.headers, {
-      clients: [{ clientId, consented: false, visibleAccountIds: [accountId] }],
-    });
-    const banned = await loginAsNewUser();
-    await createGitHubAccount(banned.userId);
-    await saveVisibility(banned.headers, {
-      clients: [{ clientId, consented: true, visibleAccountIds: [github.accountId] }],
-    });
+    await saveVisibility(withdrawn.headers, { clients: [{ clientId, visibleAccountIds: [] }] });
+    const unproven = await setUpProvision();
+    await testDb
+      .update(externalIdentifiers)
+      .set({ isActive: false })
+      .where(eq(externalIdentifiers.userId, unproven.owner.userId));
     await banUser(owner.userId);
 
     const responses = await Promise.all(
-      [createRandomId("ausr_"), withdrawn.userId, owner.userId].map((userId) =>
-        listExternalAccounts(caller, userId),
+      [createRandomId("ausr_"), withdrawn.userId, unproven.owner.userId, owner.userId].map(
+        (userId) => listExternalAccounts(caller, userId),
       ),
     );
 
     const bodies = await Promise.all(responses.map((response) => response.json()));
-    expect(responses.map((response) => response.status)).toEqual([404, 404, 404]);
+    expect(responses.map((response) => response.status)).toEqual([404, 404, 404, 404]);
     expect(bodies).toEqual([
       { errors: [{ code: "NOT_FOUND", message: expect.any(String), path: null }] },
+      bodies[0],
       bodies[0],
       bodies[0],
     ]);
@@ -394,8 +380,8 @@ describe("QUERY /api/v1/identities/resolve", () => {
     expect(await empty.json()).toEqual({ accountsOrigin: testOrigin, results: [] });
   });
 
-  it("同意OFF・ban中のユーザーの識別子とAccountsユーザーIDは該当なしにする", async () => {
-    const { clientId, caller, owner, github, blogId, blogUrl } = await setUpProvision();
+  it("提供対象の無いユーザー・ban中のユーザーの識別子とAccountsユーザーIDは該当なしにする", async () => {
+    const { clientId, caller, owner, blogUrl } = await setUpProvision();
     const other = await loginAsNewUser();
     const otherUrl = `https://${uniqueHost()}/`;
     const { accountId: otherAccountId } = await createVerifiedUrlAccount(
@@ -405,10 +391,10 @@ describe("QUERY /api/v1/identities/resolve", () => {
       new Date(),
     );
     await saveVisibility(other.headers, {
-      clients: [{ clientId, consented: true, visibleAccountIds: [otherAccountId] }],
+      clients: [{ clientId, visibleAccountIds: [otherAccountId] }],
     });
     await saveVisibility(owner.headers, {
-      clients: [{ clientId, consented: false, visibleAccountIds: [github.accountId, blogId] }],
+      clients: [{ clientId, visibleAccountIds: [] }],
     });
     await banUser(other.userId);
 
@@ -429,7 +415,7 @@ describe("QUERY /api/v1/identities/resolve", () => {
     ]);
   });
 
-  it("別のクライアントへの同意・公開選択は、問い合わせ元のクライアントへの提供に使わない", async () => {
+  it("別のクライアントへの公開選択は、問い合わせ元のクライアントへの提供に使わない", async () => {
     const { owner, blogUrl } = await setUpProvision();
     const { caller: otherCaller } = await setUpClient();
 

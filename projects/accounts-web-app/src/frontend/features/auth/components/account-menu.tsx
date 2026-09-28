@@ -1,7 +1,9 @@
-import { Avatar, Description, Dropdown, Header, Label, Separator } from "@heroui/react";
+import { Chip, Description, Dropdown, Label, Separator } from "@heroui/react";
+import type { ReactNode } from "react";
 
 import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
+import { ArrowRightIcon, CheckIcon, LogoutIcon, PersonIcon, PlusIcon } from "../../app-shell/components/icons";
 import { useAccountSwitcher } from "../hooks/use-account-switcher";
 import { useDeviceSessions } from "../hooks/use-device-sessions";
 import { useLoginDialog } from "../hooks/use-login-dialog";
@@ -12,17 +14,19 @@ import { authMessages } from "../messages";
  */
 export type CurrentUser = {
   sessionToken: string;
+  accountsUserId: string;
   displayName: string;
 };
 
+const currentUserKey = "current-user";
 const addAccountKey = "add-account";
 const signOutKey = "sign-out";
 const sessionKeyPrefix = "session:";
 
 /**
- * ヘッダー右のアカウントのメニュー。
- * 現在のユーザーのアイコン（表示名の頭文字）から開き、このブラウザーでログイン中のユーザーの一覧（現在のユーザーを示す）と切替、「アカウントを追加」、現在のユーザーの「ログアウト」を並べる。
- * @see ../../../../../docs/specification/v0.1/main.ja.md
+ * ヘッダー右の人のアイコンから開くアカウント切替メニュー。
+ * 見出しを置かず、現在のユーザー（先頭・強調・「現在のユーザー」チップ）、このブラウザーでログイン中のほかのユーザー（押すと切替）、「アカウントを追加」、区切り、「{表示名}からログアウト」の順に並べる。
+ * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ../../app-shell/components/app-header.test.tsx
  */
 export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
@@ -31,8 +35,11 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
   const deviceSessions = useDeviceSessions();
   const loginDialog = useLoginDialog();
   const switcher = useAccountSwitcher();
-  const sessions = deviceSessions.status === "loaded" ? deviceSessions.sessions : [];
-  const currentSessionId = deviceSessions.status === "loaded" ? deviceSessions.currentSessionId : null;
+  // 切替の直後も一覧の読み直しを待たずに揃うよう、現在のユーザーのIDで除く。
+  const otherSessions =
+    deviceSessions.status === "loaded"
+      ? deviceSessions.sessions.filter((session) => session.accountsUserId !== currentUser.accountsUserId)
+      : [];
 
   /**
    * メニューの項目（react-ariaの`Key`）ごとの操作。
@@ -44,10 +51,8 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
     } else if (key === signOutKey) {
       void switcher.signOut(currentUser.sessionToken);
     } else {
-      const target = sessions.find((session) => `${sessionKeyPrefix}${session.sessionId}` === key);
-      if (target !== undefined && target.sessionId !== currentSessionId) {
-        void switcher.switchTo(target);
-      }
+      const target = otherSessions.find((session) => `${sessionKeyPrefix}${session.sessionId}` === key);
+      if (target !== undefined) void switcher.switchTo(target);
     }
   };
 
@@ -59,51 +64,53 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
         </span>
       )}
       <Dropdown>
-        <Dropdown.Trigger aria-label={messages.accountMenuLabel(currentUser.displayName)} className="rounded-full">
-          <UserAvatar displayName={currentUser.displayName} />
+        <Dropdown.Trigger
+          aria-label={messages.accountMenuLabel(currentUser.displayName)}
+          className="grid size-10 place-items-center rounded-full border border-border bg-surface text-foreground hover:border-border-strong aria-expanded:border-accent aria-expanded:bg-accent-soft aria-expanded:text-accent"
+        >
+          <PersonIcon className="size-5" />
         </Dropdown.Trigger>
-        <Dropdown.Popover placement="bottom end">
-          <Dropdown.Menu onAction={handleAction}>
-            <Dropdown.Section>
-              <Header>{messages.sessionsTitle}</Header>
+        <Dropdown.Popover placement="bottom end" className="w-(--menu-w) max-w-[calc(100vw-2rem)]">
+          <Dropdown.Menu onAction={handleAction} className="p-2">
+            <Dropdown.Section aria-label={messages.sessionsLabel}>
+              <Dropdown.Item id={currentUserKey} textValue={currentUser.displayName} className="bg-surface-secondary">
+                <UserAvatar displayName={currentUser.displayName} isCurrent />
+                <UserText displayName={currentUser.displayName} accountsUserId={currentUser.accountsUserId} isCurrent />
+                <Chip color="success" variant="soft" className="ml-auto">
+                  <CheckIcon className="size-3" />
+                  {messages.currentUser}
+                </Chip>
+              </Dropdown.Item>
               {deviceSessions.status === "loaded" ? null : (
                 <Dropdown.Item id="sessions-status" isDisabled>
                   <Label>{deviceSessions.status === "loading" ? common.loading : messages.sessionsLoadFailed}</Label>
                 </Dropdown.Item>
               )}
-              {sessions.map((session) => {
-                const isCurrent = session.sessionId === currentSessionId;
-                return (
-                  <Dropdown.Item
-                    key={session.sessionId}
-                    id={`${sessionKeyPrefix}${session.sessionId}`}
-                    textValue={session.displayName}
-                    className={isCurrent ? "bg-default" : undefined}
-                  >
-                    <UserAvatar displayName={session.displayName} />
-                    <div className="flex min-w-0 flex-col">
-                      <Label className={isCurrent ? "font-semibold" : undefined}>{session.displayName}</Label>
-                      <Description className="break-all">
-                        {isCurrent ? `${messages.currentUser} · ` : ""}
-                        {session.accountsUserId}
-                      </Description>
-                    </div>
-                  </Dropdown.Item>
-                );
-              })}
+              {otherSessions.map((session) => (
+                <Dropdown.Item
+                  key={session.sessionId}
+                  id={`${sessionKeyPrefix}${session.sessionId}`}
+                  textValue={session.displayName}
+                >
+                  <UserAvatar displayName={session.displayName} />
+                  <UserText displayName={session.displayName} accountsUserId={session.accountsUserId} />
+                  <ArrowRightIcon className="ml-auto size-4 shrink-0 text-muted" />
+                </Dropdown.Item>
+              ))}
             </Dropdown.Section>
-            <Separator />
-            <Dropdown.Section>
-              <Dropdown.Item id={addAccountKey} textValue={messages.addAccount}>
-                <Label>{messages.addAccount}</Label>
-              </Dropdown.Item>
-            </Dropdown.Section>
-            <Separator />
-            <Dropdown.Section>
-              <Dropdown.Item id={signOutKey} textValue={messages.signOut} variant="danger">
-                <Label>{messages.signOut}</Label>
-              </Dropdown.Item>
-            </Dropdown.Section>
+            <Dropdown.Item id={addAccountKey} textValue={messages.addAccount}>
+              <MenuItemIcon>
+                <PlusIcon className="size-5" />
+              </MenuItemIcon>
+              <Label>{messages.addAccount}</Label>
+            </Dropdown.Item>
+            <Separator className="my-1" />
+            <Dropdown.Item id={signOutKey} textValue={messages.signOutFrom(currentUser.displayName)}>
+              <MenuItemIcon>
+                <LogoutIcon className="size-5" />
+              </MenuItemIcon>
+              <Label>{messages.signOutFrom(currentUser.displayName)}</Label>
+            </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown.Popover>
       </Dropdown>
@@ -112,13 +119,51 @@ export function AccountMenu({ currentUser }: { currentUser: CurrentUser }) {
 }
 
 /**
- * 表示名の頭文字のアイコン。
+ * 表示名の頭文字のアバター。
+ * 現在のユーザーは主色の面にする。
  */
-function UserAvatar({ displayName }: { displayName: string }) {
+function UserAvatar({ displayName, isCurrent = false }: { displayName: string; isCurrent?: boolean }) {
   const initial = Array.from(displayName)[0]?.toUpperCase() ?? "";
   return (
-    <Avatar size="sm" aria-hidden="true">
-      <Avatar.Fallback>{initial}</Avatar.Fallback>
-    </Avatar>
+    <span
+      aria-hidden="true"
+      className={`grid size-(--avatar) shrink-0 place-items-center rounded-full font-display font-bold ${
+        isCurrent ? "bg-accent text-accent-foreground" : "bg-accent-soft text-accent"
+      }`}
+    >
+      {initial}
+    </span>
+  );
+}
+
+/**
+ * 表示名とAccountsユーザーIDの2段。
+ * メニュー項目の名前を表示名、説明をAccountsユーザーIDとして読み上げる。
+ */
+function UserText({
+  displayName,
+  accountsUserId,
+  isCurrent = false,
+}: {
+  displayName: string;
+  accountsUserId: string;
+  isCurrent?: boolean;
+}) {
+  return (
+    <span className="flex min-w-0 flex-col gap-0.5 leading-tight">
+      <Label className={`break-all ${isCurrent ? "font-bold" : ""}`}>{displayName}</Label>
+      <Description className="font-mono text-xs break-all text-muted">{accountsUserId}</Description>
+    </span>
+  );
+}
+
+/**
+ * 「アカウントを追加」「ログアウト」のアイコンの台。
+ */
+function MenuItemIcon({ children }: { children: ReactNode }) {
+  return (
+    <span className="grid size-(--avatar) shrink-0 place-items-center rounded-full bg-surface-secondary text-muted">
+      {children}
+    </span>
   );
 }

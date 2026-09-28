@@ -11,6 +11,10 @@ import {
   testDb,
   uniqueHost,
 } from "../../../test/external-account-test-helpers";
+import {
+  countOAuthConsents,
+  createConsentedClient,
+} from "../../../test/resource-api-test-helpers";
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { createRandomId } from "../db/id";
 import {
@@ -338,6 +342,32 @@ describe("verifyUrl", () => {
       });
       expect(await readIdentifierActivity(userId)).toEqual({ [`url:${url}`]: true });
       expect(await readIdentifierActivity(previousOwner)).toEqual({ [`url:${otherUrl}`]: true });
+    });
+
+    it("移動で旧所有者の提供対象が0件になったクライアントだけ、旧所有者の標準oauthConsentを削除する", async () => {
+      const previousOwner = await createTestUser();
+      const url = `https://${uniqueHost()}/`;
+      const { accountId: movedId } = await createVerifiedUrlAccount(
+        previousOwner,
+        [url],
+        "bidirectional_link",
+        firstCheck,
+      );
+      const { accountId: keptId } = await createVerifiedUrlAccount(
+        previousOwner,
+        [`https://${uniqueHost()}/`],
+        "dns_txt",
+        firstCheck,
+      );
+      const withdrawnClientId = await createConsentedClient(previousOwner, [movedId]);
+      const keptClientId = await createConsentedClient(previousOwner, [movedId, keptId]);
+      const userId = await createTestUser();
+      const { deps } = createDeps({ [url]: linkPage(userId) });
+
+      await verifyUrl(deps, { userId, url });
+
+      expect(await countOAuthConsents(previousOwner, withdrawnClientId)).toBe(0);
+      expect(await countOAuthConsents(previousOwner, keptClientId)).toBe(1);
     });
 
     it("DNS TXTが支える識別子は、リンク証明単独では移動せずHELD_BY_STRONGER_PROOFとする", async () => {

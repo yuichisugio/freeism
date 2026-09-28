@@ -1,21 +1,22 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import {
   createVerifiedUrlAccount,
-  readExternalAccounts,
   testDb,
   uniqueHost,
 } from "../../../test/external-account-test-helpers";
 import { loginAsNewUser } from "../../../test/oauth-client-test-helpers";
 import {
+  countOAuthConsents,
   fetchBff,
+  insertOAuthConsent,
   registerTestClient,
   saveVisibility,
 } from "../../../test/resource-api-test-helpers";
 import type { AccountLinks } from "../../shared/schemas/account-link-schema";
 import { createRandomId } from "../db/id";
-import { clientConsents, externalAccounts, oauthConsent } from "../db/schema";
+import { clientConsents, externalAccounts } from "../db/schema";
 
 // --------------------------------------------------
 // テストデータ
@@ -43,35 +44,12 @@ async function readAccountLinks(headers: Headers): Promise<AccountLinks> {
   return ((await response.json()) as { data: AccountLinks }).data;
 }
 
-/**
- * 本人とクライアントの標準`oauthConsent`行を作る。
- */
-async function insertOAuthConsent(userId: string, clientId: string) {
-  const now = new Date();
-  await testDb.insert(oauthConsent).values({
-    id: createRandomId(),
-    userId,
-    clientId,
-    scopes: JSON.stringify(["openid"]),
-    createdAt: now,
-    updatedAt: now,
-  });
-}
-
-async function countOAuthConsents(userId: string, clientId: string) {
-  const rows = await testDb
-    .select()
-    .from(oauthConsent)
-    .where(and(eq(oauthConsent.userId, userId), eq(oauthConsent.clientId, clientId)));
-  return rows.length;
-}
-
 // --------------------------------------------------
 // PUT /api/visibility
 // --------------------------------------------------
 
 describe("PUT /api/visibility", () => {
-  it("一般公開・情報提供同意・外部アカウント別の公開選択をまとめて保存する", async () => {
+  it("一般公開と外部アカウント別の公開選択をまとめて保存し、未検証の行の公開選択も受け付ける", async () => {
     const { headers, verifiedId, candidateId, clientId } = await setUpUser();
 
     const response = await saveVisibility(headers, {
@@ -79,14 +57,14 @@ describe("PUT /api/visibility", () => {
         { externalAccountId: verifiedId, isPublic: true },
         { externalAccountId: candidateId, isPublic: false },
       ],
-      clients: [{ clientId, consented: true, visibleAccountIds: [verifiedId, candidateId] }],
+      clients: [{ clientId, visibleAccountIds: [verifiedId, candidateId] }],
     });
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ data: { ok: true } });
     const links = await readAccountLinks(headers);
     expect(links.clients).toEqual([
-      { clientId, name: "Points", uri: null, consented: true, isConsentRequest: false },
+      { clientId, name: "Points", uri: null, isConsentRequest: false },
     ]);
     expect(
       links.accounts.map(({ id, isPublic, visibility }) => ({ id, isPublic, visibility })),
@@ -98,65 +76,65 @@ describe("PUT /api/visibility", () => {
     );
   });
 
-  it("同意ONのクライアントに証明済みの選択が無ければ全体を400にし、保存済みの状態を変えない", async () => {
-    const { userId, headers, verifiedId, candidateId, clientId } = await setUpUser();
+  it("証明済みの公開選択が無いクライアントも保存し、提供先の記録を残す", async () => {
+    const { userId, headers, candidateId, clientId } = await setUpUser();
     const { clientId: otherClientId } = await registerTestClient(headers, "Markets");
 
     const response = await saveVisibility(headers, {
-      accounts: [{ externalAccountId: verifiedId, isPublic: true }],
       clients: [
-        { clientId, consented: true, visibleAccountIds: [verifiedId] },
-        { clientId: otherClientId, consented: true, visibleAccountIds: [candidateId] },
+        { clientId, visibleAccountIds: [] },
+        { clientId: otherClientId, visibleAccountIds: [candidateId] },
       ],
     });
 
-    expect(response.status).toBe(400);
-    expect(await response.json()).toMatchObject({
-      code: "CONSENT_REQUIRES_VERIFIED_ACCOUNT",
-      errors: [{ code: "CONSENT_REQUIRES_VERIFIED_ACCOUNT", path: ["clients", 1] }],
-    });
-    expect((await readExternalAccounts(userId)).every((row) => !row.isPublic)).toBe(true);
+    expect(response.status).toBe(200);
     expect(
-      await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId)),
-    ).toEqual([]);
+      (await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId)))
+        .map((row) => row.clientId)
+        .toSorted(),
+    ).toEqual([clientId, otherClientId].toSorted());
   });
 
-  it("同意だけをOFFで保存すると公開選択を保持し、標準のoauthConsentを削除する", async () => {
-    const { userId, headers, verifiedId, clientId } = await setUpUser();
+  it("証明済みの公開選択を外して保存すると、公開選択の無いクライアントの標準oauthConsentを削除する", async () => {
+    const { userId, headers, verifiedId, candidateId, clientId } = await setUpUser();
+    const { clientId: otherClientId } = await registerTestClient(headers, "Markets");
     await saveVisibility(headers, {
-      clients: [{ clientId, consented: true, visibleAccountIds: [verifiedId] }],
+      clients: [
+        { clientId, visibleAccountIds: [verifiedId] },
+        { clientId: otherClientId, visibleAccountIds: [verifiedId] },
+      ],
     });
     await insertOAuthConsent(userId, clientId);
+    await insertOAuthConsent(userId, otherClientId);
 
     const response = await saveVisibility(headers, {
-      clients: [{ clientId, consented: false, visibleAccountIds: [verifiedId] }],
+      clients: [{ clientId, visibleAccountIds: [candidateId] }],
     });
 
     expect(response.status).toBe(200);
     expect(await countOAuthConsents(userId, clientId)).toBe(0);
+    expect(await countOAuthConsents(userId, otherClientId)).toBe(1);
     const links = await readAccountLinks(headers);
-    expect(links.clients).toEqual([expect.objectContaining({ clientId, consented: false })]);
-    expect(links.accounts.find((account) => account.id === verifiedId)?.visibility).toEqual({
+    expect(links.accounts.find((account) => account.id === candidateId)?.visibility).toEqual({
       [clientId]: true,
     });
   });
 
-  it("同意ONのまま保存しても標準のoauthConsentは残す", async () => {
+  it("入力に無いクライアントでも、提供していない標準oauthConsentは保存時に削除する", async () => {
     const { userId, headers, verifiedId, clientId } = await setUpUser();
-    await insertOAuthConsent(userId, clientId);
+    const { clientId: otherClientId } = await registerTestClient(headers, "Markets");
+    await insertOAuthConsent(userId, otherClientId);
 
-    await saveVisibility(headers, {
-      clients: [{ clientId, consented: true, visibleAccountIds: [verifiedId] }],
-    });
+    await saveVisibility(headers, { clients: [{ clientId, visibleAccountIds: [verifiedId] }] });
 
-    expect(await countOAuthConsents(userId, clientId)).toBe(1);
+    expect(await countOAuthConsents(userId, otherClientId)).toBe(0);
   });
 
   it("後から追加した外部アカウントは、既存のクライアントにも一般公開にも公開しない", async () => {
     const { userId, headers, verifiedId, clientId } = await setUpUser();
     await saveVisibility(headers, {
       accounts: [{ externalAccountId: verifiedId, isPublic: true }],
-      clients: [{ clientId, consented: true, visibleAccountIds: [verifiedId] }],
+      clients: [{ clientId, visibleAccountIds: [verifiedId] }],
     });
 
     const { accountId: addedId } = await createVerifiedUrlAccount(
@@ -184,8 +162,8 @@ describe("PUT /api/visibility", () => {
     const response = await saveVisibility(headers, {
       accounts: [{ externalAccountId: othersAccountId, isPublic: true }],
       clients: [
-        { clientId, consented: true, visibleAccountIds: [verifiedId, othersAccountId] },
-        { clientId: "missing-client", consented: false, visibleAccountIds: [] },
+        { clientId, visibleAccountIds: [verifiedId, othersAccountId] },
+        { clientId: "missing-client", visibleAccountIds: [] },
       ],
     });
 

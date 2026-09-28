@@ -1,6 +1,6 @@
 import { Chip } from "@heroui/react";
 
-import type { LinkedVerification } from "../../../../shared/schemas/account-link-schema";
+import type { LatestAttempt, LinkedVerification } from "../../../../shared/schemas/account-link-schema";
 import type { VerificationAttempt } from "../../../../shared/schemas/external-url-schema";
 import type { VerificationResult } from "../../../../shared/schemas/verification-schema";
 import { formatDateTime } from "../../../lib/i18n/format";
@@ -42,31 +42,35 @@ export function AttemptResult({ label, attempt }: { label: string; attempt: Veri
 }
 
 /**
- * 外部アカウントの証明方法ごとの結果・日時・証拠URL・案内。
- * 成功した証明の日時と、直近の試行の結果を分けて示す。
+ * 外部アカウントの成功した証明ごとの方法・証明日時・証拠と、未検証の行の直近の試行の結果・案内。
  */
-export function VerificationList({ verifications }: { verifications: LinkedVerification[] }) {
+export function VerificationList({
+  verifications,
+  latestAttempt,
+}: {
+  verifications: LinkedVerification[];
+  latestAttempt: LatestAttempt | null;
+}) {
   const messages = useMessages(accountLinksMessages);
   const { language } = useI18n();
+  if (latestAttempt !== null) {
+    return (
+      <AttemptResult label={`${messages.checkedAt} ${formatDateTime(latestAttempt.checkedAt, language)}`} attempt={latestAttempt} />
+    );
+  }
   if (verifications.length === 0) return <p className="text-sm text-muted">{messages.noVerification}</p>;
   return (
     <ul className="flex flex-col gap-2">
       {verifications.map((verification) => (
         <li key={verification.id} className="flex flex-col gap-1">
-          <AttemptResult label={messages.methods[verification.method]} attempt={verification} />
+          <VerificationBadge label={messages.methods[verification.method]} result="verified" />
           <dl className="grid grid-cols-[auto_1fr] gap-x-2 text-xs text-muted">
-            {verification.verifiedAt === null ? null : (
-              <>
-                <dt>{messages.verifiedAt}</dt>
-                <dd>{formatDateTime(verification.verifiedAt, language)}</dd>
-              </>
-            )}
-            <dt>{messages.checkedAt}</dt>
-            <dd>{formatDateTime(verification.checkedAt, language)}</dd>
-            {verification.evidenceUrl === null ? null : (
+            <dt>{messages.verifiedAt}</dt>
+            <dd>{formatDateTime(verification.verifiedAt, language)}</dd>
+            {verification.evidence === null ? null : (
               <>
                 <dt>{messages.evidenceUrl}</dt>
-                <dd className="break-all">{verification.evidenceUrl}</dd>
+                <dd className="break-all">{verification.evidence}</dd>
               </>
             )}
           </dl>

@@ -5,9 +5,11 @@ import { secureHeaders } from "hono/secure-headers";
 import { trimTrailingSlash } from "hono/trailing-slash";
 
 import { createDatabase } from "../db/database";
+import { buildAccountsProfileUrl } from "../domain/verification/accounts-profile-url";
 import type { AppEnv } from "../hono-env";
 import { readPublicProfile } from "../usecases/profile/read-public-profile";
 import {
+  readPublicProfileLanguage,
   renderPublicProfileNotFoundPage,
   renderPublicProfilePage,
 } from "../views/public-profile-page";
@@ -15,8 +17,9 @@ import {
 /**
  * 公開プロフィール（`GET /profiles/{accountsUserId}`）。
  * Workers Cacheを有効にした公開プロフィール専用のエントリーポイントで処理し、キャッシュミス時にD1からHTMLを生成する。
+ * 言語は`?lang=ja|en`で選び、キャッシュキーはクエリを含むURLごとになる。
  * edgeには最長1日、ブラウザーには毎回の再検証を指示し、公開情報の更新後はpurgeで反映する。
- * 存在しない・banされたユーザーの404も同じ方針でキャッシュし、unban・復元などの後のpurgeで消す。
+ * 存在しない・banされた・証明済みの外部アカウントを公開していないユーザーの404も同じ方針でキャッシュし、unban・復元などの後のpurgeで消す。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ../../../docs/implementation-plan/v0.1.md
  * @see ./public-profile-routes.worker.test.ts
@@ -29,6 +32,8 @@ import {
 /**
  * 公開プロフィールのパス。
  * purgeはこのパスにAccountsユーザーIDを付けた接頭辞で行う（IDは固定長のため、ほかのユーザーのパスに一致しない）。
+ * `pathPrefixes`はクエリを除いたパスで照合するため、`?lang=en`などのクエリ付きのキャッシュも同じ接頭辞で消える。
+ * @see https://developers.cloudflare.com/workers/cache/purge/
  */
 export const publicProfilePathPrefix = "/profiles/";
 
@@ -64,8 +69,8 @@ export const publicProfileRoutes = new Hono<AppEnv>()
     secureHeaders({
       contentSecurityPolicy: {
         defaultSrc: ["'none'"],
-        // ファビコン（同じoriginの`/favicon.svg`）だけを読めるようにする。
-        imgSrc: ["'self'"],
+        // ファビコン（同じoriginの`/favicon.svg`）と、サービスアイコン（Googleのfavicon配信と転送先）を読めるようにする。
+        imgSrc: ["'self'", "https://www.google.com", "https://*.gstatic.com"],
         styleSrc: ["'unsafe-inline'"],
         baseUri: ["'none'"],
         formAction: ["'none'"],
@@ -76,15 +81,27 @@ export const publicProfileRoutes = new Hono<AppEnv>()
     etag(),
   )
   .get(`${publicProfilePathPrefix}:accountsUserId`, async (c) => {
+    const language = readPublicProfileLanguage(c.req.query("lang"));
     const profile = await readPublicProfile(
       { db: createDatabase(c.env.DB) },
       { accountsUserId: c.req.param("accountsUserId") },
     );
-    return profile === null
-      ? htmlResponse(c, await renderPublicProfileNotFoundPage(), 404)
-      : htmlResponse(c, await renderPublicProfilePage(profile), 200);
+    if (profile === null) {
+      return htmlResponse(c, await renderPublicProfileNotFoundPage(language), 404);
+    }
+    const profileUrl = buildAccountsProfileUrl({
+      accountsOrigin: c.env.ACCOUNTS_ORIGIN,
+      accountsUserId: profile.accountsUserId,
+    });
+    return htmlResponse(c, await renderPublicProfilePage(profile, { language, profileUrl }), 200);
   })
-  .notFound(async (c) => htmlResponse(c, await renderPublicProfileNotFoundPage(), 404));
+  .notFound(async (c) =>
+    htmlResponse(
+      c,
+      await renderPublicProfileNotFoundPage(readPublicProfileLanguage(c.req.query("lang"))),
+      404,
+    ),
+  );
 
 /**
  * キャッシュ無効の入口（default）で受けた`/profiles/*`を、公開プロフィール専用エントリーポイントへ渡す。

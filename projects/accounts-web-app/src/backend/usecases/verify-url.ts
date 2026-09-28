@@ -1,6 +1,7 @@
 import type { VerifyUrlResult } from "../../shared/schemas/external-url-schema";
 import { isUniqueConstraintError, runBatch, type Database } from "../db/database";
 import { createRandomId } from "../db/id";
+import { D1ClientProvisionRepository } from "../db/repositories/d1-client-provision-repository";
 import {
   D1ExternalAccountRepository,
   type ExternalIdentifierRow,
@@ -82,6 +83,7 @@ type ProofPlan = { targets: ProofTarget[]; transferred: ExternalIdentifierRow[] 
  * 期待する公開プロフィールURLは、セッション本人のIDと環境設定の公開originから決める。
  * ページ取得・DNS照会はDB書込の前に行い、書込は1回のD1 batchで確定する。
  * 成功時だけ入力URLを登録し、証明と今回確認した識別子の関連を置き換える。
+ * 識別子の移動で提供しなくなった組（旧所有者を含む）の標準`oauthConsent`は、同じbatchで削除する。
  * 登録済みURLの失敗・判断不能では直近の試行結果だけを更新し、未登録URLでは何も保存せず方法別の結果を返す。
  * リンク証明単独では、旧所有者の`oauth`・`dns_txt`が支える識別子を移動せず`HELD_BY_STRONGER_PROOF`とする。
  * @throws {ProblemError} 入力URLの不備（400）、未登録URLでのURL登録数の上限到達（409、外部通信の前）、レート制限の超過（429）、所有者の更新の競合（409）。
@@ -257,6 +259,7 @@ export async function verifyUrl(
           ];
         })),
     ...repository.reconcileIdentifierActivity(affectedUserIds, deps.now),
+    new D1ClientProvisionRepository(deps.db).reconcileOAuthConsents(affectedUserIds),
   ];
   await runBatch(deps.db, statements).catch((error: unknown) => {
     if (isUniqueConstraintError(error)) {

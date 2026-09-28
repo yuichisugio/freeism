@@ -15,6 +15,8 @@ import { settingsMessages } from "../../features/settings/messages";
 import { useMessages } from "../../lib/i18n/i18n-provider";
 
 export const Route = createFileRoute("/{-$accountsUserId}/settings")({
+  // 言語・テーマはログインしていなくても選べるため、未ログインでも表示する。
+  staticData: { allowsGuest: true },
   component: SettingsPage,
 });
 

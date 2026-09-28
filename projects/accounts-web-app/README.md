@@ -5,6 +5,7 @@
 - [v0.1仕様](./docs/specification/v0.1/main.ja.md)
 - [v0.2仕様](./docs/specification/v0.2/main.ja.md)
 - [URL登録・検証仕様](./docs/specification/v0.1/verify-url.ja.md)
+- [デザインシステム](./docs/specification/v0.1/design-system.ja.md)
 - [v0.1実装計画](./docs/implementation-plan/v0.1.md)
 
 ## 開発
@@ -61,7 +62,7 @@
 
 ## 運営者（appAdmin）の任命
 
-運営者画面は設けないため、最初の`appAdmin`はOAuthでログインして作成したユーザーの`user.role`をD1で設定して任命する。AccountsユーザーIDは「設定」画面の公開プロフィールURLの末尾で確認する。
+運営者画面は設けないため、最初の`appAdmin`はOAuthでログインして作成したユーザーの`user.role`をD1で設定して任命する。AccountsユーザーIDは「アカウント連携」画面の公開プロフィールURLの末尾で確認する。
 
 ```sh
 pnpm exec wrangler d1 execute DB --env production --remote \

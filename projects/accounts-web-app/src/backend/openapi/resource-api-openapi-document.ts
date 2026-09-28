@@ -203,7 +203,7 @@ export function createResourceApiOpenApiDocument(accountsOrigin: string) {
           operationId: "listExternalAccounts",
           summary: "List the external accounts provided to this client",
           description:
-            "Returns every external account that the user has chosen to provide to the calling client. A missing user and a user without consent to this client return the same 404.",
+            "Returns every verified external account that the user has chosen to provide to the calling client. A missing user and a user who provides no verified external account to this client return the same 404.",
           security,
           parameters: [dpopParameter],
           requestBody: {
@@ -219,7 +219,7 @@ export function createResourceApiOpenApiDocument(accountsOrigin: string) {
             ),
             ...commonErrorResponses,
             "404": errorResponse(
-              "`NOT_FOUND`: the user does not exist or has not consented to provide information to this client.",
+              "`NOT_FOUND`: the user does not exist or provides no verified external account to this client.",
             ),
             ...bodyErrorResponses,
           },
@@ -230,7 +230,7 @@ export function createResourceApiOpenApiDocument(accountsOrigin: string) {
           operationId: "resolveIdentities",
           summary: "Resolve identifiers to Accounts users",
           description:
-            "Resolves each identifier with the stored verified identifiers and the current consent and visibility for this client. Results keep the input order. An unregistered identifier and one not provided to this client both return `no_match`.",
+            "Resolves each identifier with the stored verified identifiers and the current visibility for this client. Results keep the input order. An unregistered identifier and one not provided to this client both return `no_match`.",
           security,
           parameters: [dpopParameter],
           requestBody: {

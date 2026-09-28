@@ -204,7 +204,7 @@ describe("POST /api/backup/restore", () => {
       .where(eq(externalAccounts.userId, userId));
     await testDb
       .insert(clientConsents)
-      .values({ userId, clientId: createRandomId("client-"), displayName: longName, consented: true });
+      .values({ userId, clientId: createRandomId("client-"), displayName: longName });
     const json = await exportBackupFile(headers);
 
     const result = await readData(
@@ -274,15 +274,15 @@ describe("POST /api/backup/restore", () => {
       body: {
         ...backup,
         clientConsents: [
-          { clientId: "points-client", displayName: "Points", consented: true },
-          { clientId: "points-client", displayName: "Points", consented: false },
+          { clientId: "points-client", displayName: "Points" },
+          { clientId: "points-client", displayName: "Points 2" },
         ],
       },
     });
 
     expect(response.status).toBe(400);
     expect((await readProblem(response)).errors).toEqual([
-      expect.objectContaining({ code: "INVALID_VALUE", path: ["clientConsents", 1, "consented"] }),
+      expect.objectContaining({ code: "INVALID_VALUE", path: ["clientConsents", 1, "displayName"] }),
     ]);
   });
 });

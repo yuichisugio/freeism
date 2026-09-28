@@ -1,62 +1,63 @@
-import { Button } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
 
-import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
 import { useHydratedSession } from "../../../lib/use-hydrated-session";
 import { AccountMenu } from "../../auth/components/account-menu";
-import { useLoginDialog } from "../../auth/hooks/use-login-dialog";
 import { appShellMessages } from "../messages";
+import { LogoIcon } from "./icons";
 
-const navigationLinkClassName = "rounded px-2 py-1 text-sm hover:bg-default data-[status=active]:font-semibold";
+const tabClassName =
+  "rounded-full px-4 py-1 text-sm whitespace-nowrap text-muted hover:text-foreground hover:no-underline aria-[current=page]:bg-accent-soft aria-[current=page]:font-medium aria-[current=page]:text-accent";
 
 /**
  * 全画面共通のヘッダー。
- * ロゴとサービス名、管理画面への移動、右端にアカウントのメニュー（未ログインでは「ログインする」）を置く。
- * 管理画面へのリンクは、現在のユーザーのAccountsユーザーID付きの経路にする。
- * ロゴはファビコンと同じSVGを使う。
+ * 左にロゴと「Freeism Accounts」、中央に「トップ」「アカウント連携」「その他」のタブ、右端にログイン済みなら人のアイコンのアカウント切替メニューを置く。
+ * 未ログインでは右端に何も置かない。
+ * 画面へのタブは、現在のユーザーのAccountsユーザーID付きの経路にする。
+ * 640px 未満ではタブを2段目の中央に回し、はみ出すときだけ横にスクロールする。
+ * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ./app-header.test.tsx
  */
 export function AppHeader() {
   const messages = useMessages(appShellMessages);
-  const common = useMessages(commonMessages);
-  const loginDialog = useLoginDialog();
   // 事前生成したトップページと描画を揃えるため、hydrationの後にセッションに応じた表示にする。
   const session = useHydratedSession();
   const userParams = { accountsUserId: session.data?.user.id };
 
   return (
-    <header className="border-b border-default">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
-        <Link to="/" className="flex items-center gap-2 font-semibold">
-          <img src="/favicon.svg" alt="" width={24} height={24} />
-          {messages.appName}
+    <header className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 px-6 py-4 max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-3 max-sm:px-4 max-sm:py-3">
+      <Link
+        to="/"
+        activeOptions={{ exact: true }}
+        className="flex items-center gap-2 justify-self-start font-display text-lg font-bold text-foreground hover:no-underline"
+      >
+        <LogoIcon className="size-7" />
+        {messages.appName}
+      </Link>
+      <nav
+        aria-label={messages.mainNavigation}
+        className="flex justify-center gap-0.5 rounded-full border border-border bg-surface p-1 max-sm:col-span-full max-sm:row-start-2 max-sm:max-w-full max-sm:justify-self-center max-sm:justify-center-safe max-sm:overflow-x-auto max-sm:[scrollbar-width:none]"
+      >
+        <Link to="/" activeOptions={{ exact: true }} className={tabClassName}>
+          {messages.home}
         </Link>
-        <nav aria-label={messages.mainNavigation} className="flex flex-wrap gap-1">
-          <Link to="/{-$accountsUserId}/account-links" params={userParams} className={navigationLinkClassName}>
-            {messages.accountLinks}
-          </Link>
-          <Link to="/{-$accountsUserId}/settings" params={userParams} className={navigationLinkClassName}>
-            {messages.settings}
-          </Link>
-          <Link to="/{-$accountsUserId}/developer" params={userParams} className={navigationLinkClassName}>
-            {messages.developer}
-          </Link>
-          <Link to="/{-$accountsUserId}/help" params={userParams} className={navigationLinkClassName}>
-            {messages.help}
-          </Link>
-        </nav>
-        <div className="ml-auto">
-          {session.isPending ? null : session.data ? (
-            <AccountMenu
-              currentUser={{ sessionToken: session.data.session.token, displayName: session.data.user.name }}
-            />
-          ) : (
-            <Button size="sm" variant="primary" onPress={() => loginDialog.open()}>
-              {common.signIn}
-            </Button>
-          )}
-        </div>
+        <Link to="/{-$accountsUserId}/account-links" params={userParams} className={tabClassName}>
+          {messages.accountLinks}
+        </Link>
+        <Link to="/{-$accountsUserId}/settings" params={userParams} className={tabClassName}>
+          {messages.other}
+        </Link>
+      </nav>
+      <div className="col-start-3 flex items-center justify-self-end max-sm:col-start-2 max-sm:row-start-1">
+        {session.data ? (
+          <AccountMenu
+            currentUser={{
+              sessionToken: session.data.session.token,
+              accountsUserId: session.data.user.id,
+              displayName: session.data.user.name,
+            }}
+          />
+        ) : null}
       </div>
     </header>
   );
@@ -64,23 +65,24 @@ export function AppHeader() {
 
 /**
  * 全画面共通のフッター。
- * ヘルプ・OSSライセンス・プライバシーポリシー・利用規約へのリンクを置く。
+ * 使い方・OSSライセンス・プライバシーポリシー・利用規約へのリンクを中央に並べる。
  * AccountsユーザーID付きの画面では、同じユーザーのIDを付けた経路にする。
  */
 export function AppFooter() {
   const messages = useMessages(appShellMessages);
+  const footerLinkClassName = "text-muted aria-[current=page]:font-medium aria-[current=page]:text-foreground";
   return (
-    <footer className="mx-auto flex max-w-6xl flex-wrap gap-4 px-4 py-6 text-sm text-muted">
-      <Link to="/{-$accountsUserId}/help" className="underline">
+    <footer className="flex flex-wrap justify-center gap-x-5 gap-y-2 p-6 text-xs">
+      <Link to="/{-$accountsUserId}/help" className={footerLinkClassName}>
         {messages.help}
       </Link>
-      <Link to="/{-$accountsUserId}/licenses" className="underline">
+      <Link to="/{-$accountsUserId}/licenses" className={footerLinkClassName}>
         {messages.licenses}
       </Link>
-      <Link to="/{-$accountsUserId}/privacy" className="underline">
+      <Link to="/{-$accountsUserId}/privacy" className={footerLinkClassName}>
         {messages.privacy}
       </Link>
-      <Link to="/{-$accountsUserId}/terms" className="underline">
+      <Link to="/{-$accountsUserId}/terms" className={footerLinkClassName}>
         {messages.terms}
       </Link>
     </footer>

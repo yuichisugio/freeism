@@ -5,68 +5,38 @@ import { defineMessages } from "../../lib/i18n/define-messages";
  */
 export type HomeStep = {
   title: string;
-  description: string;
+  note: string;
 };
 
 /**
- * トップページ（簡単な使い方）の文言。
- * @see ../../../../docs/specification/v0.1/main.ja.md
+ * トップページの文言。
+ * @see ../../../../docs/specification/v0.1/design-system.ja.md
  */
 export const homeMessages = defineMessages({
   ja: {
-    title: "Accounts",
-    lead: "GitHub・Google・ORCIDなどの外部アカウントやWebページが自分のものであることを証明し、一般公開や連携先のサービスへ提供する範囲を自分で選べるサービスです。",
+    title: "Freeism Accounts",
+    lead: "アカウントが自分のものだと証明できるサービス",
+    toAccountLinks: "アカウント連携へ",
+    helpLink: "使い方",
     stepsTitle: "簡単な使い方",
     steps: [
-      {
-        title: "ログインする",
-        description:
-          "Google・GitHub・ORCIDのいずれかのアカウントでログインします。初めての場合は、そのままAccountsユーザーを作成します。",
-      },
-      {
-        title: "外部アカウントを追加する",
-        description:
-          "「アカウント連携」画面で、OAuthの追加連携や、WebページのURLの検証によって、外部アカウントが自分のものであることを証明します。",
-      },
-      {
-        title: "公開する範囲を選ぶ",
-        description:
-          "一般公開と連携先のサービスごとに、公開する外部アカウントを選んで保存します。一般公開した外部アカウントは、あなたの公開プロフィールに掲載されます。",
-      },
-      {
-        title: "連携先のサービスとつなぐ",
-        description:
-          "Pointsなどの連携先のサービスから連携を始めると、Accountsの画面で提供する外部アカウントを選んで同意できます。",
-      },
+      { title: "ログインする", note: "Google・GitHub・ORCID" },
+      { title: "アカウント所有の証明", note: "ログインか URL で証明" },
+      { title: "公開先を選ぶ", note: "プロフィールと連携先ごと" },
+      { title: "連携先とつなぐ", note: "Points などから利用" },
     ] satisfies HomeStep[],
-    helpLink: "詳しい使い方はヘルプへ",
   },
   en: {
-    title: "Accounts",
-    lead: "Accounts lets you prove that external accounts such as GitHub, Google and ORCID, and web pages, are yours, and choose what is shown publicly and what each connected service receives.",
+    title: "Freeism Accounts",
+    lead: "Prove that your accounts are yours",
+    toAccountLinks: "Go to account links",
+    helpLink: "Guide",
     stepsTitle: "Getting started",
     steps: [
-      {
-        title: "Sign in",
-        description:
-          "Sign in with your Google, GitHub, or ORCID account. If this is your first time, an Accounts user is created for you.",
-      },
-      {
-        title: "Add external accounts",
-        description:
-          "On the Account links page, prove that external accounts are yours by linking them with OAuth or by verifying the URL of a web page.",
-      },
-      {
-        title: "Choose what to share",
-        description:
-          "Select the external accounts to show publicly and to share with each connected service, then save. Accounts you make public are listed on your public profile.",
-      },
-      {
-        title: "Connect a service",
-        description:
-          "When you start connecting from a service such as Points, you choose the external accounts to share on an Accounts page and give your consent.",
-      },
+      { title: "Sign in", note: "Google, GitHub, or ORCID" },
+      { title: "Prove ownership", note: "By signing in or with a URL" },
+      { title: "Choose where to publish", note: "For your profile and each service" },
+      { title: "Connect a service", note: "Use it from services such as Points" },
     ] satisfies HomeStep[],
-    helpLink: "Read the help for details",
   },
 });

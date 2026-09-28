@@ -261,6 +261,37 @@ export class D1ExternalAccountRepository {
   }
 
   /**
+   * 本人の外部アカウント行に属する、成功した証明行（`verified_at`あり）を読む。
+   * 本人の行の成功した証明でなければ`undefined`を返す。
+   */
+  async findOwnSuccessfulVerification(
+    userId: string,
+    externalAccountId: string,
+    verificationId: string,
+  ): Promise<
+    { id: string; method: VerificationMethod; authAccountId: string | null } | undefined
+  > {
+    const [verification] = await this.db
+      .select({
+        id: externalAccountVerifications.id,
+        method: externalAccountVerifications.method,
+        authAccountId: externalAccountVerifications.authAccountId,
+      })
+      .from(externalAccountVerifications)
+      .innerJoin(externalAccounts, eq(externalAccounts.id, externalAccountVerifications.accountId))
+      .where(
+        and(
+          eq(externalAccountVerifications.id, verificationId),
+          eq(externalAccountVerifications.accountId, externalAccountId),
+          eq(externalAccounts.userId, userId),
+          isNotNull(externalAccountVerifications.verifiedAt),
+        ),
+      )
+      .limit(1);
+    return verification;
+  }
+
+  /**
    * 本人向け一覧に使う、本人の全外部アカウント行と識別子・証明・公開選択を読む。
    */
   async findOwnExternalAccountDetails(userId: string) {
@@ -421,6 +452,16 @@ export class D1ExternalAccountRepository {
     return this.db
       .delete(externalAccounts)
       .where(and(eq(externalAccounts.id, externalAccountId), eq(externalAccounts.userId, userId)));
+  }
+
+  /**
+   * 証明行を削除する。
+   * 対象関連はCASCADEで削除される。
+   */
+  deleteVerification(verificationId: string): DatabaseBatchItem {
+    return this.db
+      .delete(externalAccountVerifications)
+      .where(eq(externalAccountVerifications.id, verificationId));
   }
 
   /**

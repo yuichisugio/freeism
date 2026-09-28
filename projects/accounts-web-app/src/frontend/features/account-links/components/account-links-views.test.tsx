@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "../../../test/render-with-providers";
 import type { VisibilitySaveState } from "../hooks/use-account-links";
 import { createAccountLinks, createLinkedAccount, createLinkedClient } from "../lib/account-links-fixtures";
-import { buildVisibilityTable, emptyVisibilityEdits, setClientConsent } from "../lib/visibility-draft";
+import { buildVisibilityTable, emptyVisibilityEdits, setClientVisibility } from "../lib/visibility-draft";
 import { ConsentPanel } from "./consent-panel";
 import { ExternalUrlForm } from "./external-url-form";
 import { ProfileUrlPanel } from "./profile-url-panel";
@@ -18,7 +18,6 @@ type VisibilityTableProps = Parameters<typeof VisibilityTable>[0];
 const tableHandlers = {
   saveState: { status: "idle" } as const,
   onAccountPublicChange: vi.fn<VisibilityTableProps["onAccountPublicChange"]>(),
-  onClientConsentChange: vi.fn<VisibilityTableProps["onClientConsentChange"]>(),
   onClientVisibilityChange: vi.fn<VisibilityTableProps["onClientVisibilityChange"]>(),
   onAccountVisibilityForAllClientsChange: vi.fn<VisibilityTableProps["onAccountVisibilityForAllClientsChange"]>(),
   onSave: vi.fn<VisibilityTableProps["onSave"]>(),
@@ -28,16 +27,21 @@ const tableHandlers = {
 };
 
 describe("VisibilityTable", () => {
-  it("同意ONで証明済みの選択が無い連携先を示し、保存ボタンを非活性にする", async () => {
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
+  it("未検証の行だけを選択した連携先があっても、変更があれば保存できる", async () => {
+    const links = createAccountLinks({
+      accounts: [createLinkedAccount({ verificationStatus: "unverified" })],
+      clients: [createLinkedClient({ name: "Points" })],
+    });
 
     renderWithProviders(
-      <VisibilityTable table={buildVisibilityTable(links, setClientConsent(emptyVisibilityEdits, "points", true))} {...tableHandlers} />,
+      <VisibilityTable
+        table={buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true))}
+        {...tableHandlers}
+      />,
     );
 
-    expect((await screen.findAllByText(/Points: 同意をONにした連携先には/)).length).toBeGreaterThan(0);
-    for (const button of screen.getAllByRole("button", { name: "公開設定を保存" })) {
-      expect(button.hasAttribute("disabled")).toBe(true);
+    for (const button of await screen.findAllByRole("button", { name: "公開設定を保存" })) {
+      expect(button.hasAttribute("disabled")).toBe(false);
     }
   });
 
@@ -60,11 +64,11 @@ describe("VisibilityTable", () => {
     const user = userEvent.setup();
     const onSave = vi.fn<VisibilityTableProps["onSave"]>();
     const onDiscard = vi.fn<VisibilityTableProps["onDiscard"]>();
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points", consented: true })] });
+    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
 
     renderWithProviders(
       <VisibilityTable
-        table={buildVisibilityTable(links, setClientConsent(emptyVisibilityEdits, "points", false))}
+        table={buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true))}
         {...tableHandlers}
         onSave={onSave}
         onDiscard={onDiscard}
@@ -82,8 +86,8 @@ describe("VisibilityTable", () => {
 
   it("保存の結果は、押した保存ボタンの近くに1回だけ示す", async () => {
     const user = userEvent.setup();
-    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points", consented: true })] });
-    const table = buildVisibilityTable(links, setClientConsent(emptyVisibilityEdits, "points", false));
+    const links = createAccountLinks({ clients: [createLinkedClient({ name: "Points" })] });
+    const table = buildVisibilityTable(links, setClientVisibility(emptyVisibilityEdits, "points", ["eac_1"], true));
 
     /**
      * 保存ボタンを押すと保存済みの状態にする表。
@@ -103,7 +107,7 @@ describe("VisibilityTable", () => {
     expect(screen.getByRole("table").compareDocumentPosition(notices[0] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("一般公開と連携先への同意を、表の列と列の見出しに置く", async () => {
+  it("一般公開と連携先を表の列に置き、同意のスイッチは置かない", async () => {
     const links = createAccountLinks({
       accounts: [createLinkedAccount({ id: "eac_1", displayName: "Alice" })],
       clients: [createLinkedClient({ clientId: "points", name: "Points" })],
@@ -114,7 +118,8 @@ describe("VisibilityTable", () => {
 
     expect(within(table).getByRole("columnheader", { name: /一般公開/ })).toBeDefined();
     expect(within(table).getByRole("checkbox", { name: "GitHub: Aliceを一般公開" })).toBeDefined();
-    expect(within(table).getByRole("switch", { name: "Pointsへの提供に同意する" })).toBeDefined();
+    expect(within(table).getByRole("columnheader", { name: /Points/ })).toBeDefined();
+    expect(within(table).queryByRole("switch")).toBeNull();
   });
 
   it("行と連携先の組ごとに、読み上げ可能な名前のチェックボックスを置く", async () => {
@@ -146,13 +151,9 @@ describe("VisibilityTable", () => {
             {
               id: "evf_1",
               method: "oauth",
-              authAccountId: "acc_1",
-              evidenceUrl: null,
               verifiedAt: "2026-09-01T00:00:00Z",
-              checkedAt: "2026-09-01T00:00:00Z",
-              result: "verified",
-              failureCode: null,
-              identifierIds: ["eid_1"],
+              evidence: null,
+              identifiers: [],
             },
           ],
         }),

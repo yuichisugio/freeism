@@ -58,7 +58,7 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 - 作成した接続先は`PENDING_CLIENT_REGISTRATION`となる。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、リダイレクトURL `{APP_ORIGIN}/api/accounts-links/callback`、client assertion用の公開JWK Setを表示する。運営者はこれをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。
 - 運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できた時だけ`ACTIVE`にし、取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`（メタデータを取得できない・条件を満たさない場合は`422 ACCOUNTS_DISCOVERY_INVALID`）で`PENDING_CLIENT_REGISTRATION`のままとする。Client IDが前後の空白を除いて空または255文字を超える場合は`422 ACCOUNTS_CLIENT_ID_INVALID`、接続先が`PENDING_CLIENT_REGISTRATION`でない場合は`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
 - 同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替える場合は、新しい接続先として追加する。利用者は新しい接続先で認証・同意して連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。
-- 取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先に対するすべてのユーザー連携・連携の試行・Access Tokenのキャッシュ・暗号化した秘密鍵を削除し、解除した連携の件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。Accounts側の公開設定・情報提供同意、Pointsで確定済みの貢献・ポイント、FIX・claimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。
+- 取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先に対するすべてのユーザー連携・連携の試行・Access Tokenのキャッシュ・暗号化した秘密鍵を削除し、解除した連携の件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。Accounts側の公開設定、Pointsで確定済みの貢献・ポイント、FIX・claimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。
 - 利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID・表示名・origin）だけを選択肢にする。
 - 接続先の設定・切り替え・取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証・外部アカウント情報・照合APIの条件は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
@@ -103,8 +103,8 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 - Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。
 - 外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応がある場合にだけPointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応をそれぞれ確認する。
 - Pointsユーザーが退会（account close）した場合は、closeと同じD1原子処理で、そのPointsユーザーに連携しているすべてのAccountsユーザーとの対応を削除する。削除した連携の件数は、[接続先の取り下げ](#31-接続先accountsサービスの管理)と同じ形式で監査に記録する。
-- Pointsでの個別解除・退会では、Accounts側のそのPointsへの公開設定と情報提供同意を維持する。情報提供を停止したい本人はAccountsで設定する。以後の一覧取得・照合も、Accounts APIが定める現在の提供条件に従う。
-- Accountsユーザーが退会した場合や、AccountsでPointsへの情報提供を停止した場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。
+- Pointsでの個別解除・退会では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得・照合も、Accounts APIが定める現在の提供条件に従う。
+- Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。
 - 連携・公開設定・退会による変更後も、Pointsで確定済みの貢献・ポイントの帰属を維持する。未受領FIXへの影響は[未受領FIXの受領資格](unclaimed-fix-and-ownership.md#7-未受領fixの受領資格)に従う。
 
 ### 3.5 連携アカウント一覧の取得
@@ -122,7 +122,7 @@ Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
 - 自分のプロフィールだけに編集ボタンを表示する。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
-- Pointsプロフィールには、Accounts APIから取得したOAuth連携・Webページ検証による連携アカウントの一覧も表示する。外部サービス名、取得できるユーザー名・表示名、固有ID・プロフィールURLなどの識別情報、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。Pointsへの提供に同意されたアカウントの情報を、Pointsプロフィール自体の公開・非公開に従って表示する。
+- Pointsプロフィールには、Accounts APIから取得したOAuth連携・Webページ検証による連携アカウントの一覧も表示する。外部サービス名、取得できるユーザー名・表示名、固有ID・プロフィールURLなどの識別情報、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。AccountsがPointsへ提供するアカウントの情報を、Pointsプロフィール自体の公開・非公開に従って表示する。
 - 外部アカウントの所有権証明・管理と、Accounts APIが提供する項目の定義は[Accounts v0.1仕様](../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)を参照する。
 - 公開プロフィールと`GET /api/v1/profiles/{pointsUserId}`の`accountsLinks`は、状態が`PROVIDED`の連携の[取得済みsnapshot](#35-連携アカウント一覧の取得)だけを返し、閲覧のたびにAccountsへ問い合わせない。各連携はorigin、AccountsユーザーID、Accountsプロフィールへのリンク、取得日時、外部アカウント一覧を持つ。
 - Pointsは最新の取得結果だけを保存し、過去の取得結果の履歴を持たない。Accountsで提供許可が取り消された連携は、次回の取得で`NOT_PROVIDED`となった時点で公開表示を止める。
@@ -148,7 +148,7 @@ GitHubだけで作成したユーザーが重要操作を始める場合、同�
 
 - `POST /api/account/close`はGoogle freshを要求し、ACTIVE reservationが1件でもあれば`409 ACCOUNT_CLOSE_ACTIVE_RESERVATION`、対象が最後のADMINなら`409 ACCOUNT_CLOSE_LAST_ADMIN`で何も変更しない。
 - closeはPointsのSessionとconsentを失効し公開属性を匿名化する。不変`pointsUserId`、経済台帳、残高、Pointsの認証に使う永久OAuth主体対応は保持する。
-- close時のAccountsとの対応解除とAccounts側の公開設定・情報提供同意の扱いは[連携解除と退会](#34-連携解除と退会)に従う。
+- close時のAccountsとの対応解除とAccounts側の公開設定の扱いは[連携解除と退会](#34-連携解除と退会)に従う。
 - close中に到着した正負の新規FIXは未受領で保留する。
 - close後に同じ永久GoogleまたはGitHub主体がloginしたcallbackは元の`pointsUserId`へ操作制限付きCLOSED sessionを結び、`/account/reopen`へ導く。callback GETは状態を閲覧する導線とし、再開は本人の明示操作で確定する。
 - 再開画面には、受領資格が確定した未受領FIXの評価軸別正味合計、正件数、負件数、全件数と`reopenSetHash`を表示する。
@@ -176,16 +176,16 @@ reopenで受領する未受領FIXは、[未受領FIXの受領資格](unclaimed-f
 - Pointsの認証Provider対応とAccounts連携を独立して管理する
 - 同一・異なる提供元の複数Accountsユーザーを連携でき、提供元とIDの組み合わせは同じPointsサービス内で1ユーザーにだけ連携できる。別々のPointsサービスでは独立して連携できる
 - 連携済みAccountsユーザーの状態を案内し、元のPointsユーザーで解除した後、移動先で本人確認・同意を経て再連携できる
-- 個別解除とPoints退会時の全対応解除、Accounts退会時の対応保持と本人による解除、Accounts側の公開設定・同意と確定済み貢献・ポイントの維持を確認する
+- 個別解除とPoints退会時の全対応解除、Accounts退会時の対応保持と本人による解除、Accounts側の公開設定と確定済み貢献・ポイントの維持を確認する
 - Pointsに外部アカウントを登録済みの利用者も、Accountsで新しい登録・証明・公開先設定を完了して連携できる
 - 運営者が接続先を作成すると、Pointsが生成した公開JWK SetとリダイレクトURLを表示し、入力したClient IDでClient Credentialsのトークンを取得できた時だけ`ACTIVE`になる。秘密鍵はKEKで暗号化して保存し、応答・画面へ出さない
 - 同じoriginで`WITHDRAWN`以外の接続先を重複作成できず、作成・有効化・取り下げはADMIN、Google fresh、理由、`Idempotency-Key`を要求する
 - 新しいURLを別の接続先として追加し、旧接続先のユーザー連携を維持したまま新接続先へ連携できる
-- 旧接続先を取り下げると、その接続先への全ユーザー連携・試行・トークン・秘密鍵が削除されてAPI利用が終了し、新接続先への連携、Accounts側の公開設定・情報提供同意、確定済み貢献・ポイントの帰属が維持される
+- 旧接続先を取り下げると、その接続先への全ユーザー連携・試行・トークン・秘密鍵が削除されてAPI利用が終了し、新接続先への連携、Accounts側の公開設定、確定済み貢献・ポイントの帰属が維持される
 - 連携の試行は同じユーザー・同じsessionの10分以内に1回だけ使え、`state`・`iss`・ID Token（署名・`aud`・`nonce`）の不正、同意の拒否、別Pointsユーザーへの連携済みを区別して設定画面に示す
 - 一覧取得の`404`で`NOT_PROVIDED`となって公開表示が止まり、通信失敗では前回のsnapshotを維持する。cronは24時間以上古い連携を最大50件取得し直す
 - 設定画面に複数Accountsユーザーとの連携状態・提供元とID・各管理画面への導線を表示し、Pointsプロフィールと設定画面には各Accounts APIから取得したOAuth・Webページ検証の外部アカウント一覧を表示する
-- Pointsへの提供に同意した外部アカウントは、Accounts自身の一般公開設定にかかわらず、公開Pointsプロフィール・公開APIでテキスト表示できる
+- AccountsがPointsへ提供する外部アカウントは、Accounts自身の一般公開設定にかかわらず、公開Pointsプロフィール・公開APIでテキスト表示できる
 - 各一覧・APIの表示項目はAccountsが提供元ごとに提供する項目と一致する
 - Pointsプロフィール自体が非公開の場合は、連携アカウント一覧も公開表示しない
 - ACTIVE reservationがあるcloseの`ACCOUNT_CLOSE_ACTIVE_RESERVATION`、最後ADMINの`ACCOUNT_CLOSE_LAST_ADMIN`

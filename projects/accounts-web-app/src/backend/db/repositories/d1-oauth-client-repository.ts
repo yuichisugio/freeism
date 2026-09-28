@@ -29,7 +29,7 @@ export class D1OAuthClientRepository {
   }
 
   /**
-   * Client IDに対する全ユーザーの情報提供同意と公開選択を削除する文。
+   * Client IDに対する全ユーザーの提供先の記録と公開選択を削除する文。
    */
   deleteClientSettings(clientId: string): DatabaseBatchItem[] {
     return [

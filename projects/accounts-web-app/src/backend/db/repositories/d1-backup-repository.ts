@@ -8,7 +8,6 @@ import {
   externalAccountVisibility,
   externalIdentifiers,
   oauthClient,
-  oauthConsent,
   user,
 } from "../schema";
 
@@ -84,9 +83,9 @@ export type RestoredIdentifier = IdentifierKey & { id: string; accountId: string
 export type RestoredVisibility = { accountId: string; clientId: string; isPublic: boolean };
 
 /**
- * 復元で上書きする情報提供同意。
+ * 復元で上書きする提供先の記録。
  */
-export type RestoredClientConsent = { clientId: string; displayName: string; consented: boolean };
+export type RestoredClientConsent = { clientId: string; displayName: string };
 
 // --------------------------------------------------
 // リポジトリ
@@ -124,7 +123,6 @@ export class D1BackupRepository {
       .select({
         clientId: clientConsents.clientId,
         displayName: sql<string>`coalesce(${oauthClient.name}, ${clientConsents.displayName})`,
-        consented: clientConsents.consented,
       })
       .from(clientConsents)
       .leftJoin(oauthClient, eq(oauthClient.clientId, clientConsents.clientId))
@@ -163,7 +161,7 @@ export class D1BackupRepository {
   }
 
   /**
-   * 情報提供同意をClient IDで上書きする。
+   * 提供先の記録をClient IDで上書きする。
    * 存在しないClient IDも保存し、入力に無いClient IDの行は維持する。
    */
   upsertClientConsents(
@@ -175,32 +173,12 @@ export class D1BackupRepository {
       this.db
         .insert(clientConsents)
         .select(
-          sql`select ${userId}, json_extract(value, '$.clientId'), json_extract(value, '$.displayName'), json_extract(value, '$.consented') from json_each(${json}) where true`,
+          sql`select ${userId}, json_extract(value, '$.clientId'), json_extract(value, '$.displayName') from json_each(${json}) where true`,
         )
         .onConflictDoUpdate({
           target: [clientConsents.userId, clientConsents.clientId],
-          set: {
-            displayName: sql`excluded.display_name`,
-            consented: sql`excluded.consented`,
-          },
+          set: { displayName: sql`excluded.display_name` },
         }),
-    );
-  }
-
-  /**
-   * 同意をOFFにしたクライアントについて、標準`oauthConsent`行を削除する。
-   * 次回の認可要求で同意画面を表示させる（公開設定の保存と同じ扱い）。
-   */
-  deleteOAuthConsents(userId: string, clientIds: readonly string[]): DatabaseBatchItem[] {
-    return toJsonBinds(clientIds).map((json) =>
-      this.db
-        .delete(oauthConsent)
-        .where(
-          and(
-            eq(oauthConsent.userId, userId),
-            sql`${oauthConsent.clientId} in (select value from json_each(${json}))`,
-          ),
-        ),
     );
   }
 

@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
@@ -11,6 +11,7 @@ import {
   testDb,
   uniqueHost,
 } from "../../../../test/external-account-test-helpers";
+import { countOAuthConsents, insertOAuthConsent } from "../../../../test/resource-api-test-helpers";
 import { backupSchema, type Backup } from "../../../shared/schemas/backup-schema";
 import { createRandomId } from "../../db/id";
 import {
@@ -20,7 +21,6 @@ import {
   externalAccountVisibility,
   externalIdentifiers,
   oauthClient,
-  oauthConsent,
   user,
 } from "../../db/schema";
 import { ProblemError } from "../../problem-details";
@@ -44,7 +44,7 @@ async function createClient(name: string): Promise<string> {
 }
 
 /**
- * 証明済みの外部アカウント（URL 2件をリンク証明）と未検証のURLを持ち、登録済みクライアントと存在しないClient IDに同意したユーザーを作る。
+ * 証明済みの外部アカウント（URL 2件をリンク証明）と未検証のURLを持ち、登録済みクライアントと存在しないClient IDを提供先に記録したユーザーを作る。
  */
 async function createUserWithBackupTargets() {
   const userId = await createTestUser();
@@ -73,8 +73,8 @@ async function createUserWithBackupTargets() {
   });
 
   await testDb.insert(clientConsents).values([
-    { userId, clientId, displayName: "Points", consented: true },
-    { userId, clientId: missingClientId, displayName: "Deleted client", consented: true },
+    { userId, clientId, displayName: "Points" },
+    { userId, clientId: missingClientId, displayName: "Deleted client" },
   ]);
   await testDb.insert(externalAccountVisibility).values([
     { accountId: verified.accountId, clientId, isPublic: true },
@@ -105,7 +105,7 @@ function restore(userId: string, backup: Backup) {
 // --------------------------------------------------
 
 /**
- * 本人の表示名・外部アカウント・識別子・証明・公開選択・同意を、比較できる形で読む。
+ * 本人の表示名・外部アカウント・識別子・証明・公開選択・提供先の記録を、比較できる形で読む。
  */
 async function readUserState(userId: string) {
   const [userRow] = await testDb.select({ name: user.name }).from(user).where(eq(user.id, userId));
@@ -154,11 +154,11 @@ async function readVisibility(accountId: string) {
 }
 
 /**
- * 本人の情報提供同意を`clientId → consented`の形で読む。
+ * 本人の提供先の記録を`clientId → displayName`の形で読む。
  */
-async function readConsents(userId: string) {
+async function readClientRecords(userId: string) {
   const rows = await testDb.select().from(clientConsents).where(eq(clientConsents.userId, userId));
-  return Object.fromEntries(rows.map((row) => [row.clientId, row.consented]));
+  return Object.fromEntries(rows.map((row) => [row.clientId, row.displayName]));
 }
 
 // --------------------------------------------------
@@ -166,7 +166,7 @@ async function readConsents(userId: string) {
 // --------------------------------------------------
 
 describe("restoreBackup", () => {
-  it("行全体を解除した外部アカウントを候補として取り込み、公開設定・同意・表示名をバックアップ時に戻す", async () => {
+  it("行全体を解除した外部アカウントを候補として取り込み、公開設定・提供先の記録・表示名をバックアップ時に戻す", async () => {
     const target = await createUserWithBackupTargets();
     const backup = await exportAndParse(target.userId);
 
@@ -176,7 +176,7 @@ describe("restoreBackup", () => {
       .update(externalAccountVisibility)
       .set({ isPublic: true })
       .where(eq(externalAccountVisibility.accountId, target.unverifiedAccountId));
-    await testDb.update(clientConsents).set({ consented: false }).where(eq(clientConsents.userId, target.userId));
+    await testDb.update(clientConsents).set({ displayName: "変更後" }).where(eq(clientConsents.userId, target.userId));
     await testDb.update(user).set({ name: "変更後の名前" }).where(eq(user.id, target.userId));
 
     const result = await restore(target.userId, backup);
@@ -189,9 +189,9 @@ describe("restoreBackup", () => {
     });
     const state = await readUserState(target.userId);
     expect(state.name).toBe("バックアップ時の名前");
-    expect(await readConsents(target.userId)).toEqual({
-      [target.clientId]: true,
-      [target.missingClientId]: true,
+    expect(await readClientRecords(target.userId)).toEqual({
+      [target.clientId]: "Points",
+      [target.missingClientId]: "Deleted client",
     });
     // 出力は`clientConsents`の各Client IDを網羅するため、設定行が無かったクライアントも非公開として保存する。
     expect(await readVisibility(target.unverifiedAccountId)).toEqual({
@@ -321,7 +321,7 @@ describe("restoreBackup", () => {
     ]);
   });
 
-  it("バックアップのclientConsentsに無いクライアントの同意と公開選択を維持する", async () => {
+  it("バックアップのclientConsentsに無いクライアントの提供先の記録と公開選択を維持する", async () => {
     const target = await createUserWithBackupTargets();
     const backup = await exportAndParse(target.userId);
     const laterClientId = await createClient("Later");
@@ -329,7 +329,6 @@ describe("restoreBackup", () => {
       userId: target.userId,
       clientId: laterClientId,
       displayName: "Later",
-      consented: true,
     });
     await testDb
       .insert(externalAccountVisibility)
@@ -337,33 +336,30 @@ describe("restoreBackup", () => {
 
     await restore(target.userId, backup);
 
-    expect((await readConsents(target.userId))[laterClientId]).toBe(true);
+    expect((await readClientRecords(target.userId))[laterClientId]).toBe("Later");
     expect((await readVisibility(target.verifiedAccountId))[laterClientId]).toBe(true);
   });
 
-  it("同意をOFFに戻すクライアントの標準`oauthConsent`を削除する", async () => {
+  it("復元で提供対象が0件になるクライアントの標準`oauthConsent`を削除し、提供が続くクライアントの行は残す", async () => {
     const target = await createUserWithBackupTargets();
     const backup = await exportAndParse(target.userId);
-    await testDb.insert(oauthConsent).values({
-      id: createRandomId(),
-      clientId: target.clientId,
-      userId: target.userId,
-      scopes: ["openid"],
-      createdAt: now,
-      updatedAt: now,
-    });
+    const laterClientId = await createClient("Later");
+    await testDb
+      .insert(externalAccountVisibility)
+      .values({ accountId: target.verifiedAccountId, clientId: laterClientId, isPublic: true });
+    await insertOAuthConsent(target.userId, target.clientId);
+    await insertOAuthConsent(target.userId, laterClientId);
 
     await restore(target.userId, {
       ...backup,
-      clientConsents: backup.clientConsents.map((consent) => ({ ...consent, consented: false })),
+      externalAccounts: backup.externalAccounts.map((account) => ({
+        ...account,
+        clientVisibility: account.clientVisibility.map((visibility) => ({ ...visibility, isPublic: false })),
+      })),
     });
 
-    expect(
-      await testDb
-        .select()
-        .from(oauthConsent)
-        .where(and(eq(oauthConsent.userId, target.userId), eq(oauthConsent.clientId, target.clientId))),
-    ).toEqual([]);
+    expect(await countOAuthConsents(target.userId, target.clientId)).toBe(0);
+    expect(await countOAuthConsents(target.userId, laterClientId)).toBe(1);
   });
 
   // --------------------------------------------------
@@ -423,7 +419,7 @@ describe("restoreBackup", () => {
       accountsUserId: userId,
       exportedAt: now.toISOString(),
       profile: { displayName: "本人" },
-      clientConsents: [{ clientId: "points-client", displayName: "Points", consented: true }],
+      clientConsents: [{ clientId: "points-client", displayName: "Points" }],
       externalAccounts: Array.from({ length: 300 }, (_, accountIndex) => ({
         metadata: {
           service: "gitlab",

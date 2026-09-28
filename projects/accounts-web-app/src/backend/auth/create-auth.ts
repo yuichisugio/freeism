@@ -29,6 +29,7 @@ import { auditLog } from "../logging/audit-log";
 import { selectProfilePurgeTargets } from "../usecases/profile/select-profile-purge-targets";
 import { syncOAuthAccount } from "../usecases/sync-oauth-account";
 import { createAuditAfterHook } from "./audit-auth-events";
+import { createConsentGuardBeforeHook } from "./guard-oauth-consent";
 import { readOAuthProfile, type AuthContext } from "./read-oauth-profile";
 
 /**
@@ -247,6 +248,7 @@ export function createAuth(
       "/update-user",
     ],
     hooks: {
+      before: createConsentGuardBeforeHook({ db }),
       after: createAuditAfterHook({ purgeProfiles }),
     },
     databaseHooks: {

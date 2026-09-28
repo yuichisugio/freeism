@@ -23,12 +23,12 @@ export class D1PublicProfileRepository {
   }
 
   /**
-   * 一般公開を許可した外部アカウント行を、有効な識別子と成功したことのある証明とともに読む。
+   * 一般公開を許可した外部アカウント行を、有効な識別子と現在有効な証明（`verified_at`がある行）とともに読む。
    * 有効な識別子を持たない行（候補だけの行）は呼出し側で除く。
    */
   async findPublicExternalAccounts(userId: string) {
     return this.db.query.externalAccounts.findMany({
-      columns: { id: true, service: true, displayName: true, linkedAt: true },
+      columns: { id: true, service: true },
       where: and(eq(externalAccounts.userId, userId), sql`${externalAccounts.isPublic} = 1`),
       orderBy: [sql`${externalAccounts.linkedAt} is null`, externalAccounts.linkedAt],
       with: {
@@ -38,15 +38,8 @@ export class D1PublicProfileRepository {
           orderBy: [externalIdentifiers.kind, externalIdentifiers.value],
         },
         externalAccountVerifications: {
-          columns: {
-            method: true,
-            verifiedAt: true,
-            checkedAt: true,
-            result: true,
-            evidenceUrl: true,
-          },
+          columns: { method: true, verifiedAt: true },
           where: isNotNull(externalAccountVerifications.verifiedAt),
-          orderBy: [externalAccountVerifications.method],
         },
       },
     });

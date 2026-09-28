@@ -250,7 +250,7 @@ async function acceptOnConsentPage(
   { clientId, visibleAccountIds }: { clientId: string; visibleAccountIds: string[] },
 ): Promise<URL> {
   const saved = await saveVisibility(browser, {
-    clients: [{ clientId, consented: true, visibleAccountIds }],
+    clients: [{ clientId, visibleAccountIds }],
   });
   expect(saved.status).toBe(200);
 
@@ -437,18 +437,12 @@ describe("Pointsを模した利用側クライアント", () => {
     });
   });
 
-  it("(d) 同意をOFFで保存すると一覧は404・照合はno_matchになり、再連携では同意画面を表示する", async () => {
+  it("(d) 公開選択をすべて外して保存すると一覧は404・照合はno_matchになり、再連携では同意画面を表示する", async () => {
     const { owner, points } = await linkPointsToAccounts();
     const caller = await connectResourceApi(points);
 
     const saved = await saveVisibility(owner.headers, {
-      clients: [
-        {
-          clientId: points.clientId,
-          consented: false,
-          visibleAccountIds: [owner.github.externalAccountId],
-        },
-      ],
+      clients: [{ clientId: points.clientId, visibleAccountIds: [] }],
     });
     const list = await listExternalAccounts(caller, owner.userId);
     const resolveResponse = await resolve(caller, [

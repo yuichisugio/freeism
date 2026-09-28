@@ -1,10 +1,9 @@
-import { Button } from "@heroui/react";
+import { buttonVariants } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 
-import { commonMessages } from "../../../lib/i18n/common-messages";
 import { useMessages } from "../../../lib/i18n/i18n-provider";
-import { useHydratedSession } from "../../../lib/use-hydrated-session";
+import { PageMain } from "../../app-shell/components/page-main";
 import { useLoginDialog } from "../../auth/hooks/use-login-dialog";
 import { homeMessages } from "../messages";
 
@@ -15,18 +14,14 @@ export type LoginRequest = { errorCode: string | undefined };
 
 /**
  * トップページ（`/`）。
- * 簡単な使い方を紹介する静的な内容で、ビルド時に事前生成する。
- * ログインしていない場合は「ログインする」からログイン用のダイアログを開く。
- * ログイン中のユーザーの一覧と切替は、ヘッダーのアカウントのメニューで行う。
- * セッションに応じた表示は、事前生成したHTMLと描画を揃えるため、hydrationとセッションの確認の後に表示する。
+ * サービス名と説明、「アカウント連携へ」と「使い方」、簡単な使い方の4つの手順を置く静的な内容で、ビルド時に事前生成する。
+ * ログインは「アカウント連携」を開いたときのログイン用のダイアログから行う。
  * OAuth Providerのログイン画面を兼ね、`loginRequest`があればログイン用のダイアログを自動で開く。
- * @see ../../../../../docs/specification/v0.1/main.ja.md
+ * @see ../../../../../docs/specification/v0.1/design-system.ja.md
  * @see ./home-page.test.tsx
  */
 export function HomePage({ loginRequest }: { loginRequest: LoginRequest | null }) {
   const messages = useMessages(homeMessages);
-  const common = useMessages(commonMessages);
-  const session = useHydratedSession();
   const loginDialog = useLoginDialog();
   const requestedErrorCode = loginRequest?.errorCode;
   const isLoginRequested = loginRequest !== null;
@@ -36,32 +31,41 @@ export function HomePage({ loginRequest }: { loginRequest: LoginRequest | null }
   }, [isLoginRequested, requestedErrorCode, loginDialog]);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
-      <section className="flex flex-col items-start gap-4">
-        <h1 className="text-3xl font-semibold">{messages.title}</h1>
-        <p>{messages.lead}</p>
-        {session.isPending || session.data ? null : (
-          <Button variant="primary" onPress={() => loginDialog.open()}>
-            {common.signIn}
-          </Button>
-        )}
+    <PageMain>
+      <section className="flex flex-wrap items-center justify-between gap-5 rounded-2xl bg-accent-soft p-8 max-sm:p-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl max-sm:text-2xl">{messages.title}</h1>
+          <p className="max-w-[40ch]">{messages.lead}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link to="/{-$accountsUserId}/account-links" className={buttonVariants({ variant: "primary" })}>
+            {messages.toAccountLinks}
+          </Link>
+          <Link to="/{-$accountsUserId}/help">{messages.helpLink}</Link>
+        </div>
       </section>
-      <section aria-labelledby="home-steps" className="flex flex-col gap-4">
-        <h2 id="home-steps" className="text-xl font-semibold">
+      <section
+        aria-labelledby="home-steps"
+        className="flex flex-col gap-4 rounded-xl border border-border bg-surface px-6 py-5 shadow-surface max-sm:p-4"
+      >
+        <h2 id="home-steps" className="text-lg">
           {messages.stepsTitle}
         </h2>
-        <ol className="flex list-decimal flex-col gap-3 pl-6">
-          {messages.steps.map((step) => (
-            <li key={step.title}>
-              <p className="font-semibold">{step.title}</p>
-              <p className="text-sm text-muted">{step.description}</p>
+        <ol className="grid grid-cols-4 gap-3 max-[820px]:grid-cols-2 max-[480px]:grid-cols-1">
+          {messages.steps.map((step, index) => (
+            <li key={step.title} className="flex flex-col gap-0.5 rounded-lg bg-surface-secondary px-4 py-3">
+              <span
+                aria-hidden="true"
+                className="mb-1 grid size-(--checkbox) place-items-center rounded-full border border-border bg-surface font-display text-xs font-bold text-accent"
+              >
+                {index + 1}
+              </span>
+              <b className="font-medium">{step.title}</b>
+              <span className="text-xs text-muted">{step.note}</span>
             </li>
           ))}
         </ol>
-        <Link to="/{-$accountsUserId}/help" className="self-start underline">
-          {messages.helpLink}
-        </Link>
       </section>
-    </main>
+    </PageMain>
   );
 }

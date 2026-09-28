@@ -47,44 +47,58 @@ async function openAccountMenu(path = "/") {
 }
 
 describe("AppHeader", () => {
-  it("左上のサービス名の左にロゴを置き、トップページへのリンクにする", async () => {
+  it("左上にロゴとサービス名を置き、トップページへのリンクにする", async () => {
     renderWithProviders(<AppHeader />);
 
-    const homeLink = await screen.findByRole("link", { name: "Accounts" });
+    const homeLink = await screen.findByRole("link", { name: "Freeism Accounts" });
     expect(homeLink.getAttribute("href")).toBe("/");
-    expect(homeLink.querySelector("img")?.getAttribute("src")).toBe("/favicon.svg");
+    expect(homeLink.querySelector("svg")).not.toBeNull();
   });
 
-  it("プライバシーポリシー・利用規約と表示言語の切替はヘッダーに置かない", async () => {
+  it("メインメニューに「トップ」「アカウント連携」「その他」のタブだけを置く", async () => {
     renderWithProviders(<AppHeader />);
 
-    await screen.findByRole("link", { name: "Accounts" });
+    const navigation = await screen.findByRole("navigation", { name: "メインメニュー" });
+    const tabs = within(navigation).getAllByRole("link");
+    expect(tabs.map((tab) => tab.textContent)).toEqual(["トップ", "アカウント連携", "その他"]);
+    expect(screen.queryByRole("link", { name: "開発者向け" })).toBeNull();
     expect(screen.queryByRole("link", { name: "プライバシーポリシー" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "利用規約" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "English" })).toBeNull();
   });
 
-  it("ログインしていない場合は、画面へのリンクをユーザーIDの無い経路にし、「ログインする」からログイン用のダイアログを開く", async () => {
+  it("ログインしていない場合は、タブをユーザーIDの無い経路にし、右端に何も置かない", async () => {
     renderWithProviders(<AppHeader />);
 
-    expect((await screen.findByRole("link", { name: "アカウント連携" })).getAttribute("href")).toBe("/account-links");
-    await userEvent.click(screen.getByRole("button", { name: "ログインする" }));
-
-    expect(within(await screen.findByRole("dialog")).getByRole("button", { name: "Googleでログイン" })).toBeDefined();
+    const navigation = await screen.findByRole("navigation", { name: "メインメニュー" });
+    expect(within(navigation).getAllByRole("link").map((tab) => tab.getAttribute("href"))).toEqual([
+      "/",
+      "/account-links",
+      "/settings",
+    ]);
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("ログイン済みの場合は、画面へのリンクに現在のユーザーのIDを付け、「ログインする」の代わりにアイコンを置く", async () => {
+  it("ログイン済みの場合は、タブに現在のユーザーのIDを付け、右端に人のアイコンのメニューを置く", async () => {
     authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
     renderWithProviders(<AppHeader />);
 
     const trigger = await screen.findByRole("button", { name: "アカウントのメニュー（alice）" });
-    expect(trigger.textContent).toBe("A");
+    expect(trigger.textContent).toBe("");
+    expect(trigger.querySelector("svg")).not.toBeNull();
     expect(screen.getByRole("link", { name: "アカウント連携" }).getAttribute("href")).toBe("/ausr_alice/account-links");
-    expect(screen.getByRole("link", { name: "設定" }).getAttribute("href")).toBe("/ausr_alice/settings");
+    expect(screen.getByRole("link", { name: "その他" }).getAttribute("href")).toBe("/ausr_alice/settings");
     expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
   });
 
-  it("メニューに、このブラウザーでログイン中のユーザーを現在のユーザーを示して並べ、その下にアカウントの追加とログアウトを置く", async () => {
+  it("開いている画面のタブを現在のページとして示す", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<AppHeader />, { path: "/ausr_alice/settings" });
+
+    expect((await screen.findByRole("link", { name: "その他" })).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "トップ" }).getAttribute("aria-current")).toBeNull();
+    expect(screen.getByRole("link", { name: "アカウント連携" }).getAttribute("aria-current")).toBeNull();
+  });
+
+  it("メニューは見出しを置かず、現在のユーザー・ほかのユーザー・アカウントの追加・現在のユーザーのログアウトの順に並べる", async () => {
     const { menu } = await openAccountMenu();
 
     const items = within(menu).getAllByRole("menuitem");
@@ -92,11 +106,25 @@ describe("AppHeader", () => {
       expect.stringContaining("alice"),
       expect.stringContaining("Bob"),
       "アカウントを追加",
-      "ログアウト",
+      "aliceからログアウト",
     ]);
     expect(items[0]?.textContent).toContain("現在のユーザー");
     expect(items[1]?.textContent).toContain("ausr_bob");
     expect(items[1]?.textContent).not.toContain("現在のユーザー");
+    expect(within(menu).queryByText("このブラウザーでログイン中のユーザー")).toBeNull();
+  });
+
+  it("現在のユーザーは、ほかのユーザーの並びにかかわらず先頭に置く", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [bob, alice], error: null });
+    renderWithProviders(<AppHeader />);
+    await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
+    const menu = await screen.findByRole("menu");
+    await within(menu).findByRole("menuitem", { name: /Bob/ });
+
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items[0]?.textContent).toContain("現在のユーザー");
+    expect(items[0]?.textContent).toContain("alice");
   });
 
   it("トップページで別のユーザーを押すと、そのユーザーのセッションへ切り替える", async () => {
@@ -135,11 +163,11 @@ describe("AppHeader", () => {
     expect(within(await screen.findByRole("dialog")).getByRole("button", { name: "GitHubでログイン" })).toBeDefined();
   });
 
-  it("「ログアウト」は、トップページへ移動してから現在のユーザーのセッションだけを終了し、セッションを読み直す", async () => {
+  it("ログアウトは、トップページへ移動してから現在のユーザーのセッションだけを終了し、セッションを読み直す", async () => {
     authClientMock.multiSession.revoke.mockResolvedValue({ data: { status: true }, error: null });
     const { menu, router } = await openAccountMenu("/ausr_alice/settings");
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: "ログアウト" }));
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "aliceからログアウト" }));
 
     await waitFor(() => expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" }));
     expect(router.state.location.pathname).toBe("/");
@@ -150,7 +178,7 @@ describe("AppHeader", () => {
     authClientMock.multiSession.revoke.mockResolvedValue({ data: null, error: { status: 500 } });
     const { menu } = await openAccountMenu();
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: "ログアウト" }));
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "aliceからログアウト" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain("ログアウトできませんでした");
     expect(authClientMock.$store.notify).not.toHaveBeenCalled();
@@ -158,23 +186,30 @@ describe("AppHeader", () => {
 });
 
 describe("AppFooter", () => {
-  it("OSSライセンスの右に、プライバシーポリシーと利用規約へのリンクを置く", async () => {
-    renderWithProviders(<AppFooter />, { language: "en" });
+  it("使い方・OSSライセンス・プライバシーポリシー・利用規約へのリンクを置く", async () => {
+    renderWithProviders(<AppFooter />);
 
     const footer = await screen.findByRole("contentinfo");
     const links = within(footer).getAllByRole("link");
-    expect(links.map((link) => link.textContent)).toEqual([
-      "Help",
+    expect(links.map((link) => link.textContent)).toEqual(["使い方", "OSSライセンス", "プライバシーポリシー", "利用規約"]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/help", "/licenses", "/privacy", "/terms"]);
+  });
+
+  it("英語の画面では英語の名前で示す", async () => {
+    renderWithProviders(<AppFooter />, { language: "en" });
+
+    const footer = await screen.findByRole("contentinfo");
+    expect(within(footer).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Guide",
       "Open source licenses",
       "Privacy policy",
       "Terms of use",
     ]);
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/help", "/licenses", "/privacy", "/terms"]);
   });
 
   it("ユーザーID付きの画面では、リンクに同じユーザーのIDを付ける", async () => {
     renderWithProviders(<AppFooter />, { path: "/ausr_alice/settings" });
 
-    expect((await screen.findByRole("link", { name: "ヘルプ" })).getAttribute("href")).toBe("/ausr_alice/help");
+    expect((await screen.findByRole("link", { name: "使い方" })).getAttribute("href")).toBe("/ausr_alice/help");
   });
 });

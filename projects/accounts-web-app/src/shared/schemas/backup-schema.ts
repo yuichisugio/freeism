@@ -41,10 +41,12 @@ export const backupAccountMetadataSchema = v.strictObject({
   verifications: v.pipe(v.array(backupVerificationSchema), v.maxLength(backupAccountItemLimit)),
 });
 
+/**
+ * 提供先の記録（公開設定の列にするクライアント）。
+ */
 export const backupClientConsentSchema = v.strictObject({
   clientId: v.pipe(v.string(), v.nonEmpty()),
   displayName: v.string(),
-  consented: v.boolean(),
 });
 
 export const backupExternalAccountSchema = v.strictObject({
@@ -85,7 +87,7 @@ export type Backup = v.InferInput<typeof backupSchema>;
 
 /**
  * `GET /api/backup/summary`の`data`。
- * 出力前に本人へ示す件数と、非公開の情報（未検証の登録・非公開の設定・情報提供同意）を含むか。
+ * 出力前に本人へ示す件数と、非公開の情報（未検証の登録・非公開の設定・提供先の記録）を含むか。
  */
 export const backupSummarySchema = v.object({
   externalAccountCount: v.number(),

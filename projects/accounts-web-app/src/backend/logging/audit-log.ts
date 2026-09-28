@@ -29,10 +29,10 @@ export type AuditEvent =
   | "url_verification"
   // Web識別子の紐付け先の更新
   | "identifier_transfer"
-  // 連携解除
+  // 連携解除（行全体と証明ごと）
   | "external_account_unlinked"
-  | "oauth_unlinked"
-  // 情報提供同意・公開選択の変更
+  | "verification_unlinked"
+  // 一般公開・公開選択の変更
   | "visibility_saved"
   // 同意画面での標準OAuthの同意・拒否
   | "oauth_consent_accepted"

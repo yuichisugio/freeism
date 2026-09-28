@@ -12,6 +12,11 @@ declare module "@tanstack/react-router" {
      * URLのユーザーでこのブラウザーにログインしていなくても、ログインを求めずに現在のユーザーの画面として表示する。
      */
     isUserIndependent?: boolean;
+    /**
+     * 未ログインでも表示する画面か（ログインの有無で中身を切り替える画面）。
+     * 指定の無い画面は、未ログインで開くとログインを求める。
+     */
+    allowsGuest?: boolean;
   }
 }
 
@@ -19,9 +24,10 @@ declare module "@tanstack/react-router" {
  * URLのAccountsユーザーIDと現在のセッションを揃える状態。
  * `checking`はセッションの確認・切替・ID付きのURLへの置き換えの途中。
  * `signInRequired`は、URLのユーザーでこのブラウザーにログインしていない状態で、`openLogin`でログイン用のダイアログを開き直せる。
+ * `guestSignInRequired`は、ログインが必要な画面を未ログインで開いた状態。
  */
 export type UserScope =
-  | { status: "checking" | "ready" | "switchFailed" }
+  | { status: "checking" | "ready" | "switchFailed" | "guestSignInRequired" }
   | { status: "signInRequired"; accountsUserId: string; openLogin: () => void };
 
 /**
@@ -37,7 +43,8 @@ type ActivationResult = "switched" | "signInRequired" | "switchFailed";
 /**
  * 画面のURL（`/{accountsUserId}/...`）のユーザーと、現在の有効セッションのユーザーを揃える。
  * URLのIDは表示するユーザーの切替だけに使い、BFFはCookieのセッションで本人を判定する。
- * - IDの無いURLは、ログイン済みなら現在のユーザーのID付きのURLへ置き換え、未ログインならそのまま表示する。
+ * - IDの無いURLは、ログイン済みなら現在のユーザーのID付きのURLへ置き換える。
+ *   未ログインなら、未ログインでも表示する画面（経路の`staticData.allowsGuest`・`isUserIndependent`）はそのまま表示し、ほかの画面はログイン用のダイアログを開いてログイン後に同じURLへ戻す。
  * - IDが現在のユーザーと違えば、このブラウザーでログイン中のセッションにそのユーザーがあれば`setActive`で切り替え、無ければログイン用のダイアログを開き、ログイン後に同じURLへ戻す。
  * - ユーザーの情報を扱わない画面（経路の`staticData.isUserIndependent`）では、URLのユーザーでログインしていなければ、現在のユーザーのID付き（未ログインならIDの無い）URLへ置き換える。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
@@ -52,6 +59,10 @@ export function useUserScope(): UserScope {
   const isUserIndependent = useMatches({
     select: (matches) => matches.some((match) => match.staticData.isUserIndependent === true),
   });
+  const allowsGuest = useMatches({
+    select: (matches) =>
+      matches.some((match) => match.staticData.allowsGuest === true || match.staticData.isUserIndependent === true),
+  });
   const navigate = useNavigate();
   const loginDialog = useLoginDialog();
   const session = useHydratedSession();
@@ -63,6 +74,8 @@ export function useUserScope(): UserScope {
     if (urlUserId === undefined) {
       if (sessionUserId !== null) {
         void navigate({ to: ".", params: { accountsUserId: sessionUserId }, search: true, hash: true, replace: true });
+      } else if (!allowsGuest) {
+        loginDialog.open({ errorCode: loginErrorCode, returnTo: pathname });
       }
       return;
     }
@@ -86,10 +99,13 @@ export function useUserScope(): UserScope {
     return () => {
       isActive = false;
     };
-  }, [urlUserId, sessionUserId, isUserIndependent, pathname, loginErrorCode, navigate, loginDialog]);
+  }, [urlUserId, sessionUserId, isUserIndependent, allowsGuest, pathname, loginErrorCode, navigate, loginDialog]);
 
   if (sessionUserId === undefined) return { status: "checking" };
-  if (urlUserId === undefined) return { status: sessionUserId === null ? "ready" : "checking" };
+  if (urlUserId === undefined) {
+    if (sessionUserId !== null) return { status: "checking" };
+    return { status: allowsGuest ? "ready" : "guestSignInRequired" };
+  }
   if (urlUserId === sessionUserId) return { status: "ready" };
   if (failure?.urlUserId !== urlUserId) return { status: "checking" };
   if (failure.status === "switchFailed") return { status: "switchFailed" };

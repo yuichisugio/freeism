@@ -24,17 +24,17 @@ describe("useUnlink", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("OAuthだけの解除は対象の認証連携を指定し、成功後に確認を閉じて再取得する", async () => {
+  it("証明ごとの解除は対象の証明を指定し、成功後に確認を閉じて再取得する", async () => {
     const fetchMock = vi.fn<typeof fetch>(async () => dataResponse({ ok: true }));
     vi.stubGlobal("fetch", fetchMock);
     const onUnlinked = vi.fn<() => Promise<void>>(async () => {});
     const { result } = renderHook(() => useUnlink({ onUnlinked }));
 
-    act(() => result.current.request({ kind: "oauth", account, authAccountId: "acc 1" }));
+    act(() => result.current.request({ kind: "verification", account, verificationId: "evf 1" }));
     await act(() => result.current.confirm());
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "/api/external-accounts/eac_1/oauth/acc%201",
+      "/api/external-accounts/eac_1/verifications/evf%201",
       expect.objectContaining({ method: "DELETE" }),
     );
     expect(result.current.target).toBeNull();

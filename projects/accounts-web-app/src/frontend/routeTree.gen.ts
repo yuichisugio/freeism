@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as Char123AccountsUserIdChar125RouteRouteImport } from './routes/{-$accountsUserId}/route'
 import { Route as Char123AccountsUserIdChar125AccountLinksRouteImport } from './routes/{-$accountsUserId}/account-links'
-import { Route as Char123AccountsUserIdChar125DeveloperRouteImport } from './routes/{-$accountsUserId}/developer'
 import { Route as Char123AccountsUserIdChar125HelpRouteImport } from './routes/{-$accountsUserId}/help'
 import { Route as Char123AccountsUserIdChar125LicensesRouteImport } from './routes/{-$accountsUserId}/licenses'
 import { Route as Char123AccountsUserIdChar125PrivacyRouteImport } from './routes/{-$accountsUserId}/privacy'
@@ -34,12 +33,6 @@ const Char123AccountsUserIdChar125AccountLinksRoute =
   Char123AccountsUserIdChar125AccountLinksRouteImport.update({
     id: '/account-links',
     path: '/account-links',
-    getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
-  } as any)
-const Char123AccountsUserIdChar125DeveloperRoute =
-  Char123AccountsUserIdChar125DeveloperRouteImport.update({
-    id: '/developer',
-    path: '/developer',
     getParentRoute: () => Char123AccountsUserIdChar125RouteRoute,
   } as any)
 const Char123AccountsUserIdChar125HelpRoute =
@@ -77,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
   '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
-  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
   '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
   '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
   '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
@@ -88,7 +80,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
   '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
-  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
   '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
   '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
   '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
@@ -100,7 +91,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/{-$accountsUserId}': typeof Char123AccountsUserIdChar125RouteRouteWithChildren
   '/{-$accountsUserId}/account-links': typeof Char123AccountsUserIdChar125AccountLinksRoute
-  '/{-$accountsUserId}/developer': typeof Char123AccountsUserIdChar125DeveloperRoute
   '/{-$accountsUserId}/help': typeof Char123AccountsUserIdChar125HelpRoute
   '/{-$accountsUserId}/licenses': typeof Char123AccountsUserIdChar125LicensesRoute
   '/{-$accountsUserId}/privacy': typeof Char123AccountsUserIdChar125PrivacyRoute
@@ -113,7 +103,6 @@ export interface FileRouteTypes {
     | '/'
     | '/{-$accountsUserId}'
     | '/{-$accountsUserId}/account-links'
-    | '/{-$accountsUserId}/developer'
     | '/{-$accountsUserId}/help'
     | '/{-$accountsUserId}/licenses'
     | '/{-$accountsUserId}/privacy'
@@ -124,7 +113,6 @@ export interface FileRouteTypes {
     | '/'
     | '/{-$accountsUserId}'
     | '/{-$accountsUserId}/account-links'
-    | '/{-$accountsUserId}/developer'
     | '/{-$accountsUserId}/help'
     | '/{-$accountsUserId}/licenses'
     | '/{-$accountsUserId}/privacy'
@@ -135,7 +123,6 @@ export interface FileRouteTypes {
     | '/'
     | '/{-$accountsUserId}'
     | '/{-$accountsUserId}/account-links'
-    | '/{-$accountsUserId}/developer'
     | '/{-$accountsUserId}/help'
     | '/{-$accountsUserId}/licenses'
     | '/{-$accountsUserId}/privacy'
@@ -169,13 +156,6 @@ declare module '@tanstack/react-router' {
       path: '/account-links'
       fullPath: '/{-$accountsUserId}/account-links'
       preLoaderRoute: typeof Char123AccountsUserIdChar125AccountLinksRouteImport
-      parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
-    }
-    '/{-$accountsUserId}/developer': {
-      id: '/{-$accountsUserId}/developer'
-      path: '/developer'
-      fullPath: '/{-$accountsUserId}/developer'
-      preLoaderRoute: typeof Char123AccountsUserIdChar125DeveloperRouteImport
       parentRoute: typeof Char123AccountsUserIdChar125RouteRoute
     }
     '/{-$accountsUserId}/help': {
@@ -218,7 +198,6 @@ declare module '@tanstack/react-router' {
 
 interface Char123AccountsUserIdChar125RouteRouteChildren {
   Char123AccountsUserIdChar125AccountLinksRoute: typeof Char123AccountsUserIdChar125AccountLinksRoute
-  Char123AccountsUserIdChar125DeveloperRoute: typeof Char123AccountsUserIdChar125DeveloperRoute
   Char123AccountsUserIdChar125HelpRoute: typeof Char123AccountsUserIdChar125HelpRoute
   Char123AccountsUserIdChar125LicensesRoute: typeof Char123AccountsUserIdChar125LicensesRoute
   Char123AccountsUserIdChar125PrivacyRoute: typeof Char123AccountsUserIdChar125PrivacyRoute
@@ -230,8 +209,6 @@ const Char123AccountsUserIdChar125RouteRouteChildren: Char123AccountsUserIdChar1
   {
     Char123AccountsUserIdChar125AccountLinksRoute:
       Char123AccountsUserIdChar125AccountLinksRoute,
-    Char123AccountsUserIdChar125DeveloperRoute:
-      Char123AccountsUserIdChar125DeveloperRoute,
     Char123AccountsUserIdChar125HelpRoute:
       Char123AccountsUserIdChar125HelpRoute,
     Char123AccountsUserIdChar125LicensesRoute:

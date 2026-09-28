@@ -10,11 +10,10 @@ export type LinkedClientRow = {
   clientId: string;
   name: string | null;
   uri: string | null;
-  consented: boolean;
 };
 
 /**
- * 情報提供同意（`client_consents`）と、提供先として有効なOAuthクライアントの読取。
+ * 提供先の記録（`client_consents`）と、提供先として有効なOAuthクライアントの読取。
  * 有効なクライアントは、標準`oauthClient`に存在し`disabled`でないものとする。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  */
@@ -22,7 +21,7 @@ export class D1ClientConsentRepository {
   constructor(private readonly db: Database) {}
 
   /**
-   * 本人の`client_consents`に対応する有効なクライアントを、保存済みの同意とともに読む。
+   * 本人の`client_consents`に対応する有効なクライアントを読む。
    */
   async findLinkedClients(userId: string): Promise<LinkedClientRow[]> {
     return this.db
@@ -30,7 +29,6 @@ export class D1ClientConsentRepository {
         clientId: clientConsents.clientId,
         name: oauthClient.name,
         uri: oauthClient.uri,
-        consented: clientConsents.consented,
       })
       .from(clientConsents)
       .innerJoin(oauthClient, eq(oauthClient.clientId, clientConsents.clientId))

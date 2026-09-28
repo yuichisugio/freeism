@@ -9,10 +9,10 @@ import { requireSession } from "../middleware/session-middleware";
 import { dataResponse, handleBffError } from "../problem-details";
 import { selectProfilePurgeTargets } from "../usecases/profile/select-profile-purge-targets";
 import { unlinkExternalAccount } from "../usecases/unlink-external-account";
-import { unlinkOAuthOnly } from "../usecases/unlink-oauth-only";
+import { unlinkVerification } from "../usecases/unlink-verification";
 
 /**
- * 外部アカウントの「連携解除」（行全体）と「OAuthの認証連携だけ解除する」（`/api/external-accounts`）。
+ * 外部アカウントの「すべての連携解除」（行全体）と「この証明を解除」（証明行1件）（`/api/external-accounts`）。
  * 解除で行が消えると公開状態を判定できないため、purge対象は解除の前に選ぶ。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ./external-account-routes.worker.test.ts
@@ -43,8 +43,8 @@ export const externalAccountRoutes = new Hono<AppEnv>()
     },
   )
   .delete(
-    "/:externalAccountId/oauth/:authAccountId",
-    auditRequest("oauth_unlinked"),
+    "/:externalAccountId/verifications/:verificationId",
+    auditRequest("verification_unlinked"),
     requireSession({ fresh: true }),
     async (c) => {
       const db = createDatabase(c.env.DB);
@@ -53,13 +53,13 @@ export const externalAccountRoutes = new Hono<AppEnv>()
         { db },
         { actorUserId: userId, affectedUserIds: [userId] },
       );
-      await unlinkOAuthOnly(
+      await unlinkVerification(
         { db, auth: getAuth(), now: new Date() },
         {
           userId,
           headers: c.req.raw.headers,
           externalAccountId: c.req.param("externalAccountId"),
-          authAccountId: c.req.param("authAccountId"),
+          verificationId: c.req.param("verificationId"),
         },
       );
       purgeProfileCache(purgeTargets);

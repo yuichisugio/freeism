@@ -1,4 +1,9 @@
 import { exports } from "cloudflare:workers";
+import { and, eq } from "drizzle-orm";
+
+import { createRandomId } from "../src/backend/db/id";
+import { externalAccountVisibility, oauthClient, oauthConsent } from "../src/backend/db/schema";
+import { testDb } from "./external-account-test-helpers";
 
 import {
   createDpopProof,
@@ -70,13 +75,43 @@ export function saveVisibility(
   headers: Headers,
   settings: {
     accounts?: { externalAccountId: string; isPublic: boolean }[];
-    clients?: { clientId: string; consented: boolean; visibleAccountIds: string[] }[];
+    clients?: { clientId: string; visibleAccountIds: string[] }[];
   },
 ): Promise<Response> {
   return fetchBff(headers, "/api/visibility", {
     method: "PUT",
     body: { accounts: settings.accounts ?? [], clients: settings.clients ?? [] },
   });
+}
+
+// --------------------------------------------------
+// 標準のOAuth同意
+// --------------------------------------------------
+
+/**
+ * 同意画面の同意を通さずに、本人とクライアントの標準`oauthConsent`行を作る。
+ */
+export async function insertOAuthConsent(userId: string, clientId: string): Promise<void> {
+  const now = new Date();
+  await testDb.insert(oauthConsent).values({
+    id: createRandomId(),
+    userId,
+    clientId,
+    scopes: JSON.stringify(["openid"]),
+    createdAt: now,
+    updatedAt: now,
+  });
+}
+
+/**
+ * 本人とクライアントの標準`oauthConsent`行の件数を数える。
+ */
+export async function countOAuthConsents(userId: string, clientId: string): Promise<number> {
+  const rows = await testDb
+    .select({ id: oauthConsent.id })
+    .from(oauthConsent)
+    .where(and(eq(oauthConsent.userId, userId), eq(oauthConsent.clientId, clientId)));
+  return rows.length;
 }
 
 // --------------------------------------------------
@@ -137,4 +172,25 @@ export async function fetchResourceApi(
     headers,
     body: text === undefined ? undefined : new TextEncoder().encode(text),
   });
+}
+
+/**
+ * 外部アカウントを公開選択し、標準`oauthConsent`も持つクライアントを、画面と同意画面を通さずに用意する。
+ * 提供対象が0件になった組の`oauthConsent`が消えることを、各経路で確認するのに使う。
+ */
+export async function createConsentedClient(
+  userId: string,
+  visibleAccountIds: readonly string[],
+): Promise<string> {
+  const clientId = createRandomId("client-");
+  await testDb
+    .insert(oauthClient)
+    .values({ id: createRandomId(), clientId, name: "Points", redirectUris: [] });
+  if (visibleAccountIds.length > 0) {
+    await testDb
+      .insert(externalAccountVisibility)
+      .values(visibleAccountIds.map((accountId) => ({ accountId, clientId, isPublic: true })));
+  }
+  await insertOAuthConsent(userId, clientId);
+  return clientId;
 }

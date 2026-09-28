@@ -70,7 +70,7 @@ async function setUpWithdrawingUser() {
   const other = await createVerifiedUrlAccount(otherUserId, [`https://${uniqueHost()}/`], "dns_txt", new Date());
   await testDb
     .insert(clientConsents)
-    .values({ userId: otherUserId, clientId: data.clientId, displayName: "Points", consented: true });
+    .values({ userId: otherUserId, clientId: data.clientId, displayName: "Points" });
   await testDb
     .insert(externalAccountVisibility)
     .values({ accountId: other.accountId, clientId: data.clientId, isPublic: true });
@@ -150,7 +150,7 @@ describe("退会（標準deleteUser）", () => {
       new Date(),
     );
     const saved = await saveVisibility(headers, {
-      clients: [{ clientId, consented: true, visibleAccountIds: [accountId] }],
+      clients: [{ clientId, visibleAccountIds: [accountId] }],
     });
     expect(saved.status).toBe(200);
     const listBody = { accountsUserId: userId };

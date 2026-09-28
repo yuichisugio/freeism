@@ -3,6 +3,10 @@ import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import { fillUrlIdentifiers } from "../../../test/external-account-test-helpers";
+import {
+  countOAuthConsents,
+  createConsentedClient,
+} from "../../../test/resource-api-test-helpers";
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { createDatabase } from "../db/database";
 import { createRandomId } from "../db/id";
@@ -356,6 +360,33 @@ describe("syncOAuthAccount", () => {
         .from(externalAccountVerifications)
         .where(eq(externalAccountVerifications.id, movedAccount.verificationId)),
     ).toEqual([]);
+  });
+
+  it("移動で旧所有者の提供対象が0件になったクライアントだけ、旧所有者の標準oauthConsentを削除する", async () => {
+    const login = `Erin-${createRandomId().slice(0, 8)}`;
+    const previousOwner = await createUserWithGitHubAccount();
+    const movedAccount = await createLinkVerifiedAccount(previousOwner.userId, [
+      `https://github.com/${login}`,
+    ]);
+    const keptAccount = await createLinkVerifiedAccount(previousOwner.userId, [
+      `https://${login.toLowerCase()}.example/`,
+    ]);
+    const withdrawnClientId = await createConsentedClient(previousOwner.userId, [
+      movedAccount.accountId,
+    ]);
+    const keptClientId = await createConsentedClient(previousOwner.userId, [
+      movedAccount.accountId,
+      keptAccount.accountId,
+    ]);
+    const { userId, authAccountId, githubId } = await createUserWithGitHubAccount();
+
+    await syncOAuthAccount(
+      { db, now },
+      { userId, authAccountId, profile: githubProfile(githubId, login) },
+    );
+
+    expect(await countOAuthConsents(previousOwner.userId, withdrawnClientId)).toBe(0);
+    expect(await countOAuthConsents(previousOwner.userId, keptClientId)).toBe(1);
   });
 
   it("本人のURLが上限に達している場合は、URL識別子だけを追加しない", async () => {

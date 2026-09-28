@@ -10,8 +10,8 @@ import { requestError } from "../../resource-api-response";
 
 /**
  * 一覧取得（`QUERY /api/v1/external-accounts`）。
- * 問い合わせ元へ提供を許可した外部アカウントを、有効な識別子と一度でも成功した証明とともに全件返す。
- * @throws {ResourceApiRequestError} ユーザーが存在しない・banされている・問い合わせ元への同意が無い場合は、同じ内容の404 `NOT_FOUND`。
+ * 問い合わせ元へ提供している外部アカウントを、有効な識別子と一度でも成功した証明とともに全件返す。
+ * @throws {ResourceApiRequestError} ユーザーが存在しない・banされている・問い合わせ元へ提供している外部アカウントが無い場合は、同じ内容の404 `NOT_FOUND`。
  * @see ../../../../docs/specification/v0.1/main.ja.md
  * @see ../../routes/resource-api-routes.worker.test.ts
  */
@@ -20,7 +20,7 @@ export async function listExternalAccountsForClient(
   input: { clientId: string; accountsUserId: string },
 ): Promise<ExternalAccountListResponse> {
   const repository = new D1ResourceApiRepository(deps.db);
-  if (!(await repository.hasConsentedUser(input.accountsUserId, input.clientId))) {
+  if (!(await repository.hasProvidingUser(input.accountsUserId, input.clientId))) {
     throw requestError(404, "NOT_FOUND", "The user was not found.");
   }
 

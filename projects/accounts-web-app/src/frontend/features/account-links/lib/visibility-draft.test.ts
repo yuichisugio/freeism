@@ -7,7 +7,6 @@ import {
   emptyVisibilityEdits,
   isVisibilityDirty,
   setAccountPublic,
-  setClientConsent,
   setClientVisibility,
 } from "./visibility-draft";
 
@@ -23,41 +22,24 @@ describe("buildVisibilityTable", () => {
     const table = buildVisibilityTable(
       createAccountLinks({
         accounts: [createLinkedAccount({ isPublic: true, visibility: { points: true } })],
-        clients: [createLinkedClient({ consented: true })],
+        clients: [createLinkedClient()],
       }),
       emptyVisibilityEdits,
     );
 
     expect(table.rows[0]).toMatchObject({ isPublic: true, visibleClientIds: ["points"] });
-    expect(table.columns[0]).toMatchObject({ consented: true, lacksVerifiedSelection: false });
+    expect(table.columns[0]).toMatchObject({ hasVerifiedSelection: true });
   });
 
-  it("同意ONで証明済みの選択が0件のクライアントを示す", () => {
-    const edits = setClientVisibility(setClientConsent(emptyVisibilityEdits, "points", true), "points", ["eac_unverified"], true);
+  it("証明済みの外部アカウントを公開選択した連携先だけを、証明済みの選択ありとして示す", () => {
+    const edits = setClientVisibility(emptyVisibilityEdits, "points", ["eac_unverified"], true);
 
-    const table = buildVisibilityTable(links, edits);
+    const table = buildVisibilityTable(links, setClientVisibility(edits, "other", ["eac_verified"], true));
 
-    expect(table.columns.map((column) => [column.client.clientId, column.lacksVerifiedSelection])).toEqual([
-      ["points", true],
-      ["other", false],
+    expect(table.columns.map((column) => [column.client.clientId, column.hasVerifiedSelection])).toEqual([
+      ["points", false],
+      ["other", true],
     ]);
-    expect(table.canSave).toBe(false);
-  });
-
-  it("同意ONで証明済みの選択があれば保存できる", () => {
-    const edits = setClientVisibility(setClientConsent(emptyVisibilityEdits, "points", true), "points", ["eac_verified"], true);
-
-    expect(buildVisibilityTable(links, edits).canSave).toBe(true);
-  });
-
-  it("未変更の場合は保存できない", () => {
-    expect(buildVisibilityTable(links, emptyVisibilityEdits).canSave).toBe(false);
-  });
-
-  it("同意を強制した連携先について、証明済みの選択が無ければ示す", () => {
-    const table = buildVisibilityTable(links, emptyVisibilityEdits, "other");
-
-    expect(table.columns.find((column) => column.client.clientId === "other")?.lacksVerifiedSelection).toBe(true);
   });
 });
 
@@ -74,9 +56,8 @@ describe("isVisibilityDirty", () => {
 });
 
 describe("buildVisibilityInput", () => {
-  it("一般公開・同意・クライアント別の公開選択をまとめる", () => {
+  it("一般公開とクライアント別の公開選択をまとめ、未検証の行の選択も送る", () => {
     let edits = setAccountPublic(emptyVisibilityEdits, "eac_unverified", true);
-    edits = setClientConsent(edits, "points", true);
     edits = setClientVisibility(edits, "points", ["eac_verified", "eac_unverified"], true);
 
     expect(buildVisibilityInput(links, edits)).toEqual({
@@ -85,16 +66,9 @@ describe("buildVisibilityInput", () => {
         { externalAccountId: "eac_unverified", isPublic: true },
       ],
       clients: [
-        { clientId: "points", consented: true, visibleAccountIds: ["eac_verified", "eac_unverified"] },
-        { clientId: "other", consented: false, visibleAccountIds: [] },
+        { clientId: "points", visibleAccountIds: ["eac_verified", "eac_unverified"] },
+        { clientId: "other", visibleAccountIds: [] },
       ],
-    });
-  });
-
-  it("同意を強制した連携先は同意ONで送る", () => {
-    expect(buildVisibilityInput(links, emptyVisibilityEdits, "other").clients[1]).toMatchObject({
-      clientId: "other",
-      consented: true,
     });
   });
 });

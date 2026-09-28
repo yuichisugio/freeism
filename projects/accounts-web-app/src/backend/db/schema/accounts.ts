@@ -145,11 +145,12 @@ export const verificationIdentifiers = sqliteTable(
 );
 
 // --------------------------------------------------
-// 情報提供の同意と公開設定
+// 提供先と公開設定
 // --------------------------------------------------
 
 /**
- * OAuthクライアントへの情報提供同意。
+ * OAuthクライアントの提供先の記録（公開設定の列にするクライアントと、保存時のクライアント名）。
+ * 提供しているか（証明済みの外部アカウントを1件以上公開選択しているか）は、`external_account_visibility`と`external_identifiers`から判定する。
  * `client_id`は公開`oauthClient.clientId`を保存し、存在しないClient IDの復元設定も保持するためFKを設けない。
  */
 export const clientConsents = sqliteTable(
@@ -160,15 +161,11 @@ export const clientConsents = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     clientId: text("client_id").notNull(),
     displayName: text("display_name").notNull(),
-    consented: integer("consented", { mode: "boolean" }).notNull().default(false),
   },
   (table) => [
     primaryKey({ name: "client_consents_pk", columns: [table.userId, table.clientId] }),
-    index("client_consents_client_user_consented_idx").on(
-      table.clientId,
-      table.userId,
-      table.consented,
-    ),
+    // クライアント削除で、そのClient IDの全ユーザーの行を検索する。
+    index("client_consents_client_id_idx").on(table.clientId),
   ],
 );
 

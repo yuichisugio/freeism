@@ -9,7 +9,7 @@ import { planBackupRestore, type ExistingIdentifier } from "./plan-backup-restor
 
 type BackupAccount = Backup["externalAccounts"][number];
 
-const pointsConsent = { clientId: "points-client", displayName: "Points", consented: true };
+const pointsConsent = { clientId: "points-client", displayName: "Points" };
 
 function createBackup(
   externalAccounts: BackupAccount[],
@@ -184,7 +184,7 @@ describe("planBackupRestore 既存行との対応付け", () => {
     expect(plan.updatedAccounts.map((account) => account.id)).toEqual(["eac_current"]);
   });
 
-  it("情報提供同意は同じClient IDを1件にまとめる", () => {
+  it("提供先の記録は同じClient IDを1件にまとめる", () => {
     const plan = readPlan(planBackupRestore(createBackup([], [pointsConsent, pointsConsent]), []));
     expect(plan.clientConsents).toEqual([pointsConsent]);
   });
@@ -195,13 +195,12 @@ describe("planBackupRestore 既存行との対応付け", () => {
 // --------------------------------------------------
 
 describe("planBackupRestore 入力不備", () => {
-  it("同じClient IDの同意・表示名の食い違いを不備にする", () => {
+  it("同じClient IDの表示名の食い違いを不備にする", () => {
     const result = planBackupRestore(
-      createBackup([], [pointsConsent, { clientId: "points-client", displayName: "Points 2", consented: false }]),
+      createBackup([], [pointsConsent, { clientId: "points-client", displayName: "Points 2" }]),
       [],
     );
     expect(readIssues(result)).toEqual([
-      { code: "INVALID_VALUE", path: "clientConsents.1.consented" },
       { code: "INVALID_VALUE", path: "clientConsents.1.displayName" },
     ]);
   });
@@ -301,12 +300,12 @@ describe("planBackupRestore 入力不備", () => {
             clientVisibility: [{ clientId: "unknown-client", isPublic: true }],
           }),
         ],
-        [pointsConsent, { ...pointsConsent, consented: false }],
+        [pointsConsent, { ...pointsConsent, displayName: "Points 2" }],
       ),
       [],
     );
     expect(readIssues(result).map((issue) => issue.path)).toEqual([
-      "clientConsents.1.consented",
+      "clientConsents.1.displayName",
       "externalAccounts.0.clientVisibility.0.clientId",
       "externalAccounts.0.metadata.identifiers.0.url",
     ]);

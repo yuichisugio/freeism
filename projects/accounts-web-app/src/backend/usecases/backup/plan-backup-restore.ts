@@ -114,7 +114,7 @@ export function planBackupRestore(
 }
 
 /**
- * 情報提供同意をClient IDごとにまとめ、同じClient IDの値の食い違いを入力不備にする。
+ * 提供先の記録をClient IDごとにまとめ、同じClient IDの表示名の食い違いを入力不備にする。
  */
 function collectClientConsents(
   backup: Backup,
@@ -126,9 +126,6 @@ function collectClientConsents(
     if (first === undefined) {
       consents.set(consent.clientId, consent);
       return;
-    }
-    if (first.consented !== consent.consented) {
-      issues.push(conflictIssue(["clientConsents", index, "consented"], "client ID"));
     }
     if (first.displayName !== consent.displayName) {
       issues.push(conflictIssue(["clientConsents", index, "displayName"], "client ID"));

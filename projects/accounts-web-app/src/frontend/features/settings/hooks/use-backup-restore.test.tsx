@@ -30,7 +30,7 @@ const validBackup = {
   accountsUserId: "user-1",
   exportedAt: "2026-09-23T00:00:00Z",
   profile: { displayName: "サンプル" },
-  clientConsents: [{ clientId: "points-client", displayName: "Points", consented: true }],
+  clientConsents: [{ clientId: "points-client", displayName: "Points" }],
   externalAccounts: [validAccount],
 };
 

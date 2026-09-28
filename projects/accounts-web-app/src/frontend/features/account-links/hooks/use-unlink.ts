@@ -5,7 +5,7 @@ import { okSchema } from "../../../../shared/schemas/problem-details-schema";
 import { requestBff } from "../../../lib/api-client";
 
 /**
- * 「連携解除」（行全体）と「OAuthの認証連携だけ解除する」。
+ * 「連携解除」（行全体）と「この証明を解除」（証明1件）。
  * 確認ダイアログで確定してから解除する。
  * @see ../../../../../docs/specification/v0.1/main.ja.md
  * @see ./use-unlink.test.tsx
@@ -13,7 +13,7 @@ import { requestBff } from "../../../lib/api-client";
 
 export type UnlinkTarget =
   | { kind: "account"; account: LinkedAccount }
-  | { kind: "oauth"; account: LinkedAccount; authAccountId: string };
+  | { kind: "verification"; account: LinkedAccount; verificationId: string };
 
 type UnlinkState = { status: "idle" } | { status: "submitting" } | { status: "failed"; error: unknown } | { status: "done" };
 
@@ -22,7 +22,9 @@ type UnlinkState = { status: "idle" } | { status: "submitting" } | { status: "fa
  */
 function unlinkPath(target: UnlinkTarget): string {
   const accountPath = `/api/external-accounts/${encodeURIComponent(target.account.id)}`;
-  return target.kind === "account" ? accountPath : `${accountPath}/oauth/${encodeURIComponent(target.authAccountId)}`;
+  return target.kind === "account"
+    ? accountPath
+    : `${accountPath}/verifications/${encodeURIComponent(target.verificationId)}`;
 }
 
 /**

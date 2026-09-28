@@ -15,7 +15,6 @@ const prerenderedPaths = [
   "/",
   "/account-links",
   "/settings",
-  "/developer",
   "/help",
   "/licenses",
   "/privacy",

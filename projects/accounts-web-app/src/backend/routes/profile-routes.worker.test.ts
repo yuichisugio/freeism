@@ -3,12 +3,16 @@ import { eq } from "drizzle-orm";
 import * as v from "valibot";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { testDb } from "../../../test/external-account-test-helpers";
+import {
+  createVerifiedUrlAccount,
+  testDb,
+  uniqueHost,
+} from "../../../test/external-account-test-helpers";
 import { loginAsNewUser, loginWithCookieCache } from "../../../test/oauth-client-test-helpers";
 import { dataResponseSchema, problemDetailsSchema } from "../../shared/schemas/problem-details-schema";
 import { meSchema } from "../../shared/schemas/profile-schema";
 import { PublicProfileEntrypoint } from "../../public-profile";
-import { user } from "../db/schema";
+import { externalAccounts, user } from "../db/schema";
 
 const origin = env.ACCOUNTS_ORIGIN;
 
@@ -48,6 +52,17 @@ describe("PATCH /api/profile", () => {
   it("表示名を更新して本人のプロフィールを返し、公開プロフィールをpurgeする", async () => {
     const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
     const { userId, headers } = await loginAsNewUser();
+    // 公開プロフィールは一般公開した証明済みの外部アカウントが1件以上あるときだけ表示される。
+    const { accountId } = await createVerifiedUrlAccount(
+      userId,
+      [`https://${uniqueHost()}/`],
+      "dns_txt",
+      new Date(),
+    );
+    await testDb
+      .update(externalAccounts)
+      .set({ isPublic: true })
+      .where(eq(externalAccounts.id, accountId));
 
     const response = await patchProfile(headers, { displayName: "  Alice  " });
 
@@ -63,6 +78,7 @@ describe("PATCH /api/profile", () => {
     await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
 
     const profile = await exports.default.fetch(`${origin}/profiles/${userId}`);
+    expect(profile.status).toBe(200);
     expect(await profile.text()).toContain("<h1>Alice</h1>");
   });
 

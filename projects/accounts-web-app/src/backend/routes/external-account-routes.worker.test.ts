@@ -1,13 +1,17 @@
 import { env, exports } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 import * as v from "valibot";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createUnsignedIdToken, getTestAuthContext } from "../../../test/auth-test-helpers";
 import {
+  createVerifiedUrlAccount,
   fillUrlIdentifiers,
   readIdentifierActivity,
+  testDb,
   uniqueHost,
 } from "../../../test/external-account-test-helpers";
+import { PublicProfileEntrypoint } from "../../public-profile";
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { accountLinksSchema } from "../../shared/schemas/account-link-schema";
 import { saveUnverifiedUrlResultSchema } from "../../shared/schemas/external-url-schema";
@@ -18,6 +22,7 @@ import {
 } from "../../shared/schemas/problem-details-schema";
 import { meSchema } from "../../shared/schemas/profile-schema";
 import { createRandomId } from "../db/id";
+import { externalAccounts } from "../db/schema";
 
 const origin = "http://localhost:5173";
 
@@ -92,7 +97,7 @@ describe("BFFのセッション確認", () => {
     ["GET", "/api/account-links"],
     ["POST", "/api/external-urls"],
     ["DELETE", "/api/external-accounts/eac_x"],
-    ["DELETE", "/api/external-accounts/eac_x/oauth/account_x"],
+    ["DELETE", "/api/external-accounts/eac_x/verifications/evf_x"],
   ])("セッションの無い%s %sは401を返す", async (method, path) => {
     const response = await requestBff(path, {
       method,
@@ -233,14 +238,63 @@ describe("DELETE /api/external-accounts", () => {
     expect(await readIdentifierActivity(userId)).not.toHaveProperty(`url:${url}`);
   });
 
-  it("最後のログイン手段の解除はLAST_LOGIN_METHODの400を返す", async () => {
+  it("本人の行でなければ404を返す", async () => {
+    const { headers } = await createLoggedInUser();
+
+    const response = await requestBff("/api/external-accounts/eac_missing", {
+      method: "DELETE",
+      headers,
+    });
+
+    expect(response.status).toBe(404);
+    expect(await readProblem(response)).toMatchObject({ code: "NOT_FOUND" });
+  });
+});
+
+describe("DELETE /api/external-accounts/:id/verifications/:verificationId", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("一般公開中の行の最後の証明を解除すると、行を未検証で残して公開プロフィールをpurgeする", async () => {
+    const purge = vi.spyOn(PublicProfileEntrypoint.prototype, "purgeProfiles");
+    const { userId, headers } = await createLoggedInUser();
+    const url = `https://${uniqueHost()}/`;
+    const { accountId, verificationId } = await createVerifiedUrlAccount(
+      userId,
+      [url],
+      "dns_txt",
+      new Date(),
+    );
+    await testDb.update(externalAccounts).set({ isPublic: true }).where(eq(externalAccounts.id, accountId));
+
+    const response = await requestBff(
+      `/api/external-accounts/${accountId}/verifications/${verificationId}`,
+      { method: "DELETE", headers },
+    );
+
+    expect(await readData(response, okSchema)).toEqual({ ok: true });
+    await vi.waitFor(() => expect(purge).toHaveBeenCalledWith([userId]));
+    const links = await readData(await requestBff("/api/account-links", { headers }), accountLinksSchema);
+    expect(links.accounts).toContainEqual(
+      expect.objectContaining({
+        id: accountId,
+        isPublic: true,
+        verificationStatus: "unverified",
+        verifications: [],
+        latestAttempt: null,
+        primaryUrl: url,
+      }),
+    );
+  });
+
+  it("最後のログイン手段のOAuthの証明の解除はLAST_LOGIN_METHODの400を返す", async () => {
     const { headers } = await createLoggedInUser();
     const links = await readData(await requestBff("/api/account-links", { headers }), accountLinksSchema);
     const [googleAccount] = links.accounts;
-    const authAccountId = googleAccount?.verifications[0]?.authAccountId ?? "";
 
     const response = await requestBff(
-      `/api/external-accounts/${googleAccount?.id}/oauth/${authAccountId}`,
+      `/api/external-accounts/${googleAccount?.id}/verifications/${googleAccount?.verifications[0]?.id}`,
       { method: "DELETE", headers },
     );
 
@@ -248,10 +302,10 @@ describe("DELETE /api/external-accounts", () => {
     expect(await readProblem(response)).toMatchObject({ code: "LAST_LOGIN_METHOD" });
   });
 
-  it("本人の行でなければ404を返す", async () => {
+  it("本人の行の証明でなければ404を返す", async () => {
     const { headers } = await createLoggedInUser();
 
-    const response = await requestBff("/api/external-accounts/eac_missing", {
+    const response = await requestBff("/api/external-accounts/eac_missing/verifications/evf_missing", {
       method: "DELETE",
       headers,
     });

@@ -40,12 +40,14 @@ export function UnlinkDialog({
             <AlertDialog.Header>
               <AlertDialog.Icon status="danger" />
               <AlertDialog.Heading>
-                {target?.kind === "oauth" ? messages.unlinkOAuthTitle : messages.unlinkAccountTitle}
+                {target?.kind === "verification" ? messages.unlinkOAuthTitle : messages.unlinkAccountTitle}
               </AlertDialog.Heading>
             </AlertDialog.Header>
             <AlertDialog.Body className="flex flex-col gap-3">
               <p>
-                {target?.kind === "oauth" ? messages.unlinkOAuthDescription(label) : messages.unlinkAccountDescription(label)}
+                {target?.kind === "verification"
+                  ? messages.unlinkOAuthDescription(label)
+                  : messages.unlinkAccountDescription(label)}
               </p>
               {error === null ? null : <ErrorNotice error={error} codeMessages={messages.errorCodes} />}
             </AlertDialog.Body>

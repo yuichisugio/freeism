@@ -20,7 +20,7 @@ function createBackup(): Backup {
     accountsUserId: "ausr_source",
     exportedAt: "2026-09-26T00:00:00.000Z",
     profile: { displayName: "サンプル" },
-    clientConsents: [{ clientId: "points-client", displayName: "Points", consented: true }],
+    clientConsents: [{ clientId: "points-client", displayName: "Points" }],
     externalAccounts: [
       {
         metadata: {
@@ -90,9 +90,9 @@ describe("backupSchema", () => {
     [
       "型の不一致",
       (backup: Record<string, unknown>) => {
-        backup.clientConsents = [{ clientId: "points-client", displayName: "Points", consented: "yes" }];
+        backup.clientConsents = [{ clientId: "points-client", displayName: 1 }];
       },
-      { code: "INVALID_TYPE", path: "clientConsents.0.consented" },
+      { code: "INVALID_TYPE", path: "clientConsents.0.displayName" },
     ],
     [
       "最上位の未知項目",
@@ -150,7 +150,6 @@ describe("backupSchema", () => {
         backup.clientConsents = Array.from({ length: count }, (_, index) => ({
           clientId: `client-${index}`,
           displayName: "Client",
-          consented: false,
         }));
       }
       if (target === "identifiers") account.metadata.identifiers = Array.from({ length: count }, () => identifier);

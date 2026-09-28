@@ -1,6 +1,7 @@
 import { urlIdentifierLimitPerUser } from "../../shared/constants";
 import { createRandomId } from "../db/id";
 import { runBatch, type Database } from "../db/database";
+import { D1ClientProvisionRepository } from "../db/repositories/d1-client-provision-repository";
 import {
   D1ExternalAccountRepository,
   type ExternalIdentifierRow,
@@ -45,6 +46,7 @@ export type SyncOAuthAccountResult = {
  * 同じ`oauth`証明が確認していたユーザー名・プロフィールURLのうち、今回の応答に無い値（改名前の値）は削除して新しい値へ置き換える。
  * 他ユーザーが有効に保持するユーザー名・プロフィールURLは、OAuthの検証済み応答を優先して今回の本人へ移動する。
  * 本人の`url`行が上限に達している場合は、URL識別子だけを追加しない。
+ * 識別子の移動・置換で提供しなくなった組（旧所有者を含む）の標準`oauthConsent`は、同じbatchで削除する。
  * 書込は1回のD1 batchで確定し、失敗した場合は次回のログインで同じ処理により再構成する。
  * @see ../../../docs/specification/v0.1/main.ja.md
  * @see ./sync-oauth-account.worker.test.ts
@@ -183,6 +185,7 @@ export async function syncOAuthAccount(
       coveredKeys.map((coveredKey) => coveredKey.id),
     ),
     ...repository.reconcileIdentifierActivity(affectedUserIds, deps.now),
+    new D1ClientProvisionRepository(deps.db).reconcileOAuthConsents(affectedUserIds),
   ]);
 
   return { externalAccountId, affectedUserIds };

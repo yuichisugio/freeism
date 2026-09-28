@@ -58,13 +58,9 @@ export const accountLinksMessages = defineMessages({
     bulkColumnHint: "証明済みを一括選択",
     publicCellLabel: (account: string) => `${account}を一般公開`,
     clientCellLabel: (account: string, client: string) => `${account}を${client}に公開`,
-    consentLabel: (client: string) => `${client}への提供に同意する`,
-    lacksVerifiedSelection: (client: string) =>
-      `${client}: 同意をONにした連携先には、証明済みの外部アカウントを1件以上選択してください。`,
     saveVisibility: "公開設定を保存",
     discardVisibility: "編集内容を破棄",
     unsavedChanges: "未保存の変更があります",
-    saveBlocked: "条件を満たさない連携先があるため保存できません。",
     visibilitySaved: "公開設定を保存しました。",
     noAccounts: "連携済みの外部アカウントはありません。OAuthの追加連携またはURLの追加から始めてください。",
     noClients: "情報提供先の連携サービスはまだありません。",
@@ -169,8 +165,6 @@ export const accountLinksMessages = defineMessages({
       URL_LIMIT_REACHED: "登録できるURLの上限（150件）に達しています。不要なURLを連携解除してから追加してください。",
       RATE_LIMITED: "検証の要求が短時間に集中しました。しばらく待ってから再度お試しください。",
       OWNERSHIP_CONFLICT: "同じ外部アカウントへの操作が競合しました。もう一度お試しください。",
-      CONSENT_REQUIRES_VERIFIED_ACCOUNT:
-        "同意をONにした連携先には、証明済みの外部アカウントを1件以上選択してください。",
       LAST_LOGIN_METHOD:
         "最後のログイン手段は解除できません。別のGoogle・GitHub・ORCIDアカウントを追加連携してから解除してください。",
     } as Partial<Record<string, string>>,
@@ -222,13 +216,9 @@ export const accountLinksMessages = defineMessages({
     bulkColumnHint: "Select all verified",
     publicCellLabel: (account: string) => `Make ${account} public`,
     clientCellLabel: (account: string, client: string) => `Share ${account} with ${client}`,
-    consentLabel: (client: string) => `Allow sharing with ${client}`,
-    lacksVerifiedSelection: (client: string) =>
-      `${client}: select at least one verified external account for a service you allow sharing with.`,
     saveVisibility: "Save sharing settings",
     discardVisibility: "Discard edits",
     unsavedChanges: "You have unsaved changes",
-    saveBlocked: "Some services do not meet the conditions, so the settings cannot be saved.",
     visibilitySaved: "Sharing settings were saved.",
     noAccounts: "No external accounts are linked yet. Start by linking with OAuth or adding a URL.",
     noClients: "There are no connected services to share with yet.",
@@ -315,8 +305,6 @@ export const accountLinksMessages = defineMessages({
       URL_LIMIT_REACHED: "You have reached the limit of 150 URLs. Unlink URLs you no longer need before adding more.",
       RATE_LIMITED: "Too many verification requests in a short time. Please wait a moment and try again.",
       OWNERSHIP_CONFLICT: "Another operation on the same external account conflicted. Please try again.",
-      CONSENT_REQUIRES_VERIFIED_ACCOUNT:
-        "Select at least one verified external account for each service you allow sharing with.",
       LAST_LOGIN_METHOD:
         "You cannot unlink your last sign-in method. Link another Google, GitHub or ORCID account first.",
     } as Partial<Record<string, string>>,

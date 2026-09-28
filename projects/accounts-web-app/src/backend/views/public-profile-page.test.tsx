@@ -1,12 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import type { PublicProfile } from "../usecases/profile/read-public-profile";
-import { renderPublicProfileNotFoundPage, renderPublicProfilePage } from "./public-profile-page";
+import {
+  readPublicProfileLanguage,
+  renderPublicProfileNotFoundPage,
+  renderPublicProfilePage,
+} from "./public-profile-page";
 
-const verifiedAt = new Date("2026-09-01T00:00:00.000Z");
+const profileUrl = "https://accounts.example/profiles/ausr_alice";
 
 /**
- * GitHub（OAuth・リンク確認）と個人サイト（DNS TXT）を公開したプロフィール。
+ * GitHub（OAuth・双方向リンク）、個人サイト（DNS TXT、URL2件）、Google（OAuth、URLなし）を公開したプロフィール。
  */
 const profile: PublicProfile = {
   accountsUserId: "ausr_alice",
@@ -15,126 +19,184 @@ const profile: PublicProfile = {
     {
       id: "eac_github",
       service: "github",
-      displayName: "Alice Liddell",
-      linkedAt: verifiedAt,
       identifiers: [
         { kind: "provider_account", provider: "github", value: "12345" },
         { kind: "provider_username", provider: "github", value: "alice" },
         { kind: "url", provider: "", value: "https://github.com/alice" },
       ],
-      verifications: [
-        {
-          method: "oauth",
-          verifiedAt,
-          checkedAt: verifiedAt,
-          result: "verified",
-          evidenceUrl: null,
-        },
-        {
-          method: "bidirectional_link",
-          verifiedAt,
-          checkedAt: new Date("2026-09-02T00:00:00.000Z"),
-          result: "indeterminate",
-          evidenceUrl: "https://github.com/alice",
-        },
-      ],
+      methods: ["oauth", "bidirectional_link"],
+      verifiedAt: new Date("2026-09-01T09:05:00.000Z"),
     },
     {
       id: "eac_web",
       service: null,
-      displayName: null,
-      linkedAt: verifiedAt,
       identifiers: [
         { kind: "url", provider: "", value: "https://alice.example.com/" },
         { kind: "url", provider: "", value: "https://alice.example.com/about" },
       ],
-      verifications: [
-        {
-          method: "dns_txt",
-          verifiedAt,
-          checkedAt: verifiedAt,
-          result: "verified",
-          evidenceUrl: null,
-        },
-      ],
+      methods: ["dns_txt"],
+      verifiedAt: new Date("2026-08-15T23:59:00.000Z"),
+    },
+    {
+      id: "eac_google",
+      service: "google",
+      identifiers: [{ kind: "provider_account", provider: "google", value: "1098" }],
+      methods: ["oauth"],
+      verifiedAt: new Date("2026-09-02T00:00:00.000Z"),
     },
   ],
 };
 
-describe("renderPublicProfilePage", () => {
-  it("外部アカウントのURLすべてをrel=\"me\"付きのリンクにする", async () => {
-    const html = await renderPublicProfilePage(profile);
+/**
+ * HTMLから、指定した文字列を含む外部アカウントの項目（`<li>`）を切り出す。
+ */
+function findItem(html: string, text: string): string {
+  const item = html.split("<li").find((part) => part.includes(text));
+  if (item === undefined) {
+    throw new Error(`item not found: ${text}`);
+  }
+  return item;
+}
 
-    for (const url of [
-      "https://github.com/alice",
-      "https://alice.example.com/",
-      "https://alice.example.com/about",
-    ]) {
-      expect(html).toContain(`<a href="${url}" rel="me">`);
-    }
-    expect(html).not.toContain(" key=");
-    expect(html).toContain('証拠URL / Evidence: <a href="https://github.com/alice">');
+describe("readPublicProfileLanguage", () => {
+  it.each([
+    [undefined, "ja"],
+    ["ja", "ja"],
+    ["en", "en"],
+    ["fr", "ja"],
+    ["EN", "ja"],
+  ])("lang=%s は %s にする", (value, expected) => {
+    expect(readPublicProfileLanguage(value)).toBe(expected);
   });
+});
 
-  it("表示名・固定ID・方法別のバッジ・検証日時・結果・証拠URLを日英併記で表示する", async () => {
-    const html = await renderPublicProfilePage(profile);
+describe("renderPublicProfilePage", () => {
+  it("日本語では見出し・証明方法・証明日時を日本語だけで表示する", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
 
     expect(html.startsWith("<!doctype html>")).toBe(true);
-    expect(html).toContain("<h1>Alice</h1>");
-    expect(html).toContain("AccountsユーザーID / Accounts user ID: <code>ausr_alice</code>");
-    expect(html).toContain('<span class="badge">OAuth</span>');
-    expect(html).toContain('<span class="badge">公開ページのリンク確認 / Public page link</span>');
-    expect(html).toContain('<span class="badge">DNS TXT</span>');
-    expect(html).toContain('<time datetime="2026-09-01T00:00:00.000Z">');
-    expect(html).toContain("成功 / Verified");
-    expect(html).toContain("判断できませんでした / Could not be determined");
-    expect(html).toContain("GitHub — Alice Liddell");
-    expect(html).toContain("ユーザー名 / Username: alice");
-    expect(html).toContain("固有ID / Account ID: 12345");
-    expect(html).toContain("<h3>Web</h3>");
+    expect(html).toContain('<html lang="ja">');
+    expect(html).toContain("<h2>証明済みのアカウント</h2>");
+    expect(html).toContain("証明方法: OAuth・双方向リンク");
+    expect(html).toContain("証明方法: DNS TXT");
+    expect(html).toContain(
+      '証明日時: <time datetime="2026-09-01T09:05:00.000Z">2026/09/01 09:05 (UTC)</time>',
+    );
+    expect(html).toContain("Freeism Accounts");
+    expect(html).not.toContain("Verified external accounts");
+    expect(html).not.toMatch(/Verified|Method/);
   });
 
-  it("管理画面と同じファビコンを指定する", async () => {
-    const html = await renderPublicProfilePage(profile);
+  it("英語では見出し・証明方法・証明日時を英語だけで表示する", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "en", profileUrl });
 
-    expect(html).toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>');
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain("<h2>Verified external accounts</h2>");
+    expect(html).toContain("Method: OAuth, Two-way link");
+    expect(html).toContain(
+      'Verified: <time datetime="2026-08-15T23:59:00.000Z">2026/08/15 23:59 (UTC)</time>',
+    );
+    expect(html).toContain(">GitHub: alice</a>");
+    expect(html).not.toMatch(/証明|日本語で|アカウント/);
   });
 
-  it("外部アカウントが0件でもプロフィールを返す", async () => {
-    const html = await renderPublicProfilePage({ ...profile, externalAccounts: [] });
+  it("表示名を見出しに、AccountsユーザーIDをその下に表示し、titleに表示名を入れる", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "en", profileUrl });
 
-    expect(html).toContain("<h1>Alice</h1>");
-    expect(html).toContain("公開している外部アカウントはありません。 / No external accounts are public.");
-    expect(html).not.toContain('rel="me"');
+    expect(html).toContain("<title>Alice | Freeism Accounts</title>");
+    expect(html).toContain('<h1>Alice</h1><span class="mono">ausr_alice</span>');
   });
 
-  it("外部の表示名・値をエスケープし、https以外のURLはリンクにしない", async () => {
-    const html = await renderPublicProfilePage({
-      accountsUserId: "ausr_bob",
-      displayName: '<script>alert("x")</script>',
-      externalAccounts: [
-        {
-          id: "eac_github",
-          service: "github",
-          displayName: "<img src=x onerror=alert(1)>",
-          linkedAt: null,
-          identifiers: [{ kind: "url", provider: "", value: "javascript:alert(1)" }],
-          verifications: [],
-        },
-      ],
-    });
+  it("直近の結果・証拠URLを表示しない", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    expect(html).not.toMatch(/成功|判断できません|証拠/);
+  });
+
+  it("「サービス名：識別子」を主URLへのrel=\"me\"リンクにし、ほかのURLは同じ項目に小さく並べる", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    expect(html).toContain('<a href="https://github.com/alice" rel="me">GitHub：alice</a>');
+
+    const webItem = findItem(html, "alice.example.com");
+    const primary = '<a href="https://alice.example.com/" rel="me">Web：alice.example.com</a>';
+    const other =
+      '<a href="https://alice.example.com/about" rel="me">alice.example.com/about</a>';
+    expect(webItem).toContain(primary);
+    expect(webItem).toContain(other);
+    expect(webItem.indexOf(primary)).toBeLessThan(webItem.indexOf(other));
+  });
+
+  it("URLを持たない行は「サービス名：識別子」をリンクにしない", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    const googleItem = findItem(html, "Google：1098");
+    expect(googleItem).not.toContain('rel="me"');
+  });
+
+  it("サービスアイコンをGoogleのfavicon配信から読み、背後に地球儀を置く", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "ja", profileUrl });
+
+    for (const host of ["github.com", "alice.example.com", "google.com"]) {
+      const src = `https://www.google.com/s2/favicons?domain=${host}&amp;sz=64`;
+      expect(html).toContain(`<img class="favicon" src="${src}" alt=""`);
+    }
+    expect(findItem(html, "Google：1098")).toContain('<use href="#i-globe"');
+  });
+
+  it("両言語のalternateリンクと、JavaScriptなしの言語ドロップダウンを置く", async () => {
+    const html = await renderPublicProfilePage(profile, { language: "en", profileUrl });
+
+    expect(html).toContain(`<link rel="alternate" hreflang="ja" href="${profileUrl}?lang=ja"/>`);
+    expect(html).toContain(`<link rel="alternate" hreflang="en" href="${profileUrl}?lang=en"/>`);
+    expect(html).toMatch(/<details[^>]*>\s*<summary[^>]*>[\s\S]*English[\s\S]*<\/summary>/);
+    expect(html).toContain('href="?lang=ja"');
+    expect(html).toContain('href="?lang=en"');
+    expect(html).not.toContain("<script");
+  });
+
+  it("外部の値をエスケープし、https以外のURLはリンクにしない", async () => {
+    const html = await renderPublicProfilePage(
+      {
+        accountsUserId: "ausr_bob",
+        displayName: '<script>alert("x")</script>',
+        externalAccounts: [
+          {
+            id: "eac_github",
+            service: "github",
+            identifiers: [
+              {
+                kind: "provider_username",
+                provider: "github",
+                value: "<img src=x onerror=alert(1)>",
+              },
+              { kind: "url", provider: "", value: "javascript:alert(1)" },
+            ],
+            methods: ["oauth"],
+            verifiedAt: new Date("2026-09-01T00:00:00.000Z"),
+          },
+        ],
+      },
+      { language: "ja", profileUrl },
+    );
 
     expect(html).not.toContain("<script>alert");
-    expect(html).not.toContain("<img src=x");
     expect(html).toContain("&lt;script&gt;");
+    expect(html).not.toContain("<img src=x");
+    expect(html).toContain("&lt;img src=x");
     expect(html).not.toContain('href="javascript:');
   });
 });
 
 describe("renderPublicProfileNotFoundPage", () => {
-  it("日英併記の見つからないページを返す", async () => {
-    const html = await renderPublicProfileNotFoundPage();
+  it.each([
+    ["ja", "このプロフィールは存在しません"],
+    ["en", "Profile not found"],
+  ] as const)("%s の存在しないページを、404の文字を出さずに返す", async (language, text) => {
+    const html = await renderPublicProfileNotFoundPage(language);
 
-    expect(html).toContain("プロフィールが見つかりません / Profile not found");
+    expect(html).toContain(`<html lang="${language}">`);
+    expect(html).toContain(`<h1>${text}</h1>`);
+    expect(html).not.toContain("404");
   });
 });

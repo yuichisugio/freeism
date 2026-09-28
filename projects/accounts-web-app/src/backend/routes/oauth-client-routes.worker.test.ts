@@ -66,7 +66,7 @@ async function registerClient(overrides: Record<string, unknown> = {}) {
 }
 
 /**
- * 別ユーザーの、指定クライアントへの情報提供同意と公開選択を保存する。
+ * 別ユーザーの、指定クライアントへの提供先の記録と公開選択を保存する。
  */
 async function saveClientSettings(clientId: string) {
   const userId = createRandomId("ausr_");
@@ -75,7 +75,7 @@ async function saveClientSettings(clientId: string) {
   await db.insert(externalAccounts).values({ id: accountId, userId });
   await db
     .insert(clientConsents)
-    .values({ userId, clientId, displayName: "Points", consented: true });
+    .values({ userId, clientId, displayName: "Points" });
   await db.insert(externalAccountVisibility).values({ accountId, clientId, isPublic: true });
   return { userId, accountId };
 }
@@ -346,7 +346,6 @@ describe("OAuthクライアントの削除", () => {
       userId: settings.userId,
       clientId: other.clientId,
       displayName: "Other",
-      consented: true,
     });
     await db
       .insert(externalAccountVisibility)

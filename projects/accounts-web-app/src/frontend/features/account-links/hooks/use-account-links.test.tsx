@@ -50,7 +50,7 @@ describe("useAccountLinks", () => {
   it("編集すると保存でき、保存後は編集を破棄して再取得する", async () => {
     const saved = createAccountLinks({
       accounts: [createLinkedAccount({ id: "eac_1", visibility: { points: true } })],
-      clients: [createLinkedClient({ clientId: "points", consented: true })],
+      clients: [createLinkedClient({ clientId: "points" })],
     });
     const fetchMock = vi
       .fn<typeof fetch>()
@@ -62,10 +62,9 @@ describe("useAccountLinks", () => {
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
 
     act(() => {
-      result.current.setClientConsent("points", true);
       result.current.setClientVisibility("points", ["eac_1"], true);
     });
-    expect(result.current.table?.canSave).toBe(true);
+    expect(result.current.table?.isDirty).toBe(true);
 
     await act(async () => {
       expect(await result.current.save()).toBe(true);
@@ -75,11 +74,11 @@ describe("useAccountLinks", () => {
     expect(fetchMock.mock.calls[1]?.[0]).toBe("/api/visibility");
     expect(JSON.parse(saveInit.body as string)).toEqual({
       accounts: [{ externalAccountId: "eac_1", isPublic: false }],
-      clients: [{ clientId: "points", consented: true, visibleAccountIds: ["eac_1"] }],
+      clients: [{ clientId: "points", visibleAccountIds: ["eac_1"] }],
     });
     expect(result.current.saveState.status).toBe("saved");
     expect(result.current.table?.isDirty).toBe(false);
-    expect(result.current.table?.columns[0]?.consented).toBe(true);
+    expect(result.current.table?.rows[0]?.visibleClientIds).toEqual(["points"]);
   });
 
   it("保存が拒否された場合は編集を保ったまま失敗を示す", async () => {
@@ -88,7 +87,7 @@ describe("useAccountLinks", () => {
       vi
         .fn<typeof fetch>()
         .mockResolvedValueOnce(dataResponse(links))
-        .mockResolvedValueOnce(problemResponse(400, "CONSENT_REQUIRES_VERIFIED_ACCOUNT")),
+        .mockResolvedValueOnce(problemResponse(400, "INVALID_VALUE")),
     );
     const { result } = renderHook(() => useAccountLinks());
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));
@@ -108,7 +107,7 @@ describe("useAccountLinks", () => {
       vi
         .fn<typeof fetch>()
         .mockResolvedValueOnce(dataResponse(links))
-        .mockResolvedValueOnce(problemResponse(400, "CONSENT_REQUIRES_VERIFIED_ACCOUNT")),
+        .mockResolvedValueOnce(problemResponse(400, "INVALID_VALUE")),
     );
     const { result } = renderHook(() => useAccountLinks());
     await waitFor(() => expect(result.current.loadState.status).toBe("ready"));

@@ -40,15 +40,15 @@ async function openLoginDialog(errorCode?: string, language?: "ja" | "en") {
 }
 
 describe("LoginDialog", () => {
-  it("Google・GitHub・ORCIDのログインボタンを表示し、押したProviderでログインを開始する", async () => {
+  it("Google・GitHub・ORCIDのログインボタンをサービスのアイコン付きで表示し、押したProviderでログインを開始する", async () => {
     authClientMock.signIn.social.mockResolvedValue({ data: { redirect: true, url: "https://example.com" }, error: null });
     const dialog = await openLoginDialog();
 
     await userEvent.click(within(dialog).getByRole("button", { name: "ORCIDでログイン" }));
 
-    expect(within(dialog).getByRole("heading", { name: "Accountsにログイン" })).toBeDefined();
-    expect(within(dialog).getByRole("button", { name: "Googleでログイン" })).toBeDefined();
-    expect(within(dialog).getByRole("button", { name: "GitHubでログイン" })).toBeDefined();
+    expect(within(dialog).getByRole("heading", { name: "Freeism Accounts にログイン" })).toBeDefined();
+    expect(within(dialog).getByRole("button", { name: "Googleでログイン" }).querySelector("svg")).not.toBeNull();
+    expect(within(dialog).getByRole("button", { name: "GitHubでログイン" }).querySelector("svg")).not.toBeNull();
     expect(authClientMock.signIn.social).toHaveBeenCalledWith(expect.objectContaining({ provider: "orcid" }));
   });
 
@@ -57,7 +57,7 @@ describe("LoginDialog", () => {
 
     const alert = within(dialog).getByRole("alert");
     expect(alert.textContent).toContain("既存のログイン手段でログインし、「アカウント連携」画面から");
-    expect(alert.textContent).toContain("元のAccountsユーザーを退会");
+    expect(alert.textContent).toContain("元のFreeism Accountsユーザーを退会");
   });
 
   it("email_not_foundは、GitHubのメールアドレスを取得できない場合の対処をalertで案内する", async () => {
@@ -110,12 +110,14 @@ describe("LoginDialog", () => {
     expect(within(dialog).queryByRole("alert")).toBeNull();
   });
 
-  it("前回のログイン方法のボタンに「前回使用」のテキストを添える", async () => {
+  it("前回のログイン方法のボタンに「前回使用」のテキストを添え、説明として読み上げる", async () => {
     authClientMock.getLastUsedLoginMethod.mockReturnValue("github");
     const dialog = await openLoginDialog();
 
-    const githubItem = within(dialog).getByRole("button", { name: "GitHubでログイン" }).closest("li");
-    expect(githubItem?.textContent).toContain("前回使用");
+    const githubButton = within(dialog).getByRole("button", { name: "GitHubでログイン" });
+    expect(githubButton.textContent).toContain("前回使用");
+    const descriptionId = githubButton.getAttribute("aria-describedby");
+    expect(descriptionId === null ? null : document.getElementById(descriptionId)?.textContent).toBe("前回使用");
     expect(within(dialog).getAllByText("前回使用")).toHaveLength(1);
   });
 });

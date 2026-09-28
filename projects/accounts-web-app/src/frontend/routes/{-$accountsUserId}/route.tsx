@@ -6,7 +6,8 @@ import { UserScopeGate } from "../../features/auth/components/user-scope-gate";
 /**
  * 公開プロフィール以外の画面の経路（`/{accountsUserId}/account-links`など）。
  * 先頭のAccountsユーザーIDは表示するユーザーの切替だけに使い、BFF・権限判定はCookieのセッションで行う。
- * IDの無い経路（`/account-links`など）は、ログイン済みなら現在のユーザーのID付きの経路へ移り、未ログインならそのまま表示する。
+ * IDの無い経路（`/account-links`など）は、ログイン済みなら現在のユーザーのID付きの経路へ移る。
+ * 未ログインなら、未ログインでも表示する画面（`staticData.allowsGuest`・`isUserIndependent`）はそのまま表示し、ほかの画面はログインを求める（`UserScopeGate`）。
  * AccountsユーザーIDの形式でない先頭の区切り（`/typo`など）は、存在しない画面として扱う。
  * 画面の無い`/{accountsUserId}`は、そのユーザーの「アカウント連携」画面へ置き換える。
  * @see ../../../../docs/specification/v0.1/main.ja.md
