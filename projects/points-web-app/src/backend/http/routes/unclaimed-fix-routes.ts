@@ -1,5 +1,5 @@
 import type { Context, Hono } from "hono";
-import { z } from "zod";
+import * as v from "valibot";
 
 import type { CreateAccountsRecipientResolver } from "../../identity/accounts-recipient-resolver";
 import { claimUnclaimedFixes, UnclaimedFixClaimError } from "../../usecases/claim-unclaimed-fixes";
@@ -23,12 +23,10 @@ import { problem } from "../problem";
 // 要求と応答
 // --------------------------------------------------
 
-const claimBodySchema = z
-  .object({
-    accountsLinkId: z.string().min(1),
-    claimSetHash: z.string().regex(/^[a-f0-9]{64}$/),
-  })
-  .strict();
+const claimBodySchema = v.strictObject({
+  accountsLinkId: v.pipe(v.string(), v.minLength(1)),
+  claimSetHash: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/)),
+});
 
 /**
  * 受領の失敗を problem 応答にする。
@@ -97,7 +95,7 @@ export function registerUnclaimedFixRoutes(
     googleFreshMiddleware,
     idempotencyKeyMiddleware,
     async (context) => {
-      const body = claimBodySchema.safeParse(await context.req.json().catch(() => null));
+      const body = v.safeParse(claimBodySchema, await context.req.json().catch(() => null));
       if (!body.success)
         return problem(
           context,
@@ -108,7 +106,7 @@ export function registerUnclaimedFixRoutes(
       try {
         const bindings = requireBindings(context.env);
         const result = await claimUnclaimedFixes(bindings.DB, {
-          ...body.data,
+          ...body.output,
           createResolver: dependencies.accountsRecipientResolverFor(bindings),
           idempotencyKey: context.req.header("Idempotency-Key")!,
           now: new Date(),

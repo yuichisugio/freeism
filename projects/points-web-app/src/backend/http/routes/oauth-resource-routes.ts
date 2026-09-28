@@ -1,5 +1,5 @@
 import type { Context, Hono } from "hono";
-import type { z } from "zod";
+import * as v from "valibot";
 
 import { pointsOAuthScopes } from "../../auth/points-oauth-provider";
 import {
@@ -63,9 +63,9 @@ const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =
     scopes,
   );
 
-async function readJson<T>(
+async function readJson<TSchema extends v.GenericSchema>(
   context: Context<BackendContext>,
-  schema: z.ZodType<T>,
+  schema: TSchema,
   limit = 64 * 1024,
 ) {
   const bytes = new Uint8Array(await context.req.arrayBuffer());
@@ -76,9 +76,9 @@ async function readJson<T>(
   } catch {
     throw new Error("MALFORMED_REQUEST");
   }
-  const result = schema.safeParse(parsed);
+  const result = v.safeParse(schema, parsed);
   if (!result.success) throw new Error("VALIDATION_FAILED");
-  return result.data;
+  return result.output;
 }
 
 function idempotencyKey(context: Context<BackendContext>) {
