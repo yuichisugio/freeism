@@ -230,7 +230,7 @@ describe("BackupExportSection", () => {
 describe("BackupRestoreSection", () => {
   it("ファイルを選択すると選択したファイルを渡す", async () => {
     const selectFile = vi.fn<(file: File | null) => void>();
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ selectFile })} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ selectFile })} />);
     const file = new File(["{}"], "backup.json", { type: "application/json" });
 
     await userEvent.upload(await screen.findByLabelText("ファイルを選択"), file);
@@ -238,8 +238,21 @@ describe("BackupRestoreSection", () => {
     expect(selectFile).toHaveBeenCalledWith(file);
   });
 
+  it("選択後に入力を空に戻し、修正した同じファイルを選び直せる", async () => {
+    const selectFile = vi.fn<(file: File | null) => void>();
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ selectFile })} />);
+    const input = await screen.findByLabelText<HTMLInputElement>("ファイルを選択");
+    const file = new File(["{}"], "backup.json", { type: "application/json" });
+
+    await userEvent.upload(input, file);
+    await userEvent.upload(input, file);
+
+    expect(input.value).toBe("");
+    expect(selectFile).toHaveBeenCalledTimes(2);
+  });
+
   it("ファイルを選択するまでは「取り込む」ボタンを押せず、選択後はファイル名を示す", async () => {
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore()} />);
 
     expect(await screen.findByText("選択されていません")).toBeDefined();
     expect(await isButtonDisabled("取り込む")).toBe(true);
@@ -248,7 +261,7 @@ describe("BackupRestoreSection", () => {
   it("選択したファイル名を示し、「取り込む」ボタンで取り込む", async () => {
     const restore = vi.fn<() => Promise<void>>();
     const file = new File(["{}"], "accounts-backup.json", { type: "application/json" });
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ file, canRestore: true, restore })} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ file, canRestore: true, restore })} />);
 
     expect(await screen.findByText("accounts-backup.json")).toBeDefined();
     await userEvent.click(screen.getByRole("button", { name: "取り込む" }));
@@ -258,23 +271,28 @@ describe("BackupRestoreSection", () => {
 
   it("「テンプレートをダウンロード」で出力JSONと同じ形式のテンプレートをダウンロードさせる", async () => {
     const downloads = captureDownloads();
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore()} />);
 
     await userEvent.click(await screen.findByRole("button", { name: "テンプレートをダウンロード" }));
 
     expect(downloads.map((download) => download.fileName)).toEqual(["accounts-import-template.json"]);
-    expect(JSON.parse(await downloads[0]!.blob.text())).toMatchObject({ schemaVersion: 1 });
+    expect(JSON.parse(await downloads[0]!.blob.text())).toMatchObject({
+      schemaVersion: 1,
+      profile: { displayName: "仮ユーザー" },
+    });
   });
 
   it("「AIに整形を頼む文面をコピー」で依頼文とテンプレートをコピーする", async () => {
     const user = userEvent.setup();
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore()} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore()} />);
 
     await user.click(await screen.findByRole("button", { name: "AIに整形を頼む文面をコピー" }));
 
     const copied = await navigator.clipboard.readText();
     expect(copied).toContain("テンプレート");
     expect(copied).toContain('"schemaVersion": 1');
+    expect(copied).toContain('"displayName": "仮ユーザー"');
+    expect(copied).toContain("profile.displayName はテンプレートの値のままにしてください。");
     expect(await screen.findByText("コピーしました。")).toBeDefined();
   });
 
@@ -283,7 +301,7 @@ describe("BackupRestoreSection", () => {
       { code: "INVALID_VALUE", message: "Invalid URL", path: ["externalAccounts", 3, "metadata", "identifiers", 0, "url"] },
       { code: "INVALID_JSON", message: "", path: null },
     ];
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ issues })} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ issues })} />);
 
     const alert = await screen.findByRole("alert");
     expect(alert.textContent).toContain("externalAccounts[3].metadata.identifiers[0].url: 値が条件を満たしていません。");
@@ -293,7 +311,7 @@ describe("BackupRestoreSection", () => {
 
   it("Web URLの上限超過は、URLを整理してから再実行するよう案内する", async () => {
     const issues = [{ code: "URL_LIMIT_REACHED", message: "", path: null }];
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ issues })} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ issues })} />);
 
     expect((await screen.findByRole("alert")).textContent).toContain(
       "ファイル全体: 復元するとWeb URLが上限（150件）を超えます。「アカウント連携」画面でURLを整理してから再実行してください。",
@@ -302,7 +320,7 @@ describe("BackupRestoreSection", () => {
 
   it("取込の成功を件数とともにstatusで示す", async () => {
     const result = { updatedAccountCount: 2, addedCandidateCount: 1, clientConsentCount: 3 };
-    renderWithProviders(<BackupRestoreSection backupRestore={backupRestore({ result })} />);
+    renderWithProviders(<BackupRestoreSection displayName="仮ユーザー" backupRestore={backupRestore({ result })} />);
 
     const statusTexts = (await screen.findAllByRole("status")).map((status) => status.textContent).join("\n");
     expect(statusTexts).toContain("公開設定を戻した外部アカウント: 2件");

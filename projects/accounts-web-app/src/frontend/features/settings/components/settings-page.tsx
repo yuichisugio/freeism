@@ -111,7 +111,7 @@ function SignedInSettings() {
       <LanguageSection />
       <ThemeSection />
       <BackupExportSection backupExport={backupExport} />
-      <BackupRestoreSection backupRestore={backupRestore} />
+      <BackupRestoreSection displayName={displayNameForm.me?.displayName ?? ""} backupRestore={backupRestore} />
       <DeveloperSection state={oauthClients} />
       <AccountDeletionSection accountDeletion={accountDeletion} />
       {displayNameForm.isDirty ? (

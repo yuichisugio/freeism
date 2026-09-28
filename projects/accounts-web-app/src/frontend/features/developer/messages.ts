@@ -42,6 +42,7 @@ export const developerMessages = defineMessages({
     removeRedirectUri: (position: number) => `リダイレクトURL ${position}を削除`,
     remove: "削除",
     clientIdLabel: "Client ID",
+    clientIdIssuedOnRegister: "登録すると発行されます。",
     copyClientId: "Client IDをコピー",
     jwksLabel: "公開鍵（JWK Set）",
     jwksHint:
@@ -109,6 +110,7 @@ export const developerMessages = defineMessages({
     removeRedirectUri: (position: number) => `Remove redirect URL ${position}`,
     remove: "Remove",
     clientIdLabel: "Client ID",
+    clientIdIssuedOnRegister: "Issued when you register.",
     copyClientId: "Copy Client ID",
     jwksLabel: "Public keys (JWK Set)",
     jwksHint:

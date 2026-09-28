@@ -73,7 +73,7 @@ describe("DeveloperSection: 一覧", () => {
 });
 
 describe("DeveloperSection: 登録・編集フォーム", () => {
-  it("「新しいクライアントを登録」で空のフォームを開き、Client IDの欄は置かない", async () => {
+  it("「新しいクライアントを登録」で空のフォームを開き、Client IDは登録すると発行される旨を示す", async () => {
     const user = userEvent.setup();
     renderSection(0);
 
@@ -86,7 +86,9 @@ describe("DeveloperSection: 登録・編集フォーム", () => {
     expect(within(form).getByRole<HTMLInputElement>("textbox", { name: "リダイレクトURL 1" }).placeholder).toBe(
       "https://points.freeism.app/auth/accounts/callback",
     );
-    expect(within(form).queryByText("Client ID")).toBeNull();
+    expect(within(form).getByText("Client ID")).toBeDefined();
+    expect(within(form).getByText("登録すると発行されます。")).toBeDefined();
+    expect(within(form).queryByRole("button", { name: "Client IDをコピー" })).toBeNull();
     expect(within(form).queryByText("アプリ情報")).toBeNull();
     expect(within(form).queryByText(/（任意）/)).toBeNull();
   });

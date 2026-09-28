@@ -2,9 +2,11 @@ import * as v from "valibot";
 import { describe, expect, it } from "vitest";
 
 import { backupSchema } from "../../../shared/schemas/backup-schema";
-import { importTemplateText } from "./import-template";
+import { buildImportTemplateText } from "./import-template";
 
-describe("importTemplateText", () => {
+describe("buildImportTemplateText", () => {
+  const importTemplateText = buildImportTemplateText("仮ユーザー");
+
   it("出力JSONと同じ形式（schemaVersion: 1）として取り込める", () => {
     expect(v.safeParse(backupSchema, JSON.parse(importTemplateText)).success).toBe(true);
   });
@@ -19,5 +21,11 @@ describe("importTemplateText", () => {
       verificationStatus: "unverified",
       verifications: [],
     });
+  });
+
+  it("profile.displayName に渡した表示名を入れる", () => {
+    const template = v.parse(backupSchema, JSON.parse(buildImportTemplateText("山田 花子")));
+
+    expect(template.profile.displayName).toBe("山田 花子");
   });
 });

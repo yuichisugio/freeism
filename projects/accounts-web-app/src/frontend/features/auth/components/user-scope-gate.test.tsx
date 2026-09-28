@@ -43,7 +43,7 @@ beforeEach(() => {
 
 /**
  * 画面の経路（`/{-$accountsUserId}/account-links`・`/settings`・`/help`）と同じ構成のルーターで、指定したURLを開く。
- * 「その他」（`settings`）は未ログインでも表示する画面、ヘルプはユーザーの情報を扱わない画面として指定する。
+ * 「その他」（`settings`）は未ログインでも表示する画面、使い方はユーザーの情報を扱わない画面として指定する。
  */
 function renderUserScopedPage(path: string) {
   const rootRoute = createRootRoute({
@@ -237,7 +237,7 @@ describe("UserScopeGate", () => {
     expect(screen.queryByText("settings page")).toBeNull();
   });
 
-  describe("ユーザーの情報を扱わない画面（ヘルプなど）", () => {
+  describe("ユーザーの情報を扱わない画面（使い方など）", () => {
     it("未ログインでほかのユーザーのURLを開くと、ログインを求めずユーザーIDの無いURLへ置き換えて表示する", async () => {
       authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
       authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [], error: null });

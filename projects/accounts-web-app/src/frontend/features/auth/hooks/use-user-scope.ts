@@ -8,7 +8,7 @@ import { useLoginDialog } from "./use-login-dialog";
 declare module "@tanstack/react-router" {
   interface StaticDataRouteOption {
     /**
-     * ユーザーの情報を扱わない画面（ヘルプ・規約など）か。
+     * ユーザーの情報を扱わない画面（使い方・規約など）か。
      * URLのユーザーでこのブラウザーにログインしていなくても、ログインを求めずに現在のユーザーの画面として表示する。
      */
     isUserIndependent?: boolean;

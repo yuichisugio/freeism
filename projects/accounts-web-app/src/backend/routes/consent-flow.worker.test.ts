@@ -2,6 +2,7 @@ import { exports } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { getTestAuthContext } from "../../../test/auth-test-helpers";
 import {
   createVerifiedUrlAccount,
   testDb,
@@ -16,6 +17,7 @@ import {
 } from "../../../test/oauth-client-test-helpers";
 import {
   countOAuthConsents,
+  insertOAuthConsent,
   registerTestClient,
   saveVisibility,
   testRedirectUri,
@@ -100,10 +102,44 @@ async function sendConsent(headers: Headers, oauthQuery: string, accept: boolean
   });
 }
 
+/**
+ * `fetch`で送った要求の応答（`{ redirect: true, url }`）から移動先を読む。
+ * 同意画面への移動先はAccounts内の相対URLになる。
+ */
 async function readRedirectUrl(response: Response): Promise<URL> {
   expect(response.status).toBe(200);
   const body = (await response.json()) as { url: string };
-  return new URL(body.url);
+  return new URL(body.url, testOrigin);
+}
+
+/**
+ * 同じブラウザーで別のユーザーもログインした状態にし、そのユーザーのセッショントークンを返す。
+ * `testUtils`のログインはMulti Sessionのcookieを発行しないため、標準のログインと同じ名前と値のcookieを要求のCookieへ加える。
+ * Multi Sessionのcookieの値は、セッションのcookieと同じ署名付きのセッショントークンになる。
+ */
+async function loginAnotherUserInSameBrowser(headers: Headers) {
+  const context = await getTestAuthContext();
+  const user = await context.test.saveUser(context.test.createUser());
+  const login = await context.test.login({ userId: user.id });
+  const sessionCookie = login.headers.get("cookie") ?? "";
+  const signedToken = sessionCookie.slice(sessionCookie.indexOf("=") + 1);
+  const multiSessionCookieName = `${context.authCookies.sessionToken.name}_multi-${login.token.toLowerCase()}`;
+  headers.set("cookie", `${headers.get("cookie")}; ${multiSessionCookieName}=${signedToken}`);
+  return { userId: user.id, sessionToken: login.token };
+}
+
+/**
+ * 同意画面のアカウントのメニューで別のユーザーを選ぶ（Multi Sessionの`setActive`）。
+ * 画面のBetter Authクライアントは、同意画面の署名付きクエリを`oauth_query`として加えて送る。
+ */
+function switchUserOnConsentPage(headers: Headers, sessionToken: string, oauthQuery: string) {
+  const requestHeaders = new Headers(headers);
+  requestHeaders.set("Content-Type", "application/json");
+  return exports.default.fetch(`${testOrigin}/api/auth/multi-session/set-active`, {
+    method: "POST",
+    headers: requestHeaders,
+    body: JSON.stringify({ sessionToken, oauth_query: oauthQuery }),
+  });
 }
 
 // --------------------------------------------------
@@ -354,5 +390,58 @@ describe("連携開始と同意画面", () => {
     );
 
     expect(response.status).toBe(401);
+  });
+});
+
+describe("同意画面でのユーザーの切り替え", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("prompt=consentの要求では、選んだユーザーで署名し直した同意画面へ移動する", async () => {
+    const { headers, clientId } = await setUpUser();
+    const oauthQuery = readConsentPageQuery(
+      await authorize(headers, clientId, { prompt: "consent" }),
+    );
+    const other = await loginAnotherUserInSameBrowser(headers);
+
+    const response = await switchUserOnConsentPage(headers, other.sessionToken, oauthQuery);
+
+    const redirect = await readRedirectUrl(response);
+    expect(redirect.pathname).toBe("/consent");
+    expect(redirect.searchParams.get("client_id")).toBe(clientId);
+    expect(redirect.searchParams.get("sig")).toEqual(expect.any(String));
+    expect(response.headers.getSetCookie().join("\n")).toContain(other.sessionToken);
+  });
+
+  it("prompt=consentの無い要求で、選んだユーザーが保存済みのOAuth同意を持てば、認可コードを付けて戻り先へ戻る", async () => {
+    const { headers, clientId } = await setUpUser();
+    const oauthQuery = readConsentPageQuery(await authorize(headers, clientId));
+    const other = await loginAnotherUserInSameBrowser(headers);
+    await insertOAuthConsent(other.userId, clientId);
+
+    const redirect = await readRedirectUrl(
+      await switchUserOnConsentPage(headers, other.sessionToken, oauthQuery),
+    );
+
+    expect(`${redirect.origin}${redirect.pathname}`).toBe(testRedirectUri);
+    expect(redirect.searchParams.get("code")).toEqual(expect.any(String));
+    expect(redirect.searchParams.get("state")).toBe("state-1");
+  });
+
+  it("同意画面の署名付きクエリが失効した後は、invalid_signatureの400で切り替えない", async () => {
+    const { headers, clientId } = await setUpUser();
+    const oauthQuery = readConsentPageQuery(
+      await authorize(headers, clientId, { prompt: "consent" }),
+    );
+    const other = await loginAnotherUserInSameBrowser(headers);
+    const exp = Number(new URLSearchParams(oauthQuery).get("exp"));
+    vi.setSystemTime((exp + 1) * 1000);
+
+    const response = await switchUserOnConsentPage(headers, other.sessionToken, oauthQuery);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "invalid_signature" });
+    expect(response.headers.getSetCookie().join("\n")).not.toContain(other.sessionToken);
   });
 });

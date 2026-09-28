@@ -48,8 +48,9 @@ export const settingsMessages = defineMessages({
       [
         "添付した他サービスのエクスポートデータを、次のテンプレートと同じ形式の JSON に整形してください。",
         "出力は JSON だけにしてください。",
-        "profile.displayName には、エクスポートデータにある本人の表示名を入れてください。",
+        "profile.displayName はテンプレートの値のままにしてください。",
         "外部アカウントごとに externalAccounts の要素を1つ作り、URL は metadata.identifiers に https から始まる完全な形で入れてください。",
+        "metadata の service・linkedAt・verificationStatus・verifications と isPublic・clientVisibility はテンプレートの値のままにし、URL など識別子だけを差し替えてください。",
         "テンプレートにない項目は追加せず、対応する値がない項目はテンプレートと同じく null か空の配列にしてください。",
         "",
         templateText,
@@ -118,8 +119,9 @@ export const settingsMessages = defineMessages({
       [
         "Convert the attached data exported from another service into JSON in the same format as the template below.",
         "Output only the JSON.",
-        "Put your display name from the exported data in profile.displayName.",
+        "Keep profile.displayName as it is in the template.",
         "Create one element of externalAccounts for each external account, and put its URL in metadata.identifiers as a complete URL starting with https.",
+        "Keep service, linkedAt, verificationStatus, and verifications in metadata, as well as isPublic and clientVisibility, as they are in the template, and replace only identifiers such as URLs.",
         "Do not add fields that are not in the template. For fields without a corresponding value, use null or an empty array as in the template.",
         "",
         templateText,

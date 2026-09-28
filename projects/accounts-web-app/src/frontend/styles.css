@@ -418,4 +418,37 @@
     min-height: var(--input-h);
     font-size: var(--text-md);
   }
+
+  /*
+   * チェックボックス: --checkbox 角、角丸 --radius-sm、枠 1.5px の --border-strong、面 --surface。
+   * 枠の色と面は、HeroUI の入力欄の変数をこの部品の中だけで向け直す。
+   */
+  .checkbox {
+    --field-background: var(--surface);
+    --field-border: var(--border-strong);
+    --field-border-hover: var(--border-strong);
+  }
+
+  /* チェック時・中間表示は、枠の下まで主色で塗る。 */
+  .checkbox[data-selected="true"],
+  .checkbox[data-indeterminate="true"] {
+    --field-background: var(--accent);
+    --field-border: var(--accent);
+    --field-border-hover: var(--accent);
+  }
+
+  .checkbox__control {
+    width: var(--checkbox);
+    height: var(--checkbox);
+    border-width: 1.5px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* 中の印も --checkbox に合わせて大きくする。 */
+  .checkbox__indicator,
+  .checkbox [data-slot="checkbox-default-indicator--checkmark"],
+  .checkbox[data-indeterminate="true"] [data-slot="checkbox-default-indicator--indeterminate"] {
+    width: 14px;
+    height: 14px;
+  }
 }

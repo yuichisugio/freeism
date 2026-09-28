@@ -14,9 +14,14 @@ const sessionMock = vi.hoisted(() => ({
 
 vi.mock("../../../lib/use-hydrated-session", () => sessionMock);
 
+const authClientMock = vi.hoisted(() => ({
+  deleteUser: vi.fn<() => Promise<{ error: null }>>(),
+}));
+
 vi.mock("../../../lib/auth-client", () => ({
   authClient: {
     getLastUsedLoginMethod: () => null,
+    deleteUser: authClientMock.deleteUser,
     $store: { notify: vi.fn<(signal: string) => void>() },
   },
 }));
@@ -95,5 +100,31 @@ describe("SettingsPage: ログイン中", () => {
 
     expect(input.value).toBe("Alice");
     expect(screen.queryByText("未保存 1件")).toBeNull();
+  });
+
+  it("表示名を変更したまま「使い方」へ移動しようとすると、未保存の確認を出して留まる", async () => {
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<SettingsPage />, { path: "/ausr_alice/settings" });
+
+    await user.type(await screen.findByRole("textbox", { name: "表示名" }), "!");
+    await user.click(screen.getByRole("link", { name: "使い方" }));
+
+    expect(within(await screen.findByRole("alertdialog")).getByText("保存していない変更があります")).toBeDefined();
+    expect(router.state.location.pathname).toBe("/ausr_alice/settings");
+  });
+
+  it("退会に成功すると、表示名の未保存の変更があっても確認せずにトップページへ移動する", async () => {
+    authClientMock.deleteUser.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<SettingsPage />, { path: "/ausr_alice/settings" });
+
+    await user.type(await screen.findByRole("textbox", { name: "表示名" }), "!");
+    await user.click(screen.getByRole("button", { name: "退会" }));
+    const dialog = await screen.findByRole("alertdialog");
+    await user.type(within(dialog).getByRole("textbox"), "DELETE");
+    await user.click(within(dialog).getByRole("button", { name: "退会する" }));
+
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(screen.queryByText("保存していない変更があります")).toBeNull();
   });
 });

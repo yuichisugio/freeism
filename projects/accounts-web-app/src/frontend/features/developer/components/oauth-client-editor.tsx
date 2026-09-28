@@ -200,17 +200,19 @@ export function OAuthClientEditor({ state }: { state: OAuthClientsState }) {
         </div>
       </div>
 
-      {editTarget.kind === "existing" ? (
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium">{messages.clientIdLabel}</p>
+      <div className="flex flex-col gap-1">
+        <p className="text-sm font-medium">{messages.clientIdLabel}</p>
+        {editTarget.kind === "existing" ? (
           <div className="flex flex-wrap items-center gap-2">
             <code className="rounded bg-surface-secondary px-2 py-1 font-mono text-sm break-all">
               {editTarget.client.clientId}
             </code>
             <CopyButton key={editTarget.client.clientId} text={editTarget.client.clientId} label={messages.copyClientId} />
           </div>
-        </div>
-      ) : null}
+        ) : (
+          <p className="text-sm text-muted">{messages.clientIdIssuedOnRegister}</p>
+        )}
+      </div>
 
       <TextField
         value={form.jwksText}

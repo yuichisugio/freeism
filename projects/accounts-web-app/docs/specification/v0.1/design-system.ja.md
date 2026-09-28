@@ -390,7 +390,7 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 - 「使い方」「OSSライセンス」「プライバシーポリシー」「利用規約」の4リンクを中央に並べる（`--text-xs`、`--muted`）。
 - 現在の画面のリンクは `--foreground` の `--weight-medium` にする。
-- 公開プロフィールにはフッターを置かない。
+- 同意画面と公開プロフィールにはフッターを置かない。
 
 ### 5.3 ページ
 
@@ -608,14 +608,14 @@ Freeism Accounts の見た目と操作の規則を、トークン・コンポー
 
 | 対象 | 現状 |
 | --- | --- |
-| `src/frontend/styles.css` | `@import "tailwindcss";` と `@import "@heroui/styles";` だけ |
+| `src/frontend/styles.css` | トークンを定義し、HeroUI の変数と Tailwind の名前空間へ対応させる（[7.2](#72-stylescss-の構成)） |
 | ビルド | `@tailwindcss/vite`（`vite.config.ts`）、`@heroui/react` と `@heroui/styles` は 3.2.6、`tailwindcss` は 4.3.3 |
 | 文書の枠 | `src/frontend/routes/__root.tsx` の `RootDocument` が `<body className="min-h-screen bg-background text-foreground">` を出す |
 | HeroUI の色変数 | `@heroui/styles` の `themes/default/variables.css` が `:root` と `[data-theme="dark"]`（または `.dark`）で定義し、`themes/shared/theme.css` の `@theme inline` で `bg-surface` などのユーティリティに登録する |
 | 表示言語の保存 | `src/frontend/lib/i18n/language.ts` が localStorage の `accounts.language` に保存する |
-| 日時の表示 | `src/frontend/lib/i18n/format.ts` の `formatDateTime` が `Intl.DateTimeFormat` の medium 形式（利用者の時間帯） |
-| 公開プロフィール | `public-profile-page.tsx` の `Document` がインラインの `<style>`（system-ui）で描画し、文言を日英併記する |
-| アイコン | アイコンのライブラリは無い |
+| 日時の表示 | `src/shared/format-date-time.ts` の `formatUtcDateTime` が `YYYY/MM/DD HH:MM (UTC)` 形式で整形し、管理画面と公開プロフィールで共有する（[7.9](#79-日時の表示)） |
+| 公開プロフィール | `public-profile-page.tsx` の `Document` がインラインの `<style>` にトークンと [3.2](#32-タイポグラフィ) の書体の指定を書いて描画する（[7.8](#78-公開プロフィールの-html)） |
+| アイコン | `src/frontend/features/app-shell/components/icons.tsx` の SVG の部品を使う |
 
 ### 7.2 `styles.css` の構成
 
@@ -645,18 +645,27 @@ HeroUI だけが持つ変数は、トークンを参照させる。
 | HeroUI の変数 | 値 | 理由 |
 | --- | --- | --- |
 | `--overlay` | `var(--surface)` | ダイアログ・ポップオーバーの面 |
+| `--surface-tertiary` | `var(--surface-secondary)` | 3段目の面（tertiary のカードなど）を2段目に揃える |
 | `--default` | `var(--surface-secondary)` | tertiary ボタン・ホバーの面 |
+| `--default-foreground` | `var(--foreground)` | `--default` の面の上の文字 |
+| `--segment` | `var(--surface)` | タブの選択中の印の面 |
+| `--segment-foreground` | `var(--foreground)` | タブの選択中の文字 |
 | `--separator` | `var(--border)` | 区切り線 |
 | `--accent-soft-foreground` | `var(--accent)` | 淡い面の上の文字を主色にする |
 | `--success-soft-foreground` | `var(--success)` | 同上 |
 | `--warning-soft-foreground` | `var(--warning)` | 同上 |
 | `--danger-soft-foreground` | `var(--danger)` | 同上 |
 | `--field-background` | `var(--surface-secondary)` | 入力欄の面 |
+| `--field-foreground` | `var(--foreground)` | 入力欄の文字 |
 | `--field-border` | `transparent` | 入力欄は枠なし |
+| `--field-border-width` | `1px` | 入力欄の枠の太さ（フォーカス時の枠に使う） |
+| `--field-border-focus` | `var(--accent)` | フォーカス時の入力欄の枠 |
+| `--field-focus` | `var(--surface)` | フォーカス時の入力欄の面 |
 | `--field-radius` | `var(--radius-lg)` | 入力欄の角丸 |
 | `--field-shadow` | `0 0 0 0 transparent` | 入力欄は影なし |
 | `--surface-shadow` | `var(--shadow)` | カードの影 |
 | `--overlay-shadow` | `var(--shadow-pop)` | ダイアログ・ポップオーバーの影 |
+| `--disabled-opacity` | `0.45` | 無効な部品の不透明度 |
 
 ### 7.4 ダークモードの切替
 
@@ -719,7 +728,7 @@ HeroUI だけが持つ変数は、トークンを参照させる。
 
 ### 7.9 日時の表示
 
-- `YYYY/MM/DD HH:MM (UTC)` の整形は、管理画面と公開プロフィールで共有するため `src/shared` に置き、`formatDateTime` をこれに置き換える。
+- `YYYY/MM/DD HH:MM (UTC)` の整形は、管理画面と公開プロフィールで共有するため `src/shared/format-date-time.ts` の `formatUtcDateTime` に置く。
 
 ## 8. 実装が必要な新規操作
 
@@ -729,6 +738,6 @@ HeroUI だけが持つ変数は、トークンを参照させる。
 | 検証方法ごとの「この証明を解除」 | 行全体の「連携解除」と「OAuthの認証連携だけ解除する」のみ |
 | 「詳細」の開閉 | 証明の一覧を常に表示する |
 | 専用の同意画面 | 「アカウント連携」画面の上部に同意パネルを出し、同じ画面の表で選ぶ |
-| テーマ設定（ライト・ダーク・システム） | 無い |
+| テーマ設定（ライト・ダーク・システム） | 実装済み |
 | DELETE 入力による退会確認 | チェックボックス「内容を確認した」 |
 | 公開プロフィールの言語ドロップダウン | 日英併記 |

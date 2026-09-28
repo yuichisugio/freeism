@@ -51,7 +51,7 @@ export const consentMessages = defineMessages({
     // --------------------------------------------------
     // 選択リスト
     // --------------------------------------------------
-    listHeading: "Accounts",
+    listHeading: "External accounts",
     bulkLabel: (client: string) => `Share all external accounts with ${client}`,
     rowLabel: (account: string, client: string) => `Share ${account} with ${client}`,
     accountSeparator: ": ",

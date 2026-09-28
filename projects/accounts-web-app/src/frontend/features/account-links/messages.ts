@@ -121,22 +121,6 @@ export const accountLinksMessages = defineMessages({
     accountUnlinked: "連携を解除しました。",
     verificationUnlinked: "証明を解除しました。",
     // --------------------------------------------------
-    // 同意画面
-    // --------------------------------------------------
-    consentTitle: (client: string) => `${client}が情報の提供を求めています`,
-    consentRedirectHost: "戻り先",
-    consentServiceUrl: "紹介ページ",
-    consentPurpose:
-      "同意すると、下の表で選択した外部アカウントのサービス名・表示名・識別子・連携日時・証明方法ごとの検証結果を、この連携先へ提供します。連携先はそれらを公開表示し、貢献者の照合に使うことがあります。同意と選択は後からこの画面で変更できます。",
-    consentActiveUser: "連携するFreeism Accountsユーザー",
-    consentExpiryNotice: "この画面は表示から10分で失効します。",
-    consentExpired: "連携の要求の有効期限が切れました。元のサービスから連携を最初からやり直してください。",
-    consentFailed: "連携の要求を処理できませんでした。期限切れの可能性があるため、元のサービスから連携を最初からやり直してください。",
-    consentClientMissing: "連携先のサービスが見つかりません。元のサービスから連携を最初からやり直してください。",
-    consentAccept: "同意して戻る",
-    consentDeny: "同意しない",
-    consentAcceptBlocked: "同意するには、証明済みの外部アカウントを1件以上選択してください。",
-    // --------------------------------------------------
     // 結果・エラー
     // --------------------------------------------------
     methods: {
@@ -276,19 +260,6 @@ export const accountLinksMessages = defineMessages({
     unlinkConfirm: "Unlink",
     accountUnlinked: "The link was removed.",
     verificationUnlinked: "The proof was removed.",
-    consentTitle: (client: string) => `${client} is requesting access to your information`,
-    consentRedirectHost: "Return to",
-    consentServiceUrl: "Service page",
-    consentPurpose:
-      "If you allow it, the service name, display name, identifiers, link date and per-method verification results of the external accounts selected below are provided to this service. The service may display them publicly and use them to match contributors. You can change your consent and selection on this page later.",
-    consentActiveUser: "Freeism Accounts user to connect",
-    consentExpiryNotice: "This page expires 10 minutes after it was opened.",
-    consentExpired: "The request has expired. Please start the connection again from the original service.",
-    consentFailed: "The request could not be processed. It may have expired, so please start the connection again from the original service.",
-    consentClientMissing: "The requesting service was not found. Please start the connection again from the original service.",
-    consentAccept: "Allow and return",
-    consentDeny: "Deny",
-    consentAcceptBlocked: "Select at least one verified external account to allow sharing.",
     methods: {
       oauth: "OAuth",
       bidirectional_link: "Two-way link",

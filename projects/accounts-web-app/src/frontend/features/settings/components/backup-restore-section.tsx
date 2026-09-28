@@ -8,7 +8,7 @@ import { CopyIcon, DownloadIcon, UploadIcon } from "../../app-shell/components/i
 import { ErrorNotice, SuccessNotice } from "../../app-shell/components/status-messages";
 import { formatIssuePath } from "../backup-file";
 import type { BackupRestore } from "../hooks/use-backup-restore";
-import { downloadImportTemplate, importTemplateText } from "../import-template";
+import { buildImportTemplateText, downloadImportTemplate } from "../import-template";
 import { settingsMessages } from "../messages";
 import { SettingsSection } from "./settings-section";
 
@@ -16,12 +16,20 @@ import { SettingsSection } from "./settings-section";
  * データ取込。
  * JSONファイルを選択して「取り込む」で復元し、結果または不備の一覧を示す。
  * 出力JSONと同じ形式のテンプレートのダウンロードと、ほかのサービスのデータをその形式へ整形するようAIに頼む文面のコピーを置く。
+ * テンプレートの `profile.displayName` には現在の表示名を入れる。
  * @see ./settings-sections.test.tsx
  */
-export function BackupRestoreSection({ backupRestore }: { backupRestore: BackupRestore }) {
+export function BackupRestoreSection({
+  displayName,
+  backupRestore,
+}: {
+  displayName: string;
+  backupRestore: BackupRestore;
+}) {
   const messages = useMessages(settingsMessages);
   const common = useMessages(commonMessages);
   const aiPromptCopy = useCopyText();
+  const importTemplateText = buildImportTemplateText(displayName);
   const aiPrompt = messages.aiPrompt(importTemplateText);
   const { result } = backupRestore;
 
@@ -37,7 +45,11 @@ export function BackupRestoreSection({ backupRestore }: { backupRestore: BackupR
             type="file"
             accept="application/json,.json"
             className="sr-only"
-            onChange={(event) => backupRestore.selectFile(event.currentTarget.files?.[0] ?? null)}
+            onChange={(event) => {
+              backupRestore.selectFile(event.currentTarget.files?.[0] ?? null);
+              // 修正した同じファイルを選び直しても変更として扱われるよう、入力を空に戻す。
+              event.currentTarget.value = "";
+            }}
           />
         </label>
         <span className="text-sm break-all text-muted">{backupRestore.file?.name ?? messages.noFileChosen}</span>
@@ -51,7 +63,7 @@ export function BackupRestoreSection({ backupRestore }: { backupRestore: BackupR
         {backupRestore.isRestoring ? messages.importing : messages.importButton}
       </Button>
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="tertiary" onPress={downloadImportTemplate}>
+        <Button size="sm" variant="tertiary" onPress={() => downloadImportTemplate(importTemplateText)}>
           <DownloadIcon className="size-4" />
           {messages.downloadTemplate}
         </Button>
