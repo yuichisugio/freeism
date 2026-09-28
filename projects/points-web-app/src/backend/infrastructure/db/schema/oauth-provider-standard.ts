@@ -12,7 +12,7 @@ export const jwks = sqliteTable("jwks", {
   crv: text("crv"),
 });
 
-// Generated from the installed Better Auth 1.7.5 public CLI schema.
+// Generated from the installed Better Auth 1.7.6 public CLI schema.
 export const oauthClient = sqliteTable(
   "oauth_client",
   {

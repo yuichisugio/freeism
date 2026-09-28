@@ -19,7 +19,7 @@
 - `disableCSRFCheck=false`、`disableOriginCheck=false`。
 - `trustedOrigins`は環境ごとの当該アプリ完全一致originだけとする。
 - OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
-- Points OAuthはBetter Auth 1.7.5の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、用途別scopeとともに分類する。
+- Points OAuthはBetter Auth 1.7.6の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、用途別scopeとともに分類する。
 - Points Resource APIは標準JWKS署名、issuer、audience、期限、Client ID、required scope、Clientの有効状態を検証する。利用者操作ではPoints userのACTIVE状態も確認する。Service Binding、Tokenの外形、emailを認可根拠にしない。
 - OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使い、秘密JWKはMarkets Worker Secretにだけ保存する。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
 - private/認証responseは`Cache-Control: private, no-store`。
@@ -219,7 +219,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 ### 13.1 version
 
-2026-07-11調査baseline:
+2026-07-11調査baseline（当時の固定version）:
 
 - Node `26.x`（minimum `>=24.11.0`）
 - pnpm `10.33.3`
@@ -233,7 +233,9 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - `@cloudflare/vitest-pool-workers` `0.18.2`
 - Better Auth一式 `1.7.0-rc.1`は開発/stagingだけ
 
-直接dependencyは`^`、`~`、`latest`を使わず完全固定する。lockfileをcommitし、同じpackage群のBetter Auth versionを混在させない。
+現行の3 appの`vite-plus`は`1.0.0`、Worker直接実行の`vitest`は`4.1.10`に固定する。Better Auth関連packageは3 appとも`1.7.6`である。
+
+直接dependencyは`^`、`~`、`latest`を使わず完全固定する。lockfileをcommitし、各app内のBetter Auth関連packageのversionを揃える。
 
 ### 13.2 pnpm policy
 
@@ -365,7 +367,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - GitHub ruleset/merge queue有効
 - Cloudflare API認証エラー解消
 - Workers Paid plan有効
-- Better Auth 1.7正式版へ完全固定し、認証回帰test成功
+- PointsとMarketsのBetter Auth `1.7.6`へ完全固定し、認証回帰test成功
 - affected TanStack versionなし、high/critical advisoryなし
 - Google/GitHub OAuth app、Points OAuth client、redirect URI、Secretsが環境別
 - staging E2E全成功

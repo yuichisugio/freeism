@@ -16,7 +16,7 @@ Points にログインした利用者は「開発者向け」画面で、自分�
 
 Markets の Worker Secret は `POINTS_CLIENT_ID` と `POINTS_CLIENT_PRIVATE_KEY_JWK` の一組とする。後者は Ed25519 秘密 JWK の JSON 文字列で、公開 JWKS の `kid` と一致する。`private_key_jwt` は `iss=sub=clientId`、`aud=呼び出す Points token/introspect/revoke endpoint の絶対 URL`、約60秒の `iat`/`exp`、ランダムな `jti`、`alg=EdDSA` と登録済み `kid` を含めて署名する。秘密鍵を Points の Worker、D1、ブラウザー、ログ、成果物に渡さない。
 
-Points は Better Auth 1.7.5 の標準 JWT Access Token を発行し、Resource API は署名・issuer・audience・期限・client・scope と連携状態を検査する。Access Token の最長有効期間は15分とする。利用者委任の `sub` は Points auth user ID、M2M の `sub` は Client ID。両者は用途別 scope と `sub` の意味で区別し、M2M で残高参照・新規予約を許可しない。Markets は `issuer + subject` を Points 利用者との連携キーとして保持する。Settlement手動retryでは同じUSER TokenでPointsの現行ADMINを照会する。
+Points は Better Auth 1.7.6 の標準 JWT Access Token を発行し、Resource API は署名・issuer・audience・期限・client・scope と連携状態を検査する。Access Token の最長有効期間は15分とする。利用者委任の `sub` は Points auth user ID、M2M の `sub` は Client ID。両者は用途別 scope と `sub` の意味で区別し、M2M で残高参照・新規予約を許可しない。Markets は `issuer + subject` を Points 利用者との連携キーとして保持する。Settlement手動retryでは同じUSER TokenでPointsの現行ADMINを照会する。
 
 一般アプリも同じ登録方法とClient IDで利用できる。`openid profile`のみなら通常のAuthorization Code認可を利用できる。Pointsの接続が必要なscopeを使う場合は、同じClient IDのM2M Tokenでlink attemptを開始し、利用者認可後にfinalizeする。M2M Tokenには必要なscopeを明示する。
 

@@ -31,7 +31,7 @@ Pointsにログインした登録者が「開発者向け」画面でOAuth Clien
 
 Marketsは`authorization_code`、`refresh_token`、`client_credentials`を同じClient IDで使う。linkとunlinkのcallback URLを登録し、認可要求のredirect URIは登録済みURLと完全一致させる。ローカルHTTPのloopback URLはポートだけ比較から除く。利用者委任とM2Mは別scopeとし、Client CredentialsではM2M scopeの指定とPoints API resource 1件を必須とする。
 
-PointsはBetter Auth 1.7.5の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとする。Points Resource APIは標準JWKSで署名を検証し、issuer、Points API audience、期限、Client ID、required scope、Clientの有効状態を検査する。利用者にはACTIVEなPoints userとapp-owned connectionを、M2MにはClient IDと既存reservationの所有権を確認する。利用者Tokenでcapture／releaseできず、M2M Tokenで残高参照・新規reserveできない。Client削除後は発行済みTokenもResource APIで拒否する。
+PointsはBetter Auth 1.7.6の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとする。Points Resource APIは標準JWKSで署名を検証し、issuer、Points API audience、期限、Client ID、required scope、Clientの有効状態を検査する。利用者にはACTIVEなPoints userとapp-owned connectionを、M2MにはClient IDと既存reservationの所有権を確認する。利用者Tokenでcapture／releaseできず、M2M Tokenで残高参照・新規reserveできない。Client削除後は発行済みTokenもResource APIで拒否する。
 
 Marketsは検証済み利用者Tokenの`issuer + sub`を連携キーとして保持する。TokenはMarkets D1へ暗号化保存し、ブラウザーへ渡さない。Client assertionの秘密JWKはMarkets Worker Secretに保存し、Points D1、ブラウザー、ログ、成果物には置かない。
 

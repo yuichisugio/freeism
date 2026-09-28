@@ -145,7 +145,7 @@ step-upでは専用Google Authorization Code flowを開始する。authorization
 - email一致では通さない。
 - 成功後にSession IDをローテーションする。
 
-Better Auth 1.7.5のGoogle認証で`state`、PKCE S256、`claims`、nonceと実Google OAuth Appの`auth_time`をstagingで検証する。Google freshを要する操作は900秒以内の`auth_time`と現在ユーザーに紐付くGoogle `sub`を確認する。
+Better Auth 1.7.6のGoogle認証で`state`、PKCE S256、`claims`、nonceと実Google OAuth Appの`auth_time`をstagingで検証する。Google freshを要する操作は900秒以内の`auth_time`と現在ユーザーに紐付くGoogle `sub`を確認する。
 
 再認証中に対象データが変化した場合は、古い確認内容を無効にし、件数・正負合計・評価軸などを再取得して再確認する。
 
@@ -225,7 +225,7 @@ Marketsは独立アカウントを持ち、利用者がログイン後にPoints�
 
 通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが15分以内のGoogle freshと対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsのconnection deactivation APIを呼ぶ。Pointsは同じD1原子処理でACTIVE reservationが0件であることを再確認し、app-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outboxと監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規balance read／reserveを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
 
-revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Auth 1.7.5でapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
+revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Auth 1.7.6でapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
 
 利用者がprovider側でgrantを外部失効させた場合は通常unlinkと区別する。Pointsのapp-owned grantを`REAUTH_REQUIRED`へ進め、ACTIVE reservationの有無にかかわらず新規user操作を拒否するが、既存reservationはreservationを作成したMarkets Client IDのM2M tokenでstatus／capture／releaseを継続できる。
 
@@ -256,7 +256,7 @@ link、unlink、relinkのOAuth stateへ、利用者入力の任意URLを保存�
 
 内部関数にも`returnTo`引数を設けず、flow種別から上表のpathを組み立てる。requestにscheme／host／userinfo／fragment、`//`開始、rawまたはpercent-encoded backslash、control文字、二重decodeでpath separatorへ変わる値、queryが含まれていても保存・fallbackしない。callbackはstateから組み立てたpathだけへ`303`し、request queryやOAuth providerの値をredirect先として使わない。
 
-PointsはBetter Auth 1.7.5の標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`はPoints auth user ID、Client Credentials Tokenの`sub`はClient IDとする。どちらも有効期間は最長15分。Marketsは検証済み利用者Tokenの`issuer + sub`を連携キーとして保存し、emailや表示名では照合しない。
+PointsはBetter Auth 1.7.6の標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`はPoints auth user ID、Client Credentials Tokenの`sub`はClient IDとする。どちらも有効期間は最長15分。Marketsは検証済み利用者Tokenの`issuer + sub`を連携キーとして保存し、emailや表示名では照合しない。
 
 Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userのACTIVE状態と利用者用scope、M2M Tokenには`sub=clientId`とM2M専用scopeを要求する。別resourceのTokenやscope混在を拒否する。Service Bindingは通信経路であり認可根拠にはしない。
 
@@ -324,7 +324,7 @@ close後に同じ永久OAuth主体でloginした場合、認証callbackは新し
 
 ## 11. バージョンと本番Gate
 
-- PointsとMarketsはBetter Auth関連packageをexact `1.7.5`へ統一する。
+- Better Auth関連packageはPointsとMarketsでexact `1.7.6`に固定する。
 - Google／GitHub login、明示link、fresh認証、OAuth Client管理、JWT Access Token、Client Credentials、Token暗号化、Refresh Rotationをstagingで確認する。
 
 ## 12. Rate Limit
@@ -423,7 +423,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文、取得
 
 ### 14.8 Release回帰
 
-- Better Auth 1.7.5でGoogle／GitHub login、明示link、fresh認証、Token暗号化、OAuth Provider、JWT Access Token、private_key_jwt、Refresh Rotation、Client Credentials、resource-bound Tokenの全テストが成功する。
+- PointsのBetter Auth 1.7.6でGoogle／GitHub login、明示link、fresh認証、Token暗号化、OAuth Provider、JWT Access Token、private_key_jwt、Refresh Rotation、Client Credentials、resource-bound Token、MarketsのBetter Auth 1.7.6でGoogle loginと明示Points連携の全テストが成功する。
 - 上記テストが未完了の場合はProduction releaseを許可しない。
 
 ## 15. 参考仕様
