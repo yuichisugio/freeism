@@ -30,4 +30,4 @@
 - [通知](../../../../docs/web-app/archive/v0.1/details/notification.md)
 - [その他の旧要件](../../../../docs/web-app/archive/v0.1/details/other.md)
 
-Auction関連の履歴は、[Markets Webアプリ v0.1](../../../markets-web-app/docs/v0.1/index.ja.md)を参照してください。本文中の旧 `auction.md` 相対リンクより、この索引のリンクを優先します。
+Auction関連の履歴は、[Markets Webアプリ v0.1](../../../markets-web-app/docs/specification/v0.1/index.ja.md)を参照してください。本文中の旧 `auction.md` 相対リンクより、この索引のリンクを優先します。

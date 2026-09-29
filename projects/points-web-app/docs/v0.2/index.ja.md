@@ -10,6 +10,7 @@
 - [CSV出力](./details-ja/csv-export.md)
 - [評価軸管理](./details-ja/evaluation-criteria-management.md)
 - [プロフィール設定](./details-ja/profile-setting.md)
+- [固定公開ページ](./static-pages/README.md)
 - [横断アーキテクチャ](../../../../docs/web-app/v0.2/architecture.md)
 - [認証仕様](../../../../docs/web-app/v0.2/authentication.md)
 - [Points–Markets契約](../../../../docs/web-app/v0.2/points-markets-contract.md)

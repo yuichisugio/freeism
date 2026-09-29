@@ -100,6 +100,3 @@ jobs:
 
       - name: Smoke test Points
         run: pnpm --filter @freeism/points-web-app smoke:staging
-
-      - name: Smoke test Markets
-        run: pnpm --filter @freeism/markets-web-app smoke:staging

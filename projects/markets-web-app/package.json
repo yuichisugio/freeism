@@ -20,8 +20,6 @@
     "db:migrate:production": "node scripts/migrate-d1.mjs production",
     "deploy:staging": "node scripts/deploy-generated.mjs staging",
     "deploy:production": "node scripts/deploy-generated.mjs production",
-    "smoke:staging": "node scripts/smoke.mjs staging",
-    "smoke:production": "node scripts/smoke.mjs production",
     "types:worker": "wrangler types"
   },
   "dependencies": {

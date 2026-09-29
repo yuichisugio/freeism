@@ -7,7 +7,7 @@ import type { Plugin } from "vite";
 const VIRTUAL_MODULE_ID = "virtual:fixed-pages";
 const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`;
 const STATIC_PAGES_DIRECTORY = fileURLToPath(
-  new URL("../../../docs/web-app/v0.2/static-pages/", import.meta.url),
+  new URL("../docs/v0.2/static-pages/", import.meta.url),
 );
 const ROUTES = ["terms", "privacy", "help", "docs"] as const;
 const LANGUAGES = ["ja", "en"] as const;

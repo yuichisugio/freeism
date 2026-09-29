@@ -15,10 +15,10 @@
 
 - v0.2 の設計方針は `../../docs/web-app/v0.2/architecture.md` と `../../docs/web-app/v0.2/decision-register.md`
   を入口にする。
-- 現行実装から読み取ったv0.1仕様は、`../points-web-app/docs/v0.1/`、`../markets-web-app/docs/v0.1/`、`../../docs/web-app/archive/v0.1/`を確認する。
+- 現行実装から読み取ったv0.1仕様は、`../points-web-app/docs/v0.1/`、`../markets-web-app/docs/specification/v0.1/`、`../../docs/web-app/archive/v0.1/`を確認する。
 - v0.2 の詳細ルールは各新appと横断仕様を確認する。
   - Points: `../points-web-app/docs/v0.2/`
-  - Markets: `../markets-web-app/docs/v0.2/`
+  - Markets: `../markets-web-app/docs/specification/v0.2/`
   - 命名規則: `../../docs/web-app/v0.2/naming-convention.md`
   - バックエンドレスポンス形式: `../../docs/web-app/v0.2/response-format.md`
   - 認証: `../../docs/web-app/v0.2/authentication.md`

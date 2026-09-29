@@ -202,7 +202,7 @@ server action 側の `updateTaskStatus` が直接拒否するのは `FIXED_EVALU
 - 入札・落札・納品・評価により `Task.status` が進みます。
 - `NON_REWARD` への変更時、入札なし auction は削除されます。
 
-詳細は [auction.md](../../../../markets-web-app/docs/v0.1/details/auction.md) を参照してください。
+詳細は [auction.md](../../../../markets-web-app/docs/specification/v0.1/details/auction.md) を参照してください。
 
 ## 注意点
 
