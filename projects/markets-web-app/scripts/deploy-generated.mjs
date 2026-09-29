@@ -104,11 +104,6 @@ export function assertGeneratedConfig(config, environment, expected) {
     "generated config must contain AUCTION_SETTLEMENT",
   );
   exactlyOne(
-    config.services,
-    (item) => sameJson(item, expected.service),
-    "generated config must contain environment-specific POINTS_SERVICE",
-  );
-  exactlyOne(
     config.analytics_engine_datasets,
     (item) => sameJson(item, expected.analytics),
     "generated config must contain OPS_METRICS",
@@ -120,9 +115,6 @@ export function assertGeneratedConfig(config, environment, expected) {
   );
   if (!config.triggers?.crons?.includes("*/5 * * * *")) {
     throw new Error("generated config must contain the five-minute Cron");
-  }
-  if (config.vars?.POINTS_ISSUER !== expected.issuer) {
-    throw new Error(`generated config has the wrong POINTS_ISSUER for ${environment}`);
   }
   if (config.vars?.APP_HOST !== expected.host) {
     throw new Error(`generated config has the wrong APP_HOST for ${environment}`);

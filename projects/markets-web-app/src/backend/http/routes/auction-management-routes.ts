@@ -17,8 +17,7 @@ import {
   type AuctionImportPreviewRow,
 } from "../../auction/import/validate-auction-import";
 import { D1AuctionRepository, type StoredAuctionResult } from "../../db/d1-auction-repository";
-import { PointsApiClient } from "../../points/points-api-client";
-import { PointsOAuthClient } from "../../points/points-oauth-client";
+import { openPointsProvider } from "../../points/points-provider-context";
 import type { BackendContext, Bindings, MarketsActor } from "../context";
 import { requireBindings } from "../context";
 import { problemDetails, type ProblemStatus } from "../problem-details";
@@ -29,19 +28,19 @@ export interface AuctionManagementServices {
 }
 
 function services(env: Bindings): AuctionManagementServices {
-  const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
-    audience: env.POINTS_AUDIENCE,
-    issuer: env.POINTS_ISSUER,
-    clientId: env.POINTS_CLIENT_ID,
-    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
-  });
-  const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
-  const reader = createPackageRevisionReader(api);
   const repository = new D1AuctionRepository(env.DB);
   return {
-    update: (input) =>
-      updateAuctionBeforeStart(input, {
+    update: async (input) => {
+      const auction = await repository.findForManagement(input.auctionId);
+      if (!auction)
+        throw Object.assign(new Error("AUCTION_NOT_FOUND"), { code: "AUCTION_NOT_FOUND" });
+      if (auction.sellerMarketsUserId !== input.actor.marketsUserId)
+        throw Object.assign(new Error("AUCTION_FORBIDDEN"), { code: "AUCTION_FORBIDDEN" });
+      const { api, provider } = await openPointsProvider(env, auction.providerId);
+      const reader = createPackageRevisionReader(api);
+      return updateAuctionBeforeStart(input, {
         repository,
+        pointsIssuer: provider.issuer,
         now: () => new Date(),
         refreshPackage: async (row) =>
           verifyAuctionPackageRevision(row, await reader.get(row.pointPackageRevisionId)),
@@ -50,7 +49,8 @@ function services(env: Bindings): AuctionManagementServices {
         scheduleAuction: (auctionId, revisionId, startsAt) =>
           dispatchAuctionSchedule(env.AUCTION_ROOMS, auctionId, revisionId, startsAt),
         environment: env.APP_ENV,
-      }),
+      });
+    },
     cancel: (input) =>
       cancelAuction(input, {
         repository,
@@ -61,7 +61,8 @@ function services(env: Bindings): AuctionManagementServices {
 }
 
 function errorResponse(context: Context<BackendContext>, error: unknown) {
-  const code = (error as { code?: unknown }).code;
+  const code =
+    (error as { code?: unknown }).code ?? (error instanceof Error ? error.message : undefined);
   const statusByCode: Record<string, ProblemStatus> = {
     AUCTION_NOT_FOUND: 404,
     AUCTION_FORBIDDEN: 403,
@@ -69,6 +70,8 @@ function errorResponse(context: Context<BackendContext>, error: unknown) {
     AUCTION_ALREADY_STARTED: 409,
     AUCTION_NOT_EDITABLE: 409,
     AUCTION_NOT_CANCELLABLE: 409,
+    POINTS_PROVIDER_NOT_FOUND: 404,
+    POINTS_PROVIDER_NOT_ACTIVE: 409,
     AUCTION_CANCELLATION_BLOCKED: 409,
     IDEMPOTENCY_KEY_REUSED: 409,
     IDEMPOTENCY_IN_PROGRESS: 409,
@@ -130,9 +133,14 @@ export function registerAuctionManagementRoutes(
     try {
       const body = await context.req.json<{
         expectedAuctionVersion?: number;
+        providerId?: string;
         row?: AuctionImportPreviewRow;
       }>();
-      if (!Number.isSafeInteger(body.expectedAuctionVersion) || !body.row) {
+      if (
+        !Number.isSafeInteger(body.expectedAuctionVersion) ||
+        !body.row ||
+        body.providerId !== undefined
+      ) {
         return problemDetails(context, 400, "MALFORMED_REQUEST", "complete auction input required");
       }
       const result = await (injectedServices ?? services(requireBindings(context.env))).update({

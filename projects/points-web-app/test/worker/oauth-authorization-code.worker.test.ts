@@ -8,6 +8,7 @@ import { verifyPointsResourceRequest } from "../../src/backend/auth/resource-tok
 import type { BackendContext, Bindings } from "../../src/backend/http/context";
 import { registerOAuthResourceRoutes } from "../../src/backend/http/routes/oauth-resource-routes";
 import { seedPointsUser } from "../support/accounts-worker-setup";
+import { createDpopTestProof, generateDpopTestKey } from "../support/points-dpop";
 
 const db = env.DB!;
 const pointsOrigin = "http://localhost:3000";
@@ -88,12 +89,14 @@ describe("Points private_key_jwt authorization code", () => {
     ).toString("base64");
     const cookie = `points.session_token=${encodeURIComponent(`${token}.${signature}`)}`;
     const key = await generateClientKey();
+    const dpopKey = await generateDpopTestKey();
     const client = await auth.api.adminCreateOAuthClient({
       headers: new Headers({ Cookie: cookie, Origin: pointsOrigin }),
       body: {
         client_name: "Markets",
         redirect_uris: [registeredLocalCallback, marketsCallback],
         token_endpoint_auth_method: "private_key_jwt",
+        dpop_bound_access_tokens: true,
         jwks: key.jwks,
         application_type: "native",
         grant_types: ["authorization_code", "refresh_token", "client_credentials"],
@@ -137,6 +140,7 @@ describe("Points private_key_jwt authorization code", () => {
       const callback = new URL(result.url ?? result.redirect_uri!);
       expect(`${callback.origin}${callback.pathname}`).toBe(redirectUri);
       expect(callback.searchParams.get("state")).toBe(query.get("state"));
+      expect(callback.searchParams.get("iss")).toBe(pointsOrigin);
       return callback.searchParams.get("code")!;
     };
 
@@ -152,7 +156,10 @@ describe("Points private_key_jwt authorization code", () => {
             grant_type: "authorization_code",
             redirect_uri: redirectUri,
           }),
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            DPoP: await createDpopTestProof(dpopKey, { method: "POST", url: tokenEndpoint }),
+          },
           method: "POST",
         }),
       );
@@ -172,8 +179,12 @@ describe("Points private_key_jwt authorization code", () => {
     ).toBe(401);
     const userToken = await exchange(await issueCode(localCallback, userScope), localCallback);
     expect(userToken.status).toBe(200);
-    const issuedUserToken = (await userToken.json()) as { access_token: string };
+    const issuedUserToken = (await userToken.json()) as {
+      access_token: string;
+      token_type: string;
+    };
     expect(issuedUserToken).toHaveProperty("access_token");
+    expect(issuedUserToken.token_type).toBe("DPoP");
     const originalFetch = globalThis.fetch;
     const jwksFetch = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
       if (
@@ -186,13 +197,21 @@ describe("Points private_key_jwt authorization code", () => {
     try {
       const principal = await verifyPointsResourceRequest(
         new Request(`${pointsResource}/me/connection`, {
-          headers: { Authorization: `Bearer ${issuedUserToken.access_token}` },
+          headers: {
+            Authorization: `DPoP ${issuedUserToken.access_token}`,
+            DPoP: await createDpopTestProof(dpopKey, {
+              method: "GET",
+              url: `${pointsResource}/me/connection`,
+              accessToken: issuedUserToken.access_token,
+            }),
+          },
         }),
         {
           allowedScopes: pointsOAuthScopes.USER,
           audience: pointsResource,
+          auth,
           db,
-          issuer: `${pointsOrigin}/api/auth`,
+          issuer: pointsOrigin,
           jwksUrl: `${pointsOrigin}/api/auth/jwks`,
           kind: "USER",
         },
@@ -207,7 +226,12 @@ describe("Points private_key_jwt authorization code", () => {
         {
           body: "{}",
           headers: {
-            Authorization: `Bearer ${issuedUserToken.access_token}`,
+            Authorization: `DPoP ${issuedUserToken.access_token}`,
+            DPoP: await createDpopTestProof(dpopKey, {
+              method: "POST",
+              url: `${pointsResource}/me/connection-deactivations`,
+              accessToken: issuedUserToken.access_token,
+            }),
             "Content-Type": "application/json",
           },
           method: "POST",
@@ -229,8 +253,37 @@ describe("Points private_key_jwt authorization code", () => {
       marketsCallback,
     );
     expect(settlementToken.status).toBe(200);
-    expect((await settlementToken.json()) as { refresh_token: string }).toHaveProperty(
-      "refresh_token",
-    );
+    const issuedSettlementToken = (await settlementToken.json()) as {
+      refresh_token: string;
+      token_type: string;
+    };
+    expect(issuedSettlementToken).toHaveProperty("refresh_token");
+    expect(issuedSettlementToken.token_type).toBe("DPoP");
+
+    const refresh = async (dpopProofKey: typeof dpopKey) =>
+      auth.handler(
+        new Request(tokenEndpoint, {
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            client_assertion: await clientAssertion(clientId, key),
+            grant_type: "refresh_token",
+            refresh_token: issuedSettlementToken.refresh_token,
+          }),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            DPoP: await createDpopTestProof(dpopProofKey, {
+              method: "POST",
+              url: tokenEndpoint,
+            }),
+          },
+          method: "POST",
+        }),
+      );
+    expect((await refresh(await generateDpopTestKey())).status).not.toBe(200);
+    const refreshed = await refresh(dpopKey);
+    expect(refreshed.status).toBe(200);
+    await expect(refreshed.json()).resolves.toMatchObject({ token_type: "DPoP" });
+    expect((await refresh(dpopKey)).status).not.toBe(200);
   });
 });

@@ -5,9 +5,10 @@ import { PointsConnectionRepository } from "./points-link-saga";
 import type { PointsOAuthClient } from "./points-oauth-client";
 import type { PointsTokenStore } from "./points-token-store";
 
-const UNLINK_SCOPE = ["points.connection.unlink"] as const;
+const UNLINK_SCOPE = ["openid", "points.connection.unlink"] as const;
 
 interface UnlinkRow {
+  providerId: string;
   accountId: string | null;
   authUserId: string;
   callbackUri: string;
@@ -15,6 +16,7 @@ interface UnlinkRow {
   id: string;
   marketsUserId: string;
   pkceVerifier: string;
+  nonce: string;
   pointsConnectionId: string;
   pointsIssuer: string;
   pointsSubject: string;
@@ -45,6 +47,7 @@ export interface PointsUnlinkAuthorizationService {
 }
 
 export function createPointsUnlinkAuthorizationService(input: {
+  providerId: string;
   api: PointsApiClient;
   callbackUri: string;
   db: D1Database;
@@ -58,9 +61,9 @@ export function createPointsUnlinkAuthorizationService(input: {
   async function findByState(stateHash: string) {
     return input.db
       .prepare(
-        `SELECT u.id, u.points_connection_id AS pointsConnectionId,
+        `SELECT u.id, u.provider_id AS providerId, u.points_connection_id AS pointsConnectionId,
                 u.markets_user_id AS marketsUserId, u.auth_user_id AS authUserId,
-                u.session_id AS sessionId, u.pkce_verifier AS pkceVerifier,
+                u.session_id AS sessionId, u.pkce_verifier AS pkceVerifier, u.nonce,
                 u.callback_uri AS callbackUri, u.reason, u.status, u.expires_at AS expiresAt,
                 c.points_issuer AS pointsIssuer, c.points_subject AS pointsSubject,
                 c.user_client_id AS userClientId, c.better_auth_account_id AS accountId
@@ -75,9 +78,9 @@ export function createPointsUnlinkAuthorizationService(input: {
   async function findById(id: string) {
     return input.db
       .prepare(
-        `SELECT u.id, u.points_connection_id AS pointsConnectionId,
+        `SELECT u.id, u.provider_id AS providerId, u.points_connection_id AS pointsConnectionId,
                 u.markets_user_id AS marketsUserId, u.auth_user_id AS authUserId,
-                u.session_id AS sessionId, u.pkce_verifier AS pkceVerifier,
+                u.session_id AS sessionId, u.pkce_verifier AS pkceVerifier, u.nonce,
                 u.callback_uri AS callbackUri, u.reason, u.status, u.expires_at AS expiresAt,
                 c.points_issuer AS pointsIssuer, c.points_subject AS pointsSubject,
                 c.user_client_id AS userClientId, c.better_auth_account_id AS accountId
@@ -95,7 +98,10 @@ export function createPointsUnlinkAuthorizationService(input: {
       if (!normalizedReason || normalizedReason.length > 500) {
         throw new Error("POINTS_UNLINK_REASON_INVALID");
       }
-      const connection = await connections.findLiveForMarketsUser(actor.marketsUserId);
+      const connection = await connections.findLiveForMarketsUser(
+        actor.marketsUserId,
+        input.providerId,
+      );
       if (!connection || connection.status !== "ACTIVE") {
         throw new Error("POINTS_CONNECTION_NOT_ACTIVE");
       }
@@ -104,12 +110,13 @@ export function createPointsUnlinkAuthorizationService(input: {
       await input.db
         .prepare(
           `INSERT INTO points_unlink_authorization
-             (id, points_connection_id, markets_user_id, auth_user_id, session_id,
+             (id, provider_id, points_connection_id, markets_user_id, auth_user_id, session_id,
               state_hash, pkce_verifier, nonce, callback_uri, reason, status, expires_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'STARTED', ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'STARTED', ?)`,
         )
         .bind(
           id,
+          input.providerId,
           connection.id,
           actor.marketsUserId,
           authUserId,
@@ -134,12 +141,10 @@ export function createPointsUnlinkAuthorizationService(input: {
     },
 
     async completeCallback(actor, authUserId, sessionId, callback) {
-      if (callback.issuer && callback.issuer !== input.pointsIssuer) {
-        throw new Error("POINTS_ISSUER_MISMATCH");
-      }
       const authorization = await findByState(await sha256(callback.state));
       if (
         !authorization ||
+        authorization.providerId !== input.providerId ||
         authorization.status !== "STARTED" ||
         authorization.marketsUserId !== actor.marketsUserId ||
         authorization.authUserId !== authUserId ||
@@ -149,11 +154,17 @@ export function createPointsUnlinkAuthorizationService(input: {
       ) {
         throw new Error("POINTS_UNLINK_STATE_INVALID");
       }
+      if (callback.issuer !== input.pointsIssuer) {
+        throw new Error("POINTS_ISSUER_MISMATCH");
+      }
       const token = await input.oauth.exchangeOneTimeAuthorizationCode({
         callbackUri: authorization.callbackUri,
         code: callback.code,
+        issuer: callback.issuer,
+        nonce: authorization.nonce,
         pkceVerifier: authorization.pkceVerifier,
         requiredScopes: UNLINK_SCOPE,
+        state: callback.state,
       });
       if (
         token.issuer !== authorization.pointsIssuer ||
@@ -162,10 +173,10 @@ export function createPointsUnlinkAuthorizationService(input: {
       ) {
         throw new Error("POINTS_UNLINK_IDENTITY_MISMATCH");
       }
-      await input.tokenStore.saveAccessToken({
+      await input.tokenStore.saveOneTimeAccessToken({
         accessToken: token.accessToken,
         accessTokenExpiresAt: token.accessTokenExpiresAt,
-        accountId: authorization.accountId,
+        accountId: `unlink:${input.providerId}:${authorization.id}`,
         authUserId,
         scopes: token.scopes,
       });
@@ -182,6 +193,7 @@ export function createPointsUnlinkAuthorizationService(input: {
       const authorization = await findById(pendingId);
       if (
         !authorization ||
+        authorization.providerId !== input.providerId ||
         authorization.status !== "PENDING" ||
         authorization.marketsUserId !== actor.marketsUserId ||
         authorization.sessionId !== sessionId ||
@@ -190,7 +202,11 @@ export function createPointsUnlinkAuthorizationService(input: {
       ) {
         throw new Error("POINTS_UNLINK_CONFIRMATION_INVALID");
       }
-      const token = await input.tokenStore.read(authorization.accountId);
+      const oneTimeAccountId = `unlink:${input.providerId}:${authorization.id}`;
+      const accessToken = await input.tokenStore.readOneTimeAccessToken(
+        oneTimeAccountId,
+        authorization.authUserId,
+      );
       const response = await input.api.deactivatePointsConnection(
         {
           deactivationKey: `unlink:${authorization.id}`,
@@ -198,13 +214,14 @@ export function createPointsUnlinkAuthorizationService(input: {
           reason: authorization.reason,
         },
         `unlink:${authorization.id}`,
-        token.accessToken,
+        accessToken,
       );
       await connections.unlink(
         authorization.pointsConnectionId,
         response.data.connectionDeactivationReceiptId,
       );
       await input.tokenStore.remove(authorization.accountId);
+      await input.tokenStore.remove(oneTimeAccountId);
       await input.db
         .prepare("UPDATE points_unlink_authorization SET status = 'USED' WHERE id = ?")
         .bind(authorization.id)

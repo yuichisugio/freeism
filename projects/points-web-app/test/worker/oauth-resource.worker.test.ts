@@ -65,7 +65,7 @@ describe("Points OAuth resource core", () => {
   it("uses standard JWT verification and derives only an allowed USER principal", async () => {
     let verifyOptions: Record<string, unknown> | undefined;
     const request = new Request("https://points.example.test/api/v1/me/connection", {
-      headers: { Authorization: "Bearer header.payload.signature" },
+      headers: { Authorization: "DPoP header.payload.signature" },
     });
     const principal = await verifyPointsResourceRequest(
       request,
@@ -100,7 +100,7 @@ describe("Points OAuth resource core", () => {
 
   it("separates USER and M2M principals with the same client ID", async () => {
     const request = new Request("https://points.example.test/api/v1/me/connection", {
-      headers: { Authorization: "Bearer header.payload.signature" },
+      headers: { Authorization: "DPoP header.payload.signature" },
     });
     const m2mConfig: PointsOAuthResourceConfig = {
       ...resourceConfig,
@@ -164,7 +164,7 @@ describe("Points OAuth resource core", () => {
       await expect(
         verifyPointsResourceRequest(
           new Request("https://points.example.test/api/v1/me/connection", {
-            headers: { Authorization: "Bearer header.payload.signature" },
+            headers: { Authorization: "DPoP header.payload.signature" },
           }),
           resourceConfig,
           ["points.connection.read"],
@@ -179,7 +179,7 @@ describe("Points OAuth resource core", () => {
     await expect(
       verifyPointsResourceRequest(
         new Request("https://points.example.test/api/v1/me/connection", {
-          headers: { Authorization: "Bearer header.payload.signature" },
+          headers: { Authorization: "DPoP header.payload.signature" },
         }),
         resourceConfig,
         ["points.connection.read"],
@@ -194,7 +194,7 @@ describe("Points OAuth resource core", () => {
     await expect(
       verifyPointsResourceRequest(
         new Request("https://points.example.test/api/v1/me/connection", {
-          headers: { Authorization: "Bearer header.payload.signature" },
+          headers: { Authorization: "DPoP header.payload.signature" },
         }),
         resourceConfig,
         ["points.connection.read"],
@@ -326,6 +326,64 @@ describe("Points OAuth resource core", () => {
         now: new Date(now.getTime() + 2),
       }),
     ).rejects.toThrow("LINK_ATTEMPT_EXPIRED");
+  });
+
+  it("reconfirms the same connection after refresh expiry while keeping its identity", async () => {
+    const now = new Date("2026-07-13T00:00:00.000Z");
+    const createAttempt = async (suffix: string, pointsUserId = "pusr_1") =>
+      createPointsLinkAttempt(db, {
+        expiresAt: new Date(now.getTime() + 600_000),
+        idempotencyKey: `reauth-${suffix}`,
+        marketsUserId: "musr_1",
+        m2mClientId: marketsClientId,
+        payloadHash: `sha256:${suffix.repeat(64)}`,
+        pointsUserId,
+        requestedScopes:
+          suffix === "a"
+            ? ["points.connection.read"]
+            : ["points.connection.read", "points.balance.read"],
+        stateHash: `sha256:${suffix.repeat(64)}`,
+        userClientId: marketsClientId,
+        now,
+      });
+    const confirm = (linkAttemptId: string, suffix: string, pointsSubject = "oauth_user_1") =>
+      finalizePointsLinkAttempt(db, {
+        attemptPayloadHash: `sha256:${suffix.repeat(64)}`,
+        idempotencyKey: `reauth-confirm-${suffix}`,
+        issuer: "https://points.example.test",
+        linkAttemptId,
+        marketsPointsConnectionId: "mpc_reauth",
+        m2mClientId: marketsClientId,
+        outcome: "CONFIRM",
+        pointsSubject,
+        userClientId: marketsClientId,
+        now: new Date(now.getTime() + 1_000),
+      });
+
+    const firstAttempt = await createAttempt("a");
+    const first = await confirm(firstAttempt.linkAttemptId, "a");
+    if (first.status !== "ACTIVE") throw new Error("expected active connection");
+    const secondAttempt = await createAttempt("b");
+    const reauthorized = await confirm(secondAttempt.linkAttemptId, "b");
+    expect(reauthorized).toMatchObject({
+      pointsConnectionId: first.pointsConnectionId,
+      marketsPointsConnectionId: "mpc_reauth",
+      grantedScopes: ["points.balance.read", "points.connection.read"],
+      grantVersion: 2,
+      status: "ACTIVE",
+    });
+    await expect(confirm(secondAttempt.linkAttemptId, "b")).resolves.toMatchObject({
+      pointsConnectionId: first.pointsConnectionId,
+      grantVersion: 2,
+    });
+    expect(
+      await db.prepare("SELECT count(*) AS count FROM points_oauth_connection").first(),
+    ).toEqual({ count: 1 });
+
+    const wrongIdentityAttempt = await createAttempt("c", "pusr_expired");
+    await expect(
+      confirm(wrongIdentityAttempt.linkAttemptId, "c", "oauth_user_expired"),
+    ).rejects.toThrow("LINK_ATTEMPT_MISMATCH");
   });
 
   it("replays only the same finalization outcome and payload", async () => {
@@ -621,7 +679,7 @@ describe("Points OAuth resource core", () => {
     );
     expect(confirmResponse.status).toBe(200);
     await expect(confirmResponse.json()).resolves.toMatchObject({
-      data: { grantStatus: "ACTIVE", outcome: "CONFIRM" },
+      data: { grantStatus: "ACTIVE", grantVersion: 1, outcome: "CONFIRM" },
     });
 
     const readResponse = await app.request(

@@ -99,7 +99,7 @@ failureはretryable、`SETTLEMENT_MANUAL_ACTION_REQUIRED`、またはBUY_NOW専�
 
 - Settlement Workflowのproduction運用はWorkers Paidを前提とし、Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。Free planで検証するlocal／stagingは非対応のWorker-level CPU／subrequest limitを設定せず、Workflowの`limits.steps=25000`と以下のアプリ内上限を維持する。deploy前testはflattened staging／production configがこの差を保つことを検証する。
 - winnerごとにWorkflow stepを作らず、1 reservation roundを1つの決定的stepにする。step名は`reserve-round-{roundOrdinal}`、`status-round-{roundOrdinal}`、`release-round-{roundOrdinal}`のようにappend-only ordinalを含め、同一instance内で別処理へ再利用しない。`reserve-round`のWorkflow step timeoutは5分、総attemptは3、1秒exponentialとするが、D1のround `retryDeadlineAt=firstAttemptAt+5分`をretry間で引き継ぐため総経過を5分より延長しない。
-- 1 roundは最大1,000 winner。Points Service Bindingへの同時外向き接続は1 invocationあたり6件というWorkers制約に合わせて最大6件のpoolで処理し、response bodyを必ず読取またはcancelする。7件目以降を無制限`Promise.all`へ積まない。
+- 1 roundは最大1,000 winner。Auctionで固定したPoints提供先への外向き接続は最大6件のpoolで処理し、response bodyを必ず読取またはcancelする。7件目以降を無制限`Promise.all`へ積まない。
 - step resultへToken、response body、全vectorを保存せず、reservation ID、Markets user参照、status、request ID、hashだけを決定的sortで返し、1 MiBのstep result上限を超えない。詳細はMarkets D1を正本にする。
 - Workflow開始前に、candidate数、round数、DEC-252の総attemptからsteps／subrequestの保守的上限を計算する。設定済み上限または5分deadline内に安全に完了できない入力はWorkflow外部副作用を開始しない。`END_OF_AUCTION`は`SETTLEMENT_MANUAL_ACTION_REQUIRED`、`BUY_NOW`は外部副作用0を確認して内部CAS commandでholdを全restoreし`FAILED_RESTORED`へ進める。
 - 利用者予約は既存11-operation契約の`createPointReservation`を維持し、最大値対応だけを理由にbulk M2M reserve APIを追加しない。各callは決定的idempotency keyを持ち、step全体retryでも同じ結果へ収束する。
@@ -108,7 +108,7 @@ failureはretryable、`SETTLEMENT_MANUAL_ACTION_REQUIRED`、またはBUY_NOW専�
 
 - 初回instance IDは`settlement:{settlementId}:revision:{settlementRevision}:attempt:0`とし、100文字上限をtestする。業務上の`settlementRevision`とimmutable plan hashはretryで変更しない。
 - 手動retryを受理するたびにMarkets D1で`workflowAttempt`を単調増加し、同じtransactionで一意なretry outboxを作る。dispatcherは`attempt:{workflowAttempt}`を含む新しいinstance IDを起動し、既存完了／失敗instance IDのduplicate成功を「再試行済み」と誤認しない。
-- 同じ手動retry command／`jti`／idempotency keyの再送は同じ`workflowAttempt`とoutbox receiptを返し、新しいinstanceを増やさない。
+- 同じ手動retry command／idempotency keyの再送は同じ`workflowAttempt`とoutbox receiptを返し、新しいinstanceを増やさない。
 
 ### 明示retry budget
 
@@ -131,12 +131,12 @@ Cloudflare Workflowsの暗黙defaultへ依存せず、Workflow round／外部作
 
 ## 6. Points呼出し
 
-- Service Bindingの`fetch()`でPoints Hono APIを呼ぶ。
-- Service Bindingを信頼境界の代わりにせず、OAuth bearer token、issuer、audience/resource、client ID、scope、利用者Tokenの`sub`を検証する。
+- Auctionの`providerId`から登録済みoriginを解決し、外部`fetch()`でPoints互換APIを呼ぶ。OAuth discoveryのissuer、endpointと同じoriginを検証する。
+- OAuth bearer token、issuer、audience/resource、client ID、scope、利用者Tokenの`sub`を検証する。`private_key_jwt`とDPoPを使い、USER Authorization Code／RefreshとM2M Client Credentialsを用途ごとに使う。
 - 利用者JWT: 標準JWKS署名、issuer、Points API audience、期限、Client ID、scope、Points userと連携状態を検証したbalance read、reservation create。
 - M2M JWT: `sub=clientId`とM2M専用scopeを検証したreservation status、capture、release。利用者scopeと混在させない。
 - Marketsはcomponent額を正本にせず、内部の`priceTickCount * packageTick`を安全整数のscale済み`priceTicks`へ変換して`pointPackageRevisionId`、`quantity`とともに送り、Pointsが不変revisionからvectorを再計算する。
-- すべてのwinner/axisは同じPoints D1で1回にcaptureする。
+- すべてのwinner/axisはAuctionで固定した提供先のPoints D1で1回にcaptureする。提供先が`STOPPED`になっても、停止前の取引は同じ提供先でUSER tokenのrefresh・reserveとM2M status／capture／releaseを続ける。refreshの確定失効または更新後401ではその提供先の連携を`REAUTH_REQUIRED`にし、本人の再認可を待つ。
 
 ## 7. 失敗処理
 
@@ -156,22 +156,22 @@ Cloudflare Workflowsの暗黙defaultへ依存せず、Workflow round／外部作
 
 - same-origin browserは`GET /api/settlements/{settlementId}`で進行状態をpollできる。Markets sessionと対象Auction／Settlementへの閲覧権限を再検証し、request bodyやqueryのuser IDを信用しない。
 - responseはsettlement kind、一般化したsaga state、progress、manual action可否、updatedAt、request IDだけを返す。Points reservation ID、残高、評価軸、内部Points user ID、Token、raw failure response、除外候補を返さない。
-- sellerと自身が関係するbuyer以外は拒否する。Points ADMIN権限は対象外Settlementの閲覧権限を追加しない。
+- sellerと自身が関係するbuyer以外は拒否する。Markets ADMIN権限は対象外Settlementの閲覧権限を追加しない。
 - 即時購入のHTTP responseはこのrouteへのsettlement IDとpending状態を返し、hold作成だけを購入完了として表示しない。capture後のproof確定、確認済み未capture＋release後の`FAILED_RESTORED`、または結果不明でholdを維持するmanual actionへ単調に進む。
 
 ## 8. outboxとreconciler
 
 - Auction closeとoutbox insertを同じMarkets D1 transactionで確定する。
 - scheduler/reconcilerは未開始outbox、停滞saga、Points status不一致を走査する。
-- 同じAuctionのWorkflowはsingle-flightにする。Marketsに独自ADMIN roleを作らず、手動retryでは保存済みのPoints USER Tokenで`GET /api/v1/me/admin-membership`を呼び、現行のPoints ADMINを確認する。
+- 同じAuctionのWorkflowはsingle-flightにする。手動retryではMarketsのBetter Auth sessionの`user.role`に`admin`を含むか確認する。
 - `BUY_NOW`の手動retryは結果不明でholdを維持している`SETTLEMENT_MANUAL_ACTION_REQUIRED`だけを対象にし、status照合から再開する。`FAILED_RESTORED`、`CAPTURED`以降、反対outcomeを要求するretryを拒否する。
-- MarketsはACTIVEなPoints連携のissuer、subject、Client ID、seller、理由、対象状態、1時間5回の上限、single-flightを検証する。同じSessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`で冪等keyを受け取り、`workflowAttempt`を増分したretry outboxを確定する。commit後にdispatcherがWorkflowを起動する。
+- MarketsはADMIN、seller、理由、対象状態、1時間5回の上限、single-flightを検証する。同じSessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`で冪等keyを受け取り、`workflowAttempt`を増分したretry outboxを確定する。commit後にdispatcherがWorkflowを起動する。
 - link／unlink／relinkの`returnTo`はqueryなしの固定`/settings/points-connection`とする。caller指定interfaceを作らず、query、fragment、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる入力を拒否する。callback queryの`returnTo`を遷移先に使わない。
 - reconciliationはplan hash、Markets state、Points reservation/capture status、proofを比較し、修復は単調なforward actionだけを行う。
 
 ## 9. observability
 
-- Cloudflare Workers Logs／Tracesをrequest単位の診断正本、Analytics Engine `OPS_METRICS`を時系列集計、Markets D1 `ops_alerts`をalert dedupe／delivery状態の正本とする。5分Cronが[横断セキュリティ・配信仕様](../../../../../docs/web-app/v0.2/security-and-delivery.md)のthresholdを評価し、Email Routingで運用alertを送る。
+- Cloudflare Workers Logs／Tracesをrequest単位の診断正本、Analytics Engine `OPS_METRICS`を時系列集計、Markets D1 `ops_alerts`をalert dedupe／delivery状態の正本とする。5分Cronが[横断セキュリティ・配信仕様](../../../../../../docs/web-app/v0.2/security-and-delivery.md)のthresholdを評価し、Email Routingで運用alertを送る。
 - correlation ID: Auction ID、settlement ID、Workflow instance ID、plan hash、Points request ID。
 - logへOAuth token、AutoBid上限、Cookie、CSV本文、個人情報bodyを出さない。
 - metric／alert対象はAuction open／close遅延、stale WebSocket lease／gap resync、Workflow／outbox／stuck saga、manual retry、reconciliation mismatchとする。

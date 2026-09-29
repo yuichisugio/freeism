@@ -14,23 +14,25 @@ import { SETTLEMENT_STEP_POLICIES } from "./settlement-step-policies";
 interface PlanValidationRow {
   kind: "END_OF_AUCTION" | "BUY_NOW";
   planHash: string;
+  providerId: string;
+  planProviderId: string;
   sagaState: string;
   settlementId: string;
   settlementRevision: number;
   workflowAttempt: number;
 }
 
-export async function validateSettlementPlan(
-  db: D1Database,
-  params: SettlementWorkflowParams,
-) {
-  const row = await db.prepare(
-    `SELECT s.id AS settlementId, s.kind, s.settlement_revision AS settlementRevision,
+export async function validateSettlementPlan(db: D1Database, params: SettlementWorkflowParams) {
+  const row = await db
+    .prepare(
+      `SELECT s.id AS settlementId, s.kind, s.settlement_revision AS settlementRevision,
             s.workflow_attempt AS workflowAttempt, s.saga_state AS sagaState,
-            p.plan_hash AS planHash
+            p.plan_hash AS planHash, a.provider_id AS providerId,
+            json_extract(p.plan_json, '$.providerId') AS planProviderId
      FROM settlements s JOIN settlement_plans p ON p.id = s.current_plan_id
+     JOIN auctions a ON a.id = s.auction_id
      WHERE s.id = ? AND s.auction_id = ?`,
-  )
+    )
     .bind(params.settlementId, params.auctionId)
     .first<PlanValidationRow>();
   if (
@@ -38,6 +40,7 @@ export async function validateSettlementPlan(
     row.settlementRevision !== params.settlementRevision ||
     row.workflowAttempt !== params.workflowAttempt ||
     row.planHash !== params.planHash ||
+    row.planProviderId !== row.providerId ||
     row.sagaState !== "PLANNED"
   ) {
     throw new NonRetryableError("SETTLEMENT_PLAN_MISMATCH");
@@ -56,29 +59,22 @@ export class AuctionSettlementWorkflow extends WorkflowEntrypoint<Env, Settlemen
     await step.do("validate-plan", SETTLEMENT_STEP_POLICIES.validatePlan, () =>
       validateSettlementPlan(this.env.DB, event.payload),
     );
-    const bindings = this.env as Partial<Bindings>;
-    if (
-      !bindings.POINTS_SERVICE ||
-      !bindings.POINTS_AUDIENCE ||
-      !bindings.POINTS_ISSUER ||
-      !bindings.POINTS_CLIENT_ID ||
-      !bindings.POINTS_CLIENT_PRIVATE_KEY_JWK
-    ) {
-      throw new NonRetryableError("POINTS_SETTLEMENT_BINDINGS_REQUIRED");
-    }
-    const captureDependencies = createSettlementCaptureDependencies(bindings as Bindings);
+    const bindings = this.env as Bindings;
     let roundOrdinal = 1;
     while (true) {
       const result = await step.do(
         `reserve-round-${roundOrdinal}`,
         SETTLEMENT_STEP_POLICIES.reserveRound,
-        () =>
-          reserveSettlementRound(createSettlementReservationDependencies(bindings as Bindings), {
-            planHash: event.payload.planHash,
-            roundOrdinal,
-            settlementId: event.payload.settlementId,
-            settlementRevision: event.payload.settlementRevision,
-          }),
+        async () =>
+          reserveSettlementRound(
+            await createSettlementReservationDependencies(bindings, event.payload.settlementId),
+            {
+              planHash: event.payload.planHash,
+              roundOrdinal,
+              settlementId: event.payload.settlementId,
+              settlementRevision: event.payload.settlementRevision,
+            },
+          ),
       );
       if (result.kind === "RECALCULATE") {
         roundOrdinal = result.nextRoundOrdinal;
@@ -88,13 +84,16 @@ export class AuctionSettlementWorkflow extends WorkflowEntrypoint<Env, Settlemen
         const captured = await step.do(
           `capture-round-${roundOrdinal}`,
           SETTLEMENT_STEP_POLICIES.capture,
-          () =>
-            captureAllWinners(captureDependencies, {
-              planHash: event.payload.planHash,
-              roundOrdinal,
-              settlementId: event.payload.settlementId,
-              settlementRevision: event.payload.settlementRevision,
-            }),
+          async () =>
+            captureAllWinners(
+              await createSettlementCaptureDependencies(bindings, event.payload.settlementId),
+              {
+                planHash: event.payload.planHash,
+                roundOrdinal,
+                settlementId: event.payload.settlementId,
+                settlementRevision: event.payload.settlementRevision,
+              },
+            ),
         );
         if (captured.kind === "RECALCULATE") {
           roundOrdinal = captured.nextRoundOrdinal;
@@ -154,9 +153,15 @@ export class AuctionSettlementWorkflow extends WorkflowEntrypoint<Env, Settlemen
             };
           });
         }
-        await step.do("release-unused", SETTLEMENT_STEP_POLICIES.releaseRound, () =>
+        await step.do("release-unused", SETTLEMENT_STEP_POLICIES.releaseRound, async () =>
           releaseUnusedReservations(
-            { db: this.env.DB, gateway: captureDependencies.gateway, now: () => new Date() },
+            {
+              db: this.env.DB,
+              gateway: (
+                await createSettlementCaptureDependencies(bindings, event.payload.settlementId)
+              ).gateway,
+              now: () => new Date(),
+            },
             {
               captureReceiptId: captured.receipt.captureReceiptId,
               planHash: event.payload.planHash,

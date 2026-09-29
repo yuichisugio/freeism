@@ -14,8 +14,7 @@ import {
   type ValidateAuctionImportInput,
 } from "../../auction/import/validate-auction-import";
 import { D1AuctionRepository } from "../../db/d1-auction-repository";
-import { PointsApiClient } from "../../points/points-api-client";
-import { PointsOAuthClient } from "../../points/points-oauth-client";
+import { openPointsProvider } from "../../points/points-provider-context";
 import type { BackendContext, Bindings } from "../context";
 import { requireBindings } from "../context";
 import { csvBodyLimitMiddleware } from "../middleware/csv-body-limit-middleware";
@@ -30,35 +29,24 @@ export type CommitAuctionImportService = (
 ) => ReturnType<typeof commitAuctionImport>;
 
 function service(env: Bindings): ValidateAuctionImportService {
-  const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
-    audience: env.POINTS_AUDIENCE,
-    issuer: env.POINTS_ISSUER,
-    clientId: env.POINTS_CLIENT_ID,
-    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
-  });
-  const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
-  const packageRevisionReader = createPackageRevisionReader(api);
-  return (input) =>
-    validateAuctionImport(input, {
+  return async (input) => {
+    const { api } = await openPointsProvider(env, input.providerId);
+    return validateAuctionImport(input, {
       checkEligibility: (request, idempotencyKey) =>
         api.checkPointPackageAuctionEligibility(request, idempotencyKey),
-      packageRevisionReader,
+      packageRevisionReader: createPackageRevisionReader(api),
     });
+  };
 }
 
 function commitService(env: Bindings): CommitAuctionImportService {
-  const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
-    audience: env.POINTS_AUDIENCE,
-    issuer: env.POINTS_ISSUER,
-    clientId: env.POINTS_CLIENT_ID,
-    privateKeyJwk: env.POINTS_CLIENT_PRIVATE_KEY_JWK,
-  });
-  const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
-  const reader = createPackageRevisionReader(api);
   const repository = new D1AuctionRepository(env.DB);
-  return (input) =>
-    commitAuctionImport(input, {
+  return async (input) => {
+    const { api, provider } = await openPointsProvider(env, input.providerId);
+    const reader = createPackageRevisionReader(api);
+    return commitAuctionImport(input, {
       repository,
+      pointsIssuer: provider.issuer,
       now: () => new Date(),
       refreshPackage: async (row) =>
         verifyAuctionPackageRevision(row, await reader.get(row.pointPackageRevisionId)),
@@ -68,6 +56,7 @@ function commitService(env: Bindings): CommitAuctionImportService {
         dispatchAuctionSchedule(env.AUCTION_ROOMS, auctionId, revisionId, startsAt),
       environment: env.APP_ENV,
     });
+  };
 }
 
 function validationProblem(context: Context<BackendContext>, code: string, errors: unknown) {
@@ -126,10 +115,14 @@ export function registerAuctionImportRoutes(
     }
 
     try {
+      const providerId = context.req.header("X-Points-Provider-Id")?.trim();
+      if (!providerId)
+        return problemDetails(context, 400, "POINTS_PROVIDER_REQUIRED", "providerId required");
       const bytes = new Uint8Array(await context.req.arrayBuffer());
       const preview = await (injectedService ?? service(requireBindings(context.env)))({
         bytes,
         idempotencyKey,
+        providerId,
       });
       return context.json(
         { data: preview, meta: { requestId: `req_${crypto.randomUUID()}` } },
@@ -138,7 +131,14 @@ export function registerAuctionImportRoutes(
       );
     } catch (error) {
       const candidate = error as { code?: unknown; errors?: unknown };
-      const code = typeof candidate.code === "string" ? candidate.code : "";
+      const code =
+        typeof candidate.code === "string"
+          ? candidate.code
+          : error instanceof Error
+            ? error.message
+            : "";
+      if (code === "POINTS_PROVIDER_NOT_FOUND") return problemDetails(context, 404, code, code);
+      if (code === "POINTS_PROVIDER_NOT_ACTIVE") return problemDetails(context, 409, code, code);
       if (code === "IDEMPOTENCY_KEY_REUSED") {
         return problemDetails(
           context,
@@ -200,11 +200,17 @@ export function registerAuctionImportRoutes(
       return problemDetails(context, 401, "AUTHENTICATION_REQUIRED", "Authentication required");
     }
     try {
-      const body = await context.req.json<{ preview?: AuctionImportPreview }>();
-      if (!body.preview)
-        return problemDetails(context, 400, "MALFORMED_REQUEST", "preview required");
+      const body = await context.req.json<{
+        providerId?: string;
+        preview?: AuctionImportPreview;
+      }>();
+      if (!body.preview || !body.providerId)
+        return problemDetails(context, 400, "MALFORMED_REQUEST", "providerId and preview required");
+      if (body.providerId !== body.preview.providerId)
+        return problemDetails(context, 422, "POINTS_PROVIDER_MISMATCH", "providerId mismatch");
       const result = await (injectedCommitService ?? commitService(requireBindings(context.env)))({
         actor,
+        providerId: body.providerId,
         idempotencyKey,
         preview: body.preview,
         sellerIdentitySnapshot: actor,
@@ -217,7 +223,10 @@ export function registerAuctionImportRoutes(
         },
       );
     } catch (error) {
-      const code = (error as { code?: unknown }).code;
+      const code =
+        (error as { code?: unknown }).code ?? (error instanceof Error ? error.message : undefined);
+      if (code === "POINTS_PROVIDER_NOT_FOUND") return problemDetails(context, 404, code, code);
+      if (code === "POINTS_PROVIDER_NOT_ACTIVE") return problemDetails(context, 409, code, code);
       if (code === "IDEMPOTENCY_KEY_REUSED" || code === "IDEMPOTENCY_IN_PROGRESS") {
         return problemDetails(context, 409, String(code), String(code));
       }

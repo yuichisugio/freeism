@@ -1,21 +1,22 @@
 # Markets Web App v0.2 仕様
 
-`markets.freeism.app`は、商材情報を含むAuctionを責務とする。出品はAuction作成を意味し、独立したListing resourceは持たない。ポイント付与、残高、評価軸、FIXは`points.freeism.app`が所有する。
+`markets.freeism.app`は、商材情報を含むAuctionを責務とする。出品はAuction作成を意味し、独立したListing resourceは持たない。ポイント付与、残高、評価軸、FIXは各Auctionで選択したPoints互換サービスが所有する。
 
 ## 正本
 
 - [Marketsドメイン仕様](./details-ja/markets-domain.md)
 - [Auction詳細](./details-ja/auction.md)
 - [リアルタイム・精算](./details-ja/realtime-and-settlement.md)
-- [横断アーキテクチャ](../../../../docs/web-app/v0.2/architecture.md)
-- [認証仕様](../../../../docs/web-app/v0.2/authentication.md)
-- [Points–Markets契約](../../../../docs/web-app/v0.2/points-markets-contract.md)
-- [設計判断台帳](../../../../docs/web-app/v0.2/decision-register.md)
+- [複数Points提供先の接続設計](../../plan/multiple-points-providers.md)
+- [横断アーキテクチャ](../../../../../docs/web-app/v0.2/architecture.md)
+- [認証仕様](../../../../../docs/web-app/v0.2/authentication.md)
+- [Points–Markets契約](../../../../../docs/web-app/v0.2/points-markets-contract.md)
+- [設計判断台帳](../../../../../docs/web-app/v0.2/decision-register.md)
 
 ## v0.2の境界
 
 - Better Auth、Hono、Drizzle、D1、AuctionRoom Durable Object、Settlement Workflowを使う`auction-worker`と、TanStack Start/Vite PlusのSPA+SSGを同じprojectで管理する。
-- MarketsはGoogleだけで独立ログインし、Pointsは後から1対1で明示連携する。
+- MarketsはGoogleだけで独立ログインし、ADMIN登録済みの複数Points提供先へ利用者が個別に明示連携する。1 Auctionの取引は選択した1提供先で完結する。
 - Taskは完全廃止し、「Task作成」へ読み替えない。作成するのはAuctionだけである。
 - multi-unit uniform-price、AutoBid、即決、終了延長、終了時vector reservationを実装する。
 - WebSocketはread-only subscription、bidは認証済みHTTP mutationとする。

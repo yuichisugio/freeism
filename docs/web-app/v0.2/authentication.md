@@ -18,7 +18,7 @@
 | ------------------ | ------------------------------------------- | ------------------------ | ----------------------------------- |
 | Points             | Google、GitHub                              | `providerId + accountId` | Points専用D1・Points専用Cookie      |
 | Markets            | Googleのみ                                  | `providerId + accountId` | Markets専用D1・Markets専用Cookie    |
-| Points–Markets連携 | Pointsが発行する`issuer + subject` | `issuer + subject`       | Markets D1の暗号化済みOAuth Account |
+| Points–Markets連携 | 登録済み提供先が発行するOAuth Token | `providerId + subject`と登録issuer照合 | Markets D1の暗号化済みOAuth Account |
 
 両アプリで次を禁止する。
 
@@ -184,7 +184,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | ADMIN CSV export                          | `/api/csv-exports`                                                                                                  | ADMINとして他者／全体を出力する時だけGoogle fresh         |
 | OAuth Client／公開鍵                    | `/api/oauth-clients*`                                                                                                | 登録者本人、1人5件まで                                    |
 | 接続先Accountsの作成／有効化／取り下げ    | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | ADMIN、Google fresh、reason、idempotency                  |
-| Settlement retry                          | Points `GET /api/v1/me/admin-membership` とMarketsのretry POST                                                     | 現行ADMIN、Markets seller、対象状態、reason               |
+| Settlement retry                          | Marketsのretry POST                                                                                                 | Markets ADMIN、seller、対象状態、reason                   |
 
 各operationはGoogle `auth_time` 899秒、900秒、901秒、Google未link、`sub`不一致を同じtable-driven contract testで検証する。900秒以内だけを許可し、個別routeがmiddlewareを迂回できないことを確認する。
 
@@ -213,12 +213,12 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 ### 8.1 ユーザー対応と同意
 
-Marketsは独立アカウントを持ち、利用者がログイン後にPointsを明示linkする。有効な対応は1対1である。
+Marketsは独立アカウントを持ち、利用者がログイン後にADMIN登録済みのPoints互換提供先へ個別に明示linkする。有効な対応は提供先ごとに1対1である。
 
-- 1 Marketsユーザーにつき1 Points `issuer + subject`
-- 1 Points subjectにつき1 Marketsユーザー
+- 1 Marketsユーザーと1提供先につき1 Points subject
+- 1提供先のPoints subjectにつき1 Marketsユーザー
 - email、Google ID、GitHub IDでは対応付けない。
-- 全予約が`CAPTURED`、`RELEASED`、`EXPIRED`のいずれかになるまでunlink・relinkできない。
+- 全予約が`CAPTURED`、`RELEASED`、`EXPIRED`のいずれかになるまで通常unlinkできない。`REAUTH_REQUIRED`の再認可は既存connection IDと予約参照を維持して行う。
 - unlink後の新規reserveは禁止する。
 - unlink前に作成した予約は、MarketsのM2M権限でcapture、release、status取得できる。
 - unlink履歴は削除しない。
@@ -233,7 +233,7 @@ revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revoca
 
 ### 8.2 Authorization Code flow
 
-Points Better Authのissuer／base URLは`https://points.freeism.app/api/auth`とする。標準endpointは`/api/auth/oauth2/authorize`、`/api/auth/oauth2/token`、`/api/auth/oauth2/introspect`、`/api/auth/oauth2/revoke`、Discoveryはissuer相対の`/api/auth/.well-known/openid-configuration`を使う。これらの独自endpointや互換aliasを作らない。Task 6Aのlive feasibility gateで標準実装との一致を検証し、1つでも一致しなければreleaseを停止する。
+各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
 
 1. Marketsがstate、nonce、PKCE verifier／challengeを生成し、Markets SessionとMarkets userへserver-sideで束縛する。
 2. Markets WorkerがM2M用Client CredentialsでPointsのlink-attempt APIを呼び、利用者用／M2M用Client ID、`marketsUserId`、state hash、PKCE challenge、redirect URI、scope、期限へ束縛したopaque `linkAttemptId`を取得する。
@@ -256,19 +256,19 @@ link、unlink、relinkのOAuth stateへ、利用者入力の任意URLを保存�
 
 内部関数にも`returnTo`引数を設けず、flow種別から上表のpathを組み立てる。requestにscheme／host／userinfo／fragment、`//`開始、rawまたはpercent-encoded backslash、control文字、二重decodeでpath separatorへ変わる値、queryが含まれていても保存・fallbackしない。callbackはstateから組み立てたpathだけへ`303`し、request queryやOAuth providerの値をredirect先として使わない。
 
-PointsはBetter Auth 1.7.6の標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`はPoints auth user ID、Client Credentials Tokenの`sub`はClient IDとする。どちらも有効期間は最長15分。Marketsは検証済み利用者Tokenの`issuer + sub`を連携キーとして保存し、emailや表示名では照合しない。
+Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user ID、Client Credentials Tokenの`sub`はClient IDとする。どちらも有効期間は最長15分。Marketsは登録済み`providerId + sub`を連携キーとして保存し、検証済みissuerが登録済み提供先と一致することを確認する。emailや表示名では照合しない。
 
-Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userのACTIVE状態と利用者用scope、M2M Tokenには`sub=clientId`とM2M専用scopeを要求する。別resourceのTokenやscope混在を拒否する。Service Bindingは通信経路であり認可根拠にはしない。
+Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userのACTIVE状態と利用者用scope、M2M Tokenには`sub=clientId`とM2M専用scopeを要求する。別resourceのTokenやscope混在を拒否する。Marketsは登録した提供先originへ外部`fetch`で要求する。
 
-MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`を使う。秘密鍵はMarkets Worker Secretの`POINTS_CLIENT_PRIVATE_KEY_JWK`だけに置く。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
+MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。提供先ごとの秘密鍵は`POINTS_KEY_ENCRYPTION_KEY`で暗号化してMarkets D1に保存する。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
 
 ### 8.3 開発者向けOAuthクライアント管理
 
-Pointsへログインした利用者は「開発者向け」画面から自分のアプリを登録・更新・削除できる。Marketsもこの画面で1クライアントを登録する。入力と管理方法は[Accounts v0.1 のOAuthクライアント管理](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用する。アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開JWKSを必須とし、HTTPSの紹介URLと説明文は任意とする。説明文は`oauthClient.metadata.description`へ保存する。Client IDはPointsが発行し、秘密鍵は利用側だけが保管する。
+Pointsへログインした利用者は「開発者向け」画面から自分のアプリを登録・更新・削除できる。Markets ADMINは各接続先でクライアントを登録する。入力と管理方法は[Accounts v0.1 のOAuthクライアント管理](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用する。アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開JWKSを必須とし、HTTPSの紹介URLと説明文は任意とする。説明文は`oauthClient.metadata.description`へ保存する。Client IDはPointsが発行し、秘密鍵は利用側だけが保管する。
 
 リダイレクトURLはHTTPS、または`localhost`、`127.0.0.1`、`[::1]`のHTTPを許可する。ローカルHTTPを含むとき`application_type=native`、それ以外は`web`とする。認可時は登録済みURLの1件と文字列で完全一致させ、ローカルHTTPではポートだけを比較から除く。1人最大5件とし、画面とバックエンドで確認する。登録は`adminCreateOAuthClient`、アプリ情報・redirect URIの更新は`adminUpdateOAuthClient`を使う。公開鍵の更新、紹介URLの削除、鍵切替時の新旧`kid`併存、登録者本人だけの変更・削除はAccounts v0.1と同じ手順とする。
 
-Markets用クライアントは各環境に1件登録し、`authorization_code`、`refresh_token`、`client_credentials`を許可する。利用者とM2Mのscope、Points API resource、link・unlinkのredirect URIを登録する。Markets Workerは`POINTS_CLIENT_ID`と`POINTS_CLIENT_PRIVATE_KEY_JWK`の一組を全用途で使う。秘密JWKはEd25519、`alg=EdDSA`、公開JWKSと一致する`kid`を持つJSON文字列とする。JWT client assertionは`iss=sub=clientId`、`aud=対象endpointの絶対URL`、約60秒の`iat`/`exp`、ランダムな`jti`で署名する。
+Markets用クライアントは接続先ごとに登録し、`authorization_code`、`refresh_token`、`client_credentials`を許可する。利用者とM2Mのscope、Points API resource、link・unlinkのredirect URI 2件を登録する。Marketsは接続先ごとのClient IDと暗号化したEd25519鍵を使う。JWT client assertionは`iss=sub=clientId`、`aud=対象endpointの絶対URL`、約60秒の`iat`/`exp`、ランダムな`jti`で署名する。
 
 | 用途 | grant | scope・検査 |
 | --- | --- | --- |
@@ -277,7 +277,7 @@ Markets用クライアントは各環境に1件登録し、`authorization_code`�
 
 利用者Tokenではcapture／releaseできず、M2M Tokenでは残高参照・新規reserve・直接debitできない。M2Mは同じClient IDが所有する既存予約のstatus／capture／releaseを実行する。Marketsの利用者callbackはPoints API resourceと利用者scopeを検証する。
 
-Settlement手動再試行ではMarketsがACTIVEなPoints連携に保存した通常の利用者Tokenを使い、Pointsの`GET /api/v1/me/admin-membership`で現在のADMINを確認する。Marketsはissuer、subject、Client ID、seller、対象Settlementの状態、理由、1時間5回の上限と冪等性を確認する。同じMarkets SessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`がoutboxを確定し、commit後にdispatcherがWorkflowを起動する。
+Settlement手動再試行ではMarketsのBetter Auth sessionに`admin` roleを含むことを確認する。Marketsはseller、対象Settlementの状態、理由、1時間5回の上限と冪等性を確認する。同じMarkets SessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`がoutboxを確定し、commit後にdispatcherがWorkflowを起動する。
 
 ### 8.4 Token保存とRefresh
 
@@ -401,12 +401,12 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文、取得
 - JWT Access Tokenは標準JWKS署名、issuer、audience/resource、期限、`client_id`、scope、OAuth Client状態を検証する。利用者の`sub`はPoints auth user ID、M2Mの`sub`はClient IDである。
 - 利用者Tokenでcapture／releaseできず、M2M Tokenで残高取得・新規reserve・直接debitができない。M2M発行時はscope必須、M2M scopeのみ、Points API resource 1件を強制する。
 - 予約所有Client IDと異なるM2M Tokenではsettleできない。Client削除後のTokenもResource APIで拒否する。
-- Settlement retryは通常の利用者TokenでPointsの現行ADMINを照会し、Marketsのseller・対象状態・理由・頻度・冪等性を検証する。
-- 1 Marketsユーザー対1 Points subject、1 Points subject対1 Marketsユーザーを強制し、CONFIRMでissuer／subject／Client IDをattemptへ照合する。
+- Settlement retryはMarketsの`admin` role、seller、対象状態、理由、頻度、冪等性を検証する。
+- 提供先ごとに1 Marketsユーザー対1 Points subject、1 Points subject対1 Marketsユーザーを強制し、CONFIRMでissuer／subject／Client IDをattemptへ照合する。
 - cancel／TTLはapp-owned grantをlive拒否し、raw token保持時だけ標準revokeを試みる。
 - 有効予約中のunlink・relinkを拒否する。unlink後の新規reserveを拒否し、既存予約のcapture／release／statusを許可する。
 - Access／Refresh Tokenをブラウザーへ返さず、Markets D1で暗号化する。401後のRefresh・再試行は最大1回とする。
-- Service Binding経由でもBearer Tokenなし、不正署名、不正scope、不正audienceを拒否する。
+- 外部Points APIへのBearer Tokenなし要求、不正署名、不正scope、不正audienceを拒否する。
 
 ### 14.6 Cookie・CSRF・環境分離
 

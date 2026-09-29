@@ -1,7 +1,10 @@
 import type { Context, Hono } from "hono";
 import * as v from "valibot";
+import { createResourceServerChallenge } from "@better-auth/oauth-provider";
+import { APIError } from "better-auth/api";
 
 import { pointsOAuthScopes } from "../../auth/points-oauth-provider";
+import { createPointsAuth } from "../../auth/create-auth";
 import {
   verifyPointsResourceRequest,
   type PointsOAuthPrincipal,
@@ -55,8 +58,9 @@ const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =
     {
       allowedScopes: kind === "USER" ? pointsOAuthScopes.USER : pointsOAuthScopes.M2M,
       audience: `${env.APP_ORIGIN}/api/v1`,
+      auth: createPointsAuth(env),
       db: env.DB,
-      issuer: `${env.APP_ORIGIN}/api/auth`,
+      issuer: env.APP_ORIGIN,
       jwksUrl: `${env.APP_ORIGIN}/api/auth/jwks`,
       kind,
     },
@@ -127,8 +131,20 @@ function mapError(context: Context<BackendContext>, error: unknown) {
   const code = error instanceof Error ? error.message : "INTERNAL_ERROR";
   if (code === "REQUEST_BODY_TOO_LARGE")
     return problem(context, 413, code, "Request body too large");
-  if (code === "INVALID_ACCESS_TOKEN") return problem(context, 401, code, "Invalid access token");
-  if (code === "POINTS_CONNECTION_NOT_ACTIVE") {
+  if (code === "INVALID_ACCESS_TOKEN" || code === "POINTS_CONNECTION_NOT_ACTIVE") {
+    const resource = `${requireBindings(context.env).APP_ORIGIN}/api/v1`;
+    const challenge = createResourceServerChallenge(
+      new APIError("UNAUTHORIZED", {
+        error: "invalid_token",
+        error_description: "DPoP access token is required",
+        message: "Invalid access token",
+      }),
+      resource,
+    );
+    if (challenge) {
+      const wwwAuthenticate = new Headers(challenge.headers).get("WWW-Authenticate");
+      if (wwwAuthenticate) context.header("WWW-Authenticate", wwwAuthenticate);
+    }
     return problem(context, 401, "INVALID_ACCESS_TOKEN", "Invalid access token");
   }
   if (code === "POINT_RESERVATION_STATUS_INVALID") {
@@ -225,6 +241,7 @@ export function registerOAuthResourceRoutes(
           data: {
             finalizedAt: finalizedAt.toISOString(),
             grantStatus: finalized.status === "CANCELLED" ? "CANCELLED" : "ACTIVE",
+            ...(finalized.status === "CANCELLED" ? {} : { grantVersion: finalized.grantVersion }),
             linkAttemptFinalizationReceiptId: `plf_${context.req.param("linkAttemptId")}`,
             linkAttemptId: context.req.param("linkAttemptId"),
             marketsPointsConnectionId: finalized.marketsPointsConnectionId,

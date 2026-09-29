@@ -115,6 +115,7 @@ export async function registerOAuthClient(
         ...toStandardClientFields(input),
         jwks: input.jwks,
         token_endpoint_auth_method: "private_key_jwt",
+        dpop_bound_access_tokens: true,
         grant_types: ["authorization_code", "refresh_token", "client_credentials"],
         response_types: ["code"],
         scope: [...new Set(Object.values(pointsOAuthScopes).flat())].join(" "),

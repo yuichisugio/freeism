@@ -1,4 +1,4 @@
-import { pointsClientPrivateKeyJwk } from "../fixtures/points-oauth";
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -9,9 +9,17 @@ import {
   D1SettlementReservationRepository,
 } from "../../src/backend/db/d1-settlement-repository";
 import { PointsApiError } from "../../src/backend/points/points-api-client";
+import { PointsOAuthTokenEndpointError } from "../../src/backend/points/points-oauth-client";
+import {
+  generatePointsProviderKey,
+  importPointsKeyEncryptionKey,
+  sealPointsProviderKey,
+} from "../../src/backend/points/points-provider-keys";
 import { createBetterAuthPointsTokenStore } from "../../src/backend/points/points-token-store";
 import { createSettlementPlan } from "../../src/backend/settlement/create-settlement-plan";
 import { createSettlementReservationDependencies } from "../../src/backend/settlement/settlement-dependencies";
+import { createSettlementCaptureDependencies } from "../../src/backend/settlement/settlement-capture-dependencies";
+import type { openSettlementProvider } from "../../src/backend/settlement/settlement-provider";
 import {
   reserveSettlementRound,
   type BuyNowRestorer,
@@ -50,14 +58,15 @@ async function insertConnection(suffix: string, user: { authId: string; marketsU
   const id = `pc_${user.marketsUserId}`;
   await env.DB.prepare(
     `INSERT INTO points_connection
-     (id, markets_user_id, auth_user_id, status, link_attempt_id, attempt_payload_hash,
+     (id, provider_id, markets_user_id, auth_user_id, status, link_attempt_id, attempt_payload_hash,
       points_issuer, points_subject, user_client_id, m2m_client_id, granted_scopes,
       session_id, expires_at)
-     VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'https://points.example.test/api/auth', ?,
+     VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, 'https://points.example.test/api/auth', ?,
       'markets-user-client', 'markets-user-client', 'points.reservations.create', ?, ?)`,
   )
     .bind(
       id,
+      testPointsProviderId,
       user.marketsUserId,
       user.authId,
       `link_${user.marketsUserId}`,
@@ -72,6 +81,7 @@ async function insertConnection(suffix: string, user: { authId: string; marketsU
 
 async function seedEndSettlement(): Promise<SeededSettlement> {
   const suffix = crypto.randomUUID();
+  await seedPointsProvider(env.DB);
   const seller = await insertUser(suffix, "seller");
   const first = await insertUser(suffix, "a_first");
   const second = await insertUser(suffix, "b_second");
@@ -85,12 +95,12 @@ async function seedEndSettlement(): Promise<SeededSettlement> {
   await env.DB.batch([
     env.DB.prepare(
       `INSERT INTO point_package_snapshots
-       (id, point_package_id, point_package_revision_id, name, total_weight)
-       VALUES (?, ?, ?, 'Package', 1)`,
-    ).bind(snapshotId, `pp_${suffix}`, `ppr_${suffix}`),
+       (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+       VALUES (?, ?, ?, ?, 'Package', 1)`,
+    ).bind(snapshotId, testPointsProviderId, `pp_${suffix}`, `ppr_${suffix}`),
     env.DB.prepare(
-      "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'OPEN', 1)",
-    ).bind(auctionId, seller.marketsUserId),
+      "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'OPEN', 1)",
+    ).bind(auctionId, testPointsProviderId, seller.marketsUserId),
     env.DB.prepare(
       `INSERT INTO auction_revisions
        (id, auction_id, revision_number, title, description, external_url,
@@ -197,6 +207,7 @@ async function seedBuyNowSettlement(seeded: SeededSettlement) {
     buyNowHoldId: holdId,
     kind: "BUY_NOW",
     packageTick: 5,
+    providerId: testPointsProviderId,
     pointPackageRevisionId: `ppr_${seeded.auctionId.slice(4)}`,
     priceTickCount: 20,
     quantity: 1,
@@ -466,67 +477,65 @@ describe("settlement reservation round", () => {
 
     const introspectedTokens: string[] = [];
     let reservationKey = "";
-    const service = {
-      fetch: vi.fn(async (request: Request) => {
-        const url = new URL(request.url);
-        if (url.pathname.endsWith("/oauth2/introspect")) {
-          const token = (await request.formData()).get("token")?.toString() ?? "";
-          introspectedTokens.push(token);
-          if (token === "expired-access-token" || token === "expired-revoked-access-token") {
-            return Response.json({ active: false });
-          }
-          return Response.json({
-            active: true,
-            aud: "https://points.example.test/api",
-            client_id: "markets-user-client",
-            exp: Math.floor(Date.now() / 1000) + 3_600,
-            iss: "https://points.example.test/api/auth",
-            scope: "offline_access points.reservations.create",
-            sub: `subject_${marketsUserId}`,
-          });
-        }
-        if (url.pathname.endsWith("/oauth2/token")) {
-          const body = await request.formData();
-          expect(body.get("grant_type")).toBe("refresh_token");
-          if (body.get("refresh_token") === "revoked-refresh-token") {
-            return Response.json({ error: "invalid_grant" }, { status: 400 });
-          }
-          expect(body.get("refresh_token")).toBe("current-refresh-token");
-          return Response.json({
-            access_token: "refreshed-access-token",
-            expires_in: 3_600,
-            refresh_token: "rotated-refresh-token",
-            scope: "offline_access points.reservations.create",
-            token_type: "Bearer",
-          });
-        }
-        if (url.pathname === "/api/v1/me/point-reservations") {
-          expect(request.headers.get("Authorization")).toBe("Bearer refreshed-access-token");
-          const body = (await request.json()) as { planHash: string; reservationKey: string };
-          reservationKey = body.reservationKey;
-          return Response.json({
-            data: {
-              expiresAt: new Date(Date.now() + 900_000).toISOString(),
-              planHash: body.planHash,
-              pointReservationId: "pres_refreshed",
-              reservationKey: body.reservationKey,
-              status: "ACTIVE",
-              vectorHash: `sha256:${"7".repeat(64)}`,
+    const openProvider = vi.fn(
+      async () =>
+        ({
+          provider: { id: testPointsProviderId },
+          oauth: {
+            async introspectUserAccessToken(accessToken: string) {
+              introspectedTokens.push(accessToken);
+              if (accessToken.startsWith("expired-")) {
+                throw new Error("POINTS_USER_INTROSPECTION_INVALID");
+              }
+              return {
+                clientId: "markets-user-client",
+                issuer: "https://points.example.test/api/auth",
+                subject: `subject_${marketsUserId}`,
+              };
             },
-            meta: { requestId: "req_refreshed" },
-          });
-        }
-        return new Response(null, { status: 404 });
-      }),
-    } satisfies Fetcher;
-    const deps = createSettlementReservationDependencies({
-      ...authEnv,
-      POINTS_AUDIENCE: "https://points.example.test/api",
-      POINTS_ISSUER: "https://points.example.test/api/auth",
-      POINTS_CLIENT_ID: "markets-user-client",
-      POINTS_CLIENT_PRIVATE_KEY_JWK: pointsClientPrivateKeyJwk,
-      POINTS_SERVICE: service,
-    });
+            async refreshUserToken(refreshToken: string) {
+              if (refreshToken === "revoked-refresh-token") {
+                throw new PointsOAuthTokenEndpointError(400, "invalid_grant");
+              }
+              expect(refreshToken).toBe("current-refresh-token");
+              introspectedTokens.push("refreshed-access-token");
+              return {
+                accessToken: "refreshed-access-token",
+                accessTokenExpiresAt: new Date(Date.now() + 3_600_000),
+                refreshToken: "rotated-refresh-token",
+                scopes: ["offline_access", "points.reservations.create"],
+              };
+            },
+          },
+          api: {
+            async createPointReservation(
+              body: { planHash: string; reservationKey: string },
+              _key: string,
+              accessToken: string,
+            ) {
+              expect(accessToken).toBe("refreshed-access-token");
+              reservationKey = body.reservationKey;
+              return {
+                data: {
+                  expiresAt: new Date(Date.now() + 900_000).toISOString(),
+                  planHash: body.planHash,
+                  pointReservationId: "pres_refreshed",
+                  reservationKey: body.reservationKey,
+                  status: "ACTIVE",
+                  vectorHash: `sha256:${"7".repeat(64)}`,
+                  components: [],
+                },
+                meta: { requestId: "req_refreshed" },
+              };
+            },
+          },
+        }) as unknown as Awaited<ReturnType<typeof openSettlementProvider>>,
+    );
+    const deps = await createSettlementReservationDependencies(
+      authEnv,
+      seeded.settlementId,
+      openProvider,
+    );
     const receipt = await deps.gateway.reserve({
       allocationQuantity: 1,
       auctionId: seeded.auctionId,
@@ -581,6 +590,280 @@ describe("settlement reservation round", () => {
         settlementId: seeded.settlementId,
       }),
     ).rejects.toThrow("REAUTH_REQUIRED");
+    expect(
+      await env.DB.prepare("SELECT status FROM points_connection WHERE id = ?")
+        .bind(connectionId)
+        .first<string>("status"),
+    ).toBe("REAUTH_REQUIRED");
+  });
+
+  it("uses a stopped auction provider for user reserve and M2M settlement calls", async () => {
+    const seeded = await seedEndSettlement();
+    const marketsUserId = seeded.buyerIds[0];
+    const connectionId = `pc_${marketsUserId}`;
+    const authUserId = await env.DB.prepare("SELECT auth_user_id FROM markets_user WHERE id = ?")
+      .bind(marketsUserId)
+      .first<string>("auth_user_id");
+    if (!authUserId) throw new Error("TEST_AUTH_USER_NOT_FOUND");
+    const origin = "https://points.example.test";
+    const otherOrigin = `https://other-${crypto.randomUUID()}.points.example.test`;
+    const otherProviderId = `ppr_${crypto.randomUUID()}`;
+    await seedPointsProvider(env.DB, { id: otherProviderId, origin: otherOrigin });
+    await env.DB.prepare(
+      `INSERT INTO points_connection
+       (id, provider_id, markets_user_id, auth_user_id, status, link_attempt_id,
+        attempt_payload_hash, points_issuer, points_subject, user_client_id,
+        m2m_client_id, granted_scopes, session_id, expires_at)
+       SELECT ?, ?, markets_user_id, auth_user_id, status, ?, attempt_payload_hash,
+              ?, points_subject, user_client_id, m2m_client_id, granted_scopes, ?, expires_at
+       FROM points_connection WHERE id = ?`,
+    )
+      .bind(
+        `other_${connectionId}`,
+        otherProviderId,
+        `other_link_${connectionId}`,
+        otherOrigin,
+        `other_session_${connectionId}`,
+        connectionId,
+      )
+      .run();
+
+    const kek = await importPointsKeyEncryptionKey(env.POINTS_KEY_ENCRYPTION_KEY);
+    const [signing, dpop] = await Promise.all([
+      generatePointsProviderKey(),
+      generatePointsProviderKey(),
+    ]);
+    await env.DB.prepare(
+      `UPDATE points_provider
+       SET client_id = 'markets-user-client', issuer = ?, client_public_jwk = ?,
+           signing_key_ciphertext = ?, dpop_key_ciphertext = ?, status = 'STOPPED'
+       WHERE id = ?`,
+    )
+      .bind(
+        origin,
+        JSON.stringify(signing.publicJwk),
+        await sealPointsProviderKey(
+          kek,
+          testPointsProviderId,
+          "client-assertion",
+          signing.privateJwk,
+        ),
+        await sealPointsProviderKey(kek, testPointsProviderId, "dpop", dpop.privateJwk),
+        testPointsProviderId,
+      )
+      .run();
+    await env.DB.prepare("UPDATE points_connection SET points_issuer = ? WHERE id = ?")
+      .bind(origin, connectionId)
+      .run();
+
+    const authEnv = {
+      ...env,
+      APP_ORIGIN: "https://markets.example.test",
+      BETTER_AUTH_SECRETS: "2:test-current-secret-at-least-32-characters",
+      GOOGLE_CLIENT_ID: "google-client",
+      GOOGLE_CLIENT_SECRET: "google-secret",
+    };
+    const accountId = `account_${crypto.randomUUID()}`;
+    await createBetterAuthPointsTokenStore(createMarketsAuth(authEnv)).save({
+      accessToken: "user-token-a",
+      accessTokenExpiresAt: new Date(Date.now() + 3_600_000),
+      accountId,
+      authUserId,
+      refreshToken: "user-refresh-a",
+      scopes: ["offline_access", "points.reservations.create"],
+    });
+    await env.DB.prepare("UPDATE points_connection SET better_auth_account_id = ? WHERE id = ?")
+      .bind(accountId, connectionId)
+      .run();
+
+    const pointsScopes = [
+      "points.connection.read",
+      "points.balance.read",
+      "points.reservations.create",
+      "points.connection.unlink",
+      "points.connection.link-attempt.create",
+      "points.connection.link-attempt.finalize",
+      "points.packages.auction-eligibility",
+      "points.reservations.status",
+      "points.reservations.capture",
+      "points.reservations.release",
+    ];
+    const metadata = {
+      issuer: origin,
+      authorization_endpoint: `${origin}/oauth2/authorize`,
+      token_endpoint: `${origin}/oauth2/token`,
+      jwks_uri: `${origin}/jwks`,
+      introspection_endpoint: `${origin}/oauth2/introspect`,
+      revocation_endpoint: `${origin}/oauth2/revoke`,
+      response_types_supported: ["code"],
+      grant_types_supported: ["authorization_code", "refresh_token", "client_credentials"],
+      token_endpoint_auth_methods_supported: ["private_key_jwt"],
+      token_endpoint_auth_signing_alg_values_supported: ["EdDSA"],
+      dpop_signing_alg_values_supported: ["EdDSA"],
+      id_token_signing_alg_values_supported: ["EdDSA"],
+      code_challenge_methods_supported: ["S256"],
+      scopes_supported: ["openid", "profile", "offline_access", ...pointsScopes],
+      authorization_response_iss_parameter_supported: true,
+    };
+    const now = new Date().toISOString();
+    const reservationKey = `${seeded.settlementId}:${marketsUserId}:revision_1`;
+    const reservationId = `pres_${crypto.randomUUID()}`;
+    const vectorHash = `sha256:${"7".repeat(64)}`;
+    const calls: string[] = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      const url = new URL(request.url);
+      calls.push(`${url.origin}${url.pathname}`);
+      if (url.origin !== origin) throw new Error("CROSS_PROVIDER_REQUEST");
+      if (url.pathname.includes("oauth-protected-resource")) {
+        return Response.json({
+          resource: `${origin}/api/v1`,
+          authorization_servers: [origin],
+          scopes_supported: pointsScopes,
+          dpop_signing_alg_values_supported: ["EdDSA"],
+          dpop_bound_access_tokens_required: true,
+        });
+      }
+      if (url.pathname.includes("well-known")) return Response.json(metadata);
+      if (url.pathname === "/oauth2/token") {
+        return Response.json({ access_token: "m2m-token-a", expires_in: 3600, token_type: "DPoP" });
+      }
+      if (url.pathname === "/oauth2/introspect") {
+        const token = (await request.formData()).get("token")?.toString();
+        const user = token === "user-token-a";
+        return Response.json({
+          active: true,
+          aud: `${origin}/api/v1`,
+          client_id: "markets-user-client",
+          exp: Math.floor(Date.now() / 1000) + 3600,
+          iss: origin,
+          scope: user
+            ? "points.reservations.create"
+            : "points.reservations.status points.reservations.capture points.reservations.release",
+          sub: user ? `subject_${marketsUserId}` : "markets-user-client",
+        });
+      }
+      if (url.pathname === "/api/v1/me/point-reservations") {
+        expect(request.headers.get("Authorization")).toBe("DPoP user-token-a");
+        return Response.json({
+          data: {
+            pointReservationId: reservationId,
+            reservationKey,
+            status: "ACTIVE",
+            planHash: seeded.planHash,
+            vectorHash,
+            expiresAt: new Date(Date.now() + 900_000).toISOString(),
+          },
+          meta: { requestId: "req-reserve-a" },
+        });
+      }
+      if (url.pathname.startsWith("/api/v1/")) {
+        expect(request.headers.get("Authorization")).toBe("DPoP m2m-token-a");
+      }
+      if (url.pathname === "/api/v1/point-reservations/status") {
+        return Response.json({
+          data: {
+            items: [
+              {
+                pointReservationId: reservationId,
+                reservationKey,
+                auctionId: seeded.auctionId,
+                settlementId: seeded.settlementId,
+                planHash: seeded.planHash,
+                vectorHash,
+                createdAt: now,
+                expiresAt: new Date(Date.now() + 900_000).toISOString(),
+                status: "ACTIVE",
+                terminalAt: null,
+                terminalReceiptId: null,
+              },
+            ],
+          },
+          meta: { requestId: "req-status-a" },
+        });
+      }
+      if (url.pathname === `/api/v1/settlements/${seeded.settlementId}/capture`) {
+        return Response.json({
+          data: {
+            captureReceiptId: "capture-a",
+            settlementId: seeded.settlementId,
+            auctionId: seeded.auctionId,
+            planHash: seeded.planHash,
+            status: "CAPTURED",
+            reservations: [{ pointReservationId: reservationId, vectorHash, status: "CAPTURED" }],
+            capturedAt: now,
+            contentHash: `sha256:${"8".repeat(64)}`,
+          },
+          meta: { requestId: "req-capture-a" },
+        });
+      }
+      if (url.pathname === "/api/v1/point-reservations/release") {
+        return Response.json({
+          data: {
+            releaseReceiptId: "release-a",
+            pointReservationId: reservationId,
+            status: "RELEASED",
+            reason: "SETTLEMENT_ROUND_RECALCULATION",
+            planHash: seeded.planHash,
+            releasedAt: now,
+            contentHash: `sha256:${"9".repeat(64)}`,
+          },
+          meta: { requestId: "req-release-a" },
+        });
+      }
+      return new Response(null, { status: 404 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const reservation = await createSettlementReservationDependencies(
+        authEnv,
+        seeded.settlementId,
+      );
+      const receipt = await reservation.gateway.reserve({
+        allocationQuantity: 1,
+        auctionId: seeded.auctionId,
+        leaseSeconds: 900,
+        marketsUserId,
+        planHash: seeded.planHash,
+        pointPackageRevisionId: `ppr_${seeded.auctionId.slice(4)}`,
+        pointsConnectionId: connectionId,
+        priceTicks: 25,
+        reservationKey,
+        settlementId: seeded.settlementId,
+      });
+      expect(receipt.pointReservationId).toBe(reservationId);
+      expect(await reservation.gateway.statusByKeys([reservationKey])).toMatchObject([
+        { pointReservationId: reservationId, status: "ACTIVE" },
+      ]);
+      const capture = await createSettlementCaptureDependencies(authEnv, seeded.settlementId);
+      expect(await capture.gateway.statusByIds([reservationId])).toMatchObject([
+        { pointReservationId: reservationId, status: "ACTIVE" },
+      ]);
+      expect(
+        await capture.gateway.capture({
+          auctionId: seeded.auctionId,
+          settlementId: seeded.settlementId,
+          planHash: seeded.planHash,
+          idempotencyKey: `capture:${seeded.settlementId}`,
+          reservations: [{ pointReservationId: reservationId, expectedVectorHash: vectorHash }],
+        }),
+      ).toMatchObject({ captureReceiptId: "capture-a" });
+      expect(
+        await capture.gateway.release({
+          planHash: seeded.planHash,
+          pointReservationId: reservationId,
+          reservationKey,
+        }),
+      ).toMatchObject({ receiptId: "release-a" });
+      expect(calls.some((call) => call.includes("/me/point-reservations"))).toBe(true);
+      expect(calls.some((call) => call.includes("/capture"))).toBe(true);
+      expect(calls.every((call) => call.startsWith(origin))).toBe(true);
+    } finally {
+      vi.unstubAllGlobals();
+      await env.DB.prepare("UPDATE points_provider SET status = 'ACTIVE' WHERE id = ?")
+        .bind(testPointsProviderId)
+        .run();
+    }
   });
 
   it("restores a rejected BUY_NOW hold without selecting another buyer", async () => {

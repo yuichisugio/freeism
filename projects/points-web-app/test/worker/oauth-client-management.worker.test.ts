@@ -82,13 +82,14 @@ describe("Points OAuth クライアント管理", () => {
     expect(await detail.json()).toEqual({ data: { ...input, clientId } });
 
     const stored = await env.DB.prepare(
-      "SELECT user_id AS userId, client_secret AS clientSecret, token_endpoint_auth_method AS tokenEndpointAuthMethod, application_type AS applicationType, grant_types AS grantTypes FROM oauth_client WHERE client_id = ?",
+      "SELECT user_id AS userId, client_secret AS clientSecret, token_endpoint_auth_method AS tokenEndpointAuthMethod, dpop_bound_access_tokens AS dpopBoundAccessTokens, application_type AS applicationType, grant_types AS grantTypes FROM oauth_client WHERE client_id = ?",
     )
       .bind(clientId)
       .first<{
         userId: string;
         clientSecret: string | null;
         tokenEndpointAuthMethod: string;
+        dpopBoundAccessTokens: number;
         applicationType: string;
         grantTypes: string;
       }>();
@@ -96,6 +97,7 @@ describe("Points OAuth クライアント管理", () => {
       userId,
       clientSecret: null,
       tokenEndpointAuthMethod: "private_key_jwt",
+      dpopBoundAccessTokens: 1,
       applicationType: "native",
     });
     expect(stored?.grantTypes).toContain("client_credentials");

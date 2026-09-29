@@ -12,8 +12,7 @@ import {
   monitorMarketsOpsAlerts,
 } from "./backend/observability/ops-monitor";
 import { emitOpsMetric } from "./backend/observability/ops-metrics";
-import { PointsApiClient } from "./backend/points/points-api-client";
-import { PointsOAuthClient } from "./backend/points/points-oauth-client";
+import { openSettlementProvider } from "./backend/settlement/settlement-provider";
 import { finalizeSettlement } from "./backend/settlement/finalize-settlement";
 import { dispatchPendingSettlementOutboxes } from "./backend/settlement/outbox-dispatcher";
 import { reconcilePendingSettlements } from "./backend/settlement/reconcile-settlements";
@@ -176,15 +175,6 @@ async function dispatchPendingAuctionCloseResumeOutboxes(
 
 export async function runScheduledSettlementMaintenance(workerEnv: Env) {
   const bindings = requireBindings(workerEnv);
-  const oauth = new PointsOAuthClient(bindings.POINTS_SERVICE, {
-    audience: bindings.POINTS_AUDIENCE,
-    issuer: bindings.POINTS_ISSUER,
-    clientId: bindings.POINTS_CLIENT_ID,
-    privateKeyJwk: bindings.POINTS_CLIENT_PRIVATE_KEY_JWK,
-  });
-  const points = new PointsApiClient(bindings.POINTS_SERVICE, (scopes) =>
-    oauth.getM2MAccessToken(scopes),
-  );
   await dispatchPendingAuctionCloseResumeOutboxes(bindings);
   await retryFinalizedBuyNowHolds(bindings);
   await reconcilePendingSettlements({
@@ -207,8 +197,9 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
       await settleFinalizedBuyNowHold(bindings, settlementId);
       return finalized;
     },
-    async getStatuses(reservationKeys) {
-      const response = await points.getPointReservationStatus({
+    async getStatuses(settlementId, reservationKeys) {
+      const { api } = await openSettlementProvider(bindings, settlementId);
+      const response = await api.getPointReservationStatus({
         lookupBy: "RESERVATION_KEY",
         reservationKeys: [...reservationKeys],
       });
@@ -228,6 +219,7 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
     },
     now: () => new Date(),
     async releaseBeforeCapture(settlementId, statuses) {
+      const { api } = await openSettlementProvider(bindings, settlementId);
       for (const item of statuses) {
         if (item.status !== "ACTIVE") continue;
         const stored = await bindings.DB.prepare(
@@ -244,7 +236,7 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
             pointReservationId: string;
           }>();
         if (!stored) throw new Error("SETTLEMENT_RESERVATION_NOT_FOUND");
-        await points.releasePointReservation(
+        await api.releasePointReservation(
           {
             planHash: stored.planHash,
             pointReservationId: stored.pointReservationId,

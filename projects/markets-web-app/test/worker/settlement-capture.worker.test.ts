@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { pointsClientPrivateKeyJwk } from "../fixtures/points-oauth";
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
@@ -300,6 +301,7 @@ describe("settlement capture", () => {
       priceTicks: 0,
       quantity: 1,
     });
+    await seedPointsProvider(env.DB);
     await env.DB.batch([
       env.DB.prepare("INSERT INTO user (id, name, email) VALUES (?, 'Seller', ?)").bind(
         sellerAuthId,
@@ -319,13 +321,13 @@ describe("settlement capture", () => {
       ),
       env.DB.prepare(
         `INSERT INTO point_package_snapshots
-         (id, point_package_id, point_package_revision_id, name, total_weight)
-         VALUES (?, ?, ?, 'Package', 1)`,
-      ).bind(snapshotId, `package_${suffix}`, plan.pointPackageRevisionId),
+         (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+         VALUES (?, ?, ?, ?, 'Package', 1)`,
+      ).bind(snapshotId, testPointsProviderId, `package_${suffix}`, plan.pointPackageRevisionId),
       env.DB.prepare(
-        `INSERT INTO auctions (id, seller_markets_user_id, status, version)
-         VALUES (?, ?, 'CLOSING', 1)`,
-      ).bind(auctionId, sellerId),
+        `INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version)
+         VALUES (?, ?, ?, 'CLOSING', 1)`,
+      ).bind(auctionId, testPointsProviderId, sellerId),
       env.DB.prepare(
         `INSERT INTO auction_revisions
          (id, auction_id, revision_number, title, description, external_url,

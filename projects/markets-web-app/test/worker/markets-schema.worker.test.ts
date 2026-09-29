@@ -66,6 +66,8 @@ describe("Markets greenfield domain schema", () => {
       "0012_sha256-plan-hash.sql",
       "0013_remove-turnstile.sql",
       "0014_settlement-retry-user-token.sql",
+      "0015_markets-admin-role.sql",
+      "0016_multi-points-providers.sql",
     ]);
   });
 
@@ -218,7 +220,6 @@ describe("Markets greenfield domain schema", () => {
     const slotSql = await schemaObjectSql("websocket_slot_leases");
     expect(slotSql).toMatch(/user_slot[^\n]+between 1 and 20/i);
     expect(slotSql).toMatch(/auction_slot[^\n]+between 1 and 3/i);
-
   });
 
   it("keeps audit and bid events append-only and prevents cascading domain deletion", async () => {

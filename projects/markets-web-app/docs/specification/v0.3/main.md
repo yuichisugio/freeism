@@ -44,11 +44,10 @@ v0.2では限定proof、借入、refundを実装しない。将来補償が必�
 
 ### 分散
 
-- 複数Points管理serviceの選択
 - 1 Auctionで複数Points serviceを跨ぐ決済
 - 独立`accounts.freeism.app`
 
-v0.2は1 Auctionを1`pointsServiceId`へ固定し、全winner・全評価軸を同じPoints D1でcaptureする。
+v0.2は複数のPoints提供先からAuctionごとに1つを選び、全winner・全評価軸をそのPoints D1でcaptureする。
 
 ## 承認条件
 

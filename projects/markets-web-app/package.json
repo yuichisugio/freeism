@@ -33,6 +33,7 @@
     "drizzle-orm": "0.45.2",
     "hono": "4.12.28",
     "jose": "6.2.3",
+    "oauth4webapi": "3.8.6",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-markdown": "10.1.0",

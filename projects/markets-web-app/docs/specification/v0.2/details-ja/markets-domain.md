@@ -19,14 +19,13 @@ Markets D1とPoints D1は完全分離し、相手DBを直接queryしない。
 
 - Markets自身のログインはGoogle OAuthだけとする。email/password、Apple、GitHubログインはv0.2で実装しない。
 - MarketsアカウントはPointsアカウントから独立して作成する。
-- 利用者が後からPoints OAuth Providerへ明示同意し、Markets–Pointsを1対1で連携する。
-- `status = ACTIVE`行だけを対象にしたpartial unique index `(marketsUserId)`と`(pointsIssuer, pointsSubject)`により、各側に有効な連携を1件だけ許可する。解除・再連携後も過去行は履歴として保持する。
-- environmentごとにPoints連携の利用者用、M2M用、Settlement retry用OAuth Client IDを分ける。利用者用はAuthorization Code／Refresh、M2M用はClient Credentials、Settlement retry用は専用Authorization Codeだけを許可し、scopeとClient Secretを用途間で共有しない。
-- Markets user tokenとClient Credentials tokenをbrowserへ出さず、OAuth Client秘密JWKはMarkets Worker Secretだけで扱う。
-- 入札時には有効なPoints連携を必須とする。
+- Markets ADMINが登録・有効化した複数のPoints互換提供先へ、利用者が個別に明示同意して連携する。管理とOAuthの詳細は[複数Points提供先の設計](../../../plan/multiple-points-providers.md)に従う。
+- `points_provider`の`ACTIVE`な提供先ごとに、Markets利用者とPoints subjectのliveな連携をそれぞれ1件に制限する。解除・再連携後も過去行は履歴として保持する。
+- 各提供先のClient IDと暗号化した秘密鍵をMarkets D1に保存する。OAuthは`private_key_jwt`、DPoP、discoveryを使い、USER Authorization Code／RefreshとM2M Client Credentialsを用途に応じて使う。Markets user tokenとM2M tokenはbrowserへ出さない。
+- 入札・即決時にはAuctionの提供先に対する有効なPoints連携と提供先の`ACTIVE`状態を必須とする。提供先停止後も既存AutoBidの取消と開始前Auction取消を受け付ける。
 - 通常unlinkは専用のPoints Authorization Code + PKCEとGoogle freshを経てPointsのapp-owned grantを先に無効化する。Pointsのimmutable receiptを取得する前にMarkets local rowや暗号化user tokenを削除しない。receipt取得後だけlocal rowを`UNLINKED`へCASし、失敗時は同じidempotency keyでreceiptを再取得して収束させる。
 - provider側の外部失効は`REAUTH_REQUIRED`とし、新規balance read／reservationを行わない。unlink前に作成済みのreservationは、user grantと分離したM2M tokenでstatus／capture／releaseを継続する。
-- `/settings/points-connection`は`PENDING_CONFIRMATION`、`ACTIVE`、`REAUTH_REQUIRED`、`UNLINKED`を表示し、明示link、unlink、relinkの唯一の利用者向け画面とする。通常unlinkは15分以内のGoogle freshを確認するAuthorization Code + PKCEを開始し、GET callbackではpending authorizationだけを保存する。同じMarkets SessionからのCSRF保護POSTを利用者が明示実行するまで解除しない。
+- `/settings/points-connection`は提供先ごとに`PENDING_CONFIRMATION`、`ACTIVE`、`REAUTH_REQUIRED`、`UNLINKED`を表示し、明示link、unlink、relinkを扱う。`STOPPED`提供先の既存連携は再認可・解除できる。通常unlinkは15分以内のGoogle freshを確認するAuthorization Code + PKCEを開始し、GET callbackではpending authorizationだけを保存する。同じMarkets SessionからのCSRF保護POSTを利用者が明示実行するまで解除しない。
 - link-attemptは標準OAuth開始前にPointsのapp-owned `PENDING_MARKETS_CONFIRMATION`と1対1 uniqueを確定する。Better Authのcode／token familyとは同一transactionにせず、Markets local保存後のM2M `CONFIRM`でだけACTIVEにする。CONFIRMには署名検証済み利用者JWTから得たissuer／subject／Client IDを渡し、Pointsはattemptへ照合して利用者用Client IDと対応M2M用Client IDをconnectionへ保存する。途中失敗・crashは`CANCEL`／10分TTL reaperでapp-owned grantをlive拒否し、Marketsがraw tokenを保持済みの場合だけRFC 7009 revocationをbest-effort outboxへ入れ、未知tokenは自然失効に任せる。
 - unlink confirm時にACTIVE reservationが1件でもあれば`409 ACTIVE_RESERVATION_EXISTS`とし、Points grant、Markets connection、暗号化tokenを一切変更しない。Pointsのimmutable receiptを得た後だけMarketsを`UNLINKED`へ進める。`REAUTH_REQUIRED`は既存Markets userのまま明示relinkを開始し、別user作成やemail一致linkへfallbackしない。
 
@@ -125,7 +124,7 @@ SCHEDULED -> CANCELLED
 
 - AuctionがOPENである。
 - bidderがseller本人ではない。
-- 有効な1対1 Points連携がある。
+- Auctionの提供先に対する有効なPoints連携があり、提供先が`ACTIVE`である。
 - quantityが1以上で販売数量以下の安全整数である。
 - priceが0以上でpackage tickの倍数である。
 - Auctionのcurrent revisionが参照するpackage revisionとbid対象が一致する。
@@ -204,7 +203,7 @@ SCHEDULED -> CANCELLED
 - settle完了時に公開・永続的なproof IDとcanonical URLを作る。
 - proofはAuction ID／Auction revision／Package revision、Auction revisionから固定した商材snapshot、seller/buyer identity snapshot、allocation quantity、uniform price、component vector、`SETTLED` completion status、settlement timestamp、plan hashを持つ。
 - seller/buyerの外部identityはsettle時snapshotを表示し、後の名前変更で証明内容を改変しない。
-- seller/buyerの外部アカウント情報はAccountsが証明・管理する情報を取得し、提供を許可されたサービス名、ユーザー名・表示名、固有ID・プロフィールURLのうち、[Accountsの提供項目](../../../../accounts-web-app/docs/specification/v0.1/main.md#管理画面と監査)に限って表示する。Markets側の接続設計で、Marketsへの提供許可による直接取得かPointsの公開API経由かを決め、許可取消後の公開条件と併せて確定する。
+- seller/buyerの外部アカウント情報はAccountsが証明・管理する情報を取得し、提供を許可されたサービス名、ユーザー名・表示名、固有ID・プロフィールURLのうち、[Accountsの提供項目](../../../../../accounts-web-app/docs/specification/v0.1/main.md#管理画面と監査)に限って表示する。Markets側の接続設計で、Marketsへの提供許可による直接取得かPointsの公開API経由かを決め、許可取消後の公開条件と併せて確定する。
 - 通常proofは全員が閲覧できる。seller/buyer限定proofはv0.2で実装しない。
 - immutable proof本体とmutable reviewを別resourceにする。`GET /api/v1/proofs/{proofId}`のcontent hash、ETag、`Cache-Control: public, max-age=31536000, immutable`はreviewを含めず、review作成・更新で変化させない。
 - sellerとbuyerは相互に1〜5、任意comment、任意`completionProofUrl`を記録できる。commentはNFC／LF正規化後0〜2,000 Unicode code pointかつUTF-8最大8,000 bytes、LFとtab以外のcontrol文字を拒否する。`completionProofUrl`は0件または1件、最大2,048 UTF-8 bytesのcanonical HTTPS URLとし、userinfo／fragment／control文字を拒否する。空文字は`null`へ正規化する。本人の取引だけに方向ごと1件のcurrent reviewを持ち、更新はappend-only revisionを追加してcurrent pointerを進める。proof rowを更新しない。

@@ -107,7 +107,7 @@ export function createPointsAuthOptions(
     plugins: [
       jwt({
         disableSettingJwtHeader: true,
-        jwt: { issuer: `${config.APP_ORIGIN}/api/auth` },
+        jwt: { issuer: config.APP_ORIGIN },
         jwks: { keyPairConfig: { alg: "EdDSA" } },
       }),
       createPointsOAuthProvider(config),

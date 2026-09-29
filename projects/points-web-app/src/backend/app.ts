@@ -24,6 +24,7 @@ import { registerPublicRoutes } from "./http/routes/public-routes";
 import { registerReconciliationRoutes } from "./http/routes/reconciliation-routes";
 import { registerTransactionRoutes } from "./http/routes/transaction-routes";
 import { registerUnclaimedFixRoutes } from "./http/routes/unclaimed-fix-routes";
+import { registerWellKnownRoutes } from "./http/routes/well-known-routes";
 import type { GetSession } from "./http/middleware/session-middleware";
 
 export interface PointsBackendDependencies {
@@ -51,6 +52,7 @@ export function createPointsBackendApp(
       reportFailure: createAccountsFailureReporter(bindings),
     });
   registerAuthRoutes(app);
+  registerWellKnownRoutes(app);
   registerAccountRoutes(app, dependencies.getSession, { accountsRecipientResolverFor });
   registerEvaluationRoutes(app);
   registerEvaluationImportRoutes(app, dependencies.getSession);

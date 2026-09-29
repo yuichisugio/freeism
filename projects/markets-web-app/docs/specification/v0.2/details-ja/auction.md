@@ -9,6 +9,7 @@ DEC-262により、出品は独立Listingの作成ではなく、商材情報を
 - 一覧: `/auctions`
 - Auction CSV作成: `/auctions/import`
 - Points連携・解除・再連携: `/settings/points-connection`
+- Points提供先管理（Markets ADMIN）: `/admin/points-connections`
 - 詳細・入札: `/auctions/{auctionId}`
 - 自分の出品: `/me/auctions/created`
 - 自分の入札: `/me/auctions/bids`
@@ -51,6 +52,8 @@ DEC-262により、出品は独立Listingの作成ではなく、商材情報を
 
 CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのcode point、UTF-8 byte、HTTPS正規化境界はMarketsドメイン3.3と同じshared validatorを使う。server validation後のpreviewには、Pointsから取得したpackage component vector、計算済みpackage tick、時刻、即決、延長ruleを表示する。1件でも不正なら全件を確定しない。
 
+1回のCSV importでは`ACTIVE`なPoints提供先を1つ選び、全行のpackage検証とAuctionをその提供先へ固定する。validate要求の`X-Points-Provider-Id`を必須とし、commit bodyの`providerId`は`preview.providerId`と一致させる。Auction readは`providerId`、`providerDisplayName`、`providerOrigin`、`providerStatus`を返す。開始前PATCHのbodyに`providerId`があれば拒否し、既存Auctionの提供先を使う。
+
 確定時は参照したpackage revisionが存在し、同じcontent hashかつ履歴`status=ACTIVE`であることを再確認する。それだけを現在のAuction利用可否とは扱わず、server再parse後の全rowをPointsのM2M `checkPointPackageAuctionEligibility`へ送り、現在のPackage lifecycleがACTIVEである30秒receiptを全件分取得する。開始前PATCHも同じ条件を使う。Markets D1 commitは`serverNow < validUntil`で開始し、receipt／eligibility version／検査時刻／期限／commit開始時刻を`auctionRevision`へsnapshotする。確定後にINACTIVEとなった既存Auctionと精算は継続し、Points障害時や新規作成時に古い任意packageへfallbackしない。
 
 1,000行の確定は巨大multi-value SQLや1行1queryを使わない。validation済みrowをUTF-8 1,500,000 bytes以下のcanonical JSON chunkへ分け、各固定SQLが1 chunkを`json_each(?)`でset-based展開する。全Auction、Auction revision、snapshot、idempotency、audit statementを100以下の同じD1 `batch()`へ入れ、1 statement失敗時は全件rollbackする。5MiB／1,000行を実D1 runtimeで30秒以内に処理できることをintegration testで固定する。
@@ -64,23 +67,26 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 
 ## 4. 詳細画面
 
-- Auction revisionの商材情報、seller、package snapshot
+- Auction revisionの商材情報、seller、package snapshot、提供先の表示名とorigin
 - server基準の状態と残り時間
 - 販売数量、provisional ranking/allocation
 - uniform priceの説明と現在の参考値
 - 自分のmanual bid、希望quantity、AutoBid上限の本人専用表示
 - bid履歴。AutoBid上限は非表示
 - watchlist button
-- Points連携状態と、未連携時の明示link導線
+- このAuctionの提供先と、その提供先に対する本人の連携状態・明示link導線
+- 提供先が`STOPPED`の場合は停止状態を表示し、入札・即時購入操作を無効化
 - WebSocket接続状態、最終`auctionVersion`/`bidSeq`、再同期状態
 
 通信断時も古い画面からblind bidを送らず、HTTP snapshot再取得後にexpected version付きで送る。
 
 ### Points連携画面
 
-- `/settings/points-connection`はlink／relink／unlinkの対象Pointsアカウントと現在statusを表示する。linkとrelinkを暗黙実行せず、利用者の開始操作とcallback後の明示confirm POSTを要求する。
+- `/settings/points-connection`は提供先ごとにlink／relink／unlinkの対象Pointsアカウントと現在statusを表示する。linkとrelinkを暗黙実行せず、利用者の開始操作とcallback後の明示confirm POSTを要求する。
 - unlinkは15分以内のGoogle freshを要求し、callback後はpending確認画面を表示するだけとする。明示confirm POSTが`409 ACTIVE_RESERVATION_EXISTS`なら連携をACTIVEのまま保ち、Points receipt受領後だけ`UNLINKED`を表示する。
 - provider側失効による`REAUTH_REQUIRED`では既存Markets userのrelink導線を表示する。別アカウント作成やemail一致linkへ誘導しない。
+- `STOPPED`提供先の既存連携は再認可と解除を扱う。`REAUTH_REQUIRED`連携の解除は再連携後に行う。
+- Markets ADMINの`/admin/points-connections`は提供先の一覧、origin登録、Client ID入力と有効化、停止を扱う。公開JWK SetとMarketsのlink・unlink用callback URL 2件を表示し、秘密鍵やtokenは表示しない。
 
 ## 5. bid API
 

@@ -222,6 +222,7 @@ export const finalizeLinkAttemptResponseSchema = envelope(
       marketsPointsConnectionId: opaqueIdSchema,
       outcome: v.literal("CONFIRM"),
       grantStatus: v.literal("ACTIVE"),
+      grantVersion: positiveSafeIntegerSchema,
       finalizedAt: utcInstantSchema,
     }),
     v.strictObject({

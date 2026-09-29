@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
@@ -105,6 +106,7 @@ describe("Markets ops monitor", () => {
     const auctionId = `auction_${suffix}`;
     const settlementId = `settlement_${suffix}`;
     const outboxId = `outbox_${suffix}`;
+    await seedPointsProvider(env.DB);
     await env.DB.batch([
       env.DB.prepare("INSERT INTO user (id, name, email) VALUES (?, 'Seller', ?)").bind(
         authUserId,
@@ -115,8 +117,8 @@ describe("Markets ops monitor", () => {
         authUserId,
       ),
       env.DB.prepare(
-        "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'CLOSING', 1)",
-      ).bind(auctionId, marketsUserId),
+        "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'CLOSING', 1)",
+      ).bind(auctionId, testPointsProviderId, marketsUserId),
       env.DB.prepare(
         `INSERT INTO settlements
            (id, auction_id, kind, source_key, saga_state, current_plan_id, updated_at)

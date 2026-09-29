@@ -8,6 +8,7 @@ import { verifyPointsResourceRequest } from "../../src/backend/auth/resource-tok
 import type { BackendContext, Bindings } from "../../src/backend/http/context";
 import { registerOAuthResourceRoutes } from "../../src/backend/http/routes/oauth-resource-routes";
 import { seedPointsUser } from "../support/accounts-worker-setup";
+import { createDpopTestProof, generateDpopTestKey } from "../support/points-dpop";
 
 const db = env.DB!;
 const origin = "http://localhost:3000";
@@ -44,12 +45,14 @@ describe("Points private_key_jwt M2M JWT", () => {
     ])) as CryptoKeyPair;
     const { kty, crv, x } = (await crypto.subtle.exportKey("jwk", keyPair.publicKey)) as JsonWebKey;
     const kid = crypto.randomUUID();
+    const dpopKey = await generateDpopTestKey();
     const client = await auth.api.adminCreateOAuthClient({
       headers: new Headers({ Cookie: cookie, Origin: origin }),
       body: {
         client_name: "Markets",
         redirect_uris: ["https://markets.example.test/callback"],
         token_endpoint_auth_method: "private_key_jwt",
+        dpop_bound_access_tokens: true,
         jwks: { keys: [{ kty, crv, x, kid, alg: "EdDSA", use: "sig" }] },
         application_type: "web",
         grant_types: ["authorization_code", "client_credentials"],
@@ -92,13 +95,16 @@ describe("Points private_key_jwt M2M JWT", () => {
           scope: "points.reservations.status",
           resource,
         }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          DPoP: await createDpopTestProof(dpopKey, { method: "POST", url: tokenEndpoint }),
+        },
         method: "POST",
       }),
     );
     expect(tokenResponse.status).toBe(200);
     const token = (await tokenResponse.json()) as { access_token: string; token_type: string };
-    expect(token.token_type.toLowerCase()).toBe("bearer");
+    expect(token.token_type).toBe("DPoP");
 
     const originalFetch = globalThis.fetch;
     const jwksFetch = vi.spyOn(globalThis, "fetch").mockImplementation((input, init) => {
@@ -110,21 +116,62 @@ describe("Points private_key_jwt M2M JWT", () => {
       return originalFetch(input, init);
     });
     try {
-      const principal = await verifyPointsResourceRequest(
-        new Request(`${resource}/point-reservations/status`, {
-          headers: { Authorization: `Bearer ${token.access_token}` },
-        }),
-        {
-          allowedScopes: pointsOAuthScopes.M2M,
-          audience: resource,
-          db,
-          issuer: `${origin}/api/auth`,
-          jwksUrl: `${origin}/api/auth/jwks`,
-          kind: "M2M",
+      const resourceRequest = new Request(`${resource}/point-reservations/status`, {
+        method: "POST",
+        headers: {
+          Authorization: `DPoP ${token.access_token}`,
+          DPoP: await createDpopTestProof(dpopKey, {
+            method: "POST",
+            url: `${resource}/point-reservations/status`,
+            accessToken: token.access_token,
+          }),
         },
-        ["points.reservations.status"],
-      );
+      });
+      const resourceConfig = {
+        allowedScopes: pointsOAuthScopes.M2M,
+        audience: resource,
+        auth,
+        db,
+        issuer: origin,
+        jwksUrl: `${origin}/api/auth/jwks`,
+        kind: "M2M" as const,
+      };
+      const principal = await verifyPointsResourceRequest(resourceRequest, resourceConfig, [
+        "points.reservations.status",
+      ]);
       expect(principal).toMatchObject({ clientId: client.client_id, kind: "M2M" });
+      await expect(
+        verifyPointsResourceRequest(resourceRequest, resourceConfig, [
+          "points.reservations.status",
+        ]),
+      ).rejects.toThrow("INVALID_ACCESS_TOKEN");
+      await expect(
+        verifyPointsResourceRequest(
+          new Request(resourceRequest.url, {
+            method: "POST",
+            headers: {
+              Authorization: `DPoP ${token.access_token}`,
+              DPoP: await createDpopTestProof(await generateDpopTestKey(), {
+                method: "POST",
+                url: resourceRequest.url,
+                accessToken: token.access_token,
+              }),
+            },
+          }),
+          resourceConfig,
+          ["points.reservations.status"],
+        ),
+      ).rejects.toThrow("INVALID_ACCESS_TOKEN");
+      await expect(
+        verifyPointsResourceRequest(
+          new Request(resourceRequest.url, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token.access_token}` },
+          }),
+          resourceConfig,
+          ["points.reservations.status"],
+        ),
+      ).rejects.toThrow("INVALID_ACCESS_TOKEN");
 
       const app = new Hono<BackendContext>();
       registerOAuthResourceRoutes(app);
@@ -133,7 +180,12 @@ describe("Points private_key_jwt M2M JWT", () => {
         {
           body: JSON.stringify({ lookupBy: "POINT_RESERVATION_ID", pointReservationIds: [] }),
           headers: {
-            Authorization: `Bearer ${token.access_token}`,
+            Authorization: `DPoP ${token.access_token}`,
+            DPoP: await createDpopTestProof(dpopKey, {
+              method: "POST",
+              url: `${resource}/point-reservations/status`,
+              accessToken: token.access_token,
+            }),
             "Content-Type": "application/json",
           },
           method: "POST",
@@ -142,6 +194,38 @@ describe("Points private_key_jwt M2M JWT", () => {
       );
       expect(resourceResponse.status).toBe(422);
       await expect(resourceResponse.json()).resolves.toMatchObject({ code: "VALIDATION_FAILED" });
+      const bearerResponse = await app.request(
+        `${resource}/point-reservations/status`,
+        {
+          body: JSON.stringify({ lookupBy: "POINT_RESERVATION_ID", pointReservationIds: [] }),
+          headers: { Authorization: `Bearer ${token.access_token}` },
+          method: "POST",
+        },
+        env as Bindings,
+      );
+      expect(bearerResponse.status).toBe(401);
+      expect(bearerResponse.headers.get("WWW-Authenticate")).toMatch(/^DPoP /);
+      await db
+        .prepare("UPDATE oauth_client SET disabled = 1 WHERE client_id = ?")
+        .bind(client.client_id)
+        .run();
+      await expect(
+        verifyPointsResourceRequest(
+          new Request(resourceRequest.url, {
+            method: "POST",
+            headers: {
+              Authorization: `DPoP ${token.access_token}`,
+              DPoP: await createDpopTestProof(dpopKey, {
+                method: "POST",
+                url: resourceRequest.url,
+                accessToken: token.access_token,
+              }),
+            },
+          }),
+          resourceConfig,
+          ["points.reservations.status"],
+        ),
+      ).rejects.toThrow("INVALID_ACCESS_TOKEN");
     } finally {
       jwksFetch.mockRestore();
     }

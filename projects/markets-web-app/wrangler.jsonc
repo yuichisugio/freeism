@@ -16,20 +16,16 @@
     "APP_ORIGIN": "http://localhost:3001",
     "OPS_ALERT_FROM": "alerts@example.test",
     "OPS_ALERT_TO": "ops@example.test",
-    "POINTS_AUDIENCE": "http://localhost:3000/api/v1",
-    "POINTS_ISSUER": "http://localhost:3000/api/auth",
   },
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRETS",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
-      "POINTS_CLIENT_ID",
-      "POINTS_CLIENT_PRIVATE_KEY_JWK",
+      "POINTS_KEY_ENCRYPTION_KEY",
     ],
   },
   "d1_databases": [{ "binding": "DB", "migrations_dir": "drizzle" }],
-  "services": [{ "binding": "POINTS_SERVICE", "service": "points-worker" }],
   "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "markets_ops_local" }],
   "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@example.test" }],
   "durable_objects": {
@@ -69,16 +65,13 @@
         "APP_ORIGIN": "https://staging.markets.freeism.app",
         "OPS_ALERT_FROM": "alerts@freeism.app",
         "OPS_ALERT_TO": "ops@freeism.app",
-        "POINTS_AUDIENCE": "https://staging.points.freeism.app/api/v1",
-        "POINTS_ISSUER": "https://staging.points.freeism.app/api/auth",
       },
       "secrets": {
         "required": [
           "BETTER_AUTH_SECRETS",
           "GOOGLE_CLIENT_ID",
           "GOOGLE_CLIENT_SECRET",
-          "POINTS_CLIENT_ID",
-          "POINTS_CLIENT_PRIVATE_KEY_JWK",
+          "POINTS_KEY_ENCRYPTION_KEY",
         ],
       },
       "d1_databases": [
@@ -89,7 +82,6 @@
           "migrations_dir": "drizzle",
         },
       ],
-      "services": [{ "binding": "POINTS_SERVICE", "service": "points-worker-staging" }],
       "analytics_engine_datasets": [{ "binding": "OPS_METRICS", "dataset": "markets_ops_staging" }],
       "send_email": [{ "name": "OPS_ALERT_EMAIL", "destination_address": "ops@freeism.app" }],
       "durable_objects": {
@@ -124,16 +116,13 @@
         "APP_ORIGIN": "https://markets.freeism.app",
         "OPS_ALERT_FROM": "alerts@freeism.app",
         "OPS_ALERT_TO": "ops@freeism.app",
-        "POINTS_AUDIENCE": "https://points.freeism.app/api/v1",
-        "POINTS_ISSUER": "https://points.freeism.app/api/auth",
       },
       "secrets": {
         "required": [
           "BETTER_AUTH_SECRETS",
           "GOOGLE_CLIENT_ID",
           "GOOGLE_CLIENT_SECRET",
-          "POINTS_CLIENT_ID",
-          "POINTS_CLIENT_PRIVATE_KEY_JWK",
+          "POINTS_KEY_ENCRYPTION_KEY",
         ],
       },
       "d1_databases": [
@@ -144,7 +133,6 @@
           "migrations_dir": "drizzle",
         },
       ],
-      "services": [{ "binding": "POINTS_SERVICE", "service": "points-worker-production" }],
       "analytics_engine_datasets": [
         { "binding": "OPS_METRICS", "dataset": "markets_ops_production" },
       ],

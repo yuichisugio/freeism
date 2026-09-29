@@ -31,23 +31,28 @@
     }
   ],
   "x-freeism-oauth-contract": {
-    "issuer": "https://points.freeism.app/api/auth",
+    "issuer": "https://points.freeism.app",
     "jwksEndpoint": "https://points.freeism.app/api/auth/jwks",
     "accessTokenFormat": "jwt",
     "accessTokenMaxTtlSeconds": 900,
     "clientAuthentication": "private_key_jwt",
+    "accessTokenAuthorizationScheme": "DPoP",
+    "dpopSigningAlgorithm": "EdDSA",
+    "dpopBoundAccessTokensRequired": true,
     "idTokenAcceptedAsResourceBearer": false,
     "userPrincipal": "verified issuer, audience, expiry, client, scope, Points auth user subject and active connection",
     "m2mPrincipal": "verified issuer, audience, expiry, client, M2M scope and subject equal to client ID",
     "rejectCrossClientEnvironmentInactiveOrInsufficientScope": true
   },
   "x-freeism-standard-oauth-endpoints": {
-    "issuer": "https://points.freeism.app/api/auth",
+    "issuer": "https://points.freeism.app",
     "authorization": "https://points.freeism.app/api/auth/oauth2/authorize",
     "token": "https://points.freeism.app/api/auth/oauth2/token",
     "introspection": "https://points.freeism.app/api/auth/oauth2/introspect",
     "revocation": "https://points.freeism.app/api/auth/oauth2/revoke",
-    "discovery": "https://points.freeism.app/api/auth/.well-known/openid-configuration",
+    "discovery": "https://points.freeism.app/.well-known/openid-configuration",
+    "authorizationServerMetadata": "https://points.freeism.app/.well-known/oauth-authorization-server",
+    "protectedResourceMetadata": "https://points.freeism.app/.well-known/oauth-protected-resource/api/v1",
     "customFallbackForbidden": true,
     "liveFeasibilityGate": "Task 6A"
   },
@@ -2018,6 +2023,10 @@
             "type": "string",
             "const": "ACTIVE"
           },
+          "grantVersion": {
+            "type": "integer",
+            "minimum": 1
+          },
           "finalizedAt": {
             "$ref": "#/components/schemas/UtcInstant"
           }
@@ -2028,6 +2037,7 @@
           "marketsPointsConnectionId",
           "outcome",
           "grantStatus",
+          "grantVersion",
           "finalizedAt"
         ]
       },

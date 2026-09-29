@@ -1,4 +1,7 @@
 import { oauthProviderResourceClient } from "@better-auth/oauth-provider/resource-client";
+import { createDpopReplayStore, parseAccessTokenAuthorization } from "better-auth/oauth2";
+
+import type { createPointsAuth } from "./create-auth";
 
 type AccessTokenPayload = Record<string, unknown> & {
   client_id?: unknown;
@@ -10,6 +13,7 @@ type AccessTokenPayload = Record<string, unknown> & {
 export interface PointsOAuthResourceConfig {
   allowedScopes: readonly string[];
   audience: string;
+  auth?: ReturnType<typeof createPointsAuth>;
   db: D1Database;
   issuer: string;
   jwksUrl: string;
@@ -39,6 +43,7 @@ type VerifyResourceRequest = (
     jwksUrl: string;
     requiredScopes: string[];
     verifyOptions: { audience: string; issuer: string };
+    dpop?: { replayStore: ReturnType<typeof createDpopReplayStore>; signingAlgorithms: string[] };
   },
 ) => Promise<AccessTokenPayload>;
 
@@ -58,17 +63,24 @@ export async function verifyPointsResourceRequest(
   requiredScopes: readonly string[],
   verify: VerifyResourceRequest = standardResourceClient.verifyAccessTokenRequest,
 ): Promise<PointsOAuthPrincipal> {
-  const authorization = request.headers.get("authorization") ?? "";
-  if (!/^Bearer \S+\.\S+\.\S+$/.test(authorization)) {
+  const authorization = parseAccessTokenAuthorization(request.headers.get("authorization"));
+  if (authorization?.scheme !== "DPoP" || !/^\S+\.\S+\.\S+$/.test(authorization.token)) {
     throw new Error("INVALID_ACCESS_TOKEN");
+  }
+  if (!config.auth && verify === standardResourceClient.verifyAccessTokenRequest) {
+    throw new Error("DPOP_REPLAY_STORE_REQUIRED");
   }
 
   let payload: AccessTokenPayload;
   try {
+    const replayStore = config.auth
+      ? createDpopReplayStore((await config.auth.$context).internalAdapter)
+      : undefined;
     payload = await verify(request, {
       jwksUrl: config.jwksUrl,
       requiredScopes: [...requiredScopes],
       verifyOptions: { audience: config.audience, issuer: config.issuer },
+      ...(replayStore ? { dpop: { replayStore, signingAlgorithms: ["EdDSA"] } } : {}),
     });
   } catch {
     throw new Error("INVALID_ACCESS_TOKEN");

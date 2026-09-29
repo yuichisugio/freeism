@@ -1,11 +1,15 @@
 import { env } from "cloudflare:test";
 import { beforeAll, describe, expect, it, vi } from "vite-plus/test";
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 
 import {
   commitAuctionImport,
   type CommitAuctionImportDependencies,
 } from "../../src/backend/auction/import/commit-auction-import";
-import type { AuctionImportPreview } from "../../src/backend/auction/import/validate-auction-import";
+import {
+  calculateAuctionCommandIdentity,
+  type AuctionImportPreview,
+} from "../../src/backend/auction/import/validate-auction-import";
 import { D1AuctionRepository } from "../../src/backend/db/d1-auction-repository";
 import type { MarketsActor } from "../../src/backend/http/context";
 
@@ -42,11 +46,12 @@ const snapshot = {
   ],
 };
 
-function preview(title = "Auction one"): AuctionImportPreview {
-  return {
+async function preview(title = "Auction one"): Promise<AuctionImportPreview> {
+  const result: AuctionImportPreview = {
+    providerId: testPointsProviderId,
     fileHash: `sha256:${"b".repeat(64)}`,
-    auctionCommandId: "acmd_82e5773ebf844251ed6740bb719a936f",
-    auctionCommandHash: "sha256:82e5773ebf844251ed6740bb719a936fb1db6e2d3c91016a7ade236888218347",
+    auctionCommandId: "",
+    auctionCommandHash: "",
     rows: [
       {
         clientRowId: "row-1",
@@ -68,6 +73,15 @@ function preview(title = "Auction one"): AuctionImportPreview {
       },
     ],
   };
+  const {
+    eligible: _eligible,
+    packageEligibilityVersion: _version,
+    ...commandRow
+  } = result.rows[0]!;
+  return {
+    ...result,
+    ...(await calculateAuctionCommandIdentity([commandRow], testPointsProviderId)),
+  };
 }
 
 function dependencies(
@@ -75,6 +89,7 @@ function dependencies(
 ): CommitAuctionImportDependencies {
   return {
     repository: new D1AuctionRepository(env.DB!),
+    pointsIssuer: "https://points.example.test/api/auth",
     now: () => now,
     refreshPackage: async () => snapshot,
     checkEligibility: async (request) => ({
@@ -93,6 +108,7 @@ function dependencies(
 }
 
 beforeAll(async () => {
+  await seedPointsProvider(env.DB!);
   await env.DB!.batch([
     env
       .DB!.prepare("INSERT INTO user (id, name, email) VALUES (?, ?, ?)")
@@ -115,8 +131,9 @@ describe("Auction import commit", () => {
     const result = await commitAuctionImport(
       {
         actor,
+        providerId: testPointsProviderId,
         idempotencyKey: `commit-${crypto.randomUUID()}`,
-        preview: preview(),
+        preview: await preview(),
         sellerIdentitySnapshot: actor,
       },
       deps,
@@ -153,7 +170,13 @@ describe("Auction import commit", () => {
     const checkEligibility = vi.fn(dependencies().checkEligibility);
     const deps = dependencies({ checkEligibility });
     const idempotencyKey = `replay-${crypto.randomUUID()}`;
-    const input = { actor, idempotencyKey, preview: preview(), sellerIdentitySnapshot: actor };
+    const input = {
+      actor,
+      providerId: testPointsProviderId,
+      idempotencyKey,
+      preview: await preview(),
+      sellerIdentitySnapshot: actor,
+    };
 
     const first = await commitAuctionImport(input, deps);
     const replay = await commitAuctionImport(input, deps);
@@ -161,7 +184,7 @@ describe("Auction import commit", () => {
     expect(replay).toEqual(first);
     expect(checkEligibility).toHaveBeenCalledTimes(1);
     await expect(
-      commitAuctionImport({ ...input, preview: preview("Changed") }, deps),
+      commitAuctionImport({ ...input, preview: await preview("Changed") }, deps),
     ).rejects.toMatchObject({ code: "IDEMPOTENCY_KEY_REUSED" });
   });
 
@@ -176,8 +199,9 @@ describe("Auction import commit", () => {
       commitAuctionImport(
         {
           actor,
+          providerId: testPointsProviderId,
           idempotencyKey: `changed-${crypto.randomUUID()}`,
-          preview: preview(),
+          preview: await preview(),
           sellerIdentitySnapshot: actor,
         },
         changed,
@@ -197,8 +221,9 @@ describe("Auction import commit", () => {
       commitAuctionImport(
         {
           actor,
+          providerId: testPointsProviderId,
           idempotencyKey: `expired-${crypto.randomUUID()}`,
-          preview: preview(),
+          preview: await preview(),
           sellerIdentitySnapshot: actor,
         },
         expired,
@@ -214,7 +239,7 @@ describe("Auction import commit", () => {
     ["http URL", { externalUrl: "http://example.test/item" }],
     ["reversed dates", { endsAt: "2030-01-01T00:00:00.000Z" }],
   ])("revalidates client preview fields: %s", async (_label, mutation) => {
-    const original = preview();
+    const original = await preview();
     const candidate = { ...original, rows: [{ ...original.rows[0]!, ...mutation }] };
     const checkEligibility = vi.fn(dependencies().checkEligibility);
 
@@ -222,6 +247,7 @@ describe("Auction import commit", () => {
       commitAuctionImport(
         {
           actor,
+          providerId: testPointsProviderId,
           idempotencyKey: `invalid-${crypto.randomUUID()}`,
           preview: candidate,
           sellerIdentitySnapshot: actor,
@@ -233,7 +259,7 @@ describe("Auction import commit", () => {
   });
 
   it("rejects a valid field replacement when the preview command identity is unchanged", async () => {
-    const original = preview();
+    const original = await preview();
     const candidate = {
       ...original,
       rows: [{ ...original.rows[0]!, title: "A different valid auction title" }],
@@ -247,6 +273,7 @@ describe("Auction import commit", () => {
       commitAuctionImport(
         {
           actor,
+          providerId: testPointsProviderId,
           idempotencyKey: `command-changed-${crypto.randomUUID()}`,
           preview: candidate,
           sellerIdentitySnapshot: actor,

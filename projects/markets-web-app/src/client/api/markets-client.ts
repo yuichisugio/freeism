@@ -15,38 +15,52 @@ export class MarketsApiError extends Error {
   }
 }
 
-export type PublicAuctionStatus = "SCHEDULED" | "OPEN" | "CLOSED" | "SETTLING" | "SETTLED";
+export type PublicAuctionStatus =
+  | "DRAFT"
+  | "SCHEDULED"
+  | "OPEN"
+  | "CLOSING"
+  | "SETTLING"
+  | "SETTLED"
+  | "SETTLEMENT_RETRYABLE"
+  | "SETTLEMENT_MANUAL_ACTION_REQUIRED"
+  | "CANCELLED";
 
 export interface PublicAuctionCard {
   auctionId: string;
-  auctionVersion: number;
+  providerId: string;
+  providerDisplayName: string;
+  providerOrigin: string;
+  providerStatus: "ACTIVE" | "STOPPED" | "PENDING_CLIENT_REGISTRATION";
+  version: number;
   buyNowPriceTickCount: number | null;
-  descriptionSummary: string;
+  description: string;
   endsAt: string;
+  externalUrl: string;
   packageTick: number;
-  pointPackage: { name: string };
-  provisionalAllocatedQuantity: number;
-  publicPriceTickCount: number;
+  pointPackageId: string;
+  pointPackageName: string;
+  pointPackageRevisionId: string;
   quantity: number;
+  seller: { displayName?: string; marketsUserId?: string };
   startsAt: string;
   status: PublicAuctionStatus;
   title: string;
 }
 
 export interface PublicAuctionSnapshot extends PublicAuctionCard {
+  allocations: readonly { quantity: number }[];
   availableQuantity: number;
-  bidSeq: number;
-  description: string;
-  externalUrl: string;
+  events: readonly { bidSeq: number; priceTickCount: number }[];
+  provisionalAllocatedQuantity: number;
+  publicPriceTickCount: number;
 }
 
-export interface PrivateAuctionSnapshot {
-  auction: PublicAuctionSnapshot;
+export interface PrivateAuctionSnapshot extends PublicAuctionSnapshot {
   viewer: {
-    autoBidMaxTickCount: number | null;
-    manualBid: { priceTickCount: number; quantity: number } | null;
-    pointsConnectionStatus: "ACTIVE" | "NOT_LINKED" | "REAUTH_REQUIRED";
+    isSeller: boolean;
     watching: boolean;
+    autoBidMaxTickCount: number | null;
   };
 }
 
@@ -66,19 +80,43 @@ export interface AuctionListFilters {
   status: PublicAuctionStatus | null;
 }
 
+export interface PointsProvider {
+  providerId: string;
+  displayName: string;
+  origin: string;
+  status: "ACTIVE" | "STOPPED" | "PENDING_CLIENT_REGISTRATION";
+}
+
+export interface AdminPointsProvider extends PointsProvider {
+  issuer: string;
+  resource: string;
+  clientId: string | null;
+  publicJwks: { keys: readonly Record<string, unknown>[] };
+  callbackUrls: { link: string; unlink: string };
+  createdAt: string;
+  activatedAt: string | null;
+  stoppedAt: string | null;
+}
+
 export interface PointsConnectionPageState {
-  pendingAction: {
-    expiresAt: string;
-    kind: "LINK_CONFIRM" | "UNLINK_CONFIRM";
-    pendingId: string;
+  providerId: string;
+  displayName: string;
+  status: "ACTIVE" | "STOPPED";
+  connection: {
+    id: string;
+    status: "PENDING_CONFIRMATION" | "ACTIVE" | "REAUTH_REQUIRED";
+    pendingAction?: {
+      expiresAt: number;
+      kind: "LINK" | "UNLINK";
+      pendingId: string;
+    };
   } | null;
-  pointsConnectionId: string | null;
-  status: "PENDING_CONFIRMATION" | "ACTIVE" | "REAUTH_REQUIRED" | "UNLINKED";
 }
 
 export interface AuctionImportPreview {
   auctionCommandId: string;
   fileHash: string;
+  providerId: string;
   rows: readonly Record<string, unknown>[];
 }
 
@@ -138,7 +176,7 @@ function isEnvelope<T>(value: unknown): value is Envelope<T> {
   return typeof value === "object" && value !== null && "data" in value;
 }
 
-function idempotencyHeaders(request: MutationRequest): HeadersInit {
+function idempotencyHeaders(request: MutationRequest): Record<string, string> {
   return {
     "Idempotency-Key": request.idempotencyKey,
   };
@@ -156,6 +194,26 @@ function jsonInit(method: string, body: unknown, request?: MutationRequest): Req
 }
 
 export interface MarketsClient {
+  adminPointsProviders(): Promise<readonly AdminPointsProvider[]>;
+  activatePointsProvider(
+    providerId: string,
+    clientId: string,
+    reason: string,
+    request: MutationRequest,
+  ): Promise<AdminPointsProvider>;
+  createPointsProvider(
+    origin: string,
+    displayName: string,
+    reason: string,
+    request: MutationRequest,
+  ): Promise<AdminPointsProvider>;
+  stopPointsProvider(
+    providerId: string,
+    reason: string,
+    request: MutationRequest,
+  ): Promise<AdminPointsProvider>;
+  pointsProviders(): Promise<readonly PointsProvider[]>;
+  session(): Promise<{ user?: { role?: string | null } } | null>;
   auction(id: string): Promise<PublicAuctionSnapshot>;
   auctions(filters: AuctionListFilters): Promise<CursorPage<PublicAuctionCard>>;
   bid(
@@ -185,14 +243,20 @@ export interface MarketsClient {
     kind: "created" | "bids" | "won",
     cursor?: string | null,
   ): Promise<CursorPage<MyAuctionHistoryItem>>;
-  pointsConnection(): Promise<PointsConnectionPageState>;
+  pointsConnection(): Promise<readonly PointsConnectionPageState[]>;
   privateAuction(id: string): Promise<PrivateAuctionSnapshot>;
   proof(id: string): Promise<PublicAuctionProof>;
   proofReviews(id: string): Promise<readonly PublicProofReview[]>;
   settlement(id: string): Promise<SafeSettlementStatus>;
-  startGoogleLogin(): Promise<{ url: string }>;
-  startPointsConnection(request: MutationRequest): Promise<{ authorizationUrl: string }>;
+  startGoogleLogin(
+    callbackURL?: "/auctions" | "/admin/points-connections",
+  ): Promise<{ url: string }>;
+  startPointsConnection(
+    providerId: string,
+    request: MutationRequest,
+  ): Promise<{ authorizationUrl: string }>;
   startPointsUnlink(
+    providerId: string,
     reason: string,
     request: MutationRequest,
   ): Promise<{ authorizationUrl: string }>;
@@ -201,7 +265,11 @@ export interface MarketsClient {
     reason: string,
     request: MutationRequest,
   ): Promise<{ authorizationUrl: string }>;
-  validateAuctionImport(file: File, request: MutationRequest): Promise<AuctionImportPreview>;
+  validateAuctionImport(
+    file: File,
+    providerId: string,
+    request: MutationRequest,
+  ): Promise<AuctionImportPreview>;
   watch(id: string, watching: boolean): Promise<{ auctionId: string; watching: boolean }>;
 }
 
@@ -250,6 +318,24 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
   }
 
   return {
+    adminPointsProviders: () => request("/api/admin/points-connections"),
+    activatePointsProvider: (providerId, clientId, reason, operation) =>
+      request(
+        `/api/admin/points-connections/${encodeURIComponent(providerId)}/activate`,
+        jsonInit("POST", { clientId, reason }, operation),
+      ),
+    createPointsProvider: (origin, displayName, reason, operation) =>
+      request(
+        "/api/admin/points-connections",
+        jsonInit("POST", { origin, displayName, reason }, operation),
+      ),
+    stopPointsProvider: (providerId, reason, operation) =>
+      request(
+        `/api/admin/points-connections/${encodeURIComponent(providerId)}/stop`,
+        jsonInit("POST", { reason }, operation),
+      ),
+    pointsProviders: () => request("/api/points-providers"),
+    session: () => request("/api/auth/get-session"),
     auction: (id) => request(`/api/v1/auctions/${encodeURIComponent(id)}`),
     auctions: (filters) => {
       const query = new URLSearchParams({ limit: "20" });
@@ -278,7 +364,10 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
         ),
       ),
     commitAuctionImport: (preview, operation) =>
-      request("/api/auctions/import/commit", jsonInit("POST", { preview }, operation)),
+      request(
+        "/api/auctions/import/commit",
+        jsonInit("POST", { providerId: preview.providerId, preview }, operation),
+      ),
     confirmPointsConnection: (pendingId, operation) =>
       request("/api/points-connection/confirm", jsonInit("POST", { pendingId }, operation)),
     confirmPointsUnlink: (pendingId, operation) =>
@@ -293,31 +382,38 @@ export function createMarketsClient(fetcher: FetchLike = fetch): MarketsClient {
     proof: (id) => request(`/api/v1/proofs/${encodeURIComponent(id)}`),
     proofReviews: (id) => request(`/api/v1/proofs/${encodeURIComponent(id)}/reviews`),
     settlement: (id) => request(`/api/settlements/${encodeURIComponent(id)}`),
-    startGoogleLogin: () =>
+    startGoogleLogin: (callbackURL = "/auctions") =>
       request("/api/auth/sign-in/social", {
         ...jsonInit("POST", {
-          callbackURL: "/auctions",
+          callbackURL,
           disableRedirect: true,
           provider: "google",
         }),
       }),
-    startPointsConnection: (operation) =>
-      request("/api/points-connection/start", jsonInit("POST", {}, operation)),
-    startPointsUnlink: (reason, operation) =>
-      request("/api/points-connection/unlink/start", jsonInit("POST", { reason }, operation)),
+    startPointsConnection: (providerId, operation) =>
+      request("/api/points-connection/start", jsonInit("POST", { providerId }, operation)),
+    startPointsUnlink: (providerId, reason, operation) =>
+      request(
+        "/api/points-connection/unlink/start",
+        jsonInit("POST", { providerId, reason }, operation),
+      ),
     retrySettlement: (id, reason, operation) =>
       request(
         `/api/settlements/${encodeURIComponent(id)}/retry`,
         jsonInit("POST", { reason }, operation),
       ),
-    validateAuctionImport: (file, operation) =>
+    validateAuctionImport: (file, providerId, operation) =>
       request("/api/auctions/import/validate", {
         body: file,
-        headers: { "Content-Type": "text/csv", ...idempotencyHeaders(operation) },
+        headers: {
+          "Content-Type": "text/csv",
+          "X-Points-Provider-Id": providerId,
+          ...idempotencyHeaders(operation),
+        },
         method: "POST",
       }),
     watch: (id, watching) =>
-      request(`/api/me/watchlist/${encodeURIComponent(id)}`, {
+      request(`/api/watchlist/${encodeURIComponent(id)}`, {
         method: watching ? "PUT" : "DELETE",
       }),
   };

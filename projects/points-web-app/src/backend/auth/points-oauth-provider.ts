@@ -43,6 +43,7 @@ export function createPointsOAuthProvider(config: { APP_ORIGIN: string; DB?: D1D
     clientPrivileges: ({ session }) => Boolean(session),
     clientRegistrationDefaultResources: [pointsResource],
     consentPage: "/oauth/consent",
+    dpop: { signingAlgorithms: ["EdDSA"] },
     grantTypes: ["authorization_code", "refresh_token", "client_credentials"],
     loginPage: "/login",
     m2mAccessTokenExpiresIn: 900,
@@ -51,6 +52,7 @@ export function createPointsOAuthProvider(config: { APP_ORIGIN: string; DB?: D1D
         allowedScopes: [...pointsOAuthScopes.USER, ...pointsOAuthScopes.M2M],
         identifier: pointsResource,
         name: "Points Resource API",
+        dpopBoundAccessTokensRequired: true,
       },
     ],
     ...(config.DB === undefined

@@ -6,34 +6,34 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 
 - Points D1をMarketsから直接参照しない。
 - Markets D1をPointsから直接参照しない。
-- Service Bindingの`fetch()`でHTTPS相当のHono API contractを呼ぶ。
+- Marketsが登録したPoints互換提供先のoriginへ外部`fetch()`でHono API contractを呼ぶ。
 - Pointsが所有するOpenAPIを正本にし、Marketsは生成clientを使う。MarketsがPoints backend sourceやHono RPC型を直接importしない。
 
-## 2. 1対1連携
+## 2. 提供先ごとの1対1連携
 
-1つの環境内で次を保証する。
+Marketsが登録した各提供先について次を保証する。
 
-- 1 Markets userにACTIVEなPoints連携は1件だけ。
-- 1 Points issuer/subjectにACTIVEなMarkets userは1件だけ。
+- 1 Markets userと1提供先にACTIVEなPoints連携は1件だけ。
+- 1提供先のPoints subjectにACTIVEなMarkets userは1件だけ。
 - link開始stateは現在のMarkets session、固定`/settings/points-connection`のhash、PKCE challenge、nonce、期限へserver-sideで束縛する。
 - link／unlink／relinkのreturn URLはqueryなしの固定`/settings/points-connection`とする。callerが任意return URLを指定するinterfaceを公開しない。fragment、query、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる値を拒否する。Pointsへはraw URLではなく完全一致redirect URIと固定return URL hashを渡し、callback queryのreturn URLを遷移先に使わない。
 - request bodyの任意`marketsUserId`を信用しない。
 - browser authorization前にMarkets WorkerがM2M専用Client CredentialsでPointsへlink-attemptを登録する。Pointsはopaque attempt IDを利用者用Client ID、M2M用Client ID、Markets user、state hash、PKCE challenge、redirect URI、scope、期限へ束縛し、後続の標準authorizationとapp-owned grantが同じattemptを参照する。
 - link完了時にMarketsは署名検証済み利用者JWTから得た`pointsIssuer`、`pointsSubject`、scopeをM2M finalizationへ渡す。Pointsは期待issuer、利用者用Client ID、attemptへ照合し、connectionへ利用者用Client IDと対応するM2M用Client ID、subject、grant metadataを保存する。Pointsのemailや表示名をlink keyにしない。
 - Points D1では標準OAuth開始前にapp-owned attempt／grantを`PENDING_MARKETS_CONFIRMATION`で作り、利用者用Client IDを含む`(clientId, marketsUserId)`と`(clientId, pointsUserId)`を各1件に制限する。競合loserは標準authorizationへ進めない。Better AuthのAuthorization Code／token family発行はこのapp-owned D1 transactionへ参加させず、Token交換後もResource APIはpending grantを拒否する。Markets local pending保存後のM2M finalizationでだけACTIVEにする。失敗・crash・10分TTL超過はapp-owned grantを`CANCELLED`へ進めてlive拒否する。Marketsがraw tokenを保持済みの場合だけRFC 7009 revocationをbest-effort outboxへ入れ、TTL reaperが知らないtokenは自然失効に任せる。既存grantを変更しない。
-- ACTIVEなreservationが1件でもある間は、通常のPoints–Markets unlink/relinkを拒否する。利用者がprovider側でgrantを外部失効させた場合でも、既存reservationとsettlementはM2Mでstatus/capture/releaseでき、新規balance read/reservationは拒否する。
+- ACTIVEなreservationが1件でもある間は、通常のPoints–Markets unlinkを拒否する。`REAUTH_REQUIRED`の再認可は既存connection IDと予約参照を維持する。利用者がprovider側でgrantを外部失効させた場合でも、既存reservationとsettlementはM2Mでstatus/capture/releaseでき、新規balance read/reservationは拒否する。
 - 通常unlinkは専用Authorization Code + PKCEと`points.connection.unlink`でGoogle freshを証明した後、Pointsの`deactivatePointsConnection`を呼ぶ。Pointsはapp-owned grantを認可の正本とし、ACTIVE reservation 0件のguard、grant `UNLINKED`化、revocation outbox、receipt、auditを1つのD1 transactionで確定する。Marketsは成功receipt後だけlocal rowを閉じる。
 - 外部失効はapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査でuser APIを拒否する。M2M APIはgrant statusではなく既存reservationの所有Client IDを検査してsettlementを継続する。
 
 ## 3. OAuth ClientとResource Server
 
-Pointsにログインした登録者が「開発者向け」画面でOAuth Clientを管理する。Marketsも1環境につき1件を同じ画面から登録する。入力、5件上限、所有者権限、公開鍵更新は[Accounts v0.1のOAuthクライアント管理](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用する。Marketsは`POINTS_CLIENT_ID`と`POINTS_CLIENT_PRIVATE_KEY_JWK`を自分のWorkerに保持し、`private_key_jwt`でToken endpointへ認証する。Pointsは公開JWKSを保持し、秘密鍵を受け取らない。
+Pointsにログインした登録者が「開発者向け」画面でOAuth Clientを管理する。Markets ADMINは提供先ごとに同画面からClientを登録する。入力、5件上限、所有者権限、公開鍵更新は[Accounts v0.1のOAuthクライアント管理](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用する。Marketsは提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化した秘密鍵をD1に保持し、`private_key_jwt`とDPoPで認証する。Pointsは公開JWKSを保持する。
 
-Marketsは`authorization_code`、`refresh_token`、`client_credentials`を同じClient IDで使う。linkとunlinkのcallback URLを登録し、認可要求のredirect URIは登録済みURLと完全一致させる。ローカルHTTPのloopback URLはポートだけ比較から除く。利用者委任とM2Mは別scopeとし、Client CredentialsではM2M scopeの指定とPoints API resource 1件を必須とする。
+Marketsは`authorization_code`、`refresh_token`、`client_credentials`を提供先ごとのClient IDで使う。linkの`/api/points-connection/callback`とunlinkの`/api/points-connection/unlink/callback`を登録し、認可要求のredirect URIは登録済みURLと完全一致させる。ローカルHTTPのloopback URLはポートだけ比較から除く。利用者委任とM2Mは別scopeとし、Client CredentialsではM2M scopeの指定とPoints API resource 1件を必須とする。
 
 PointsはBetter Auth 1.7.6の標準JWT Access Tokenを最長15分で発行する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとする。Points Resource APIは標準JWKSで署名を検証し、issuer、Points API audience、期限、Client ID、required scope、Clientの有効状態を検査する。利用者にはACTIVEなPoints userとapp-owned connectionを、M2MにはClient IDと既存reservationの所有権を確認する。利用者Tokenでcapture／releaseできず、M2M Tokenで残高参照・新規reserveできない。Client削除後は発行済みTokenもResource APIで拒否する。
 
-Marketsは検証済み利用者Tokenの`issuer + sub`を連携キーとして保持する。TokenはMarkets D1へ暗号化保存し、ブラウザーへ渡さない。Client assertionの秘密JWKはMarkets Worker Secretに保存し、Points D1、ブラウザー、ログ、成果物には置かない。
+Marketsは`providerId + sub`を利用者連携キーとして保持し、issuerも検証する。TokenはMarkets D1へ暗号化保存し、ブラウザーへ渡さない。Client assertionの秘密JWKはMarkets D1に暗号化して保存する。
 
 ## 4. Token保存とrefresh
 
@@ -276,7 +276,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 - token: 通常のUSER Access Token。`points.connection.read`、Points API audience、ACTIVEな連携を要求する。
 - response: `{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`。現在の`admin_membership`を照会し、非ADMINは`false`を返す。連携解除後は401。
-- `Cache-Control: private, no-store`。Marketsの手動retryはこの結果を現在の権限確認に使う。
+- `Cache-Control: private, no-store`。
 
 ### 7.2 連携解除
 
@@ -435,7 +435,7 @@ PointsはAuction rankingを再計算せず、Marketsはpoint vectorを独自再�
 - PKCE、state、redirect URI、code再利用
 - Refresh Token同時更新とrotation
 - plaintext tokenがD1 export、session、browser、logにない
-- 1対1 connectionの同時link競合
+- 提供先ごとの1対1 connectionの同時link競合と、異なる提供先の同一subject
 - M2M client-authenticated link-attempt、別Markets user／同Points userの競合、別Points user／同Markets userの競合、pending grantのResource拒否、confirm crash recovery、cancel／TTLでapp-owned grantをlive拒否しraw token保持時だけbest-effort revokeする補償
 - 通常unlinkのGoogle fresh、一回限りscope、ACTIVE reservation guard、Points receipt後のMarkets local close、revocation outbox retry、外部失効後のuser拒否／既存M2M継続
 - reservationの全component原子性、15分境界、expiry/capture競合
@@ -444,6 +444,6 @@ PointsはAuction rankingを再計算せず、Marketsはpoint vectorを独自再�
 - capture時不足の`insufficientReservationIds`がM2M／所有client／request内IDへ限定され、該当userだけの除外、旧ACTIVE全release、同cutoff再計算へ収束する。未知ID、空配列、browser／public漏えいを拒否する
 - idempotency retryとpayload conflict
 - capture後release/refund拒否
-- Service Binding経由でもOAuthなしを拒否
-- Settlement手動retryは同じPoints USER Tokenで`GET /api/v1/me/admin-membership`を呼び、現行ADMINを確認する。Marketsはseller、対象状態、理由、頻度、冪等性を検査する
+- 外部Points APIへのOAuthなし要求を拒否
+- Settlement手動retryはMarketsの`admin` roleを確認する。Marketsはseller、対象状態、理由、頻度、冪等性を検査する
 - link／unlink／relinkの固定`/settings/points-connection`、全flowのquery／fragment／credential／別host／`//`／raw・encoded backslash／control文字／double-decode拒否

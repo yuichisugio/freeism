@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env } from "cloudflare:test";
 import { describe, expect, it, vi } from "vite-plus/test";
 
@@ -27,6 +28,7 @@ async function seedSettlement(
   const settlementId = `settlement_${suffix}`;
   const planId = `plan_${suffix}`;
   const holdId = buyNow ? `hold_${suffix}` : null;
+  await seedPointsProvider(db);
   const statements = [
     db
       .prepare("INSERT INTO user (id, name, email) VALUES (?, 'Admin', ?)")
@@ -36,9 +38,9 @@ async function seedSettlement(
       .bind(marketsUserId, authUserId),
     db
       .prepare(
-        "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'CLOSING', 1)",
+        "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'CLOSING', 1)",
       )
-      .bind(auctionId, marketsUserId),
+      .bind(auctionId, testPointsProviderId, marketsUserId),
     db
       .prepare(
         `INSERT INTO settlements
@@ -50,9 +52,9 @@ async function seedSettlement(
       .prepare(
         `INSERT INTO settlement_plans
        (id, settlement_id, settlement_revision, plan_json, plan_hash, algorithm_version)
-       VALUES (?, ?, 1, '{}', ?, 'uniform-price-v1')`,
+       VALUES (?, ?, 1, ?, ?, 'uniform-price-v1')`,
       )
-      .bind(planId, settlementId, planHash),
+      .bind(planId, settlementId, JSON.stringify({ providerId: testPointsProviderId }), planHash),
   ];
   if (buyNow && holdId) {
     statements.splice(
@@ -72,7 +74,12 @@ async function seedSettlement(
          (id, settlement_id, settlement_revision, plan_json, plan_hash, algorithm_version)
          VALUES (?, ?, 1, ?, ?, 'uniform-price-v1')`,
       )
-      .bind(planId, settlementId, JSON.stringify({ buyNowHoldId: holdId }), planHash);
+      .bind(
+        planId,
+        settlementId,
+        JSON.stringify({ providerId: testPointsProviderId, buyNowHoldId: holdId }),
+        planHash,
+      );
   }
   await db.batch(statements);
   return { auctionId, authUserId, holdId, marketsUserId, planId, settlementId };
@@ -134,16 +141,20 @@ describe("settlement admin retry", () => {
     };
     const accepted = await retrySettlement(db, input);
     expect(accepted).toMatchObject({ status: "ACCEPTED", workflowAttempt: 1 });
-    const state = await db.prepare("SELECT saga_state AS sagaState FROM settlements WHERE id = ?")
-      .bind(settlement.settlementId).first<{ sagaState: string }>();
+    const state = await db
+      .prepare("SELECT saga_state AS sagaState FROM settlements WHERE id = ?")
+      .bind(settlement.settlementId)
+      .first<{ sagaState: string }>();
     expect(state?.sagaState).toBe("PLANNED");
-    await expect(validateSettlementPlan(db, {
-      auctionId: settlement.auctionId,
-      planHash,
-      settlementId: settlement.settlementId,
-      settlementRevision: 1,
-      workflowAttempt: accepted.workflowAttempt,
-    })).resolves.toMatchObject({ sagaState: "PLANNED", settlementId: settlement.settlementId });
+    await expect(
+      validateSettlementPlan(db, {
+        auctionId: settlement.auctionId,
+        planHash,
+        settlementId: settlement.settlementId,
+        settlementRevision: 1,
+        workflowAttempt: accepted.workflowAttempt,
+      }),
+    ).resolves.toMatchObject({ sagaState: "PLANNED", settlementId: settlement.settlementId });
     expect(await retrySettlement(db, input)).toEqual(accepted);
     await expect(
       retrySettlement(db, { ...input, reasonHash: `sha256:${"3".repeat(64)}` }),
@@ -167,8 +178,10 @@ describe("settlement admin retry", () => {
       settlementId: settlement.settlementId,
     };
     await expect(retrySettlement(db, input)).rejects.toThrow("SETTLEMENT_NOT_FOUND");
-    await db.prepare("UPDATE settlements SET saga_state = 'SETTLED' WHERE id = ?")
-      .bind(settlement.settlementId).run();
+    await db
+      .prepare("UPDATE settlements SET saga_state = 'SETTLED' WHERE id = ?")
+      .bind(settlement.settlementId)
+      .run();
     await expect(
       retrySettlement(db, { ...input, marketsUserId: settlement.marketsUserId }),
     ).rejects.toThrow("SETTLEMENT_RETRY_NOT_ALLOWED");

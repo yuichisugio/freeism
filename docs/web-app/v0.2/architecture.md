@@ -42,7 +42,7 @@ Pointsだけが次のデータを所有し、更新できる。
 - FIX評価結果、FIX revision、差分台帳、未受領FIX
 - `balance`、`evaluationTotal`、予約、capture/release
 - Accountsとの情報連携、照合結果に基づくPointsユーザーへのFIX帰属
-- Marketsとの1対1連携、およびPoints OAuth Provider
+- Marketsとの提供先ごとの1対1連携、およびPoints OAuth Provider
 
 Marketsはこれらを複製して正本にしない。Auction表示に必要な名称・比率・ユーザー表示情報は、不変snapshotまたはPoints APIから取得した表示用データとして保持する。
 
@@ -76,7 +76,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 - PointsとMarketsは別ユーザー・別セッション・host-only Cookieを持つ独立アプリである。
 - Marketsは独立アカウントを作り、利用者が後からPointsを明示連携する。
-- 有効なPoints–Markets連携は、各環境内で1対1とする。
+- 有効なPoints–Markets連携は、接続先ごとに1対1とする。Markets利用者は複数のPoints互換提供先へ個別に連携できる。
 - PointsのSocial Provider集合はGoogleとGitHubである。両方をログイン画面と既存ユーザーへの明示連携画面に同じように表示する。
 - Provider単位のlink-onlyを実現する独自sign-in拒否hookは実装しない。
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
@@ -247,7 +247,7 @@ Marketsだけが次のデータを所有し、更新できる。
 2. `CLOUDFLARE_ENV=production`でPoints／Markets artifactを個別build・検証
 3. Points production D1 migration、Markets production D1 migration
 4. Points production deploy、Markets production deploy
-5. Points／Markets production smoke
+5. Points production smoke
 
 両pipelineは別の固定concurrency groupで直列queueにし、`queue: max`かつ`cancel-in-progress: false`として実行中migrationをcancelしない。test artifact／credentialをproductionへ流用しない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。
 
@@ -257,7 +257,7 @@ Marketsだけが次のデータを所有し、更新できる。
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Service Binding越しでもPoints Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、別scopeを要求する。MarketsだけがOAuth Client秘密JWKをWorker Secretに保存する。
+- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、別scopeを要求する。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。
@@ -275,7 +275,7 @@ Marketsだけが次のデータを所有し、更新できる。
 - provider別link-onlyを作る独自Better Auth sign-in拒否hook
 - email一致によるaccount merge、暗黙link、手動審査
 - PostgreSQL型、RLS、PGroonga、`REAL`による金額計算
-- 複数Points serviceを選ぶ実装、`api.points.*`の別公開domain
+- `api.points.*`の別公開domain
 調査した結果、DEC-018は「PointsとMarketsは分離するが、各アプリ内部のUI/APIまでは分割しない」という判断です。
 
 セッションでは2026年7月11日に3案を比較し、推奨案1をユーザーが明示的に採用しています。[提案ログ](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2143) [採用回答](/Users/sugio_yuuichi/.codex/sessions/2026/07/11/rollout-2026-07-11T12-28-12-019f4f37-eac5-7d53-9ad5-4512ba2a201c.jsonl:2153)
@@ -305,7 +305,7 @@ Marketsだけが次のデータを所有し、更新できる。
    - `markets-web`
    - `markets-api`
    - 必要に応じてAuction DO境界
-   - Worker間のService Binding
+   - 登録済みPoints提供先への外部HTTPS通信
    - CORS・Cookie・Origin設定
    - UI/APIのversion整合管理
    - Workerごとの設定・監視・デプロイ
@@ -333,7 +333,7 @@ Marketsアプリ
 └── markets-db
 ```
 
-つまり、疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」です。アプリ間はOAuth・OpenAPI契約・Service Bindingなどの明示的契約で連携し、各アプリ内部はFull-stack Workerとして簡潔に保つ、という整理です。
+つまり、疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」です。アプリ間はOAuth・OpenAPI契約・登録済みoriginへの外部HTTPS通信で連携し、各アプリ内部はFull-stack Workerとして簡潔に保つ、という整理です。
 
 なおDEC-018は外部公開APIの廃止を意味しません。`public`、`resource`、`internal`、`oauth`などのAPI namespaceは同じWorker内に置けます。別APIドメインと別デプロイ単位を作らない、という決定です。[decision-register.md](/Users/sugio_yuuichi/Documents/code/other/freeism/docs/web-app/v0.2/decision-register.md:57)
 

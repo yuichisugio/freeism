@@ -17,14 +17,12 @@ export default defineConfig({
           GOOGLE_CLIENT_SECRET: "test-google-client-secret",
           OPS_ALERT_FROM: "alerts@example.test",
           OPS_ALERT_TO: "ops@example.test",
-          POINTS_AUDIENCE: "https://points.example.test/api/v1",
-          POINTS_ISSUER: "https://points.example.test/api/auth",
+          POINTS_KEY_ENCRYPTION_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
         },
         d1Databases: ["DB"],
         serviceBindings: {
           ASSETS: "test-assets",
-          POINTS_SERVICE: "test-points-service",
         },
         workers: [
           {
@@ -39,16 +37,6 @@ export default defineConfig({
                     'Content-Type': 'text/html; charset=utf-8',
                   },
                 });
-              },
-            };`,
-          },
-          {
-            compatibilityDate: "2026-07-12",
-            modules: true,
-            name: "test-points-service",
-            script: `export default {
-              fetch() {
-                return new Response('Points test service has no configured route', { status: 503 });
               },
             };`,
           },
