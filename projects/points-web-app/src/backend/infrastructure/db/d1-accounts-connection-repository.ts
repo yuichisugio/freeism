@@ -4,7 +4,7 @@ import type { AccountsPublicJwk } from "../../accounts/accounts-key-vault";
  * 接続先Accounts（`accounts_connections`表）の読み書き。
  * 状態は`PENDING_CLIENT_REGISTRATION` → `ACTIVE` → `WITHDRAWN`（終端）と遷移する。
  * 状態の変更は、監査と冪等結果を同じD1 batchで記録する。
- * @see ../../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../../test/worker/accounts-connection.worker.test.ts
  */
 

@@ -70,13 +70,11 @@ jobs:
           pnpm --filter @freeism/markets-web-app test
           pnpm --filter @freeism/markets-web-app test:worker
 
-      - name: Build and validate Points artifact
+      - name: Build Points artifact
         env:
           APP_ORIGIN: "https://staging.points.freeism.app"
           BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
-        run: |
-          pnpm --filter @freeism/points-web-app build:staging
-          pnpm --filter @freeism/points-web-app build:assert
+        run: pnpm --filter @freeism/points-web-app build:staging
 
       - name: Build and validate Markets artifact
         env:

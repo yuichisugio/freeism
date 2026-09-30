@@ -16,7 +16,7 @@ import { problem } from "../problem";
 /**
  * FIX CSV の validate・commit。
  * 受領者の照合に使う接続先 Accounts を `X-Accounts-Connection-Id` で受け取る。
- * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ../../../../test/worker/fix-ledger.worker.test.ts
  */
 

@@ -4,7 +4,7 @@ import { decodeBase64Url, encodeBase64Url } from "./base64url";
  * 接続先ごとの秘密値（署名鍵・Access Token）の暗号化と、署名鍵の生成。
  * KEKはWorker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）で、AES-256-GCMで暗号化する。
  * AADに接続先IDと用途を入れ、行や用途の差し替えを復号の失敗として検出する。
- * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ./accounts-key-vault.test.ts
  */
 

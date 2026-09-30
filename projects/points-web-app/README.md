@@ -1,11 +1,32 @@
-# points-web-app
+# Freeism Points Web App
 
-`points.freeism.app`のフロントエンドとバックエンドを管理するプロジェクトです。
+## Language
 
-- [日本語ドキュメント](./docs/readme/README.ja.md)
-- [v0.2仕様](./docs/v0.2/index.ja.md)
-- [v0.2実装計画](./plan/v0.2-implementation.md)
-- [Accountsの外部アカウント連携仕様](../accounts-web-app/docs/specification/v0.1/main.ja.md)
-- [横断仕様](../../docs/web-app/README.md)
+[日本語](docs/readme/README.ja.md) | English(This page)
 
-現時点では仕様・計画の分割までを完了しています。実装は横断migration planとPoints実装planに従ってgreenfieldで追加します。
+## Overview
+
+A points management service related to Freeism.
+
+## Details
+
+- Evaluation criteria management
+- Package management
+- Point grants and balances
+- Freeism Points' own OAuth provider and API
+- External account management, ownership proof, publication, and lookup use `projects/accounts-web-app` as the connected information service.
+- Points managed here are spent through `projects/markets-web-app`.
+
+## Technical approach
+
+- Cloudflare Workers, Workers Static Assets, and D1
+- Hono, Drizzle, and Better Auth
+- TanStack Start and Vite+
+- Use SPA and SSG. Do not use runtime SSR or Server Functions.
+
+## Documentation
+
+- [v0.1](docs/specification/v0.1/index.ja.md)
+- [v0.2](docs/specification/v0.2/index.ja.md)
+- [v0.3](docs/specification/v0.3/index.ja.md)
+- [v0.4](docs/specification/v0.4/index.ja.md)

@@ -24,7 +24,7 @@ function scaledAmount(value: number) {
 /**
  * 公開プロフィールを返す。
  * Accounts 連携は D1 に保存した取得結果の snapshot だけを読み、閲覧のたびに Accounts へ問い合わせない。
- * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../docs/specification/v0.2/details-ja/profile-setting.md
  */
 export async function readPublicProfile(db: D1Database, pointsUserId: string) {
   const profile = await db

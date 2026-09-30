@@ -5,7 +5,7 @@ import { CsvValidationForm } from "../csv/csv-validation-form";
 /**
  * FIX CSV の取込フォーム。
  * 受領者の照合に使う ACTIVE な接続先 Accounts を選んでから検証し、行ごとの照合結果を表示する。
- * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ./fix-csv-import-form.test.tsx
  */
 

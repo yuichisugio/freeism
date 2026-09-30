@@ -15,7 +15,7 @@ import { findProfileMutationReplay } from "./profile-mutation-idempotency";
 /**
  * 運営者による接続先Accountsの作成・有効化・取り下げ。
  * どの操作も理由とIdempotency-Keyを受け、同じキーの再送には保存した応答を返す。
- * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../test/worker/accounts-connection.worker.test.ts
  */
 

@@ -14,8 +14,8 @@ import {
 /**
  * FIX CSV を検査し、受領者を接続先 Accounts で照合する。
  * 照合結果と Points 内の連携を `validationHash` に含め、commit で再照合して変化を検出する。
- * @see ../../../docs/v0.2/details-ja/points-domain.md
- * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../docs/specification/v0.2/details-ja/points-domain.md
+ * @see ../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ./validate-fix-csv.test.ts
  * @see ../../../test/worker/fix-ledger.worker.test.ts
  */

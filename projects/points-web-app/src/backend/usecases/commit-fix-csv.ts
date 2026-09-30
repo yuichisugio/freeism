@@ -11,7 +11,7 @@ import { validateFixCsv } from "./validate-fix-csv";
 /**
  * 検証済みの FIX CSV を確定する。
  * 確定の直前に Accounts で再照合し、検証時と結果が変わった場合や照合できなかった場合は `VALIDATION_CHANGED` で全件を止める。
- * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ../../../test/worker/fix-ledger.worker.test.ts
  */
 export async function commitFixCsv(

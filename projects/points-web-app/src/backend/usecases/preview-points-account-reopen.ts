@@ -45,7 +45,7 @@ export interface InternalPointsAccountReopenPreview extends PointsAccountReopenP
  * reopen で受領する未受領 FIX を集計する。
  * 受領資格は未受領 FIX の受領と同じ規則を、本人の現在の Accounts 連携に適用して決める。
  * close で連携を全解除するため、通常は空集合になる。
- * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  */
 export async function loadPointsAccountReopenPreview(
   db: D1Database,

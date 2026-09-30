@@ -885,7 +885,7 @@
   - 同じ A2-17 には、v0.3 の「文言一致の拡張」が v0.1 の完全一致の原則と逆向きである点と、v0.3 の Web検証の説明に DNS が無い点も含まれる（懸念のみ）。
 - Points 側文書のリンク切れと文言の不一致
   - points-web-app の docs 配下に、実在しない `accounts-web-app/docs/specification/v0.1/main.md` へのリンクが11箇所ある（実体は `main.ja.md`）。
-  - [unclaimed-fix-and-ownership.md:44](../../../points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md) は「編集可能Webページのリンク検証」と書いている。これは [main.ja.md:551](../specification/v0.1/main.ja.md) の「ページの編集権限の確認を示すものではない」と意味が食い違う。
+  - [unclaimed-fix-and-ownership.md:44](../../../points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md) は「編集可能Webページのリンク検証」と書いている。これは [main.ja.md:551](../specification/v0.1/main.ja.md) の「ページの編集権限の確認を示すものではない」と意味が食い違う。
   - R01 を直す際に、Points 側の表現も合わせるのがよい。
 
 ## 7. 統合指摘の全一覧

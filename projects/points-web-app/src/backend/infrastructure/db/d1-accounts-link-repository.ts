@@ -5,7 +5,7 @@ import type { AccountsConnectionStatus } from "./d1-accounts-connection-reposito
 /**
  * 利用者のAccounts連携（`accounts_links`表）と、連携の試行（`accounts_link_attempts`表）の読み書き。
  * 監査の`target`には連携IDまたは接続先IDだけを入れ、AccountsユーザーIDは入れない。
- * @see ../../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../../test/worker/accounts-link.worker.test.ts
  */
 

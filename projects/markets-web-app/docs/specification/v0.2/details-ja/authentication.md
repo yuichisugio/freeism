@@ -194,7 +194,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 外部アカウントの登録、OAuth・Webページによる所有権証明、URL正規化、公開先ごとの同意、外部fetchの安全条件は[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Pointsは独立したOAuthクライアントとして、本人がPointsへの提供を許可したアカウントを照合する。本人がPointsを操作していない場合も、許可済みの情報を照合できる。
 
-未受領FIXの対象集合と帰属は[未受領FIX仕様](../../../projects/points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
+未受領FIXの対象集合と帰属は[未受領FIX仕様](../../../projects/points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
 ### 7.2 未受領FIX
 

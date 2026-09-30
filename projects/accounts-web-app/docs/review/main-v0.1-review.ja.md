@@ -30,7 +30,7 @@
 | 項目 | 内容 |
 | --- | --- |
 | 対象文書 | [main.ja.md](../specification/v0.1/main.ja.md)（Accounts v0.1主仕様、944行） |
-| 関連文書 | [verify-url.ja.md](../specification/v0.1/verify-url.ja.md)（URL登録・検証仕様、227行）、[v0.1.md](../implementation-plan/v0.1.md)（v0.1実装計画、182行）、[implementation-plan/v0.2.md](../implementation-plan/v0.2.md)、[specification/v0.2/main.ja.md](../specification/v0.2/main.ja.md)、[specification/v0.3/main.ja.md](../specification/v0.3/main.ja.md)、[上位目標のmain.ja.md](../specification/main.ja.md)、Points 側の [profile-setting.md](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) などのリンク先 |
+| 関連文書 | [verify-url.ja.md](../specification/v0.1/verify-url.ja.md)（URL登録・検証仕様、227行）、[v0.1.md](../implementation-plan/v0.1.md)（v0.1実装計画、182行）、[implementation-plan/v0.2.md](../implementation-plan/v0.2.md)、[specification/v0.2/main.ja.md](../specification/v0.2/main.ja.md)、[specification/v0.3/main.ja.md](../specification/v0.3/main.ja.md)、[上位目標のmain.ja.md](../specification/main.ja.md)、Points 側の [profile-setting.md](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) などのリンク先 |
 | レビュー日 | 2026-09-24 |
 | 対象の状態 | accounts-web-app の `src` は空で、実装は未着手である。本レビューは仕様（計画）のレビューである |
 | 前回レビューとの関係 | [verify-url-v0.1-review.ja.md](verify-url-v0.1-review.ja.md)（以下「前回レビュー」）で扱った指摘は再掲しない。関係する箇所では R番号で参照する |
@@ -57,7 +57,7 @@
 - 行番号は 2026-09-24 時点（HEAD `25abca37`）の各ファイルの行である。
 - `main.ja.md` は [specification/v0.1/main.ja.md](../specification/v0.1/main.ja.md)、`verify-url.ja.md` は [specification/v0.1/verify-url.ja.md](../specification/v0.1/verify-url.ja.md)、`v0.1.md` は [implementation-plan/v0.1.md](../implementation-plan/v0.1.md) を指す。
 - `implementation-plan/v0.2.md` は [implementation-plan/v0.2.md](../implementation-plan/v0.2.md)、`v0.2/main.ja.md` は [specification/v0.2/main.ja.md](../specification/v0.2/main.ja.md)、`v0.3/main.ja.md` は [specification/v0.3/main.ja.md](../specification/v0.3/main.ja.md) を指す。
-- Points 側の文書は、`profile-setting.md`・`unclaimed-fix-and-ownership.md`・`evaluation-criteria-management.md`（いずれも points-web-app の `docs/v0.2/details-ja/`）と、`v0.2-implementation.md`（points-web-app の `plan/`）と書く。
+- Points 側の文書は、`profile-setting.md`・`unclaimed-fix-and-ownership.md`・`evaluation-criteria-management.md`（いずれも points-web-app の `docs/specification/v0.2/details-ja/`）と、`v0.2-implementation.md`（points-web-app の `plan/`）と書く。
 - Better Auth のコードは、npm から取得した 1.7.5 の配布物の行番号で書く。略号は次のとおりである。
   - OP: `@better-auth/oauth-provider@1.7.5` の `dist/authorize-riRRCSbC.mjs`
   - OP-introspect: 同パッケージの `dist/introspect-njKASm3q.mjs`
@@ -346,8 +346,8 @@
 
 **観察された事実**
 
-- [profile-setting.md:55](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md)「その接続先に登録したOAuthクライアントのClient ID・Client Secretを設定する。Client SecretはPointsのバックエンドで管理する」
-- [profile-setting.md:154](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md)（必須テスト）は「Client Secretをバックエンドで管理したまま」とする。
+- [profile-setting.md:55](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md)「その接続先に登録したOAuthクライアントのClient ID・Client Secretを設定する。Client SecretはPointsのバックエンドで管理する」
+- [profile-setting.md:154](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md)（必須テスト）は「Client Secretをバックエンドで管理したまま」とする。
 - [v0.2-implementation.md:486](../../../points-web-app/plan/v0.2-implementation.md) は「Client Secretのバックエンド管理を確認する」とする。
 - 一方、[main.ja.md:165・240・545](../specification/v0.1/main.ja.md) は、`private_key_jwt` と DPoP を採用し、秘密鍵を利用側のバックエンドで保管するとする。
 - [main.ja.md:66](../specification/v0.1/main.ja.md) は、Points との連携の正本として `profile-setting.md` の「3. Accountsとの情報連携」へリンクしている。
@@ -363,7 +363,7 @@
 
 **最小修正案**
 
-- [profile-setting.md:55・154](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) を「Client IDと、`private_key_jwt`用の秘密鍵・DPoP用の鍵をPointsのバックエンドで管理し、公開鍵をAccountsへ登録する」に改める。
+- [profile-setting.md:55・154](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) を「Client IDと、`private_key_jwt`用の秘密鍵・DPoP用の鍵をPointsのバックエンドで管理し、公開鍵をAccountsへ登録する」に改める。
 - [v0.2-implementation.md:486](../../../points-web-app/plan/v0.2-implementation.md) の確認項目を、秘密鍵・DPoP 鍵のバックエンド管理の確認に改める。
 
 付随する訂正: B2-06 は「`v0.2-implementation.md` に該当の記述は無い」と書いたが、実際には486行にある。A2-05 の記載が正しい。
@@ -381,7 +381,7 @@
 - [main.ja.md:166](../specification/v0.1/main.ja.md) が再表示を定めるのは「初回の保存前に中断した場合」だけである。
 - [main.ja.md:856](../specification/v0.1/main.ja.md) は「標準`oauthConsent`はOAuth scope等の同意、独自表は情報提供同意と外部アカウント単位の選択を管理する」とし、2つの同意を同期する規則は無い。
 - [v0.1.md:114-115](../implementation-plan/v0.1.md) は `consentPage` への接続と「再連携時の保存済み選択を確認する」だけを書き、画面を毎回出す手段は書いていない。
-- [profile-setting.md:82](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) は、連携先を別の Points ユーザーへ変える再連携で「Accountsでの本人確認と情報提供への同意を行い」とする。
+- [profile-setting.md:82](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) は、連携先を別の Points ユーザーへ変える再連携で「Accountsでの本人確認と情報提供への同意を行い」とする。
 - 移行元の `points-oauth-provider.ts`:93-118 は、`postLogin.consentReferenceId` で連携の試行ごとに別の値を作り、毎回同意画面へ進めていた。
 
 **Better Auth 1.7.5 の確認箇所**
@@ -398,21 +398,21 @@
 **発生する操作**
 
 - 本人が Accounts で情報提供同意を OFF にした後、Points で連携を解除し、しばらくして Points から再び連携を開始する操作。
-- [profile-setting.md:82](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) の流れで、連携先を別の Points ユーザーへ移して再連携する操作。
+- [profile-setting.md:82](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) の流れで、連携先を別の Points ユーザーへ移して再連携する操作。
 
 **影響（推測）**
 
 - 前者では、Points は連携を確定するが、一覧APIは404になる。本人には同意を ON に戻す画面が出ない。
 - 後者では、Points 仕様が求める「再連携での情報提供への同意」が行われない。
 
-**他の箇所で扱われていないことの確認結果**: [main.ja.md:82-86・166・176・592・856](../specification/v0.1/main.ja.md)、[v0.1.md:113-115](../implementation-plan/v0.1.md)、[profile-setting.md](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) の3.3・3.4節を確認した。同意画面を毎回出す手段の記載は無い。
+**他の箇所で扱われていないことの確認結果**: [main.ja.md:82-86・166・176・592・856](../specification/v0.1/main.ja.md)、[v0.1.md:113-115](../implementation-plan/v0.1.md)、[profile-setting.md](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) の3.3・3.4節を確認した。同意画面を毎回出す手段の記載は無い。
 
 **修正方式の比較**
 
 | 観点 | (a) 利用側が `prompt=consent` を付ける契約 | (b) 同意OFFで保存したとき `oauthConsent` を削除 | (c) 試行ごとの referenceId（A2-01、移行元の方式） |
 | --- | --- | --- | --- |
 | [main.ja.md:84](../specification/v0.1/main.ja.md) の「利用側から開始した連携では同意画面を使う」 | 満たす（付けたクライアントについて） | 同意 ON のまま再連携すると省かれる | 満たす（全クライアント） |
-| [profile-setting.md:82](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md)（同意 ON のまま別ユーザーへ再連携） | 満たす | 満たさない | 満たす |
+| [profile-setting.md:82](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md)（同意 ON のまま別ユーザーへ再連携） | 満たす | 満たさない | 満たす |
 | 同意 OFF → 再連携 | 満たす | 満たす（クライアントが prompt を付けなくても画面が出る） | 満たす |
 | Accounts 側の実装 | 無し（OIDC 標準のパラメーター） | 保存APIから標準の `/oauth2/delete-consent`（OP:3078）を呼ぶ | `postLogin` の必須項目（`page`・`shouldRedirect`）の設定、state からの値の生成、試行ごとに増える `oauthConsent` 行の掃除 |
 
@@ -421,7 +421,7 @@
 
 **最小修正案**: (a) と (b) を併用する。
 
-- (a) [main.ja.md:84](../specification/v0.1/main.ja.md) を API 契約として書き換える。例:「利用側は連携開始の認可要求に`prompt=consent`を付ける。付けない場合、保存済みの同意があれば同意画面を省く」。Points 側の [profile-setting.md](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) 3.3節と [v0.2-implementation.md](../../../points-web-app/plan/v0.2-implementation.md) の該当タスクにも1文加える。
+- (a) [main.ja.md:84](../specification/v0.1/main.ja.md) を API 契約として書き換える。例:「利用側は連携開始の認可要求に`prompt=consent`を付ける。付けない場合、保存済みの同意があれば同意画面を省く」。Points 側の [profile-setting.md](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) 3.3節と [v0.2-implementation.md](../../../points-web-app/plan/v0.2-implementation.md) の該当タスクにも1文加える。
 - (b) [main.ja.md:176](../specification/v0.1/main.ja.md) または [main.ja.md:856](../specification/v0.1/main.ja.md) に「本人が情報提供同意をOFFで保存したとき、そのクライアントの`oauthConsent`を削除する」を加える。これは、クライアントが `prompt` を付けなくても、本人が提供を止めたクライアントへは画面を経ずに再連携されないようにする Accounts 側の制御である。
 - [v0.1.md:114-115](../implementation-plan/v0.1.md) に、上記の接続と確認を加える。
 
@@ -596,7 +596,7 @@
 - [main.ja.md:565](../specification/v0.1/main.ja.md) の「対象の管理者」は定義されていない。
 - [main.ja.md:609](../specification/v0.1/main.ja.md) の監査対象に、代理ログイン・ban・role の変更は無い。
 - [main.ja.md:580](../specification/v0.1/main.ja.md) の管理画面は3画面で、運営者の機能は無い。[main.ja.md:89-100](../specification/v0.1/main.ja.md) の機能表と [main.ja.md:787-802](../specification/v0.1/main.ja.md) の受け入れ条件にも Admin は無い。
-- [evaluation-criteria-management.md:5](../../../points-web-app/docs/v0.2/details-ja/evaluation-criteria-management.md) は、Points の v0.2 がグローバルな `ADMIN` だけを持つとする。
+- [evaluation-criteria-management.md:5](../../../points-web-app/docs/specification/v0.2/details-ja/evaluation-criteria-management.md) は、Points の v0.2 がグローバルな `ADMIN` だけを持つとする。
 
 **Better Auth 1.7.5 の確認箇所**
 
@@ -615,7 +615,7 @@
 
 **影響（推測）**: 何を実装すればよいかが決まらず、実装に着手できない。代理ログインをそのまま有効にすると、本人の同意なく提供設定が変わりうる。
 
-**他の箇所で扱われていないことの確認結果**: [main.ja.md:562-567・578-614・816-824・895・927-940](../specification/v0.1/main.ja.md)、[v0.1.md:110](../implementation-plan/v0.1.md)、[v0.2/main.ja.md](../specification/v0.2/main.ja.md)、[v0.3/main.ja.md:18-20](../specification/v0.3/main.ja.md)、Points の [evaluation-criteria-management.md](../../../points-web-app/docs/v0.2/details-ja/evaluation-criteria-management.md)・[profile-setting.md](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) を確認した。定義は無い。
+**他の箇所で扱われていないことの確認結果**: [main.ja.md:562-567・578-614・816-824・895・927-940](../specification/v0.1/main.ja.md)、[v0.1.md:110](../implementation-plan/v0.1.md)、[v0.2/main.ja.md](../specification/v0.2/main.ja.md)、[v0.3/main.ja.md:18-20](../specification/v0.3/main.ja.md)、Points の [evaluation-criteria-management.md](../../../points-web-app/docs/specification/v0.2/details-ja/evaluation-criteria-management.md)・[profile-setting.md](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) を確認した。定義は無い。
 
 **最小修正案**: 判断事項に応じて次のどちらかにする。
 
@@ -901,7 +901,7 @@
 
 #### M41 Points側文書の照合入力にユーザー名が無い
 
-- 事実: [unclaimed-fix-and-ownership.md:48](../../../points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md) は「Accounts APIはプロフィールURL・外部サービス名と固有ID・AccountsユーザーIDを受け付ける」とする。[main.ja.md:199](../specification/v0.1/main.ja.md) は「外部サービス名と固有IDまたはユーザー名」を受け付ける。
+- 事実: [unclaimed-fix-and-ownership.md:48](../../../points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md) は「Accounts APIはプロフィールURL・外部サービス名と固有ID・AccountsユーザーIDを受け付ける」とする。[main.ja.md:199](../specification/v0.1/main.ja.md) は「外部サービス名と固有IDまたはユーザー名」を受け付ける。
 - 影響: Points の CSV 列の設計で、ユーザー名の列が検討から漏れうる。
 - 提案: Points 側の文書で「外部サービス名と固有IDまたはユーザー名」とする。
 
@@ -1232,7 +1232,7 @@ M55 は統合一覧に存在しない欠番である。
 - 検証担当は、費用と比較の根拠が示されていないと指摘し、最も影響範囲が小さい修正として `prompt=consent`（Points が付ける契約）を推奨した。全クライアントに画面を強制する要件が明示される場合に限り、試行ごとの referenceId が正しいとした。
 - 管理者判断で、(a) `prompt=consent` を API 契約に明記することと、(b) 本人が同意 OFF で保存したときにそのクライアントの `oauthConsent` を削除することの併用を推奨とした。
   - (b) は、クライアントが `prompt` を付けない場合にも、本人が提供を止めたクライアントへ黙って再連携されないようにする Accounts 側の制御である。
-  - B2-02 が推奨した (b) 単独は、同意 ON のまま再連携する [profile-setting.md:82](../../../points-web-app/docs/v0.2/details-ja/profile-setting.md) の流れを満たさない。
+  - B2-02 が推奨した (b) 単独は、同意 ON のまま再連携する [profile-setting.md:82](../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md) の流れを満たさない。
   - 全クライアントに毎回画面を強制する要件がある場合は、試行ごとの referenceId を採る。これを仕様作成者の判断事項とした。
 
 #### M31（レビュー担当: 要修正（軽微） → 最終: 付記）

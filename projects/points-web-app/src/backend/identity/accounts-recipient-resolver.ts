@@ -14,7 +14,7 @@ import {
 /**
  * FIX受領者の識別子を接続先Accountsで照合する。
  * 照合が正常に終わった該当なし（`no_match`）と、照合できなかった失敗（`AccountsRecipientResolutionError`）を区別する。
- * @see ../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ./accounts-recipient-resolver.test.ts
  */
 

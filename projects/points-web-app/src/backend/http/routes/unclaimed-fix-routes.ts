@@ -15,7 +15,7 @@ import { problem } from "../problem";
 /**
  * 未受領 FIX の受領（preview と一括受領）の経路。
  * 受領資格は、本人の Accounts 連携1件について Accounts の現在の照合結果で決める。
- * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  * @see ../../../../test/worker/unclaimed-claim.worker.test.ts
  */
 

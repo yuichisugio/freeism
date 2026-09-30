@@ -25,7 +25,7 @@
 - `ACCOUNTS`：[Accounts v0.1仕様](../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md)
 - `API`：[レスポンス形式](./response-format.md)
 - `CONTRACT`：[Points–Markets連携契約](./points-markets-contract.md)
-- `POINTS`：[Points v0.2仕様](../../../projects/points-web-app/docs/v0.2/index.ja.md)
+- `POINTS`：[Points v0.2仕様](../../../projects/points-web-app/docs/specification/v0.2/index.ja.md)
 - `MARKETS`：[Markets v0.2仕様](../../../projects/markets-web-app/docs/specification/v0.2/index.ja.md)
 - `AUCTION`：[Auction詳細](../../../projects/markets-web-app/docs/specification/v0.2/details-ja/auction.md)
 

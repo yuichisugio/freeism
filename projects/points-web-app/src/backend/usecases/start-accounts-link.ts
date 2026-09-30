@@ -13,7 +13,7 @@ import { AccountsProblemError } from "./accounts-problem-error";
 /**
  * 利用者の「Accountsと連携する」の開始。
  * state・nonce・code verifierを試行として保存し、同意画面を毎回表示する認可URLを返す。
- * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../test/worker/accounts-link.worker.test.ts
  */
 

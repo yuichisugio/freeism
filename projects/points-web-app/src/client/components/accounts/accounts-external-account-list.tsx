@@ -3,7 +3,7 @@
  * 値はAccountsが返したものだけをテキストで示し、URLは`http(s):`のものだけをリンクにする。
  * 項目名はAccounts資源APIの応答（`accountsProvidedExternalAccountSchema`）に揃える。
  * @see ../../../backend/accounts/accounts-api-schema.ts
- * @see ../../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ./accounts-external-account-list.test.tsx
  */
 

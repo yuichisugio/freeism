@@ -1,18 +1,28 @@
-# Points Webアプリ
+# Freeism Points Webアプリ
 
-`points.freeism.app` のフロントエンドとバックエンドを管理するWebアプリです。
+- [Freeism Points Webアプリ](#freeism-points-webアプリ)
+  - [言語](#言語)
+  - [概要](#概要)
+  - [詳細](#詳細)
+  - [技術方針](#技術方針)
+  - [ドキュメント](#ドキュメント)
 
-## 責務
+## 言語
 
-- 評価軸とパッケージの管理
-- 不変のFIXリビジョンと差分台帳
-- ポイント付与、残高、`evaluationTotal`、予約、確定、解放の管理
-- 未受領FIXとAccountsの照合結果に基づく貢献者の特定
-- Points独自の認証・sessionとMarketsへのOAuth Provider/API提供
+日本語（本ページ）| [English](../../README.md)
 
-外部アカウントの管理・所有権証明・公開・照合は、[Accounts v0.1仕様](../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に集約します。PointsはAccountsを別サービスの情報連携先として利用します。
+## 概要
 
-商材情報を含むAuctionの作成・入札・落札はMarketsの責務です。Marketsは独立したListing resourceを持ちません。Taskとグループ機能はv0.2では実装しません。
+「無料主義」に関連するポイント管理サービス
+
+## 詳細
+
+- 評価軸の管理
+- パッケージの管理
+- ポイント付与、残高
+- Freeism Points独自のOAuth Provider/API提供
+- 外部アカウントの管理・所有権証明・公開・照合は、`projects/accounts-web-app`を情報連携先として利用します。
+- 管理するポイントの使用先は、`projects/markets-web-app`を使用します。
 
 ## 技術方針
 
@@ -23,15 +33,7 @@
 
 ## ドキュメント
 
-- [Webアプリ横断仕様](../../../../docs/web-app/README.md)
-- [v0.1履歴](../v0.1/index.ja.md)
-- [v0.2仕様](../v0.2/index.ja.md)
-- [v0.3検討](../v0.3/main.md)
-- [v0.2実装plan](../../plan/v0.2-implementation.md)
-- [旧資料の移設manifest](../../../../docs/web-app/doc-migration-manifest.md)
-
-## 開発環境
-
-旧 `projects/web-app` のREADMEに記載されていたmiseコマンドはarchive上の履歴であり、このアプリの現行コマンドではありません。初期化、開発、テスト、デプロイのコマンドは、実装計画に従ってこのプロジェクトのpackage scriptsへ定義します。
-
-`test/e2e/fix-and-claim.spec.ts`は、`POINTS_E2E_BASE_URL`・`POINTS_E2E_SESSION_COOKIE`・`POINTS_E2E_ACCOUNTS_LINK_ID`で指定する、未受領FIXのあるAccounts連携を前提データとします（claim previewの集計が空だと失敗します）。これらの環境変数が無い場合はskipします。
+- [v0.1](../specification/v0.1/index.ja.md)
+- [v0.2](../specification/v0.2/index.ja.md)
+- [v0.3](../specification/v0.3/index.ja.md)
+- [v0.4](../specification/v0.4/index.ja.md)

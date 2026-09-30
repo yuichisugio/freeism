@@ -13,7 +13,7 @@ const nullableTimestamp = (name: string) => integer(name, { mode: "timestamp_ms"
 /**
  * Points が OAuth クライアントとして接続する Accounts。
  * 秘密 JWK は Worker secret の KEK で暗号化して保存し、取り下げ時に消す。
- * @see ../../../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../../../docs/specification/v0.2/details-ja/profile-setting.md
  */
 export const accountsConnections = sqliteTable(
   "accounts_connections",
@@ -71,7 +71,7 @@ export const accountsConnections = sqliteTable(
 /**
  * Points ユーザーと Accounts ユーザーの連携と、連携アカウント一覧の取得結果。
  * 一覧は公開表示のために snapshot として保存する。
- * @see ../../../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../../../docs/specification/v0.2/details-ja/profile-setting.md
  */
 export const accountsLinks = sqliteTable(
   "accounts_links",

@@ -25,4 +25,4 @@
 - [通知](../../../../../docs/web-app/archive/v0.1/details/notification.md)
 - [その他の旧要件](../../../../../docs/web-app/archive/v0.1/details/other.md)
 
-旧Task、Group、評価、ポイント関連の履歴は、[Points Webアプリ v0.1](../../../../points-web-app/docs/v0.1/index.ja.md)を参照してください。archive本文中の旧相対リンクより、この索引のリンクを優先します。
+旧Task、Group、評価、ポイント関連の履歴は、[Points Webアプリ v0.1](../../../../points-web-app/docs/specification/v0.1/index.ja.md)を参照してください。archive本文中の旧相対リンクより、この索引のリンクを優先します。

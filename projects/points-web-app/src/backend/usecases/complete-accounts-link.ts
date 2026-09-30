@@ -19,7 +19,7 @@ import {
  * 利用者の「Accountsと連携する」の戻り先の処理。
  * 試行を1回だけ取り出し、認可応答の検査・コード交換・ID Tokenの検証を経て連携を保存する。
  * 認可応答のAccess Tokenは使わず、保存もしない。
- * @see ../../../docs/v0.2/details-ja/profile-setting.md
+ * @see ../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../test/worker/accounts-link.worker.test.ts
  */
 

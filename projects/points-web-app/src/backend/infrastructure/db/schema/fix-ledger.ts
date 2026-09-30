@@ -27,7 +27,7 @@ const timestamp = (name: string) =>
 /**
  * FIX の受領者を表す入力識別子と、Accounts での照合結果の列。
  * 識別子は入力値そのままで保存し、正規化は Accounts に任せる。
- * @see ../../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  */
 const recipientIdentifierColumns = () => ({
   recipientIdentifierType: text("recipient_identifier_type", {

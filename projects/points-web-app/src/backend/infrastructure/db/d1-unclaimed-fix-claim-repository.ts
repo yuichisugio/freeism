@@ -98,7 +98,7 @@ export async function listClaimantAccountsLinks(
 /**
  * 連携1件について、受領資格のある未受領エントリーを返す。
  * 同じ origin の未受領エントリーの識別子を Accounts で現在の状態として照合し、連携先の Accounts ユーザーに一致したものを返す。
- * @see ../../../../docs/v0.2/details-ja/unclaimed-fix-and-ownership.md
+ * @see ../../../../docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md
  */
 export async function loadEligibleUnclaimedFixes(
   db: D1Database,

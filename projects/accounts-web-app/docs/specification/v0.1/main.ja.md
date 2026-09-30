@@ -79,8 +79,8 @@ Accountsは、Accountsユーザーと外部アカウントの登録・所有権�
 | 対象 | 正本・責務 |
 | --- | --- |
 | 外部アカウントの識別・証明・提供許可 | 本仕様で定めるAccountsの責務 |
-| Pointsユーザーとの連携件数・開始・変更・解除・退会時の対応 | [Pointsのアカウント設定](../../../../points-web-app/docs/v0.2/details-ja/profile-setting.md#3-accountsとの情報連携) |
-| 貢献データ・FIX・受領・ポイント台帳と残高・パッケージ・経済履歴と公開設定・Marketsへの経済情報API | [Pointsの責務と帰属ルール](../../../../points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md) |
+| Pointsユーザーとの連携件数・開始・変更・解除・退会時の対応 | [Pointsのアカウント設定](../../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md#3-accountsとの情報連携) |
+| 貢献データ・FIX・受領・ポイント台帳と残高・パッケージ・経済履歴と公開設定・Marketsへの経済情報API | [Pointsの責務と帰属ルール](../../../../points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md) |
 
 ## Pointsなどの連携サービスとの境界
 
@@ -89,7 +89,7 @@ Accountsは、Accountsユーザーと外部アカウントの登録・所有権�
 - Accountsユーザーは、提供元Accountsサービスのoriginと固定AccountsユーザーIDの組み合わせで識別する。異なる提供元の同じID文字列も区別する
 - 利用側サービス内のユーザー対応と、Accountsに保存する公開設定は独立して管理する。利用側での連携解除や退会後も、Accountsは本人がAccountsで変更するまで公開設定を維持する
 - Accounts APIは、照会時点の紐付けと提供許可に従って情報を返す。取得済み情報の保存・履歴・許可取消後の公開表示は利用側サービスが管理する
-- Accountsユーザーの退会による情報提供終了は[Accountsユーザーの退会](#accountsユーザーの退会)に従う。Points側の対応は[Pointsの連携解除と退会](../../../../points-web-app/docs/v0.2/details-ja/profile-setting.md#34-連携解除と退会)に従う
+- Accountsユーザーの退会による情報提供終了は[Accountsユーザーの退会](#accountsユーザーの退会)に従う。Points側の対応は[Pointsの連携解除と退会](../../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md#34-連携解除と退会)に従う
 - Pointsへの提供の利用目的と一般公開との関係は[公開設定](#公開設定)、提供する項目は[表示・提供する情報](#表示提供する情報)に従う
 
 ## 利用開始の流れ
@@ -100,7 +100,7 @@ Accountsは、Accountsユーザーと外部アカウントの登録・所有権�
 - 利用側サービスから開始した連携では、[管理画面と監査](#管理画面と監査)の同意画面を表示する。連携先と利用目的を示し、本人が今回の連携先へ公開する外部アカウントを選んで同意した後、標準OAuthの同意処理へ進む
 - Accountsでの認証・同意後は、登録済みのリダイレクトURLを使って利用側サービスへ戻る
 
-Pointsの接続先選択、画面文言、ユーザー連携の追加・変更、既存Points利用者の切り替え手順は、[Pointsの利用開始と連携先ユーザーの変更](../../../../points-web-app/docs/v0.2/details-ja/profile-setting.md#33-利用開始と連携先ユーザーの変更)を参照する。
+Pointsの接続先選択、画面文言、ユーザー連携の追加・変更、既存Points利用者の切り替え手順は、[Pointsの利用開始と連携先ユーザーの変更](../../../../points-web-app/docs/specification/v0.2/details-ja/profile-setting.md#33-利用開始と連携先ユーザーの変更)を参照する。
 
 ## v0.1で実装する機能
 
@@ -559,7 +559,7 @@ sequenceDiagram
     Note over Points: 取得後の処理はPoints側の仕様に従う
 ```
 
-識別子ごとの判定は[入力ごとの照合手順](#入力ごとの照合手順)、照合結果を使うPointsの処理は[Pointsの帰属ルール](../../../../points-web-app/docs/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
+識別子ごとの判定は[入力ごとの照合手順](#入力ごとの照合手順)、照合結果を使うPointsの処理は[Pointsの帰属ルール](../../../../points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
 ## 外部識別情報の仕様
 
@@ -1076,7 +1076,7 @@ OAuth Provider・JWTプラグインの設定は次の表に従う。`jwt.`・`oa
 | `oauthProvider.clientRegistrationDefaultResources: ["{accountsOrigin}/api/v1"]` | 登録したクライアントを、登録と同じ処理で標準の`oauthClientResource`によりAccounts資源APIのresourceへ関連付ける |
 | `oauthProvider.clientPrivileges` | 登録者本人によるクライアントの管理と、登録時に`identities:read`をClient Credentials用のscopeとして付与する操作を許可する |
 
-評価軸オーナーのアップロード権限は[Pointsの権限設計](../../../../points-web-app/docs/v0.2/details-ja/evaluation-criteria-management.md)で管理する。Accountsの管理権限と利用側サービスの業務権限は、それぞれのサービスが判定する。
+評価軸オーナーのアップロード権限は[Pointsの権限設計](../../../../points-web-app/docs/specification/v0.2/details-ja/evaluation-criteria-management.md)で管理する。Accountsの管理権限と利用側サービスの業務権限は、それぞれのサービスが判定する。
 
 - Cloudflare WorkersのPreviewから変更内容を確認できるようにする。Previewごとにコード・画面を切り替え、D1などのデータはPreview間で共有できる。テスト環境では画面と表示に必要な静的ファイルをBasic認証で保護する。APIと認証プロトコルのエンドポイントは各エンドポイントの通常のセッション・OAuth・DPoPなどの認証・公開条件に従う
 - Workersの認証・個人別API用エントリーポイントは`cache.enabled: false`とする。ブラウザー・中間キャッシュに対する認証・個人別応答の`Cache-Control: private, no-store`は別途設定する。公開プロフィール専用のエントリーポイントにはWorkers Cacheを適用する。公開プロフィールの応答には、edge用に`cloudflare-cdn-cache-control: max-age=86400, must-revalidate`、ブラウザー用に`Cache-Control: public, no-cache`を付け、edgeのキャッシュを最長1日で失効させる。公開情報のDB更新後とban・unbanの後に該当プロフィールのキャッシュをpurgeし、purgeに失敗した場合はログに残してこの期限で反映する。公開assetsはassetsのキャッシュを利用する

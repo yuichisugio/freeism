@@ -3,7 +3,7 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { findGeneratedWorkerConfig } from "./assert-worker-build";
+import { findGeneratedWorkerConfig } from "./generated-worker-config";
 
 const HTML_ARTIFACTS = ["index.html", "terms.html", "privacy.html", "help.html", "docs.html"] as const;
 const STATIC_PAGE_PATHS = [
