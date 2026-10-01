@@ -53,8 +53,8 @@
 
 ### 5.2 入札時のPoints扱い
 
-- 入札には有効なPoints連携を必須とするが、入札時に残高照会や予約は行わない。
-- 終了時の同一cutoff集合に対し、残高不足・負残高などで予約できないbidderを除外し、winnerとclearing priceを再計算する。
+- 入札には有効なPoints連携を必須とする。入札時に残高照会とポイントの仮押さえは行わない。
+- 終了時、利用者認可が無効な入札者と、引き落としで残高が足りない入札者は落札者にしない。同じ終了時点の入札から落札者、数量、清算価格を計算し直し、順位が次の入札者を落札者にする。
 - 不足判定された利用者はAuctionとMarketsユーザーの組に対して1回だけblacklistし、同一終了処理内で再試行しない。
 - すべてのwinnerと評価軸は同じPoints service／Points D1に属さなければならない。複数Points serviceを1 Auctionで混在させない。
 
@@ -81,22 +81,22 @@
 
 ### 7.2 Settlement Workflow
 
-- Auction終了時、またはAuctionRoomが要求全数量をlockして`BUY_NOW` plan／outboxを確定した時は、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
+- Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。即時購入は、購入ボタンのあとで認可と残高を確認し、引き落としが成功したときだけ数量を減らして成立させる。失敗では競売を止めない。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
 - Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
-- Points予約は15分。標準JWKSで署名とaudienceを検証した利用者JWTで予約し、capture/releaseは同じClient IDのM2M Client Credentials JWTで行う。
-- ACTIVE connectionは利用者用Client IDと対応M2M用Client IDを保持する。利用者Tokenで予約を作る時は対応M2M用Client IDを既存reservation所有clientへ保存し、status／capture／releaseはそのM2M `client_id`だけを許可する。
-- 1 winnerの全評価軸予約は1回のPoints D1原子処理とし、部分予約を許可しない。
-- winner確定後、すべてのcapture/releaseを冪等に完了させる。capture後の自動refundやsaga巻き戻しは行わない。
+- 落札者のポイントは、利用者認可で一括引き落とす。仮押さえと、利用者のいないサービス権限は使わない。
+- 認可がない、または残高が足りない入札者は落札者にせず、同じ終了時点から次の入札者を落札者にして計算し直す。
+- 全落札者の引き落としは1回のPoints D1原子処理とし、一人でも失敗すれば0件にする。
+- 引き落とし成功後の自動返金や巻き戻しは行わない。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
-- `BUY_NOW`のrestoreは、外部作用開始前、決定的reservation作成拒否でID 0件、または全reservation未capture＋ACTIVE分release完了という3種の証拠だけを受ける内部RPCで全数量を`FAILED_RESTORED`へ進める。結果不明はholdを維持してmanual actionとする。capture後はproof migration適用後の別内部RPCで`CAPTURED_PENDING_FINALIZE`からproofへforward finalizeし、restore／refundしない。endAt時の未終端holdは終了時planを遅延し、全hold終端後の復元済み残数で収束する。
+- 即時購入は、購入ボタンのあとで利用者認可と残高を確認する。引き落としが成功したときだけ販売数量を減らし、購入を成立させる。認可がない、または残高が足りなければ購入は失敗とし、競売は開いたまま販売数量も入札も続ける。応答を受け取れないときも成立させず、同じ購入要求の再送で受領証が返ったときだけ数量を減らす。残り数量が0のときだけ競売を終了する。引き落とし成功後はポイントを戻さない。
 
 1. `minimumReleaseAge: 4320`を使う
 2. Better Auth のメール一致 implicit link は禁止し、本人は `providerId + accountId` で識別する。
 3. OSSライセンスのページを用意する
 4. Google/GitHubのOAuth認証を login/linkで用意する
-5. ユーザーの権限が不要ならM2M-only Client Credentialsを使用する
+5. PointsとMarketsの落札精算は利用者認可だけを使う。Accounts照合でクライアント資格情報が必要な場合は、その連携の仕様に従う。
 6. named env の routes は staging/production domain を `custom_domain: true` で所有する。Terraform 側には同じ custom domain resource を書かない。
 7. `main`の直接更新は行わず、branch／PR／merge queue経由で反映する。
 8. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
@@ -177,7 +177,7 @@
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、別scopeを要求する。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
+- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。

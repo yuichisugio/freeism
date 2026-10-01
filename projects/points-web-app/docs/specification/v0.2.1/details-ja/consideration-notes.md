@@ -10,6 +10,56 @@
 - 負のFIXと負残高を許可するが、残高不足時の消費系操作は拒否する。
 - Task、Auction、通知、PWA、画像は実装しない。
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
+- バックエンドは、`api.points.freeism.app`等の別API domainにしない
+  - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
+  - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
+  - `points.freeism.app`と`markets.freeism.app`を独立アプリとして分離する。
+- 画像管理・アップロードを廃止し、R2を商品画像用途に使用しない。
+- Auction単位のDurable Object＋WebSocket Hibernationを採用する
+  - 手動reloadだけにする旧案も上書き。
+  - Upstash Redis＋SSEを廃止し、
+  - `setTimeout`、`setInterval`、独自heartbeatでDOを起こし続けない。常駐型realtime案を不採用。
+- TanStack StartはSSG＋SPAに限定し、実行時SSR、RSC、ISRを使用しない。SSR全面利用案を不採用。
+  - TanStack StartとVite+
+- バックエンドHTTP APIをHonoへ統一する。
+  - Next.js Server Actions、Route Handlers、TanStack Server Functionsを廃止。
+- 静的HTML、JS、CSS、font等はWorkers Static Assetsで配信する。Cloudflare PagesとVercel CDNを不採用。
+
+- Markets
+  - 入れる機能
+    - 出品
+    - 入札
+    - 自動入札
+    - v0.2の管理Roleは単一種類の同格`ADMIN`だけとする。
+    - 認証
+      - OAuthは、GitHubとGoogleに対応する
+      - Marketsは独立Better Authユーザー、D1、Session Cookieを持ち、Pointsを後から明示linkする。
+  - 入れない機能
+    - 通知機能
+    - PWA、Service Worker、offline機能を廃止する。
+  - v0.3で対応する機能
+    - 画像添付
+    - チャット
+
+- Points
+  - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
+  - draftや承認待ちは、無料主義アプリ外で、それぞれの評価軸が管理する
+  - 権限
+    - `appAdmin`が、サービス全体の権限
+    - `packageAdmin`が、パッケージ管理者
+    - `evalueterAdmin`が、評価軸の管理者
+    - それぞれのアドミンは、最後のアドミンなら退出できない
+  - 評価軸IDは不変の標準Nano ID、名前30文字以下、説明200文字以下、関連URL最大20件とする。
+  - Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
+  - 評価軸作成・更新は、フォーム・CSVに対応する
+    - 状態は`ACTIVE / ARCHIVED`とする。
+  - プロフィールへ公式Packageを複数登録でき、どの比率で分配するか指定を必須にする。その指定した比率で自動分配する。無制限の同時有効案を採用する
+  - Pointsは独立Better Authユーザー、D1、Session Cookieを持ち、Accountsを後から明示linkする。
+  - OAuthは、GitHubとGoogleに対応する
+
+- 無料主義v2では、グループ管理するけど、グループ内しか評価できないのが問題
+  - グループに参加せず、全員を無条件で勝手に評価することが利用者拡大に重要
+  - なので、評価軸のコミュニティメンバーの管理は、無料主義アプリでは行わないし必須条件ではない
 
 - ページ
   - ドキュメントのメインページ
@@ -755,13 +805,13 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 - 高頻度で更新される情報は1時間毎などでstaleにする。
 - WebSocketなどリアルタイム性が必要なデータはキャッシュしない。
 
-| `projects/points-web-app` | `points.freeism.app` | `points-worker` | 認証、評価軸、FIX、残高、台帳、予約、capture/release |
+| `projects/points-web-app` | `points.freeism.app` | `points-worker` | 認証、評価軸、FIX、残高、台帳、落札時の引き落とし |
 
 - PointsユーザーとBetter Authの認証・Social Account対応
 - グローバルな同格ADMIN
 - 評価軸、評価軸設定、公式パッケージと不変revision
 - FIX評価結果、FIX revision、差分台帳、未受領FIX
-- `balance`、`evaluationTotal`、予約、capture/release
+- `balance`、`evaluationTotal`、落札時の引き落とし
 - Accountsとの情報連携、照合結果に基づくPointsユーザーへのFIX帰属
 - Marketsとの提供先ごとの1対1連携、およびPoints OAuth Provider
 - Marketsはこれらを複製して正本にしない。Auction表示に必要な名称・比率・ユーザー表示情報は、不変snapshotまたはPoints APIから取得した表示用データとして保持する。
@@ -780,7 +830,7 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 - すべてのポイント額はD1の`INTEGER`に、表示値の10,000倍を保存する。固定scaleは`10_000`である。
 - 表示値は小数点以下最大4桁まで扱い、設定可能な`minimumUnit`の最小値は`0.0001`である。
 - `minimumUnit`はscale適用後に正の整数でなければならない。
-- FIX、譲渡、交換、予約、capture、releaseの額は、対象評価軸の`minimumUnit`の倍数でなければならない。
+- FIX、譲渡、交換、落札の引き落としの額は、対象評価軸の`minimumUnit`の倍数でなければならない。
 - 浮動小数点`REAL`を残高・比率・価格計算に使わない。入力文字列を10進として検証した後に整数化する。
 - 指数表記、Unicodeマイナス、4桁を超える小数、非有限値を拒否する。
 - D1 Worker APIが`BigInt`を直接扱わないため、入力・計算途中・保存値・集計値のすべてをJavaScript安全整数範囲内で検証する。
@@ -793,8 +843,8 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 - 台帳行は不変で、`sourceFixRevisionId`を一意にして同じrevisionの二重反映を防ぐ。
 - revision内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態は1回のD1原子処理で確定し、部分成功を許可しない。
 - 負のFIXを許可し、結果として負の残高も許可する。
-- `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡・交換・消費・予約・releaseは`evaluationTotal`を変更しない。
-- 残高不足時は、譲渡、交換、予約、落札captureなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
+- `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
+- 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。引き落としを拒否された入札者は落札者にせず、次の入札者を落札者にする。
 
 ### 4.4 未受領FIXとAccounts照合
 
@@ -817,7 +867,7 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 2. Better Auth のメール一致 implicit link は禁止し、本人は `providerId + accountId` で識別する。
 3. OSSライセンスのページを用意する
 4. Google/GitHubのOAuth認証を login/linkで用意する
-5. ユーザーの権限が不要ならM2M-only Client Credentialsを使用する
+5. PointsとMarketsの落札精算は利用者認可だけを使う。Accounts照合でクライアント資格情報が必要な場合は、その連携の仕様に従う。
 6. named env の routes は staging/production domain を `custom_domain: true` で所有する。Terraform 側には同じ custom domain resource を書かない。
 7. `main`の直接更新は行わず、branch／PR／merge queue経由で反映する。
 8. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
@@ -898,7 +948,7 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user ID、M2M Tokenの`sub`はClient IDとし、別scopeを要求する。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
+- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
 - 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。

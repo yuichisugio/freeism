@@ -3,12 +3,9 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
-import { fixedPagesPlugin } from "./build/fixed-pages-plugin";
-
 export default defineConfig({
   plugins: [
     cloudflare({ viteEnvironment: { name: "ssr" } }),
-    fixedPagesPlugin(),
     tanstackStart({
       router: {
         routeFileIgnorePattern: "\\.test\\.",

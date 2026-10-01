@@ -2,8 +2,6 @@ import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-worker
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { defineConfig } from "vite-plus";
 
-import { fixedPagesPlugin } from "./build/fixed-pages-plugin";
-
 export default defineConfig({
   plugins: [
     cloudflareTest(async () => ({
@@ -46,7 +44,6 @@ export default defineConfig({
         configPath: "./wrangler.jsonc",
       },
     })),
-    fixedPagesPlugin(),
     tanstackStart({
       router: {
         routeFileIgnorePattern: "\\.test\\.",
