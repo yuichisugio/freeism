@@ -627,6 +627,16 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 ## 要件
 
+- 画像管理・アップロードを廃止し、R2を商品画像用途に使用しない。
+- Auction単位のDurable Object＋WebSocket Hibernationを採用する
+  - 手動reloadだけにする旧案も上書き。
+  - `setTimeout`、`setInterval`、独自heartbeatでDOを起こし続けない。常駐型realtime案を不採用。
+
+- 1対1のDMはNG
+  - 電気通信事業法
+
+- WebSocketなど、リアルタイム性が必要なデータはキャッシュしない。
+
 - Markets
   - 入れる機能
     - 出品
