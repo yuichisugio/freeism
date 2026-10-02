@@ -42,6 +42,7 @@
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
   - [ドキュメント画面](#ドキュメント画面)
+  - [OSSライセンス画面](#ossライセンス画面)
   - [ライブラリ](#ライブラリ)
     - [使用するライブラリ](#使用するライブラリ)
     - [使用しないライブラリ](#使用しないライブラリ)
@@ -69,7 +70,6 @@
     - [Google](#google)
     - [GitHub](#github)
     - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
-    - [対象操作](#対象操作)
   - [未受領FIX](#未受領fix)
     - [未受領FIX](#未受領fix-1)
   - [Points–Markets OAuth](#pointsmarkets-oauth)
@@ -117,13 +117,14 @@
     - [連携解除](#連携解除)
     - [残高](#残高)
     - [落札精算の引き落とし](#落札精算の引き落とし)
+    - [その他](#その他)
   - [Rate limit](#rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
     - [browser sessionとCookie](#browser-sessionとcookie)
     - [same-origin API](#same-origin-api)
     - [D1 bulk write制約](#d1-bulk-write制約)
-    - [11. D1不変条件](#11-d1不変条件)
-    - [12 Observabilityと運用alert](#12-observabilityと運用alert)
+    - [D1不変条件](#d1不変条件)
+    - [Observabilityと運用alert](#observabilityと運用alert)
     - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
   - [フォルダ構成](#フォルダ構成)
   - [前提](#前提-1)
@@ -449,7 +450,9 @@
 
 ### 多言語
 
-- 日本語と英語を提供する。browser言語が日本語なら日本語、それ以外は英語を既定にする。
+- 日本語と英語に対応する
+   - 言語切替は同一originの`localStorage` key `freeism-language`へ`ja|en`だけを保存する。
+   - 初期値resolverは、JavaScript有効時は、同一originに保存済み有効値、`navigator.languages`内で最初に現れる`ja|en`、`en`の順で決定し、URL／query／Cookie／server content negotiation/未知／破損した保存値は参照しない。
 
 ### プロフィールの設定画面
 
@@ -1300,6 +1303,10 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
   - ポイント関係のAPIドキュメントのページも用意する
     - `/docs/api`
 
+## OSSライセンス画面
+
+- Freeism Accountsを参考に実装する
+
 ## ライブラリ
 
 - 参考
@@ -1506,8 +1513,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - Static AssetsとHonoへ同じCSP、nosniff、no-referrer、Permissions Policy、frame拒否、環境別HSTSを適用し、inline scriptはbuild artifactのhashだけを許可する。
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
-
-- 4固定routeはURL／query／HTMLをlocale別に増やさず、同じ静的HTMLへ日本語正本と英語参照訳を全文renderする。JavaScript無効時は両方を表示し、有効時は保存値→browser言語→日本語fallbackで表示だけを切り替える。
 
 - 貢献評価代用は有向method revisionとUTC月別result revisionを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
 
@@ -1800,12 +1805,11 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - GitHub username、表示名、メール、プロフィールURLの変更で本人対応を変更しない。
 - メールはBetter Auth schemaを満たす属性としてのみ保持し、本人識別、通知、暗黙linkに使用しない。
 - Providerからメールを取得できない場合は、`github-{accountId}@github.oauth.invalid`形式の予約ドメイン値を使用できる。この値も本人識別・通知・link判定には使用しない。
-- 同じGitHub Accountを複数のPointsユーザーへ紐付けない。
 - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
 ### Pointsログイン用OAuth主体の永久対応
 
-初めて成立した次の対応は永久記録とする。
+成立した対応は永久記録とする。
 
 ```text
 (providerId, accountId) -> Points userId
@@ -1813,24 +1817,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 
 - 永久対応を別のPointsユーザーへ移動しない。
 - 受領済みFIX、`evaluationTotal`、台帳、訂正先を別ユーザーへ移動しない。
-- この永久対応はPoints app-owned tableへ保存し、`(providerId, accountId)`複合一意制約を持たせる。Better Auth CLI生成Account schemaにこの永久性を期待しない。
-- loginと明示linkは、app-owned永久対応を同じD1 transactionまたは失敗時に再実行可能な単調処理で照合する。在籍中の同じ主体を別ユーザーへ割り当てない。
-- 永久対応tableと一意制約はPoints実装計画Task 9が所有し、Task 9完了をproduction release blockerとする。Task 1ではBetter Auth標準Accountの既存Account再利用だけを検査する。この永久対応はログインの本人対応に使い、退会後は[退会と再開の処理](#10-account-closeと認証記録)に従う。
-
-### 対象操作
-
-| operation                                 | route／protocol                                          | 追加条件                                                |
-| ----------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
-| Social Account明示link                    | Better Auth `linkSocial` wrapper                         | login済み                                               |
-| Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                        | 明示consent                                             |
-| Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations` | 現在のセッション                                        |
-| パッケージCSV確定                         | パッケージCSVのcommit                                    | `packageAdmin`または`appAdmin`                          |
-| 管理者の追加／削除                        | Organizationの標準API                                    | その対象の管理者または`appAdmin`、最後の1人は外さない   |
-| Account close                             | `/api/account/close`                                     | [退会と再開の処理](#10-account-closeと認証記録)に従う。 |
-| Account reopen                            | `/api/account/reopen`                                    | [退会と再開の処理](#10-account-closeと認証記録)に従う。 |
-| 公開範囲拡大                              | profile／評価軸visibility更新                            | 現在のセッション                                        |
-| CSV export                                | `/api/csv-exports`                                       | `appAdmin`として他者または全体を出力するとき            |
-| OAuth Client／公開鍵                      | `/api/oauth-clients*`                                    | 登録者本人、1人5件まで                                  |
+- この永久対応はPoints app-owned tableへ保存し、`(providerId, accountId)`複合一意制約を持たせる。
 
 ## 未受領FIX
 
@@ -2389,7 +2376,6 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ## UI
 
-- 日本語と英語を用意し、browser言語が日本語なら日本語、それ以外は英語を既定にする。
 - `/terms`、`/privacy`、`/help`、`/docs`を固定公開ページとしてbuild時にSSGし、認証・外部URL・公開プロフィール・経済履歴の保持方針を明記する。`/`は`/index.html`の静的SPA shellからhydrateするtop routeで、top本体のSSGとは扱わない。
 
 ## Points–Markets連携契約
@@ -2532,6 +2518,21 @@ Marketsが登録した各提供先について次を保証する。
 }
 ```
 
+### その他
+
+- Social Account明示link
+  - Better Auth `linkSocial`
+- Points–Markets link／relink／追加scope
+  - OAuth authorization／consent POST
+- Points–Markets通常unlink
+  - 標準APIエンドポイント
+- 管理者の追加／削除
+  - Better Auth Organizationプラグインの標準API
+- 退会
+  - `/api/account/close`
+- CSV export
+  - `/api/csv-exports`
+
 ## Rate limit
 
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
@@ -2578,10 +2579,6 @@ worker-src 'none';
 upgrade-insecure-requests
 ```
 
-- executable inline scriptが0件なら`{artifactInlineScriptHashes}`は空にする。TanStackのbuild成果物に不可避なinline scriptがある場合だけ、その成果物から計算した`sha256-...`を列挙する。`script-src 'unsafe-inline'`、`'unsafe-eval'`、wildcard originを許可しない。
-- `style-src 'unsafe-inline'`はstyle属性だけに限定して受容し、外部style originを追加しない。将来nonce/hashへ狭める変更は別reviewとする。
-- development server用originやWebSocketをproduction artifactへ混ぜない。各environmentのCSPはflatten済みartifactから生成する。
-
 共通headerは次のとおりとする。
 
 | Header                      | staging                                                        | production                            |
@@ -2593,8 +2590,6 @@ upgrade-insecure-requests
 | `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
-localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
-
 ### D1 bulk write制約
 
 CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大multi-value SQLや1行1queryで実装しない。現行D1の1 query 100 bound parameters、SQL 100KB、string／BLOB 2MB、Paid 1 invocation 1,000 queries、batch全体30秒の上限をすべて満たす。
@@ -2604,19 +2599,12 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - 1 commitのstatement数を100以下に制限し、query上限1,000に余裕を持たせる。100を超えるschema設計なら行数を黙って削らず、実装を停止して計画を見直す。
 - integration testは1,000行、5MiB境界、100 parameter境界、2MB chunk境界、statement数、30秒timeout、途中statement失敗時0件を実D1 runtimeで確認する。
 
-### 11. D1不変条件
+### D1不変条件
 
-- ledger、FIX revision、claim、Pointsログイン用のpermanent OAuth主体、audit eventをappend-onlyにする。
-- amountは`INTEGER`、`REAL`禁止、safe integer、minimumUnit倍数を境界とDB constraintで検証する。
-- `balance = ledgerの符号付き合計`。
-- `evaluationTotal = FIX起因ledgerの符号付き合計`。
-- `point_ledger_entries`のINSERTだけを経済projectionの入力とし、`point_accounts.balance`／`evaluation_total`は同じtransaction内のD1 `AFTER INSERT` triggerだけが更新する。アプリケーションからprojectionを直接INSERT／UPDATEしない。
-- ledger INSERT前triggerは現在の`point_accounts`と当該deltaを整数として検査し、`balance`または`evaluation_total`の累積結果が±`9_007_199_254_740_991`を超える場合は`RAISE(ABORT, 'SAFE_INTEGER_OVERFLOW')`とする。SQLiteのINTEGER演算がREALへ昇格した値を保存しない。
 - 落札の引き落としは、全落札者の現在残高が必要額を満たすことを同じguardで検査する。一人でも認可が無効、または残高が足りなければ台帳追加を0件にし、Marketsは同じ終了時点からその入札者を除いて計算し直す。残高不足のまま引き落として負残高を作らない。
-- 成功auditは経済batch内へ入れる。guard／認可拒否時はbatchが全rollbackした後、許可したstable codeとrequest metadataだけを別のappend-only rejection auditへ記録する。rejection audit失敗時も経済commandを再実行せず、metric／alertを残して元の失敗responseを返す。
 - 一括引き落としは全落札者、全評価軸を1回に確定する。
 
-### 12 Observabilityと運用alert
+### Observabilityと運用alert
 
 - Workers Observabilityを有効化する。
   - stagingはlogs／tracesともhead sampling `1`、productionはlogs `1`、traces `0.05`を初期値とする。
@@ -2710,18 +2698,10 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - 一度受領済みのFIXとその訂正先は同じPointsユーザーに保持する。
 - 照合と受領対象の詳細は[未受領FIX仕様](../../../../projects/points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
-1. `minimumReleaseAge: 4320`を使う
-2. Better Auth のメール一致 implicit link は禁止し、本人は `providerId + accountId` で識別する。
-3. OSSライセンスのページを用意する
-4. Google/GitHubのOAuth認証を login/linkで用意する
-5. PointsとMarketsの落札精算は利用者認可だけを使う。Accounts照合でクライアント資格情報が必要な場合は、その連携の仕様に従う。
-6. named env の routes は staging/production domain を `custom_domain: true` で所有する。Terraform 側には同じ custom domain resource を書かない。
-7. `main`の直接更新は行わず、branch／PR／merge queue経由で反映する。
-8. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
-9. Static Assetsは次の形にし、Cloudflareの既定値に暗黙依存せず`not_found_handling: "none"`を明示する。汎用`single-page-application` fallbackは使わない。
-10. 日本語と英語に対応する
-    - 言語切替は同一originの`localStorage` key `freeism.fixed-page-language.v1`へ`ja|en`だけを保存する。
-    - 初期値resolverは、JavaScript有効時は、同一originに保存済み有効値、`navigator.languages`内で最初に現れる`ja|en`、`en`の順で決定し、URL／query／Cookie／server content negotiation/未知／破損した保存値は参照しない。
+2. named env の routes は staging/production domain を `custom_domain: true` で所有する。
+3. `main`の直接更新は行わず、branch／PR／merge queue経由で反映する。
+4. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
+5. Static Assetsは次の形にし、Cloudflareの既定値に暗黙依存せず`not_found_handling: "none"`を明示する。汎用`single-page-application` fallbackは使わない。
 
 - 両アプリともSPAを基本とし、固定した公開routeだけをbuild時にSSG/prerenderする。
 - APIは同一originのHono Workerへ`/api/*`として実装する。
@@ -2730,9 +2710,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけに限定し、それぞれ`/terms.html`、`/privacy.html`、`/help.html`、`/docs.html`へ明示出力する。自動static route discoveryとlink crawlを無効にし、公開プロフィール、Auction、proof、認証後画面をprerenderしない。
 - Workers Static Assetsはasset-first、`not_found_handling="none"`、`html_handling="auto-trailing-slash"`とする。`assets_navigation_has_no_effect` compatibility flagでasset missしたnavigationをWorkerへ到達させ、WorkerはGET/HEADのHTML navigationだけAsset Bindingのcanonical `/`からshellを取得して返す。存在しないAPI
 - browserから別subdomainのAPIを直接呼ばない。各アプリの同一origin BFFを通す。
-
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
-
 - `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
 
 ## セキュリティ、品質、release gate
@@ -2793,3 +2771,4 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - 取得の途中でデータが追加・更新された場合は、その変更が後続の取得結果に反映されることを許容する。
   - 複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
   - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
+- 全部のOAuth紐づけは、退会に備えた紐づけとして保持する
