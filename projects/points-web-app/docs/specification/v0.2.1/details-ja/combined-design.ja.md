@@ -184,17 +184,6 @@
   - [11. D1不変条件](#11-d1不変条件)
     - [12.1 Observabilityと運用alert](#121-observabilityと運用alert)
   - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
-    - [13.1 version](#131-version)
-    - [13.2 pnpm policy](#132-pnpm-policy)
-    - [13.3 TanStack incident](#133-tanstack-incident)
-  - [14. GitHub Actions](#14-github-actions)
-  - [main ruleset](#main-ruleset)
-  - [16. CI/CD pipeline](#16-cicd-pipeline)
-    - [PR/merge queue](#prmerge-queue)
-    - [`test/*` push](#test-push)
-    - [`main` push](#main-push)
-  - [17. 環境とIaC所有権](#17-環境とiac所有権)
-  - [参照](#参照)
 - [「無料主義アプリ v0.2.1」の設計](#無料主義アプリ-v021の設計-1)
   - [前提](#前提-1)
 - [Points](#points)
@@ -241,8 +230,7 @@
       - アプリとして実用するのではなく、どんなサービスか体験してもらうだけ
       - リッチなUIは不要
 4. **バンドルサイズを小さくする**
-   - 説明
-     - バンドルサイズを可能な限り小さくなる工夫をする
+   - [バンドルサイズ削減の仕様](#v021バンドルサイズを少なくする)に従う。
 5. **定数管理**
    - 説明
      - それぞれのパラメータは、すぐに変更できるように、定数ファイルを作成して管理する
@@ -309,21 +297,7 @@
 
 ### v0.2.1：複数プロフィールの切り替え
 
-- 概要
-  - 複数プロフィールを簡単に切り替えられる機能
-    - 毎回ログアウトする必要がない機能
-
-- 使用場面
-  - 「個人名義」と「Reactなどソフトウェア名義」ですぐ切り替えられるようにしたい
-
-- 実装したい理由
-  1.  Twitterのように複数プロフィールを簡単に切り替えられるようにしたい。
-      - 複数名義で参加することがある想定のため
-
-- 設計
-  - Better Authの標準の複数セッションを使う。
-  - ログアウトせず、同じブラウザでプロフィールを切り替える。
-  - アカウント名ごとのCookieを独自に送る実装は作らない。バックエンドに、そのための独自処理は作らない。
+複数名義で参加する利用者が、個人名義とReactなどのソフトウェア名義を、Twitterのように簡単に切り替えられるようにする。Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。Cookieとセッションの処理はBetter Authの標準機能に任せる。
 
 ### v0.2.1：プロフィール画面
 
@@ -361,13 +335,12 @@
       1. **ユーザーID**
          - 標準Nano ID
       2. **ユーザー名**
-         - 表示・設定の文字数上限を100文字にする
+         - 文字数は[プロフィールの基本情報](#1-基本情報)に従う。
       3. **ユーザー説明**
-         - 表示・設定の文字数上限を500文字にする
-      4. **「✏編集」ボタン**
-         - 要件
-           1. 設定画面に遷移して、編集状態にしたい
-           2. 自分のプロフィール画面の時のみ表示する
+         - 文字数は[プロフィールの基本情報](#1-基本情報)に従う。
+      4. **編集ボタン**
+
+         自分のプロフィール画面だけに編集ボタンを表示する。ボタンを押すと設定画面に遷移して編集状態にする。バックエンドでも編集権限を確認する。
       5. **公式パッケージの表示**
          - 説明
            - このプロフィールに紐づく公式パッケージを表示する（0件のときは当該ブロックを空表示または非表示。複数件のときは一覧ですべて表示）
@@ -718,8 +691,9 @@
                   - 別画面で実装する予定なので、そちらから行ってもらう
         14. **出品者本人は自身の出品に入札できない**
         15. **オークションが既に終了している場合、新規入札は受け付けない**
-        16. **時間は現地時間を表示**
-            - それぞれのユーザーが利用している場所の現地時間に変換して表示
+        16. **日時の保存と表示**
+
+            日時はUTCで保存し、APIでもUTCを用いる。画面では、それぞれの利用者がいる場所の現地時間に変換して表示する。
         17. **できる限りの、サーバー負荷・データベースやストレージの保存容量の削減**
         18. **入札タイプ（同額入札）の対応**
             - race conditionの同じ入札額のユーザーが複数いた場合は、入札日時が早い人が落札する先着順で決める
@@ -1192,17 +1166,7 @@
 
 ### v0.2.1：バンドルサイズを少なくする
 
-- 概要
-  - サービスの表示が早くなるよう実装したい
-
-- 参考
-  - [https://zenn.dev/catnose99/articles/nani-translate](https://zenn.dev/catnose99/articles/nani-translate)
-
-- 内容
-  1.  未使用コードを残さない
-  2.  キャッシュ
-      - HTTP caching、ETag、長期キャッシュ、filename hashing によって、変更されていない script を再転送しない
-  3.  SVGもサイズが大きいものは`<img>`として読み込む
+サービスを早く表示するため、バンドルサイズを可能な限り小さくする。未使用コードを残さず、HTTP caching、ETag、長期キャッシュ、filename hashingによって、変更されていないscriptを再転送しない。サイズが大きいSVGは`<img>`として読み込む。参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
 
 ## v0.2.1：テーブル構造
 
@@ -1996,7 +1960,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - FIXは評価期間（月必須・日時任意UTC）、軸管理ID任意、memo 200文字以下、安定result IDを保持する。
   - Status: 採用
   - 上書き・撤回関係: 「Task実行年月」をTask非依存語へ変更。
-- CSV再送はIdempotency-Keyと正規化内容hashで判定し、同じkey・異なる内容は`409`とする。
+- CSV再送は[Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
   - Status: 採用
   - 上書き・撤回関係: 二重付与を禁止。
 - CSV exportではformula injectionを無害化し、検証済み負数は数値として保持する。
@@ -2136,7 +2100,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 
 - `/terms`、`/privacy`、`/help`、`/docs`を保持し、SSGで配信する。
 
-- 日時は保存・APIではUTC、表示では利用者のlocal timeを用いる。
+- 日時の保存と表示は[オークションの画面仕様](#v021出品商材一覧オークション落札証明)に従う。
 
 - 公開URLは名前ではなく不変IDを使用し、名前変更後もURLを維持する。
 
@@ -2343,11 +2307,10 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 ## 5. 冪等性と競合
 
-- 同じ`Idempotency-Key`と同じpayload hashは同じ結果ID・responseを返す。
-- 同じkeyでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。
+[Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 - FIX修正は対象の直前revisionを指定し、現在revisionが異なる場合は`409 REVISION_CONFLICT`を返す。
 - 同一file内の重複business keyは全体errorとする。
-- 同じFIX revision、譲渡、交換をretryしても台帳を二重作成しない。
+
 
 ## 6. security
 
@@ -2358,7 +2321,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 ## 7. response
 
-成功は共通`{ "data": ... }` envelope、失敗はRFC 9457 Problem Detailsを使う。validation errorには機械判定可能な`code`と`errors[]`を含める。
+成功は共通`{ "data": ... }` envelopeを使う。失敗とvalidation errorの共通項目は、[Hono HTTPレスポンス仕様](#3-失敗)に従う。
 
 ```json
 {
@@ -2738,15 +2701,12 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 
 ### 8.4 Token保存とRefresh
 
-- PointsのAccess／Refresh TokenはMarkets D1のBetter Auth Accountへ暗号化保存する。
-- Points TokenをMarketsのCookie、ブラウザJavaScript、`localStorage`へ返さない。
-- MarketsのブラウザにはMarkets Session Cookieだけを保存する。
+- Tokenの保存先と暗号化は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
+- ブラウザの保存内容とTokenの露出制約は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
-- Better Authのversioned secretsは先頭をcurrent encrypt secret、残りを旧decrypt-only secretとする。新規保存、Token refresh、再連携等の次回writeでcurrent versionへ収束させる。独自read時lazy rewrapや独自ciphertext件数reconciliationを追加せず、旧secretのretireは標準rotation手順と回帰testに従う。
-- Access Token期限切れ時は保存済みRefresh Tokenで更新し、新しいAccess／Refresh Tokenを暗号化して置換する。
-- 401時の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
-- 同じRefresh Tokenを並列使用しない。
-- Token、Cookie、Authorization Code、OAuth Client秘密鍵をログへ出さない。
+
+- Tokenの更新と再試行は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
+
 
 ## 9. Cookie、CSRF、Origin
 
@@ -2763,7 +2723,7 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 - credential付き`Access-Control-Allow-Origin: *`を禁止する。
 - CORSを認証・認可として扱わない。
 - OAuth callback、WebSocket handshake、重要mutationで環境ごとの正しいoriginを検証する。
-- 重要mutationは`Idempotency-Key`を要求し、同じkey・異なるpayloadは`409`とする。
+- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 
 ## 10. Account closeと認証記録
 
@@ -2898,8 +2858,8 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 ## 1. 基本情報
 
-- 表示名: 1〜100文字
-- 説明: 0〜500文字
+プロフィールの表示名は1〜100文字、説明は0〜500文字とする。設定時と表示時に同じ文字数上限を適用する。
+
 - プロフィール自体の公開/非公開。初期値は公開
 - 各評価軸の`balance`、`evaluationTotal`、FIX・譲渡・交換履歴の公開設定
 
@@ -2971,7 +2931,7 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 ## 4. 公開表示
 
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
-- 自分のプロフィールだけに編集ボタンを表示する。
+- 編集ボタンは[プロフィール画面](#v021プロフィール画面)に従う。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
 - 公式Packageはprofileの`displayOrder`で返し、現在の公開revisionへのlinkと不変Package IDを示す。
 - FIX・譲渡履歴は対応する評価軸フラグが`PUBLIC`の時だけ返す。交換履歴はsourceとtarget両方の`exchangeHistoryVisibility` が`PUBLIC`の時だけ返し、非公開軸のIDや額を反対軸から推測できる部分表示を行わない。
@@ -3011,7 +2971,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 ## 3. 失敗
 
-RFC 9457 Problem Detailsを使う。
+失敗はRFC 9457 Problem Detailsで返す。`type`は安定したHTTPS URI、`title`はcodeごとの短い固定文言とし、`status`はHTTP statusと一致させる。`code`は安定した`SCREAMING_SNAKE_CASE`とする。`type`、`title`、`status`、`code`、`requestId`を必須とし、`detail`と`instance`は任意とする。`detail`へsecret、SQL、stack、個人情報を入れない。入力検証のエラーは`errors[]`へ返す。各要素の`code`は`SCREAMING_SNAKE_CASE`の必須項目で、`row`、`field`、`message`はすべて任意項目とする。`row`は0以上の整数、`field`と`message`は文字列で返す。`message`にも秘密値を含めない。CSVの入力検証では、行番号、`column`で表す列名、エラーcodeを返す。
 
 ```json
 {
@@ -3025,14 +2985,6 @@ RFC 9457 Problem Detailsを使う。
 	"currentAuctionVersion": 43
 }
 ```
-
-- `type`は安定したHTTPS URI。
-- `title`はcodeごとの短い固定文言。
-- `status`はHTTP statusと一致。
-- `detail`へsecret、SQL、stack、個人情報を入れない。
-- `code`は安定した`SCREAMING_SNAKE_CASE`。
-- `type`、`title`、`status`、`code`、`requestId`は必須、`detail`と`instance`は任意とする。
-- field validationは`errors[]`へrow/field/codeを返す。
 
 ## 4. status
 
@@ -3056,10 +3008,7 @@ RFC 9457 Problem Detailsを使う。
 
 ## 5. idempotency
 
-- critical mutationは`Idempotency-Key`必須。
-- 同じkey/payload hashは初回と同じHTTP status、domain `data`またはProblem Details domain結果へ収束する。初回`201`のreplayを`200`へ変えない。
-- 同じkeyでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`。
-- transport observabilityの`meta.requestId`／Problem Detailsの`requestId`はretryごとに再発行してよいが、domain result IDは同じにする。
+重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。CSVでは正規化した内容のhashで判定し、同じFIX revision、譲渡、交換を再送しても台帳を二重作成しない。連携解除の再送も同じreceiptを返す。
 
 ## 6. cache
 
@@ -3223,8 +3172,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 ### 2.2 表示項目
 
 - ユーザーID
-- 表示名: 1〜100文字
-- 説明: 0〜500文字
+- 表示名と説明。文字数は[プロフィールの基本情報](#1-基本情報)に従う。
 - 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
 - 公開設定をONにした評価軸の`balance`と`evaluationTotal`
 - 公開設定をONにしたFIX・譲渡・交換履歴
@@ -3244,7 +3192,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸revisionの公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
 - 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
 - profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
-- 自分のプロフィールだけに編集導線を表示する。権限判定はserverでも行う。
+- 編集導線と権限判定は[プロフィール画面](#v021プロフィール画面)に従う。
 
 ## 4. 評価軸
 
@@ -3456,15 +3404,11 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 
 ## 4. Token保存とrefresh
 
-- MarketsのPoints利用者Access／Refresh TokenはBetter Auth Accountへ保存し、Better Auth標準`account.encryptOAuthTokens: true`と標準versioned secretsだけで暗号化する。独自AES-GCM envelope／key ring、Tokenの平文直接INSERT、read時lazy rewrapを実装しない。
-- versioned secretsはWorkers Secretsで環境・アプリ別に管理し、先頭をcurrent encrypt secret、残りを旧decrypt-only secretとする。標準暗号形式・algorithmを本contractへ固定しない。
-- 新規保存、Refresh Token rotation、再連携等の次回writeでcurrent versionへ収束させる。Markets固有のD1 refresh lease／CASはsingle-flight制御として維持するが、暗号方式を独自実装せず、CASで置換するTokenにもBetter Auth標準暗号経路を使う。
-- MarketsはPointsをMarketsログイン用Social Providerとして公開しない。Task 6Aで、Points接続TokenをBetter Auth Accountへ保存・更新する標準経路と`account.encryptOAuthTokens`の適用を実物で検証し、標準APIで成立しなければ独自暗号へfallbackせずreleaseを停止する。
-- tokenをCookie、localStorage、session payload、Problem Details、log、auditへ出さない。
-- Refresh Token rotationは、`pointsConnectionId`単位のD1 lease/CASでsingle-flightにする。
-- lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshはwinnerの結果を再読込する。
-- 401時は明示refreshを1回だけ行い、同じAPI requestを1回だけ再試行する。`Idempotency-Key`必須操作では同じkeyを使い、read-only操作へkeyを追加しない。
-- `invalid_grant`は連携を`REAUTH_REQUIRED`にし、無限retryしない。
+MarketsはPoints利用者のAccess TokenとRefresh Tokenを、Markets専用D1のBetter Auth Accountへ暗号化して保存する。保存と更新には、Better Auth標準の`account.encryptOAuthTokens: true`とversioned secretsを使う。versioned secretsはWorkers Secretsで環境・アプリ別に管理し、先頭を現在の暗号化用secret、残りを旧データの復号専用secretとする。新規保存、Refresh Token rotation、再連携などの次回書き込みで現在のversionへ揃える。CASで置換するTokenにも標準の暗号化経路を使い、独自AES-GCM envelope、key ring、平文の直接INSERT、読み取り時のlazy rewrap、ciphertext件数の独自reconciliationは実装しない。標準の暗号形式とalgorithmをアプリの契約へ固定せず、旧secretの廃止は標準のrotation手順と回帰テストに従う。MarketsはPointsをログイン用Social Providerとして公開しない。Task 6Aで標準のAccount保存・更新経路と暗号化の適用を実物で検証し、標準APIで成立しない場合はreleaseを停止する。
+
+MarketsのブラウザにはMarkets Session Cookieだけを保存する。Points TokenはMarketsのCookie、ブラウザJavaScript、`localStorage`、session payload、Problem Details、ログ、監査へ出さない。Cookie、Authorization Code、OAuth Clientの秘密鍵もログへ出さない。
+
+MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで更新し、新しいAccess TokenとRefresh Tokenへ暗号化して置き換える。Refresh Token rotationは`pointsConnectionId`単位のD1 lease/CASでsingle-flightにし、同じRefresh Tokenを並列使用しない。lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshではwinnerの結果を読み直す。APIが`401`を返したときの明示refreshと同じAPI要求の再試行は、それぞれ1回だけとする。`Idempotency-Key`が必須の操作では同じキーを使い、read-only操作へキーを追加しない。`401`に対するrefreshと再試行に失敗したときは、再連携を要求する。`invalid_grant`の場合は連携を`REAUTH_REQUIRED`へ進め、無限に再試行しない。
 
 ## 5. 共通HTTP contract
 
@@ -3490,7 +3434,7 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 }
 ```
 
-失敗はRFC 9457 Problem Detailsと機械判定用`code`を返す。
+失敗は[Hono HTTPレスポンス仕様](#3-失敗)に従う。
 
 ```json
 {
@@ -3502,7 +3446,7 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 }
 ```
 
-同じidempotency keyと同じpayload hashは初回HTTP statusとdomain結果へ収束する。初回が`201`ならreplayも`201`とする。成功時の`data`または失敗時のProblem Details domain結果は保持するが、transport observabilityの`meta.requestId`／`requestId`は再試行ごとに再発行してよい。同じkeyで異なるpayloadは`409 IDEMPOTENCY_KEY_REUSED`を返す。
+[Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 
 ### 5.3 OpenAPI共通schema
 
@@ -3512,7 +3456,7 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 - `priceTicks`はinteger `0..9007199254740991`、`quantity`、`weight`、`totalWeight`、`packageTick`、各versionはinteger `1..9007199254740991`、`displayOrder`はinteger `0..9007199254740991`とする。
 - scale済みamount／balanceはJSON numberではなくASCII整数文字列`^-?(0|[1-9][0-9]*)$`とする。必要額は非負整数文字列`^(0|[1-9][0-9]*)$`とし、文字列をparseした境界でJavaScript安全整数範囲を検証する。
 - bodyを返すsuccess envelopeは`data`と`meta`をrequiredにし、`meta.requestId`をrequired non-empty stringとする。public revisionの`304`はbodyを返さない。
-- RFC 9457 Problem Detailsは`type`、`title`、`status`、`code`、`requestId`をrequired、`detail`と`instance`をoptionalとする。validation `errors` itemは`code`をrequired SCREAMING_SNAKE_CASE、`row`をoptional non-negative integer、`field`をoptional string、`message`をoptional safe stringとし、秘密値を含めない。
+- 失敗のschemaと入力検証エラーの項目は、[Hono HTTPレスポンス仕様の失敗](#3-失敗)に従う。
 - protected responseのexact cache値は`Cache-Control: private, no-store`とする。public Point Package Revisionだけは7.0のimmutable cacheを例外とする。
 
 共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`は`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`だけを正本とし、このTaskで実装内部error codeを追加しない。
@@ -3614,7 +3558,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - Pointsはtokenのsubject／client IDから対象app-owned grantを解決し、bodyだけを信用しない
 - D1 guardはgrantが`ACTIVE`であることを再確認する。違えば何も変更しない
 - 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receipt、auditを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
-- 同じkey／payloadの再送は同じreceipt、異なるpayloadは`409 IDEMPOTENCY_KEY_REUSED`とする
+- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 - Marketsはreceiptを保存した後だけlocal connectionを`UNLINKED`にする
 
 ### 7.3 残高
@@ -3712,8 +3656,7 @@ Pointsは`pointPackageRevisionId`、`priceTicks`、`quantity`から必要額を�
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
 - mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、落札精算の一括引き落としだけ1MiBとする。
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
-- important mutationは`Idempotency-Key`必須。
-- 同じkey・同じpayloadは同じ結果、異なるpayloadは409。
+- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 - successは`{data, meta?}`、errorはRFC 9457 Problem Detailsに統一する。
 - errorへstack、SQL、token、secret、内部binding名を出さない。
 
@@ -3846,116 +3789,32 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 ## 13. 依存関係とsupply chain
 
-### 13.1 version
+- pnpm policy
+  - `minimumReleaseAge: 4320`分
+  - `blockExoticSubdeps: true`
 
-2026-07-11調査baseline（当時の固定version）:
+- GitHub Actions
+  - `pull_request`と`merge_group`で同じrequired CIを実行する。
+  - `pull_request_target`を使わない。
+  - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
+  - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
-- Node `26.x`（minimum `>=24.11.0`）
-- pnpm `10.33.3`
-- Vite Plus `0.2.4`
-- TanStack Start `1.168.27`
-- Hono `4.12.28`
-- Drizzle ORM `0.45.2`
-- Drizzle Kit `0.31.10`
-- Wrangler `4.108.0`
-- `@cloudflare/vite-plugin` `1.43.2`
-- `@cloudflare/vitest-pool-workers` `0.18.2`
+- main ruleset
+  - direct push、force push、branch delete禁止
+  - PR必須
+  - required checksとbranch up-to-date
+  - merge queue
+  - admin bypassなし
+  - 1人運用中のrequired approvalは0。2人目のmaintainer追加時に1へ変更
 
-現行の3 appの`vite-plus`は`1.0.0`、Worker直接実行の`vitest`は`4.1.10`に
+- CI/CD pipeline
+  - branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
 
-### 13.2 pnpm policy
-
-- `minimumReleaseAge: 4320`分
-- `blockExoticSubdeps: true`
-- `onlyBuiltDependencies`を最小allowlist化
-- unexpected lifecycle scriptを拒否
-- high/critical advisoryはrelease blocker。例外はowner、理由、有効期限、補償controlを文書化する
-
-### 13.3 TanStack incident
-
-2026-05に公表されたTanStack npm supply-chain incidentのaffected versionを明示blockする。新規lockfile生成時に公式postmortem/advisory、package provenance、publish日時を再確認する。affected範囲を「現在latestだから安全」と推測しない。
-
-## 14. GitHub Actions
-
-- `pull_request`と`merge_group`で同じrequired CIを実行する。
-- `pull_request_target`を使わない。
-- Actionsはfull commit SHAへ固定し、permissionsはjob最小にする。
-- fork/PR由来cache、artifact、environment値をproduction deployへ流用しない。
-- production secretsはmain push workflowのproduction jobだけが参照する。
-- `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
-- prerender buildはWorker Secretを読み込まない。deployは別stepで実行し、Secretはデプロイ先の登録値を使う。
-- OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
-
-## main ruleset
-
-- direct push、force push、branch delete禁止
-- PR必須
-- required checksとbranch up-to-date
-- merge queue
-- admin bypassなし
-- 1人運用中のrequired approvalは0。2人目のmaintainer追加時に1へ変更
-
-## 16. CI/CD pipeline
-
-### PR/merge queue
-
-1. exact install/lockfile検証
-2. format、lint、typecheck
-3. unit/property test
-4. Workers Vitest D1/DO/Workflow integration
-5. OpenAPI contract/client generation差分
-6. build、Static Assets routing検証
-7. dependency/advisory/license policy
-
-### `test/*` push
-
-1. validate
-2. staging artifact build (`CLOUDFLARE_ENV=staging`)
-3. Points staging migration/deploy
-4. Markets staging migration/deploy
-5. staging smoke
-
-### `main` push
-
-1. production release gateとvalidate
-2. production artifact build (`CLOUDFLARE_ENV=production`)
-3. Points production migration/deploy
-4. Markets production migration/deploy
-5. production smoke
-
-- production手動approvalを置かない。
-- testとproductionは独立workflowとし、test workflowからproductionへ昇格しない。
-- 両workflowは固定concurrency group、`queue: max`、`cancel-in-progress=false`で直列化し、実行中migrationをcancelしない。
-- branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
-
-## 17. 環境とIaC所有権
-
-- ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
-  - `staging`は共有test環境のCloudflare内部名である。
-- Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
-- 同じresourceをTerraformとWranglerで二重管理しない。
-- Cloudflare Vite pluginはbuild時に`CLOUDFLARE_ENV`を選び、flatten済み設定をdeployする。
-- Terraform stateは専用Cloudflare R2 bucketのS3 backendへ保存し、`use_lockfile=true`でlockingする。bucketは本体IaCとは別のbootstrapで作り、bucket-scoped Object Read & Write credentialをGitHub Environment Secretに保存する。HCL、repository、artifactへcredentialやstateを入れない。
-- IaC applyを有効にする前に、stagingで2つの同時実行を起こし、片方がstate lock取得失敗になることを実証する。R2 state bucketはアプリD1の定期backupではない。
-
-## 参照
-
-- [Better Auth Security](https://better-auth.com/docs/reference/security)
-- [Better Auth User & Accounts](https://better-auth.com/docs/concepts/users-accounts)
-- [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)
-- [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
-- [Cloudflare Workers compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/)
-- [Cloudflare Workers Static Assets HTML handling](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/)
-- [Cloudflare Durable Objects WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/)
-- [Cloudflare Workers Vitest Integration](https://developers.cloudflare.com/workers/testing/vitest-integration/)
-- [Cloudflare D1 Database `batch()`](https://developers.cloudflare.com/d1/worker-api/d1-database/)
-- [Cloudflare D1 limits](https://developers.cloudflare.com/d1/platform/limits/)
-- [Cloudflare D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)
-- [Cloudflare Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
-- [Cloudflare Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/)
-- [Cloudflare Analytics Engine limits](https://developers.cloudflare.com/analytics/analytics-engine/limits/)
-- [Cloudflare Email bindings](https://developers.cloudflare.com/workers/wrangler/configuration/#email-bindings)
-- [GitHub protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
+- 環境とIaC所有権
+  - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
+    - `staging`は共有test環境のCloudflare内部名である。
+  - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
+  - 同じresourceをTerraformとWranglerで二重管理しない。
 
 # 「無料主義アプリ v0.2.1」の設計
 
@@ -3988,6 +3847,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - 入れない機能
     - メールとPUSH
     - PWAとoffline機能を廃止する。
+
 - Points
   - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
   - draftや承認待ちは、無料主義アプリ外で、それぞれの評価軸が管理する
@@ -4051,7 +3911,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - ユーザーはOIDC。連携はAPIトークンにすることで、GUIの認証フローが負担な場合はAPIトークンで代用する
 
 - 退会ボタン
-  - 疑問
+  - 退会ボタンで、全データ削除はしない
     - 借金orポイントのマイナス状態になっていたら退会して借金のデータをチャラにして、再度アカウントを作り直すのでは？
   - メモ
     - データを全部削除する方法は用意したほうが良い
@@ -4208,19 +4068,9 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
     - Drizzle定義
   - `infra/config/cloudflare`
     - claudflareの設定項目
-
-  usecase → domain → infra
+  - usecase → domain → infra
 
 RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
-
-- Tanstack Form
-- Tanstack Table
-- Tanstack Pacer
-  - RateLimit
-- TanStack Hotkeys
-  - 型安全で簡単に管理できるショートカットキーを作れる
-- TanStack Devtools
-  - 開発環境で、Tanstack系のデータ内部状況を確認できる
 
 - バックエンド
   - パブリックのPI
@@ -4228,34 +4078,18 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
   - サービス内のAPI
     - `/internal/`
 
-- `freeism.app`のサブドメインにする
-  - サブドメインにする事で、独立したサービスであることを示し、サービス自体も外部サービスとして扱う
-  - 疎結合にしておく
-
 - CORS
   - 外部からアクセスするパブリックAPIの場合に、CORSは関係ない
   - CORSはブラウザだけで、別サーバーやcurlではCORSは無いため
   - そのため、CORSを認証として使用してはダメ
 
 - データ移行を簡単にする
-  - インポート
-    - `profile-example.csv`
 
 - 更新頻度の低いデータはキャッシュし、リアルタイム性が必要なデータはキャッシュしない。サーバー負荷と取得回数を減らすためである。
 - 画面表示用のデータは、TanStack Queryのメモリにキャッシュする。更新後は、関連するquery keyを無効にする。IndexedDB、Service Worker、Next.jsへの永続化はしない。
 - バックエンドのキャッシュはCloudflare Cacheに置く。DBを更新したあとは、該当するキャッシュを消す。
 - 高頻度で更新される情報は、1時間ごとなどにstaleにする。
 - WebSocketなど、リアルタイム性が必要なデータはキャッシュしない。
-
-| `projects/points-web-app` | `points.freeism.app` | `points-worker` | 認証、評価軸、FIX、残高、台帳、落札時の引き落とし |
-
-- PointsユーザーとBetter Authの認証・Social Account対応
-- `appAdmin`、`packageAdmin`、`evalueterAdmin`
-- 評価軸、評価軸設定、公式パッケージと不変revision
-- FIX評価結果、FIX revision、差分台帳、未受領FIX
-- `balance`、`evaluationTotal`、落札時の引き落とし
-- 未受領FIXの受領- Marketsとの提供先ごとの1対1連携、およびPoints OAuth Provider
-- Marketsはこれらを複製して正本にしない。Auction表示に必要な名称・比率・ユーザー表示情報は、不変snapshotまたはPoints APIから取得した表示用データとして保持する。
 
 ### 4.1 評価軸
 
@@ -4285,7 +4119,7 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 
 - header、列数、必須値、値域を厳密に検証し、全エラーを行番号・列名付きで返す。
 - client側previewは許可するが、server側draftは保存しない。確認後は1回の原子的POSTで確定する。
-- 同一requestの再送は内容hashと`Idempotency-Key`で同じ結果を返し、同じkeyで異なるpayloadは`409`にする。
+- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 - 同一ファイル内の重複行はファイル全体を失敗させ、部分反映しない。
 - export時は表計算ソフトのformula injectionを無害化する。
 
