@@ -21,6 +21,9 @@
     - [7.1 AuctionRoom Durable Object](#71-auctionroom-durable-object)
     - [7.2 Settlement Workflow](#72-settlement-workflow)
     - [branch pushのdeploy pipeline](#branch-pushのdeploy-pipeline)
+    - [9. Durable Object/Workflow](#9-durable-objectworkflow)
+    - [8. WebSocket event](#8-websocket-event)
+  - [4. Token保存とrefresh](#4-token保存とrefresh)
   - [9. セキュリティ、品質、release gate](#9-セキュリティ品質release-gate)
   - [採用しないもの](#採用しないもの)
 
@@ -626,6 +629,8 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
     1. PRをマージする際に、CI/CDでポイントのマイナにするAPIを叩く
 
 ## 要件
+
+- 出品のCSVは、1行で競売1件を作る。
 
 - 画像管理・アップロードを廃止し、R2を商品画像用途に使用しない。
 - Auction単位のDurable Object＋WebSocket Hibernationを採用する

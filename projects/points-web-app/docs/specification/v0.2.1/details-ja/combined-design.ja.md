@@ -12,19 +12,17 @@
     - [公式Packageの登録](#公式packageの登録)
     - [評価軸ごとの公開設定](#評価軸ごとの公開設定)
     - [2.1 IDと公開URL](#21-idと公開url)
-    - [2.2 表示項目](#22-表示項目)
-    - [2.3 検索](#23-検索)
-    - [2.4 公開設定](#24-公開設定)
-    - [公開表示](#公開表示)
-    - [多言語とaccessibility](#多言語とaccessibility)
+    - [表示項目](#表示項目)
+    - [検索](#検索)
+    - [公開設定](#公開設定)
+    - [多言語](#多言語)
     - [プロフィールの設定画面](#プロフィールの設定画面)
-    - [9.5 自動分配](#95-自動分配)
+    - [自動分配](#自動分配)
   - [Social Account](#social-account)
     - [Accountsとの情報連携](#accountsとの情報連携)
     - [ユーザー連携の件数と識別](#ユーザー連携の件数と識別)
     - [利用開始と連携先ユーザーの変更](#利用開始と連携先ユーザーの変更)
-    - [3.4 連携解除と退会](#34-連携解除と退会)
-    - [連携アカウント一覧の取得](#連携アカウント一覧の取得)
+    - [連携解除と退会](#連携解除と退会)
   - [評価軸](#評価軸)
     - [基本情報](#基本情報-2)
     - [要件](#要件-1)
@@ -50,47 +48,36 @@
     - [使用しないライブラリ](#使用しないライブラリ)
   - [意思決定](#意思決定)
   - [CSVエクスポート仕様](#csvエクスポート仕様)
-    - [1. 対象](#1-対象)
-    - [2. 権限](#2-権限)
-    - [3. 形式](#3-形式)
-    - [4. Snapshotとcursor contract](#4-snapshotとcursor-contract)
-    - [5. 不変履歴](#5-不変履歴)
-    - [6. UI](#6-ui)
-  - [CSVアップロード共通仕様](#csvアップロード共通仕様)
-    - [1. 対象操作](#1-対象操作)
-    - [2. ファイル制約](#2-ファイル制約)
-    - [3. validation](#3-validation)
-    - [4. previewと確定](#4-previewと確定)
+  - [CSVアップロード](#csvアップロード)
+    - [validation](#validation)
   - [命名規則](#命名規則)
     - [前提](#前提)
-    - [2. repository・service・domain](#2-repositoryservicedomain)
-    - [3. ID](#3-id)
-    - [4. 金額と時刻](#4-金額と時刻)
-    - [5. revisionとstate](#5-revisionとstate)
-    - [6. HTTP/OpenAPI](#6-httpopenapi)
-    - [7. Hono](#7-hono)
-    - [8. Drizzle/D1](#8-drizzled1)
-    - [10. frontend](#10-frontend)
-    - [11. test](#11-test)
-    - [12. script](#12-script)
-    - [13. 例外](#13-例外)
+    - [repository・service・domain](#repositoryservicedomain)
+    - [ID](#id)
+    - [金額と時刻](#金額と時刻)
+    - [revisionとstate](#revisionとstate)
+    - [HTTP/OpenAPI](#httpopenapi)
+    - [Hono](#hono)
+    - [Drizzle/D1](#drizzled1)
+    - [frontend](#frontend)
+    - [test](#test)
+    - [script](#script)
+    - [例外](#例外)
   - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
-    - [2. アプリと認証データの境界](#2-アプリと認証データの境界)
-    - [3. Better Auth共通設定](#3-better-auth共通設定)
-    - [4. PointsのGoogle・GitHubログインと明示連携](#4-pointsのgooglegithubログインと明示連携)
-      - [4.2 Google](#42-google)
-    - [4.3 GitHub](#43-github)
-    - [5. Pointsログイン用OAuth主体の永久対応](#5-pointsログイン用oauth主体の永久対応)
-    - [6. 対象操作](#6-対象操作)
-  - [7. 未受領FIX](#7-未受領fix)
-    - [7.1 未受領FIX](#71-未受領fix)
-  - [8. Points–Markets OAuth](#8-pointsmarkets-oauth)
-    - [8.1 ユーザー対応と同意](#81-ユーザー対応と同意)
-    - [8.2 Authorization Code flow](#82-authorization-code-flow)
-      - [8.2.1 browser return先](#821-browser-return先)
-    - [8.3 開発者向けOAuthクライアント管理](#83-開発者向けoauthクライアント管理)
-    - [8.4 Token保存とRefresh](#84-token保存とrefresh)
-  - [9. Cookie、CSRF、Origin](#9-cookiecsrforigin)
+    - [アプリと認証データの境界](#アプリと認証データの境界)
+    - [Better Auth共通設定](#better-auth共通設定)
+    - [PointsのGoogle・GitHubログインと明示連携](#pointsのgooglegithubログインと明示連携)
+      - [Google](#google)
+    - [GitHub](#github)
+    - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
+    - [対象操作](#対象操作)
+  - [未受領FIX](#未受領fix)
+    - [未受領FIX](#未受領fix-1)
+  - [Points–Markets OAuth](#pointsmarkets-oauth)
+    - [ユーザー対応と同意](#ユーザー対応と同意)
+    - [Authorization Code flow](#authorization-code-flow)
+    - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
+  - [Cookie、CSRF、Origin](#cookiecsrforigin)
   - [退会](#退会)
   - [評価軸とパッケージの管理](#評価軸とパッケージの管理)
   - [Hono HTTPレスポンス仕様](#hono-httpレスポンス仕様)
@@ -99,13 +86,12 @@
     - [失敗](#失敗)
     - [status](#status)
     - [idempotency](#idempotency)
+      - [`fixClaim`](#fixclaim)
     - [cache](#cache)
   - [security header](#security-header)
   - [未受領FIXとAccounts連携](#未受領fixとaccounts連携)
-    - [目的](#目的)
     - [Pointsが保存する経済データ](#pointsが保存する経済データ)
       - [`unclaimedFixEntry`](#unclaimedfixentry)
-      - [`fixClaim`](#fixclaim)
     - [FIX取込時の照合](#fix取込時の照合)
     - [未受領FIXの受領資格](#未受領fixの受領資格)
     - [一括claim](#一括claim)
@@ -434,7 +420,7 @@
 - publicプロフィールは未ログインでも閲覧できる。
 - プロフィール自体を非公開にした場合は検索結果へ出さず、直接URLでも存在を開示しない。
 
-### 2.2 表示項目
+### 表示項目
 
 - ユーザーID
 - 表示名と説明。文字数は[プロフィールの基本情報](#1-基本情報)に従う。
@@ -444,14 +430,14 @@
 
 メールは公開プロフィールへ出さず、本人識別にも使わない。
 
-### 2.3 検索
+### 検索
 
 - 公開プロフィール、評価軸、パッケージを、名前と不変IDで検索できる。
 - 非公開プロフィールを結果へ含めない。退会済みのプロフィールは[退会と再開の処理](#10-account-closeと認証記録)に従う。
 - D1/SQLiteで実現できる検索だけを使い、PGroongaやSupabase extensionへ依存しない。
 - headerの共通検索欄から検索結果へ遷移できる。
 
-### 2.4 公開設定
+### 公開設定
 
 - プロフィール自体は初期値`PUBLIC`とする。
 - 公開一覧とプロフィールは未ログインでも閲覧できる。
@@ -459,9 +445,6 @@
 - 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
 - profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
 - 編集導線と権限判定は[プロフィール画面](#v021プロフィール画面)に従う。
-
-### 公開表示
-
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
 - 編集ボタンは[プロフィール画面](#v021プロフィール画面)に従う。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
@@ -471,12 +454,9 @@
 
 公開プロフィールと`GET /api/v1/profiles/{pointsUserId}`の`accountsLinks`は、状態が`PROVIDED`の連携について、取得済みsnapshotだけを返す。閲覧のたびにAccountsへ問い合わせない。各連携は、origin、AccountsユーザーID、Accountsプロフィールへのリンク、取得日時、外部アカウント一覧を持つ。表示するのは、外部サービス名、取得できるユーザー名と表示名、固有IDとプロフィールURL、検証状態、検証方法、検証日時、連携日時のうち、Accountsが提供元ごとに提供する項目だけである。Pointsは最新の取得結果だけを保存し、過去の取得履歴は持たない。次回の取得で`NOT_PROVIDED`になった連携は、公開表示を止める。プロフィール自体が非公開のときは、連携アカウント一覧も公開しない。
 
-### 多言語とaccessibility
+### 多言語
 
 - 日本語と英語を提供する。browser言語が日本語なら日本語、それ以外は英語を既定にする。
-- link状態はiconや色だけでなくtextでも示す。
-- confirm、error、toastはkeyboardとscreen readerで判別できる。
-- 認証Providerから得た表示名などのテキストはescapeしてrenderする。
 
 ### プロフィールの設定画面
 
@@ -575,7 +555,7 @@
 
 - 一つのブラウザで複数プロフィールを切り替える。切り替えはBetter Authの標準の複数セッションを使う。
 
-### 9.5 自動分配
+### 自動分配
 
 > 本節の保持額、score、最大剰余、1,000件上限、訂正snapshot方式はDEC-260で確定している。
 
@@ -607,19 +587,14 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 - GoogleとGitHubを同じProvider一覧から明示linkできる。
 - 同じ一覧をログイン画面にも表示する。
 - メール一致で自動linkせず、異なるメールの明示linkを許可する。
-- Googleは認証手段として保持する。
-- 別ユーザーとして作成済みのProvider accountは独立したPointsユーザーとして扱う。
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
-- 認証とサービス連携
-  - Points利用者は、複数のAccounts系サービスと連携できる。
+- Points利用者は、複数のAccounts系サービスと連携できる。
 
 ### Accountsとの情報連携
 
-Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール、公開API、落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。外部Web URLの登録、リンク検証、紐付け解除、公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Points内のユーザー連携は本節を正本とする。連携と解除が未受領FIXへ与える影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。Pointsは独立したOAuthクライアントとして、本人が提供を許可したアカウントを照合する。本人がPointsを操作していないときも、許可済みの情報を照合できる。設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元のAccountsサービス、Accounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
-
+Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール、公開API、落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。Pointsは独立したOAuthクライアントとして、本人が提供を許可したアカウントを照合する。本人がPointsを操作していないときも、許可済みの情報を照合できる。設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元のAccountsサービス、Accounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
 
 作成時にPointsは、`private_key_jwt`のclient assertion用とDPoP用のEd25519鍵を1組ずつ生成する。秘密鍵とAccess Tokenは、Worker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）をKEKとするAES-256-GCMで暗号化してD1へ保存する。暗号化のAADには、接続先IDと用途を含める。作成した接続先は`PENDING_CLIENT_REGISTRATION`とする。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、client assertion用の公開JWK Setを表示する。`registration.redirectUri`は、stagingとPR Version URLでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とし、productionではproduction自身のoriginの同じpathとする。運営者は表示されたURLをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できたときだけ`ACTIVE`にする。取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`とし、メタデータが不正なら`422 ACCOUNTS_DISCOVERY_INVALID`として、`PENDING_CLIENT_REGISTRATION`のままにする。Client IDが、前後の空白を除いて空、または255文字を超えるときは`422 ACCOUNTS_CLIENT_ID_INVALID`とする。接続先が`PENDING_CLIENT_REGISTRATION`でないときは`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
-
 
 ### ユーザー連携の件数と識別
 
@@ -629,17 +604,11 @@ PointsユーザーIDはPointsが管理する。Accountsユーザーは、提供�
 
 Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIXとAccounts連携](#未受領fixとaccounts連携)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
 
-
 同じ手順を繰り返して、別のAccountsユーザーを追加できる。追加するAccountsユーザーごとに、本人が認証し、情報提供へ同意する。同じPointsユーザーが、連携済みのAccountsユーザーで再び連携した場合は、既存の連携を維持して再連携日時を更新する。設定画面では、接続先が`ACTIVE`の連携に「再連携」を表示する。同じPointsサービス内で、すでに別のPointsユーザーへ連携済みの場合は、保存せずに現在の連携状態を案内する。同じAccountsユーザーの連携先を、同じPointsサービス内の別のPointsユーザーへ変えるときは、元のPointsユーザーへログインして連携を解除したあと、移動先のPointsユーザーへログインして再連携する。再連携ではAccountsでの本人確認と情報提供への同意を行い、[ユーザー連携の件数と識別](#32-ユーザー連携の件数と識別)の一意性を確認する。Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り替えるときは、Accountsで外部アカウントを新しく登録し、所有権を証明して公開先を設定する。Pointsの貢献データとポイントは、Pointsが管理する。
 
-### 3.4 連携解除と退会
+### 連携解除と退会
 
 Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。Pointsユーザーの退会時は[退会と再開の処理](#10-account-closeと認証記録)に従う。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。
-
-### 連携アカウント一覧の取得
-
-[連携アカウント一覧の取得](#cache)
-
 
 ## 評価軸
 
@@ -1699,79 +1668,58 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 ## CSVエクスポート仕様
 
-### 1. 対象
+- 対象操作
+  - 仕様としてCSVエクスポートを使用するすべての操作
 
-Pointsで本人または`appAdmin`が閲覧権限を持つ設定・経済履歴をCSVへ出力する。
+- 権限
+  - 本人は自分の非公開データを出力できる
+  - `appAdmin`は無条件で可能
+  - `packageAdmin`と`evalueterAdmin`は所属する対象
+  - フロントエンドの制限だけではなく、バックエンドでも認可する
 
-- 自分のプロフィール設定、公開設定、公式パッケージ設定
-- 評価軸、評価軸revision、パッケージ、パッケージrevision
-- FIX result/revision/entry
-- 未受領FIXとclaim結果
-- ledger、balance、evaluationTotal、落札の引き落とし
-- 譲渡、交換、貢献評価代用、自動分配
-- PointsのFIX・claimへ保存したAccounts照合結果のうち、閲覧・出力権限があるmetadata
-- 管理者向けreconciliation結果と監査event
+- 形式
+  - UTF-8 With BOM
+  - RFC 4180互換CSV
+  - header必須
+  - amountは小数文字列とし、指数表記やlocale区切りを使わない
+  - timestampはUTCのRFC 3339、IDは不変文字列で出力する
+  - formula injectionを防ぐため、自由入力cellの最初のcode pointが`=`、`+`、`-`、`@`、tab、CRまたはLFならASCII apostropheを1つ付ける。
+  - 判定前にtrimしない。符号付きamount列はschema上のtyped numeric cellと分離し、ASCII十進文字列・小数4桁以下・安全整数・対象`minimumUnit`倍数を再検証できた`-1.2500`等はapostropheを付けず数値のまま保つ。
+  - cell内改行はCRLFと単独CRをLFへ正規化してquoteし、record区切りだけをCRLFで出力する。このためLF開始の自由入力もformula対策対象とする。
 
-### 2. 権限
+- API
+  - `POST /api/csv-exports`は`type`、filter、`pageSize`を受ける
+    - `pageSize`は1〜1,000、省略時は1,000で、headerを除く1pageの最大data行数とする。
+    - 最大50,000行かつUTF-8 50MiBとする。
+    - 上限超過分の暗黙切捨てを行う。まだ次があることを伝えるフラグも返す。
+  - page readerは`ordinal`を100行ずつD1から取得し、RFC 4180 encoderへstreamする。1,000行をJavaScript array／string／Blobへ一括展開しない。
 
-- 本人は自分の非公開データを出力できる。
-- `appAdmin`はアプリ全体を、`packageAdmin`と`evalueterAdmin`は所属する対象を、ログイン中のセッションで出力できる。
-- browserの表示制御だけに頼らず、Hono APIで対象行ごとに認可する。
-- 外部ユーザーの非公開残高、OAuth token、session、client secret、暗号鍵、URL検証HTML本文を出力しない。
+- スナップショットは不要
+  - CSVエクスポートは、取得時点のデータを直接読み出してCSVで返す。
+  - エクスポート専用のスナップショットは作成しない。
+  - 利用者は、出力対象、期間、1回に取得する行数を指定する。
+  - サーバーは、リクエストごとに利用者の権限と取得条件を確認する。
+  - データを分割して取得する場合は、続きの取得に必要なカーソルを返す。
+  - 次のCSVも、リクエスト時点のデータから取得する。
+  - 取得の途中でデータが追加・更新された場合は、その変更が後続の取得結果に反映されることを許容する。
+  - 複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
+  - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
 
-### 3. 形式
+- UI
+  - 対象type、期間、1pageの行数を選ぶ最小限のUIを用意する。
+  - cursor文字列を利用者に編集させず、「次のCSVを取得」と現在page／全行数
 
-- UTF-8、RFC 4180互換CSV、header必須。
-- amountは小数文字列とし、指数表記やlocale区切りを使わない。
-- timestampはUTCのRFC 3339、IDは不変文字列で出力する。
-- formula injectionを防ぐため、自由入力cellの最初のcode pointが`=`、`+`、`-`、`@`、tab、CRまたはLFならASCII apostropheを1つ付ける。判定前にtrimしない。符号付きamount列はschema上のtyped numeric cellと分離し、ASCII十進文字列・小数4桁以下・安全整数・対象`minimumUnit`倍数を再検証できた`-1.2500`等はapostropheを付けず数値のまま保つ。
-- cell内改行はCRLFと単独CRをLFへ正規化してquoteし、record区切りだけをCRLFで出力する。このためLF開始の自由入力もformula対策対象とする。
+## CSVアップロード
 
-### 4. Snapshotとcursor contract
+- 対象操作
+  - 仕様としてCSVアップロードを使用するすべての操作
 
-- `POST /api/csv-exports`は`type`、権限内のfilter、`pageSize`を受けるsnapshot作成requestとする。`pageSize`は1〜1,000、省略時は1,000で、headerを除く1pageの最大data行数とする。
-- serverは一回のD1 transactionで認可後の行を`csvExportSnapshotRows`へ物理化し、`exportId`、`snapshotAt`、`totalRows`、`expiresAt`、先頭cursorを返す。snapshotは最大50,000行かつUTF-8 50MiBとし、いずれかを超える場合は`422 CSV_EXPORT_SNAPSHOT_TOO_LARGE`で期間またはtypeの絞り込みを要求する。上限超過分の暗黙切捨てを行わない。
-- `GET /api/csv-exports/{exportId}/pages?cursor=...`は`text/csv; charset=utf-8`を返す。`X-Freeism-Export-Id`、`X-Freeism-Snapshot-At`、`X-Freeism-Total-Rows`、`X-Freeism-Returned-Rows`、`X-Freeism-Final-Page`と、続きがある時だけ`X-Freeism-Next-Cursor`を付ける。最終pageは`X-Freeism-Final-Page: true`、next cursorなしとし、不要な空pageを追加しない。0件snapshotはheaderだけの最初pageを最終pageとする。
-- 1pageのencoded CSVは8MiBを上限とする。`pageSize`到達前でも8MiBを超える次行の直前でpageを閉じ、次cursorは未返却の行から再開する。1物理化行はUTF-8 8KiB以下とし、超過するsource rowはsnapshot作成時に`CSV_EXPORT_ROW_TOO_LARGE`で全体を拒否する。
-
-- 各export typeはsourceごとの不変IDを最終tie-breakに持つ完全な昇順sort keyをschemaで固定する。event／revision／ledger系は`createdAt ASC, immutableId ASC`、現在設定系は論理parent ID、`displayOrder ASC`、item IDの順とする。requestごとの任意sortは受け付けない。
-- snapshot行は上記sort後の0始まり`ordinal`を持つ。cursorは次に読む`ordinal`の10進整数とする。page取得時にsessionのPoints userとsnapshotの作成者、URLの`exportId`、cursorの整数範囲を確認する。
-- snapshotの有効期限は作成時刻から30分で固定し、page取得で延長しない。D1の`expires_at`を毎回確認し、期限後は`410 CSV_EXPORT_CURSOR_EXPIRED`とする。期限切れsnapshot rowはscheduled cleanupの対象とする。
-- 全pageはsource tableを再queryせず同じ物理化snapshotを読む。snapshot作成後にprofile、visibility、ledgerまたはrevisionが変化しても、そのexportの行集合、値、順序、`totalRows`は変わらない。中途のsource変化を混在させる`updatedAt <= snapshotAt`だけの擬似snapshotは使わない。
-
-- page readerは`ordinal`を100行ずつD1から取得し、RFC 4180 encoderへstreamする。1,000行と全snapshotをJavaScript array／string／Blobへ一括展開しない。
-- query result、encoder chunk、look-aheadを含むアプリ所有の同時buffer上限は2MiBとする。2MiB境界testで超過したらresponseを続行せず、metricと`CSV_EXPORT_MEMORY_LIMIT`を記録する。
-
-### 5. 不変履歴
-
-- revisionを平坦化して最新値だけを出すexportと、不変履歴を全件出すaudit exportを別typeにする。
-- exportは状態を変更せず、`verifiedAt`や`lastAccessedAt`も更新しない。
-
-### 6. UI
-
-- 対象type、期間、1pageの行数を選ぶ最小限のUIを用意する。cursor文字列を利用者に編集させず、「次のCSVを取得」と現在page／全行数／30分の残り期限を表示する。
-- export開始前に対象、件数見込み、非公開情報を含むかを確認する。
-- 各pageは同じheaderを持つ番号付きCSVとして保存し、UIが全pageを1つのBlobへ連結しない。期限切れ時は取得済みpageと新snapshotが同一ではないことを示し、1page目から再開させる。
-
-## CSVアップロード共通仕様
-
-### 1. 対象操作
-
-- 評価軸・パッケージの登録と新revision
-- FIX結果とFIX修正revision
-- ポイント譲渡
-- 評価軸間交換
-- 有向交換比率の登録・更新・無効化revision
-- 貢献評価代用
-- 自動分配設定
-- `appAdmin`、`packageAdmin`、`evalueterAdmin`がCSVで行う一括設定のうち、仕様でCSVと定めたもの
-
-### 2. ファイル制約
-
-- encoding: UTF-8 with BOMは先頭だけ許可する。
-- 最大size: 5MiB。
-- 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。出品のCSVは、1行で競売1件を作る。
-- import type固有の上限が1,000未満なら小さい方を適用する。評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
+- ファイル制約
+  - encoding: UTF-8 with BOMは先頭だけ許可する。
+  - 最大size: 5MiB。
+  - 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。
+  - import type固有の上限が1,000未満なら小さい方を適用する。
+  - 評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
 - header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
 - 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
 - ZIP、Excel、JSON、複数file、drag-and-dropはv0.2.1.\*で扱わない。
@@ -1786,7 +1734,7 @@ Pointsで本人または`appAdmin`が閲覧権限を持つ設定・経済履歴�
   - quote内改行
   - Unicode
 
-### 3. validation
+### validation
 
 - client previewは補助であり、serverが同じfileを再parseして正とする。
 - すべての行を検査し、行番号、列名、error code、修正可能な説明をまとめて返す。
@@ -1795,14 +1743,7 @@ Pointsで本人または`appAdmin`が閲覧権限を持つ設定・経済履歴�
 - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
 - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
 - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
-- FIXの列と受領者識別子は[Pointsドメイン仕様](points-domain.md#71-入力)、受領者のAccounts照合とvalidationとcommitの間の照合結果の変化は[FIX取込時の照合](unclaimed-fix-and-ownership.md#6-fix取込時の照合)に従う。
 - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
-
-### 4. previewと確定
-
-
-server側にdraftを保存しない。validationと確定の間に参照revisionや権限が変わった場合は`409`を返して再validationを要求する。
-
 - 1,000行をmulti-value SQLのbound parameterへ直接展開せず、validation済みcanonical JSONをUTF-8 1,500,000 bytes以下にchunk化する。
 - 各固定SQLはJSON chunk 1個を`json_each(?)`でset-based展開し、1 queryのbound parameterを100以下、SQLを100KB以下、stringを2MB未満にする。
 - 1,000行／5MiB境界を実D1 runtimeで測定し、batch全体30秒を超える場合は上限を黙って下げず、schema／set-based SQLを見直す。
@@ -1816,7 +1757,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 1. 外部protocol、generated code、Cloudflare/Better Authの予約名は変更しない。
 
-### 2. repository・service・domain
+### repository・service・domain
 
 - project directory: `points-web-app`、`markets-web-app`
 - Worker service: `points-worker`、`auction-worker`
@@ -1827,7 +1768,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - environment variable・enum wire value: `SCREAMING_SNAKE_CASE`
 - D1 table/column/index/constraint: `snake_case`
 
-### 3. ID
+### ID
 
 - opaque IDはdomain prefix付きのURL-safe stringにする。例: `pusr_`, `musr_`, `evc_`, `pkg_`, `fix_`, `auc_`, `stl_`。
 - IDを整数の連番やemailで公開しない。
@@ -1835,7 +1776,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - Points–Markets主体は`issuer` + `subject`。
 - correlationは`requestId`、`workflowInstanceId`、`planHash`。
 
-### 4. 金額と時刻
+### 金額と時刻
 
 - 表示値文字列: `amount`またはdomain名付き`fixAmount`。
 - scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
@@ -1844,14 +1785,14 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
 - duration: unitをsuffixに含める。例: `leaseSeconds`。
 
-### 5. revisionとstate
+### revisionとstate
 
 - 不変entityの版: `revision`、IDは`{domain}RevisionId`。
 - concurrency check: `expectedRevision`または`expectedAuctionVersion`。
 - state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
 - terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
 
-### 6. HTTP/OpenAPI
+### HTTP/OpenAPI
 
 - public path: `/api/v1/...`
 - browser BFF path: `/api/...`
@@ -1861,7 +1802,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - errorはRFC 9457で、機械判定codeは`SCREAMING_SNAKE_CASE`。
 - DBの`snake_case`をAPIへそのまま露出しない。
 
-### 7. Hono
+### Hono
 
 - route file: `{resource}-routes.ts`
 - middleware: 名詞または目的の`*-middleware.ts`
@@ -1870,7 +1811,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - Hono bindings型: `Bindings`、request context variables: `Variables`。
 - Points/Markets backendの型を相互importせず、OpenAPI generated clientの型を使う。
 
-### 8. Drizzle/D1
+### Drizzle/D1
 
 - schema sourceはdomainごとに分割し、table constantはcamelCase複数形。例: `fixRevisions`。
 - DB名はsnake_case複数形。例: `fix_revisions`。
@@ -1879,7 +1820,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - migration file名はtoolが生成するsequence + kebab/snakeの説明を既存tool規約に合わせる。手書きでsequenceを偽造しない。
 - D1 bindingは各appで`DB`とする。
 
-### 10. frontend
+### frontend
 
 - route componentはTanStack Routerの予約命名に従う。
 - React component `PascalCase`、hook `useXxx`、fileは`kebab-case.tsx`。
@@ -1887,21 +1828,21 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - browser公開環境変数は`VITE_`prefix。ただしsecret、token、client secretへ絶対に付けない。
 - `NEXT_PUBLIC_`、Server Action名、Next.js予約file名を新規コードへ持ち込まない。
 
-### 11. test
+### test
 
 - test fileは`*.test.ts`/`*.test.tsx`。
 - Workers integrationは`*.worker.test.ts`。
 - contract fixtureは`test/fixtures`、秘密を含む実credentialを置かない。
 - test名は期待behaviorを表し、実装method名だけにしない。
 
-### 12. script
+### script
 
 - package scriptはnamespaceを`:`で区切る。例: `test:worker`、`db:migrate:staging`。
 - scripts内の単語は`kebab-case`。
 - environmentを省略したproduction commandを作らない。
 - `npm`/`npx`をrepository script/docsへ追加せず、pnpm/Vite Plusの正本commandを使う。
 
-### 13. 例外
+### 例外
 
 - OAuth wire field、JWT claim、RFC header、Better Auth generated schemaは外部互換名を維持する。
 - generated OpenAPI clientは手編集しない。
@@ -1917,7 +1858,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 メールアドレス、表示名、ユーザー名、プロフィールURLは変更可能な属性であり、本人識別の正本にしない。
 
-### 2. アプリと認証データの境界
+### アプリと認証データの境界
 
 | 対象               | ログインProvider                    | 本人識別                               | セッション・認証DB                  |
 | ------------------ | ----------------------------------- | -------------------------------------- | ----------------------------------- |
@@ -1934,7 +1875,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - `.freeism.app`をDomain属性とする共通Cookie
 - Google ID、GitHub ID、メールアドレスを使ったPoints–Markets間の暗黙対応
 
-### 3. Better Auth共通設定
+### Better Auth共通設定
 
 PointsとMarketsは、それぞれ独立したBetter Auth instanceを持つ。Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
 
@@ -1968,7 +1909,7 @@ betterAuth({
 
 明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前とメールで既存Pointsプロフィールを上書きしない。
 
-### 4. PointsのGoogle・GitHubログインと明示連携
+### PointsのGoogle・GitHubログインと明示連携
 
 PointsではGoogleとGitHubを同じSocial Provider集合として扱う。
 
@@ -1981,14 +1922,14 @@ stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbac
 
 GoogleとGitHubで別々のPointsユーザーを作成した後、それらをメール一致で統合しない。あるProvider Accountがすでに別のPointsユーザーに属する場合、そのAccountを別ユーザーへlinkできない。同一Pointsユーザーとして使いたい場合は、第二のProviderで別ユーザーを作る前に、ログイン済みの既存ユーザーへ明示linkする。
 
-#### 4.2 Google
+#### Google
 
 - Google Accountは`providerId = google`とGoogle `sub`に相当する`accountId`で識別する。
 - email、email verified、表示名は本人識別に使用しない。
 - Google APIを別用途で利用しない限り、ログインに不要な追加scopeやGoogle Refresh Tokenを要求しない。
 - GitHubだけで作成したPointsユーザーも通常ログインは可能である。
 
-### 4.3 GitHub
+### GitHub
 
 - GitHub OAuth Appを使用する。
 - Better Auth GitHub Providerの既定の最小scopeを使用し、用途のないscopeを追加しない。
@@ -1999,7 +1940,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 同じGitHub Accountを複数のPointsユーザーへ紐付けない。
 - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
-### 5. Pointsログイン用OAuth主体の永久対応
+### Pointsログイン用OAuth主体の永久対応
 
 初めて成立した次の対応は永久記録とする。
 
@@ -2013,9 +1954,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - loginと明示linkは、app-owned永久対応を同じD1 transactionまたは失敗時に再実行可能な単調処理で照合する。在籍中の同じ主体を別ユーザーへ割り当てない。
 - 永久対応tableと一意制約はPoints実装計画Task 9が所有し、Task 9完了をproduction release blockerとする。Task 1ではBetter Auth標準Accountの既存Account再利用だけを検査する。この永久対応はログインの本人対応に使い、退会後は[退会と再開の処理](#10-account-closeと認証記録)に従う。
 
-本節の永久対応は、Pointsへのログインと、経済記録を元の利用者へ戻すためのものである。外部アカウントの所有権証明、紐付け、解除は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Pointsは、Accountsから提供を許可された照合結果を、貢献者の特定に使う。
-
-### 6. 対象操作
+### 対象操作
 
 
 | operation                                 | route／protocol                                                                                                     | 追加条件                                                                        |
@@ -2031,9 +1970,9 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 | CSV export                                | `/api/csv-exports`                                                                                                  | `appAdmin`として他者または全体を出力するとき                                    |
 | OAuth Client／公開鍵                      | `/api/oauth-clients*`                                                                                               | 登録者本人、1人5件まで                                                          |
 
-## 7. 未受領FIX
+## 未受領FIX
 
-### 7.1 未受領FIX
+### 未受領FIX
 
 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
 
@@ -2045,18 +1984,17 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 受領後の訂正は同じ受領者への差分台帳として反映する。
 - Accountsの紐付けや公開許可が変更されても既受領FIXを巻き戻さない。
 
-## 8. Points–Markets OAuth
+## Points–Markets OAuth
 
-### 8.1 ユーザー対応と同意
+### ユーザー対応と同意
 
 Marketsは独立アカウントを持ち、利用者がログイン後に、Marketsの`appAdmin`が登録したPoints互換提供先へ個別に明示linkする。有効な対応は提供先ごとに1対1である。
 
 - 1 Marketsユーザーと1提供先につき1 Points subject
 - 1提供先のPoints subjectにつき1 Marketsユーザー
 - email、Google ID、GitHub IDでは対応付けない。
-- 連携解除は、その時点以降の利用者認可を無効にし、終了済みの精算には影響させない。退会時は[退会と再開の処理](#10-account-closeと認証記録)に従う。
+- 連携解除は、その時点以降の利用者認可を無効にし、終了済みの精算には影響させない。
 - unlink履歴は削除しない。
-
 
 revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Authでapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
 
@@ -2064,7 +2002,7 @@ revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revoca
 
 初回とscope追加時にはPoints側で明示的な同意画面を表示する。同意画面では、残高の参照、落札時のポイント引き落とし、オフラインでの利用を説明する。
 
-### 8.2 Authorization Code flow
+### Authorization Code flow
 
 各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
 
@@ -2084,17 +2022,7 @@ Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、P
 
 MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
 
-#### 8.2.1 browser return先
-
-link、unlink、relinkのOAuth stateへ、利用者入力の任意URLを保存しない。Marketsはflow種別だけをserver-side stateへ保存し、callback完了後の相対pathを次のallowlistから組み立てる。
-
-| Flow                                   | 許可するreturn path           | 許可query                                           |
-| -------------------------------------- | ----------------------------- | --------------------------------------------------- |
-| Points connection link／unlink／relink | `/settings/points-connection` | なし。結果codeはserver-side flash stateから表示する |
-
-内部関数にも`returnTo`引数を設けず、flow種別から上表のpathを組み立てる。requestにscheme／host／userinfo／fragment、`//`開始、rawまたはpercent-encoded backslash、control文字、二重decodeでpath separatorへ変わる値、queryが含まれていても保存・fallbackしない。callbackはstateから組み立てたpathだけへ`303`し、request queryやOAuth providerの値をredirect先として使わない。
-
-### 8.3 開発者向けOAuthクライアント管理
+### 開発者向けOAuthクライアント管理
 
 Pointsへログインした利用者は、「開発者向け」画面で自分のアプリをOAuthクライアントとして登録、更新、削除できます。Marketsの`appAdmin`は、提供先ごとにこの画面から登録します。入力と管理の方法は、[Accounts v0.1のOAuthクライアント管理](../../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用します。v0.1以降、外部サービスの開発者はAccountsの画面でも自分のアプリを登録できます。OAuthクライアント側では、接続設定した複数のPoints互換サービスから選べるよう、OAuth Providerとして連携します。
 
@@ -2124,15 +2052,9 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 
 一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
 
-### 8.4 Token保存とRefresh
-
-- Tokenの保存先と暗号化は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
-- ブラウザの保存内容とTokenの露出制約は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
 
-- Tokenの更新と再試行は、[Points–Markets連携契約のToken保存とrefresh](#4-token保存とrefresh)に従う。
-
-## 9. Cookie、CSRF、Origin
+## Cookie、CSRF、Origin
 
 | 項目           | Points                           | Markets                          |
 | -------------- | -------------------------------- | -------------------------------- |
@@ -2467,11 +2389,9 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 
 ## 未受領FIXとAccounts連携
 
-### 目的
-
-Pointsに未登録の貢献者にも先にFIX結果を記録し、後から本人がポイントを受け取れるようにする。
-
-FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。
+- 目的
+  - Pointsに未登録の貢献者にも先にFIX結果を記録し、後から本人がポイントを受け取れるようにする。
+  - FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。
 
 ### Pointsが保存する経済データ
 
@@ -3090,3 +3010,13 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
 - OAuthクライアント経由で、任意の引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
+
+- CSVエクスポートは、取得時点のデータを直接読み出してCSVで返す処理に修正する
+  - エクスポート専用のスナップショットは作成しない。
+  - 利用者は、出力対象、期間、1回に取得する行数を指定する。
+  - サーバーは、リクエストごとに利用者の権限と取得条件を確認する。
+  - データを分割して取得する場合は、続きの取得に必要なカーソルを返す。
+  - 次のCSVも、リクエスト時点のデータから取得する。
+  - 取得の途中でデータが追加・更新された場合は、その変更が後続の取得結果に反映されることを許容する。
+  - 複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
+  - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
