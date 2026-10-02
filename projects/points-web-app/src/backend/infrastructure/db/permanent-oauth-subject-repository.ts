@@ -57,7 +57,8 @@ export async function reconcilePermanentOAuthSubjects(
   const accounts = await db
     .prepare(
       `SELECT provider_id AS providerId, account_id AS accountId
-       FROM account WHERE user_id = ? ORDER BY provider_id, account_id`,
+       FROM account WHERE user_id = ? AND provider_id IN ('google', 'github')
+       ORDER BY provider_id, account_id`,
     )
     .bind(authUserId)
     .all<{ accountId: string; providerId: string }>();

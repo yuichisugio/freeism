@@ -30,6 +30,7 @@ import { findProfileMutationReplay } from "./profile-mutation-idempotency";
 export type AccountsConnectionCommand = {
   db: D1Database;
   appOrigin: string;
+  callbackOrigin?: string;
   actorPointsUserId: string;
   reason: unknown;
   idempotencyKey: string;
@@ -170,6 +171,7 @@ export async function createAccountsConnection(
         withdrawnAt: null,
       },
       command.appOrigin,
+      command.callbackOrigin,
     ),
     meta: { requestId: command.requestId },
   };
@@ -238,6 +240,7 @@ export async function activateAccountsConnection(
     data: toAccountsConnectionView(
       { ...connection, clientId, status: "ACTIVE", activatedAt: now },
       command.appOrigin,
+      command.callbackOrigin,
     ),
     meta: { requestId: command.requestId },
   };
@@ -330,6 +333,7 @@ export async function withdrawAccountsConnection(
     data: toAccountsConnectionView(
       { ...connection, status: "WITHDRAWN", withdrawnAt: now },
       command.appOrigin,
+      command.callbackOrigin,
     ),
     meta: { requestId: command.requestId },
   };

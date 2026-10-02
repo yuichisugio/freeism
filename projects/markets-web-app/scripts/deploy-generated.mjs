@@ -77,7 +77,15 @@ export function assertGeneratedConfig(config, environment, expected) {
     throw new Error("generated Static Assets settings do not match the release contract");
   }
   const workerFirst = config.assets.run_worker_first ?? [];
-  if (!sameJson([...workerFirst].sort(), REQUIRED_WORKER_FIRST)) {
+  const matchesWorkerFirst =
+    environment === "staging"
+      ? workerFirst === true
+      : Array.isArray(workerFirst) &&
+        sameJson(
+          [...workerFirst].sort((left, right) => left.localeCompare(right)),
+          REQUIRED_WORKER_FIRST,
+        );
+  if (!matchesWorkerFirst) {
     throw new Error("generated Static Assets Worker-first routes must match the release contract");
   }
   for (const flag of REQUIRED_FLAGS) {

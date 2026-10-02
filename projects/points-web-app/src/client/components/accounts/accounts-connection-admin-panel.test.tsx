@@ -18,7 +18,7 @@ const pendingConnection: AccountsConnectionView = {
   registration: {
     applicationName: "Freeism Points",
     applicationUrl: "https://points.example.test",
-    redirectUri: "https://points.example.test/api/accounts-links/callback",
+    redirectUri: "https://points.example.test/api/auth/callback/accounts-acon_1",
     jwks: {
       keys: [{ kty: "OKP", crv: "Ed25519", x: "public-x", kid: "kid-1", alg: "EdDSA", use: "sig" }],
     },
@@ -42,7 +42,7 @@ describe("AccountsConnectionList", () => {
 
     expect(html).toContain("Client ID登録待ち");
     expect(html).toContain("Freeism Points");
-    expect(html).toContain("https://points.example.test/api/accounts-links/callback");
+    expect(html).toContain("https://points.example.test/api/auth/callback/accounts-acon_1");
     expect(html).toContain("public-x");
     expect(html).toContain("Client IDを登録して有効化");
     expect(html).toContain("取り下げ");

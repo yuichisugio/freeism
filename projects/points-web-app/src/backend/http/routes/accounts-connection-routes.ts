@@ -51,6 +51,7 @@ function toCommand(context: Context<BackendContext>, reason: unknown): AccountsC
   return {
     db: env.DB,
     appOrigin: env.APP_ORIGIN,
+    callbackOrigin: env.OAUTH_PROXY_PRODUCTION_URL ?? env.APP_ORIGIN,
     actorPointsUserId: context.get("pointsUser").id,
     reason,
     idempotencyKey: context.req.header("Idempotency-Key")!,
@@ -91,7 +92,11 @@ export function registerAccountsConnectionRoutes(
   app.get("/api/admin/accounts-connections", session, adminMiddleware, async (context) => {
     const env = requireBindings(context.env);
     return context.json({
-      data: await listAccountsConnectionViews(env.DB, env.APP_ORIGIN),
+      data: await listAccountsConnectionViews(
+        env.DB,
+        env.APP_ORIGIN,
+        env.OAUTH_PROXY_PRODUCTION_URL ?? env.APP_ORIGIN,
+      ),
       meta: { requestId: `req_${crypto.randomUUID()}` },
     });
   });

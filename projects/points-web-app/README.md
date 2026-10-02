@@ -26,6 +26,7 @@ A points management service related to Freeism.
 
 ## Documentation
 
+- [Test environment Basic authentication (Japanese)](docs/operations/test-environment-basic-auth.ja.md)
 - [v0.1](docs/specification/v0.1/index.ja.md)
 - [v0.2](docs/specification/v0.2/index.ja.md)
 - [v0.3](docs/specification/v0.3/index.ja.md)

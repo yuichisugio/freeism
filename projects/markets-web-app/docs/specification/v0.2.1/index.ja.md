@@ -38,7 +38,7 @@
 
 ### 5.1 Auction作成
 
-- Marketsで作成するのは、商材情報を内包するAuctionだけである。独立したListing aggregate、ID、revision、routeは作らない。
+- Marketsで作成するのは、商材情報を内包するAuctionだけである。開始前の編集もAuction IDだけを使う。
 - Auction作成はCSV-onlyを基本とし、登録前に全件previewとvalidation結果を確認できるようにする。
 - Auction cardと詳細には、Pointsの公式パッケージ名・ID、不変revision、構成評価軸、比率を表示する。
 - Auctionは販売数量を持つmulti-unit方式とする。
@@ -53,9 +53,6 @@
 
 ### 5.2 入札時のPoints扱い
 
-- 入札には有効なPoints連携を必須とする。入札時に残高照会とポイントの仮押さえは行わない。
-- 終了時、利用者認可が無効な入札者と、引き落としで残高が足りない入札者は落札者にしない。同じ終了時点の入札から落札者、数量、清算価格を計算し直し、順位が次の入札者を落札者にする。
-- 不足判定された利用者はAuctionとMarketsユーザーの組に対して1回だけblacklistし、同一終了処理内で再試行しない。
 - すべてのwinnerと評価軸は同じPoints service／Points D1に属さなければならない。複数Points serviceを1 Auctionで混在させない。
 
 ### 5.3 履歴・証明・評価
@@ -81,16 +78,11 @@
 
 ### 7.2 Settlement Workflow
 
-- Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。即時購入は、購入ボタンのあとで認可と残高を確認し、引き落としが成功したときだけ数量を減らして成立させる。失敗では競売を止めない。
+- Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
 - Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
-- 落札者のポイントは、利用者認可で一括引き落とす。仮押さえと、利用者のいないサービス権限は使わない。
-- 認可がない、または残高が足りない入札者は落札者にせず、同じ終了時点から次の入札者を落札者にして計算し直す。
-- 全落札者の引き落としは1回のPoints D1原子処理とし、一人でも失敗すれば0件にする。
-- 引き落とし成功後の自動返金や巻き戻しは行わない。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
-- 即時購入は、購入ボタンのあとで利用者認可と残高を確認する。引き落としが成功したときだけ販売数量を減らし、購入を成立させる。認可がない、または残高が足りなければ購入は失敗とし、競売は開いたまま販売数量も入札も続ける。応答を受け取れないときも成立させず、同じ購入要求の再送で受領証が返ったときだけ数量を減らす。残り数量が0のときだけ競売を終了する。引き落とし成功後はポイントを戻さない。
 
 1. `minimumReleaseAge: 4320`を使う
 2. Better Auth のメール一致 implicit link は禁止し、本人は `providerId + accountId` で識別する。
@@ -138,14 +130,10 @@
   - Provider単位のlink-onlyを実現する独自sign-in拒否hookは実装しない。
   - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
   - PointsのGitHubログインと、Accountsの外部アカウント所有権証明は、それぞれのサービスが管理する。
-  - 重要操作は15分以内のGoogle fresh sessionを必須とする。GitHubだけで作成したPointsユーザーは、重要操作の前にGoogleを明示linkしてstep-upを完了する。
-
-- `local`、`staging`、`production`を分離し、D1、Durable Object namespace、Workflow、OAuth app/client、Secretsを共有しない。
 - 共有test環境は既存のCloudflare named environment `staging`を内部名として使い、`staging.points.freeism.app`と`staging.markets.freeism.app`で公開する。productionは`points.freeism.app`と`markets.freeism.app`を使う。
 - apex `freeism.app`は`projects/main-web-app`の独立ポータルを配信し、`docs.freeism.app`、`points.freeism.app`、`markets.freeism.app`、`accounts.freeism.app`へ通常のHTTPSリンクで案内する。`www.freeism.app`はapexへ正規化する。
 - ポータルとドキュメントのhosting／DNSはPoints／Markets v0.2 migrationのdeploy対象に含めず、それぞれの独立した公開境界として扱う。DNS／redirectの範囲では、Wranglerが`freeism.app`と`docs.freeism.app`のWorker custom domainおよびapex DNSを所有し、Terraformはproxied `www.freeism.app`と`https://freeism.app/`への301正規化だけを所有する。Access、WAF、rate limit、通知はTerraformが所有する。
 - 廃止したapex／`www`からPointsへのredirectを再作成しない。`www`正規化ではsource pathとqueryを破棄する。
-- publicなper-PR preview環境はv0.2で作らない。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
 - D1 migrationは前方互換の段階migrationにし、状態migrationを伴う自動rollbackを行わない。
 - v0.2では定期R2 backupを作らず、D1 Time Travelと復旧runbookを用意する。
@@ -177,11 +165,9 @@
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
-- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。Marketsは登録済みの提供先originへ外部`fetch`で要求し、OAuth Client秘密鍵は提供先ごとに暗号化してD1に保存する。
-- 重要mutationは`Idempotency-Key`を必須にする。
+- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。- 重要mutationは`Idempotency-Key`を必須にする。
 - ledger、FIX、Pointsログイン用の永久OAuth主体対応、監査eventをcascade deleteしない。退会時はprofileをclosed/anonymizedにする。
 - 依存versionを完全固定し、lockfileをcommitする。`minimumReleaseAge`は4,320分、`blockExoticSubdeps`を有効にし、install scriptはallowlist化する。
-- Better Authは開発・stagingで`1.7.0-rc.1`を完全固定し、productionは1.7正式版への更新と全認証回帰test完了をrelease条件にする。
 - 2026-05のTanStack npm supply-chain incidentで影響を受けたversionをblockし、導入前に公式advisoryとlockfileを再確認する。
 - GitHub Actionsはfull commit SHA、最小permissions、PR由来cacheをdeployに使わない構成にする。
 - `main`はdirect push、force push、deleteを禁止し、required checks、up-to-date、merge queueを必須にする。現在1名運用中はapproval 0、2人目のmaintainer追加時に1へ変更する。

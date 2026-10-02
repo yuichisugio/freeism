@@ -258,6 +258,9 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - production secretsはmain push workflowのproduction jobだけが参照する。
 - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
 - prerender buildはWorker Secretを読み込まない。deployは別stepで実行し、Secretはデプロイ先の登録値を使う。
+- Marketsの共有test環境（`APP_ENV=staging`）では、画面と静的ファイルをBasic認証で保護する。資格情報はMarkets staging専用のWorkers Secrets `BASIC_AUTH_USERNAME`と`BASIC_AUTH_PASSWORD`へ登録し、`secrets.required`でデプロイ時に登録を検証する。
+- stagingは`assets.run_worker_first=true`で認証後にStatic Assetsを配信する。`/api`と`/.well-known`配下は既存のセッション・OAuth等の認証条件に従い、Basic認証の対象から外す。localとproductionはSecretが存在してもBasic認証を適用しない。
+- 初回反映前にMarketsプロジェクトで`pnpm exec wrangler secret put BASIC_AUTH_USERNAME --env staging`と`pnpm exec wrangler secret put BASIC_AUTH_PASSWORD --env staging`を実行する。Secret登録はWorkerの新versionを直ちにデプロイする。両Secretがあるstagingで認証が有効になり、Secretのないprerender buildではSPA shellを生成できる。
 - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
 ## 15. main ruleset

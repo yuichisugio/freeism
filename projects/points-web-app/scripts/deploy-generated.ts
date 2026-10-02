@@ -42,8 +42,8 @@ export function assertGeneratedConfig(
   if (config.name !== expectedWorkerName(environment)) {
     throw new Error(`unexpected Worker name: ${String(config.name)}`);
   }
-  if (config.workers_dev !== false || config.preview_urls !== false) {
-    throw new Error("workers.dev and preview URLs must remain disabled");
+  if (config.workers_dev !== false || config.preview_urls !== (environment === "staging")) {
+    throw new Error("generated Worker URL settings do not match the release environment");
   }
   if (
     config.assets?.not_found_handling !== "none" ||

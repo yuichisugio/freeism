@@ -5,7 +5,13 @@ import { pathToFileURL } from "node:url";
 
 import { findGeneratedWorkerConfig } from "./generated-worker-config";
 
-const HTML_ARTIFACTS = ["index.html", "terms.html", "privacy.html", "help.html", "docs.html"] as const;
+const HTML_ARTIFACTS = [
+  "index.html",
+  "terms.html",
+  "privacy.html",
+  "help.html",
+  "docs.html",
+] as const;
 const STATIC_PAGE_PATHS = [
   "/",
   "/index.html",
@@ -30,6 +36,7 @@ type GeneratedWorkerConfig = {
 export async function generateStaticSecurityHeaders(
   appPath: string,
   environment: string,
+  previewHost?: string,
 ): Promise<void> {
   const configPath = await findGeneratedWorkerConfig(appPath);
   const config = JSON.parse(await readFile(configPath, "utf8")) as GeneratedWorkerConfig;
@@ -54,9 +61,13 @@ export async function generateStaticSecurityHeaders(
     }
   }
 
-  const host = config.vars?.APP_HOST;
-  if (!host || config.vars?.APP_ENV !== environment) {
+  const host = environment === "preview" ? previewHost : config.vars?.APP_HOST;
+  const configEnvironment = environment === "preview" ? "staging" : environment;
+  if (!host || config.vars?.APP_ENV !== configEnvironment) {
     throw new Error(`generated config does not match environment: ${environment}`);
+  }
+  if (environment === "preview" && process.env.APP_ORIGIN !== `https://${host}`) {
+    throw new Error("Preview APP_ORIGIN and APP_HOST do not match");
   }
 
   const hsts =
@@ -77,5 +88,5 @@ export async function generateStaticSecurityHeaders(
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  await generateStaticSecurityHeaders(process.argv[2]!, process.argv[3]!);
+  await generateStaticSecurityHeaders(process.argv[2]!, process.argv[3]!, process.argv[4]);
 }

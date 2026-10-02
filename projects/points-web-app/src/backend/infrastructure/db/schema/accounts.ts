@@ -119,11 +119,13 @@ export const accountsLinkAttempts = sqliteTable(
       .references(() => accountsConnections.id, { onDelete: "restrict" }),
     nonce: text("nonce").notNull(),
     codeVerifier: text("code_verifier").notNull(),
+    verifiedAccountsUserId: text("verified_accounts_user_id"),
     createdAt: timestamp("created_at"),
     expiresAt: timestamp("expires_at"),
   },
   (table) => [
     index("accounts_link_attempts_expiry_idx").on(table.expiresAt),
+    index("accounts_link_attempts_verifier_idx").on(table.codeVerifier, table.accountsConnectionId),
     check(
       "accounts_link_attempts_expiry_check",
       sql`${table.expiresAt} > ${table.createdAt} and ${table.expiresAt} <= ${table.createdAt} + 600000`,

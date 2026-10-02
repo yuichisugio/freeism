@@ -1,5 +1,5 @@
 import type { BetterAuthOptions } from "better-auth";
-import { jwt, testUtils } from "better-auth/plugins";
+import { jwt, oAuthProxy, testUtils } from "better-auth/plugins";
 
 import { pointsSocialProviderIds } from "../../shared/auth/social-providers";
 import { createPointsOAuthProvider } from "./points-oauth-provider";
@@ -11,6 +11,8 @@ export interface PointsAuthConfig {
   GITHUB_CLIENT_SECRET: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  OAUTH_PROXY_PRODUCTION_URL?: string;
+  PREVIEW_WORKERS_SUBDOMAIN?: string;
   DB?: D1Database;
 }
 
@@ -51,6 +53,10 @@ export function createPointsAuthOptions(
   enableTestUtils = false,
 ) {
   const secure = config.APP_ORIGIN.startsWith("https://");
+  const productionURL = config.OAUTH_PROXY_PRODUCTION_URL || config.APP_ORIGIN;
+  const previewOriginPattern = config.PREVIEW_WORKERS_SUBDOMAIN
+    ? `https://points-pr-*-points-worker-staging.${config.PREVIEW_WORKERS_SUBDOMAIN}.workers.dev`
+    : null;
 
   return {
     ...(database === undefined ? {} : { database }),
@@ -105,6 +111,7 @@ export function createPointsAuthOptions(
       },
     },
     plugins: [
+      oAuthProxy({ productionURL }),
       jwt({
         disableSettingJwtHeader: true,
         jwt: { issuer: config.APP_ORIGIN },
@@ -113,6 +120,10 @@ export function createPointsAuthOptions(
       createPointsOAuthProvider(config),
       ...(enableTestUtils ? [testUtils()] : []),
     ],
-    trustedOrigins: [config.APP_ORIGIN],
+    trustedOrigins: [
+      config.APP_ORIGIN,
+      productionURL,
+      ...(previewOriginPattern === null ? [] : [previewOriginPattern]),
+    ],
   } satisfies BetterAuthOptions;
 }

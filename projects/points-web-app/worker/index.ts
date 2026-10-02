@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { createAccountsFailureReporter } from "../src/backend/accounts/accounts-failure-reporter";
 import { importAccountsKeyEncryptionKey } from "../src/backend/accounts/accounts-key-vault";
 import { pointsBackendApp } from "../src/backend/app";
+import { basicAuthMiddleware } from "../src/backend/http/middleware/basic-auth-middleware";
 import { deleteExpiredAccountsLinkAttempts } from "../src/backend/infrastructure/db/d1-accounts-link-repository";
 import {
   inspectPointsOpsAlerts,
@@ -16,9 +17,11 @@ import { cleanupExpiredCsvExports } from "../src/backend/usecases/cleanup-expire
 import { reapExpiredPointsLinkAttempts } from "../src/backend/usecases/reap-expired-points-link-attempts";
 import { refreshStaleAccountsLinkSnapshots } from "../src/backend/usecases/refresh-accounts-link-snapshots";
 import { withSecurityHeaders } from "./security-headers";
-import { isSpaNavigationRequest } from "./spa-fallback";
+import { isProtocolPath, isSpaNavigationRequest } from "./spa-fallback";
 
 const app = new Hono<{ Bindings: Env }>();
+
+app.use(basicAuthMiddleware);
 
 app.use("/api/*", async (context, next) => {
   await next();
@@ -35,6 +38,16 @@ app.get("/api/health", (context) => context.json({ service: "points-worker", sta
 
 app.notFound(async (context) => {
   const request = context.req.raw;
+  if (
+    !isProtocolPath(context.req.path) &&
+    (request.method === "GET" || request.method === "HEAD")
+  ) {
+    const assetResponse = await context.env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) {
+      const response = withSecurityHeaders(assetResponse, context.env);
+      return request.method === "HEAD" ? new Response(null, response) : response;
+    }
+  }
   if (isSpaNavigationRequest(request)) {
     const shellUrl = new URL("/", request.url);
     const shellResponse = await context.env.ASSETS.fetch(

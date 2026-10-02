@@ -33,6 +33,7 @@ export type AccountsLinkAttempt = {
   accountsConnectionId: string;
   nonce: string;
   codeVerifier: string;
+  verifiedAccountsUserId: string | null;
 };
 
 /**
@@ -40,7 +41,7 @@ export type AccountsLinkAttempt = {
  */
 export async function insertAccountsLinkAttempt(
   db: D1Database,
-  attempt: AccountsLinkAttempt & {
+  attempt: Omit<AccountsLinkAttempt, "verifiedAccountsUserId"> & {
     stateHash: string;
     pointsUserId: string;
     authSessionIdHash: string;
@@ -68,6 +69,69 @@ export async function insertAccountsLinkAttempt(
 }
 
 /**
+ * 認証済みAccounts主体を開始ticketに確定する。
+ * 開始したPoints本人・session・接続先に一致する未失効の試行だけ更新する。
+ */
+export async function setVerifiedAccountsLinkAttempt(
+  db: D1Database,
+  {
+    ticket,
+    pointsUserId,
+    authSessionIdHash,
+    accountsConnectionId,
+    accountsUserId,
+    now,
+  }: {
+    ticket: string;
+    pointsUserId: string;
+    authSessionIdHash: string;
+    accountsConnectionId: string;
+    accountsUserId: string;
+    now: number;
+  },
+): Promise<boolean> {
+  const result = await db
+    .prepare(
+      `UPDATE accounts_link_attempts SET verified_accounts_user_id = ?
+       WHERE state_hash = ? AND points_user_id = ? AND auth_session_id_hash = ?
+         AND accounts_connection_id = ? AND expires_at > ?
+         AND verified_accounts_user_id IS NULL`,
+    )
+    .bind(
+      accountsUserId,
+      await hashAccountsLinkSecret(ticket),
+      pointsUserId,
+      authSessionIdHash,
+      accountsConnectionId,
+      now,
+    )
+    .run();
+  return result.meta.changes === 1;
+}
+
+/**
+ * 標準OAuthのcode verifierに結び付いた未失効の連携試行を参照する。
+ * token交換時には消費せず、完了時にticketと本人sessionを照合して消費する。
+ */
+export async function findAccountsLinkAttemptByVerifier(
+  db: D1Database,
+  {
+    codeVerifier,
+    accountsConnectionId,
+    now,
+  }: { codeVerifier: string; accountsConnectionId: string; now: number },
+): Promise<Pick<AccountsLinkAttempt, "nonce" | "codeVerifier"> | null> {
+  return db
+    .prepare(
+      `SELECT nonce, code_verifier AS codeVerifier
+       FROM accounts_link_attempts
+       WHERE code_verifier = ? AND accounts_connection_id = ? AND expires_at > ?`,
+    )
+    .bind(codeVerifier, accountsConnectionId, now)
+    .first<Pick<AccountsLinkAttempt, "nonce" | "codeVerifier">>();
+}
+
+/**
  * 同じ利用者・同じsessionの期限内の試行を、1回だけ取り出す。
  * @returns 該当しない（期限切れ・別session・使用済み）場合は`null`
  */
@@ -85,7 +149,8 @@ export async function consumeAccountsLinkAttempt(
       `DELETE FROM accounts_link_attempts
        WHERE state_hash = ? AND points_user_id = ? AND auth_session_id_hash = ? AND expires_at > ?
        RETURNING accounts_connection_id AS accountsConnectionId, nonce,
-                 code_verifier AS codeVerifier`,
+                 code_verifier AS codeVerifier,
+                 verified_accounts_user_id AS verifiedAccountsUserId`,
     )
     .bind(stateHash, pointsUserId, authSessionIdHash, now)
     .first<AccountsLinkAttempt>();

@@ -1,19 +1,15 @@
 import {
-  AuthorizationResponseError,
   OperationProcessingError,
   PrivateKeyJwt,
   ResponseBodyError,
   WWWAuthenticateChallengeError,
   authorizationCodeGrantRequest,
-  calculatePKCECodeChallenge,
   clientCredentialsGrantRequest,
-  generateRandomCodeVerifier,
-  generateRandomNonce,
-  generateRandomState,
   getValidatedIdTokenClaims,
   modifyAssertion,
   processAuthorizationCodeResponse,
   processClientCredentialsResponse,
+  skipStateCheck,
   validateApplicationLevelSignature,
   validateAuthResponse,
   type AuthorizationServer,
@@ -21,6 +17,7 @@ import {
   type ClientAuth,
   type TokenEndpointResponse,
 } from "oauth4webapi";
+import type { OAuth2Tokens } from "better-auth/oauth2";
 
 import { createAccountsDpopHandle, withDpopNonceRetry } from "./accounts-dpop";
 import {
@@ -35,7 +32,7 @@ import { toAccountsResourceIdentifier } from "./accounts-origin";
 
 /**
  * AccountsのOAuthクライアント。
- * 利用者の連携（Authorization Code + PKCE + nonce + `prompt=consent`）と、資源API用のClient Credentialsを扱う。
+ * 利用者の連携用認可コード交換と、資源API用のClient Credentialsを扱う。
  * token要求は、`private_key_jwt`のclient assertionとDPoP proofを付けて送る。
  * @see ../../../../accounts-web-app/docs/specification/v0.1/main.ja.md
  * @see ../../../../accounts-web-app/test/contract/points-client.worker.test.ts
@@ -63,15 +60,6 @@ export type AccountsOAuthContext = {
   endpoint: AccountsEndpoint;
   authorizationServer: AuthorizationServer;
   client: AccountsClient;
-};
-
-/**
- * 連携の開始時に作り、戻り先の処理まで保持する値。
- */
-export type AccountsAuthorizationAttempt = {
-  state: string;
-  nonce: string;
-  codeVerifier: string;
 };
 
 /**
@@ -167,70 +155,53 @@ function assertDpopBoundToken(
 // --------------------------------------------------
 
 /**
- * 認可URLと、戻り先の処理で照合するstate・nonce・code verifierを作る。
- * 同意画面を毎回表示するため、`prompt=consent`を付ける。
+ * OAuth Proxy が検査済み state から復元した PKCE verifier を使ってコードを交換する。
+ * 固定 callback 側に Better Auth の nonce が渡らないため、保存した nonce をここで照合する。
  */
-export async function createAccountsAuthorizationRequest(
-  authorizationServer: AuthorizationServer,
-  { clientId, redirectUri }: { clientId: string; redirectUri: string },
-): Promise<{ authorizationUrl: string; attempt: AccountsAuthorizationAttempt }> {
-  const attempt = {
-    state: generateRandomState(),
-    nonce: generateRandomNonce(),
-    codeVerifier: generateRandomCodeVerifier(),
+export async function exchangeAccountsCodeForGenericOAuth(
+  context: AccountsOAuthContext,
+  input: { code: string; redirectUri: string; codeVerifier: string; nonce: string },
+): Promise<OAuth2Tokens> {
+  const { tokenResponse } = await exchangeValidatedAccountsCode(context, {
+    // 固定 callback の OAuth Proxy が暗号化 state package と内部 state の対応を検査済み。
+    // Preview 完了時は ticket に保存した元 session をアプリの finish で照合する。
+    // oauth4webapi のブランド付き認可応答は公開 validateAuthResponse で作る。
+    authorizationResponse: validateAuthResponse(
+      context.authorizationServer,
+      toOAuthClient(context.client),
+      new URLSearchParams({ code: input.code, iss: context.authorizationServer.issuer }),
+      skipStateCheck,
+    ),
+    redirectUri: input.redirectUri,
+    codeVerifier: input.codeVerifier,
+    nonce: input.nonce,
+  });
+  return {
+    accessToken: tokenResponse.access_token,
+    tokenType: tokenResponse.token_type,
+    idToken: tokenResponse.id_token,
+    accessTokenExpiresAt:
+      tokenResponse.expires_in === undefined
+        ? undefined
+        : new Date(Date.now() + tokenResponse.expires_in * 1000),
   };
-  const url = new URL(String(authorizationServer.authorization_endpoint));
-  url.search = new URLSearchParams({
-    response_type: "code",
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    scope: "openid",
-    state: attempt.state,
-    nonce: attempt.nonce,
-    code_challenge: await calculatePKCECodeChallenge(attempt.codeVerifier),
-    code_challenge_method: "S256",
-    prompt: "consent",
-  }).toString();
-  return { authorizationUrl: url.href, attempt };
 }
 
-/**
- * 認可応答（戻り先のquery）を検査してコードを交換し、ID Tokenを検証して本人のAccountsユーザーIDを返す。
- * ID Tokenは`iss`・`aud`・`exp`・`iat`・`nonce`に加え、署名をAccountsのJWKSで検証する。
- * 認可応答のAccess Tokenは使わない。
- */
-export async function exchangeAccountsAuthorizationCode(
+async function exchangeValidatedAccountsCode(
   { endpoint, authorizationServer, client }: AccountsOAuthContext,
   {
-    callbackParameters,
+    authorizationResponse,
     redirectUri,
-    attempt,
+    codeVerifier,
+    nonce,
   }: {
-    callbackParameters: URLSearchParams;
+    authorizationResponse: URLSearchParams;
     redirectUri: string;
-    attempt: AccountsAuthorizationAttempt;
+    codeVerifier: string;
+    nonce: string;
   },
-): Promise<{ accountsUserId: string }> {
+) {
   const oauthClient = toOAuthClient(client);
-  let authorizationResponse: URLSearchParams;
-  try {
-    authorizationResponse = validateAuthResponse(
-      authorizationServer,
-      oauthClient,
-      callbackParameters,
-      attempt.state,
-    );
-  } catch (error) {
-    const isDenied = error instanceof AuthorizationResponseError && error.error === "access_denied";
-    throw new AccountsClientError(
-      isDenied ? "AUTHORIZATION_DENIED" : "AUTHORIZATION_RESPONSE_INVALID",
-      null,
-      {
-        cause: error,
-      },
-    );
-  }
-
   const options = {
     ...toAccountsRequestOptions(endpoint),
     DPoP: createAccountsDpopHandle(client.dpopKey),
@@ -244,7 +215,7 @@ export async function exchangeAccountsAuthorizationCode(
         clientAuthentication,
         authorizationResponse,
         redirectUri,
-        attempt.codeVerifier,
+        codeVerifier,
         options,
       ),
     );
@@ -253,7 +224,7 @@ export async function exchangeAccountsAuthorizationCode(
       oauthClient,
       response,
       {
-        expectedNonce: attempt.nonce,
+        expectedNonce: nonce,
         requireIdToken: true,
       },
     );
@@ -271,7 +242,7 @@ export async function exchangeAccountsAuthorizationCode(
   }
   const claims = getValidatedIdTokenClaims(tokenResponse);
   if (claims === undefined) throw new AccountsClientError("ID_TOKEN_INVALID");
-  return { accountsUserId: claims.sub };
+  return { claims, tokenResponse };
 }
 
 // --------------------------------------------------

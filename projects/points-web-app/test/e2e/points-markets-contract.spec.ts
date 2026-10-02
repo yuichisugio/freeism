@@ -32,7 +32,7 @@ test("generated deployment config must contain the expected flattened boundaries
         ],
         vars: { APP_ENV: "staging" },
         workers_dev: false,
-        preview_urls: false,
+        preview_urls: true,
         assets: {
           directory: "../client",
           not_found_handling: "none",
@@ -56,7 +56,7 @@ test("generated deployment config must contain the expected flattened boundaries
         ],
         vars: { APP_ENV: "staging" },
         workers_dev: false,
-        preview_urls: false,
+        preview_urls: true,
         assets: {
           directory: "../client",
           not_found_handling: "none",
@@ -72,7 +72,7 @@ test("generated deployment config must contain the expected flattened boundaries
 test("smoke checks are read-only and use fixed custom domains", () => {
   expect(smokeOrigin("staging")).toBe("https://staging.points.freeism.app");
   expect(smokeOrigin("production")).toBe("https://points.freeism.app");
-  expect(smokeChecks()).toHaveLength(9);
-  expect(smokeChecks().every((check) => check.path.startsWith("/"))).toBe(true);
-  expect(smokeChecks()).toContainEqual({ path: "/search", expected: "navigation" });
+  expect(smokeChecks("production")).toHaveLength(9);
+  expect(smokeChecks("production").every((check) => check.path.startsWith("/"))).toBe(true);
+  expect(smokeChecks("production")).toContainEqual({ path: "/search", expected: "navigation" });
 });

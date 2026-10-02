@@ -387,8 +387,8 @@ importers:
         version: 1.5.0(typescript@7.0.2)
     devDependencies:
       '@cloudflare/vite-plugin':
-        specifier: 1.43.2
-        version: 1.43.2(@voidzero-dev/vite-plus-core@1.0.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(typescript@7.0.2)(yaml@2.8.3))(workerd@1.20260921.1)(wrangler@4.108.0)
+        specifier: 1.57.2
+        version: 1.57.2(@types/node@24.13.6)(@voidzero-dev/vite-plus-core@1.0.0(@types/node@24.13.6)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(typescript@7.0.2)(yaml@2.8.3))(wrangler@4.136.2(@types/node@24.13.6))
       '@cloudflare/vitest-pool-workers':
         specifier: 0.18.2
         version: 0.18.2(@vitest/runner@4.1.10)(@vitest/snapshot@4.1.10)(vitest@4.1.10(@opentelemetry/api@1.9.0)(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@1.0.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(typescript@7.0.2)(yaml@2.8.3))(happy-dom@20.10.6)(jsdom@26.1.0)(msw@2.13.6(@types/node@24.13.3)(typescript@7.0.2)))
@@ -438,8 +438,8 @@ importers:
         specifier: 4.1.10
         version: 4.1.10(@opentelemetry/api@1.9.0)(@types/node@24.13.3)(@voidzero-dev/vite-plus-core@1.0.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.46.2)(tsx@4.23.0)(typescript@7.0.2)(yaml@2.8.3))(happy-dom@20.10.6)(jsdom@26.1.0)(msw@2.13.6(@types/node@24.13.3)(typescript@7.0.2))
       wrangler:
-        specifier: 4.108.0
-        version: 4.108.0
+        specifier: 4.136.2
+        version: 4.136.2(@types/node@24.13.6)
 
   projects/web-app:
     dependencies:

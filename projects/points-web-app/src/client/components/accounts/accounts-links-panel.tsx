@@ -63,10 +63,17 @@ const linkErrorMessages: Record<string, string> = {
 export function AccountsLinkResultMessage({
   result,
   error,
-}: Readonly<{ result: string | null; error: string | null }>) {
+  oauthError,
+}: Readonly<{ result: string | null; error: string | null; oauthError?: string | null }>) {
   if (error !== null) {
+    const messageCode =
+      error === "ACCOUNTS_UNAVAILABLE" && oauthError === "access_denied"
+        ? "ACCOUNTS_AUTHORIZATION_DENIED"
+        : error;
     return (
-      <ProblemState message={linkErrorMessages[error] ?? "Accountsと連携できませんでした。"} />
+      <ProblemState
+        message={linkErrorMessages[messageCode] ?? "Accountsと連携できませんでした。"}
+      />
     );
   }
   if (result === "LINKED") return <p className="status-card">Accountsと連携しました。</p>;
@@ -177,7 +184,8 @@ export function AccountsLinksPanel() {
   const [callbackResult, setCallbackResult] = useState<{
     result: string | null;
     error: string | null;
-  }>({ result: null, error: null });
+    oauthError: string | null;
+  }>({ result: null, error: null, oauthError: null });
 
   const load = useCallback(async () => {
     const [linksResponse, connectionsResponse] = await Promise.all([
@@ -200,6 +208,7 @@ export function AccountsLinksPanel() {
     setCallbackResult({
       result: query.get("accountsLinkResult"),
       error: query.get("accountsLinkError"),
+      oauthError: query.get("error"),
     });
     void load();
   }, [load]);
@@ -244,7 +253,11 @@ export function AccountsLinksPanel() {
       <p>
         Accountsで公開している外部アカウントを、Pointsのプロフィールに表示します。公開範囲はAccountsで管理します。
       </p>
-      <AccountsLinkResultMessage error={callbackResult.error} result={callbackResult.result} />
+      <AccountsLinkResultMessage
+        error={callbackResult.error}
+        oauthError={callbackResult.oauthError}
+        result={callbackResult.result}
+      />
       {message ? <p className="status-card">{message}</p> : null}
       {failed ? <ProblemState message="Accounts連携を読み込めませんでした。" /> : null}
       <AccountsLinkStartForm

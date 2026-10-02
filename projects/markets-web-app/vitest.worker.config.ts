@@ -28,7 +28,16 @@ export default defineConfig({
             modules: true,
             name: "test-assets",
             script: `export default {
-              fetch() {
+              fetch(request) {
+                const pathname = new URL(request.url).pathname;
+                if (pathname === '/assets/test.js') {
+                  return new Response(request.method === 'HEAD' ? null : '/* markets-test-asset */', {
+                    headers: { 'Content-Type': 'application/javascript' },
+                  });
+                }
+                if (pathname !== '/' && pathname !== '/index.html') {
+                  return new Response(null, { status: 404 });
+                }
                 return new Response('<!doctype html><main data-markets-shell>Markets shell</main>', {
                   headers: {
                     'Cache-Control': 'no-store',

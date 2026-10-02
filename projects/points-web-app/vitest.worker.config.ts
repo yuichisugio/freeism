@@ -26,7 +26,10 @@ export default defineConfig({
             modules: true,
             name: "test-assets",
             script: `export default {
-              fetch() {
+              fetch(request) {
+                if (new URL(request.url).pathname !== '/') {
+                  return new Response(null, { status: 404 });
+                }
                 return new Response('<!doctype html><main data-points-shell>Points shell</main>', {
                   headers: {
                     'Cache-Control': 'no-store',

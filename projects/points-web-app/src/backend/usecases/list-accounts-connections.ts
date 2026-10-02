@@ -1,4 +1,5 @@
 import { toAccountsPublicJwks, type AccountsPublicJwk } from "../accounts/accounts-key-vault";
+import { toAccountsProviderId } from "../accounts/accounts-provider-id";
 import {
   listAccountsConnections,
   type AccountsConnectionRecord,
@@ -38,12 +39,12 @@ export type AccountsConnectionView = {
   registration: AccountsClientRegistration | null;
 };
 
-/**
- * 連携の戻り先。
- * Accountsへ登録するリダイレクトURLと完全に一致させる。
- */
-export function toAccountsLinkRedirectUri(appOrigin: string): string {
-  return `${appOrigin}/api/accounts-links/callback`;
+/** Accountsへ登録する接続先ごとの標準OAuth callback URL。 */
+export function toAccountsProviderRedirectUri(
+  callbackOrigin: string,
+  connectionId: string,
+): string {
+  return `${callbackOrigin}/api/auth/callback/${toAccountsProviderId(connectionId)}`;
 }
 
 function toIsoString(time: number | null): string | null {
@@ -56,6 +57,7 @@ function toIsoString(time: number | null): string | null {
 export function toAccountsConnectionView(
   connection: AccountsConnectionRecord,
   appOrigin: string,
+  callbackOrigin = appOrigin,
 ): AccountsConnectionView {
   return {
     id: connection.id,
@@ -72,7 +74,7 @@ export function toAccountsConnectionView(
         : {
             applicationName: "Freeism Points",
             applicationUrl: appOrigin,
-            redirectUri: toAccountsLinkRedirectUri(appOrigin),
+            redirectUri: toAccountsProviderRedirectUri(callbackOrigin, connection.id),
             jwks: toAccountsPublicJwks(connection.clientPublicJwk),
           },
   };
@@ -84,7 +86,10 @@ export function toAccountsConnectionView(
 export async function listAccountsConnectionViews(
   db: D1Database,
   appOrigin: string,
+  callbackOrigin = appOrigin,
 ): Promise<AccountsConnectionView[]> {
   const connections = await listAccountsConnections(db);
-  return connections.map((connection) => toAccountsConnectionView(connection, appOrigin));
+  return connections.map((connection) =>
+    toAccountsConnectionView(connection, appOrigin, callbackOrigin),
+  );
 }

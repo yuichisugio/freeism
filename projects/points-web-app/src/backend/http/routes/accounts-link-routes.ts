@@ -1,14 +1,17 @@
 import type { Context, Hono } from "hono";
+import { APIError } from "better-auth/api";
 
 import { createAccountsFailureReporter } from "../../accounts/accounts-failure-reporter";
 import { importAccountsKeyEncryptionKey } from "../../accounts/accounts-key-vault";
+import { encodeBase64Url } from "../../accounts/base64url";
+import { toAccountsProviderId } from "../../accounts/accounts-provider-id";
+import { createPointsAuth } from "../../auth/create-auth";
+import { findActiveAccountsConnection } from "../../infrastructure/db/d1-accounts-connection-repository";
 import { deleteAccountsLink } from "../../infrastructure/db/d1-accounts-link-repository";
 import { AccountsProblemError } from "../../usecases/accounts-problem-error";
-import { completeAccountsLink } from "../../usecases/complete-accounts-link";
-import { toAccountsLinkRedirectUri } from "../../usecases/list-accounts-connections";
+import { finishAccountsLink } from "../../usecases/finish-accounts-link";
 import { listAccountsLinks } from "../../usecases/list-accounts-links";
 import type { AccountsSnapshotDependencies } from "../../usecases/refresh-accounts-link-snapshots";
-import { startAccountsLink } from "../../usecases/start-accounts-link";
 import type { BackendContext } from "../context";
 import { requireBindings } from "../context";
 import { createSessionMiddleware, type GetSession } from "../middleware/session-middleware";
@@ -17,7 +20,8 @@ import { problem } from "../problem";
 /**
  * 利用者のAccounts連携の経路（開始・戻り先・一覧・解除）。
  * 連携・解除はPointsのログイン手段とsessionに影響しない。
- * @see ../../usecases/start-accounts-link.ts
+ * @see ../../auth/create-auth.ts
+ * @see ../../usecases/finish-accounts-link.ts
  * @see ../../usecases/complete-accounts-link.ts
  * @see ../../../../test/worker/accounts-link.worker.test.ts
  */
@@ -114,27 +118,60 @@ export function registerAccountsLinkRoutes(
     }
     const env = requireBindings(context.env);
     try {
-      const data = await startAccountsLink({
-        db: env.DB,
-        fetch: accountsFetch,
-        reportFailure: createAccountsFailureReporter(env),
-        redirectUri: toAccountsLinkRedirectUri(env.APP_ORIGIN),
-        pointsUserId: context.get("pointsUser").id,
-        authSessionId: requireAuthSessionId(context),
+      const connection = await findActiveAccountsConnection(env.DB, accountsConnectionId);
+      if (connection === null)
+        throw new AccountsProblemError(409, "ACCOUNTS_CONNECTION_NOT_ACTIVE");
+      const ticket = encodeBase64Url(crypto.getRandomValues(new Uint8Array(24)));
+      const callbackURL = new URL("/api/accounts-links/finish", env.APP_ORIGIN);
+      callbackURL.searchParams.set("ticket", ticket);
+      const errorCallbackURL = new URL("/settings/connections", env.APP_ORIGIN);
+      errorCallbackURL.searchParams.set("accountsLinkError", "ACCOUNTS_UNAVAILABLE");
+      const authResponse = await createPointsAuth(env, {
         accountsConnectionId,
+      }).api.linkSocialAccount({
+        headers: context.req.raw.headers,
+        asResponse: true,
+        body: {
+          provider: toAccountsProviderId(accountsConnectionId),
+          callbackURL: callbackURL.toString(),
+          errorCallbackURL: errorCallbackURL.toString(),
+          disableRedirect: true,
+        },
       });
-      return context.json({ data, meta: { requestId: `req_${crypto.randomUUID()}` } }, 201);
+      if (!authResponse.ok) {
+        const status = authResponse.status === 429 ? 429 : 503;
+        const code = status === 429 ? "ACCOUNTS_LINK_RATE_LIMITED" : "ACCOUNTS_UNAVAILABLE";
+        return problem(context, status, code, code);
+      }
+      const result = (await authResponse.json()) as { url?: string };
+      if (!result.url) throw new AccountsProblemError(503, "ACCOUNTS_UNAVAILABLE");
+      const response = context.json(
+        {
+          data: { authorizationUrl: result.url },
+          meta: { requestId: `req_${crypto.randomUUID()}` },
+        },
+        201,
+      );
+      for (const cookie of authResponse.headers.getSetCookie()) {
+        response.headers.append("Set-Cookie", cookie);
+      }
+      return response;
     } catch (error) {
+      if (error instanceof APIError) {
+        const status = error.statusCode === 429 ? 429 : 503;
+        const code = status === 429 ? "ACCOUNTS_LINK_RATE_LIMITED" : "ACCOUNTS_UNAVAILABLE";
+        return problem(context, status, code, code);
+      }
       return toProblem(context, error);
     }
   });
 
-  app.get("/api/accounts-links/callback", session, async (context) => {
-    const dependencies = await toSnapshotDependencies(context, accountsFetch);
+  app.get("/api/accounts-links/finish", session, async (context) => {
+    const ticket = context.req.query("ticket");
+    if (!ticket) return redirectToSettings({ accountsLinkError: "ACCOUNTS_LINK_ATTEMPT_INVALID" });
     try {
-      await completeAccountsLink(dependencies, {
-        callbackParameters: new URL(context.req.url).searchParams,
-        redirectUri: toAccountsLinkRedirectUri(requireBindings(context.env).APP_ORIGIN),
+      await finishAccountsLink(await toSnapshotDependencies(context, accountsFetch), {
+        ticket,
         pointsUserId: context.get("pointsUser").id,
         authSessionId: requireAuthSessionId(context),
         requestId: `req_${crypto.randomUUID()}`,

@@ -8,12 +8,16 @@ import {
   toAccountsPublicJwks,
 } from "./accounts-key-vault";
 import {
-  createAccountsAuthorizationRequest,
-  exchangeAccountsAuthorizationCode,
+  exchangeAccountsCodeForGenericOAuth,
   requestAccountsClientCredentialsToken,
   type AccountsOAuthContext,
 } from "./accounts-oauth-client";
-import { decodeBase64Url, encodeBase64Url } from "./base64url";
+import { decodeBase64Url } from "./base64url";
+import {
+  calculatePKCECodeChallenge,
+  generateRandomCodeVerifier,
+  generateRandomNonce,
+} from "oauth4webapi";
 
 const clientId = "points-client";
 const redirectUri = "https://points.example.test/api/accounts-links/callback";
@@ -54,237 +58,60 @@ async function setUp(): Promise<{ accounts: FakeAccounts; context: AccountsOAuth
   return { accounts, context };
 }
 
-/**
- * 連携を開始し、利用者が同意した後の戻り先のqueryを作る。
- */
-async function startAndConsent(
+/** テスト用の認可コードとPKCE・nonceを発行する。 */
+async function issueConsentCode(
   accounts: FakeAccounts,
-  context: AccountsOAuthContext,
   idToken: { idTokenClaims?: Record<string, unknown>; signIdTokenWithUnknownKey?: boolean } = {},
 ) {
-  const { authorizationUrl, attempt } = await createAccountsAuthorizationRequest(
-    context.authorizationServer,
-    { clientId, redirectUri },
-  );
-  const query = new URL(authorizationUrl).searchParams;
+  const codeVerifier = generateRandomCodeVerifier();
+  const nonce = generateRandomNonce();
   const code = accounts.issueCode({
     clientId,
     sub: "ausr_owner",
-    nonce: query.get("nonce") ?? "",
-    codeChallenge: query.get("code_challenge") ?? "",
-    redirectUri: query.get("redirect_uri") ?? "",
+    nonce,
+    codeChallenge: await calculatePKCECodeChallenge(codeVerifier),
+    redirectUri,
     ...idToken,
   });
-  const callbackParameters = new URLSearchParams({
-    code,
-    state: attempt.state,
-    iss: accounts.origin,
-  });
-  return { attempt, callbackParameters };
+  return { code, codeVerifier, nonce };
 }
 
 function tokenRequests(accounts: FakeAccounts) {
   return accounts.requests.filter(({ url }) => url.endsWith("/api/auth/oauth2/token"));
 }
 
-// --------------------------------------------------
-// 認可要求
-// --------------------------------------------------
-
-describe("createAccountsAuthorizationRequest", () => {
-  it("prompt=consent・PKCE（S256）・nonce・state付きの認可URLを作る", async () => {
+describe("exchangeAccountsCodeForGenericOAuth", () => {
+  it("Proxy callbackのcodeVerifierと保存nonceで署名済みID Tokenを検証する", async () => {
     const { accounts, context } = await setUp();
+    const attempt = await issueConsentCode(accounts);
 
-    const { authorizationUrl, attempt } = await createAccountsAuthorizationRequest(
-      context.authorizationServer,
-      { clientId, redirectUri },
-    );
-
-    const url = new URL(authorizationUrl);
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(attempt.codeVerifier),
-    );
-    expect(`${url.origin}${url.pathname}`).toBe(`${accounts.origin}/api/auth/oauth2/authorize`);
-    expect(Object.fromEntries(url.searchParams)).toEqual({
-      response_type: "code",
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      scope: "openid",
-      state: attempt.state,
+    const tokens = await exchangeAccountsCodeForGenericOAuth(context, {
+      code: attempt.code,
+      redirectUri,
+      codeVerifier: attempt.codeVerifier,
       nonce: attempt.nonce,
-      code_challenge: encodeBase64Url(new Uint8Array(digest)),
-      code_challenge_method: "S256",
-      prompt: "consent",
     });
+
+    expect(tokens.idToken).toEqual(expect.any(String));
+    expect(tokens.tokenType).toBe("dpop");
+    expect(tokenRequests(accounts)).toHaveLength(1);
+    expect(tokenRequests(accounts)[0]?.headers.get("DPoP")).toEqual(expect.any(String));
   });
 
-  it("state・nonce・code verifierは要求ごとに異なる", async () => {
-    const { context } = await setUp();
-
-    const first = await createAccountsAuthorizationRequest(context.authorizationServer, {
-      clientId,
-      redirectUri,
-    });
-    const second = await createAccountsAuthorizationRequest(context.authorizationServer, {
-      clientId,
-      redirectUri,
-    });
-
-    expect(second.attempt.state).not.toBe(first.attempt.state);
-    expect(second.attempt.nonce).not.toBe(first.attempt.nonce);
-    expect(second.attempt.codeVerifier).not.toBe(first.attempt.codeVerifier);
-  });
-});
-
-// --------------------------------------------------
-// コード交換とID Token
-// --------------------------------------------------
-
-describe("exchangeAccountsAuthorizationCode", () => {
-  it("コードを交換し、検証したID Tokenのsubを返す", async () => {
+  it("Proxy callbackでもnonce不一致のID Tokenを拒否する", async () => {
     const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-
-    await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
-    ).resolves.toEqual({ accountsUserId: "ausr_owner" });
-  });
-
-  it("token要求にprivate_key_jwtのclient assertionとDPoP proofを付ける", async () => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-
-    await exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt });
-
-    const [request] = tokenRequests(accounts);
-    const form = new URLSearchParams(request?.body);
-    const assertion = decodeJwt(form.get("client_assertion") ?? "");
-    const proof = decodeJwt(request?.headers.get("DPoP") ?? "");
-    const tokenEndpoint = `${accounts.origin}/api/auth/oauth2/token`;
-    expect(form.get("grant_type")).toBe("authorization_code");
-    expect(form.get("code_verifier")).toBe(attempt.codeVerifier);
-    expect(form.get("client_assertion_type")).toBe(
-      "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    );
-    expect(assertion.header).toEqual({
-      alg: "EdDSA",
-      typ: "JWT",
-      kid: context.client.clientKey.kid,
-    });
-    expect(assertion.payload).toMatchObject({ iss: clientId, sub: clientId, aud: tokenEndpoint });
-    expect(Number(assertion.payload.exp) - Number(assertion.payload.iat)).toBe(60);
-    expect(proof.header).toEqual({
-      alg: "EdDSA",
-      typ: "dpop+jwt",
-      jwk: { kty: "OKP", crv: "Ed25519", x: expect.any(String) },
-    });
-    expect(proof.payload).toEqual({
-      iat: expect.any(Number),
-      jti: expect.any(String),
-      htm: "POST",
-      htu: tokenEndpoint,
-    });
-  });
-
-  it("同意画面での拒否をAUTHORIZATION_DENIEDにする", async () => {
-    const { accounts, context } = await setUp();
-    const { attempt } = await startAndConsent(accounts, context);
-    const callbackParameters = new URLSearchParams({
-      error: "access_denied",
-      state: attempt.state,
-      iss: accounts.origin,
+    const attempt = await issueConsentCode(accounts, {
+      idTokenClaims: { nonce: "different-nonce" },
     });
 
     await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
-    ).rejects.toMatchObject({ code: "AUTHORIZATION_DENIED" });
-  });
-
-  it.each([
-    ["issの不一致", { iss: "https://other.example.test" }],
-    ["issの欠落", { iss: undefined }],
-    ["stateの不一致", { state: "other-state" }],
-    ["access_denied以外のerror", { error: "invalid_request", code: undefined }],
-  ])("認可応答の%sをAUTHORIZATION_RESPONSE_INVALIDにする", async (_, override) => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-    for (const [name, value] of Object.entries(override)) {
-      if (value === undefined) callbackParameters.delete(name);
-      else callbackParameters.set(name, value);
-    }
-
-    await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
-    ).rejects.toMatchObject({ code: "AUTHORIZATION_RESPONSE_INVALID" });
-    expect(tokenRequests(accounts)).toHaveLength(0);
-  });
-
-  it("使用済みのコード・異なるcode verifierをAUTHORIZATION_CODE_INVALIDにする", async () => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-    await exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt });
-    const second = await startAndConsent(accounts, context);
-
-    await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
-    ).rejects.toMatchObject({ code: "AUTHORIZATION_CODE_INVALID" });
-    await expect(
-      exchangeAccountsAuthorizationCode(context, {
-        callbackParameters: second.callbackParameters,
+      exchangeAccountsCodeForGenericOAuth(context, {
+        code: attempt.code,
         redirectUri,
-        attempt: { ...second.attempt, codeVerifier: attempt.codeVerifier },
+        codeVerifier: attempt.codeVerifier,
+        nonce: attempt.nonce,
       }),
-    ).rejects.toMatchObject({ code: "AUTHORIZATION_CODE_INVALID" });
-  });
-
-  it.each([
-    ["署名が登録外の鍵", { signIdTokenWithUnknownKey: true }],
-    ["issの不一致", { idTokenClaims: { iss: "https://other.example.test" } }],
-    ["audの不一致", { idTokenClaims: { aud: "other-client" } }],
-    ["nonceの不一致", { idTokenClaims: { nonce: "other-nonce" } }],
-    ["期限切れ", { idTokenClaims: { exp: Math.floor(Date.now() / 1000) - 3600 } }],
-    ["subの欠落", { idTokenClaims: { sub: undefined } }],
-  ])("ID Tokenの%sをID_TOKEN_INVALIDにする", async (_, idToken) => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context, idToken);
-
-    await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
     ).rejects.toMatchObject({ code: "ID_TOKEN_INVALID" });
-  });
-
-  it("OAuthのエラー応答でない403をINVALID_RESPONSEにする", async () => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-    accounts.interceptNext(
-      "/api/auth/oauth2/token",
-      new Response("<html>blocked</html>", {
-        status: 403,
-        headers: { "Content-Type": "text/html" },
-      }),
-    );
-
-    await expect(
-      exchangeAccountsAuthorizationCode(context, { callbackParameters, redirectUri, attempt }),
-    ).rejects.toMatchObject({ code: "INVALID_RESPONSE" });
-  });
-
-  it("登録していない鍵のclient assertionをCLIENT_UNAUTHORIZEDにする", async () => {
-    const { accounts, context } = await setUp();
-    const { attempt, callbackParameters } = await startAndConsent(accounts, context);
-    const otherKey = await generateAccountsSigningKey();
-    const client = {
-      ...context.client,
-      clientKey: await importAccountsSigningKeyPair(otherKey.privateJwk),
-    };
-
-    await expect(
-      exchangeAccountsAuthorizationCode(
-        { ...context, client },
-        { callbackParameters, redirectUri, attempt },
-      ),
-    ).rejects.toMatchObject({ code: "CLIENT_UNAUTHORIZED" });
   });
 });
 

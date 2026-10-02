@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import { listAccountsConnectionViews } from "../../src/backend/usecases/list-accounts-connections";
 import {
   createFakeAccountsNetwork,
   seedPointsUser,
@@ -217,6 +218,25 @@ describe("接続先の管理の認可", () => {
 // --------------------------------------------------
 
 describe("接続先の作成", () => {
+  it("Previewでの登録URLは固定callbackのoriginを使う", async () => {
+    const { accounts, request } = await setUp();
+    const connection = await createConnection(request, accounts);
+
+    const [view] = await listAccountsConnectionViews(
+      db,
+      "https://preview.points.test",
+      "https://staging.points.test",
+    );
+
+    expect(view).toMatchObject({
+      id: connection.id,
+      registration: {
+        applicationUrl: "https://preview.points.test",
+        redirectUri: `https://staging.points.test/api/auth/callback/accounts-${connection.id}`,
+      },
+    });
+  });
+
   it("鍵を生成し、Accountsへ登録する公開JWK Setとリダイレクト URLを返す", async () => {
     const { accounts, request } = await setUp();
 
@@ -230,7 +250,7 @@ describe("接続先の作成", () => {
       registration: {
         applicationName: "Freeism Points",
         applicationUrl: env.APP_ORIGIN,
-        redirectUri: `${env.APP_ORIGIN}/api/accounts-links/callback`,
+        redirectUri: `${env.OAUTH_PROXY_PRODUCTION_URL ?? env.APP_ORIGIN}/api/auth/callback/accounts-${connection.id}`,
       },
     });
     expect(connection.registration!.jwks.keys).toEqual([

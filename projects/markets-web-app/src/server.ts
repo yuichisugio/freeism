@@ -1,10 +1,12 @@
 import { env } from "cloudflare:workers";
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { Hono } from "hono";
+import { except } from "hono/combine";
 
 import { marketsBackendApp } from "./backend/app";
 import { dispatchAuctionCloseResumeOutbox } from "./backend/db/d1-settlement-repository";
 import { requireBindings } from "./backend/http/context";
+import { basicAuthMiddleware } from "./backend/http/middleware/basic-auth-middleware";
 import { cleanupResolvedOpsAlerts } from "./backend/observability/cleanup-ops-alerts";
 import { deliverOpsAlert } from "./backend/observability/deliver-ops-alert";
 import {
@@ -36,6 +38,9 @@ const FIXED_PAGE_PATHS = new Set([
 
 const app = new Hono<{ Bindings: Env }>();
 
+// APIと認証プロトコルは、各エンドポイントの認証条件に従う。
+app.use(except(["/api", "/api/*", "/.well-known", "/.well-known/*"], basicAuthMiddleware));
+
 app.use("/api/*", async (context, next) => {
   await next();
   context.res = withSecurityHeaders(
@@ -57,6 +62,16 @@ app.get("/api/health", (context) =>
 
 app.notFound(async (context) => {
   const request = context.req.raw;
+  const path = context.req.path;
+  const isProtocolPath = ["/api", "/.well-known"].some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+  );
+  if (!isProtocolPath && (request.method === "GET" || request.method === "HEAD")) {
+    const assetResponse = await context.env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) {
+      return withSecurityHeaders(assetResponse, context.env);
+    }
+  }
   if (isSpaNavigationRequest(request)) {
     const shellUrl = new URL("/", request.url);
     const shellResponse = await context.env.ASSETS.fetch(

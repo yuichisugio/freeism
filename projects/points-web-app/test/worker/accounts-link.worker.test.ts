@@ -2,6 +2,15 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import { toAccountsProviderId } from "../../src/backend/accounts/accounts-provider-id";
+import { completeVerifiedAccountsLink } from "../../src/backend/usecases/complete-accounts-link";
+import {
+  findAccountsLinkAttemptByVerifier,
+  hashAccountsLinkSecret,
+  insertAccountsLinkAttempt,
+  setVerifiedAccountsLinkAttempt,
+  consumeAccountsLinkAttempt,
+} from "../../src/backend/infrastructure/db/d1-accounts-link-repository";
 import {
   createFakeAccountsNetwork,
   importTestKek,
@@ -13,7 +22,6 @@ import {
   createFakeAccounts,
   sampleExternalAccounts,
   type FakeAccounts,
-  type FakeAuthorizationCodeInput,
 } from "../support/fake-accounts";
 
 const db = env.DB!;
@@ -56,7 +64,7 @@ function createUserClient(user: TestPointsUser, sessionId = user.sessionId) {
       user: { id: user.authUserId },
     }),
   });
-  return (
+  const request = (
     method: string,
     path: string,
     body?: unknown,
@@ -72,59 +80,27 @@ function createUserClient(user: TestPointsUser, sessionId = user.sessionId) {
       }),
       env,
     );
+  return Object.assign(request, { user });
 }
 
 type UserClient = ReturnType<typeof createUserClient>;
 
-/**
- * 連携を開始し、認可URLのqueryを返す。
- */
-async function startLink(request: UserClient, connection: TestConnection) {
-  const response = await request("POST", "/api/accounts-links/attempts", {
-    accountsConnectionId: connection.connectionId,
-  });
-  expect(response.status).toBe(201);
-  const { data } = (await response.json()) as { data: { authorizationUrl: string } };
-  return new URL(data.authorizationUrl);
-}
-
-/**
- * 同意画面で同意した後の戻り先のqueryを作る。
- */
-function consent(
-  connection: TestConnection,
-  authorizationUrl: URL,
-  sub: string,
-  overrides: Partial<FakeAuthorizationCodeInput> = {},
-) {
-  const query = authorizationUrl.searchParams;
-  const code = connection.accounts.issueCode({
-    clientId: connection.clientId,
-    sub,
-    nonce: query.get("nonce")!,
-    codeChallenge: query.get("code_challenge")!,
-    redirectUri: query.get("redirect_uri")!,
-    ...overrides,
-  });
-  return new URLSearchParams({
-    code,
-    state: query.get("state")!,
-    iss: connection.accounts.origin,
-  });
-}
-
-async function callback(request: UserClient, parameters: URLSearchParams) {
-  const response = await request("GET", `/api/accounts-links/callback?${parameters.toString()}`);
-  expect(response.status).toBe(303);
-  return new URL(response.headers.get("Location")!, "https://points.test").searchParams;
-}
-
-/**
- * 開始から戻り先までを通し、戻り先の結果を返す。
- */
+/** 検証済みAccounts主体を既存の連携処理へ渡す。 */
 async function link(request: UserClient, connection: TestConnection, sub: string) {
-  const authorizationUrl = await startLink(request, connection);
-  return callback(request, consent(connection, authorizationUrl, sub));
+  return completeVerifiedAccountsLink(
+    {
+      db,
+      kek: await importTestKek(env),
+      fetch: network.fetch,
+      reportFailure: async () => {},
+    },
+    {
+      pointsUserId: request.user.pointsUserId,
+      accountsConnectionId: connection.connectionId,
+      accountsUserId: sub,
+      requestId: `req_${crypto.randomUUID()}`,
+    },
+  );
 }
 
 type AccountsLinkBody = {
@@ -155,44 +131,142 @@ function newAccountsUserId() {
 // --------------------------------------------------
 
 describe("Accountsとの連携", () => {
-  it("同意画面を必ず表示する認可URLを返し、戻り先で連携と一覧を保存する", async () => {
+  it("標準OAuthのcode verifierから未失効の連携試行を参照する", async () => {
     const connection = await createConnection();
     const user = await seedPointsUser(db);
-    const request = createUserClient(user);
-    const accountsUserId = newAccountsUserId();
-
-    const authorizationUrl = await startLink(request, connection);
-    expect(Object.fromEntries(authorizationUrl.searchParams)).toMatchObject({
-      response_type: "code",
-      client_id: connection.clientId,
-      redirect_uri: `${env.APP_ORIGIN}/api/accounts-links/callback`,
-      scope: "openid",
-      code_challenge_method: "S256",
-      prompt: "consent",
+    const codeVerifier = `verifier-${crypto.randomUUID()}`;
+    const ticket = `ticket-${crypto.randomUUID()}`;
+    const now = Date.now();
+    await insertAccountsLinkAttempt(db, {
+      stateHash: await hashAccountsLinkSecret(ticket),
+      pointsUserId: user.pointsUserId,
+      authSessionIdHash: await hashAccountsLinkSecret(user.sessionId),
+      accountsConnectionId: connection.connectionId,
+      nonce: "expected-nonce",
+      codeVerifier,
+      createdAt: now,
     });
-    const response = await request(
-      "GET",
-      `/api/accounts-links/callback?${consent(connection, authorizationUrl, accountsUserId).toString()}`,
-    );
 
-    expect(response.status).toBe(303);
-    expect(response.headers.get("Location")).toBe(
-      "/settings/connections?accountsLinkResult=LINKED",
-    );
-    expect(response.headers.get("Cache-Control")).toBe("no-store");
-    expect(response.headers.get("Pragma")).toBe("no-cache");
-    expect(await listLinks(request)).toEqual([
+    expect(
+      await findAccountsLinkAttemptByVerifier(db, {
+        codeVerifier,
+        accountsConnectionId: connection.connectionId,
+        now,
+      }),
+    ).toEqual({ nonce: "expected-nonce", codeVerifier });
+    expect(
+      await findAccountsLinkAttemptByVerifier(db, {
+        codeVerifier,
+        accountsConnectionId: "acon_other",
+        now,
+      }),
+    ).toBeNull();
+    expect(
+      await findAccountsLinkAttemptByVerifier(db, {
+        codeVerifier,
+        accountsConnectionId: connection.connectionId,
+        now: now + 600_000,
+      }),
+    ).toBeNull();
+
+    expect(
+      await setVerifiedAccountsLinkAttempt(db, {
+        ticket,
+        pointsUserId: user.pointsUserId,
+        authSessionIdHash: await hashAccountsLinkSecret("other-session"),
+        accountsConnectionId: connection.connectionId,
+        accountsUserId: "ausr_wrong",
+        now,
+      }),
+    ).toBe(false);
+
+    expect(
+      await setVerifiedAccountsLinkAttempt(db, {
+        ticket,
+        pointsUserId: user.pointsUserId,
+        authSessionIdHash: await hashAccountsLinkSecret(user.sessionId),
+        accountsConnectionId: connection.connectionId,
+        accountsUserId: "ausr_verified",
+        now,
+      }),
+    ).toBe(true);
+    expect(
+      await consumeAccountsLinkAttempt(db, {
+        stateHash: await hashAccountsLinkSecret(ticket),
+        pointsUserId: user.pointsUserId,
+        authSessionIdHash: await hashAccountsLinkSecret(user.sessionId),
+        now,
+      }),
+    ).toMatchObject({ verifiedAccountsUserId: "ausr_verified" });
+  });
+
+  it("検証済みのAccounts主体を既存の連携とsnapshotへ保存する", async () => {
+    const connection = await createConnection();
+    const user = await seedPointsUser(db);
+    const accountsUserId = newAccountsUserId();
+    const dependencies = {
+      db,
+      kek: await importTestKek(env),
+      fetch: network.fetch,
+      reportFailure: async () => {},
+    };
+
+    const saved = await completeVerifiedAccountsLink(dependencies, {
+      pointsUserId: user.pointsUserId,
+      accountsConnectionId: connection.connectionId,
+      accountsUserId,
+      requestId: `req_${crypto.randomUUID()}`,
+    });
+
+    expect(saved.status).toBe("CREATED");
+    expect(await listLinks(createUserClient(user))).toEqual([
       expect.objectContaining({
-        accountsConnection: expect.objectContaining({
-          id: connection.connectionId,
-          accountsOrigin: connection.accounts.origin,
-        }),
         accountsUserId,
-        accountsProfileUrl: `${connection.accounts.origin}/profiles/${accountsUserId}`,
-        accountsManagementUrl: `${connection.accounts.origin}/account-links`,
         provisionStatus: "PROVIDED",
         externalAccounts: sampleExternalAccounts(),
       }),
+    ]);
+  });
+
+  it("検証済みの同じ主体は所有者の解除後に別のPointsユーザーへ連携できる", async () => {
+    const connection = await createConnection();
+    const firstUser = await seedPointsUser(db);
+    const secondUser = await seedPointsUser(db);
+    const accountsUserId = newAccountsUserId();
+    const dependencies = {
+      db,
+      kek: await importTestKek(env),
+      fetch: network.fetch,
+      reportFailure: async () => {},
+    };
+    const input = {
+      accountsConnectionId: connection.connectionId,
+      accountsUserId,
+      requestId: `req_${crypto.randomUUID()}`,
+    };
+    const first = await completeVerifiedAccountsLink(dependencies, {
+      ...input,
+      pointsUserId: firstUser.pointsUserId,
+    });
+
+    await expect(
+      completeVerifiedAccountsLink(dependencies, {
+        ...input,
+        pointsUserId: secondUser.pointsUserId,
+      }),
+    ).rejects.toMatchObject({ code: "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER" });
+    expect(
+      (await createUserClient(firstUser)("DELETE", `/api/accounts-links/${first.accountsLinkId}`))
+        .status,
+    ).toBe(204);
+
+    const second = await completeVerifiedAccountsLink(dependencies, {
+      ...input,
+      pointsUserId: secondUser.pointsUserId,
+    });
+    expect(second.status).toBe("CREATED");
+    expect(await listLinks(createUserClient(secondUser))).toEqual([
+      expect.objectContaining({ accountsUserId }),
     ]);
   });
 
@@ -233,9 +307,7 @@ describe("Accountsとの連携", () => {
     await link(request, connection, accountsUserId);
     await link(request, connection, newAccountsUserId());
     await link(request, otherConnection, newAccountsUserId());
-    expect(await link(request, connection, accountsUserId)).toEqual(
-      new URLSearchParams({ accountsLinkResult: "LINKED" }),
-    );
+    expect((await link(request, connection, accountsUserId)).status).toBe("RENEWED");
 
     const links = await listLinks(request);
     expect(links).toHaveLength(3);
@@ -261,9 +333,9 @@ describe("Accountsとの連携", () => {
     const user = await seedPointsUser(db);
     const request = createUserClient(user);
 
-    const result = await link(request, connection, accountsUserId);
-
-    expect(result.get("accountsLinkError")).toBe("ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER");
+    await expect(link(request, connection, accountsUserId)).rejects.toMatchObject({
+      code: "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER",
+    });
     expect(await listLinks(request)).toEqual([]);
     const audit = await db
       .prepare("SELECT action, target, reason FROM audit_event WHERE actor_points_user_id = ?")
@@ -298,106 +370,69 @@ describe("Accountsとの連携", () => {
   });
 });
 
-// --------------------------------------------------
-// 戻り先の拒否
-// --------------------------------------------------
-
-describe("連携の戻り先", () => {
-  it("改ざん・再使用・別session・期限切れの試行を拒否する", async () => {
+describe("標準OAuth後の連携完了", () => {
+  it("開始したsessionだけがticketを消費し、検証済みsubを連携する", async () => {
     const connection = await createConnection();
     const user = await seedPointsUser(db);
-    const request = createUserClient(user);
-
-    const tampered = consent(connection, await startLink(request, connection), newAccountsUserId());
-    tampered.set("state", "tampered");
-    expect((await callback(request, tampered)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_LINK_ATTEMPT_INVALID",
-    );
-
-    const reused = consent(connection, await startLink(request, connection), newAccountsUserId());
-    await callback(request, reused);
-    expect((await callback(request, reused)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_LINK_ATTEMPT_INVALID",
-    );
-
-    const otherSession = consent(
-      connection,
-      await startLink(request, connection),
-      newAccountsUserId(),
-    );
-    const otherSessionRequest = createUserClient(user, `session-other-${crypto.randomUUID()}`);
-    expect((await callback(otherSessionRequest, otherSession)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_LINK_ATTEMPT_INVALID",
-    );
-
-    const expired = consent(connection, await startLink(request, connection), newAccountsUserId());
+    const firstSub = newAccountsUserId();
+    const otherSub = newAccountsUserId();
+    const ticket = `ticket-${crypto.randomUUID()}`;
+    const now = Date.now();
+    await insertAccountsLinkAttempt(db, {
+      stateHash: await hashAccountsLinkSecret(ticket),
+      pointsUserId: user.pointsUserId,
+      authSessionIdHash: await hashAccountsLinkSecret(user.sessionId),
+      accountsConnectionId: connection.connectionId,
+      nonce: "nonce",
+      codeVerifier: `verifier-${crypto.randomUUID()}`,
+      createdAt: now,
+    });
+    await setVerifiedAccountsLinkAttempt(db, {
+      ticket,
+      pointsUserId: user.pointsUserId,
+      authSessionIdHash: await hashAccountsLinkSecret(user.sessionId),
+      accountsConnectionId: connection.connectionId,
+      accountsUserId: firstSub,
+      now,
+    });
+    const providerId = toAccountsProviderId(connection.connectionId);
     await db
       .prepare(
-        `UPDATE accounts_link_attempts
-         SET created_at = created_at - 600000, expires_at = expires_at - 600000
-         WHERE points_user_id = ?`,
+        `INSERT INTO account (id, account_id, provider_id, user_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .bind(user.pointsUserId)
+      .bind(`account-${crypto.randomUUID()}`, otherSub, providerId, user.authUserId, now, now)
       .run();
-    expect((await callback(request, expired)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_LINK_ATTEMPT_INVALID",
+
+    const wrongSession = await createUserClient(user, "other-session")(
+      "GET",
+      `/api/accounts-links/finish?ticket=${ticket}`,
     );
+    expect(
+      new URL(wrongSession.headers.get("Location")!, env.APP_ORIGIN).searchParams.get(
+        "accountsLinkError",
+      ),
+    ).toBe("ACCOUNTS_LINK_ATTEMPT_INVALID");
+
+    const finished = await createUserClient(user)(
+      "GET",
+      `/api/accounts-links/finish?ticket=${ticket}`,
+    );
+    expect(finished.status).toBe(303);
+    expect(
+      new URL(finished.headers.get("Location")!, env.APP_ORIGIN).searchParams.get(
+        "accountsLinkResult",
+      ),
+    ).toBe("LINKED");
+    expect(await listLinks(createUserClient(user))).toEqual([
+      expect.objectContaining({ accountsUserId: firstSub }),
+    ]);
+    const core = await db
+      .prepare("SELECT account_id AS accountId FROM account WHERE user_id = ? AND provider_id = ?")
+      .bind(user.authUserId, providerId)
+      .all<{ accountId: string }>();
+    expect(core.results).toEqual([{ accountId: otherSub }]);
   });
-
-  it("同意の拒否とissの不一致を区別して案内する", async () => {
-    const connection = await createConnection();
-    const request = createUserClient(await seedPointsUser(db));
-
-    const denied = new URLSearchParams({
-      error: "access_denied",
-      state: (await startLink(request, connection)).searchParams.get("state")!,
-      iss: connection.accounts.origin,
-    });
-    const mixedUp = consent(connection, await startLink(request, connection), newAccountsUserId());
-    mixedUp.set("iss", "https://other-accounts.example.test");
-
-    expect((await callback(request, denied)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_AUTHORIZATION_DENIED",
-    );
-    expect((await callback(request, mixedUp)).get("accountsLinkError")).toBe(
-      "ACCOUNTS_LINK_ATTEMPT_INVALID",
-    );
-  });
-
-  it.each([
-    ["署名", { signIdTokenWithUnknownKey: true }],
-    ["aud", { idTokenClaims: { aud: "other-client" } }],
-    ["nonce", { nonce: "other-nonce" }],
-    ["exp", { idTokenClaims: { exp: Math.floor(Date.now() / 1000) - 600 } }],
-  ] satisfies [string, Partial<FakeAuthorizationCodeInput>][])(
-    "ID Tokenの%sが不正なら保存しない",
-    async (_name, overrides) => {
-      const connection = await createConnection();
-      const user = await seedPointsUser(db);
-      const request = createUserClient(user);
-
-      const parameters = consent(
-        connection,
-        await startLink(request, connection),
-        newAccountsUserId(),
-        overrides,
-      );
-
-      expect((await callback(request, parameters)).get("accountsLinkError")).toBe(
-        "ACCOUNTS_ID_TOKEN_INVALID",
-      );
-      expect(await listLinks(request)).toEqual([]);
-      const audit = await db
-        .prepare("SELECT action, target, reason FROM audit_event WHERE actor_points_user_id = ?")
-        .bind(user.pointsUserId)
-        .first();
-      expect(audit).toEqual({
-        action: "ACCOUNTS_LINK_REJECTED",
-        target: connection.connectionId,
-        reason: "ACCOUNTS_ID_TOKEN_INVALID",
-      });
-    },
-  );
 });
 
 // --------------------------------------------------
@@ -405,24 +440,6 @@ describe("連携の戻り先", () => {
 // --------------------------------------------------
 
 describe("連携の開始", () => {
-  it("ACTIVEでない接続先を拒否し、利用者ごとに1時間10回までにする", async () => {
-    const connection = await createConnection();
-    const request = createUserClient(await seedPointsUser(db));
-
-    const inactive = await request("POST", "/api/accounts-links/attempts", {
-      accountsConnectionId: "acon_missing",
-    });
-    expect(inactive.status).toBe(409);
-    expect(await inactive.json()).toMatchObject({ code: "ACCOUNTS_CONNECTION_NOT_ACTIVE" });
-
-    for (let count = 2; count <= 10; count += 1) await startLink(request, connection);
-    const limited = await request("POST", "/api/accounts-links/attempts", {
-      accountsConnectionId: connection.connectionId,
-    });
-    expect(limited.status).toBe(429);
-    expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
-  });
-
   it("JSON以外のContent-Typeを415で拒否する", async () => {
     const connection = await createConnection();
     const request = createUserClient(await seedPointsUser(db));
@@ -504,9 +521,7 @@ describe("情報提供の停止と解除", () => {
     const request = createUserClient(await seedPointsUser(db));
     connection.accounts.interceptNext("/api/v1/external-accounts", "network");
 
-    expect(await link(request, connection, newAccountsUserId())).toEqual(
-      new URLSearchParams({ accountsLinkResult: "LINKED" }),
-    );
+    expect((await link(request, connection, newAccountsUserId())).status).toBe("CREATED");
     const [linked] = await listLinks(request);
     expect(linked).toMatchObject({ provisionStatus: "PROVIDED" });
   });

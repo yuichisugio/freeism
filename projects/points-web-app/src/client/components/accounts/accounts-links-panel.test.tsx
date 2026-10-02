@@ -105,6 +105,18 @@ describe("AccountsLinkStartForm", () => {
 });
 
 describe("AccountsLinkResultMessage", () => {
+  it("Accountsでの同意拒否を連携拒否として案内する", () => {
+    const html = renderToStaticMarkup(
+      <AccountsLinkResultMessage
+        result={null}
+        error="ACCOUNTS_UNAVAILABLE"
+        oauthError="access_denied"
+      />,
+    );
+
+    expect(html).toContain("Accountsで連携が許可されませんでした。");
+  });
+
   it("戻り先の結果を案内する", () => {
     expect(
       renderToStaticMarkup(<AccountsLinkResultMessage result="LINKED" error={null} />),
