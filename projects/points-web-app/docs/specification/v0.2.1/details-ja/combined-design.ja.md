@@ -202,7 +202,6 @@
   - [ポイントのプロフィール](#ポイントのプロフィール)
   - [要件](#要件)
     - [4.1 評価軸](#41-評価軸)
-    - [4.2 固定小数点](#42-固定小数点)
     - [4.3 不変FIX revisionと差分台帳](#43-不変fix-revisionと差分台帳)
     - [4.4 未受領FIXとAccounts照合](#44-未受領fixとaccounts照合)
     - [4.5 CSV](#45-csv)
@@ -445,23 +444,30 @@
       9. **貢献評価を代用する仕組み**
          - 説明
            - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
+           - 評価軸が貢献者に、この仕組みを使ってポイントを付与する方法でもある
            - 類似度の係数は、「**ポイント交換する機能**」の交換比率を使用する
          - 必要性
            1. 必要性は、「貢献評価を代用する仕組み」ドキュメントに記載
+         - 目的・使用場面
+           1. 評価軸の評価が追いつかないときに使用する
          - 仕様
-           1. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
+           1. CSVアップロードに対応する
+           2. 実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`
+           3. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
               - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
               - 実行の単位は、評価月`YYYY-MM`とする
-           2. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
-           3. 「付与し直す」ボタンを用意
+           4. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
+           5. 「付与し直す」ボタンを用意
               - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
-           4. 計算式
+           6. 計算式
               - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
               - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
-           5. 二重付与を防止
+           7. 二重付与を防止
               - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
          - 処理の流れ
-           1. プロフィールURLの保有ポイント一覧の上にある「評価代用アップロード」ボタンを押す
+           1. 次のどちらかの「評価代用アップロード」ボタンを押す
+              1. プロフィールURLの保有ポイント一覧の上
+              2. 評価軸のプロフィール画面の上
            2. CSVをアップロード（ファイルの送信を完了する）
            3. **アップロード完了後**（下記）に、内容の確認ダイアログを表示する
            4. ユーザーが承認したら実行する
@@ -479,7 +485,6 @@
             1. GUIは用意せず、CSVアップロードのみ対応
             2. ドラッグ＆ドロップ機能は廃止
                - 「アップロード」ボタンを押してファイル選択画面から選択
-            3. 一回のアップロード上限は1,000件
             4. アップロード時に、↓をチェックする
                - 譲渡可能なポイントか
                - 保有ポイント以下の額を譲渡するか
@@ -572,8 +577,8 @@
   3.  無料主義アプリのパブリックAPIの秘密鍵を発行して、その鍵と必要な情報をヘッダーに入れてAPIリクエストする
 
 - **v0.2.1における範囲**
-  - **読み取り専用**のエンドポイント（本節の**指定ユーザーの保有ポイント取得**、**落札証明向けの取得**、**ユーザー情報取得**など）はv0.2.1で実装する。
-  - 一方、**外部システムから入札・出品・購入を自動化**する、あるいは**落札の通知とポイント減少を一括で外部連携**する、といった**書き込み・取引操作用のパブリックAPI**はv0.2.1の対象外とし、別途「v0.2.1：実装しない機能」の**出品・落札・購入のパブリックAPI化**の項に整理する。
+  - 読み取りとして、指定した利用者の保有ポイント、落札証明、利用者情報を提供する。
+  - OAuthクライアント経由で、外部サービス向けに、任意の引き落とし、出品、入札、購入の公開書き込みAPIに対応する。指定した利用者の、指定した評価軸のポイントを、指定した額だけ消費できる。消費の前に保有を確認する。外部の販売で購入したとき、落札の通知と合わせてポイントを減らすときに使う。トークンを発行して権限を管理する。外部のアプリから、ポイントを使って購入できるようにする。
 
 - APIの種類
   1.  **指定ユーザーの保有ポイントを取得**
@@ -639,7 +644,6 @@
             - 要件
               1.  CSVの各行は、共通の関数で処理する
               2.  モーダルからも、その共通関数を呼ぶ
-        3.  **「CSVアップロード」の一回のアップロード上限は1,000件**
         4.  **以下の入力項目を追加**
             1. 入札できるポイントを指定するために、パッケージを指定する
                - 公式パッケージの指定を必須にする
@@ -649,16 +653,6 @@
             3. 即決価格の設定
                - 要件
                  1. 指定したパッケージを構成する評価軸の設定として「即決価格」が可能な場合のみ出品時に選択できる
-            4. 購入方式
-               - 選択できる購入方式
-                 1. 消費
-               - 無料主義アプリv0.2.1で実装しない購入方式
-                 1. ポイント還元
-                 2. 消費なし
-                 3. ポイント譲渡
-                    - ポイント譲渡は、入札額を供給者に与える方式
-               - 「消費」に対応する理由
-                 1. 一番ニーズがありそうなため
   3.  **オークションの仕様**
       - 参考
         1.  Multi-unit auction
@@ -690,11 +684,14 @@
               1.  「落札者を選ぶ条件」に沿って、入札日時が前なら同じ額でも落札できるのであれば、同じ額で支払ってもらう条件にしている。
             - 注意
               1.  「落札できない入札者の中で最高入札額+1単位だけ加算した額を、落札者全員が一律で払う」方式だけだと、無料で入札して落札して、先着順で取得できた場合に1ポイント支払う必要が出てきてしまう
-        5.  **入札単位は、評価軸の最小単位を組み合わせたパッケージの最小単位`packageTick`とする**
+        5.  **入札は、`packageTick`単位の価格で、数量を指定して行う**
+            - `packageTick`は1目盛りの価格、`priceTickCount`はその数量である。
+            - Pointsへ渡す`priceTicks`は、`priceTickCount * packageTick`のscale済み安全整数である。数量`quantity`も安全整数である。変換はPointsとの境界だけで、BigIntで行う。安全整数を超える場合は拒否し、呼び出さない。
+            - Markets側のtickの個数と、Pointsの引き落としで使うscale済み価格は、この対応で分ける。OpenAPIの変更と、名前を変えるmigrationは避ける。
         6.  **一人につき複数個を購入する場合**
             1. 優先度が高い人から順に購入枠を占めて、希望数だけ得られる
             2. 希望数が残っていない場合は、最後尾の人は希望数が残っている分だけ配布
-        7.  **複数人への出品は、シングルプライスとする**
+        7.  **複数人への出品は、シングルプライスとする。全落札者が同じ1個当たりの清算価格を支払う。評価軸のオークション方式として設定できるのもシングルプライスである。**
         8.  **即決価格**
             - 説明
               1.  出品者が設定した「即決価格」ですぐ落札できるようにする機能
@@ -711,29 +708,14 @@
               1.  残高が足りないときは、その競売と利用者のブラックリストを1件記録する
               2.  記録したあと、次の入札者を落札者にする
         11. **複数の種類の評価軸ポイントを組み合わせて入札する場合の処理**
-            - v0.2.1の範囲
-              - 各評価軸のポイント方式は「消費」のみ
-                - 落札時に保有から差し引く
-              - 「一定期間預けて還元」「消費なし」「ポイント譲渡」はv0.2.1では実装しない
-            - 要件
-              1.  （無料主義アプリv3以降を含む一般形）それぞれの評価軸ごとのルールでポイントを処理し得るが、v0.2.1では実質すべて「消費」として扱う
-                  1. 即決価格
-                     - 即決価格が設定されている場合で、即決価格NGの評価軸ポイントがある場合は、即決価格OKのポイントのみで入札できる
-                  2. ポイントの扱い方（無料主義アプリv3以降で「預けて還元」「消費なし」「ポイント譲渡」を追加する場合の一般形）
-                     - 一定期間預けて還元 or 消費 or 消費なし or ポイント譲渡
-                     - それぞれの評価軸ポイントごとに、設定されているルールで扱う。全部一つで統一が必要なことはない。それぞれ別処理として扱う
-                  3. 評価軸ごとに、出品やポイントの扱い方のルールが異なる
-                     - 複数種類の評価軸ポイントを組み合わせて入札する必要がある場合には、それぞれのポイントごとに、それぞれのルールを適用する
-              2.  ルール（消費・還元・消費なし等）は、**評価軸ごと**に（上記1の方針どおり）別々に適用しうる。割合の大小に基づいて特定の1評価軸のルールに集約はしない
+            - 各評価軸のポイント方式は「消費」とする。出品で選べる購入方式も消費だけである。一番ニーズがありそうなためである。落札時に保有から差し引く。評価軸の設定で選べるポイント方式も消費だけである。
+            - 即決価格ができない評価軸が混ざっているときは、できる評価軸のポイントだけで入札できるパッケージとして扱い、その`packageTick`の価格と数量で入札する。
         12. **複数ポイントの組み合わせ入札**
             - 要件
               1.  出品者が指定した、入札に使用できるパッケージの「ポイントの種類」や「ポイントの組み合わせの割合」でのみ入札可能
               2.  入札時に、他のポイントから交換可能にする機能は実装しない
                   - 本質的な機能ではない。
                   - 別画面で実装する予定なので、そちらから行ってもらう
-        13. **入札単位**
-            - 要件
-              1.  入札単位は、評価軸の最小単位を組み合わせたパッケージの最小単位`packageTick`とする
         14. **出品者本人は自身の出品に入札できない**
         15. **オークションが既に終了している場合、新規入札は受け付けない**
         16. **時間は現地時間を表示**
@@ -852,32 +834,7 @@
               6.  設定できる画面
                   - 評価軸のプロフィール画面の「交換比率アップロード」ボタンから可能
         6.  **貢献評価を代用する仕組み**
-            - 説明
-              - 評価軸が貢献者に「貢献評価を代用する仕組み」を使用したポイントを付与するための機能
-            - 目的・使用場面
-              1.  評価軸の評価が追いつかないときに使用する
-            - 処理の流れ
-              1.  評価軸のプロフィール画面上の「評価代用アップロード」ボタンを押す
-              2.  CSVをアップロード（ファイルの送信を完了する）
-              3.  **アップロード完了後**（下記）に、内容の確認ダイアログを表示する
-              4.  ユーザーが承認したら実行する
-            - **「アップロード完了後」の定義**
-              - **ポイント交換する機能**の「「アップロード完了後」の定義」に従う（**ポイント交換・ポイント譲渡**と**同じ**タイミング。CSVの内容は評価代用のパース・バリデーションに読み替える）。バリデーションエラー時は本ダイアログは出さず、エラー表示に従う。
-            - 要件
-              1.  CSVアップロードに対応する
-              2.  類似度の係数は、「**ポイント交換する機能**」の交換比率を使用する
-              3.  ユーザーのプロフィール画面からユーザー自身が交換しても良いし、その評価軸の`evalueterAdmin`または`appAdmin`が、「貢献評価を代用する仕組み」でポイント付与しても良い
-              4.  キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
-                  - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
-                  - 実行の単位は、評価月`YYYY-MM`とする
-              5.  「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
-              6.  「付与し直す」ボタンを用意
-                  - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
-              7.  計算式
-                  - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
-                  - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
-              8.  二重付与を防止
-                  - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
+            - 評価軸のプロフィール画面の「評価代用アップロード」からも実行する。説明、使用場面、計算式、二重付与の防止、確認ダイアログは、プロフィール画面の「貢献評価を代用する仕組み」に従う。
         7.  **評価軸ごとに「貢献したユーザー」をアップロード機能**
             - 説明
               - 評価軸が貢献者にポイントを付与するための機能
@@ -1023,17 +980,9 @@
                  2. 評価軸ポイントの他者との交換を許可するか
                     1. 許可する
                     2. 許可しない
-                 3. オークション方式
-                    1. シングルプライス
                  4. 「即決価格」を許可するか
                     1. 許可する
                     2. 許可しない
-                 5. ポイント方式
-                    1. 一定期間だけ預けて還元
-                    2. 消費
-                    3. 消費なし
-                    4. ポイント譲渡
-                    - 無料主義アプリv0.2.1では、「消費」のみ選択可能
                  6. ポイントの最小単位
                     - 必要な理由
                       1. この最小単位に到達するまで分配し続けるため
@@ -1605,7 +1554,7 @@
          - 終了日時
     4. `currentHighestBid`
        - 型
-         - 数値（Int）
+         - 整数
        - 説明
          - 現在の最高入札額
     5. `currentHighestBidderId`
@@ -1657,10 +1606,7 @@
      2. 無料主義アプリv0.2.1の目的が、無料主義の内容を伝えることなので、開発者の負担になる設定を増やしたくない
      3. 本質的な機能ではない
    - 説明
-     - クライアントが能動的にリロードしなくても、サーバーのデータ変更があった場合に反映されるようにしたいが、課金や管理の関係で廃止する。サーバー側では最高額かチェックする機構入れる。
-     - `Redis`のPub/Subが一定以上の利用料で有料になるため実践的ではない。
-     - 別アカウントで入札しているが現在の画面では最高額は更新されないので、最高額ではない額で入札してしまうとエラーになるがフロントエンドにも`最高額が更新されたのでリロードして価格を更新してください。`と表示する。
-     - 画面をリロードしなくても、入札画面内で「リロード」アイコンを表示して、そのアイコンを押したら最新の最高入札額が取得できるようにする。
+     - 入札中の最高額は、Durable Objectが確定したあと、WebSocketで配信する。
 
 2. **画像管理の廃止**
    - 廃止する理由
@@ -1679,8 +1625,7 @@
      1. タスク報告機能
      2. タスクの「作成者」と「報告者」と「実行者」を分ける機能
      3. その他のタスク系の機能
-   - メモ
-     1. 出品機能のみ残す
+   - 出品は残す。タスク系は廃止する。
 6. **PWA**
    - 廃止する理由
      1. 本質的な機能ではないため
@@ -1688,9 +1633,7 @@
      - マニフェストも作らない。
 
 7. **通知**
-   - メールとPUSHは作らない。
-   - アプリ内に、利用者ごとのお知らせ一覧を置く。
-   - 操作結果を短時間だけ画面に出すトーストも置く。
+   - アプリ内に、利用者ごとのお知らせ一覧を置く。メール、PUSH、Web Push、予約通知は作らない。操作結果のトーストは残す。sonnerとreact-hot-toastで、成功、失敗、短い案内を画面の端に一時表示する。CSVの生成完了と失敗も、トーストで示し、お知らせ一覧に残す。
 8. **リッチなUI**
    - 廃止
      - 全画面表示、凝った動き、項目をたくさん入れる一括入力。一括の登録はCSVに寄せる。
@@ -1824,10 +1767,6 @@
     - 要件
       1. ２要素認証の実装
       2. パスキーの実装
-12. **ポイントの使用方法として、「預ける」「消費なし」「ポイント譲渡」**
-    - v0.2.1で実装しない理由
-      1. 無料主義を説明する上で必須ではない
-      2. 必要性はありそうなので、あとから実装する
 14. **落札後の画面の限定公開機能**
     - 機能説明
       - 「出品者」と「購入者」のみが閲覧できる設定の機能
@@ -1844,39 +1783,6 @@
     - 機能説明
       - レバレッジを利かす機能
       - 付与したら、その人が使用した時に戻ってくる期間が決まる
-16. **保有ポイントを操作するパブリックAPI**
-    - 使用場面
-      - 外部の販売サービスで購入した際に、無料主義のポイントを消費する仕組みにすることで、各業界の販売サービスから無料主義ポイントを使えるようにしたい
-    - 要件
-      1. 指定ユーザーの、指定の評価軸ポイントを、指定の額だけ消費するAPI
-    - 使用する流れ
-      1. **（サービスの設定）** 外部サービスと無料主義アプリを API 連携するするために環境変数を設定する
-      2. 保有ポイントの取得
-         - 保有ポイントがある場合のみ購入できる
-      3. **（落札後の供給側の流れ）** 購入者の情報を受け取り、ポイントを消費する
-17. **出品・落札・購入のパブリックAPI化**
-    - 本項の対象
-      - **外部から入札・出品・購入を自動化**する、**落札通知とポイント減少を外部に一括連携**する、など**取引の書き込み・通知に踏み込んだ**パブリックAPI。**「パブリックAPI」節でv0.2.1とする読み取り専用API（保有ポイント・落札証明・ユーザー情報）とは別**である。
-    - v0.2.1で実装しない理由
-      1. 無料主義を説明する上で必須ではない
-      2. 必要性はありそうなので、あとから実装する
-    - 懸念点
-      - オークション機能も無料主義アプリに組み込まないほうが良いのでは？
-    - 本懸念・外部連携方針の整理
-      - **無料主義アプリv3以降**に、オークションをアプリに集約し続けるか、外部化・API中心に振るかを含め再検討する。v0.2.1は下記の結論のままとし、**本段の再整理は無料主義アプリv3以降の対応**とする。
-    - 結論（v0.2.1の当面方針）
-      1. 一旦は、埋め込む
-      2. 一旦は、貢献度のアップロードで、マイナス評価で、マイナスポイントにすることで消費する代用で済ませる
-    - パブリックAPI化したほうが良い理由
-      1. 購入方式が大量にある
-         - オークション・即決価格・指定価格の購入など色々な方式があり実装が困難
-      2. 外部アプリから使えるようにしたい
-         - 外部アプリからの購入に無料主義ポイントを使用できるようにしたい
-         - Amazon、Yahoo!オークション、メルカリ、他の無料主義アプリなどで、無料主義アプリのポイントを使用して購入して、銀行機能としてのポイント差し引きを
-    - 要件
-      1. 指定ユーザーの保有ポイント取得
-      2. 指定ユーザーの落札通知＆保有ポイントの減少
-      - トークンを発行して権限管理が必要
 18. **「借入・返済の管理」機能**
     - 上記15項の「借金」との違い
       - 本項は、**本格的な借入・返済の台帳・残高管理をアプリに実装する**想定の機能を指し、v0.2.1では実装しない。15項の「譲渡で肩代わり」するレベルとは切り分ける。
@@ -1986,8 +1892,6 @@ UIはReactで組み立てる。コンポーネントに分け、宣言的に描�
 
 コマンドパレットはcmdkで組み立てる。キーワードで絞り込むショートカット一覧を、短時間で作れる。
 
-操作結果のトーストはsonnerとreact-hot-toastで出す。成功、失敗、短い案内を画面の端に一時表示する。メールとPUSHは作らない。アプリ内には、利用者ごとのお知らせ一覧を置く。
-
 CSVの読み取りはpapaparseを使う。圧縮とクライアントへの保存はfflateとfile-saverを使う。ファイル選択は`<input type="file">`など、ブラウザ標準のUIに揃える。ドラッグアンドドロップは使わない。
 
 未使用のexport、ファイル、依存の検出はknipとts-pruneで補助する。不要なコードと依存を減らし、保守する範囲を狭くするためである。
@@ -2068,7 +1972,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
   - Status: 採用
   - 上書き・撤回関係: 自社共通Cookie、Google ID突合を不採用。
 - MarketsとPointsの有効連携は、提供先ごとに1対1とする。連携キーは、提供先の`providerId`と利用者の`subject`である。issuerは、その提供先に登録した値と一致することを確認して保存する。emailや表示名では対応付けない。
-- Points利用者は開発者向け画面で最大5件のOAuth Clientを管理する。Marketsも接続先ごとに、同じ画面から登録する。
 - 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
   - Status: 採用
   - 上書き・撤回関係: 無限再試行を禁止。
@@ -2085,18 +1988,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - `evaluationTotal`を残高とは別に、FIX評価だけの符号付き累計として管理する。
 
 - 譲渡、交換、落札の引き落としは`evaluationTotal`を変更しない。Substitution FIXは変更する。
-
-- `point_ledger_entries`を監査上の正本、`point_accounts`をTrigger更新される投影とする。
-
-- 台帳UPDATE／DELETEを禁止し、台帳から残高と`evaluationTotal`を再構築できるようにする。
-
-ポイントの最小単位は、小数第4位までとする。保存は整数とし、10,000分の1、つまり1単位を0.0001ポイントとして持つ。金額はその単位の倍数にする。
-
-- 残高、台帳、落札の引き落とし計算でREALとJavaScript浮動小数点を使わない。API／CSVの金額は10進文字列とする。
-
-- 中間乗除算にはBigIntを使用できるが、D1 bind前と集計後にJavaScript安全整数範囲を検証する。
-
-- v0.2.1のCSVはUTF-8、最大5 MiB、最大1,000非空行とする。
 
 - CSVは全行検証後に確認し、確定時にserver再検証、全件成功または全件rollbackとする。server draftを持たない。
   - Status: 採用
@@ -2135,7 +2026,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - DOは入札直列化、alarm、冪等command、直近event再送、WebSocketを担当し、D1 commit後だけ成功応答・broadcastする。
   - Status: 採用
   - 上書き・撤回関係: memory状態への依存を禁止。
-- Auctionの作成はCSVだけで、1行からAuction 1件を作り、最大1,000行とする。
+- Auctionの作成はCSVだけである。
 - AuctionRoomは初回閲覧・接続・入札時にlazy初期化し、未利用Auctionを大量作成しない。
   - Status: 採用
   - 上書き・撤回関係: 全件事前DO生成を不採用。
@@ -2148,8 +2039,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - 順位は価格降順、同額はその価格へ到達したsequence昇順、最後のwinnerだけ残数による部分落札を許可する。
   - Status: 採用
   - 上書き・撤回関係: client timestamp順を禁止。
-- 複数人への出品は、全落札者が同じ1個当たりの清算価格を支払うシングルプライスとする。
-  - Status: 採用
 - 枠外最高単位がなければ0 tick、同額なら同額、異なるなら枠外最高額＋1 tickをclearing priceとする。
   - Status: 採用
   - 上書き・撤回関係: 旧曖昧なギリギリ落選者式を確定。
@@ -2168,7 +2057,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - 入札後にseller、数量、評価軸、比率、minimum unit、価格式、Points serviceを変更できない。
   - Status: 採用
   - 上書き・撤回関係: live Auctionの条件変更を禁止。
-- Auction history、winning history、watchlistをMarketsへ残す。メールとPUSHは作らない。アプリ内のお知らせ一覧は置く。
+- Auction history、winning history、watchlistをMarketsへ残す。
 - Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの落札時snapshotを表示する。
   - Status: 採用
   - 上書き・撤回関係: 現在の可変profileだけを表示する案を不採用。
@@ -2224,40 +2113,12 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - PointsとMarketsはCloudflare WAF、Rate Limit、D1の状態・一意制約を使う。
 
 - 一般JSON bodyは64 KiB、private responseは`no-store`、重要mutationはIdempotency-Key必須とする。
-  - Status: 採用
-  - 上書き・撤回関係: 無制限body／再送を禁止。
-- Points／Markets D1にappend-only audit eventを保存し、Token、Cookie、Secret、CSV本文、取得ページ本文を記録しない。
-  - Status: 採用
-  - 上書き・撤回関係: sensitive logを禁止。
-- `appAdmin`または`evalueterAdmin`による虚偽FIXや、複数のMarkets accountの共謀をv0.2.1で自動判定せず、不変履歴と監査を残余対策とする。
-  - Status: 採用
-  - 上書き・撤回関係: 未定義heuristic検知を追加しない。
-- Better Auth／TanStack／Vite+をexact pinし、既知malicious TanStack version、High／Critical advisoryをrelease blockerとする。
-  - Status: 採用
-  - 上書き・撤回関係: 緩いversion rangeを禁止。
-- pnpm `minimumReleaseAge` 3日、exotic dependency制限、lifecycle script allowlist、lockfile reviewを行う。
-  - Status: 採用
-  - 上書き・撤回関係: 新規package即時導入を抑制。
-- `pull_request_target`を使わず、GitHub Actionsをfull SHA、GITHUB_TOKEN最小権限、production Secretをdeploy job限定とする。
-  - Status: 採用
-  - 上書き・撤回関係: mutable Action tag／広権限を禁止。
-- Workers Vitest integrationとVitest 4.1以上を使用し、Static、domain、D1、Worker contract、DO／Workflow、browser、staging、production smokeを検証する。
-  - Status: 採用
-  - 上書き・撤回関係: v0.3までtestを延期する旧案を上書き。
-- repository全体coverage率だけでrelease可否を決めず、列挙した不変条件testの存在と成功を必須にする。
-  - Status: 採用
-  - 上書き・撤回関係: 単一coverage gateを不採用。
+
 - 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、reconciliation、Runbook、旧runtime通信0件を全て満たす。
-  - Status: 採用
-  - 上書き・撤回関係: 条件未達のmain自動本番を禁止。
-- 対面決済、QR決済、店舗履歴をPointsまたはMarketsへ追加する。
+
+- 対面決済、QR決済、店舗履歴は、Marketsに導入する。
 
 - 外部EC用random claim Token、再発行、seller検証、受渡完了POST。
-
-- OAuthクライアントを通じた外部service向け任意debit、出品、bid、購入等のpublic write APIに対応する
-
-
-- Pointを一定期間預けて返還、消費なし、sellerへ譲渡する購入方式は対応しない。v0.2.1のAuctionは消費だけ。
 
 - 引き落としが成功したあとに、その分を取り消して返す機能は作らない。成功した引き落としは台帳に残す。ポイントを借りて、あとから返すための帳簿は持たない。誰かが条件を満たしたときだけ、別の人の代わりに購入する機能は作らない。必要なら、このアプリの外で扱う。
 
@@ -2289,7 +2150,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 
 - Static Assetsは`not_found_handling=none`、`html_handling=auto-trailing-slash`、`assets_navigation_has_no_effect`とし、navigation missだけWorkerがAsset Bindingのcanonical `/`からshellを返す。
 
-- `point_ledger_entries`だけを経済正本とし、`point_accounts` projectionはledger INSERT triggerだけが更新する。消費系preconditionと引き落としの拒否は、D1 guard triggerの`RAISE(ABORT)`でbatch全体を失敗させる。
   - Status: 採用
   - 上書き・撤回関係: 条件付きUPDATE 0行を成功扱いする実装とapp側projection二重更新を禁止する。
 - 業務mutationのGETは禁止するが、OAuth callback GETは単回state／code消費と期限付きpending protocol state保存だけを許可し、経済状態・Workflow・grant statusは後続CSRF POSTだけが変更する。
@@ -2298,7 +2158,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 - claim前には評価軸別正味合計・正負件数と選択不可集合hashをpreviewし、再確認する。
   - Status: 採用
   - 上書き・撤回関係: Pointsは最新の対象集合を確認して経済処理を確定する。
-- 一般browser JSONは64KiB、CSVは5MiBとする。
+- 一般browser JSONは64KiBとする。
 - Accountsの紐付け・照合に基づく未受領FIXの対象集合はPOINTSに従う。
   - Status: 正本参照
   - 上書き・撤回関係: 紐付け先が変わった場合の過去未受領FIXの扱いはPointsの確認事項として扱う。
@@ -2339,9 +2199,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。`other.md`の候�
 
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
   - 暗黙link禁止、token非平文保存、永久対応そのものは維持する。標準暗号形式・algorithmをapp contractへ固定せず、versioned secretsの先頭をcurrent、残りをdecrypt-onlyとし、refresh／再連携等の次回writeでcurrentへ収束させる。
-
-- Markets内部とMarkets APIはpackage tickの個数を`priceTickCount`系で表し、snapshotの`packageTick`はscale済み最小package価格とする。Points wireの既存`priceTicks`はscale済みpackage価格として維持し、境界で`priceTickCount * packageTick`をBigInt計算して安全整数を超えれば拒否する。
-  - 上書き・撤回関係: Markets仕様の「tick個数」とPointsの引き落としで使う「scale済み価格」の同名解釈差を解消し、OpenAPI変更と後続rename migrationを避ける。
 
 - Marketsは、`test/*` pushは共有test環境として既存Cloudflare `staging`資源だけを更新し、`main` pushはproductionだけを更新する。両workflowは相互に昇格せず、固定concurrency group、`queue: max`、`cancel-in-progress: false`で直列化する。
 
@@ -2420,8 +2277,6 @@ Pointsで本人または`appAdmin`が閲覧権限を持つ設定・経済履歴�
 - 対象type、期間、1pageの行数を選ぶ最小限のUIを用意する。cursor文字列を利用者に編集させず、「次のCSVを取得」と現在page／全行数／30分の残り期限を表示する。
 - export開始前に対象、件数見込み、非公開情報を含むかを確認する。
 - 各pageは同じheaderを持つ番号付きCSVとして保存し、UIが全pageを1つのBlobへ連結しない。期限切れ時は取得済みpageと新snapshotが同一ではないことを示し、1page目から再開させる。
-- 生成完了と失敗はトーストで示し、利用者ごとのお知らせ一覧にも残す。
-
 # CSVアップロード共通仕様
 
 ## 1. 対象操作
@@ -2439,7 +2294,7 @@ Pointsで本人または`appAdmin`が閲覧権限を持つ設定・経済履歴�
 
 - encoding: UTF-8 with BOMは先頭だけ許可する。
 - 最大size: 5MiB。
-- 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。
+- 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。出品のCSVは、1行で競売1件を作る。
 - import type固有の上限が1,000未満なら小さい方を適用する。評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
 - header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
 - 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
@@ -2859,7 +2714,7 @@ Pointsへログインした利用者は、「開発者向け」画面で自分�
 
 リダイレクトURLは、認証と同意のあとで利用者を戻す先です。1つのクライアントへ1件以上を登録でき、認可要求ごとに`redirect_uri`を1つ指定します。バックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認します。URLはHTTPSとします。HTTPSのホストには、loopback（`localhost`、`127.0.0.0/8`、`[::1]`）を使えません。ローカル開発用には、ホストが`localhost`、`127.0.0.1`、`[::1]`のいずれかのURLをHTTPで登録できます。一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。`private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
 
-登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共有のschemaで検査します。リダイレクトURLの規則は、Better Auth標準の登録時の検査と同じです。Pointsの開発者向け画面で登録できるのは最大5件です。1人のAccountsユーザーが所有できるのも最大5件で、画面とバックエンドの両方で確認します。一覧、詳細、更新、削除は、ログイン中の登録者本人のクライアントだけが対象です。登録したアプリは、登録者のAccountsユーザーが管理し、設定の変更とアプリ自体の削除を行えます。「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
+登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共有のschemaで検査します。リダイレクトURLの規則は、Better Auth標準の登録時の検査と同じです。Pointsにログインした利用者が、開発者向け画面で自分のアプリを最大5件登録します。Marketsも、接続先ごとに、同じ画面から登録します。画面とバックエンドの両方で確認します。一覧、詳細、更新、削除は、ログイン中の登録者本人のクライアントだけが対象です。登録したアプリは、そのPoints利用者が管理し、設定の変更とアプリ自体の削除を行えます。「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
 
 登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。標準の更新APIは公開鍵を受け付けず、紹介URLを削除できません。公開鍵の更新と紹介URLの削除（`NULL`への更新）は、提供・技術要件の手続きで承認した独自拡張とし、`oauthClient`の`jwks`と`uri`をAccountsの保存処理で更新します。更新する鍵の検査は、`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`と同等です。この関数は公開APIの互換性保証の対象外です。保存形式は、標準の登録と同じくJWK SetのJSON文字列です。次のクライアント認証から、新しい鍵で検証します。鍵を切り替えるときは、JWK Setに新旧の`kid`を併存させてから、旧鍵を外します。
 
@@ -3418,7 +3273,6 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 
 - 交換比率は交換元から交換先への有向pairごとに管理し、逆方向へ暗黙適用しない。
 - 登録できるのは`appAdmin`だけである。登録はCSVで行い、フォームは作らない。一般利用者による比率登録は行わない。
-- CSVは共通仕様どおりUTF-8、最大5MiB、最大1,000非空行、server validation、preview、confirm、全件原子確定とする。
 - 列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`numerator`、`denominator`とする。
 - `status=ACTIVE`では`numerator`と`denominator`を正のJavaScript安全整数として必須にし、最大公約数で正規化する。sourceとtargetが同じ行、0、負数、指数表記、範囲超過を拒否する。
 - `status=DISABLED`では比率を空にし、新規交換だけを停止する。比率0を無効化の代用にしない。
@@ -3437,11 +3291,7 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 
 ## 6. 金額表現
 
-- 保存scaleは`10_000`である。APIの金額は小数文字列とscale済み安全整数文字列を明確に分け、曖昧なJSON numberを契約へ出さない。
-- D1には`INTEGER`だけを保存し、残高、価格、比率、FIXへ`REAL`を使わない。
-- 全amountは対象評価軸のscale済み`minimumUnit`の倍数でなければならない。
-- JavaScriptへ渡す値は`Number.isSafeInteger`を満たすことを各境界で確認する。
-- parse・乗除算では一時的な`BigInt`をoverflow検出に使ってよいが、D1 bind前とAPI返却前に安全整数範囲を検証する。最終値または保存対象が範囲を超えたら処理全体を拒否する。
+金額は小数第4位までとする。保存は、評価軸ごとに決めた最小単位の整数とする。設定できる最小単位の最小額は0.0001ポイントで、1単位は0.0001ポイントである。金額はその単位の倍数にする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、残高、価格は、対象評価軸の`minimumUnit`の倍数である。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、計算の途中、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。範囲を超えたら、その処理全体を拒否する。
 
 ## 7. FIX revisionと差分台帳
 
@@ -3485,9 +3335,8 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 
 ## 8. 台帳、残高、evaluationTotal
 
-- append-only ledgerを経済データのSource of Truthとする。
-- `point_ledger_entries`をappend-onlyの経済データSource of Truth、`point_accounts`を利用者・評価軸ごとの`balance`／`evaluation_total` projectionとする。
-- `point_accounts`の経済列は同じtransaction内の`point_ledger_entries AFTER INSERT` triggerだけが更新する。client、別Worker、application repositoryからprojectionを直接INSERT／UPDATEするAPIを作らない。
+- `point_ledger_entries`を、経済と監査の正本とする。追記だけとし、UPDATEとDELETEはしない。残高と`evaluationTotal`は、台帳から再構築できる。
+- `point_accounts`は、利用者と評価軸ごとの`balance`と`evaluation_total`の投影である。同じtransaction内の`point_ledger_entries AFTER INSERT` triggerだけが更新する。client、別Worker、application repositoryから、投影を直接INSERTまたはUPDATEしない。消費の事前条件と引き落としの拒否は、D1のguard triggerの`RAISE(ABORT)`で、そのbatch全体を失敗させる。
 - `balance = SUM(ledger.deltaAmount)`を満たす。
 - `evaluationTotal = SUM(FIX起因ledger.deltaAmount)`を満たす。
 - 負のFIX、差し戻し、過去revisionとの差分により、`balance`と`evaluationTotal`は負になってよい。
@@ -3670,8 +3519,6 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 
 ## 6. 金額とvector
 
-- JSONの小数numberを金額contractに使わない。
-- Points wireのpackage価格はscale済み安全整数の`priceTicks`、数量は安全整数の`quantity`で渡す。Markets内部の`priceTickCount`は`packageTick`の個数であり、Points境界でだけ`priceTicks = priceTickCount * packageTick`へBigIntで変換し、安全整数を超える場合は呼び出さない。
 - Pointsは`pointPackageRevisionId`から自身のD1にある不変componentと`minimumUnit`を取得し、scale済みvectorを再計算する。
 - Marketsから送られた表示用component snapshotを経済計算の正本にしない。
 - すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
@@ -3941,10 +3788,8 @@ idempotent retryは保存済み結果を先に返し、同じ副作用へrate li
 
 ## 10. CSV
 
-- UTF-8、最大5MiB、最大1,000非空行、strict header/cell schema。
 - client previewを信用せずserverで再parseする。
 - server draftなし、確認後1回の原子commit。
-- 小数4桁、scale 10,000、minimumUnit倍数、安全整数、指数表記/Unicodeマイナス拒否。
 - 1件errorで全体0件反映。
 - exportはformula injectionを無害化する。snapshotの読取はログイン中の作成者とexport IDを照合し、D1の有効期限を確認する。cursorは数値ordinalで表し、範囲外を拒否する。
 - file本文、自由入力cell、個人情報を通常logへ出さない。
@@ -4120,7 +3965,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Points独自のGoogle/GitHubログイン・明示linkとsessionを持つ。
 - 評価結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が不変FIX revisionとしてアップロードする。
 - 負のFIXと負残高を許可するが、残高不足時の消費系操作は拒否する。
-- Task、PWA、画像は実装しない。メールとPUSHは作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
+- Task、PWA、画像は実装しない。
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 - バックエンドは、`api.points.freeism.app`等の別API domainにしない
   - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
@@ -4348,33 +4193,6 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
   - 要件定義
     1. PRをマージする際に、CI/CDでポイントのマイナにするAPIを叩く
 
-- 対面決済の機能
-  - 説明
-    - ポイントの使用場所を増やしたい
-    - オークションだけでなく、決済手段としても使用する
-  - 要件定義
-    1. `points`と`markets`のどちらに、この機能を入れるのか迷う
-       - メモ
-         - 同じサービス内に入れたほうが良い機能なので、対面決済は`points`サービス内に入れる
-       - `points`に持たせる場合
-         - ポイントを保持する部分なので整合性が高い
-         - でも、QRコード決済をするときに、`markets`の内容を知る必要があり、pointsがmarketsに依存するのは避けたい
-       - 結論
-         - `markets`にする
-         - pointsがmarketsに依存するのは避けたい
-         - marketsは、pointsからデータを取得するし、店舗登録の情報もある
-         - 消費する機能のテンプレのサービスは、marketsにまとめたい
-    - 外部サービスから決済のみ使用できるようにもしたいので、`/external/`apiとして定義したい
-  - v0.2
-    - 目の前で消費ボタンを押すだけ
-    - 店舗毎に、自身の店舗に決済してくれた履歴は持たない
-    - 対面で画面を見せながら指定パッケージの消費ボタンを押したら消費する
-    - それを決済の代わりとする
-  - v0.3
-    - 提供した証拠としてデータを残す為に、店側がQRコードを作成できて、それを読み取ったら無料主義ポイントの決済で支払われるようにする
-    - それで店側に決済履歴を残してデータをエクスポートして貢献度の算出に使える様にしたい
-
-
 - フォルダ構成
   - ルール
     1. ドメイン毎に分けるのは避けたい
@@ -4444,16 +4262,6 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 - 評価軸IDは不変の標準Nano IDとする。
 - 評価軸名は30文字以下、説明は200文字以下、関連URLは最大20件とする。
 
-### 4.2 固定小数点
-
-- すべてのポイント額はD1の`INTEGER`に、表示値の10,000倍を保存する。固定scaleは`10_000`である。
-- 表示値は小数点以下最大4桁まで扱い、設定可能な`minimumUnit`の最小値は`0.0001`である。
-- `minimumUnit`はscale適用後に正の整数でなければならない。
-- FIX、譲渡、交換、落札の引き落としの額は、対象評価軸の`minimumUnit`の倍数でなければならない。
-- 浮動小数点`REAL`を残高・比率・価格計算に使わない。入力文字列を10進として検証した後に整数化する。
-- 指数表記、Unicodeマイナス、4桁を超える小数、非有限値を拒否する。
-- D1 Worker APIが`BigInt`を直接扱わないため、入力・計算途中・保存値・集計値のすべてをJavaScript安全整数範囲内で検証する。
-
 ### 4.3 不変FIX revisionと差分台帳
 
 - FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
@@ -4475,7 +4283,6 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 
 ### 4.5 CSV
 
-- CSVはUTF-8、最大5MiB、1回最大1,000非空行とする。
 - header、列数、必須値、値域を厳密に検証し、全エラーを行番号・列名付きで返す。
 - client側previewは許可するが、server側draftは保存しない。確認後は1回の原子的POSTで確定する。
 - 同一requestの再送は内容hashと`Idempotency-Key`で同じ結果を返し、同じkeyで異なるpayloadは`409`にする。
@@ -4494,14 +4301,13 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 10. 日本語と英語に対応する
     - 言語切替は同一originの`localStorage` key `freeism.fixed-page-language.v1`へ`ja|en`だけを保存する。
     - 初期値resolverは、JavaScript有効時は、同一originに保存済み有効値、`navigator.languages`内で最初に現れる`ja|en`、`en`の順で決定し、URL／query／Cookie／server content negotiation/未知／破損した保存値は参照しない。
-11. Task、Group、一般member、notification、PWA、image upload、SSEを新実装へ持ち込まない。
+11. Task、Group、一般member、PWA、image upload、SSEを新実装へ持ち込まない。
 12. Points と Markets は別 Better Auth、別 host-only Cookie、別 D1、別 user ID、別 session を持つ。
 
 - 廃止する機能
   - Taskは完全廃止する。MarketsにもPointsにもTask作成機能を置かない。
   - Groupと一般コミュニティメンバー管理は完全廃止する。
   - 評価結果のdraft、承認待ちFIX、一般memberの権限は持たない。アップロードはFIX結果だけを受け付ける。
-  - メール、Web Push、予約通知は作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。操作結果のtoastも残す。
   - PWA、offline cache、画像アップロード、Q&A、chatは廃止する。
 
 - 両アプリともSPAを基本とし、固定した公開routeだけをbuild時にSSG/prerenderする。
@@ -4533,24 +4339,6 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 ### branch pushのdeploy pipeline
 
 `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する。testからproductionへの自動昇格と手動production承認は置かない。
-
-`test/*` pipeline:
-
-1. validate、contract、unit/integration test
-2. `CLOUDFLARE_ENV=staging`でPoints／Markets artifactを個別build・検証
-3. Points staging D1 migration、Markets staging D1 migration
-4. Points staging deploy、Markets staging deploy
-5. Points staging smoke
-
-`main` pipeline:
-
-1. production release gate、validate、contract、unit/integration test
-2. `CLOUDFLARE_ENV=production`でPoints／Markets artifactを個別build・検証
-3. Points production D1 migration、Markets production D1 migration
-4. Points production deploy、Markets production deploy
-5. Points production smoke
-
-両pipelineは別の固定concurrency groupで直列queueにし、`queue: max`かつ`cancel-in-progress: false`として実行中migrationをcancelしない。test artifact／credentialをproductionへ流用しない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。
 
 ## 9. セキュリティ、品質、release gate
 
@@ -4615,3 +4403,6 @@ RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 - Marketsは、登録した提供先のoriginへ外部のfetchで要求する。
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
+- OAuthクライアント経由で、任意の引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
+- 対面決済、QR決済、店舗履歴は、Marketsに導入する。
+- 入札は、`packageTick`単位の価格で、数量を指定して行う。
