@@ -41,15 +41,13 @@
     - [パッケージの現在の利用可否](#パッケージの現在の利用可否)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
-  - [ログイン](#ログイン)
-  - [テーブル構造](#テーブル構造)
+  - [ドキュメント画面](#ドキュメント画面)
   - [ライブラリ](#ライブラリ)
     - [使用するライブラリ](#使用するライブラリ)
     - [使用しないライブラリ](#使用しないライブラリ)
   - [意思決定](#意思決定)
   - [CSVエクスポート仕様](#csvエクスポート仕様)
   - [CSVアップロード](#csvアップロード)
-    - [validation](#validation)
   - [命名規則](#命名規則)
     - [前提](#前提)
     - [repository・service・domain](#repositoryservicedomain)
@@ -64,10 +62,11 @@
     - [script](#script)
     - [例外](#例外)
   - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
+    - [ログインのUI](#ログインのui)
     - [アプリと認証データの境界](#アプリと認証データの境界)
     - [Better Auth共通設定](#better-auth共通設定)
     - [PointsのGoogle・GitHubログインと明示連携](#pointsのgooglegithubログインと明示連携)
-      - [Google](#google)
+    - [Google](#google)
     - [GitHub](#github)
     - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
     - [対象操作](#対象操作)
@@ -109,14 +108,10 @@
   - [UI](#ui)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
-  - [提供先ごとの1対1連携](#提供先ごとの1対1連携)
-  - [OAuth ClientとResource Server](#oauth-clientとresource-server)
-  - [Token保存とrefresh](#token保存とrefresh)
+    - [提供先ごとの1対1連携](#提供先ごとの1対1連携)
   - [共通HTTP contract](#共通http-contract)
     - [headers](#headers)
-    - [response](#response)
-    - [OpenAPI共通schema](#openapi共通schema)
-  - [Endpoint wire正本](#endpoint-wire正本)
+  - [Endpoint](#endpoint)
     - [連携status](#連携status)
     - [`appAdmin`の照会](#appadminの照会)
     - [連携解除](#連携解除)
@@ -124,19 +119,17 @@
     - [落札精算の引き落とし](#落札精算の引き落とし)
   - [Rate limit](#rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
-    - [1. 防御層](#1-防御層)
-    - [2. browser sessionとCookie](#2-browser-sessionとcookie)
-    - [5. same-origin API](#5-same-origin-api)
-    - [10. CSV](#10-csv)
+    - [browser sessionとCookie](#browser-sessionとcookie)
+    - [same-origin API](#same-origin-api)
     - [D1 bulk write制約](#d1-bulk-write制約)
     - [11. D1不変条件](#11-d1不変条件)
     - [12 Observabilityと運用alert](#12-observabilityと運用alert)
     - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
   - [フォルダ構成](#フォルダ構成)
   - [前提](#前提-1)
-    - [4.3 不変FIX revisionと差分台帳](#43-不変fix-revisionと差分台帳)
-    - [4.4 未受領FIXとAccounts照合](#44-未受領fixとaccounts照合)
-  - [9. セキュリティ、品質、release gate](#9-セキュリティ品質release-gate)
+    - [不変FIX revisionと差分台帳](#不変fix-revisionと差分台帳)
+    - [未受領FIXとAccounts照合](#未受領fixとaccounts照合)
+  - [セキュリティ、品質、release gate](#セキュリティ品質release-gate)
   - [採用しないもの](#採用しないもの)
   - [v0.2.0からv0.2.1への変更](#v020からv021への変更)
 
@@ -168,20 +161,20 @@
       - リッチな機能は提供せず、簡単に素早く理解できるようにシンプルな機能のみにする
       - アプリとして実用するのではなく、どんなサービスか体験してもらうだけ
       - リッチなUIは不要
-4. **定数管理**
+3. **定数管理**
    - 説明
      - それぞれのパラメータは、すぐに変更できるように、定数ファイルを作成して管理する
-6. **商品発送・住所の管理などは不要**
+4. **商品発送・住所の管理などは不要**
    - 説明
      - モノの発送が必要な場合は、他サービスを使用して行う。
      - その発送の証拠のみをアプリ内のレビュー画面で記載するのみ
-7. **後方互換性は不要**
+5. **後方互換性は不要**
    - 説明
      - データ移行、後方互換性は不要
-8. **注意**
+6. **注意**
    - 説明
      - ここに記載されていない仕様に関しては、無料主義アプリv0.1と同じ仕様
-9. **PointsとMarketsは、独立的に運用する**
+7. **PointsとMarketsは、独立的に運用する**
    - 説明
      - 別アプリとして同じようなアプリとの連携をする前提で設計したいため
      - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」
@@ -1297,125 +1290,15 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 - 要件
   1.  プライバシーポリシーのページを作成・更新して、ちゃんと文言を決める
 
-## ログイン
+## ドキュメント画面
 
-- 概要
-  - ログイン部分の実装について定める
-
-- 要件
-  1. ログインのモーダルを使用する
-     - 説明
-       - ログイン画面に遷移させず、ログインするモーダルを表示させる。それにより遷移による面倒さを減らしたい。
-  2. ログインのモーダルの背景にログイン後の画面を表示
-     - 説明
-       - ログインのモーダルの背景はログイン後の画面にして、モザイクを掛けた状態にする
-       - これにより、利用率が上がるらしい
-
-## テーブル構造
-
-- **利用者ID**
-  - 利用者IDは標準Nano ID（文字列）である。プロフィールURLに入れる利用者IDも同じである。
-  - 評価軸IDとパッケージIDも標準Nano IDであり、利用者IDとは別の値である。
-
-- **フィールド命名**
-  - アプリ上の名前は camelCase とする。Cloudflare D1の列名は snake_case とする。
-
-- `UploadContributionPointHistory`
-  - 説明
-    - アップロードされた貢献度ポイントの履歴
-  - カラム
-    1. `grantedUserId`
-       - 型
-         - 標準Nano ID
-       - 説明
-         - ポイント付与先の利用者ID
-    2. `grantedPoint`
-       - 型
-         - 数値
-       - 説明
-         - 付与ポイント
-    3. `evaluationCriteriaId`
-       - 型
-         - 文字列（標準Nano ID）
-       - 説明
-         - 評価軸（`evaluation-criteria`）の`id`（Nano ID）
-    4. `uploaderUserId`
-       - 型
-         - 標準Nano ID
-       - 説明
-         - アップロード実行者の利用者ID
-    5. `createdAt`
-       - 型
-         - DateTime
-       - 説明
-         - 作成日時
-    6. `updatedAt`
-       - 型
-         - DateTime
-       - 説明
-         - 更新日時
-
-- `UserContributionBalance`
-  - 説明
-    - 保有ポイント残高
-  - このテーブルが必要な理由
-    1. アップロードごとのポイント付与履歴と現在の合計額の両方が必要
-    2. 毎回付与履歴から計算するとデータ取得量が大量になるため、別テーブルで合計額を管理しておきたい
-  - カラム
-    1. `id`
-       - 型
-         - UUID
-         - 文字列
-       - 説明
-         - テーブルのID
-    2. `userId`
-       - 型
-         - 標準Nano ID
-       - 説明
-         - 対象利用者のID
-    3. `evaluationCriteriaId`
-       - 型
-         - 文字列（標準Nano ID）
-       - 説明
-         - 評価軸の`id`（Nano ID）
-    4. `balance`
-       - 型
-         - 数値
-       - 説明
-         - 現在の保有残高（仕様確定後に意味を固定）
-
-- `EarnedTotalPoint`
-  - 説明
-    - 累計獲得ポイント
-  - このテーブルが必要な理由
-    1. アップロードごとのポイント付与履歴と現在の合計額の両方が必要
-    2. 毎回付与履歴から計算するとデータ取得量が大量になるため、別テーブルで合計額を管理しておきたい
-  - カラム
-    1. `id`
-       - 型
-         - UUID
-         - 文字列
-       - 説明
-         - テーブルのID
-    2. `userId`
-       - 型
-         - 標準Nano ID
-       - 説明
-         - 対象利用者のID
-    3. `totalPoint`
-       - 型
-         - 数値
-       - 説明
-         - 累計獲得ポイント
-    4. `evaluationCriteriaId`
-       - 型
-         - 文字列（標準Nano ID）
-       - 説明
-         - 評価軸の`id`（Nano ID）
-
-- その他
-  - 説明
-    - 他の仕様を見て、カラム追加・テーブル作成を行う
+- ページ
+  - ドキュメントのメインページ
+    - `/docs/`
+  - サービス自体の操作方法
+    - `/docs/usage`
+  - ポイント関係のAPIドキュメントのページも用意する
+    - `/docs/api`
 
 ## ライブラリ
 
@@ -1447,7 +1330,6 @@ UIコンポーネントはHeroUI v3を使う。見た目が好きなためであ
 
 言語はフロントエンドとバックエンドの両方でTypeScriptを使う。型を安全にしたい。読める人が多い言語にしたい。
 
-
 コードの整形はOxfmtで行う。Oxide系の高速なフォーマッタである。保存時やCIの待ちを短くし、差分のノイズを減らすためである。
 
 静的解析はOxlintで行う。対象はJavaScriptとTypeScriptで、実行が速い。
@@ -1477,7 +1359,6 @@ UIはReactで組み立てる。コンポーネントに分け、宣言的に描�
 パッケージ管理はpnpmを使う。モノレポに向いている。
 
 利用規約とプライバシーポリシーの下書きは、kiyaku.jpのテンプレートを参考にする。ゼロから条文を書く工数を抑え、定型の抜けを減らすためである。サイトは[kiyaku.jp](https://kiyaku.jp/index.html)である。
-
 
 日付の比較、加算、フォーマットはday.jsに統一する。必要十分で、バンドルが軽いためである。リポジトリは[dayjs](https://github.com/iamkun/dayjs)である。
 
@@ -1537,15 +1418,13 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 ## 意思決定
 
-- Pointsはポイント付与・ポイント管理と、それに必要なPointsプロフィール、評価軸、Package、FIX、台帳を所有する。
-
 - 本人識別の正本は`providerId + accountId`であり、email一致による暗黙link・統合を禁止する。
 
-- `disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`とする。`trustedProviders`は、そのアプリのログインProviderと同じにする。PointsはGoogleとGitHub、MarketsもGoogleとGitHubである。PointsでAccountsを明示連携するときだけ、その接続先のProviderを加える。メールが未検証でも明示連携できる。メール一致による暗黙の連携はしない。
+- `disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`とする。`trustedProviders`は、そのアプリのログインProviderと同じにする。
+
 - OAuth Tokenを暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。
 
 - Points／Markets CookieはSecure、HttpOnly、SameSite=Lax、host-onlyで、prefixも分離する。
-- GitHubはOAuth AppとBetter Auth既定の最小scopeを使い、メールを識別・通知・暗黙linkに使わない。
 
 - 外部アカウントの管理は、Accountsを使用する。Pointsは責務を負わない。
 
@@ -1583,17 +1462,9 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - FIX CSVの受領先は、外部プロフィールURLか、AccountsのユーザーIDの、どちらか一方である。
 
-- FIXは評価期間（月必須・日時任意UTC）、軸管理ID任意、memo 200文字以下、安定result IDを保持する。
-
-- CSV exportではformula injectionを無害化し、検証済み負数は数値として保持する。
-
-- Transfer／ExchangeはCSVのみ、正の額、全件原子的、残高不足拒否とする。
-
 - Exchange比率は不変Revisionと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
 
 - Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。
-  - Status: 採用
-  - 上書き・撤回関係: 全request Worker-firstを不採用。
 
 - 動的公開ページのv0.2.1 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。
 
@@ -1602,12 +1473,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - 通常成功は`{data}`、一覧は`{data, meta}`、失敗はRFC 9457 `application/problem+json`とする。
   - Status: 採用
   - 上書き・撤回関係: `PromiseResult`等の後方互換を廃止。
-
-- 日本語／英語対応、browser言語初期値、WCAG 2.1 AA、keyboard、screen reader要件を保持する。
-
-- Pointsは自身の不変Package Revision、price tick、数量から必要vectorを再計算する。
-  - Status: 採用
-  - 上書き・撤回関係: Markets計算値だけを信用する初期案をSection 7で上書き。
 
 - stagingは`staging.points.freeism.app`／`staging.markets.freeism.app`をAccess保護し、productionは`points.freeism.app`／`markets.freeism.app`とする。
 
@@ -1620,7 +1485,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - PointsとMarketsはCloudflare WAF、Rate Limit、D1の状態・一意制約を使う。
 
-
 - 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、reconciliation、Runbook、旧runtime通信0件を全て満たす。
 
 - 定期R2 DB backup、30日超の長期backup Workflowは不要
@@ -1631,21 +1495,11 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - CSV操作はfile選択button、server検証後の確認画面、全error一覧を基本とし、drag-and-dropと永続draftを使わない。
 
-- `/terms`、`/privacy`、`/help`、`/docs`を保持し、SSGで配信する。
-
 - 公開URLは名前ではなく不変IDを使用し、名前変更後もURLを維持する。
 
 - `/`は`/index.html`へ出力する静的SPA shellからhydrateするtop routeとし、top本体のSSGとは扱わない。build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけを明示生成する。
-  - Status: 採用
-  - 上書き・撤回関係: DEC-154のshell pathを維持してDEC-155の出力衝突を解消する。自動discovery／crawlを禁止する。
 
 - Static Assetsは`not_found_handling=none`、`html_handling=auto-trailing-slash`、`assets_navigation_has_no_effect`とし、navigation missだけWorkerがAsset Bindingのcanonical `/`からshellを返す。
-  - Status: 採用
-  - 上書き・撤回関係: 条件付きUPDATE 0行を成功扱いする実装とapp側projection二重更新を禁止する。
-
-- 業務mutationのGETは禁止するが、OAuth callback GETは単回state／code消費と期限付きpending protocol state保存だけを許可し、経済状態・Workflow・grant statusは後続CSRF POSTだけが変更する。
-
-- 一般browser JSONは64KiBとする。
 
 - Accountsの紐付け・照合に基づく未受領FIXの対象集合はPOINTSに従う。
 
@@ -1653,16 +1507,13 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
-- Workers Logs／Traces、app別Analytics Engine、D1 `ops_alerts`、5分Cron monitor、固定Email Routing destination、Cloudflare native runtime alertを組み合わせる。観測失敗をdomain成功／失敗の根拠にしない。
-
 - 4固定routeはURL／query／HTMLをlocale別に増やさず、同じ静的HTMLへ日本語正本と英語参照訳を全文renderする。JavaScript無効時は両方を表示し、有効時は保存値→browser言語→日本語fallbackで表示だけを切り替える。
-
-- CSV exportは物理化snapshotを最大50,000行／50MiB、1行8KiB、1page最大1,000行／8MiBとし、作成者とexport IDをD1で照合する。cursorは数値ordinalとし、snapshotの30分期限をD1で検査する。
 
 - 貢献評価代用は有向method revisionとUTC月別result revisionを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
 
-- Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
-  - 暗黙link禁止、token非平文保存、永久対応そのものは維持する。標準暗号形式・algorithmをapp contractへ固定せず、versioned secretsの先頭をcurrent、残りをdecrypt-onlyとし、refresh／再連携等の次回writeでcurrentへ収束させる。
+- Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。
+- runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
+- 永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
 
 - テスト環境のみBASIC認証を入れて、環境変数でユーザー名とパスワードを設定する。本番環境はBASIC認証を入れない。
 
@@ -1720,36 +1571,37 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。
   - import type固有の上限が1,000未満なら小さい方を適用する。
   - 評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
-- header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
-- 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
-- ZIP、Excel、JSON、複数file、drag-and-dropはv0.2.1.\*で扱わない。
-- 空行、余剰列、不足列、重複header、重複business key
-- `0.0001`、小数5桁、指数表記、Unicodeマイナス、安全整数境界
-- `minimumUnit`倍数と非倍数
-- validation成功後のrevision/権限競合
-- 1行errorで0件反映、D1失敗で全rollback
-- 非権限者、stale session、hostile Origin、誤Content-Typeの拒否
-- 残タスク
-  - CRLF/LF
-  - quote内改行
-  - Unicode
-
-### validation
-
-- client previewは補助であり、serverが同じfileを再parseして正とする。
-- すべての行を検査し、行番号、列名、error code、修正可能な説明をまとめて返す。
-- 1件でもerrorがあれば確定APIを実行せず、部分反映しない。
-- ID、URL、年月、enum、文字数、参照先存在、権限、一意性、重複行を検査する。
-- amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
-- scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
-- URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
-- 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
-- 1,000行をmulti-value SQLのbound parameterへ直接展開せず、validation済みcanonical JSONをUTF-8 1,500,000 bytes以下にchunk化する。
-- 各固定SQLはJSON chunk 1個を`json_each(?)`でset-based展開し、1 queryのbound parameterを100以下、SQLを100KB以下、stringを2MB未満にする。
-- 1,000行／5MiB境界を実D1 runtimeで測定し、batch全体30秒を超える場合は上限を黙って下げず、schema／set-based SQLを見直す。
-- header、列数、必須値、値域を厳密に検証し、全エラーを行番号・列名付きで返す。
-- 同一ファイル内の重複行はファイル全体を失敗させ、部分反映しない。
-- export時は表計算ソフトのformula injectionを無害化する。
+  - header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
+  - 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
+  - ZIP、Excel、JSON、複数file、drag-and-dropはv0.2.1.\*で扱わない。
+  - 空行、余剰列、不足列、重複header、重複business key
+  - `0.0001`、小数5桁、指数表記、Unicodeマイナス、安全整数境界
+  - `minimumUnit`倍数と非倍数
+  - validation成功後のrevision/権限競合
+  - 1行errorで0件反映、D1失敗で全rollback
+  - 非権限者、stale session、hostile Origin、誤Content-Typeの拒否
+  - 残タスク
+    - CRLF/LF
+    - quote内改行
+    - Unicode
+  - client previewは補助であり、serverが同じfileを再parseして正とする。
+  - すべての行を検査し、行番号、列名、error code、修正可能な説明をまとめて返す。
+  - 1件でもerrorがあれば確定APIを実行せず、部分反映しない。
+  - ID、URL、年月、enum、文字数、参照先存在、権限、一意性、重複行を検査する。
+  - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
+  - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
+  - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
+  - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
+  - 1,000行をmulti-value SQLのbound parameterへ直接展開せず、validation済みcanonical JSONをUTF-8 1,500,000 bytes以下にchunk化する。
+  - 各固定SQLはJSON chunk 1個を`json_each(?)`でset-based展開し、1 queryのbound parameterを100以下、SQLを100KB以下、stringを2MB未満にする。
+  - 1,000行／5MiB境界を実D1 runtimeで測定し、batch全体30秒を超える場合は上限を黙って下げず、schema／set-based SQLを見直す。
+  - header、列数、必須値、値域を厳密に検証し、全エラーを行番号・列名付きで返す。
+  - 同一ファイル内の重複行はファイル全体を失敗させ、部分反映しない。
+  - export時は表計算ソフトのformula injectionを無害化する。
+  - client previewを信用せずserverで再parseする。
+  - server draftなし、確認後1回の原子commit。
+  - exportはformula injectionを無害化する。snapshotの読取はログイン中の作成者とexport IDを照合し、D1の有効期限を確認する。cursorは数値ordinalで表し、範囲外を拒否する。
+  - file本文、自由入力cell、個人情報を通常logへ出さない。
 
 ## 命名規則
 
@@ -1858,6 +1710,19 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 メールアドレス、表示名、ユーザー名、プロフィールURLは変更可能な属性であり、本人識別の正本にしない。
 
+### ログインのUI
+
+1. ログインのモーダルを使用する
+
+- 説明
+  - ログイン画面に遷移させず、ログインするモーダルを表示させる。それにより遷移による面倒さを減らしたい。
+
+2. ログインのモーダルの背景にログイン後の画面を表示
+
+- 説明
+  - ログインのモーダルの背景はログイン後の画面にして、モザイクを掛けた状態にする
+  - これにより、利用率が上がるらしい
+
 ### アプリと認証データの境界
 
 | 対象               | ログインProvider                    | 本人識別                               | セッション・認証DB                  |
@@ -1922,7 +1787,7 @@ stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbac
 
 GoogleとGitHubで別々のPointsユーザーを作成した後、それらをメール一致で統合しない。あるProvider Accountがすでに別のPointsユーザーに属する場合、そのAccountを別ユーザーへlinkできない。同一Pointsユーザーとして使いたい場合は、第二のProviderで別ユーザーを作る前に、ログイン済みの既存ユーザーへ明示linkする。
 
-#### Google
+### Google
 
 - Google Accountは`providerId = google`とGoogle `sub`に相当する`accountId`で識別する。
 - email、email verified、表示名は本人識別に使用しない。
@@ -1956,19 +1821,18 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 
 ### 対象操作
 
-
-| operation                                 | route／protocol                                                                                                     | 追加条件                                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Social Account明示link                    | Better Auth `linkSocial` wrapper                                                                                    | login済み                                                                       |
-| Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                                                                                   | 明示consent                                                                     |
-| Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations`                                                            | 現在のセッション                                                                |
-| パッケージCSV確定                         | パッケージCSVのcommit                                                                                               | `packageAdmin`または`appAdmin`                                                  |
-| 管理者の追加／削除                        | Organizationの標準API                                                                                               | その対象の管理者または`appAdmin`、最後の1人は外さない                           |
-| Account close                             | `/api/account/close`                                                                                                | [退会と再開の処理](#10-account-closeと認証記録)に従う。                         |
-| Account reopen                            | `/api/account/reopen`                                                                                               | [退会と再開の処理](#10-account-closeと認証記録)に従う。                         |
-| 公開範囲拡大                              | profile／評価軸visibility更新                                                                                       | 現在のセッション                                                                |
-| CSV export                                | `/api/csv-exports`                                                                                                  | `appAdmin`として他者または全体を出力するとき                                    |
-| OAuth Client／公開鍵                      | `/api/oauth-clients*`                                                                                               | 登録者本人、1人5件まで                                                          |
+| operation                                 | route／protocol                                          | 追加条件                                                |
+| ----------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------- |
+| Social Account明示link                    | Better Auth `linkSocial` wrapper                         | login済み                                               |
+| Points–Markets初回link／relink／追加scope | OAuth authorization／consent POST                        | 明示consent                                             |
+| Points–Markets通常unlink                  | 専用authorizationと`/api/v1/me/connection-deactivations` | 現在のセッション                                        |
+| パッケージCSV確定                         | パッケージCSVのcommit                                    | `packageAdmin`または`appAdmin`                          |
+| 管理者の追加／削除                        | Organizationの標準API                                    | その対象の管理者または`appAdmin`、最後の1人は外さない   |
+| Account close                             | `/api/account/close`                                     | [退会と再開の処理](#10-account-closeと認証記録)に従う。 |
+| Account reopen                            | `/api/account/reopen`                                    | [退会と再開の処理](#10-account-closeと認証記録)に従う。 |
+| 公開範囲拡大                              | profile／評価軸visibility更新                            | 現在のセッション                                        |
+| CSV export                                | `/api/csv-exports`                                       | `appAdmin`として他者または全体を出力するとき            |
+| OAuth Client／公開鍵                      | `/api/oauth-clients*`                                    | 登録者本人、1人5件まで                                  |
 
 ## 未受領FIX
 
@@ -2206,16 +2070,16 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、`appAdmin`、`packageAdmin`、`evalueterAdmin`、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時に拒否する。
 
-| operation                                 | route／protocol                                                                                                     | 追加条件                                                                        |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| 未受領FIX claim                           | `/api/unclaimed-fixes/claims`                                                                                       | 最新preview hash、idempotency                                                   |
-| 評価軸の作成                              | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                   |
-| 評価軸の更新                              | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
-| FIXの確定                                 | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
-| 交換比率の確定                            | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
-| 貢献評価代用の確定                        | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
-| 利用者CSV確定                             | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`                               | 本人、idempotency                                                               |
-| 接続先Accountsの作成／有効化／取り下げ    | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
+| operation                              | route／protocol                                                                                                     | 追加条件                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 未受領FIX claim                        | `/api/unclaimed-fixes/claims`                                                                                       | 最新preview hash、idempotency                                                   |
+| 評価軸の作成                           | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                   |
+| 評価軸の更新                           | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
+| FIXの確定                              | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
+| 交換比率の確定                         | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
+| 貢献評価代用の確定                     | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
+| 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`                               | 本人、idempotency                                                               |
+| 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
 - 同じFIX Revisionの二重受領を一意制約で防ぐ。
 
@@ -2328,7 +2192,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
    - サイズが大きいSVGは`<img>`として読み込む。
    - 参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
 
-5. **できる限りサーバーの負荷をかけず、サーバーのアクセス回数も減らす設計**
+4. **できる限りサーバーの負荷をかけず、サーバーのアクセス回数も減らす設計**
    - 説明
      - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
 
@@ -2448,7 +2312,6 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 - serverはAccountsで再照合して対象集合とhashを再計算し、変化していれば`409 CLAIM_SET_CHANGED`で新しいpreviewを返す。
 - 接続先が`ACTIVE`でない場合は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。Accountsとの通信失敗・制限超過・不正な応答は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`の`Retry-After`を転記する。Access Tokenを取り直しても`401`の場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。これらの場合は何も受領せず、識別子・トークンを含めずに構造化ログとメトリクス（operation `accounts_resolve`）へ記録する。
 
-
 ## 金額表現
 
 金額は小数第4位までとする。保存は、評価軸ごとに決めた最小単位の整数とする。設定できる最小単位の最小額は0.0001ポイントで、1単位は0.0001ポイントである。金額はその単位の倍数にする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、残高、価格は、対象評価軸の`minimumUnit`の倍数である。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、計算の途中、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。範囲を超えたら、その処理全体を拒否する。
@@ -2481,7 +2344,6 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 
 ### 原子性
 
-
 ## 台帳、残高、evaluationTotal
 
 - `point_ledger_entries`を、経済と監査の正本とする。追記だけとし、UPDATEとDELETEはしない。残高と`evaluationTotal`は、台帳から再構築できる。
@@ -2492,7 +2354,6 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - 負残高を0へ丸めない。履歴を削除して帳尻を合わせない。
 
 定期reconciliationは上記式とclaimed/unclaimed合計を再計算し、不一致を監査eventとして記録する。自動で不変台帳を書き換えない。
-
 
 ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／`evaluationTotal`が±`9_007_199_254_740_991`内であることを行ごとに検査し、超過時は`SAFE_INTEGER_OVERFLOW`でabortする。同じbatch内の複数entryも各trigger時点の更新済みprojectionを使い、SQLiteのREAL昇格を許さない。guard拒否の監査はrollback後の別append-only rejection auditへstable codeだけを記録し、監査write失敗を理由に経済commandを再実行しない。
 
@@ -2548,7 +2409,7 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 - Marketsが登録したPoints互換提供先のoriginへ外部`fetch()`でHono API contractを呼ぶ。
 - Pointsが所有するOpenAPIを正本にし、Marketsは生成clientを使う。MarketsがPoints backend sourceやHono RPC型を直接importしない。
 
-## 提供先ごとの1対1連携
+### 提供先ごとの1対1連携
 
 Marketsが登録した各提供先について次を保証する。
 
@@ -2564,14 +2425,6 @@ Marketsが登録した各提供先について次を保証する。
 - 通常unlinkは専用Authorization Code + PKCEと`points.connection.unlink`のあと、Pointsの`deactivatePointsConnection`を呼ぶ。Pointsはapp-owned grantを認可の正本とし、grant `UNLINKED`化、revocation outbox、receipt、auditを1つのD1 transactionで確定する。Marketsは成功receipt後だけlocal rowを閉じる。
 - 外部失効はapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で残高参照と引き落としを拒否する。
 
-## OAuth ClientとResource Server
-
-OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource APIの検査は、[8.3 開発者向けOAuthクライアント管理](#83-開発者向けoauthクライアント管理)に従います。Tokenの保存は、[8.4 Token保存とRefresh](#84-token保存とrefresh)と次節に従います。
-
-## Token保存とrefresh
-
-[Points–Markets連携契約のToken保存とrefresh](../../../../../markets-web-app/docs/specification/v0.2.1/index.ja.md#4-token保存とrefresh)
-
 ## 共通HTTP contract
 
 ### headers
@@ -2581,43 +2434,7 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 - `X-Request-Id`はcallerが設定可能。未指定時はPointsが発行する
 - 落札精算の一括引き落としは1,048,576 bytes、それ以外のJSON POSTは65,536 bytesをrequest body上限とし、超過時はbodyをparseせず`413`を返す
 
-### response
-
-成功:
-
-```json
-{
-	"data": {},
-	"meta": {
-		"requestId": "req_01..."
-	}
-}
-```
-
-失敗は[Hono HTTPレスポンス仕様](#3-失敗)に従う。
-
-```json
-{
-	"type": "https://points.freeism.app/problems/insufficient-balance",
-	"title": "Insufficient point balance",
-	"status": 409,
-	"code": "INSUFFICIENT_BALANCE",
-	"requestId": "req_01..."
-}
-```
-
-### OpenAPI共通schema
-
-- Task 4 OpenAPIのJSON objectはすべて`additionalProperties: false`とする。
-- opaque ID／keyはprefixをwire validationへ固定しないnon-empty stringとする。通常のID／keyは最大255文字とする。
-- SHA-256 hashは`^sha256:[0-9a-f]{64}$`、UTC instantはOpenAPI `string`／`date-time`とし、実装はUTCのRFC 3339を返す。
-- `priceTicks`はinteger `0..9007199254740991`、`quantity`、`weight`、`totalWeight`、`packageTick`、各versionはinteger `1..9007199254740991`、`displayOrder`はinteger `0..9007199254740991`とする。
-- scale済みamount／balanceはJSON numberではなくASCII整数文字列`^-?(0|[1-9][0-9]*)$`とする。必要額は非負整数文字列`^(0|[1-9][0-9]*)$`とし、文字列をparseした境界でJavaScript安全整数範囲を検証する。
-- bodyを返すsuccess envelopeは`data`と`meta`をrequiredにし、`meta.requestId`をrequired non-empty stringとする。public revisionの`304`はbodyを返さない。
-- 失敗のschemaと入力検証エラーの項目は、[Hono HTTPレスポンス仕様の失敗](#3-失敗)に従う。
-
-
-## Endpoint wire正本
+## Endpoint
 
 - 概要
   - 他のサービスから、無料主義アプリの情報にアクセスする手段を作りたい
@@ -2648,7 +2465,6 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
               1.  ソートで順番を固定しないと、ページネーションした場合の取得データが変わるため
             - `{"sortColumn":"createdAt", "sortDirection": "desc"}`
         5.  Json形式で返す
-
 
 ### 連携status
 
@@ -2725,10 +2541,7 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 
 ## セキュリティ・テスト・デリバリー仕様
 
-### 1. 防御層
-
-
-### 2. browser sessionとCookie
+### browser sessionとCookie
 
 - PointsとMarketsは別Better Auth secret、別D1、別host-only Cookieを持つ。
 - `Secure=true`、`HttpOnly=true`、`SameSite=Lax`、`Path=/`。
@@ -2741,17 +2554,14 @@ OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource A
 - Points Resource APIは標準JWKS署名、issuer、audience、期限、Client ID、required scope、Clientの有効状態を検証する。利用者操作ではPoints userのACTIVE状態も確認する。Tokenの外形、emailを認可根拠にしない。
 - OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使う。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
 
-### 5. same-origin API
+### same-origin API
 
 - browserは各アプリの同一origin`/api/*`だけを呼ぶ。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
-- mutationは`application/json`を要求し、一般bodyは最大64KiB。CSV endpointだけ5MiB、落札精算の一括引き落としだけ1MiBとする。
+- mutationは`application/json`を要求し、一般bodyは最大64KiB
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
 - successは`{data, meta?}`、errorはRFC 9457 Problem Detailsに統一する。
 - errorへstack、SQL、token、secret、内部binding名を出さない。
-
-
-deployed HTMLのCSP baselineは次のdirectiveを正本とし、`{appHost}`をbuild対象のPointsまたはMarkets staging／production hostへ置換する。
 
 ```text
 default-src 'none';
@@ -2786,14 +2596,6 @@ upgrade-insecure-requests
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
 localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
-
-### 10. CSV
-
-- client previewを信用せずserverで再parseする。
-- server draftなし、確認後1回の原子commit。
-- 1件errorで全体0件反映。
-- exportはformula injectionを無害化する。snapshotの読取はログイン中の作成者とexport IDを照合し、D1の有効期限を確認する。cursorは数値ordinalで表し、範囲外を拒否する。
-- file本文、自由入力cell、個人情報を通常logへ出さない。
 
 ### D1 bulk write制約
 
@@ -2892,34 +2694,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
   - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
 
-- Points
-  - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
-  - draftや承認待ちは、無料主義アプリ外で、それぞれの評価軸が管理する
-
-  - Pointsは独立Better Authユーザー、D1、Session Cookieを持ち、Accountsを後から明示linkする。
-  - OAuthは、GitHubとGoogleに対応する
-
-- ページ
-  - ドキュメントのメインページ
-    - `/docs/`
-  - サービス自体の操作方法
-    - `/docs/usage`
-  - ポイント関係のAPIドキュメントのページも用意する
-    - `/docs/api`
-
-- バックエンド
-  - パブリックのPI
-    - `/external/`
-  - サービス内のAPI
-    - `/internal/`
-
-- CORS
-  - 外部からアクセスするパブリックAPIの場合に、CORSは関係ない
-  - CORSはブラウザだけで、別サーバーやcurlではCORSは無いため
-  - そのため、CORSを認証として使用してはダメ
-
-
-### 4.3 不変FIX revisionと差分台帳
+### 不変FIX revisionと差分台帳
 
 - FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
 - アップロード済みFIX revisionは不変とし、修正時は新しいrevisionを追加する。
@@ -2929,7 +2704,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
 
-### 4.4 未受領FIXとAccounts照合
+### 未受領FIXとAccounts照合
 
 - 利用者が未登録でも、外部の貢献者を宛先として正負どちらのFIXも先に保存する。
 - 未受領FIXは暫定ユーザー残高へ入れない。宛先と評価額を不変FIX revisionに保存し、受領時に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
@@ -2962,7 +2737,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
 
-## 9. セキュリティ、品質、release gate
+## セキュリティ、品質、release gate
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
