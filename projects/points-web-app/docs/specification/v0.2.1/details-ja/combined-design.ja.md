@@ -8,27 +8,24 @@
   - [プロフィール画面](#プロフィール画面)
     - [基本情報](#基本情報)
     - [要件](#要件)
-  - [1. 基本情報](#1-基本情報)
-    - [1.1 公式Packageの登録](#11-公式packageの登録)
-    - [1.2 評価軸ごとの公開設定](#12-評価軸ごとの公開設定)
-  - [2. Social Account](#2-social-account)
-  - [3. Accountsとの情報連携](#3-accountsとの情報連携)
-    - [3.1 接続先Accountsサービスの管理](#31-接続先accountsサービスの管理)
-    - [3.2 ユーザー連携の件数と識別](#32-ユーザー連携の件数と識別)
-    - [3.3 利用開始と連携先ユーザーの変更](#33-利用開始と連携先ユーザーの変更)
-    - [3.4 連携解除と退会](#34-連携解除と退会)
-    - [3.5 連携アカウント一覧の取得](#35-連携アカウント一覧の取得)
-  - [4. 公開表示](#4-公開表示)
-  - [7. 多言語とaccessibility](#7-多言語とaccessibility)
-  - [プロフィールの設定画面](#プロフィールの設定画面)
     - [基本情報](#基本情報-1)
-    - [要件](#要件-1)
+    - [公式Packageの登録](#公式packageの登録)
+    - [評価軸ごとの公開設定](#評価軸ごとの公開設定)
+  - [2. Social Account](#2-social-account)
+    - [Accountsとの情報連携](#accountsとの情報連携)
+    - [ユーザー連携の件数と識別](#ユーザー連携の件数と識別)
+    - [利用開始と連携先ユーザーの変更](#利用開始と連携先ユーザーの変更)
+    - [3.4 連携解除と退会](#34-連携解除と退会)
+    - [連携アカウント一覧の取得](#連携アカウント一覧の取得)
+    - [公開表示](#公開表示)
+    - [多言語とaccessibility](#多言語とaccessibility)
+    - [プロフィールの設定画面](#プロフィールの設定画面)
   - [パブリックAPI](#パブリックapi)
     - [基本情報](#基本情報-2)
-    - [要件](#要件-2)
+    - [要件](#要件-1)
   - [評価軸の作成・更新・プロフィール](#評価軸の作成更新プロフィール)
     - [基本情報](#基本情報-3)
-    - [要件](#要件-3)
+    - [要件](#要件-2)
   - [パッケージを作成・更新・プロフィール](#パッケージを作成更新プロフィール)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
@@ -160,26 +157,19 @@
     - [7.2 連携解除](#72-連携解除)
     - [7.3 残高](#73-残高)
     - [7.4 落札精算の引き落とし](#74-落札精算の引き落とし)
-  - [8. 落札と即時購入](#8-落札と即時購入)
   - [10. Rate limit](#10-rate-limit)
-- [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
-  - [1. 防御層](#1-防御層)
-  - [2. browser sessionとCookie](#2-browser-sessionとcookie)
-  - [5. same-origin API](#5-same-origin-api)
-    - [5.1 HTTP security header](#51-http-security-header)
-  - [7. Durable Object/WebSocket](#7-durable-objectwebsocket)
-  - [8. 初期rate limit](#8-初期rate-limit)
-  - [10. CSV](#10-csv)
+  - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
+    - [1. 防御層](#1-防御層)
+    - [2. browser sessionとCookie](#2-browser-sessionとcookie)
+    - [5. same-origin API](#5-same-origin-api)
+    - [7. Durable Object/WebSocket](#7-durable-objectwebsocket)
+    - [8. 初期rate limit](#8-初期rate-limit)
+    - [10. CSV](#10-csv)
     - [D1 bulk write制約](#d1-bulk-write制約)
-  - [11. D1不変条件](#11-d1不変条件)
-    - [12.1 Observabilityと運用alert](#121-observabilityと運用alert)
-  - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
-- [「無料主義アプリ v0.2.1」の設計](#無料主義アプリ-v021の設計)
+    - [11. D1不変条件](#11-d1不変条件)
+    - [12 Observabilityと運用alert](#12-observabilityと運用alert)
+    - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
   - [前提](#前提-1)
-- [Points](#points)
-  - [概要](#概要)
-  - [ポイントのプロフィール](#ポイントのプロフィール)
-  - [要件](#要件-4)
     - [4.1 評価軸](#41-評価軸)
     - [4.3 不変FIX revisionと差分台帳](#43-不変fix-revisionと差分台帳)
     - [4.4 未受領FIXとAccounts照合](#44-未受領fixとaccounts照合)
@@ -441,7 +431,7 @@
     - Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。
     - Cookieとセッションの処理はBetter Authの標準機能に任せる。
 
-## 1. 基本情報
+### 基本情報
 
 プロフィールの表示名は1〜100文字、説明は0〜500文字とする。設定時と表示時に同じ文字数上限を適用する。
 
@@ -450,14 +440,19 @@
 
 不変PointsユーザーID、認証Providerの`providerId + accountId`、経済履歴はこの画面から変更・削除できない。
 
-### 1.1 公式Packageの登録
+- ポイントのプロフィールを持つことで、それを示すだけで優先権を得る
+- ポイント保有額の非公開
+  - ポイントを非公開にした場合に、加算or減算した場合でも、レスポンスに現在の保有ポイント数を入れずに返す
+
+
+### 公式Packageの登録
 
 - profileは公式`pointPackageId`のordered setを0件以上持つ。同じPackageの重複登録を許さず、並び順は0始まりの連続した`displayOrder`とする。
 - 登録解除はprofileとPackageの関係だけを削除し、Package本体、不変revision、過去のMarkets snapshotを変更しない。
 - `PUT /api/profile/point-packages`は並べ替え後の`pointPackageIds[]`全体を受け、本人の現在行を同じD1原子処理で差し替える。存在しないID、重複ID、非本人を拒否し、`Idempotency-Key`再送は同じordered setへ収束させる。
 - 登録・登録解除・並べ替えは公開情報の編集であり、通常の認証sessionを必須とする。
 
-### 1.2 評価軸ごとの公開設定
+### 評価軸ごとの公開設定
 
 各`pointsUserId + evaluationCriterionId`に次の5フラグを`PUBLIC | PRIVATE`で保存し、一括フラグに畳み込まない。
 
@@ -481,11 +476,9 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 - Googleは認証手段として保持する。
 - 別ユーザーとして作成済みのProvider accountは独立したPointsユーザーとして扱う。
 
-## 3. Accountsとの情報連携
+### Accountsとの情報連携
 
 Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール、公開API、落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。外部Web URLの登録、リンク検証、紐付け解除、公開プロフィールと公開先ごとの設定は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Points内のユーザー連携は本節を正本とする。連携と解除が未受領FIXへ与える影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。Pointsは独立したOAuthクライアントとして、本人が提供を許可したアカウントを照合する。本人がPointsを操作していないときも、許可済みの情報を照合できる。設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元のAccountsサービス、Accounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
-
-### 3.1 接続先Accountsサービスの管理
 
 `appAdmin`は`/admin/accounts-connections`で、接続対象のAccounts互換サービスを管理する。作成、有効化、取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。有効化と取り下げの対象が無いときは`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。作成では、接続先のoriginと、前後の空白を除いて1〜100文字の表示名を受ける。originはHTTPSとし、path、query、fragment、userinfoを含まない。`APP_ENV=local`のときだけ、loopbackのHTTPを受ける。Pointsは接続先のメタデータを取得し、`issuer`がoriginと一致すること、`private_key_jwt`、EdDSA、DPoP、PKCE S256、`openid`と`identities:read`、認可応答の`iss`に対応することを確認する。表示名が条件を満たさないときは`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originが条件を満たさないときは`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、メタデータを取得できないか条件を満たさないときは`422 ACCOUNTS_DISCOVERY_INVALID`とする。
 
@@ -493,11 +486,11 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 
 同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。解除した連携の件数は、監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
-### 3.2 ユーザー連携の件数と識別
+### ユーザー連携の件数と識別
 
 PointsユーザーIDはPointsが管理する。Accountsユーザーは、提供元Accountsサービスのoriginと、ID Tokenの`sub`であるAccountsユーザーIDの組み合わせで区別する。同じPointsサービス内では、1つのPointsユーザーへ複数のAccountsユーザーを連携できる。各Accountsユーザーの連携先は、そのPointsサービス内で最大1つのPointsユーザーとする。同じAccountsサービス内の複数ユーザーと、別々のAccountsサービスのユーザーを連携対象にできる。同じAccountsユーザーを別々のPointsサービスへ連携でき、各Pointsサービスへの情報提供には、それぞれ同意する。
 
-### 3.3 利用開始と連携先ユーザーの変更
+### 利用開始と連携先ユーザーの変更
 
 Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIXとAccounts連携](#未受領fixとaccounts連携)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
 
@@ -509,11 +502,11 @@ Accountsで先に登録と外部アカウントの連携を済ませた利用者
 
 Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。Pointsユーザーの退会時は[退会と再開の処理](#10-account-closeと認証記録)に従う。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。
 
-### 3.5 連携アカウント一覧の取得
+### 連携アカウント一覧の取得
 
 Pointsは、接続先のClient Credentials（`identities:read`）のAccess Tokenで、`QUERY {origin}/api/v1/external-accounts`から連携アカウント一覧を取得する。Access TokenはDPoPへ結び付け、失効の60秒前まで暗号化して再利用する。Accountsが`401`を返したときはトークンを取り直して1回だけ再送し、再送しても`401`なら`ACCOUNTS_CLIENT_UNAUTHORIZED`として記録する。取得結果は連携ごとのsnapshotとして保存する。`200`は状態`PROVIDED`と一覧、`404`は状態`NOT_PROVIDED`と一覧の削除とする。通信失敗、制限超過、不正な応答では前回のsnapshotを維持し、識別子とトークンを含めずに構造化ログとメトリクスへ記録する。その連携の応答だけが不正な場合（`INVALID_RESPONSE`）は、記録して次の連携の取得へ進む。それ以外のAccountsとのやり取りの失敗は、接続先全体の失敗として1回だけ記録し、同じ接続先の残りの連携は取得しない。取得の対象は、接続先が`ACTIVE`の連携だけとする。契機は、連携の保存直後、本人が設定画面の一覧（`GET /api/accounts-links`）を開いたとき、15分ごとのcronである。設定画面を開いたときは、最後の取得から60秒以上たった本人の連携を、最大20件取得し直す。cronは、未取得または最後の取得から24時間以上たった連携を、古い順に最大50件取得し直す。設定画面には、連携ごとに状態（提供中、情報提供が停止しています、未取得）、接続先の表示名とorigin、Accounts ID、取得した外部アカウント一覧、Accountsの管理画面`{origin}/account-links`とプロフィール`{origin}/profiles/{accountsUserId}`へのリンク、再連携、解除を表示する。
 
-## 4. 公開表示
+### 公開表示
 
 - 公開プロフィールURLは`/profiles/{pointsUserId}`。
 - 編集ボタンは[プロフィール画面](#v021プロフィール画面)に従う。
@@ -524,21 +517,14 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 
 公開プロフィールと`GET /api/v1/profiles/{pointsUserId}`の`accountsLinks`は、状態が`PROVIDED`の連携について、取得済みsnapshotだけを返す。閲覧のたびにAccountsへ問い合わせない。各連携は、origin、AccountsユーザーID、Accountsプロフィールへのリンク、取得日時、外部アカウント一覧を持つ。表示するのは、外部サービス名、取得できるユーザー名と表示名、固有IDとプロフィールURL、検証状態、検証方法、検証日時、連携日時のうち、Accountsが提供元ごとに提供する項目だけである。Pointsは最新の取得結果だけを保存し、過去の取得履歴は持たない。次回の取得で`NOT_PROVIDED`になった連携は、公開表示を止める。プロフィール自体が非公開のときは、連携アカウント一覧も公開しない。
 
-## 7. 多言語とaccessibility
+### 多言語とaccessibility
 
 - 日本語と英語を提供する。browser言語が日本語なら日本語、それ以外は英語を既定にする。
 - link状態はiconや色だけでなくtextでも示す。
 - confirm、error、toastはkeyboardとscreen readerで判別できる。
 - 認証Providerから得た表示名などのテキストはescapeしてrenderする。
 
-## プロフィールの設定画面
-
-### 基本情報
-
-- 概要
-  - プロフィールの設定画面に関する仕様
-
-### 要件
+### プロフィールの設定画面
 
 1. **プロフィール項目のプレビューボタン**
    - 要件
@@ -2845,39 +2831,21 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 Marketsは配列の全IDが、今回送った落札候補であることを確認する。空、未知、request外のIDは手順の失敗とし、候補を除外しない。
 
-## 8. 落札と即時購入
-
-Marketsは、終了時点の入札、または即時購入の要求から、不変の精算計画を決める。
-
-落札者は、終了時点でPointsへの利用者認可が有効な入札者だけとする。利用者認可が有効とは、連携が有効で、Marketsが保持する利用者トークンによりPointsがその人のポイントを引き落とせる状態である。
-
-ポイントの仮押さえはしない。利用者のいないサービス権限では精算しない。入札とAutoBidの設定時は、有効なPoints連携を必要とする。その時点では残高照会と仮押さえは行わない。
-
-認可がない入札者は落札者にしない。ブラックリストは記録しない。残高が足りない入札者は、その競売と利用者のブラックリストを1件記録してから落札者にしない。同じ終了時点の入札から落札者、数量、清算価格を計算し直す。順位が次の入札者が繰り上がる。同じ競売と利用者の組のブラックリストは1件だけである。通信失敗、429、5xxでは記録せず、同じ計画を再送する。
-
-引き落としは、その時点の落札者全員を利用者認可で1回の処理とする。一人でも失敗すれば台帳も受領証も0件である。引き落としは評価軸ごとの負の台帳とし、`evaluationTotal`は変えない。必要額が0のときは台帳を作らず、残高と`evaluationTotal`は変えない。認可が無効なら0でも拒否する。成功していない引き落としは台帳に残さない。成功した引き落としは戻さない。同じ計画の再送は同じ受領証を返す。
-
-Pointsは`pointPackageRevisionId`、`priceTicks`、`quantity`から必要額を自分で計算する。Marketsが送った内訳額は計算の正本にしない。Pointsは落札順位を計算しない。
-
-即時購入は、購入ボタンのあとで利用者認可と残高を確認する。成功した引き落としの応答を受け取ったときだけ販売数量を減らし、購入を成立させる。認可がない、または残高が足りない失敗応答では数量を変えず、競売を止めない。応答を受け取れないときも購入は成立させず、競売は続ける。同じ購入要求の再送で引き落とし受領証が返ったときだけ数量を減らす。残り数量が0のときだけ競売を終了する。
-
-引き落とし成功後にMarkets側の確定が失敗しても、ポイントは戻さない。受領証を照会してMarkets側の確定をやり直す。
-
 ## 10. Rate limit
 
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
 - rate limit responseは`429`と`Retry-After`を返す。
 
-# セキュリティ・テスト・デリバリー仕様
+## セキュリティ・テスト・デリバリー仕様
 
-## 1. 防御層
+### 1. 防御層
 
 1. Cloudflare edge: DDoS、WAF、rate limit、Access、TLS
 2. Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
 3. D1/DO/Workflow: unique/check constraint、CAS、append-only history、単調状態遷移
 
-## 2. browser sessionとCookie
+### 2. browser sessionとCookie
 
 - PointsとMarketsは別Better Auth secret、別D1、別host-only Cookieを持つ。
 - `Secure=true`、`HttpOnly=true`、`SameSite=Lax`、`Path=/`。
@@ -2891,7 +2859,7 @@ Pointsは`pointPackageRevisionId`、`priceTicks`、`quantity`から必要額を�
 - OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使う。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
 - private/認証responseは`Cache-Control: private, no-store`。
 
-## 5. same-origin API
+### 5. same-origin API
 
 - browserは各アプリの同一origin`/api/*`だけを呼ぶ。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
@@ -2900,8 +2868,6 @@ Pointsは`pointPackageRevisionId`、`priceTicks`、`quantity`から必要額を�
 - [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 - successは`{data, meta?}`、errorはRFC 9457 Problem Detailsに統一する。
 - errorへstack、SQL、token、secret、内部binding名を出さない。
-
-### 5.1 HTTP security header
 
 Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。OAuth authorization、callback、token exchange、consent、Accounts連携、link／unlinkのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
 
@@ -2942,7 +2908,7 @@ upgrade-insecure-requests
 
 localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
 
-## 7. Durable Object/WebSocket
+### 7. Durable Object/WebSocket
 
 - WebSocketは購読専用。bid mutationは認証済みHTTP。
 - upgradeでhost-only session、Origin、接続上限を検査し、query tokenを禁止する。
@@ -2952,9 +2918,7 @@ localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない�
 - D1 CAS commit後だけbroadcastし、version/seq gapはHTTP snapshotでresyncする。
 - seller自己入札、終了後bid、Auction economic field変更をserver/DO/D1で拒否する。
 
-## 8. 初期rate limit
-
-以下はv0.2.1の初期値であり、429率・誤検知・abuse metricを監視して変更する。変更もIaC/repositoryでreviewする。
+### 8. 初期rate limit
 
 | 操作                  | key                                          | limit                                   |
 | --------------------- | -------------------------------------------- | --------------------------------------- |
@@ -2970,7 +2934,7 @@ localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない�
 
 idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
 
-## 10. CSV
+### 10. CSV
 
 - client previewを信用せずserverで再parseする。
 - server draftなし、確認後1回の原子commit。
@@ -2988,7 +2952,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - 1 commitのstatement数を100以下に制限し、query上限1,000に余裕を持たせる。100を超えるschema設計なら行数を黙って削らず、実装を停止して計画を見直す。
 - integration testは1,000行、5MiB境界、100 parameter境界、2MB chunk境界、statement数、30秒timeout、途中statement失敗時0件を実D1 runtimeで確認する。
 
-## 11. D1不変条件
+### 11. D1不変条件
 
 - ledger、FIX revision、claim、Pointsログイン用のpermanent OAuth主体、audit eventをappend-onlyにする。
 - `sourceFixRevisionId`、idempotency key、Auction command/seq、settlement plan hashを一意にする。
@@ -3002,7 +2966,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - 成功auditは経済batch内へ入れる。guard／認可拒否時はbatchが全rollbackした後、許可したstable codeとrequest metadataだけを別のappend-only rejection auditへ記録する。rejection audit失敗時も経済commandを再実行せず、metric／alertを残して元の失敗responseを返す。
 - 一括引き落としは全落札者、全評価軸を1回に確定する。
 
-### 12.1 Observabilityと運用alert
+### 12 Observabilityと運用alert
 
 - Workers Observabilityを有効化する。
   - stagingはlogs／tracesともhead sampling `1`、productionはlogs `1`、traces `0.05`を初期値とする。
@@ -3028,7 +2992,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVEDへ進め、Emailは専用verified test destination、Analytics EngineはSQL API、Workers Logsはrequest／correlation IDで確認する。productionの個人宛先や実Auctionへtest alertを送らない。
 
-## 13. 依存関係とsupply chain
+### 13. 依存関係とsupply chain
 
 - pnpm policy
   - `minimumReleaseAge: 4320`分
@@ -3057,8 +3021,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
   - 同じresourceをTerraformとWranglerで二重管理しない。
 
-# 「無料主義アプリ v0.2.1」の設計
-
 ## 前提
 
 - `points-worker`と画面を同じprojectで管理する。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
@@ -3075,19 +3037,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Auction単位のDurable Object＋WebSocket Hibernationを採用する
   - 手動reloadだけにする旧案も上書き。
   - `setTimeout`、`setInterval`、独自heartbeatでDOを起こし続けない。常駐型realtime案を不採用。
-
-- Markets
-  - 入れる機能
-    - 出品
-    - 入札
-    - 自動入札
-    - Marketsの管理者は`appAdmin`だけとする。
-    - 認証
-      - OAuthは、GitHubとGoogleに対応する
-      - Marketsは独立Better Authユーザー、D1、Session Cookieを持ち、Pointsを後から明示linkする。
-  - 入れない機能
-    - メールとPUSH
-    - PWAとoffline機能を廃止する。
 
 - Points
   - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
@@ -3108,22 +3057,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
     - `/docs/usage`
   - ポイント関係のAPIドキュメントのページも用意する
     - `/docs/api`
-
-# Points
-
-## 概要
-
-- ポイント管理サービス
-
-## ポイントのプロフィール
-
-- 必要な理由
-  - ポイントのプロフィールを持つことで、それを示すだけで優先権を得る
-
-## 要件
-
-- ポイント保有額の非公開
-  - ポイントを非公開にした場合に、加算or減算した場合でも、レスポンスに現在の保有ポイント数を入れずに返す
 
 - ポイント管理サービスも、複数のオークションのサービスから使用できるようにしたい
 
@@ -3156,115 +3089,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - 1対1のDMはNG
   - 電気通信事業法
-
-- 無料主義の評価軸ポイントの使用場所を増やしたい
-  - 説明
-    - ポイントの使用場面を増やしたい
-  - アイデア
-    1. EC
-       1. 匿名発送で届ける
-       2. 外部EC経由で届ける
-       3. 自社で個人情報を持つ
-          - v0.4で実装する
-       4. 落札して対面で受け渡し
-    2. 対面決済
-       1. ただの消費
-       2. QRコード決済
-    3. 外部サービス連携
-       1. GitHub連携の決済
-    4. その他
-       - また需要が出てきてから考える
-
-- 落札して対面で受け渡し
-  - 説明
-    - オンラインのオークションで落札して、対面で受け渡しする際に、落札者である事を証明できるようにしたい
-  - 設計
-    - 出品者と落札者しか見えない画面を見せる事で対応する
-    - 画面にも、出品者と落札者しか見えない旨を表示しておく
-    - 対面の受け渡し時は、その画面を見せて受け渡しする
-  - 使用場面
-    1. 家具の予約
-    2. 車のオークション
-
-- 匿名発送で届ける
-  - 説明
-    - 外部ECを使用せず、個人間取引する
-  - 使用場面
-    - 商品引き渡しの際の価格を払いたくない人向け
-  - 要件
-    - `fanster`などのサービスを使用する
-    - 出品者・落札者が、それぞれメモを書けるようにして、そこにやり取りの方法や使用するサービスのURLなどを記載する
-
-- 外部EC経由で届ける
-  - 説明
-    - 外部EC経由で落札した商品を届ける方法
-  - 使用場面
-    1. メルカリなどの外部EC経由で、無料主義アプリで落札した商品を提供する
-  - 核となる考え方
-    - 検証できるトークン付きURLを貼り付けられるのは落札者しかいない
-  - 全体の流れ
-    1. 自社オークションで落札完了
-    2. 自社サイトが落札証明トークンを発行
-    3. 落札者に検証用URLを表示
-    4. 落札者が外部ECサイトの注文メモに検証用URLを貼り付ける
-    5. 出品者が外部ECサイトの注文詳細からURLをクリック
-    6. 自社サイトの管理画面に遷移
-    7. ログイン済みでなければログイン画面へ
-    8. ログイン後、token を使って検証
-    9. 管理画面に「有効」「期限切れ」「使用済み」「商品不一致」などを表示
-    10. 問題なければ販売者が受け渡し・発送対応
-    11. 最後に管理画面で「受け渡し完了」を押す
-    - 外部ECサイトの注文メモに落札者が **検証用URL** を貼り付け、販売者・管理者が自社サイトの管理画面でそのURLにアクセスすると、クエリパラメータの `token` を使って落札証明を確認できる、という形です。
-
-たとえばこうです。このURLにアクセスすると、自社サイト側で `token` を読み取り、DB上の落札証明トークンと照合します。
-
-`https://markets.freeism.app/claims/verify?token=ea6a8133-6bd1-3796-c1cb-176f774d2dc1`
-
-ここで大事なのは、**URLにアクセスしただけでは受け渡し完了にしない**ことです。
-URLアクセスはあくまで「検証結果の表示」までにして、`used` や `completed` にする処理は管理画面上のボタン操作、つまり `POST` 処理で行うのが安全です。
-
-落札者へ見せる文は「外部ECサイトの注文メモに、以下のURLを貼り付けてください」です。メモが短いときは、URLではなく証明コードだけでもよいです。例は「落札証明コード: clm_8fJ29xLmQp7vR4sAzK6TnY」です。コードを貼る入力欄が販売者の管理画面にあると、親切に使えます。ログイン後は、元の検証用URLへ戻してクエリの `token` で検証します。管理画面は `GET /admin/claims/verify?token=...` を受けます。
-
-トークンは、意味を持たないランダムな文字列です。ユーザーIDや商品IDや落札IDは入れません。落札金額やメールアドレスや電話番号も対象外です。ランダム性は最低でも128bitです。形の例は `clm_8fJ29xLmQp7vR4sAzK6TnY` とします。`AUC-12345`のような連番は対象外です。`user_123_auction_456_winner_true`のように中身が読める値も対象外です。
-
-平文トークンをDBへ残すことはありません。発行時にサーバーで平文を作り、その場でハッシュ化します。保存するのは `token_hash` だけです。計算は `sha256(token + server_secret)` です。可能なら、単純なハッシュではなく、サーバーの秘密値を加えたHMACかpepper付きハッシュにします。検証に使う値は、URLの平文を同じ方法でハッシュ化した結果です。一致したときの取得対象は、その落札証明です。不一致のときは「無効な落札証明URL」と表示します。
-
-記録に残す識別子は、落札IDと商品IDです。落札者IDと販売者IDも残します。トークンハッシュと有効期限と使用状態も残します。失効状態と検証回数も、記録の対象です。作成日時と更新日時も残します。テーブル `auction_claim_tokens` では、`id` と `auction_id` を必須のBIGINTにします。`winner_user_id` と `seller_user_id` も、必須のBIGINTです。`token_hash` は必須かつ一意のVARCHAR(255)です。`status` は必須のVARCHAR(32)にします。`expires_at` と `created_at` と `updated_at` は、必須のDATETIMEです。`verified_at` と `used_at` と `revoked_at` は、空を許すDATETIMEにします。`verified_count` は既定0のINTです。`external_order_id` は空を許すVARCHAR(255)にします。`external_platform` は空を許すVARCHAR(64)です。`status` の例は、`unused`（未確認・未使用）と `verified`（確認済み）と `used`（受け渡し完了）です。あわせて `expired`（期限切れ）と `revoked`（無効化済み）も含めます。`expired` はDBへ保存せず、`expires_at` が今より前かで都度判定してもよいです。
-
-同じURLを再表示することはありません。紛失したときや、コピーし忘れたときは、新しいトークンを再発行します。再発行に伴い、古いトークンは無効になります。確認の1文目は「以前のURLは使えなくなります」です。2文目は「すでに外部ECサイトに貼り付けた場合は、新しいURLに差し替えてください」です。新しいURLも、発行直後に一度だけ表示します。古いURLを開いたときの文言は「この落札証明URLは再発行により無効化されています」です。貼り済みのURLが無効になり得るので、再発行では落札者へ注意を出します。
-
-検証の順は、次のとおりです。最初に、管理者または販売者としてログインしていることを確認します。次にtokenがあることを確認します。その次に、`token_hash` が一致する記録があることです。続けて、期限切れでないことを確認します。失効していないことも確認します。使用済みでないことです。ログイン中の販売者が `seller_user_id` と一致することも確認します。そのあと、商品とオークションの情報を表示します。期限内で未完了なら、検証自体は何度でもよいです。受け渡し完了は一度だけに限ります。
-
-URLアクセス時にできるのは、検証結果の表示と `verified_count` の増加です。あわせて `verified_at` の更新と、アクセスログの保存を行います。受け渡し完了や、トークンの使用済み化は行いません。注文の確定や発送済みや返金不可も、同じように行いません。実行先は `POST /admin/claims/:claimId/complete` です。画面のボタン名は「受け渡し完了にする」とします。押したあとの確認は、出してもよいです。確認の1文目は「この落札証明を受け渡し完了にします」とします。2文目は「完了後、この証明コードは再利用できません」です。完了後の状態は `used` または `completed` にします。同じトークンでの再度の受け渡しはできません。
-
-検証後は、可能ならtoken付きURLのまま表示を続けません。移る先は、tokenのない詳細です。流れでは `GET /admin/claims/verify?token=xxxxx` のtokenを検証し、claimIdを特定します。権限を確認したあと、`302` で `/admin/claims/{claimId}` へ移し、詳細を表示します。`/admin/claims/{claimId}` でも、ログインユーザーの権限確認は必須です。
-
-有効なときの表示項目は、ステータスと商品名とオークションIDです。落札日時と受け渡し期限も出します。外部EC注文IDと受け渡し状態も出します。販売者へ出す文は「外部ECサイト上の商品・注文内容と照合してから受け渡ししてください」です。別の文面の1文目は「この証明は有効です」です。2文目は「外部ECサイト上の注文内容と商品名・金額・購入者情報を確認してから、受け渡しを行ってください」とします。無効なら、理由を出します。期限切れの例は「この証明コードは無効です」と「理由: 期限切れ」です。
-
-画面の状態は、少なくとも8種類です。内訳には、有効と期限切れと使用済みと無効化済みを含めます。存在しない状態も含みます。販売者不一致と、ログインが必要と、token未指定も状態です。販売者がその落札の出品者でないときは、商品名や落札者情報は非表示です。そのときの文言は「この落札証明は確認できません」とします。案内の1文目は「この落札証明は、あなたが確認できる商品ではありません」です。2文目は「URLまたは証明コードをご確認ください」とします。`seller_id` や落札者の `user_id` は出しません。不一致を伝える別の文は「この証明コードはこの販売者の商品ではありません」です。
-
-外部ECの注文IDは、販売者が検証画面で後から登録できます。未登録のときは、入力欄を出します。画面の例は「外部EC注文ID」の入力と保存です。保存項目は `external_platform` と `external_order_id` の2つとします。値の例は、`external_platform` がmercariで、`external_order_id` がm123456789です。保存したあとも、権限と状態の確認は続けます。目的は、問い合わせやトラブルのときに、注文と落札証明を追いやすくすることです。
-
-トークン付きURLは、ブラウザ履歴やサーバーログに残ることがあります。外部ECの注文メモやアクセス解析にも、残ることがあります。そのため、トークンへ個人情報や内部情報は入れません。管理画面では、外部の広告タグや解析タグを読みません。読み込むと `Referer` でトークンが漏れることがあるためです。ヘッダーは `Referrer-Policy: no-referrer` を基本とし、少なくとも `same-origin` にします。あわせて `Cache-Control: no-store` を付けます。
-
-この方式は、署名付きの証明書ではありません。突合するのは、DBに保存した落札証明とトークンです。安全性を支えるのは、トークンのランダム性とハッシュ保存です。有効期限と失効と使用済みと、販売者の権限確認も支えます。証明できるのは、提示した人が、自社サイトの発行した有効な落札証明トークンを持っていることです。URLの所持者が落札者本人であることまでは、証明しません。運用では、外部ECの注文と販売者の確認を組み合わせます。受け渡し完了と検証ログも、組み合わせの対象です。
-
-MVPは、次の設計にします。表示するのは、発行直後の検証URLだけです。紛失時は再表示せず、再発行します。確定は、販売者が管理画面で検証したあとのPOSTです。
-
-- GitHub連携の決済
-  - 説明
-    - Issueを消化するごとに、ポイントを使用する
-    - オークションせず、ただ優先的に対応することによってポイントを消費
-    - ポイントを持っていることを提示する
-  - 疑問
-    - GitHubでポイント消費する処理を入れなくても、GitHubの処理の流れすべてをGitHub
-      APIで取得してきて、そこから評価軸側でポイント管理サービスの加算・減算のAPIを叩けば良いだけでは？
-      - 無理矢理、GitHub連携を入れなくても良い
-  - 使用場面
-    1. 評価軸に貢献する人の要望から優先対応する
-    2. AIによるプルリク・イシューを避けるために、ポイントを持つことを判断基準にする
-  - 要件定義
-    1. PRをマージする際に、CI/CDでポイントのマイナにするAPIを叩く
 
 - フォルダ構成
   - ルール
