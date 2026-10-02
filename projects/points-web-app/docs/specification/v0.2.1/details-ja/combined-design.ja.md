@@ -41,6 +41,8 @@
     - [4.3 交換比率revision](#43-交換比率revision)
     - [4.1 評価軸](#41-評価軸)
   - [パッケージ](#パッケージ)
+    - [CSV列](#csv列-1)
+  - [lifecycle](#lifecycle)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
   - [ログイン](#ログイン)
@@ -93,11 +95,7 @@
     - [8.4 Token保存とRefresh](#84-token保存とrefresh)
   - [9. Cookie、CSRF、Origin](#9-cookiecsrforigin)
   - [退会](#退会)
-  - [Rate Limit](#rate-limit)
   - [評価軸とパッケージの管理](#評価軸とパッケージの管理)
-  - [3パッケージ](#3パッケージ)
-    - [CSV列](#csv列-1)
-  - [lifecycle](#lifecycle)
   - [Hono HTTPレスポンス仕様](#hono-httpレスポンス仕様)
     - [1. 対象](#1-対象-1)
     - [2. 成功](#2-成功)
@@ -117,8 +115,7 @@
     - [7. 未受領FIXの受領資格](#7-未受領fixの受領資格)
     - [8. 一括claim](#8-一括claim)
   - [9. 監査と公開表示](#9-監査と公開表示)
-  - [1. 責務](#1-責務)
-    - [所有する主なaggregate](#所有する主なaggregate)
+  - [責務](#責務)
   - [5. 公式パッケージ](#5-公式パッケージ)
   - [6. 金額表現](#6-金額表現)
   - [7. FIX revisionと差分台帳](#7-fix-revisionと差分台帳)
@@ -131,7 +128,7 @@
     - [9.2 譲渡](#92-譲渡)
     - [9.3 交換](#93-交換)
     - [9.4 貢献評価代用](#94-貢献評価代用)
-  - [11. Public read API](#11-public-read-api)
+  - [Public read API](#public-read-api)
   - [12. UIと共通要件](#12-uiと共通要件)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
@@ -151,12 +148,11 @@
     - [7.2 連携解除](#72-連携解除)
     - [7.3 残高](#73-残高)
     - [7.4 落札精算の引き落とし](#74-落札精算の引き落とし)
-  - [10. Rate limit](#10-rate-limit)
+  - [Rate limit](#rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
     - [1. 防御層](#1-防御層)
     - [2. browser sessionとCookie](#2-browser-sessionとcookie)
     - [5. same-origin API](#5-same-origin-api)
-    - [7. Durable Object/WebSocket](#7-durable-objectwebsocket)
     - [8. 初期rate limit](#8-初期rate-limit)
     - [10. CSV](#10-csv)
     - [D1 bulk write制約](#d1-bulk-write制約)
@@ -1274,6 +1270,35 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
      4. 検索結果の一覧で、`packageAdmin`または`appAdmin`の場合だけ「管理者・編集可能」バッジを表示する
      5. 自分が管理者であるパッケージだけを検索できるフィルターを用意する
 
+### CSV列
+
+1回のCSVは最大20 Packageとする。複数component行は異なる`pointPackageId`／新規論理Packageの件数で20件を数える。
+
+- `pointPackageId`: 新規時は空、更新時は必須
+- `expectedRevision`: 更新時必須
+- `status`: `ACTIVE | INACTIVE`
+- `name`: 必須。30文字以下
+- `description`: 任意。0〜500 Unicode code pointかつUTF-8 2,000 bytes以下。空文字は`NULL`
+- `relatedUrl`: 任意。1行1URLで最大20件。HTTPSとし、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。空文字は件数に含めない
+- `evaluationCriterionId`
+- `componentWeight`: 正のJavaScript安全整数
+- `displayOrder`: 0始まりで、同じPackageのcomponent内で重複しない連続整数
+
+同じpackage revision内に1つ以上のcomponentを要求し、同じ評価軸を重複できない。全weightを最大公約数で割り、各weightと`totalWeight`の正値・安全整数を検査する。`1:2`等を固定scaleへ丸めず、厳密な`weight / totalWeight`として保持する。
+
+Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnicode White_Spaceを除去し、連続するWhite_SpaceをASCII space 1つへ畳み、JavaScriptのlocale非依存`toLowerCase()`を適用した値とする。オリジナル表示値はNFCで保存する。statusに関係なく同じ正規化名を別Package IDで再利用できず、CSV内重複とD1 unique constraintの両方で拒否する。
+
+Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、`displayOrder`順のcomponentごとの評価軸ID／revision ID／name／`displayOrder`／`minimumUnitScaled`／`buyNowEnabled`／weightを対象にする。作成時刻、操作者ID、audit IDは対象外とする。hash対象fieldのいずれか、component構成／順序／weight、または参照評価軸revisionが変わる時は新しい不変Package Revisionを作る。profileのPackage登録・解除・並べ替えはPackage内容ではないためrevisionを作らない。
+
+`pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`と、現在の`packageLifecycleStatus`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
+
+## lifecycle
+
+- IDは永久に再利用しない。
+- 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
+- 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
+- 別revisionへ自動差し替えしない。
+
 ## 利用規約
 
 - 概要
@@ -2254,14 +2279,6 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 - 再開画面には、受領資格が確定した未受領FIXの評価軸別正味合計、正件数、負件数、全件数、`reopenSetHash`を表示する。
 - このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行、監査を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。戻したあとの表示名と説明は、本人が設定する。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後に連携した未受領FIXは、一括受領で受け取る。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
 
-## Rate Limit
-
-Rate Limitは不正利用の抑止に使用するが、Account一意性、FIX二重受領などの正確性はD1の状態・一意制約で保証する。
-
-| 操作                     | v0.2.1初期値                               |
-| ------------------------ | ------------------------------------------ |
-| Google／GitHub OAuth開始 | Better AuthのD1 rate limit＋Cloudflare WAF |
-
 ## 評価軸とパッケージの管理
 
 Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグインで管理する。対象ごとの管理者の紐づけと、管理APIの自作を減らすためである。
@@ -2283,45 +2300,6 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 `appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evalueterAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#10-account-closeと認証記録)に従う。
 
 初期の`appAdmin`は、`appAdmin`が0人のときだけ、Secretsで指定したGoogleの`accountId`と一致するログインを一度だけ昇格する。公開の昇格APIは置かない。既存の`admin_membership`の全体管理者は、`appAdmin`へ移す。既存の管理者照会、管理画面、関連APIは、この権限に揃える。
-
-
-
-## 3パッケージ
-
-> 本節の文字／URL境界、名前正規化、content hash field集合はDEC-257で確定している。
-
-### CSV列
-
-1回のCSVは最大20 Packageとする。複数component行は異なる`pointPackageId`／新規論理Packageの件数で20件を数える。
-
-- `pointPackageId`: 新規時は空、更新時は必須
-- `expectedRevision`: 更新時必須
-- `status`: `ACTIVE | INACTIVE`
-- `name`: 必須。30文字以下
-- `description`: 任意。0〜500 Unicode code pointかつUTF-8 2,000 bytes以下。空文字は`NULL`
-- `relatedUrl`: 任意。1行1URLで最大20件。HTTPSとし、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。空文字は件数に含めない
-- `evaluationCriterionId`
-- `componentWeight`: 正のJavaScript安全整数
-- `displayOrder`: 0始まりで、同じPackageのcomponent内で重複しない連続整数
-
-同じpackage revision内に1つ以上のcomponentを要求し、同じ評価軸を重複できない。全weightを最大公約数で割り、各weightと`totalWeight`の正値・安全整数を検査する。`1:2`等を固定scaleへ丸めず、厳密な`weight / totalWeight`として保持する。
-
-Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnicode White_Spaceを除去し、連続するWhite_SpaceをASCII space 1つへ畳み、JavaScriptのlocale非依存`toLowerCase()`を適用した値とする。オリジナル表示値はNFCで保存する。statusに関係なく同じ正規化名を別Package IDで再利用できず、CSV内重複とD1 unique constraintの両方で拒否する。
-
-Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、`displayOrder`順のcomponentごとの評価軸ID／revision ID／name／`displayOrder`／`minimumUnitScaled`／`buyNowEnabled`／weightを対象にする。作成時刻、操作者ID、audit IDは対象外とする。hash対象fieldのいずれか、component構成／順序／weight、または参照評価軸revisionが変わる時は新しい不変Package Revisionを作る。profileのPackage登録・解除・並べ替えはPackage内容ではないためrevisionを作らない。
-
-`pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`と、現在の`packageLifecycleStatus`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
-
-## lifecycle
-
-- IDは永久に再利用しない。
-- 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
-- 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
-- 別revisionへ自動差し替えしない。
-
-
-
-
 
 ## Hono HTTPレスポンス仕様
 
@@ -2515,11 +2493,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - PointsはAccounts照合結果の利用と受領資格の判定をappend-only auditへ残す。claimの監査`UNCLAIMED_FIX_CLAIM`は`reason`に`claimedCount=N`を残し、受領額は同じrequest idの`fixClaim`と、その`fixClaimItem`が指す台帳行から辿る。
 - 監査には必要な識別情報と安全な結果metadataを使い、秘密値やCSV本文を含めない。
 
-## 1. 責務
-
-Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の残高と履歴を管理する。商材、Auction、Task、Group、一般community memberは管理しない。
-
-### 所有する主なaggregate
+## 責務
 
 - `pointsUser`、`profile`、Pointsのログイン用`socialAccount`、Accounts連携情報
 - `adminMembership`
@@ -2531,8 +2505,6 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - `pointSettlementDebit`、`pointSettlementDebitComponent`
 - `pointsMarketsConnection`、OAuth client/token metadata
 - append-only `auditEvent`
-
-
 
 ## 5. 公式パッケージ
 
@@ -2629,8 +2601,6 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ### 9.4 貢献評価代用
 
-> 本節の計算式、UTC月別revision、非再帰source、0方向切捨て、訂正差分方式はDEC-259で確定している。
-
 - 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの不変`substitutionMethodRevision`とする。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateRevisionId`とする。
 - `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateRevisionId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
 - 実行CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`evaluationMonth`、`methodRevisionId`、`expectedResultRevision`とする。`evaluationMonth`はASCII `YYYY-MM`で、UTCの月初00:00:00以上・次月月初00:00:00未満の評価時刻を対象にする。実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`である。reasonと`Idempotency-Key`を必須とする。
@@ -2640,13 +2610,11 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 - 対象userは対象月のsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。新resultの利用者別理論値、丸め値、source FIX revision集合hash、method／rate／source／target criterion revision、月境界、実行cutoffを不変snapshotする。
 - 再計算は旧resultを更新せず新revisionを追加し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作り、二重付与や対象落ちを防ぐ。
 
-## 11. Public read API
+## Public read API
 
 - 評価軸・パッケージ・revisionの公開情報
 - Shields.io等で使える短い残高表示
 - Marketsの公開落札証明へのcanonical link
-
-v0.2.1では、第三者が任意ユーザーのポイントを直接増減する公開write API、外部出品・入札・購入APIを提供しない。落札の引き落としだけが、利用者の同意済み認可で行える。
 
 ## 12. UIと共通要件
 
@@ -2892,7 +2860,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 
 Marketsは配列の全IDが、今回送った落札候補であることを確認する。空、未知、request外のIDは手順の失敗とし、候補を除外しない。
 
-## 10. Rate limit
+## Rate limit
 
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
@@ -2968,16 +2936,6 @@ upgrade-insecure-requests
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
 localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
-
-### 7. Durable Object/WebSocket
-
-- WebSocketは購読専用。bid mutationは認証済みHTTP。
-- upgradeでhost-only session、Origin、接続上限を検査し、query tokenを禁止する。
-- 1 frame最大4KiB、同一user/Auction最大3接続、全体最大20接続。
-- attachmentはIDとlast sequenceだけ。secret、AutoBid上限、sessionを保存しない。
-- heartbeat timerを使わない。
-- D1 CAS commit後だけbroadcastし、version/seq gapはHTTP snapshotでresyncする。
-- seller自己入札、終了後bid、Auction economic field変更をserver/DO/D1で拒否する。
 
 ### 8. 初期rate limit
 

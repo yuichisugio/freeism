@@ -637,6 +637,14 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 - WebSocketなど、リアルタイム性が必要なデータはキャッシュしない。
 
+- WebSocketは購読専用。bid mutationは認証済みHTTP。
+- upgradeでhost-only session、Origin、接続上限を検査し、query tokenを禁止する。
+- 1 frame最大4KiB、同一user/Auction最大3接続、全体最大20接続。
+- attachmentはIDとlast sequenceだけ。secret、AutoBid上限、sessionを保存しない。
+- heartbeat timerを使わない。
+- D1 CAS commit後だけbroadcastし、version/seq gapはHTTP snapshotでresyncする。
+- seller自己入札、終了後bid、Auction economic field変更をserver/DO/D1で拒否する。
+
 - Markets
   - 入れる機能
     - 出品
