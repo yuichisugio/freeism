@@ -31,11 +31,9 @@
   - [評価軸](#評価軸)
     - [基本情報](#基本情報-3)
     - [要件](#要件-2)
-  - [評価軸](#評価軸-1)
     - [CSV列](#csv列)
   - [交換比率](#交換比率)
   - [画面](#画面)
-  - [評価軸](#評価軸-2)
     - [基本属性](#基本属性)
     - [登録・更新](#登録更新)
     - [交換比率revision](#交換比率revision)
@@ -1034,8 +1032,6 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
   - Status: 採用
   - 上書き・撤回関係: 未登録と旧0比率はDISABLEDとする。過去参照は保持する。
 
-## 評価軸
-
 ### CSV列
 
 1回のCSVは最大20評価軸とする。同じ評価軸を関連URLのため複数行で表す場合、異なる`evaluationCriterionId`／新規論理行の件数で20件を数える。
@@ -1067,8 +1063,6 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 - 交換比率は交換元・交換先・正規化比率・状態・revision履歴を表示する。CSVの登録は、`appAdmin`、または交換元か交換先の`evalueterAdmin`が行う。
 - 評価軸の登録と更新は、フォームまたはCSVで行う。一般利用者向けのmember管理とowner移譲は表示しない。
 - 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・revisionを表示する。
-
-## 評価軸
 
 ### 基本属性
 
