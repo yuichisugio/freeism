@@ -42,7 +42,11 @@
     - [4.1 評価軸](#41-評価軸)
   - [パッケージ](#パッケージ)
     - [CSV列](#csv列-1)
-  - [lifecycle](#lifecycle)
+    - [lifecycle](#lifecycle)
+    - [公式パッケージ](#公式パッケージ)
+    - [金額とvector](#金額とvector)
+    - [不変Point Package Revision](#不変point-package-revision)
+    - [パッケージの現在の利用可否](#パッケージの現在の利用可否)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
   - [ログイン](#ログイン)
@@ -116,7 +120,6 @@
     - [8. 一括claim](#8-一括claim)
   - [9. 監査と公開表示](#9-監査と公開表示)
   - [責務](#責務)
-  - [5. 公式パッケージ](#5-公式パッケージ)
   - [6. 金額表現](#6-金額表現)
   - [7. FIX revisionと差分台帳](#7-fix-revisionと差分台帳)
     - [7.1 入力](#71-入力)
@@ -139,21 +142,18 @@
     - [5.1 headers](#51-headers)
     - [5.2 response](#52-response)
     - [5.3 OpenAPI共通schema](#53-openapi共通schema)
-  - [6. 金額とvector](#6-金額とvector)
   - [7. Endpoint wire正本](#7-endpoint-wire正本)
-    - [7.0 不変Point Package Revision](#70-不変point-package-revision)
-    - [7.0a パッケージの現在の利用可否](#70a-パッケージの現在の利用可否)
     - [7.1 連携status](#71-連携status)
     - [7.1c `appAdmin`の照会](#71c-appadminの照会)
     - [7.2 連携解除](#72-連携解除)
     - [7.3 残高](#73-残高)
     - [7.4 落札精算の引き落とし](#74-落札精算の引き落とし)
   - [Rate limit](#rate-limit)
+    - [8. 初期rate limit](#8-初期rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
     - [1. 防御層](#1-防御層)
     - [2. browser sessionとCookie](#2-browser-sessionとcookie)
     - [5. same-origin API](#5-same-origin-api)
-    - [8. 初期rate limit](#8-初期rate-limit)
     - [10. CSV](#10-csv)
     - [D1 bulk write制約](#d1-bulk-write制約)
     - [11. D1不変条件](#11-d1不変条件)
@@ -696,8 +696,6 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 
 - API全体の要件
   1.  RESTのHTTPエンドポイントとして実装する
-  2.  RateLimitの実装
-      - [https://kinsta.com/jp/blog/api-rate-limit/](https://kinsta.com/jp/blog/api-rate-limit/)
   3.  無料主義アプリのパブリックAPIの秘密鍵を発行して、その鍵と必要な情報をヘッダーに入れてAPIリクエストする
 
 - **v0.2.1における範囲**
@@ -1292,12 +1290,118 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 `pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`と、現在の`packageLifecycleStatus`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
 
-## lifecycle
+### lifecycle
 
 - IDは永久に再利用しない。
 - 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
 - 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
 - 別revisionへ自動差し替えしない。
+
+- `packages`
+  - 説明
+    - パッケージのデータを保存するテーブル
+  - カラム
+    1. `id`
+       - 型
+         - 文字列（標準Nano ID）
+       - 説明
+         - テーブルの主キー。プロフィールURLの`<nano_id>`と同一のNano ID
+    2. `organizationId`
+       - 型
+         - 文字列
+       - 説明
+         - このパッケージに対応するOrganizationのID。対応は一意である
+    3. `name`
+       - 型
+         - 文字列
+       - 説明
+         - パッケージ名
+    4. `combine-evaluation-criteria`
+       - 型
+         - JSON配列
+       - 説明
+         - 組み合わせる評価軸のデータを割合と共に保存する（要素ごとにJSONオブジェクト）。`evaluation-criteria-id`には`evaluation-criteria.id`（Nano
+           ID）を格納する
+       - JSONのキー
+         1. `ratio`
+         2. `evaluation-criteria-id`（評価軸のNano ID）
+
+- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへstatus、表示field、package tick、componentの軸revision／name／displayOrder／weight／minimumUnit／buy-now可否を含める。
+
+- Package構成比: 正の整数`weight`と合計`totalWeight`。`ratioScaled`や`rateFloat`へ近似しない。
+
+- `pointPackage`、`pointPackageRevision`、`pointPackageComponent`
+
+### 公式パッケージ
+
+- 1つ以上の評価軸componentと正の安全整数`weight`から構成する。
+- 作成・更新CSVは1回最大20 Packageとし、componentの複数行は同じ論理Packageとして数える。
+- component weight全体を最大公約数で割って正規化し、`totalWeight = SUM(weight)`を安全整数として保存する。各componentの厳密な比率は`weight / totalWeight`であり、固定scaleへ近似しない。
+- 同一評価軸を同じrevisionへ重複登録しない。
+- economic fieldの変更は不変`pointPackageRevision`を追加し、既存revisionを更新しない。
+- Packageのname、description、URL、正規化名の一意性、Public content hashの対象と新revision条件は[評価軸とパッケージの管理](evaluation-criteria-management.md)を正本とする。
+
+### 金額とvector
+
+- Pointsは`pointPackageRevisionId`から自身のD1にある不変componentと`minimumUnit`を取得し、scale済みvectorを再計算する。
+- Marketsから送られた表示用component snapshotを経済計算の正本にしない。
+- すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
+
+### 不変Point Package Revision
+
+`GET /api/v1/point-package-revisions/{pointPackageRevisionId}`
+
+- token: 不要。読取専用public API
+- response:
+
+```json
+{
+	"data": {
+		"pointPackageId": "pkg_01...",
+		"pointPackageRevisionId": "ppr_01...",
+		"status": "ACTIVE",
+		"packageLifecycleStatus": "ACTIVE",
+		"name": "Example package",
+		"description": "Example description",
+		"relatedUrl": ["https://example.com/package"],
+		"totalWeight": 1,
+		"packageTick": 1,
+		"contentHash": "sha256:...",
+		"components": [
+			{
+				"evaluationCriterionId": "evc_01...",
+				"evaluationCriterionRevisionId": "evr_01...",
+				"name": "Example criterion",
+				"displayOrder": 0,
+				"weight": 1,
+				"minimumUnitScaled": "1",
+				"buyNowEnabled": true
+			}
+		]
+	},
+	"meta": {
+		"requestId": "req_01..."
+	}
+}
+```
+
+- `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
+- `packageTick`はJavaScript安全整数、金額である`minimumUnitScaled`はASCII整数文字列とし、小数JSON numberを返さない。Marketsは文字列をparseする全境界で安全整数を検証する
+- `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
+- hash対象fieldは`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`evaluationCriterionRevisionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
+- revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
+- Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`を`auctionRevision`へsnapshotする。落札時の経済計算はPoints D1のrevisionを正本とする
+- success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`status`と`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。`304`は`If-None-Match`一致時だけ許可する。`packageLifecycleStatus`は`contentHash`の対象外とする
+
+### パッケージの現在の利用可否
+
+公開のパッケージ改訂応答に、問い合わせ時点の`packageLifecycleStatus`を含める。値は`ACTIVE`または`INACTIVE`とする。この値は改訂の不変内容ではないため、`contentHash`の対象に含めない。
+
+  - Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
+
+- パッケージの現在の利用可否は`packageLifecycleStatus`と呼ぶ。
+
+- パッケージ名は必須かつ30文字以下、説明は任意で0〜500文字、関連URLは最大20件とする。
 
 ## 利用規約
 
@@ -1351,37 +1455,6 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 - **フィールド命名**
   - アプリ上の名前は camelCase とする。Cloudflare D1の列名は snake_case とする。
-
-
-
-- `packages`
-  - 説明
-    - パッケージのデータを保存するテーブル
-  - カラム
-    1. `id`
-       - 型
-         - 文字列（標準Nano ID）
-       - 説明
-         - テーブルの主キー。プロフィールURLの`<nano_id>`と同一のNano ID
-    2. `organizationId`
-       - 型
-         - 文字列
-       - 説明
-         - このパッケージに対応するOrganizationのID。対応は一意である
-    3. `name`
-       - 型
-         - 文字列
-       - 説明
-         - パッケージ名
-    4. `combine-evaluation-criteria`
-       - 型
-         - JSON配列
-       - 説明
-         - 組み合わせる評価軸のデータを割合と共に保存する（要素ごとにJSONオブジェクト）。`evaluation-criteria-id`には`evaluation-criteria.id`（Nano
-           ID）を格納する
-       - JSONのキー
-         1. `ratio`
-         2. `evaluation-criteria-id`（評価軸のNano ID）
 
 - `UploadContributionPointHistory`
   - 説明
@@ -1750,7 +1823,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 4固定routeはURL／query／HTMLをlocale別に増やさず、同じ静的HTMLへ日本語正本と英語参照訳を全文renderする。JavaScript無効時は両方を表示し、有効時は保存値→browser言語→日本語fallbackで表示だけを切り替える。
 
-- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへstatus、表示field、package tick、componentの軸revision／name／displayOrder／weight／minimumUnit／buy-now可否を含める。
+
 
 - CSV exportは物理化snapshotを最大50,000行／50MiB、1行8KiB、1page最大1,000行／8MiBとし、作成者とexport IDをD1で照合する。cursorは数値ordinalとし、snapshotの30分期限をD1で検査する。
 
@@ -1923,7 +1996,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
 - Markets内部で扱うpackage tickの個数: suffix `TickCount`。例: `priceTickCount`、`buyNowPriceTickCount`。
 - Points wireで扱うscale済みpackage価格は外部契約名`priceTicks`を維持する。
-- Package構成比: 正の整数`weight`と合計`totalWeight`。`ratioScaled`や`rateFloat`へ近似しない。
+
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
 - duration: unitをsuffixに含める。例: `leaseSeconds`。
 
@@ -2355,7 +2428,6 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - `413`: body/file上限
 - `415`: Content-Type/MIME不正
 - `422`: field/domain validation
-- `429`: rate limit。`Retry-After`必須
 - `500`: 想定外内部error
 - `502/503/504`: 外部依存・一時不能・timeout。retry可否をcodeで示す
 
@@ -2498,7 +2570,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - `pointsUser`、`profile`、Pointsのログイン用`socialAccount`、Accounts連携情報
 - `adminMembership`
 - `evaluationCriterion`、`evaluationCriterionRevision`
-- `pointPackage`、`pointPackageRevision`、`pointPackageComponent`
+
 - `fixResult`、`fixRevision`、`fixRevisionEntry`
 - `pointLedgerEntry`、利用者・評価軸ごとの`pointAccount`
 - `unclaimedFixEntry`、`fixClaim`
@@ -2506,14 +2578,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - `pointsMarketsConnection`、OAuth client/token metadata
 - append-only `auditEvent`
 
-## 5. 公式パッケージ
 
-- 1つ以上の評価軸componentと正の安全整数`weight`から構成する。
-- 作成・更新CSVは1回最大20 Packageとし、componentの複数行は同じ論理Packageとして数える。
-- component weight全体を最大公約数で割って正規化し、`totalWeight = SUM(weight)`を安全整数として保存する。各componentの厳密な比率は`weight / totalWeight`であり、固定scaleへ近似しない。
-- 同一評価軸を同じrevisionへ重複登録しない。
-- economic fieldの変更は不変`pointPackageRevision`を追加し、既存revisionを更新しない。
-- Packageのname、description、URL、正規化名の一意性、Public content hashの対象と新revision条件は[評価軸とパッケージの管理](evaluation-criteria-management.md)を正本とする。
 
 ## 6. 金額表現
 
@@ -2717,11 +2782,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 
 共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`は`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`だけを正本とし、このTaskで実装内部error codeを追加しない。
 
-## 6. 金額とvector
 
-- Pointsは`pointPackageRevisionId`から自身のD1にある不変componentと`minimumUnit`を取得し、scale済みvectorを再計算する。
-- Marketsから送られた表示用component snapshotを経済計算の正本にしない。
-- すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
 
 ## 7. Endpoint wire正本
 
@@ -2736,55 +2797,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 | `POST /api/v1/me/balance-checks`                               | `checkPointBalance`             | 200     | 65,536 bytes    | 不要              |
 | `POST /api/v1/settlements/{settlementId}/debits`               | `debitPointSettlement`          | 200     | 1,048,576 bytes | 必須              |
 
-### 7.0 不変Point Package Revision
 
-`GET /api/v1/point-package-revisions/{pointPackageRevisionId}`
-
-- token: 不要。読取専用public API
-- response:
-
-```json
-{
-	"data": {
-		"pointPackageId": "pkg_01...",
-		"pointPackageRevisionId": "ppr_01...",
-		"status": "ACTIVE",
-		"packageLifecycleStatus": "ACTIVE",
-		"name": "Example package",
-		"description": "Example description",
-		"relatedUrl": ["https://example.com/package"],
-		"totalWeight": 1,
-		"packageTick": 1,
-		"contentHash": "sha256:...",
-		"components": [
-			{
-				"evaluationCriterionId": "evc_01...",
-				"evaluationCriterionRevisionId": "evr_01...",
-				"name": "Example criterion",
-				"displayOrder": 0,
-				"weight": 1,
-				"minimumUnitScaled": "1",
-				"buyNowEnabled": true
-			}
-		]
-	},
-	"meta": {
-		"requestId": "req_01..."
-	}
-}
-```
-
-- `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
-- `packageTick`はJavaScript安全整数、金額である`minimumUnitScaled`はASCII整数文字列とし、小数JSON numberを返さない。Marketsは文字列をparseする全境界で安全整数を検証する
-- `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
-- hash対象fieldは`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`evaluationCriterionRevisionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
-- revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
-- Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`を`auctionRevision`へsnapshotする。落札時の経済計算はPoints D1のrevisionを正本とする
-- success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`status`と`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。`304`は`If-None-Match`一致時だけ許可する。`packageLifecycleStatus`は`contentHash`の対象外とする
-
-### 7.0a パッケージの現在の利用可否
-
-公開のパッケージ改訂応答に、問い合わせ時点の`packageLifecycleStatus`を含める。値は`ACTIVE`または`INACTIVE`とする。この値は改訂の不変内容ではないため、`contentHash`の対象に含めない。
 
 ### 7.1 連携status
 
@@ -2866,6 +2879,34 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
 - rate limit responseは`429`と`Retry-After`を返す。
 
+### 8. 初期rate limit
+
+| 操作                  | key                                          | limit                                   |
+| --------------------- | -------------------------------------------- | --------------------------------------- |
+| Better Auth OAuth     | IP、provider、session                        | Better Auth D1 limit + WAF managed rule |
+| bid                   | user + Auction                               | 10秒5回                                 |
+| bid全体               | user                                         | 1分30回                                 |
+| WebSocket upgrade     | user                                         | 1分10回                                 |
+| WebSocket upgrade     | IP                                           | 1分30回                                 |
+| WebSocket接続         | user + Auction                               | 同時3                                   |
+| WebSocket接続         | user                                         | 同時20                                  |
+| CSV validation/commit | `appAdmin`またはその評価軸の`evalueterAdmin` | 1分2回、1時間10回                       |
+| Auction CSV           | Markets user + operation                     | 1分2回、1時間10回                       |
+
+idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
+
+
+
+- `429`: rate limit。`Retry-After`必須
+
+
+  2.  RateLimitの実装
+      - [https://kinsta.com/jp/blog/api-rate-limit/](https://kinsta.com/jp/blog/api-rate-limit/)
+
+
+- RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
+
+
 ## セキュリティ・テスト・デリバリー仕様
 
 ### 1. 防御層
@@ -2936,22 +2977,6 @@ upgrade-insecure-requests
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
 localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない。`_headers`が適用される静的responseとHono middleware responseを別々にcontract testし、Asset Bindingから返すshellでもheaderが失われないことを確認する。release testはCSPから意図しない外部origin、`unsafe-eval`、scriptの`unsafe-inline`を検出したら失敗する。
-
-### 8. 初期rate limit
-
-| 操作                  | key                                          | limit                                   |
-| --------------------- | -------------------------------------------- | --------------------------------------- |
-| Better Auth OAuth     | IP、provider、session                        | Better Auth D1 limit + WAF managed rule |
-| bid                   | user + Auction                               | 10秒5回                                 |
-| bid全体               | user                                         | 1分30回                                 |
-| WebSocket upgrade     | user                                         | 1分10回                                 |
-| WebSocket upgrade     | IP                                           | 1分30回                                 |
-| WebSocket接続         | user + Auction                               | 同時3                                   |
-| WebSocket接続         | user                                         | 同時20                                  |
-| CSV validation/commit | `appAdmin`またはその評価軸の`evalueterAdmin` | 1分2回、1時間10回                       |
-| Auction CSV           | Markets user + operation                     | 1分2回、1時間10回                       |
-
-idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
 
 ### 10. CSV
 
@@ -3056,7 +3081,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
   - draftや承認待ちは、無料主義アプリ外で、それぞれの評価軸が管理する
 
-  - Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
+
   - Pointsは独立Better Authユーザー、D1、Session Cookieを持ち、Accountsを後から明示linkする。
   - OAuthは、GitHubとGoogleに対応する
 
@@ -3080,7 +3105,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
     - claudflareの設定項目
   - usecase → domain → infra
 
-- RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 
 - バックエンド
   - パブリックのPI
@@ -3182,14 +3206,14 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - 1つの競売は1つの`pointsServiceId`に固定し、落札者も評価軸も同じPointsのデータベースで精算する。
 - 連携キーは、提供先の`providerId`と利用者の`subject`である。issuerは、その提供先の登録値と一致することを確認する。
 - 落札者のIDは、Cloudflare D1に保存する。
-- パッケージの現在の利用可否は`packageLifecycleStatus`と呼ぶ。
+
 - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
 - Refresh Tokenの同時更新は、`pointsConnectionId`単位で1本にする。
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
 - 退会は、`appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のそれぞれで最後の1人ならできない。
 - 各対象の管理者は100人までとする。
-- パッケージ名は必須かつ30文字以下、説明は任意で0〜500文字、関連URLは最大20件とする。
+
 - 貢献評価代用は、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`が実行できる。単位は評価月`YYYY-MM`である。
 - Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。メールとPUSHは作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
 
