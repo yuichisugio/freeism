@@ -812,6 +812,148 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 両pipelineは別の固定concurrency groupで直列queueにし、`queue: max`かつ`cancel-in-progress: false`として実行中migrationをcancelしない。test artifact／credentialをproductionへ流用しない。Pointsだけproductionへ進んだ場合でも、旧Markets productionと互換なAPI contractを保つ順序でdeployする。
 
+  2.  **指定ユーザーが落札したか示す情報を取得**
+      - 目的
+        1.  GitHubのIssuesなどに表示するバッジで、落札したことを証明するために必要
+      - 要件
+        1.  「無料主義アプリのユーザーID」と「落札ID」（オークション ID）を指定して、当該ユーザーがその落札の落札者であることの**落札証明情報**を取得する（例：落札商材の概要、落札日時、落札ID、表示用の出品者・購入者情報など。外部に見せるのに足る最小限のフィールドに絞る）
+        2.  Json形式で返す
+            - Shields.io を使ってバッジを表示できるJSON
+        3.  **GitHub 上での明示向け**の場合の補足
+            - GitHub Issueでの落札証明は、利用側サービスの検討事項とする。必要な識別情報、取得方法、公開条件を利用側の接続設計で定める。
+            - 落札者であることを Issue 上で示す用に、**落札商材名**等に**リポジトリ名・Issue
+              ID**の記載を求める使い方に対応しうる形にする
+            - 例：APIの戻りをshields.io形式のバッジとしてIssueに貼り、出品者が応答のGitHubユーザー名とIssueコメント者を照合し、商材名・リポジトリ名・Issue IDから対象の落札証明を確認する。
+
+
+- 競売は、Marketsの出品者が出品CSVで作成する。
+
+
+- 出品CSVにパッケージ改訂IDは書かない。出品者が指定するのはパッケージIDだけである。
+
+
+- Marketsは作成の瞬間に、そのパッケージの最新改訂をPointsから取得し、内容を競売へ固定する。開始後にパッケージが更新されても、その競売の内容は変えない。
+
+
+- 作成時に確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。改訂を作った当時の`status`は見ない。過去の改訂を出品者が選ぶ手順はない。
+
+
+- 販売数量は1〜1,000とし、Packageの複数軸minimum unitからLCMによる整数package tickを作る。
+
+
+- 1ユーザー1Auctionにつき有効bid position 1件とし、再入札はposition更新＋不変bid event追加とする。
+
+
+- Workflow stateは正本にせず、deterministic Workflow IDとMarkets D1 outbox／reconcilerで重複起動・retention切れから回復する。
+
+
+- Markets内部で扱うpackage tickの個数: suffix `TickCount`。例: `priceTickCount`、`buyNowPriceTickCount`。
+
+
+- Auction event sequence: `bidSeq`、同額到達順は`reachedSequence`。
+
+
+MarketsはPointsをログインProviderにしない。MarketsへGoogleまたはGitHubでログインした後、独立した操作としてPointsを明示連携する。
+
+
+### 9. Durable Object/Workflow
+
+- DO class: `AuctionRoom`
+- DO binding: `AUCTION_ROOMS`
+- Workflow class: `AuctionSettlementWorkflow`
+- Workflow binding: `AUCTION_SETTLEMENT`
+- DO IDは`auctionId`から決定論的に導出し、任意user inputをそのまま名前にしない。
+- Workflow instance IDはSettlement ID + immutable settlement revision + 単調なworkflow attemptで一意にし、Cloudflareの100文字上限内にする。初回は`attempt:0`、通信失敗の再送は同じ業務revisionのままattemptだけを増やし、完了済みinstance IDを再利用しない。
+
+
+
+「Markets」と「Auction」の使い分け:
+
+- product/project/domain境界は`Markets`を使う。
+- Worker名とAuction domain objectだけは承認済み名称`auction-worker`、`AuctionRoom`を使う。
+- 新規文書・型で旧一般名`freeismApp`、`webApp`、`auctionService`をサービス全体の名前に使わない。
+
+
+
+### 8. WebSocket event
+
+```json
+{
+	"type": "auction.updated",
+	"auctionId": "auc_01...",
+	"auctionVersion": 43,
+	"bidSeq": 108,
+	"occurredAt": "2026-07-11T12:00:00.000Z",
+	"data": {}
+}
+```
+
+- eventは4KiB以下。
+- AutoBid上限、token、private balanceを含めない。
+- errorをsocket内独自responseで処理せず、mutation errorはHTTP Problem Detailsで返す。
+- gap時はHTTP snapshotへ戻る。
+
+- mutable Auction snapshot: 短いcacheまたは`no-store`、ETag/versionを使用
+
+## 4. Token保存とrefresh
+
+MarketsはPoints利用者のAccess TokenとRefresh Tokenを、Markets専用D1のBetter Auth Accountへ暗号化して保存する。保存と更新には、Better Auth標準の`account.encryptOAuthTokens: true`とversioned secretsを使う。versioned secretsはWorkers Secretsで環境・アプリ別に管理し、先頭を現在の暗号化用secret、残りを旧データの復号専用secretとする。新規保存、Refresh Token rotation、再連携などの次回書き込みで現在のversionへ揃える。CASで置換するTokenにも標準の暗号化経路を使い、独自AES-GCM envelope、key ring、平文の直接INSERT、読み取り時のlazy rewrap、ciphertext件数の独自reconciliationは実装しない。標準の暗号形式とalgorithmをアプリの契約へ固定せず、旧secretの廃止は標準のrotation手順と回帰テストに従う。MarketsはPointsをログイン用Social Providerとして公開しない。Task 6Aで標準のAccount保存・更新経路と暗号化の適用を実物で検証し、標準APIで成立しない場合はreleaseを停止する。
+
+MarketsのブラウザにはMarkets Session Cookieだけを保存する。Points TokenはMarketsのCookie、ブラウザJavaScript、`localStorage`、session payload、Problem Details、ログ、監査へ出さない。Cookie、Authorization Code、OAuth Clientの秘密鍵もログへ出さない。
+
+MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで更新し、新しいAccess TokenとRefresh Tokenへ暗号化して置き換える。Refresh Token rotationは`pointsConnectionId`単位のD1 lease/CASでsingle-flightにし、同じRefresh Tokenを並列使用しない。lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshではwinnerの結果を読み直す。APIが`401`を返したときの明示refreshと同じAPI要求の再試行は、それぞれ1回だけとする。`Idempotency-Key`が必須の操作では同じキーを使い、read-only操作へキーを追加しない。`401`に対するrefreshと再試行に失敗したときは、再連携を要求する。`invalid_grant`の場合は連携を`REAUTH_REQUIRED`へ進め、無限に再試行しない。
+
+| 操作                  | key                                          | limit                                   |
+| --------------------- | -------------------------------------------- | --------------------------------------- |
+| bid                   | user + Auction                               | 10秒5回                                 |
+| bid全体               | user                                         | 1分30回                                 |
+| WebSocket upgrade     | user                                         | 1分10回                                 |
+| WebSocket upgrade     | IP                                           | 1分30回                                 |
+| WebSocket接続         | user + Auction                               | 同時3                                   |
+| WebSocket接続         | user                                         | 同時20                                  |
+
+| 操作                  | key                                          | limit                                   |
+| --------------------- | -------------------------------------------- | --------------------------------------- |
+| Auction CSV           | Markets user + operation                     | 1分2回、1時間10回                       |
+
+| App     | Alert                            | OPEN条件                                                          | RESOLVED条件                                  |
+| ------- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
+| Markets | Auction transition delay         | `startsAt`／`endAt`から2分超、期待stateへ未遷移                   | 対応stateのCAS確定                            |
+| Markets | WebSocket lease／gap anomaly     | expiryから2分超のlease、または5分窓のgap resync率5%超かつ20件以上 | stale lease 0、直近5分がthreshold未満         |
+| Markets | Workflow／outbox／saga stuck     | 進捗なし5分超                                                     | terminal                                      |
+| Markets | reconciliation mismatch          | plan、引き落とし受領証、proofが1件でも不一致                      | full reconciliation一致                       |
+
+- 終了時点で利用者認可が有効な入札者だけを落札者にする。認可がない人は次の入札者にする。残高が足りない人は、その競売と利用者のブラックリストを1件記録してから、次の入札者にする。
+
+- 即時購入は、購入ボタンのあとで認可と残高を確認し、成功したときだけ数量を減らす。失敗しても競売は開いたままである。
+- 精算の手動再試行は置かない。
+
+- 競売の出品CSVに書くのはパッケージIDだけである。Marketsは作成の瞬間に最新改訂を取得して内容を固定する。確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。
+
+- 商材と競売条件は、一つの`auction`に置く。開始前の編集と取消は、Auction IDだけを使う。
+
+- 1つの競売は1つの`pointsServiceId`に固定し、落札者も評価軸も同じPointsのデータベースで精算する。
+
+- 落札者のIDは、Cloudflare D1に保存する。
+
+- Refresh Tokenの同時更新は、`pointsConnectionId`単位で1本にする。
+
+- 競売の状態は、`DRAFT`、`SCHEDULED`、`OPEN`、`CLOSING`、`CANCELLED`である。
+
+- Marketsは、登録した提供先のoriginへ外部のfetchで要求する。
+
+- 対面決済、QR決済、店舗履歴は、Marketsに導入する。
+
+- 入札は、`packageTick`単位の価格で、数量を指定して行う。
+
+  - Marketsは独立アカウントを作り、利用者が後からPointsを明示連携する。
+  - Markets利用者は複数のPoints互換提供先へ個別に連携できる。
+
+
+- Marketsはreceiptを保存した後だけlocal connectionを`UNLINKED`にする
+
+Marketsは配列の全IDが、今回送った落札候補であることを確認する。空、未知、request外のIDは手順の失敗とし、候補を除外しない。
+
 ## 9. セキュリティ、品質、release gate
 
 - Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。

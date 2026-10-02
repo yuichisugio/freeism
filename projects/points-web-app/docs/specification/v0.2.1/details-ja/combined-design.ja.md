@@ -76,7 +76,6 @@
     - [6. HTTP/OpenAPI](#6-httpopenapi)
     - [7. Hono](#7-hono)
     - [8. Drizzle/D1](#8-drizzled1)
-    - [9. Durable Object/Workflow](#9-durable-objectworkflow)
     - [10. frontend](#10-frontend)
     - [11. test](#11-test)
     - [12. script](#12-script)
@@ -108,7 +107,6 @@
     - [5. idempotency](#5-idempotency)
     - [6. cache](#6-cache)
   - [7. security header](#7-security-header)
-    - [8. WebSocket event](#8-websocket-event)
     - [9. logとの分離](#9-logとの分離)
   - [未受領FIXとAccounts連携](#未受領fixとaccounts連携)
     - [1. 目的](#1-目的)
@@ -136,20 +134,19 @@
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
   - [提供先ごとの1対1連携](#提供先ごとの1対1連携)
-  - [3. OAuth ClientとResource Server](#3-oauth-clientとresource-server)
-  - [4. Token保存とrefresh](#4-token保存とrefresh)
-  - [5. 共通HTTP contract](#5-共通http-contract)
-    - [5.1 headers](#51-headers)
-    - [5.2 response](#52-response)
-    - [5.3 OpenAPI共通schema](#53-openapi共通schema)
-  - [7. Endpoint wire正本](#7-endpoint-wire正本)
-    - [7.1 連携status](#71-連携status)
-    - [7.1c `appAdmin`の照会](#71c-appadminの照会)
-    - [7.2 連携解除](#72-連携解除)
-    - [7.3 残高](#73-残高)
-    - [7.4 落札精算の引き落とし](#74-落札精算の引き落とし)
+  - [OAuth ClientとResource Server](#oauth-clientとresource-server)
+  - [Token保存とrefresh](#token保存とrefresh)
+  - [共通HTTP contract](#共通http-contract)
+    - [headers](#headers)
+    - [response](#response)
+    - [OpenAPI共通schema](#openapi共通schema)
+  - [Endpoint wire正本](#endpoint-wire正本)
+    - [連携status](#連携status)
+    - [`appAdmin`の照会](#appadminの照会)
+    - [連携解除](#連携解除)
+    - [残高](#残高)
+    - [落札精算の引き落とし](#落札精算の引き落とし)
   - [Rate limit](#rate-limit)
-    - [8. 初期rate limit](#8-初期rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
     - [1. 防御層](#1-防御層)
     - [2. browser sessionとCookie](#2-browser-sessionとcookie)
@@ -159,6 +156,7 @@
     - [11. D1不変条件](#11-d1不変条件)
     - [12 Observabilityと運用alert](#12-observabilityと運用alert)
     - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
+  - [フォルダ構成](#フォルダ構成)
   - [前提](#前提-1)
     - [4.3 不変FIX revisionと差分台帳](#43-不変fix-revisionと差分台帳)
     - [4.4 未受領FIXとAccounts照合](#44-未受領fixとaccounts照合)
@@ -494,16 +492,12 @@
 
 公開プロフィールと`GET /api/v1/profiles/{pointsUserId}`の`accountsLinks`は、状態が`PROVIDED`の連携について、取得済みsnapshotだけを返す。閲覧のたびにAccountsへ問い合わせない。各連携は、origin、AccountsユーザーID、Accountsプロフィールへのリンク、取得日時、外部アカウント一覧を持つ。表示するのは、外部サービス名、取得できるユーザー名と表示名、固有IDとプロフィールURL、検証状態、検証方法、検証日時、連携日時のうち、Accountsが提供元ごとに提供する項目だけである。Pointsは最新の取得結果だけを保存し、過去の取得履歴は持たない。次回の取得で`NOT_PROVIDED`になった連携は、公開表示を止める。プロフィール自体が非公開のときは、連携アカウント一覧も公開しない。
 
-
-
 ### 多言語とaccessibility
 
 - 日本語と英語を提供する。browser言語が日本語なら日本語、それ以外は英語を既定にする。
 - link状態はiconや色だけでなくtextでも示す。
 - confirm、error、toastはkeyboardとscreen readerで判別できる。
 - 認証Providerから得た表示名などのテキストはescapeしてrenderする。
-
-
 
 ### プロフィールの設定画面
 
@@ -562,8 +556,6 @@
 7. **退会**
    - [退会と再開の処理](#10-account-closeと認証記録)に従う。
 
-
-
 - `account-settings`
   - 説明
     - アカウントの設定を保存するテーブル
@@ -590,28 +582,19 @@
        - 説明
          - 公式パッケージを0個以上登録可能。複数登録可能で配列で保存する（各要素は`packages.id`のNano IDなど）
 
-
-
 - Pointsの公開プロフィール、名前／ID検索、評価軸／Package検索を提供する。
-
 
 - プロフィールと、評価軸ごとの残高・譲渡履歴・交換履歴・評価結果の履歴は、それぞれ別々に「公開」か「非公開」かを選べる、という意味です。まとめて一括の公開設定にはしません。
 
-
 - Pointsの経済情報の公開は[プロフィール設定](profile-setting.md)に従う。
-
 
 - 公開プロフィール、公開設定された残高と`evaluationTotal`
 
-
 - 利用者IDとプロフィールURLの利用者IDは、標準Nano IDである。
-
 
 - プロフィールの公式パッケージは0件以上である。
 
-
 - 一つのブラウザで複数プロフィールを切り替える。切り替えはBetter Authの標準の複数セッションを使う。
-
 
 ### 9.5 自動分配
 
@@ -651,8 +634,6 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 - 別ユーザーとして作成済みのProvider accountは独立したPointsユーザーとして扱う。
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
 - 認証とサービス連携
-  - Marketsは独立アカウントを作り、利用者が後からPointsを明示連携する。
-  - Markets利用者は複数のPoints互換提供先へ個別に連携できる。
   - Points利用者は、複数のAccounts系サービスと連携できる。
 
 ### Accountsとの情報連携
@@ -696,7 +677,7 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 
 - API全体の要件
   1.  RESTのHTTPエンドポイントとして実装する
-  3.  無料主義アプリのパブリックAPIの秘密鍵を発行して、その鍵と必要な情報をヘッダーに入れてAPIリクエストする
+  2.  無料主義アプリのパブリックAPIの秘密鍵を発行して、その鍵と必要な情報をヘッダーに入れてAPIリクエストする
 
 - **v0.2.1における範囲**
   - 読み取りとして、指定した利用者の保有ポイント、落札証明、利用者情報を提供する。
@@ -710,19 +691,7 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
         1.  「無料主義アプリのユーザーID」と「評価軸のID」（Nano ID）を指定して、そのユーザーの保有ポイントを取得
         2.  Json形式で返す
             - Shields.io を使ってバッジを表示できるJSON
-  2.  **指定ユーザーが落札したか示す情報を取得**
-      - 目的
-        1.  GitHubのIssuesなどに表示するバッジで、落札したことを証明するために必要
-      - 要件
-        1.  「無料主義アプリのユーザーID」と「落札ID」（オークション ID）を指定して、当該ユーザーがその落札の落札者であることの**落札証明情報**を取得する（例：落札商材の概要、落札日時、落札ID、表示用の出品者・購入者情報など。外部に見せるのに足る最小限のフィールドに絞る）
-        2.  Json形式で返す
-            - Shields.io を使ってバッジを表示できるJSON
-        3.  **GitHub 上での明示向け**の場合の補足
-            - GitHub Issueでの落札証明は、利用側サービスの検討事項とする。必要な識別情報、取得方法、公開条件を利用側の接続設計で定める。
-            - 落札者であることを Issue 上で示す用に、**落札商材名**等に**リポジトリ名・Issue
-              ID**の記載を求める使い方に対応しうる形にする
-            - 例：APIの戻りをshields.io形式のバッジとしてIssueに貼り、出品者が応答のGitHubユーザー名とIssueコメント者を照合し、商材名・リポジトリ名・Issue IDから対象の落札証明を確認する。
-  3.  **ユーザー情報を取得**
+  2.  **ユーザー情報を取得**
       - 目的
         1.  「無料主義アプリの発展の評価軸」に必要なデータ
       - 要件
@@ -1133,7 +1102,6 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 - 初回は`expectedRevision`を空、更新・無効化は現在revision番号を必須とし、競合は`409`にする。
 - 作成、変更、無効化は既存rowを更新せず、不変`exchangeRateRevision`を追加する。過去の交換・代用結果は参照したrevisionを保持する。
 - 出力額は正の入力に対してtargetの`minimumUnit`倍数へ常に切り下げ、理論値との差を整数の余りとして台帳へ保存する。丸め後が0なら交換を拒否する。
-
   - 評価軸IDは不変の標準Nano ID、名前30文字以下、説明200文字以下、関連URL最大20件とする。
 
 - 無料主義v2では、グループ管理するけど、グループ内しか評価できないのが問題
@@ -1397,7 +1365,7 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 公開のパッケージ改訂応答に、問い合わせ時点の`packageLifecycleStatus`を含める。値は`ACTIVE`または`INACTIVE`とする。この値は改訂の不変内容ではないため、`contentHash`の対象に含めない。
 
-  - Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
+- Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
 
 - パッケージの現在の利用可否は`packageLifecycleStatus`と呼ぶ。
 
@@ -1687,10 +1655,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - Pointsはポイント付与・ポイント管理と、それに必要なPointsプロフィール、評価軸、Package、FIX、台帳を所有する。
 
-- 競売は、Marketsの出品者が出品CSVで作成する。
-- 出品CSVにパッケージ改訂IDは書かない。出品者が指定するのはパッケージIDだけである。
-- Marketsは作成の瞬間に、そのパッケージの最新改訂をPointsから取得し、内容を競売へ固定する。開始後にパッケージが更新されても、その競売の内容は変えない。
-- 作成時に確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。改訂を作った当時の`status`は見ない。過去の改訂を出品者が選ぶ手順はない。
 - 本人識別の正本は`providerId + accountId`であり、email一致による暗黙link・統合を禁止する。
 
 - `disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`とする。`trustedProviders`は、そのアプリのログインProviderと同じにする。PointsはGoogleとGitHub、MarketsもGoogleとGitHubである。PointsでAccountsを明示連携するときだけ、その接続先のProviderを加える。メールが未検証でも明示連携できる。メール一致による暗黙の連携はしない。
@@ -1743,13 +1707,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - Exchange比率は不変Revisionと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
 
-
-
-
-- 販売数量は1〜1,000とし、Packageの複数軸minimum unitからLCMによる整数package tickを作る。
-
-- 1ユーザー1Auctionにつき有効bid position 1件とし、再入札はposition更新＋不変bid event追加とする。
-
 - Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。
   - Status: 採用
   - 上書き・撤回関係: 全request Worker-firstを不採用。
@@ -1767,8 +1724,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - Pointsは自身の不変Package Revision、price tick、数量から必要vectorを再計算する。
   - Status: 採用
   - 上書き・撤回関係: Markets計算値だけを信用する初期案をSection 7で上書き。
-
-- Workflow stateは正本にせず、deterministic Workflow IDとMarkets D1 outbox／reconcilerで重複起動・retention切れから回復する。
 
 - stagingは`staging.points.freeism.app`／`staging.markets.freeism.app`をAccess保護し、productionは`points.freeism.app`／`markets.freeism.app`とする。
 
@@ -1789,8 +1744,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - Pointsは、PRごとに公開のプレビュー環境を作る。
 
-
-
 - 読取専用Public APIとしてPoints残高・公開ユーザー情報、Markets落札proof／Shields向け情報を提供する。
 
 - CSV操作はfile選択button、server検証後の確認画面、全error一覧を基本とし、drag-and-dropと永続draftを使わない。
@@ -1798,8 +1751,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - `/terms`、`/privacy`、`/help`、`/docs`を保持し、SSGで配信する。
 
 - 公開URLは名前ではなく不変IDを使用し、名前変更後もURLを維持する。
-
-
 
 - `/`は`/index.html`へ出力する静的SPA shellからhydrateするtop routeとし、top本体のSSGとは扱わない。build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけを明示生成する。
   - Status: 採用
@@ -1823,12 +1774,9 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 4固定routeはURL／query／HTMLをlocale別に増やさず、同じ静的HTMLへ日本語正本と英語参照訳を全文renderする。JavaScript無効時は両方を表示し、有効時は保存値→browser言語→日本語fallbackで表示だけを切り替える。
 
-
-
 - CSV exportは物理化snapshotを最大50,000行／50MiB、1行8KiB、1page最大1,000行／8MiBとし、作成者とexport IDをD1で照合する。cursorは数値ordinalとし、snapshotの30分期限をD1で検査する。
 
 - 貢献評価代用は有向method revisionとUTC月別result revisionを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
-
 
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
   - 暗黙link禁止、token非平文保存、永久対応そのものは維持する。標準暗号形式・algorithmをapp contractへ固定せず、versioned secretsの先頭をcurrent、残りをdecrypt-onlyとし、refresh／再連携等の次回writeでcurrentへ収束させる。
@@ -1975,12 +1923,6 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - environment variable・enum wire value: `SCREAMING_SNAKE_CASE`
 - D1 table/column/index/constraint: `snake_case`
 
-「Markets」と「Auction」の使い分け:
-
-- product/project/domain境界は`Markets`を使う。
-- Worker名とAuction domain objectだけは承認済み名称`auction-worker`、`AuctionRoom`を使う。
-- 新規文書・型で旧一般名`freeismApp`、`webApp`、`auctionService`をサービス全体の名前に使わない。
-
 ### 3. ID
 
 - opaque IDはdomain prefix付きのURL-safe stringにする。例: `pusr_`, `musr_`, `evc_`, `pkg_`, `fix_`, `auc_`, `stl_`。
@@ -1994,7 +1936,6 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 - 表示値文字列: `amount`またはdomain名付き`fixAmount`。
 - scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
-- Markets内部で扱うpackage tickの個数: suffix `TickCount`。例: `priceTickCount`、`buyNowPriceTickCount`。
 - Points wireで扱うscale済みpackage価格は外部契約名`priceTicks`を維持する。
 
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
@@ -2004,7 +1945,6 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 - 不変entityの版: `revision`、IDは`{domain}RevisionId`。
 - concurrency check: `expectedRevision`または`expectedAuctionVersion`。
-- Auction event sequence: `bidSeq`、同額到達順は`reachedSequence`。
 - state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
 - terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
 
@@ -2036,15 +1976,6 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - unique/check/indexへ目的を含む明示名を付ける。
 - migration file名はtoolが生成するsequence + kebab/snakeの説明を既存tool規約に合わせる。手書きでsequenceを偽造しない。
 - D1 bindingは各appで`DB`とする。
-
-### 9. Durable Object/Workflow
-
-- DO class: `AuctionRoom`
-- DO binding: `AUCTION_ROOMS`
-- Workflow class: `AuctionSettlementWorkflow`
-- Workflow binding: `AUCTION_SETTLEMENT`
-- DO IDは`auctionId`から決定論的に導出し、任意user inputをそのまま名前にしない。
-- Workflow instance IDはSettlement ID + immutable settlement revision + 単調なworkflow attemptで一意にし、Cloudflareの100文字上限内にする。初回は`attempt:0`、通信失敗の再送は同じ業務revisionのままattemptだけを増やし、完了済みinstance IDを再利用しない。
 
 ### 10. frontend
 
@@ -2100,8 +2031,6 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 - PointsとMarketsのBetter Authテーブル、Secret、Cookieの共有
 - `.freeism.app`をDomain属性とする共通Cookie
 - Google ID、GitHub ID、メールアドレスを使ったPoints–Markets間の暗黙対応
-
-MarketsはPointsをログインProviderにしない。MarketsへGoogleまたはGitHubでログインした後、独立した操作としてPointsを明示連携する。
 
 ### 3. Better Auth共通設定
 
@@ -2442,7 +2371,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - session/private API: `Cache-Control: private, no-store`
 - OAuth/token/callback: `Cache-Control: no-store`
 - immutable public revision/proof: content hash付きの明示public cache
-- mutable Auction snapshot: 短いcacheまたは`no-store`、ETag/versionを使用
+
 - error responseは認証内容を共有cacheしない
 
 ## 7. security header
@@ -2452,24 +2381,6 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - token/proofを含む可能性がある画面は`Referrer-Policy`を明示
 - HTMLはCSP、`X-Content-Type-Options: nosniff`等の共通headerを適用
 - header値、環境差、Static AssetsとWorker responseの適用範囲は[セキュリティ・テスト・デリバリー仕様 5.1](./security-and-delivery.md#51-http-security-header)を正本とする
-
-### 8. WebSocket event
-
-```json
-{
-	"type": "auction.updated",
-	"auctionId": "auc_01...",
-	"auctionVersion": 43,
-	"bidSeq": 108,
-	"occurredAt": "2026-07-11T12:00:00.000Z",
-	"data": {}
-}
-```
-
-- eventは4KiB以下。
-- AutoBid上限、token、private balanceを含めない。
-- errorをsocket内独自responseで処理せず、mutation errorはHTTP Problem Detailsで返す。
-- gap時はHTTP snapshotへ戻る。
 
 ### 9. logとの分離
 
@@ -2577,8 +2488,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - `pointSettlementDebit`、`pointSettlementDebitComponent`
 - `pointsMarketsConnection`、OAuth client/token metadata
 - append-only `auditEvent`
-
-
 
 ## 6. 金額表現
 
@@ -2719,21 +2628,17 @@ Marketsが登録した各提供先について次を保証する。
 - 通常unlinkは専用Authorization Code + PKCEと`points.connection.unlink`のあと、Pointsの`deactivatePointsConnection`を呼ぶ。Pointsはapp-owned grantを認可の正本とし、grant `UNLINKED`化、revocation outbox、receipt、auditを1つのD1 transactionで確定する。Marketsは成功receipt後だけlocal rowを閉じる。
 - 外部失効はapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で残高参照と引き落としを拒否する。
 
-## 3. OAuth ClientとResource Server
+## OAuth ClientとResource Server
 
 OAuth Clientの登録、リダイレクト、鍵、Marketsの利用、Resource APIの検査は、[8.3 開発者向けOAuthクライアント管理](#83-開発者向けoauthクライアント管理)に従います。Tokenの保存は、[8.4 Token保存とRefresh](#84-token保存とrefresh)と次節に従います。
 
-## 4. Token保存とrefresh
+## Token保存とrefresh
 
-MarketsはPoints利用者のAccess TokenとRefresh Tokenを、Markets専用D1のBetter Auth Accountへ暗号化して保存する。保存と更新には、Better Auth標準の`account.encryptOAuthTokens: true`とversioned secretsを使う。versioned secretsはWorkers Secretsで環境・アプリ別に管理し、先頭を現在の暗号化用secret、残りを旧データの復号専用secretとする。新規保存、Refresh Token rotation、再連携などの次回書き込みで現在のversionへ揃える。CASで置換するTokenにも標準の暗号化経路を使い、独自AES-GCM envelope、key ring、平文の直接INSERT、読み取り時のlazy rewrap、ciphertext件数の独自reconciliationは実装しない。標準の暗号形式とalgorithmをアプリの契約へ固定せず、旧secretの廃止は標準のrotation手順と回帰テストに従う。MarketsはPointsをログイン用Social Providerとして公開しない。Task 6Aで標準のAccount保存・更新経路と暗号化の適用を実物で検証し、標準APIで成立しない場合はreleaseを停止する。
+[Points–Markets連携契約のToken保存とrefresh](../../../../../markets-web-app/docs/specification/v0.2.1/index.ja.md#4-token保存とrefresh)
 
-MarketsのブラウザにはMarkets Session Cookieだけを保存する。Points TokenはMarketsのCookie、ブラウザJavaScript、`localStorage`、session payload、Problem Details、ログ、監査へ出さない。Cookie、Authorization Code、OAuth Clientの秘密鍵もログへ出さない。
+## 共通HTTP contract
 
-MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで更新し、新しいAccess TokenとRefresh Tokenへ暗号化して置き換える。Refresh Token rotationは`pointsConnectionId`単位のD1 lease/CASでsingle-flightにし、同じRefresh Tokenを並列使用しない。lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshではwinnerの結果を読み直す。APIが`401`を返したときの明示refreshと同じAPI要求の再試行は、それぞれ1回だけとする。`Idempotency-Key`が必須の操作では同じキーを使い、read-only操作へキーを追加しない。`401`に対するrefreshと再試行に失敗したときは、再連携を要求する。`invalid_grant`の場合は連携を`REAUTH_REQUIRED`へ進め、無限に再試行しない。
-
-## 5. 共通HTTP contract
-
-### 5.1 headers
+### headers
 
 - `Authorization: Bearer {token}`
 - `Idempotency-Key: {opaque-id}`は7章のoperation matrixで「必須」とした操作だけで必須とする。GETとbalance-checkでは要求しない
@@ -2742,7 +2647,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 - private responseは`Cache-Control: private, no-store`
 - 落札精算の一括引き落としは1,048,576 bytes、それ以外のJSON POSTは65,536 bytesをrequest body上限とし、超過時はbodyをparseせず`413`を返す
 
-### 5.2 response
+### response
 
 成功:
 
@@ -2767,9 +2672,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 }
 ```
 
-[Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
-
-### 5.3 OpenAPI共通schema
+### OpenAPI共通schema
 
 - Task 4 OpenAPIのJSON objectはすべて`additionalProperties: false`とする。
 - opaque ID／keyはprefixをwire validationへ固定しないnon-empty stringとする。通常のID／keyは最大255文字とする。
@@ -2782,9 +2685,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 
 共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`は`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`だけを正本とし、このTaskで実装内部error codeを追加しない。
 
-
-
-## 7. Endpoint wire正本
+## Endpoint wire正本
 
 OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成clientで別名を作らない。body上限はbyte数であり、GETはrequest bodyなしとする。
 
@@ -2797,9 +2698,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 | `POST /api/v1/me/balance-checks`                               | `checkPointBalance`             | 200     | 65,536 bytes    | 不要              |
 | `POST /api/v1/settlements/{settlementId}/debits`               | `debitPointSettlement`          | 200     | 1,048,576 bytes | 必須              |
 
-
-
-### 7.1 連携status
+### 連携status
 
 `GET /api/v1/me/connection`
 
@@ -2808,7 +2707,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - success `200`の`data` required: `pointsConnectionId`、`issuer`、`subject`、`status`、`grantedScopes`、`grantVersion`、`linkedAt`
 - `status`は`ACTIVE | REAUTH_REQUIRED`、`grantedScopes`はuniqueで通常user allowlistの`openid | profile | offline_access | points.connection.read | points.balance.read | points.settlements.debit`だけを許可する。email、表示名、Points内部user IDは返さない
 
-### 7.1c `appAdmin`の照会
+### `appAdmin`の照会
 
 `GET /api/v1/me/admin-membership`
 
@@ -2816,7 +2715,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - response: `{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`。呼び出し元が`appAdmin`なら`true`を返す。`admin_membership`は使わない。連携解除後は401。
 - `Cache-Control: private, no-store`。
 
-### 7.2 連携解除
+### 連携解除
 
 `POST /api/v1/me/connection-deactivations`
 
@@ -2827,10 +2726,8 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - Pointsはtokenのsubject／client IDから対象app-owned grantを解決し、bodyだけを信用しない
 - D1 guardはgrantが`ACTIVE`であることを再確認する。違えば何も変更しない
 - 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receipt、auditを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
-- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
-- Marketsはreceiptを保存した後だけlocal connectionを`UNLINKED`にする
 
-### 7.3 残高
+### 残高
 
 `POST /api/v1/me/balance-checks`
 
@@ -2841,7 +2738,7 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 - responseの`components`は`minItems: 1`かつ`evaluationCriterionId`昇順とし、各item requiredは`evaluationCriterionId`、`evaluationCriterionRevisionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`とする。`requiredAmountScaled`は非負整数文字列、`availableBalanceScaled`はsigned integer文字列とする
 - 残高の照会はポイントを確保しない。
 
-### 7.4 落札精算の引き落とし
+### 落札精算の引き落とし
 
 `POST /api/v1/settlements/{settlementId}/debits`
 
@@ -2871,41 +2768,12 @@ OpenAPI `operationId`は次へ固定し、Points handlerとMarkets生成client�
 }
 ```
 
-Marketsは配列の全IDが、今回送った落札候補であることを確認する。空、未知、request外のIDは手順の失敗とし、候補を除外しない。
-
 ## Rate limit
 
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
-- rate limit responseは`429`と`Retry-After`を返す。
-
-### 8. 初期rate limit
-
-| 操作                  | key                                          | limit                                   |
-| --------------------- | -------------------------------------------- | --------------------------------------- |
-| Better Auth OAuth     | IP、provider、session                        | Better Auth D1 limit + WAF managed rule |
-| bid                   | user + Auction                               | 10秒5回                                 |
-| bid全体               | user                                         | 1分30回                                 |
-| WebSocket upgrade     | user                                         | 1分10回                                 |
-| WebSocket upgrade     | IP                                           | 1分30回                                 |
-| WebSocket接続         | user + Auction                               | 同時3                                   |
-| WebSocket接続         | user                                         | 同時20                                  |
-| CSV validation/commit | `appAdmin`またはその評価軸の`evalueterAdmin` | 1分2回、1時間10回                       |
-| Auction CSV           | Markets user + operation                     | 1分2回、1時間10回                       |
-
-idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
-
-
-
-- `429`: rate limit。`Retry-After`必須
-
-
-  2.  RateLimitの実装
-      - [https://kinsta.com/jp/blog/api-rate-limit/](https://kinsta.com/jp/blog/api-rate-limit/)
-
-
+  - rate limit responseは`429`と`Retry-After`を返す。
 - RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
-
 
 ## セキュリティ・テスト・デリバリー仕様
 
@@ -3023,16 +2891,13 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 初期alert条件は次を正本とする。durationはD1/server時刻で判定し、単発metric欠落だけでalertを閉じない。
 
-| App     | Alert                            | OPEN条件                                                          | RESOLVED条件                                  |
-| ------- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
-| Points  | command／revocation outbox stuck | `PENDING`／`VALIDATED`／未送信が5分超                             | terminal／送信receipt確定                     |
-| Points  | reconciliation mismatch          | ledger、projection、claim集合が1件でも不一致                      | full reconciliation一致                       |
-| Points  | rejection audit failure          | rejection auditまたはalert書込みが1件失敗                         | 次のhealth probe成功。失敗event自体は消さない |
-| Markets | Auction transition delay         | `startsAt`／`endAt`から2分超、期待stateへ未遷移                   | 対応stateのCAS確定                            |
-| Markets | WebSocket lease／gap anomaly     | expiryから2分超のlease、または5分窓のgap resync率5%超かつ20件以上 | stale lease 0、直近5分がthreshold未満         |
-| Markets | Workflow／outbox／saga stuck     | 進捗なし5分超                                                     | terminal                                      |
-| Markets | reconciliation mismatch          | plan、引き落とし受領証、proofが1件でも不一致                      | full reconciliation一致                       |
-| 共通    | alert delivery failure           | Email binding送信失敗                                             | 保留通知の送信receipt確定                     |
+| App    | Alert                            | OPEN条件                                     | RESOLVED条件                                  |
+| ------ | -------------------------------- | -------------------------------------------- | --------------------------------------------- |
+| Points | command／revocation outbox stuck | `PENDING`／`VALIDATED`／未送信が5分超        | terminal／送信receipt確定                     |
+| Points | reconciliation mismatch          | ledger、projection、claim集合が1件でも不一致 | full reconciliation一致                       |
+| Points | rejection audit failure          | rejection auditまたはalert書込みが1件失敗    | 次のhealth probe成功。失敗event自体は消さない |
+
+| 共通 | alert delivery failure | Email binding送信失敗 | 保留通知の送信receipt確定 |
 
 staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVEDへ進め、Emailは専用verified test destination、Analytics EngineはSQL API、Workers Logsはrequest／correlation IDで確認する。productionの個人宛先や実Auctionへtest alertを送らない。
 
@@ -3065,6 +2930,19 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
   - 同じresourceをTerraformとWranglerで二重管理しない。
 
+## フォルダ構成
+
+- `infra/{table_name}`
+  - Table操作系やカラム定義を実装
+  - テーブル操作が変わっても、他が影響を受けない様に閉じ込める
+- `domain/{rule_name}`
+  - ドメインのルールを実装
+- `infra/config/drizzle`
+  - Drizzle定義
+- `infra/config/cloudflare`
+  - claudflareの設定項目
+- usecase → domain → infra
+
 ## 前提
 
 - `points-worker`と画面を同じprojectで管理する。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
@@ -3081,7 +2959,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - 評価結果draft、承認待ち、部分FIXを持たず、確定したFIXだけをCSVで無料主義アプリに登録する。
   - draftや承認待ちは、無料主義アプリ外で、それぞれの評価軸が管理する
 
-
   - Pointsは独立Better Authユーザー、D1、Session Cookieを持ち、Accountsを後から明示linkする。
   - OAuthは、GitHubとGoogleに対応する
 
@@ -3092,19 +2969,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
     - `/docs/usage`
   - ポイント関係のAPIドキュメントのページも用意する
     - `/docs/api`
-
-- フォルダ構成
-  - `infra/{table_name}`
-    - Table操作系やカラム定義を実装
-    - テーブル操作が変わっても、他が影響を受けない様に閉じ込める
-  - `domain/{rule_name}`
-    - ドメインのルールを実装
-  - `infra/config/drizzle`
-    - Drizzle定義
-  - `infra/config/cloudflare`
-    - claudflareの設定項目
-  - usecase → domain → infra
-
 
 - バックエンド
   - パブリックのPI
@@ -3191,25 +3055,21 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - 外部アカウントの管理はAccountsが行い、Pointsの仕様にはその手順を書かない。
 - 落札の支払いは、ポイントの仮押さえでは扱わない。
-- 終了時点で利用者認可が有効な入札者だけを落札者にする。認可がない人は次の入札者にする。残高が足りない人は、その競売と利用者のブラックリストを1件記録してから、次の入札者にする。
+
 - 引き落としは利用者認可で行い、その時点の落札者全員を1回の処理とする。一人でも失敗すれば台帳は0件である。成功した引き落としは戻さない。
-- 即時購入は、購入ボタンのあとで認可と残高を確認し、成功したときだけ数量を減らす。失敗しても競売は開いたままである。
-- 精算の手動再試行は置かない。
+
 - すべての操作でfreshness sessionは要求しない。
 
 - 権限は`appAdmin`、`packageAdmin`、`evalueterAdmin`の3つである。`appAdmin`はBetter AuthのAdminプラグイン、`packageAdmin`と`evalueterAdmin`はOrganizationプラグインのカスタムロールである。既存の全体管理者は`appAdmin`へ移す。
 - 管理者の招待メールは送らない。未受諾の招待は、ログイン中の画面で一覧し、その画面で受諾する。
 
-- 競売の出品CSVに書くのはパッケージIDだけである。Marketsは作成の瞬間に最新改訂を取得して内容を固定する。確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
-- 商材と競売条件は、一つの`auction`に置く。開始前の編集と取消は、Auction IDだけを使う。
-- 1つの競売は1つの`pointsServiceId`に固定し、落札者も評価軸も同じPointsのデータベースで精算する。
+
 - 連携キーは、提供先の`providerId`と利用者の`subject`である。issuerは、その提供先の登録値と一致することを確認する。
-- 落札者のIDは、Cloudflare D1に保存する。
 
 - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
-- Refresh Tokenの同時更新は、`pointsConnectionId`単位で1本にする。
+
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
 - 退会は、`appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のそれぞれで最後の1人ならできない。
 - 各対象の管理者は100人までとする。
@@ -3217,10 +3077,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - 貢献評価代用は、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`が実行できる。単位は評価月`YYYY-MM`である。
 - Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。メールとPUSHは作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
 
-- 競売の状態は、`DRAFT`、`SCHEDULED`、`OPEN`、`CLOSING`、`CANCELLED`である。
-- Marketsは、登録した提供先のoriginへ外部のfetchで要求する。
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
 - OAuthクライアント経由で、任意の引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
-- 対面決済、QR決済、店舗履歴は、Marketsに導入する。
-- 入札は、`packageTick`単位の価格で、数量を指定して行う。
