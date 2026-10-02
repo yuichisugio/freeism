@@ -1526,7 +1526,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - 本人は自分の非公開データを出力できる
   - `appAdmin`は無条件で可能
   - `packageAdmin`と`evalueterAdmin`は所属する対象
-  - フロントエンドの制限だけではなく、バックエンドでも認可する
+  - サーバーは、リクエストごとに利用者の権限と取得条件を確認する。
 
 - 形式
   - UTF-8 With BOM
@@ -1544,17 +1544,11 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
     - 最大50,000行かつUTF-8 50MiBとする。
     - 上限超過分の暗黙切捨てを行う。まだ次があることを伝えるフラグも返す。
   - page readerは`ordinal`を100行ずつD1から取得し、RFC 4180 encoderへstreamする。1,000行をJavaScript array／string／Blobへ一括展開しない。
+  - データを分割して取得する場合は、続きの取得に必要なカーソルを返す。cursorは数値ordinalで表し、範囲外を拒否する。
 
-- スナップショットは不要
-  - CSVエクスポートは、取得時点のデータを直接読み出してCSVで返す。
-  - エクスポート専用のスナップショットは作成しない。
-  - 利用者は、出力対象、期間、1回に取得する行数を指定する。
-  - サーバーは、リクエストごとに利用者の権限と取得条件を確認する。
-  - データを分割して取得する場合は、続きの取得に必要なカーソルを返す。
-  - 次のCSVも、リクエスト時点のデータから取得する。
-  - 取得の途中でデータが追加・更新された場合は、その変更が後続の取得結果に反映されることを許容する。
-  - 複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
-  - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
+- データ取得
+  - CSVエクスポートは、各リクエスト時点のデータを直接読み出してCSVで返す。エクスポート専用のスナップショットは作成しない。
+  - 取得の途中でデータが追加・更新された場合は、その変更が後続の取得結果に反映されることを許容する。複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
 
 - UI
   - 対象type、期間、1pageの行数を選ぶ最小限のUIを用意する。
@@ -1569,11 +1563,30 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - encoding: UTF-8 with BOMは先頭だけ許可する。
   - 最大size: 5MiB。
   - 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。
-  - import type固有の上限が1,000未満なら小さい方を適用する。
-  - 評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
+  - import type固有の上限が1,000未満なら小さい方を適用する。評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
   - header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
   - 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
   - ZIP、Excel、JSON、複数file、drag-and-dropはv0.2.1.\*で扱わない。
+
+- validation
+  - client previewは補助であり、serverが同じfileを再parseして正とする。
+  - header、列数、必須値、値域、ID、URL、年月、enum、文字数、参照先存在、権限、一意性、重複header、重複business key、重複行を検査する。
+  - すべての行を検査し、全エラーを行番号、列名、error code、修正可能な説明付きでまとめて返す。
+  - 1件でもerrorがある場合や同一ファイル内に重複行がある場合は、ファイル全体を失敗させ、確定APIを実行せず、部分反映しない。
+  - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
+  - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
+  - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
+  - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
+
+- 確定
+  - server draftを保存せず、利用者の確認後に1回の原子commitを行う。
+
+- D1処理
+  - 1,000行をmulti-value SQLのbound parameterへ直接展開せず、validation済みcanonical JSONをUTF-8 1,500,000 bytes以下にchunk化する。
+  - 各固定SQLはJSON chunk 1個を`json_each(?)`でset-based展開し、1 queryのbound parameterを100以下、SQLを100KB以下、stringを2MB未満にする。
+  - 1,000行／5MiB境界を実D1 runtimeで測定し、batch全体30秒を超える場合は上限を黙って下げず、schema／set-based SQLを見直す。
+
+- 検証観点
   - 空行、余剰列、不足列、重複header、重複business key
   - `0.0001`、小数5桁、指数表記、Unicodeマイナス、安全整数境界
   - `minimumUnit`倍数と非倍数
@@ -1584,23 +1597,8 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
     - CRLF/LF
     - quote内改行
     - Unicode
-  - client previewは補助であり、serverが同じfileを再parseして正とする。
-  - すべての行を検査し、行番号、列名、error code、修正可能な説明をまとめて返す。
-  - 1件でもerrorがあれば確定APIを実行せず、部分反映しない。
-  - ID、URL、年月、enum、文字数、参照先存在、権限、一意性、重複行を検査する。
-  - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
-  - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
-  - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
-  - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
-  - 1,000行をmulti-value SQLのbound parameterへ直接展開せず、validation済みcanonical JSONをUTF-8 1,500,000 bytes以下にchunk化する。
-  - 各固定SQLはJSON chunk 1個を`json_each(?)`でset-based展開し、1 queryのbound parameterを100以下、SQLを100KB以下、stringを2MB未満にする。
-  - 1,000行／5MiB境界を実D1 runtimeで測定し、batch全体30秒を超える場合は上限を黙って下げず、schema／set-based SQLを見直す。
-  - header、列数、必須値、値域を厳密に検証し、全エラーを行番号・列名付きで返す。
-  - 同一ファイル内の重複行はファイル全体を失敗させ、部分反映しない。
-  - export時は表計算ソフトのformula injectionを無害化する。
-  - client previewを信用せずserverで再parseする。
-  - server draftなし、確認後1回の原子commit。
-  - exportはformula injectionを無害化する。snapshotの読取はログイン中の作成者とexport IDを照合し、D1の有効期限を確認する。cursorは数値ordinalで表し、範囲外を拒否する。
+
+- ログ
   - file本文、自由入力cell、個人情報を通常logへ出さない。
 
 ## 命名規則
