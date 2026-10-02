@@ -11,7 +11,7 @@
     - [基本情報](#基本情報-1)
     - [公式Packageの登録](#公式packageの登録)
     - [評価軸ごとの公開設定](#評価軸ごとの公開設定)
-    - [2.1 IDと公開URL](#21-idと公開url)
+    - [IDと公開URL](#idと公開url)
     - [表示項目](#表示項目)
     - [検索](#検索)
     - [公開設定](#公開設定)
@@ -407,17 +407,17 @@
 
 `PRIVATE -> PUBLIC`を1つでも含む変更、またはprofile全体の`PRIVATE -> PUBLIC`は公開範囲の拡大である。`PUBLIC -> PRIVATE`だけの縮小もできる。
 
-### 2.1 IDと公開URL
+### IDと公開URL
 
 - PointsユーザーIDは不変の標準Nano IDとする。表示名を変更してもIDとプロフィールURLは変わらない。
-- canonical URLは`https://points.freeism.app/profiles/{pointsUserId}`とし、`/dashboard`を含めない。
+- URLは`https://points.freeism.app/profiles/{pointsUserId}`
 - publicプロフィールは未ログインでも閲覧できる。
 - プロフィール自体を非公開にした場合は検索結果へ出さず、直接URLでも存在を開示しない。
 
 ### 表示項目
 
 - ユーザーID
-- 表示名と説明。文字数は[プロフィールの基本情報](#1-基本情報)に従う。
+- 表示名と説明
 - 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
 - 公開設定をONにした評価軸の`balance`と`evaluationTotal`
 - 公開設定をONにしたFIX・譲渡・交換履歴
@@ -427,7 +427,8 @@
 ### 検索
 
 - 公開プロフィール、評価軸、パッケージを、名前と不変IDで検索できる。
-- 非公開プロフィールを結果へ含めない。退会済みのプロフィールは[退会と再開の処理](#10-account-closeと認証記録)に従う。
+- 非公開プロフィールを結果へ含めない。
+- 退会済みのプロフィールは[退会と再開の処理](#10-account-closeと認証記録)に従う。
 - D1/SQLiteで実現できる検索だけを使い、PGroongaやSupabase extensionへ依存しない。
 - headerの共通検索欄から検索結果へ遷移できる。
 
@@ -438,9 +439,6 @@
 - 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸revisionの公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
 - 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
 - profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
-- 編集導線と権限判定は[プロフィール画面](#v021プロフィール画面)に従う。
-- 公開プロフィールURLは`/profiles/{pointsUserId}`。
-- 編集ボタンは[プロフィール画面](#v021プロフィール画面)に従う。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
 - 公式Packageはprofileの`displayOrder`で返し、現在の公開revisionへのlinkと不変Package IDを示す。
 - FIX・譲渡履歴は対応する評価軸フラグが`PUBLIC`の時だけ返す。交換履歴はsourceとtarget両方の`exchangeHistoryVisibility` が`PUBLIC`の時だけ返し、非公開軸のIDや額を反対軸から推測できる部分表示を行わない。
