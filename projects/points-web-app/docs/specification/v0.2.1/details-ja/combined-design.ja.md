@@ -11,6 +11,10 @@
     - [基本情報](#基本情報-1)
     - [公式Packageの登録](#公式packageの登録)
     - [評価軸ごとの公開設定](#評価軸ごとの公開設定)
+    - [2.1 IDと公開URL](#21-idと公開url)
+    - [2.2 表示項目](#22-表示項目)
+    - [2.3 検索](#23-検索)
+    - [2.4 公開設定](#24-公開設定)
   - [2. Social Account](#2-social-account)
     - [Accountsとの情報連携](#accountsとの情報連携)
     - [ユーザー連携の件数と識別](#ユーザー連携の件数と識別)
@@ -23,10 +27,10 @@
   - [パブリックAPI](#パブリックapi)
     - [基本情報](#基本情報-2)
     - [要件](#要件-1)
-  - [評価軸の作成・更新・プロフィール](#評価軸の作成更新プロフィール)
+  - [評価軸](#評価軸)
     - [基本情報](#基本情報-3)
     - [要件](#要件-2)
-  - [パッケージを作成・更新・プロフィール](#パッケージを作成更新プロフィール)
+  - [パッケージ](#パッケージ)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
   - [ログイン](#ログイン)
@@ -62,16 +66,13 @@
     - [12. script](#12-script)
     - [13. 例外](#13-例外)
   - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
-  - [2. アプリと認証データの境界](#2-アプリと認証データの境界)
-  - [3. Better Auth共通設定](#3-better-auth共通設定)
-  - [4. PointsのGoogle・GitHubログインと明示連携](#4-pointsのgooglegithubログインと明示連携)
-    - [4.1 共通Provider集合](#41-共通provider集合)
-    - [4.2 Google](#42-google)
+    - [2. アプリと認証データの境界](#2-アプリと認証データの境界)
+    - [3. Better Auth共通設定](#3-better-auth共通設定)
+    - [4. PointsのGoogle・GitHubログインと明示連携](#4-pointsのgooglegithubログインと明示連携)
+      - [4.2 Google](#42-google)
     - [4.3 GitHub](#43-github)
-  - [5. Pointsログイン用OAuth主体の永久対応](#5-pointsログイン用oauth主体の永久対応)
-    - [5.1 永久対応](#51-永久対応)
-    - [5.2 Accountsとの責務境界](#52-accountsとの責務境界)
-  - [6. 対象操作](#6-対象操作)
+    - [5. Pointsログイン用OAuth主体の永久対応](#5-pointsログイン用oauth主体の永久対応)
+    - [6. 対象操作](#6-対象操作)
   - [7. 未受領FIX](#7-未受領fix)
     - [7.1 未受領FIX](#71-未受領fix)
   - [8. Points–Markets OAuth](#8-pointsmarkets-oauth)
@@ -81,45 +82,37 @@
     - [8.3 開発者向けOAuthクライアント管理](#83-開発者向けoauthクライアント管理)
     - [8.4 Token保存とRefresh](#84-token保存とrefresh)
   - [9. Cookie、CSRF、Origin](#9-cookiecsrforigin)
-  - [10. Account closeと認証記録](#10-account-closeと認証記録)
-  - [12. Rate Limit](#12-rate-limit)
-- [評価軸とパッケージの管理](#評価軸とパッケージの管理)
-  - [1. 権限model](#1-権限model)
-  - [2. 評価軸](#2-評価軸)
+  - [退会](#退会)
+  - [Rate Limit](#rate-limit)
+  - [評価軸とパッケージの管理](#評価軸とパッケージの管理)
+  - [評価軸](#評価軸-1)
     - [CSV列](#csv列)
-  - [3. パッケージ](#3-パッケージ)
+  - [3パッケージ](#3パッケージ)
     - [CSV列](#csv列-1)
-  - [4. lifecycle](#4-lifecycle)
-  - [5. 交換比率](#5-交換比率)
-  - [6. 画面](#6-画面)
-- [プロフィール設定](#プロフィール設定)
-- [Hono HTTPレスポンス仕様](#hono-httpレスポンス仕様)
-  - [1. 対象](#1-対象-1)
-  - [2. 成功](#2-成功)
-  - [3. 失敗](#3-失敗)
-  - [4. status](#4-status)
-  - [5. idempotency](#5-idempotency)
-  - [6. cache](#6-cache)
+  - [lifecycle](#lifecycle)
+  - [交換比率](#交換比率)
+  - [画面](#画面)
+  - [Hono HTTPレスポンス仕様](#hono-httpレスポンス仕様)
+    - [1. 対象](#1-対象-1)
+    - [2. 成功](#2-成功)
+    - [3. 失敗](#3-失敗)
+    - [4. status](#4-status)
+    - [5. idempotency](#5-idempotency)
+    - [6. cache](#6-cache)
   - [7. security header](#7-security-header)
-  - [8. WebSocket event](#8-websocket-event)
-  - [9. logとの分離](#9-logとの分離)
-- [未受領FIXとAccounts連携](#未受領fixとaccounts連携)
-  - [1. 目的](#1-目的)
-  - [3. Pointsが保存する経済データ](#3-pointsが保存する経済データ)
-    - [`unclaimedFixEntry`](#unclaimedfixentry)
-    - [`fixClaim`](#fixclaim)
-  - [6. FIX取込時の照合](#6-fix取込時の照合)
-  - [7. 未受領FIXの受領資格](#7-未受領fixの受領資格)
-  - [8. 一括claim](#8-一括claim)
+    - [8. WebSocket event](#8-websocket-event)
+    - [9. logとの分離](#9-logとの分離)
+  - [未受領FIXとAccounts連携](#未受領fixとaccounts連携)
+    - [1. 目的](#1-目的)
+    - [3. Pointsが保存する経済データ](#3-pointsが保存する経済データ)
+      - [`unclaimedFixEntry`](#unclaimedfixentry)
+      - [`fixClaim`](#fixclaim)
+    - [6. FIX取込時の照合](#6-fix取込時の照合)
+    - [7. 未受領FIXの受領資格](#7-未受領fixの受領資格)
+    - [8. 一括claim](#8-一括claim)
   - [9. 監査と公開表示](#9-監査と公開表示)
-- [Pointsドメイン仕様](#pointsドメイン仕様)
   - [1. 責務](#1-責務)
     - [所有する主なaggregate](#所有する主なaggregate)
-  - [2. ユーザーとプロフィール](#2-ユーザーとプロフィール)
-    - [2.1 IDと公開URL](#21-idと公開url)
-    - [2.2 表示項目](#22-表示項目)
-    - [2.3 検索](#23-検索)
-    - [2.4 公開設定](#24-公開設定)
   - [4. 評価軸](#4-評価軸)
     - [4.1 基本属性](#41-基本属性)
     - [4.2 登録・更新](#42-登録更新)
@@ -425,8 +418,6 @@
          2. 譲渡するポイントの額
          3. 譲渡先のユーザーID
 1.  **複数プロフィールの切り替え**
-
-
     - 複数名義で参加する利用者が、個人名義とReactなどのソフトウェア名義を、Twitterのように簡単に切り替えられるようにする。
     - Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。
     - Cookieとセッションの処理はBetter Authの標準機能に任せる。
@@ -443,7 +434,6 @@
 - ポイントのプロフィールを持つことで、それを示すだけで優先権を得る
 - ポイント保有額の非公開
   - ポイントを非公開にした場合に、加算or減算した場合でも、レスポンスに現在の保有ポイント数を入れずに返す
-
 
 ### 公式Packageの登録
 
@@ -465,6 +455,39 @@
 評価軸を初めて参照する時は`balanceVisibility`だけをその評価軸revisionの残高公開初期値から作り、`evaluationTotalVisibility`と履歴3種は`PRIVATE`とする。`PUT /api/profile/evaluation-visibilities/{evaluationCriterionId}`は5フラグの完全な組を受け、本人だけが更新できる。
 
 `PRIVATE -> PUBLIC`を1つでも含む変更、またはprofile全体の`PRIVATE -> PUBLIC`は公開範囲の拡大である。`PUBLIC -> PRIVATE`だけの縮小もできる。
+
+### 2.1 IDと公開URL
+
+- PointsユーザーIDは不変の標準Nano IDとする。表示名を変更してもIDとプロフィールURLは変わらない。
+- canonical URLは`https://points.freeism.app/profiles/{pointsUserId}`とし、`/dashboard`を含めない。
+- publicプロフィールは未ログインでも閲覧できる。
+- プロフィール自体を非公開にした場合は検索結果へ出さず、直接URLでも存在を開示しない。
+
+### 2.2 表示項目
+
+- ユーザーID
+- 表示名と説明。文字数は[プロフィールの基本情報](#1-基本情報)に従う。
+- 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
+- 公開設定をONにした評価軸の`balance`と`evaluationTotal`
+- 公開設定をONにしたFIX・譲渡・交換履歴
+
+メールは公開プロフィールへ出さず、本人識別にも使わない。
+
+### 2.3 検索
+
+- 公開プロフィール、評価軸、パッケージを、名前と不変IDで検索できる。
+- 非公開プロフィールを結果へ含めない。退会済みのプロフィールは[退会と再開の処理](#10-account-closeと認証記録)に従う。
+- D1/SQLiteで実現できる検索だけを使い、PGroongaやSupabase extensionへ依存しない。
+- headerの共通検索欄から検索結果へ遷移できる。
+
+### 2.4 公開設定
+
+- プロフィール自体は初期値`PUBLIC`とする。
+- 公開一覧とプロフィールは未ログインでも閲覧できる。
+- 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸revisionの公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
+- 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
+- profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
+- 編集導線と権限判定は[プロフィール画面](#v021プロフィール画面)に従う。
 
 ## 2. Social Account
 
@@ -636,7 +659,7 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
             - `{"sortColumn":"createdAt", "sortDirection": "desc"}`
         5.  Json形式で返す
 
-## 評価軸の作成・更新・プロフィール
+## 評価軸
 
 ### 基本情報
 
@@ -902,7 +925,7 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
   4.  検索結果の一覧で、`evalueterAdmin`、`packageAdmin`、`appAdmin`の場合だけ「管理者・編集可能」バッジを表示する
   5.  自分が管理者である評価軸とパッケージだけを検索できるフィルターを用意する
 
-## パッケージを作成・更新・プロフィール
+## パッケージ
 
 - 概要
   - パッケージに関する画面についての仕様
@@ -1797,7 +1820,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 メールアドレス、表示名、ユーザー名、プロフィールURLは変更可能な属性であり、本人識別の正本にしない。
 
-## 2. アプリと認証データの境界
+### 2. アプリと認証データの境界
 
 | 対象               | ログインProvider                    | 本人識別                               | セッション・認証DB                  |
 | ------------------ | ----------------------------------- | -------------------------------------- | ----------------------------------- |
@@ -1816,7 +1839,7 @@ server側にdraftを保存しない。validationと確定の間に参照revision
 
 MarketsはPointsをログインProviderにしない。MarketsへGoogleまたはGitHubでログインした後、独立した操作としてPointsを明示連携する。
 
-## 3. Better Auth共通設定
+### 3. Better Auth共通設定
 
 PointsとMarketsは、それぞれ独立したBetter Auth instanceを持つ。Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
 
@@ -1851,15 +1874,11 @@ betterAuth({
 
 明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前とメールで既存Pointsプロフィールを上書きしない。
 
-## 4. PointsのGoogle・GitHubログインと明示連携
-
-### 4.1 共通Provider集合
+### 4. PointsのGoogle・GitHubログインと明示連携
 
 PointsではGoogleとGitHubを同じSocial Provider集合として扱う。
 
 stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbackを共有し、認証後は開始元のoriginへ戻す。productionはproduction自身のcallbackを使う。PR originは実際の`workers.dev`ホスト形式に限定して許可し、同じstaging Workerの`BETTER_AUTH_SECRETS`を使う。
-
-2026-07-11にBetter Auth公式のSocial Provider／Account Linking optionsを確認した範囲では、Provider単位で「`linkSocial`は許可するが`signIn.social`は禁止する」標準optionを確認できなかった。Google・GitHubは経路ごとに分岐せず、次の同一集合を正本とする。将来標準optionが追加されても、v0.2.1の仕様変更として別途承認されるまでは自動でProvider集合を分岐しない。
 
 - ログイン画面にはGoogleとGitHubの両方を表示する。
 - ログイン済みユーザーの連携画面にもGoogleとGitHubの両方を表示する。
@@ -1868,7 +1887,7 @@ stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbac
 
 GoogleとGitHubで別々のPointsユーザーを作成した後、それらをメール一致で統合しない。あるProvider Accountがすでに別のPointsユーザーに属する場合、そのAccountを別ユーザーへlinkできない。同一Pointsユーザーとして使いたい場合は、第二のProviderで別ユーザーを作る前に、ログイン済みの既存ユーザーへ明示linkする。
 
-### 4.2 Google
+#### 4.2 Google
 
 - Google Accountは`providerId = google`とGoogle `sub`に相当する`accountId`で識別する。
 - email、email verified、表示名は本人識別に使用しない。
@@ -1886,9 +1905,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 同じGitHub Accountを複数のPointsユーザーへ紐付けない。
 - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
-## 5. Pointsログイン用OAuth主体の永久対応
-
-### 5.1 永久対応
+### 5. Pointsログイン用OAuth主体の永久対応
 
 初めて成立した次の対応は永久記録とする。
 
@@ -1902,11 +1919,9 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - loginと明示linkは、app-owned永久対応を同じD1 transactionまたは失敗時に再実行可能な単調処理で照合する。在籍中の同じ主体を別ユーザーへ割り当てない。
 - 永久対応tableと一意制約はPoints実装計画Task 9が所有し、Task 9完了をproduction release blockerとする。Task 1ではBetter Auth標準Accountの既存Account再利用だけを検査する。この永久対応はログインの本人対応に使い、退会後は[退会と再開の処理](#10-account-closeと認証記録)に従う。
 
-### 5.2 Accountsとの責務境界
-
 本節の永久対応は、Pointsへのログインと、経済記録を元の利用者へ戻すためのものである。外部アカウントの所有権証明、紐付け、解除は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。Pointsは、Accountsから提供を許可された照合結果を、貢献者の特定に使う。
 
-## 6. 対象操作
+### 6. 対象操作
 
 Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、`appAdmin`、`packageAdmin`、`evalueterAdmin`、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時に拒否する。
 
@@ -2051,7 +2066,7 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 - OAuth callback、WebSocket handshake、重要mutationで環境ごとの正しいoriginを検証する。
 - [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 
-## 10. Account closeと認証記録
+## 退会
 
 - 利用者は設定画面の「アプリ退会」ボタンで退会する。
 - 借金や負のポイントを退会と再登録で帳消しにできないよう、Pointsは利用者を退会済みの`CLOSED`にし、公開プロフィールを匿名化してログアウトさせる。
@@ -2073,7 +2088,7 @@ Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは
 - 再開画面には、受領資格が確定した未受領FIXの評価軸別正味合計、正件数、負件数、全件数、`reopenSetHash`を表示する。
 - このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行、監査を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。戻したあとの表示名と説明は、本人が設定する。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後に連携した未受領FIXは、一括受領で受け取る。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
 
-## 12. Rate Limit
+## Rate Limit
 
 Rate Limitは不正利用の抑止に使用するが、Account一意性、FIX二重受領などの正確性はD1の状態・一意制約で保証する。
 
@@ -2081,9 +2096,7 @@ Rate Limitは不正利用の抑止に使用するが、Account一意性、FIX二
 | ------------------------ | ------------------------------------------ |
 | Google／GitHub OAuth開始 | Better AuthのD1 rate limit＋Cloudflare WAF |
 
-# 評価軸とパッケージの管理
-
-## 1. 権限model
+## 評価軸とパッケージの管理
 
 Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグインで管理する。対象ごとの管理者の紐づけと、管理APIの自作を減らすためである。
 
@@ -2105,7 +2118,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 初期の`appAdmin`は、`appAdmin`が0人のときだけ、Secretsで指定したGoogleの`accountId`と一致するログインを一度だけ昇格する。公開の昇格APIは置かない。既存の`admin_membership`の全体管理者は、`appAdmin`へ移す。既存の管理者照会、管理画面、関連APIは、この権限に揃える。
 
-## 2. 評価軸
+## 評価軸
 
 ### CSV列
 
@@ -2123,7 +2136,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 economic fieldの更新は既存rowの上書きではなく新しい不変revisionを作る。過去revisionを参照するFIX、交換、落札の引き落とし、Auctionは変化しない。
 
-## 3. パッケージ
+## 3パッケージ
 
 > 本節の文字／URL境界、名前正規化、content hash field集合はDEC-257で確定している。
 
@@ -2149,14 +2162,14 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 `pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`と、現在の`packageLifecycleStatus`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
 
-## 4. lifecycle
+## lifecycle
 
 - IDは永久に再利用しない。
 - 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
 - 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
 - 別revisionへ自動差し替えしない。
 
-## 5. 交換比率
+## 交換比率
 
 - 交換元／交換先の有向pairごとに、不変`exchangeRateRevision`をCSVで追加する。
 - 登録できるのは、`appAdmin`、または交換元か交換先の`evalueterAdmin`である。
@@ -2165,23 +2178,20 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 - 更新・無効化は現在revision番号との一致を要求し、過去revisionとそれを参照した交換／代用結果を変更しない。
 - CSVは最大5MiB／1,000非空行、全件validation、preview、confirm、原子commitとし、GUI入力formを作らない。
 
-## 6. 画面
+## 画面
 
-- 公開一覧とプロフィールは未ログインでも閲覧できる。
 - 評価軸のCSV、改訂履歴、reconciliation、無効化は、その評価軸の`evalueterAdmin`または`appAdmin`に表示する。
 - 交換比率は交換元・交換先・正規化比率・状態・revision履歴を表示する。CSVの登録は、`appAdmin`、または交換元か交換先の`evalueterAdmin`が行う。
 - 評価軸の登録と更新は、フォームまたはCSVで行う。一般利用者向けのmember管理とowner移譲は表示しない。
 - 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・revisionを表示する。
 
-# プロフィール設定
+## Hono HTTPレスポンス仕様
 
-# Hono HTTPレスポンス仕様
-
-## 1. 対象
+### 1. 対象
 
 Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventとOAuth標準endpointはそれぞれの標準contractを優先する。
 
-## 2. 成功
+### 2. 成功
 
 ```json
 {
@@ -2198,7 +2208,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - mutationは作成/更新されたresource ID、revision/version、idempotency resultを返す。
 - `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
 
-## 3. 失敗
+### 3. 失敗
 
 失敗はRFC 9457 Problem Detailsで返す。`type`は安定したHTTPS URI、`title`はcodeごとの短い固定文言とし、`status`はHTTP statusと一致させる。`code`は安定した`SCREAMING_SNAKE_CASE`とする。`type`、`title`、`status`、`code`、`requestId`を必須とし、`detail`と`instance`は任意とする。`detail`へsecret、SQL、stack、個人情報を入れない。入力検証のエラーは`errors[]`へ返す。各要素の`code`は`SCREAMING_SNAKE_CASE`の必須項目で、`row`、`field`、`message`はすべて任意項目とする。`row`は0以上の整数、`field`と`message`は文字列で返す。`message`にも秘密値を含めない。CSVの入力検証では、行番号、`column`で表す列名、エラーcodeを返す。
 
@@ -2215,7 +2225,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 }
 ```
 
-## 4. status
+### 4. status
 
 - `200`: readまたはoperation contractで200と定義したcommand成功
 - `201`: resource作成
@@ -2235,11 +2245,11 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 残高不足は再計算可能な経済状態競合なので`409 INSUFFICIENT_BALANCE`とする。
 
-## 5. idempotency
+### 5. idempotency
 
 重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。CSVでは正規化した内容のhashで判定し、同じFIX revision、譲渡、交換を再送しても台帳を二重作成しない。連携解除の再送も同じreceiptを返す。
 
-## 6. cache
+### 6. cache
 
 - session/private API: `Cache-Control: private, no-store`
 - OAuth/token/callback: `Cache-Control: no-store`
@@ -2255,7 +2265,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - HTMLはCSP、`X-Content-Type-Options: nosniff`等の共通headerを適用
 - header値、環境差、Static AssetsとWorker responseの適用範囲は[セキュリティ・テスト・デリバリー仕様 5.1](./security-and-delivery.md#51-http-security-header)を正本とする
 
-## 8. WebSocket event
+### 8. WebSocket event
 
 ```json
 {
@@ -2273,21 +2283,21 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - errorをsocket内独自responseで処理せず、mutation errorはHTTP Problem Detailsで返す。
 - gap時はHTTP snapshotへ戻る。
 
-## 9. logとの分離
+### 9. logとの分離
 
 client responseの`detail`とserver logの内部情報を分離する。server logにもOAuth token、Cookie、CSV/HTML本文、AutoBid上限を残さない。
 
-# 未受領FIXとAccounts連携
+## 未受領FIXとAccounts連携
 
-## 1. 目的
+### 1. 目的
 
 Pointsに未登録の貢献者にも先にFIX結果を記録し、後から本人がポイントを受け取れるようにする。
 
 FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。CSVで指定する識別子の列と形式は[FIX取込時の照合](#6-fix取込時の照合)で定める。
 
-## 3. Pointsが保存する経済データ
+### 3. Pointsが保存する経済データ
 
-### `unclaimedFixEntry`
+#### `unclaimedFixEntry`
 
 - `sourceFixRevisionId`
 - 入力した識別子の種類（`url`または`accounts_user`）と値（入力値そのまま）
@@ -2298,7 +2308,7 @@ FIX revisionへ入力された貢献者識別子、Accountsから取得できた
 
 未受領エントリーは`sourceFixRevisionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
 
-### `fixClaim`
+#### `fixClaim`
 
 - 受領者と、受領時点の連携先（origin・AccountsユーザーID）のsnapshot
 - claim対象集合hash、件数
@@ -2307,7 +2317,7 @@ FIX revisionへ入力された貢献者識別子、Accountsから取得できた
 
 受領コマンド（`fixClaimCommand`）も同じ連携先のsnapshotを持つ。連携先は外部キーにせず、連携の解除後も経済履歴として残す。
 
-## 6. FIX取込時の照合
+### 6. FIX取込時の照合
 
 FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プロフィールURL）と`recipientAccountsUserId`（AccountsユーザーID）のちょうど一方で指定する。列の順序と上限は[Pointsドメイン仕様](points-domain.md#71-入力)に従う。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
 
@@ -2329,7 +2339,7 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
 - FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。修正revisionを別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新revisionの額（そのoriginで照合していなければ0）と一致する。
 - FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
-## 7. 未受領FIXの受領資格
+### 7. 未受領FIXの受領資格
 
 Pointsは受領時点の照合結果を根拠に、受領資格を判定する。
 
@@ -2342,7 +2352,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 
 すでにclaim済みのFIXと、確定済みの貢献・ポイントの帰属は、Pointsの経済履歴として保持する。
 
-## 8. 一括claim
+### 8. 一括claim
 
 受領は本人の連携ごとに、[受領資格](#7-未受領fixの受領資格)を満たす未claimの正負全件を対象にする。同じ対象者の各revisionの未受領差分はまとめて受領し、受領額は最新revisionの額と一致する。利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
 
@@ -2368,8 +2378,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - 監査には必要な識別情報と安全な結果metadataを使い、秘密値やCSV本文を含めない。
 - Pointsの経済情報の公開は[プロフィール設定](profile-setting.md)に従う。
 
-# Pointsドメイン仕様
-
 ## 1. 責務
 
 Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の残高と履歴を管理する。商材、Auction、Task、Group、一般community memberは管理しない。
@@ -2386,40 +2394,6 @@ Pointsは、評価結果を不変のFIXとして取り込み、評価軸別の�
 - `pointSettlementDebit`、`pointSettlementDebitComponent`
 - `pointsMarketsConnection`、OAuth client/token metadata
 - append-only `auditEvent`
-
-## 2. ユーザーとプロフィール
-
-### 2.1 IDと公開URL
-
-- PointsユーザーIDは不変の標準Nano IDとする。表示名を変更してもIDとプロフィールURLは変わらない。
-- canonical URLは`https://points.freeism.app/profiles/{pointsUserId}`とし、`/dashboard`を含めない。
-- publicプロフィールは未ログインでも閲覧できる。
-- プロフィール自体を非公開にした場合は検索結果へ出さず、直接URLでも存在を開示しない。
-
-### 2.2 表示項目
-
-- ユーザーID
-- 表示名と説明。文字数は[プロフィールの基本情報](#1-基本情報)に従う。
-- 公式パッケージ一覧。0件を許可し、複数件を登録・並べ替えできる
-- 公開設定をONにした評価軸の`balance`と`evaluationTotal`
-- 公開設定をONにしたFIX・譲渡・交換履歴
-
-メールは公開プロフィールへ出さず、本人識別にも使わない。
-
-### 2.3 検索
-
-- 公開プロフィール、評価軸、パッケージを、名前と不変IDで検索できる。
-- 非公開プロフィールを結果へ含めない。退会済みのプロフィールは[退会と再開の処理](#10-account-closeと認証記録)に従う。
-- D1/SQLiteで実現できる検索だけを使い、PGroongaやSupabase extensionへ依存しない。
-- headerの共通検索欄から検索結果へ遷移できる。
-
-### 2.4 公開設定
-
-- プロフィール自体は初期値`PUBLIC`とする。
-- 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸revisionの公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
-- 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
-- profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
-- 編集導線と権限判定は[プロフィール画面](#v021プロフィール画面)に従う。
 
 ## 4. 評価軸
 
