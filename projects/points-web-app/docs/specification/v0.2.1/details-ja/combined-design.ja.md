@@ -35,11 +35,10 @@
     - [CSV列](#csv列)
   - [交換比率](#交換比率)
   - [画面](#画面)
-  - [4. 評価軸](#4-評価軸)
-    - [4.1 基本属性](#41-基本属性)
-    - [4.2 登録・更新](#42-登録更新)
-    - [4.3 交換比率revision](#43-交換比率revision)
-    - [4.1 評価軸](#41-評価軸)
+  - [評価軸](#評価軸-2)
+    - [基本属性](#基本属性)
+    - [登録・更新](#登録更新)
+    - [交換比率revision](#交換比率revision)
   - [パッケージ](#パッケージ)
     - [CSV列](#csv列-1)
     - [lifecycle](#lifecycle)
@@ -1069,9 +1068,9 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 - 評価軸の登録と更新は、フォームまたはCSVで行う。一般利用者向けのmember管理とowner移譲は表示しない。
 - 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・revisionを表示する。
 
-## 4. 評価軸
+## 評価軸
 
-### 4.1 基本属性
+### 基本属性
 
 - 不変ID: 標準Nano ID
 - 名前: 必須、1〜30文字
@@ -1084,7 +1083,7 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 
 評価軸の経済計算へ影響する属性を更新するたびに不変`evaluationCriterionRevision`を作る。過去のFIX、交換、落札の引き落とし、Auction snapshotは当時のrevisionを参照する。
 
-### 4.2 登録・更新
+### 登録・更新
 
 - 作成は、ログインしたPoints利用者が行う。更新は、その評価軸の`evalueterAdmin`または`appAdmin`が行う。
 - 登録と更新は、フォームまたはCSVで行う。状態は`ACTIVE`または`INACTIVE`とする。
@@ -1092,7 +1091,7 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 - server validation後、確定直前のpreviewを表示し、利用者が確認してから原子的に確定する。
 - 同じ名前の重複、URL上限超過、無効な`minimumUnit`、既存revisionの上書きを拒否する。
 
-### 4.3 交換比率revision
+### 交換比率revision
 
 - 交換比率は交換元から交換先への有向pairごとに管理し、逆方向へ暗黙適用しない。
 - 登録できるのは`appAdmin`だけである。登録はCSVで行い、フォームは作らない。一般利用者による比率登録は行わない。
@@ -1126,8 +1125,6 @@ economic fieldの更新は既存rowの上書きではなく新しい不変revisi
 - 「加算」の要件定義
   - ポイントの新規発行による付与は、その評価軸の`evalueterAdmin`または`appAdmin`が必要
   - 評価のアップロードによる加算は、その評価軸の`evalueterAdmin`または`appAdmin`が必要である。交換で一方が減り一方が増える場合は、`evalueterAdmin`は不要である
-
-### 4.1 評価軸
 
 - 評価軸IDは不変の標準Nano IDとする。
 - 評価軸名は30文字以下、説明は200文字以下、関連URLは最大20件とする。
