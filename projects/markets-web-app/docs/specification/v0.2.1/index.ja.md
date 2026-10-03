@@ -26,6 +26,7 @@
   - [4. Token保存とrefresh](#4-token保存とrefresh)
   - [9. セキュリティ、品質、release gate](#9-セキュリティ品質release-gate)
   - [採用しないもの](#採用しないもの)
+  - [v0.2.0からv0.2.1への変更](#v020からv021への変更)
 
 ## 言語
 
@@ -154,8 +155,8 @@
             1.  「落札できない入札者の中で最高入札額+1単位だけ加算した額を、落札者全員が一律で払う」方式だけだと、無料で入札して落札して、先着順で取得できた場合に1ポイント支払う必要が出てきてしまう
       5.  **入札は、`packageTick`単位の価格で、数量を指定して行う**
           - `packageTick`は1目盛りの価格、`priceTickCount`はその数量である。
-          - Pointsへ渡す`priceTicks`は、`priceTickCount * packageTick`のscale済み安全整数である。数量`quantity`も安全整数である。変換はPointsとの境界だけで、BigIntで行う。安全整数を超える場合は拒否し、呼び出さない。
-          - Markets側のtickの個数と、Pointsの引き落としで使うscale済み価格は、この対応で分ける。OpenAPIの変更と、名前を変えるmigrationは避ける。
+          - Markets内部の`priceTicks`は、`priceTickCount * packageTick`のscale済み安全整数である。数量`quantity`も安全整数とする。評価軸別の引き落とし額をBigIntで計算し、安全整数を超える場合は拒否する。
+          - Pointsへの残高照会・引き落とし要求には、Marketsが計算した評価軸別の`components`を渡す。
       6.  **一人につき複数個を購入する場合**
           1. 優先度が高い人から順に購入枠を占めて、希望数だけ得られる
           2. 希望数が残っていない場合は、最後尾の人は希望数が残っている分だけ配布
@@ -177,7 +178,7 @@
             2.  記録したあと、次の入札者を落札者にする
       11. **複数の種類の評価軸ポイントを組み合わせて入札する場合の処理**
           - 各評価軸のポイント方式は「消費」とする。出品で選べる購入方式も消費だけである。一番ニーズがありそうなためである。落札時に保有から差し引く。評価軸の設定で選べるポイント方式も消費だけである。
-          - 即決価格ができない評価軸が混ざっているときは、できる評価軸のポイントだけで入札できるパッケージとして扱い、その`packageTick`の価格と数量で入札する。
+          - 入札には作成時に保存した全評価軸と割合を使う。即決価格は、作成時に全構成評価軸が即決価格の利用を許可している場合に設定できる。
       12. **複数ポイントの組み合わせ入札**
           - 要件
             1.  出品者が指定した、入札に使用できるパッケージの「ポイントの種類」や「ポイントの組み合わせの割合」でのみ入札可能
@@ -461,7 +462,7 @@
 - Auction history、winning history、watchlistをMarketsへ残す。
 - Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの落札時snapshotを表示する。
 
-- Reviewはseller→buyer、buyer→seller、1〜5、comment、任意URL、方向ごと1件とし、編集は不変Revisionを残す。
+- Reviewはseller→buyer、buyer→seller、1〜5、comment、任意URL、方向ごと1件とし、編集は同じReviewレコードを更新し、変更内容を監査記録に残す。
 
 - 1つの競売は1つの`pointsServiceId`に固定する。落札者も評価軸も、同じPointsのデータベースで精算する。
 
@@ -484,7 +485,7 @@
 - 商材と競売条件は、一つの`auction`に置く。
   - 開始前の編集と取消は、Auction IDだけを使う。作成者だけが、`DRAFT`または`SCHEDULED`から`CANCELLED`へ終了できる。bid、AutoBid、成立した即時購入が1件でもあれば取消を拒否する。
 
-- AuctionRoomはD1 current revisionを正本に1 alarmだけを持ち、`startsAt`でOPEN、`endAt`でCLOSINGへCASする。WebSocket上限はuser全体20／user＋Auction 3のD1 unique slotを同じ原子commandで確保する。
+- AuctionRoomはD1の現在のAuctionレコードを正本に1 alarmだけを持ち、`startsAt`でOPEN、`endAt`でCLOSINGへCASする。WebSocket上限はuser全体20／user＋Auction 3のD1 unique slotを同じ原子commandで確保する。
 
 - Auctionの商材fieldはtitle 1〜120 code point／480 bytes、description 1〜4,000／16,000 bytes、canonical HTTPS外部URLちょうど1件／2,048 bytesとする。reviewはcomment 0〜2,000／8,000 bytes、completion URL 0〜1件／2,048 bytesとする。
 
@@ -510,7 +511,7 @@ Marketsは、終了時点の入札、または即時購入の要求から、不�
 
 引き落としは、その時点の落札者全員を利用者認可で1回の処理とする。一人でも失敗すれば台帳も受領証も0件である。引き落としは評価軸ごとの負の台帳とし、`evaluationTotal`は変えない。必要額が0のときは台帳を作らず、残高と`evaluationTotal`は変えない。認可が無効なら0でも拒否する。成功していない引き落としは台帳に残さない。成功した引き落としは戻さない。同じ計画の再送は同じ受領証を返す。
 
-Pointsは`pointPackageRevisionId`、`priceTicks`、`quantity`から必要額を自分で計算する。Marketsが送った内訳額は計算の正本にしない。Pointsは落札順位を計算しない。
+Marketsは競売作成時に保存した構成・割合・最小単位・入札額の刻みから、落札価格と数量に対応する評価軸別の引き落とし額を計算する。Pointsは認証、利用者の権限、評価軸ID、金額、残高を検証して引き落としを確定する。金額は非負の安全整数かつ各評価軸の固定最小単位の倍数とし、重複する評価軸を拒否する。競売作成後のパッケージや評価軸の更新・無効化によって、確定した競売条件を変更しない。
 
 即時購入は、購入ボタンのあとで利用者認可と残高を確認する。成功した引き落としの応答を受け取ったときだけ販売数量を減らし、購入を成立させる。認可がない、または残高が足りない失敗応答では数量を変えず、競売を止めない。応答を受け取れないときも購入は成立させず、競売は続ける。同じ購入要求の再送で引き落とし受領証が返ったときだけ数量を減らす。残り数量が0のときだけ競売を終了する。
 
@@ -685,7 +686,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 | `projects/markets-web-app` | `markets.freeism.app` | `auction-worker` | 独立認証、商材情報を含むAuction、入札、リアルタイム配信、精算saga |
 
 - Marketsユーザーと独立したBetter Authセッション
-- 商材情報とAuction設定を統合したAuction／不変Auction revisionと公開snapshot
+- 商材情報とAuction設定を統合した現在のAuctionレコード、競売作成時のパッケージ情報と公開snapshot
 - bid command、bid sequence、AutoBid状態、watchlist
 - AuctionRoom Durable Objectの接続状態と配信用状態
 - Auctionの終了判定、winner計算、clearing price
@@ -696,7 +697,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 - Marketsで作成するのは、商材情報を内包するAuctionだけである。開始前の編集もAuction IDだけを使う。
 - Auction作成はCSV-onlyを基本とし、登録前に全件previewとvalidation結果を確認できるようにする。
-- Auction cardと詳細には、Pointsの公式パッケージ名・ID、不変revision、構成評価軸、比率を表示する。
+- Auction cardと詳細には、競売作成時に保存した公式パッケージ名・ID、評価軸名・ID、構成比率を表示する。
 - Auctionは販売数量を持つmulti-unit方式とする。
 - 入札は価格の高い順、同額は`reachedSequence`が早い順に順位付けする。
 - 最後のwinnerだけ部分割当を許可し、全winnerは同じuniform clearing priceを支払う。
@@ -705,7 +706,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - AutoBidを取り消しても、すでに到達・確定した入札額は巻き戻さない。
 - sellerの自己入札、終了後の入札、価格tick不一致、数量不正を拒否する。
 - server時刻を正とし、clientでは利用者local timeへ変換して表示する。
-- 最初の有効bid以後、価格・数量・package revisionなど結果に影響するAuction項目を変更できない。
+- 最初の有効bid以後、価格・数量など結果に影響するAuction項目を変更できない。パッケージの構成・割合・最小単位・入札額の刻み・表示名は競売作成時に固定する。
 
 ### 5.2 入札時のPoints扱い
 
@@ -715,7 +716,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 - bid、作成したAuction、落札履歴とwatchlistを提供するが、通知は送らない。
 - 落札証明は公開read APIで永続的に検証できる。
-- 証明にはAuction ID／Auction revision／Package revision、seller/buyer identity snapshot、winner、数量、clearing price、完了状態を含める。
+- 証明にはAuction ID、競売作成時のパッケージ情報、seller/buyer identity snapshot、winner、数量、clearing price、完了状態を含める。
 - sellerとbuyerは相互に1〜5の評価、comment、`completionProofUrl`を記録できる。
 - 外部EC claim token、匿名配送、対面決済の詳細はv0.2の実装確定事項ではなく将来候補として保持する。
 
@@ -737,7 +738,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
-- Marketsは内部の`priceTickCount`へsnapshot済み`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換してから`pointPackageRevisionId`、`quantity`とともにPointsへ渡す。Pointsは自身の不変package revisionから評価軸vectorを再計算する。
+- Marketsは内部の`priceTickCount`へ作成時に保存した`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換する。各評価軸の`requiredAmountScaled = priceTicks * quantity * weight / totalWeight`をBigIntで計算し、固定最小単位の倍数かつ安全整数範囲内であることを確認してPointsへ渡す。残高照会と精算の`components`は`evaluationCriterionId`と`requiredAmountScaled`を持ち、評価軸ID昇順とする。精算では各落札者の`marketsUserId`、`accessToken`、`components`を`auctionId`と`planHash`とともに送る。Pointsは利用者認可・金額・残高を検証し、全落札者の引き落としを原子的に確定する。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
 
 1. `minimumReleaseAge: 4320`を使う
@@ -834,13 +835,13 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - 競売は、Marketsの出品者が出品CSVで作成する。
 
 
-- 出品CSVにパッケージ改訂IDは書かない。出品者が指定するのはパッケージIDだけである。
+- 出品CSVでは、出品者が利用するパッケージIDを指定する。
 
 
-- Marketsは作成の瞬間に、そのパッケージの最新改訂をPointsから取得し、内容を競売へ固定する。開始後にパッケージが更新されても、その競売の内容は変えない。
+- Marketsは競売作成時にPointsの現在のパッケージ情報を取得し、パッケージID・表示名、各評価軸のID・表示名・最小単位・weight・表示順、totalWeight、packageTick、即決価格利用可否を競売へ保存する。作成済み競売は、その後の更新・無効化にかかわらず保存した条件で開始・精算する。
 
 
-- 作成時に確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。改訂を作った当時の`status`は見ない。過去の改訂を出品者が選ぶ手順はない。
+- 作成時は、取得したパッケージの`packageLifecycleStatus`が`ACTIVE`であることを確認する。評価軸の最小単位は評価軸作成後に固定する。
 
 
 - 販売数量は1〜1,000とし、Packageの複数軸minimum unitからLCMによる整数package tickを作る。
@@ -868,7 +869,7 @@ MarketsはPointsをログインProviderにしない。MarketsへGoogleまたはG
 - Workflow class: `AuctionSettlementWorkflow`
 - Workflow binding: `AUCTION_SETTLEMENT`
 - DO IDは`auctionId`から決定論的に導出し、任意user inputをそのまま名前にしない。
-- Workflow instance IDはSettlement ID + immutable settlement revision + 単調なworkflow attemptで一意にし、Cloudflareの100文字上限内にする。初回は`attempt:0`、通信失敗の再送は同じ業務revisionのままattemptだけを増やし、完了済みinstance IDを再利用しない。
+- Workflow instance IDはSettlement ID、精算計画のplanHash、単調なworkflow attemptの組から決定論的に生成し、Cloudflareの100文字上限内にする。初回は`attempt:0`、通信失敗の再送は同じ精算計画のままattemptだけを増やし、完了済みinstance IDを再利用しない。
 
 
 
@@ -933,7 +934,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 - 即時購入は、購入ボタンのあとで認可と残高を確認し、成功したときだけ数量を減らす。失敗しても競売は開いたままである。
 - 精算の手動再試行は置かない。
 
-- 競売の出品CSVに書くのはパッケージIDだけである。Marketsは作成の瞬間に最新改訂を取得して内容を固定する。確認するのは、今の`packageLifecycleStatus`が`ACTIVE`であることだけである。
+- 競売の出品CSVではパッケージIDを指定する。Marketsは作成時に現在のパッケージ情報を取得し、`packageLifecycleStatus`が`ACTIVE`であることを確認して競売条件を保存する。
 
 - 商材と競売条件は、一つの`auction`に置く。開始前の編集と取消は、Auction IDだけを使う。
 
@@ -990,3 +991,9 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 3. PointsとMarketsの独立的に運用する
    - 別アプリとして同じようなアプリとの連携をする前提で設計したいため
    - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」です。アプリ間はOAuth・OpenAPI契約・登録済みoriginへの外部HTTPS通信で連携し、各アプリ内部はFull-stack Workerとして簡潔に保つ、という整理です。
+
+## v0.2.0からv0.2.1への変更
+
+- revision管理を廃止し、現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。
+- 競売作成時にパッケージの構成・割合・評価軸の最小単位・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず同じ条件で開始・精算する。
+- Marketsが評価軸別の引き落とし額を計算し、Pointsが認証・権限・金額・残高を検証して確定する。

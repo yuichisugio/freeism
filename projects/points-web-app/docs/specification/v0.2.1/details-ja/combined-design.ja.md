@@ -30,13 +30,13 @@
     - [画面](#画面)
     - [基本属性](#基本属性)
     - [登録・更新](#登録更新)
-    - [交換比率revision](#交換比率revision)
+    - [交換比率の更新](#交換比率の更新)
   - [パッケージ](#パッケージ)
     - [CSV列](#csv列-1)
     - [lifecycle](#lifecycle)
     - [公式パッケージ](#公式パッケージ)
     - [金額とvector](#金額とvector)
-    - [不変Point Package Revision](#不変point-package-revision)
+    - [現在のPoint Package](#現在のpoint-package)
     - [パッケージの現在の利用可否](#パッケージの現在の利用可否)
   - [利用規約](#利用規約)
   - [プライバシーポリシー](#プライバシーポリシー)
@@ -53,7 +53,7 @@
     - [repository・service・domain](#repositoryservicedomain)
     - [ID](#id)
     - [金額と時刻](#金額と時刻)
-    - [revisionとstate](#revisionとstate)
+    - [versionとstate](#versionとstate)
     - [HTTP/OpenAPI](#httpopenapi)
     - [Hono](#hono)
     - [Drizzle/D1](#drizzled1)
@@ -89,9 +89,9 @@
   - [security header](#security-header)
   - [FIX取込時の照合](#fix取込時の照合)
   - [金額表現](#金額表現)
-  - [FIX revisionと差分台帳](#fix-revisionと差分台帳)
+  - [FIX訂正と差分台帳](#fix訂正と差分台帳)
     - [入力](#入力)
-    - [不変性](#不変性)
+    - [最新結果と不変台帳](#最新結果と不変台帳)
     - [対象者と訂正先](#対象者と訂正先)
     - [原子性](#原子性)
   - [台帳、残高、evaluationTotal](#台帳残高evaluationtotal)
@@ -443,8 +443,7 @@
 - 要件
   1. 0件を許可し、複数件を登録・並べ替えできる
      - profileは公式`pointPackageId`のordered setを0件以上持つ。同じPackageの重複登録を許さず、並び順は0始まりの連続した`displayOrder`とする。
-  2. 登録解除はprofileとPackageの関係だけを削除し、Package本体、不変revision、過去のMarkets snapshotを変更しない。
-  3. 登録・登録解除・並べ替えは公開情報の編集であり、通常の認証sessionを必須とする。
+  2. 登録・登録解除・並べ替えは公開情報の編集であり、通常の認証セッションを必須とする。
 
 ### 評価軸ごとの公開設定
 
@@ -455,17 +454,17 @@
   - `fixHistoryVisibility`
   - `transferHistoryVisibility`
   - `exchangeHistoryVisibility`
-- 評価軸を初めて参照する時は`balanceVisibility`だけをその評価軸revisionの残高公開初期値から作り、`evaluationTotalVisibility`と履歴3種は`PRIVATE`とする。
+- 評価軸を初めて参照する時は`balanceVisibility`だけをその評価軸の残高公開初期値から作り、`evaluationTotalVisibility`と履歴3種は`PRIVATE`とする。
 - `PUT /api/profile/evaluation-visibilities/{evaluationCriterionId}`は5フラグの完全な組を受け、本人だけが更新できる。
 - `PRIVATE -> PUBLIC`を1つでも含む変更、またはprofile全体の`PRIVATE -> PUBLIC`は公開範囲の拡大である。`PUBLIC -> PRIVATE`だけの縮小もできる。
 
 ### 公開設定
 
-- 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸revisionの公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
+- 各評価軸の`balance`、`evaluationTotal`、FIX履歴、譲渡履歴、交換履歴は5つの独立した`PUBLIC | PRIVATE`を設定する。残高だけを評価軸の公開初期値から作り、`evaluationTotal`と履歴系の初期値は`PRIVATE`とする。
 - 交換履歴はsource・target両軸が公開を許可した時だけ表示する。片方の軸ID、額、比率の部分表示で非公開軸を推測させない。
 - profile全体または軸別flagの`PRIVATE -> PUBLIC`を含む変更は公開範囲の拡大である。公開範囲の縮小もできる。
 - Pointsの公開設定に従い、公式パッケージ、残高、履歴を表示する。
-- 公式Packageはprofileの`displayOrder`で返し、現在の公開revisionへのlinkと不変Package IDを示す。
+- 公式Packageはprofileの`displayOrder`で返し、現在の公開Packageへのlinkと不変Package IDを示す。
 - FIX・譲渡履歴は対応する評価軸フラグが`PUBLIC`の時だけ返す。交換履歴はsourceとtarget両方の`exchangeHistoryVisibility` が`PUBLIC`の時だけ返し、非公開軸のIDや額を反対軸から推測できる部分表示を行わない。
 - 非公開プロフィールは検索へ出さず、直接アクセスでも存在を開示しない。
 
@@ -559,15 +558,15 @@
 - 初期値はOFF。ON時はUIに「自動分配を設定中」と表示する。
 - 分配前に本人へ残す額は`PERCENT | FIXED`のどちらか1つとする。`PERCENT`のCSV入力はASCII十進の`retentionPercent`で、0.001%〜100%を小数3桁以下で受け、`retentionRatePpm = retentionPercent * 10_000`の整10〜1,000,000としてD1に保存する。`FIXED`はASCII十進の`retentionAmount`を0以上・scale `10_000`の安全整数で保存し、反対側のfieldを空にする。`REAL`を使わない。
 - 正のsource FIX amountを`A`、その評価軸の`minimumUnitScaled`を`M`とする。`PERCENT`は`floor((A * retentionRatePpm / 1_000_000) / M) * M`、`FIXED`は`floor(min(A, retentionAmountScaled) / M) * M`を本人保持額`R`とし、`D = A - R`を分配額とする。乗除算はBigIntで行い、`R`と`D`は`M`の倍数にする。
-- 正のFIXだけを分配対象にする。負または0のFIXは元の本人へそのまま反映し、分配snapshotを作らない。本人のFIX ledgerは常に全額`A`を`affectsEvaluationTotal=true`で記録し、分配時だけ本人から`-D`、受取人へ合計`+D`の`affectsEvaluationTotal=false`台帳を追加する。これにより本人の`evaluationTotal`は評価額全体、本人の`balance`は`R`だけ増え、受取人の`evaluationTotal`は変更しない。
-- weight cutoffはsource FIX revisionの評価期間のUTC終端を含まない`weightCutoffExclusive`とする。月だけの入力なら次月月初00:00:00Z、日／時刻がある場合はその正規化期間終端を使う。
-- candidateはsnapshot時にACTIVEなPointsユーザーのうちsource FIX本人を除いた利用者とする。Package revisionのcomponent `c`とcandidate `u`ごとに、cutoff前の差分ledgerから`positiveEvaluationTotal(u,c) = max(evaluationTotalScaled(u,c), 0)`を再構成する。`score(u) = SUM(positiveEvaluationTotal(u,c) * componentWeight(c))`とし、複数軸の評価を加算する。`totalWeight`による共通の除算は相対scoreで打ち消し合うため行わない。中間値はBigInt、保存scoreはJavaScript安全整数範囲を必須とする。
+- 正のFIXだけを分配対象にする。負または0のFIXは元の本人へそのまま反映し、分配snapshotを作らない。初回の本人FIX ledgerは全額`A`を`affectsEvaluationTotal=true`で記録し、訂正時は更新前の額との差分を記録する。分配時だけ本人から`-D`、受取人へ合計`+D`の`affectsEvaluationTotal=false`台帳を追加する。これにより本人の`evaluationTotal`は評価額全体、本人の`balance`は`R`だけ増え、受取人の`evaluationTotal`は変更しない。
+- weight cutoffはsource FIXの評価期間のUTC終端を含まない`weightCutoffExclusive`とする。月だけの入力なら次月月初00:00:00Z、日／時刻がある場合はその正規化期間終端を使う。
+- candidateはsnapshot時にACTIVEなPointsユーザーのうちsource FIX本人を除いた利用者とする。Packageのcomponent `c`とcandidate `u`ごとに、cutoff前の差分ledgerから`positiveEvaluationTotal(u,c) = max(evaluationTotalScaled(u,c), 0)`を再構成する。`score(u) = SUM(positiveEvaluationTotal(u,c) * componentWeight(c))`とし、複数軸の評価を加算する。`totalWeight`による共通の除算は相対scoreで打ち消し合うため行わない。中間値はBigInt、保存scoreはJavaScript安全整数範囲を必須とする。
 - `score(u) > 0`の対象者だけを分配集合に入れる。対象者が0件または全score合計が0なら、分配debit／creditを作らず正のFIX全額を本人の`balance`へ残し、snapshotに`NO_ELIGIBLE_WEIGHT`を記録する。
 - 固定小数点の最大剰余方式で配分する。`unitCount = D / M`を整数unitとし、各対象者へ`floor(unitCount * score(u) / totalScore)`unitを配る。残りunitは除算の余りが大きい順、同値はPointsユーザーID昇順で1unitずつ与える。0unit行はledgerを作らない。`minimumUnit`未満の額を作らず、対象者がいる時は余りを本人やsystemへ残さず常に合計`D`を配り切る。
 - 1 source FIXの対象者上限は1,000件、1つのFIX commit command内の分配credit合計上限も1,000行とする。いずれかを超えるpreview／commitは`AUTO_DISTRIBUTION_TARGET_LIMIT_EXCEEDED`で全FIX commandを0件へrollbackし、部分分配や上位1,000件の暗黙抽出をしない。
-- 対象Package revision、残額rule revision、source FIX revision／評価期間・`A/R/D/M`、cutoff、component軸revision／weight、candidate状態、利用者ごとのcomponent evaluation total／score／商／余り／配分unit、tie-break順を不変snapshotする。
-- 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に不変setting revisionを原子的に追加する。validationだけでは設定を保存しない。
-- 同じsource FIX revisionを二重分配しない。最初の正のrevisionでsnapshotを作り、後の訂正は設定、対象者、score、tie-breakを再取得せず同じsnapshotで新配分額を再計算し、旧配分との利用者別差分だけをledgerへ追加する。正から0／負への訂正は元の分配を同じsnapshotで全取消し、受取人残高が負になってもFIX訂正として反映する。初回の正のrevisionが後の訂正で現れた場合はその時点で初めてsnapshotを作る。
+- 初回の正のFIXを分配するとき、Package IDと構成割合、残額rule、source FIX IDと実行ID、評価期間・`A/R/D/M`、cutoff、component軸IDとweight、candidate状態、利用者ごとのcomponent evaluation total／score／商／余り／配分unit、tie-break順を不変snapshotへ保存する。
+- 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に最新の設定レコードを原子的に更新し、実行記録と監査を保存する。validationだけでは設定を保存しない。
+- 同じFIX実行を二重分配しない。初回の正のFIXで保存した構成割合、残額rule、対象者、score、tie-breakのsnapshotを訂正時にも使い、新配分額と旧配分額の利用者別差分だけを台帳へ派生反映する。正から0／負への訂正は元の分配を全取消し、受取人残高が負になっても反映する。訂正で初めて正の額になった場合は、その時点で初回snapshotを作る。
 
 ## 多言語に対応
 
@@ -832,7 +831,6 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
      1. その評価軸の`evalueterAdmin`または`appAdmin`だけが、評価軸のプロフィール画面から更新できる
      2. 更新は、フォームまたはCSVで行う
      3. 「設定」画面から行える
-     4. economic fieldの更新は既存rowの上書きではなく新しい不変revisionを作る。過去revisionを参照するFIX、交換、落札の引き落とし、Auctionは変化しない。
 
 - `evaluation-criteria`
   - 説明
@@ -889,10 +887,10 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
         - 説明
           - 削除者の利用者ID
 
-- 評価軸は、ポイントの種類である。FIX（確定した付与）、台帳（ポイント増減の履歴）、Package（評価軸の組み合わせ）、落札の引き落としは、対象がどの評価軸のポイントかを、評価軸のIDで参照する。このいずれかから参照された評価軸は、データベースの行を消す物理削除をしない。行を消すと、過去の付与、残高の増減、Packageの構成、確定済みの落札が、どの評価軸のポイントだったかを失う。使わなくなった評価軸は削除せず、新規の利用だけを止め、過去のrevisionと評価軸IDを残す。評価軸IDは再利用しない。
+- 評価軸は、ポイントの種類である。FIX（確定した付与）、台帳（ポイント増減の履歴）、Package（評価軸の組み合わせ）、落札の引き落としは、対象がどの評価軸のポイントかを、評価軸のIDで参照する。このいずれかから参照された評価軸は、データベースの行を消す物理削除をしない。行を消すと、過去の付与、残高の増減、Packageの構成、確定済みの落札が、どの評価軸のポイントだったかを失う。使わなくなった評価軸は削除せず、新規の利用だけを止め、最新の評価軸レコードと過去の実行記録を保持する。評価軸IDは再利用しない。
   - 評価軸を消すとき、それを参照するFIX、台帳、Package、落札の引き落としまで一緒に消すcascade deleteは採らない。台帳は監査上の正本であり、確定済みの引き落としも残すためである。
 
-- 交換比率は`appAdmin`がCSVで登録する有向pair別の不変Revisionとし、ACTIVEは正の整数比率、DISABLEDは比率なし、出力はtarget minimumUnitへ切り下げる。
+- 交換比率は`appAdmin`がCSVで登録する有向pair別の最新レコードとし、ACTIVEは正の整数比率、DISABLEDは比率なし、出力はtarget minimumUnitへ切り下げる。
   - Status: 採用
   - 上書き・撤回関係: 未登録と旧0比率はDISABLEDとする。過去参照は保持する。
 
@@ -901,7 +899,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 1回のCSVは最大20評価軸とする。同じ評価軸を関連URLのため複数行で表す場合、異なる`evaluationCriterionId`／新規論理行の件数で20件を数える。
 
 - `evaluationCriterionId`: 新規時は空、更新時は必須
-- `expectedRevision`: 更新時必須
+- `expectedVersion`: 更新時必須
 - `name`: 1〜30文字
 - `description`: 1〜200文字
 - `minimumUnit`: `0.0001`以上、小数4桁以下
@@ -912,19 +910,19 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 
 ### 交換比率
 
-- 交換元／交換先の有向pairごとに、不変`exchangeRateRevision`をCSVで追加する。
+- 交換元／交換先の有向pairごとに`exchangeRate`を管理し、CSVで最新レコードを更新する。
 - 登録できるのは、`appAdmin`、または交換元か交換先の`evalueterAdmin`である。
-- CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`numerator`、`denominator`とする。
+- CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`numerator`、`denominator`とする。
 - `ACTIVE`は正の安全整数比率を最大公約数で正規化する。`DISABLED`は比率を空にし、新規交換を停止する。
-- 更新・無効化は現在revision番号との一致を要求し、過去revisionとそれを参照した交換／代用結果を変更しない。
+- 更新・無効化は現在versionとの一致を要求し、過去の実行記録とそれを参照した交換／代用結果を変更しない。
 - 交換比率の登録はCSVのみ
 
 ### 画面
 
-- 評価軸のCSV、改訂履歴、reconciliation、無効化は、その評価軸の`evalueterAdmin`または`appAdmin`に表示する。
-- 交換比率は交換元・交換先・正規化比率・状態・revision履歴を表示する。CSVの登録は、`appAdmin`、または交換元か交換先の`evalueterAdmin`が行う。
+- 評価軸のCSV、実行記録、reconciliation、無効化は、その評価軸の`evalueterAdmin`または`appAdmin`に表示する。
+- 交換比率は交換元・交換先・正規化比率・状態・実行記録を表示する。CSVの登録は、`appAdmin`、または交換元か交換先の`evalueterAdmin`が行う。
 - 評価軸の登録と更新は、フォームまたはCSVで行う。一般利用者向けのmember管理とowner移譲は表示しない。
-- 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・revisionを表示する。
+- 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・versionを表示する。
 
 ### 基本属性
 
@@ -935,9 +933,9 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - `minimumUnit`: `0.0001`以上。最大4桁の小数
 - 譲渡可否、交換可否、残高公開初期値
 - 即決価格利用可否
-- revision番号、作成日時、更新日時
+- version、作成日時、更新日時
 
-評価軸の経済計算へ影響する属性を更新するたびに不変`evaluationCriterionRevision`を作る。過去のFIX、交換、落札の引き落とし、Auction snapshotは当時のrevisionを参照する。
+評価軸は同じIDの最新レコードを更新する。`minimumUnit`は評価軸作成時に決め、作成後は固定する。実行時の属性と計算条件は、実行記録、監査、台帳、競売snapshotへ保存する。
 
 ### 登録・更新
 
@@ -945,17 +943,17 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - 登録と更新は、フォームまたはCSVで行う。状態は`ACTIVE`または`INACTIVE`とする。
 - 1回のCSVは最大20評価軸とする。関連URLの複数行は同じ論理評価軸として数える。
 - フォームではserver validation後、確定直前のpreviewを表示し、利用者が確認してから原子的に確定する。
-- 同じ名前の重複、URL上限超過、無効な`minimumUnit`、既存revisionの上書きを拒否する。
+- 同じ名前の重複、URL上限超過、無効な`minimumUnit`、作成後の最小単位変更、version競合を拒否する。
 
-### 交換比率revision
+### 交換比率の更新
 
 - 交換比率は交換元から交換先への有向pairごとに管理し、逆方向へ暗黙適用しない。
 - 登録できるのは`appAdmin`だけである。登録はCSVで行い、フォームは作らない。一般利用者による比率登録は行わない。
-- 列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`numerator`、`denominator`とする。
+- 列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`numerator`、`denominator`とする。
 - `status=ACTIVE`では`numerator`と`denominator`を正のJavaScript安全整数として必須にし、最大公約数で正規化する。sourceとtargetが同じ行、0、負数、指数表記、範囲超過を拒否する。
 - `status=DISABLED`では比率を空にし、新規交換だけを停止する。比率0を無効化の代用にしない。
-- 初回は`expectedRevision`を空、更新・無効化は現在revision番号を必須とし、競合は`409`にする。
-- 作成、変更、無効化は既存rowを更新せず、不変`exchangeRateRevision`を追加する。過去の交換・代用結果は参照したrevisionを保持する。
+- 初回は`expectedVersion`を空、更新・無効化は現在versionを必須とし、競合は`409`にする。
+- 作成時は交換比率のレコードを追加し、変更・無効化は同じ有向pairの最新レコードを更新する。交換・代用の実行記録には、適用した比率と丸め条件を保存する。
 - 出力額は正の入力に対してtargetの`minimumUnit`倍数へ常に切り下げ、理論値との差を整数の余りとして台帳へ保存する。丸め後が0なら交換を拒否する。
   - 評価軸IDは不変の標準Nano ID、名前30文字以下、説明200文字以下、関連URL最大20件とする。
 
@@ -1094,7 +1092,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 1回のCSVは最大20 Packageとする。複数component行は異なる`pointPackageId`／新規論理Packageの件数で20件を数える。
 
 - `pointPackageId`: 新規時は空、更新時は必須
-- `expectedRevision`: 更新時必須
+- `expectedVersion`: 更新時必須
 - `status`: `ACTIVE | INACTIVE`
 - `name`: 必須。30文字以下
 - `description`: 任意。0〜500 Unicode code pointかつUTF-8 2,000 bytes以下。空文字は`NULL`
@@ -1103,20 +1101,19 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - `componentWeight`: 正のJavaScript安全整数
 - `displayOrder`: 0始まりで、同じPackageのcomponent内で重複しない連続整数
 
-同じpackage revision内に1つ以上のcomponentを要求し、同じ評価軸を重複できない。全weightを最大公約数で割り、各weightと`totalWeight`の正値・安全整数を検査する。`1:2`等を固定scaleへ丸めず、厳密な`weight / totalWeight`として保持する。
+同じPackage内に1つ以上のcomponentを要求し、同じ評価軸を重複できない。全weightを最大公約数で割り、各weightと`totalWeight`の正値・安全整数を検査する。`1:2`等を固定scaleへ丸めず、厳密な`weight / totalWeight`として保持する。
 
 Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnicode White_Spaceを除去し、連続するWhite_SpaceをASCII space 1つへ畳み、JavaScriptのlocale非依存`toLowerCase()`を適用した値とする。オリジナル表示値はNFCで保存する。statusに関係なく同じ正規化名を別Package IDで再利用できず、CSV内重複とD1 unique constraintの両方で拒否する。
 
-Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、`displayOrder`順のcomponentごとの評価軸ID／revision ID／name／`displayOrder`／`minimumUnitScaled`／`buyNowEnabled`／weightを対象にする。作成時刻、操作者ID、audit IDは対象外とする。hash対象fieldのいずれか、component構成／順序／weight、または参照評価軸revisionが変わる時は新しい不変Package Revisionを作る。profileのPackage登録・解除・並べ替えはPackage内容ではないためrevisionを作らない。
+Packageは同じIDの最新レコードを更新する。Marketsは競売作成時に現在データを取得し、評価軸ID、構成割合、最小単位、`packageTick`、Packageと評価軸の表示名を競売snapshotへ保存する。
 
-`pointPackageRevision.status`はそのrevisionを作成した時点の履歴状態であり、現在の新規Auction利用可否を単独では表さない。`pointPackages`は最新revisionへの`currentRevisionId`と、現在の`packageLifecycleStatus`をprojectionとして持つ。新しい不変revision、append-only lifecycle event、current projectionは同じD1原子処理で確定し、projectionだけを更新して履歴を失う経路を作らない。
+`pointPackages.status`は現在の`ACTIVE | INACTIVE`を表す。Package本体とcomponentの更新、競合検査、監査は同じD1原子処理で確定する。
 
 ### lifecycle
 
 - IDは永久に再利用しない。
-- 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去revisionは保持する。
-- 最初のbidがあるMarkets Auctionが参照するpackage revisionを変更・無効化しても、そのAuction snapshotは継続する。
-- 別revisionへ自動差し替えしない。
+- 削除の代わりに新規利用を停止する`INACTIVE`状態を追加し、過去の実行記録は保持する。
+- Marketsは競売作成時に取得したPackageの条件をsnapshotへ保存する。作成後にPackageや評価軸を変更・無効化しても、その競売は保存した条件で表示・精算する。
 
 - `packages`
   - 説明
@@ -1147,40 +1144,39 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
          1. `ratio`
          2. `evaluation-criteria-id`（評価軸のNano ID）
 
-- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへstatus、表示field、package tick、componentの軸revision／name／displayOrder／weight／minimumUnit／buy-now可否を含める。
+- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへ公開時の`packageLifecycleStatus`、表示field、package tick、componentの軸ID／name／displayOrder／weight／minimumUnit／buy-now可否を含める。
 
 - Package構成比: 正の整数`weight`と合計`totalWeight`。`ratioScaled`や`rateFloat`へ近似しない。
 
-- `pointPackage`、`pointPackageRevision`、`pointPackageComponent`
+- `pointPackage`、`pointPackageComponent`
 
 ### 公式パッケージ
 
 - 1つ以上の評価軸componentと正の安全整数`weight`から構成する。
 - 作成・更新CSVは1回最大20 Packageとし、componentの複数行は同じ論理Packageとして数える。
 - component weight全体を最大公約数で割って正規化し、`totalWeight = SUM(weight)`を安全整数として保存する。各componentの厳密な比率は`weight / totalWeight`であり、固定scaleへ近似しない。
-- 同一評価軸を同じrevisionへ重複登録しない。
-- economic fieldの変更は不変`pointPackageRevision`を追加し、既存revisionを更新しない。
-- Packageのname、description、URL、正規化名の一意性、Public content hashの対象と新revision条件は[評価軸とパッケージの管理](evaluation-criteria-management.md)を正本とする。
+- 同一評価軸を同じPackageへ重複登録しない。
+- Packageの属性とcomponentは、同じPackage IDの最新レコードを原子的に更新する。
+- Packageの属性と構成割合の検証は、上記のCSV列と名前の一意性の条件を使う。
 
 ### 金額とvector
 
-- Pointsは`pointPackageRevisionId`から自身のD1にある不変componentと`minimumUnit`を取得し、scale済みvectorを再計算する。
-- Marketsから送られた表示用component snapshotを経済計算の正本にしない。
+- Marketsは競売snapshotを使い、評価軸別に`requiredAmountScaled = priceTicks * quantity * packageTick * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
+- Pointsは利用者とクライアントの認証・権限、各評価軸の存在、非負の安全整数金額、軸の重複、作成後固定の`minimumUnit`との整合、残高を検証する。競売作成後にPackageや評価軸が無効化されても、保存済みsnapshotの条件で精算する。
 - すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
 
-### 不変Point Package Revision
+### 現在のPoint Package
 
-`GET /api/v1/point-package-revisions/{pointPackageRevisionId}`
+`GET /api/v1/point-packages/{pointPackageId}`
 
 - token: 不要。読取専用public API
+- cache: `Cache-Control: no-store`
 - response:
 
 ```json
 {
 	"data": {
 		"pointPackageId": "pkg_01...",
-		"pointPackageRevisionId": "ppr_01...",
-		"status": "ACTIVE",
 		"packageLifecycleStatus": "ACTIVE",
 		"name": "Example package",
 		"description": "Example description",
@@ -1191,7 +1187,6 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 		"components": [
 			{
 				"evaluationCriterionId": "evc_01...",
-				"evaluationCriterionRevisionId": "evr_01...",
 				"name": "Example criterion",
 				"displayOrder": 0,
 				"weight": 1,
@@ -1209,13 +1204,13 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 - `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
 - `packageTick`はJavaScript安全整数、金額である`minimumUnitScaled`はASCII整数文字列とし、小数JSON numberを返さない。Marketsは文字列をparseする全境界で安全整数を検証する
 - `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
-- hash対象fieldは`pointPackageId`、`pointPackageRevisionId`、`status`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`evaluationCriterionRevisionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
-- Marketsは`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を独立再計算し、responseの`packageTick`と一致した場合だけ取得結果と`contentHash`を`auctionRevision`へsnapshotする。落札時の経済計算はPoints D1のrevisionを正本とする
-- success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`status`と`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。`304`は`If-None-Match`一致時だけ許可する。`packageLifecycleStatus`は`contentHash`の対象外とする
+- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
+- Marketsは競売作成時に`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
+- success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。
 
 ### パッケージの現在の利用可否
 
-公開のパッケージ改訂応答に、問い合わせ時点の`packageLifecycleStatus`を含める。値は`ACTIVE`または`INACTIVE`とする。この値は改訂の不変内容ではないため、`contentHash`の対象に含めない。
+公開Package APIは問い合わせ時点の最新データを返す。`packageLifecycleStatus`は`ACTIVE | INACTIVE`とする。Marketsは`ACTIVE`のPackageで競売を作成し、取得した構成と表示情報をその競売の固定条件として保存する。
 
 - Package IDも標準Nano ID、作成・更新CSVは1回20件、比率は正の整数を最大公約数で正規化する。
 
@@ -1396,7 +1391,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - FIX CSVの受領先は、外部プロフィールURLか、AccountsのユーザーIDの、どちらか一方である。
 
-- Exchange比率は不変Revisionと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
+- Exchange比率は最新レコードと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
 
 - 動的公開ページのv0.2.1 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。
 
@@ -1412,7 +1407,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
-- 貢献評価代用は有向method revisionとUTC月別result revisionを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
+- 貢献評価代用は有向methodとUTC月別resultを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
 
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。
 - runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
@@ -1499,7 +1494,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - 空行、余剰列、不足列、重複header、重複business key
   - `0.0001`、小数5桁、指数表記、Unicodeマイナス、安全整数境界
   - `minimumUnit`倍数と非倍数
-  - validation成功後のrevision/権限競合
+  - validation成功後のversion/権限競合
   - 1行errorで0件反映、D1失敗で全rollback
   - 非権限者、stale session、hostile Origin、誤Content-Typeの拒否
   - 残タスク
@@ -1539,15 +1534,15 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 表示値文字列: `amount`またはdomain名付き`fixAmount`。
 - scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
-- Points wireで扱うscale済みpackage価格は外部契約名`priceTicks`を維持する。
+- Pointsの残高確認・精算APIは、評価軸IDとscale済み必要額`requiredAmountScaled`のvectorを扱う。
 
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
 - duration: unitをsuffixに含める。例: `leaseSeconds`。
 
-### revisionとstate
+### versionとstate
 
-- 不変entityの版: `revision`、IDは`{domain}RevisionId`。
-- concurrency check: `expectedRevision`または`expectedAuctionVersion`。
+- ドメインの各レコードは最新状態を保存する。実行記録、監査、冪等性の結果、差分台帳、必要なsnapshotは不変で保持する。
+- 更新競合の検査には`version`と`expectedVersion`、または`expectedAuctionVersion`を使う。versionは最新レコードを更新するための競合検査値とする。
 - state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
 - terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
 
@@ -1570,8 +1565,8 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 ### Drizzle/D1
 
-- schema sourceはdomainごとに分割し、table constantはcamelCase複数形。例: `fixRevisions`。
-- DB名はsnake_case複数形。例: `fix_revisions`。
+- schema sourceはdomainごとに分割し、table constantはcamelCase複数形。例: `fixResults`。
+- DB名はsnake_case複数形。例: `fix_results`。
 - FKは`{target}_id`、Drizzle propertyは`{target}Id`。
 - unique/check/indexへ目的を含む明示名を付ける。
 - migration file名はtoolが生成するsequence + kebab/snakeの説明を既存tool規約に合わせる。手書きでsequenceを偽造しない。
@@ -1722,7 +1717,7 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 
 - 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
 - Pointsに未登録の貢献者にも、外部の貢献者を宛先として正負どちらのFIXも先に保存し、後から本人がポイントを受け取れるようにする。
-- 不変FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存する。暫定ユーザー残高へ入れず、受領対象が確定した後に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
+- 不変FIX実行記録へ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存する。暫定ユーザー残高へ入れず、受領対象が確定した後に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
 
 ### 未受領FIXの受領資格
 
@@ -1738,7 +1733,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 ### 一括claim
 
 - 受領資格を満たす未claimの正負全件を選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
-- 同じ対象者の各revisionの未受領差分はまとめて受領し、受領額は最新revisionの額と一致する。
+- 同じ対象者の各実行の未受領差分はまとめて受領し、受領額は最新結果の額と一致する。
 - 利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
 
 - `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全体の件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
@@ -1755,12 +1750,12 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 1. 受領資格と未claim対象集合を確認し、集合hashを再検査する。
 2. 正・負を区別せず対象全件を選択不可でclaimする。
-3. FIX revisionごとの差分ledgerを追加する。
+3. FIX実行記録ごとの差分ledgerを追加する。
 4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
 5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
 
 - 単一のPoints D1原子処理で確定し、1件でも失敗すれば全件を未受領のままにする。
-- 同じFIX revisionの二重受領を一意制約で防ぐ。
+- 同じFIX実行の未受領エントリーの二重受領を一意制約で防ぐ。
 - 負の合計で残高が不足・負になってもclaim自体は成功させ、その後の消費系操作を拒否する。
 - 並行claim、再読込、Workflow retryは同じclaim集合hashに収束し、二重台帳を作らない。
 
@@ -1768,14 +1763,14 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 #### `unclaimedFixEntry`
 
-- `sourceFixRevisionId`
+- `sourceFixExecutionId`
 - 入力した識別子の種類（`url`または`accounts_user`）と値（入力値そのまま）
 - 照合した接続先のorigin、照合結果のAccountsユーザーID（`matched`の時だけ）、照合時刻
-- 評価軸IDと評価軸revision ID
+- 評価軸ID
 - 評価時刻
 - 符号付きscale済みamount
 
-未受領エントリーは`sourceFixRevisionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
+未受領エントリーは`sourceFixExecutionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
 
 #### `fixClaim`
 
@@ -1835,7 +1830,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 アプリ全体の管理者を`appAdmin`とする。パッケージの管理者を`packageAdmin`とする。評価軸の管理者を`evalueterAdmin`とする。`appAdmin`はAdminプラグインのカスタムロールである。`packageAdmin`と`evalueterAdmin`はOrganizationプラグインのカスタムロールである。各ロールの操作権限は、コードで固定する。
 
-パッケージ1件にOrganizationを1件対応させる。評価軸1件にもOrganizationを1件対応させる。パッケージと評価軸の名称、公開情報、改訂履歴は、既存のドメインテーブルを正本とする。各対象に`organizationId`を保存し、Organizationとの対応を一意にする。Organizationは、その対象の管理者と権限を管理する単位である。
+パッケージ1件にOrganizationを1件対応させる。評価軸1件にもOrganizationを1件対応させる。パッケージと評価軸の名称、公開情報、実行記録は、既存のドメインテーブルを正本とする。各対象に`organizationId`を保存し、Organizationとの対応を一意にする。Organizationは、その対象の管理者と権限を管理する単位である。
 
 管理者の紐づけは、Organizationの`userId`、`organizationId`、`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。経済履歴と監査はPointsのユーザーIDを使う。二つのIDは、既存の`points_user.auth_user_id`で対応づける。同じ利用者は、複数のパッケージと複数の評価軸の管理者になれる。各対象の管理者は100人までとする。
 
@@ -1870,7 +1865,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - 単一resource、配列、command resultはすべて`data`へ入れる。
 - success envelopeは`data`と`meta`を必須にし、`meta.requestId`も必須にする。
-- mutationの`data`には、作成/更新されたresource ID、revision/version、idempotency resultを入れる。
+- mutationの`data`には、作成/更新されたresource ID、version、idempotency resultを入れる。
 - paginationは`meta.cursor`、`meta.hasMore`を使う。
 - `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
 
@@ -1908,7 +1903,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - `401`: session/bearerなし・無効
 - `403`: 認証済みだが権限/scope不足
 - `404`: resourceを開示できない場合を含むnot found
-- `409`: revision/version/idempotency/state/残高競合
+- `409`: version/idempotency/state/残高競合
 - `413`: body/file上限
 - `415`: Content-Type/MIME不正
 - `422`: field/domain validation
@@ -1921,7 +1916,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 <a id="5-idempotency"></a>
 
-重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。CSVでは正規化した内容のhashで判定し、同じFIX revision、譲渡、交換を再送しても台帳を二重作成しない。連携解除の再送も同じreceiptを返す。
+重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。CSVでは正規化した内容のhashで判定し、同じFIX実行記録、譲渡、交換を再送しても台帳を二重作成しない。連携解除の再送も同じreceiptを返す。
 
 - `PUT /api/profile/point-packages`は並べ替え後の`pointPackageIds[]`全体を受け、本人の現在行を同じD1原子処理で差し替える。存在しないID、重複ID、非本人を拒否し、`Idempotency-Key`再送は同じordered setへ収束させる。
 
@@ -1929,7 +1924,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - 一般JSON bodyは64 KiB、private responseは`no-store`、重要mutationはIdempotency-Key必須とする。
 
-- FIX、ledger、claim、落札の引き落としはrevision ID、source ID、idempotency key、createdAtを含める。
+- FIX、ledger、claim、落札の引き落としは実行ID、source ID、idempotency key、createdAtを含める。
 
 - 同一retryで同じresult、異なるpayloadで409
 
@@ -1954,13 +1949,13 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
 
-- 実行者、対象評価軸、額、宛先、rate/revision、idempotency keyをledgerに残す。
+- 実行者、対象評価軸、額、宛先、rateの実行時snapshot、idempotency keyをledgerに残す。
 
-- 実行CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`evaluationMonth`、`methodRevisionId`、`expectedResultRevision`とする。`evaluationMonth`はASCII `YYYY-MM`で、UTCの月初00:00:00以上・次月月初00:00:00未満の評価時刻を対象にする。実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`である。reasonと`Idempotency-Key`を必須とする。
+- 実行CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`evaluationMonth`、`methodId`、`expectedResultVersion`とする。`evaluationMonth`はASCII `YYYY-MM`で、UTCの月初00:00:00以上・次月月初00:00:00未満の評価時刻を対象にする。実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`である。reasonと`Idempotency-Key`を必須とする。
 
-- resultのbusiness keyは`sourceEvaluationCriterionId + targetEvaluationCriterionId + evaluationMonth`であり、method revisionを変えて二重付与する別keyを作らない。初回は`expectedResultRevision`を空、再計算は直前result revisionを必須とし、競合を`409 REVISION_CONFLICT`にする。
+- resultのbusiness keyは`sourceEvaluationCriterionId + targetEvaluationCriterionId + evaluationMonth`であり、methodを変えて二重付与する別keyを作らない。初回は`expectedResultVersion`を空、再計算は現在resultのversionを`expectedResultVersion`に必須とし、競合を`409 VERSION_CONFLICT`にする。
 
-- 再計算は旧resultを更新せず新revisionを追加し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作り、二重付与や対象落ちを防ぐ。
+- 再計算は同じresultの最新レコードを更新し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作る。実行条件と旧額・新額・差分は不変の実行記録と監査へ保存する。
 
 - `Idempotency-Key: {opaque-id}`は7章のoperation matrixで「必須」とした操作だけで必須とする。GETとbalance-checkでは要求しない
 
@@ -1968,7 +1963,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 | Method／path                                                   | operationId                     | Success | Body上限        | `Idempotency-Key` |
 | -------------------------------------------------------------- | ------------------------------- | ------- | --------------- | ----------------- |
-| `GET /api/v1/point-package-revisions/{pointPackageRevisionId}` | `getPublicPointPackageRevision` | 200/304 | なし            | 不要              |
+| `GET /api/v1/point-packages/{pointPackageId}` | `getPublicPointPackage` | 200 | なし            | 不要              |
 | `GET /api/v1/me/connection`                                    | `getPointsConnection`           | 200     | なし            | 不要              |
 | `GET /api/v1/me/admin-membership`                              | `getPointsAdminMembership`      | 200     | なし            | 不要              |
 | `POST /api/v1/me/connection-deactivations`                     | `deactivatePointsConnection`    | 200     | 65,536 bytes    | 必須              |
@@ -1982,7 +1977,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - chunkごとの各target table statement、command guard、ledger、idempotency result、auditを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
 
-- `sourceFixRevisionId`、idempotency key、Auction command/seq、settlement plan hashを一意にする。
+- FIX実行IDと対象エントリー・台帳種別の組、idempotency key、Auction command/seq、settlement plan hashを一意にする。
 
 - 消費、譲渡、交換、落札の引き落とし、通常unlinkは、同じD1 `batch()`を`command PENDING INSERT -> canonical chunks INSERT -> PENDINGからVALIDATEDへのUPDATE -> domain／event／ledger write -> VALIDATEDからCOMMITTEDへのUPDATE -> idempotency result／成功audit`の順に固定する。2つのcommand transitionの`BEFORE UPDATE` triggerがprecondition、expected target count、actual event／ledger countを検査し、違反時は安定したcodeで`RAISE(ABORT, ...)`して全rollbackする。条件付きUPDATEの0行を成功として扱わない。
 
@@ -1997,7 +1992,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - session/private API: `Cache-Control: private, no-store`
 - OAuth/token/callback: `Cache-Control: no-store`
-- immutable public revision/proof: content hash付きの明示public cache
+- 現在Package API: `Cache-Control: no-store`
 
 - error responseは認証内容を共有cacheしない
 
@@ -2015,7 +2010,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。期限切れの試行は、15分ごとのcronで削除する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
-- revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
+- 現在Package APIは`Cache-Control: no-store`で最新データを返す。
 
 サーバー状態はTanStack Queryで扱う。キャッシュ、再取得、失敗時の再試行を宣言的に書け、各画面の定型処理を減らせる。参考は[TanStack Query v5](https://reffect.co.jp/react/tanstack-query-v5)と[TanStack Queryの記事](https://reffect.co.jp/react/tanstack-query)である。
 
@@ -2025,7 +2020,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - private responseは`Cache-Control: private, no-store`
 
-- protected responseのexact cache値は`Cache-Control: private, no-store`とする。public Point Package Revisionだけは7.0のimmutable cacheを例外とする。
+- protected responseのexact cache値は`Cache-Control: private, no-store`とする。公開Package APIは`Cache-Control: no-store`とする。
 
 `GET /api/v1/me/admin-membership`
 
@@ -2108,13 +2103,13 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
 
 金額は小数第4位までとする。保存は、評価軸ごとに決めた最小単位の整数とする。設定できる最小単位の最小額は0.0001ポイントで、1単位は0.0001ポイントである。金額はその単位の倍数にする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、残高、価格は、対象評価軸の`minimumUnit`の倍数である。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、計算の途中、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。範囲を超えたら、その処理全体を拒否する。
 
-## FIX revisionと差分台帳
+## FIX訂正と差分台帳
 
 ### 入力
 
 - FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
 
-FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
+FIX CSVの列は`fixResultId`、`expectedVersion`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
 
 - 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
 - `evaluationCriterionId`: 評価軸ID
@@ -2122,27 +2117,27 @@ FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`re
 - `evaluationAt`: 評価期間。UTCの年月は必須、日・時刻は任意
 - `managementId`: 評価軸内管理ID。任意
 - `memo`: 任意、200文字以下
-- `fixResultId`と`expectedRevision`: 修正時だけ両方を指定する
+- `fixResultId`と`expectedVersion`: 修正時だけ両方を指定する
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
 受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
 
-### 不変性
+### 最新結果と不変台帳
 
 - 初回取込で安定した`fixResultId`を発行する。
-- 修正は同じ`fixResultId`へ新しい`fixRevision`を追加する。既存revisionをUPDATE/DELETEしない。
-- revisionの同一性は内容hash、source file hash、操作者、評価軸、request idで監査できる。
-- 新revisionの額と直前revisionの額との差を対象者・評価軸ごとに計算し、差分だけを記録する。差分0は台帳を増やさない。取消は値0の新revisionとする。
+- 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録と監査へ保存する。
+- 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
+- 訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分だけを不変台帳へ追加して残高と`evaluationTotal`へ反映する。差分0は台帳を増やさない。取消は最新額を0へ更新する。額が同じで評価月だけを訂正する場合は、残高差分を0とし、最新結果の評価月を更新して実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
-- 台帳行は不変で、`sourceFixRevisionId`を一意にして同じrevisionの再送による二重反映を防ぐ。
+- 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
 
 ### 対象者と訂正先
 
-- FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。修正revisionを別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新revisionの額（そのoriginで照合していなければ0）と一致する。
+- FIX実行記録と未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。訂正の対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。訂正を別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新結果の額（そのoriginで照合していなければ0）と一致する。
 
 - 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
-  - 修正revisionで、旧revisionに同じ対象者（上記の対象者キーと評価軸）の行がある場合は、旧revisionの状態を引き継ぐ。旧revisionの行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
+  - 訂正で、更新前の結果に同じ対象者（上記の対象者キーと評価軸）の行がある場合は、更新前の結果の状態を引き継ぐ。更新前の結果の行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
   - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
 - 受領済みFIXとその訂正先は同じPointsユーザーに保持する。Accountsの紐付け・公開許可の変更や受領後のURL解除・再所有があっても、既受領FIXを移動・rollbackしない。
 
@@ -2150,8 +2145,8 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 
 1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
 
-1. FIX result/revision/entry
-2. 旧revisionとの差分
+1. FIX resultとentryの最新レコード、FIX実行記録
+2. 更新前の結果との差分
 3. ledger entryまたはunclaimed entry
 4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
 5. idempotency result
@@ -2159,7 +2154,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 
 部分成功・行単位retry・server draftを許可しない。
 
-- revision内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
+- FIX command内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
 - 監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
 ## 台帳、残高、evaluationTotal
@@ -2168,7 +2163,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - `point_accounts`は、利用者と評価軸ごとの`balance`と`evaluation_total`の投影である。同じtransaction内の`point_ledger_entries AFTER INSERT` triggerだけが更新する。client、別Worker、application repositoryから、投影を直接INSERTまたはUPDATEしない。消費の事前条件と引き落としの拒否は、D1のguard triggerの`RAISE(ABORT)`で、そのbatch全体を失敗させる。
 - `balance = SUM(ledger.deltaAmount)`を満たす。
 - `evaluationTotal = SUM(FIX起因ledger.deltaAmount)`を満たす。
-- 負のFIX、差し戻し、過去revisionとの差分により、`balance`と`evaluationTotal`は負になってよい。
+- 負のFIX、差し戻し、過去の実行記録との差分により、`balance`と`evaluationTotal`は負になってよい。
 - 負残高を0へ丸めない。履歴を削除して帳尻を合わせない。
 
 定期reconciliationは上記式とclaimed/unclaimed合計を再計算し、不一致を監査eventとして記録する。自動で不変台帳を書き換えない。
@@ -2194,18 +2189,18 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ### 交換
 
-- 交換元・交換先の両評価軸が交換可で、有効な不変交換比率revisionがある場合だけ実行できる。比率は整数`numerator / denominator`で保持し、`REAL`へ変換しない。
+- 交換元・交換先の両評価軸が交換可で、現在の有効な交換比率がある場合だけ実行できる。比率は整数`numerator / denominator`で保持し、`REAL`へ変換しない。
 - CSVは交換元評価軸ID、交換元額、交換先評価軸ID、交換先額を持つ。元額・先額の少なくとも一方を必須とし、片方から固定小数点で他方を計算する。
-- rate、rounding、minimumUnitの結果が一意にならない入力は拒否する。出力側`minimumUnit`へ切り下げ、参照rate revision、rounding rule、整数の余りを台帳へ記録する。
+- rate、rounding、minimumUnitの結果が一意にならない入力は拒否する。出力側`minimumUnit`へ切り下げ、参照rateの実行時snapshot、rounding rule、整数の余りを台帳へ記録する。
 - burnとmintを同一原子処理にし、`evaluationTotal`は変更しない。
 
 ### 貢献評価代用
 
-- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの不変`substitutionMethodRevision`とする。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedRevision`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateRevisionId`とする。
-- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateRevisionId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
-- 各Pointsユーザーの`sourceTotalScaled`は対象UTC月の正規FIXとその訂正差分のみを集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
+- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録と監査を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
+- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
+- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
 - 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。targetの`minimumUnitScaled`倍数へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または`minimumUnit`未満は0結果とし、範囲超過は全体を拒否する。
-- 対象userは対象月のsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。新resultの利用者別理論値、丸め値、source FIX revision集合hash、method／rate／source／target criterion revision、月境界、実行cutoffを不変snapshotする。
+- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 ## UI
 
@@ -2376,9 +2371,10 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - token: user
 - scope: `points.balance.read`
-- request required: `pointPackageRevisionId`、`priceTicks`、`quantity`
-- success `200`の`data` required: `pointPackageRevisionId`、`priceTicks`、`quantity`、`vectorHash`、`components`、`checkedAt`
-- responseの`components`は`minItems: 1`かつ`evaluationCriterionId`昇順とし、各item requiredは`evaluationCriterionId`、`evaluationCriterionRevisionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`とする。`requiredAmountScaled`は非負整数文字列、`availableBalanceScaled`はsigned integer文字列とする
+- Pointsは利用者アクセストークンと有効な連携、クライアント、権限を検証して本人の残高を照会する。
+- request required: `components`。各要素は`evaluationCriterionId`、`requiredAmountScaled`とする。
+- success `200`の`data` required: `vectorHash`、`components`、`checkedAt`。
+- requestの`components`は1件以上で、評価軸IDの重複を拒否する。`requiredAmountScaled`は非負のASCII整数文字列で、JavaScript安全整数範囲と固定`minimumUnit`の倍数を必須とする。応答は評価軸ID昇順で、各要素に`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`を返す。残高はsigned integer文字列とする。
 - 残高の照会はポイントを確保しない。
 
 ### 落札精算の引き落とし
@@ -2388,7 +2384,8 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - 呼び出し元は連携済みの機密クライアントである。認証は認可コード交換と同じ`private_key_jwt`とDPoPとする。利用者のいないクライアント資格情報グラントは使わない。
 - 各落札者の利用者アクセストークンをrequestに含める。Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
 - アクセストークンは検証にだけ使い、台帳、受領証、ログ、監査、応答へ残さない。
-- request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`pointPackageRevisionId`、`priceTicks`、`quantity`とする。`marketsUserId`はrequest内で重複しない。
+- request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・重複軸・固定最小単位の検証を行う。`marketsUserId`はrequest内で重複しない。
+- Pointsは各評価軸の存在と固定最小単位を検証し、競売作成後のPackage・評価軸の無効化を理由にsnapshotの精算を拒否しない。
 - pathの`settlementId`はrequestの精算と一致させる。
 - 認可が無効な落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 - success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
@@ -2650,3 +2647,7 @@ export default defineConfig({
   - 複数回の取得結果を、エクスポート開始時点の状態に揃える必要はない。
   - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
 - 全部のOAuth紐づけは、退会に備えた紐づけとして保持する
+
+- 評価軸、Package、FIX、交換比率、貢献評価代用のmethod／result、自動分配設定の履歴revisionを廃止し、同じIDの最新レコードを更新する。実行記録、監査、冪等性、不変の差分台帳を保持し、FIX訂正と代用の再計算は旧額との差分を反映する。
+- 自動分配は初回の構成割合、対象者、score、残額ruleのsnapshotを保持し、FIX訂正で配分差分を派生反映する。評価軸の最小単位は作成後固定とする。
+- Marketsは競売作成時にPackage IDの現在データを取得して構成・最小単位・tick・表示名を保存し、その後の無効化を含め保存済み条件で精算する。現在Package APIは`no-store`とし、Marketsが計算した評価軸別vectorを残高確認・精算APIへ渡し、Pointsが認証・権限・金額・残高を検証する。
