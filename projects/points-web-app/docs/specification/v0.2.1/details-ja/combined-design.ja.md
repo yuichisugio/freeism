@@ -731,8 +731,8 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
                   - 「履歴」と「残高」の両方の更新処理をまとめた関数を用意して、それですべてを更新するよう徹底する
             - 要件
               1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
-  8. 分配の設定
-     - 新規発行 or 取り分から分配
+  8.  分配の設定
+      - 新規発行 or 取り分から分配
 
 ### 評価軸の作成画面
 
@@ -775,17 +775,16 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
       - 要件
         1. 追加、招待、削除、ロール変更は、Organizationの標準APIを使う
    5. 評価軸ポイントの他者への譲渡を許可するか
-     1. 許可する
-     2. 許可しない
+      1. 許可する
+      2. 許可しない
    6. 評価軸ポイントの他者との交換を許可するか
-     1. 許可する
-     2. 許可しない
+      1. 許可する
+      2. 許可しない
    7. 「即決価格」を許可するか
-     1. 許可する
-     2. 許可しない
+      1. 許可する
+      2. 許可しない
    8. ポイントの最小単位
-     - 必要な理由
-       1. この最小単位に到達するまで分配し続けるため
+      - この最小単位に到達するまで分配し続けるために必要
    9. 参考者への配分は、新規発行 or 取り分から分配
 
 4. **評価軸の編集**
@@ -1907,8 +1906,8 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | FIXの確定                              | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
 | 交換比率の確定                         | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
 | 貢献評価代用の確定                     | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
-| 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                               | 本人、idempotency                                                               |
-| 自動分配設定の保存 | 自動分配設定フォーム | 本人認証、サーバー側検証、既存の冪等性と監査 |
+| 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、idempotency                                                               |
+| 自動分配設定の保存                     | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性と監査                                    |
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
