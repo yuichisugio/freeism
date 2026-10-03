@@ -93,6 +93,7 @@
   - [FIX revisionと差分台帳](#fix-revisionと差分台帳)
     - [入力](#入力)
     - [不変性](#不変性)
+    - [対象者と訂正先](#対象者と訂正先)
     - [原子性](#原子性)
   - [台帳、残高、evaluationTotal](#台帳残高evaluationtotal)
   - [消費・譲渡・交換](#消費譲渡交換)
@@ -288,6 +289,8 @@
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     9. 評価代用の履歴
+       - 説明
+         - 
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     10. 譲渡の履歴
@@ -1420,8 +1423,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 受領前に評価軸別正味合計と正負件数を表示し、1件失敗で全件rollbackする。
 
-- 受領後のURL解除・再所有でも既受領FIXを移動・rollbackせず、後続訂正は元受領者へ差分反映する。
-
 - 貢献度アップロードでは、任意でメモとして文章を入れられる
   - 200文字以下のバリデーションを入れる
 
@@ -1430,10 +1431,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 
 - 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
-
-- FIXは安定result IDを持ち、訂正ごとに不変Revisionを追加する。
-
-- 訂正時は新値全額を再加算せず、旧最新値との差分だけを台帳へ記録する。取消は値0の新Revisionとする。
 
 - 負のFIXと負残高を許可する。
 
@@ -1794,10 +1791,8 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 正・負のどちらも登録できる。
 - Accountsの照合結果とPointsユーザーへの対応を確認した後、最新previewと集合hashを確認し、claim可能な正負すべてを選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
 - 受領前に評価軸別の正味合計、正件数、負件数を表示する。
-- 同じ対象者について各Revisionの未受領差分をまとめて受領し、受領額は最新Revisionの額と一致する。受領者が未確定の対象者への修正差分は未受領とする。
+- 同じ対象者について各Revisionの未受領差分をまとめて受領し、受領額は最新Revisionの額と一致する。
 - 単一のPoints D1 transactionで処理し、1件でも失敗すれば全件を未受領のままにする。
-- 受領後の訂正は同じ受領者への差分台帳として反映する。
-- Accountsの紐付けや公開許可が変更されても既受領FIXを巻き戻さない。
 
 ## Cookie、CSRF、Origin
 
@@ -1963,8 +1958,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - 同じFIX Revisionの二重受領を一意制約で防ぐ。
 
-- FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
-
 - previewを再取得し、利用者が一括受領を確認してから、`POST /api/unclaimed-fixes/claims`へ`{ "accountsLinkId", "claimSetHash" }`と`Idempotency-Key`を付けて送る。成功は`201`で`claimId`、`claimedCount`、`claimSetHash`を返す。
 
 - 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`、previewで`accountsLinkId`が無い場合は`422 ACCOUNTS_LINK_ID_REQUIRED`とする。確定では、対象が0件の場合は`409 NO_UNCLAIMED_FIXES`、同じ`Idempotency-Key`で内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`、bodyが不正な場合は`422 CLAIM_BODY_INVALID`とする。
@@ -1978,19 +1971,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
 
 負の合計で残高が不足・負になってもclaim自体は成功させ、その後の消費系操作を拒否する。並行claim、再読込、Workflow retryは同じclaim集合hashに収束し、二重台帳を作らない。
-
-- 同じrevisionを再送しても`sourceFixRevisionId`一意制約により二重反映しない。
-
-1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
-
-1. FIX result/revision/entry
-2. 旧revisionとの差分
-3. ledger entryまたはunclaimed entry
-4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
-5. idempotency result
-6. audit event
-
-部分成功・行単位retry・server draftを許可しない。
 
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
 
@@ -2028,8 +2008,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - 消費、譲渡、交換、落札の引き落とし、通常unlinkは、同じD1 `batch()`を`command PENDING INSERT -> canonical chunks INSERT -> PENDINGからVALIDATEDへのUPDATE -> domain／event／ledger write -> VALIDATEDからCOMMITTEDへのUPDATE -> idempotency result／成功audit`の順に固定する。2つのcommand transitionの`BEFORE UPDATE` triggerがprecondition、expected target count、actual event／ledger countを検査し、違反時は安定したcodeで`RAISE(ABORT, ...)`して全rollbackする。条件付きUPDATEの0行を成功として扱わない。
 
 - 各Workerの5分Cron monitorがD1の正本状態を照会し、同じ`alertKey`へ冪等upsertする。`OPEN`遷移時、継続1時間ごと、`RESOLVED`遷移時だけ固定destinationの`OPS_ALERT_EMAIL` Email Routing bindingへ通知する。宛先はverified destinationとしてWrangler/IaCで固定し、request入力から選ばない。送信失敗はalert rowを未通知のまま保持し次回再送する。
-
-- 台帳行は不変で、`sourceFixRevisionId`を一意にして同じrevisionの二重反映を防ぐ。
 
 - 重要mutationは`Idempotency-Key`を必須にする。
 
@@ -2170,15 +2148,11 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
   - `matched`: 結果のAccountsユーザーIDを保存する。
   - `no_match`: AccountsユーザーIDは保存しない。
   - `invalid_input`: その識別子を持つ行に、識別子の列を示す`RECIPIENT_IDENTIFIER_INVALID`の行エラーを付け、`422 CSV_VALIDATION_FAILED`とする。
-- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
-  - 修正revisionで、旧revisionに同じ対象者（後述の対象者キーと評価軸）の行がある場合は、旧revisionの状態を引き継ぐ。旧revisionの行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
-  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
 - validateの成功応答は、接続先ID、origin、照合の完了状態、行ごとの照合結果（`MATCHED`・`NO_MATCH`）とPoints内の連携の有無、`validationHash`を返す。`validationHash`には接続先ID、file hash、行ごとのorigin・照合結果・受領者を含める。
 - commitはAccountsで再照合して`validationHash`を再計算し、validate時と異なる場合は全件を`409 VALIDATION_CHANGED`で止めて再validateを要求する。Accounts側の紐付けの変更と、Points内の連携の変更の両方をこの比較で検出する。
 - Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
   - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
   - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
-- FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。修正revisionを別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新revisionの額（そのoriginで照合していなければ0）と一致する。
 
 ### 未受領FIXの受領資格
 
@@ -2209,6 +2183,8 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 
 ### 入力
 
+- FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
+
 FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
 
 - 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
@@ -2221,17 +2197,41 @@ FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`re
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
-受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答、FIX revisionへ保存する照合snapshotは[FIX取込時の照合](#6-fix取込時の照合)に従う。
+受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#6-fix取込時の照合)に従う。
 
 ### 不変性
 
 - 初回取込で安定した`fixResultId`を発行する。
 - 修正は同じ`fixResultId`へ新しい`fixRevision`を追加する。既存revisionをUPDATE/DELETEしない。
 - revisionの同一性は内容hash、source file hash、操作者、評価軸、request idで監査できる。
-- 新旧revisionの差を対象者・評価軸ごとに計算し、差分0は台帳を増やさない。
-- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。修正revisionで旧revisionの受領者を引き継ぐ規則を含め、受領者の決め方は[FIX取込時の照合](unclaimed-fix-and-ownership.md#6-fix取込時の照合)に従う。
+- 新revisionの額と直前revisionの額との差を対象者・評価軸ごとに計算し、差分だけを記録する。差分0は台帳を増やさない。取消は値0の新revisionとする。
+- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
+- 台帳行は不変で、`sourceFixRevisionId`を一意にして同じrevisionの再送による二重反映を防ぐ。
+
+### 対象者と訂正先
+
+- FIX revisionと未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。修正revisionの対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。修正revisionを別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新revisionの額（そのoriginで照合していなければ0）と一致する。
+
+- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
+  - 修正revisionで、旧revisionに同じ対象者（上記の対象者キーと評価軸）の行がある場合は、旧revisionの状態を引き継ぐ。旧revisionの行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
+  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
+- 受領済みFIXとその訂正先は同じPointsユーザーに保持する。Accountsの紐付け・公開許可の変更や受領後のURL解除・再所有があっても、既受領FIXを移動・rollbackしない。
 
 ### 原子性
+
+1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
+
+1. FIX result/revision/entry
+2. 旧revisionとの差分
+3. ledger entryまたはunclaimed entry
+4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
+5. idempotency result
+6. audit event
+
+部分成功・行単位retry・server draftを許可しない。
+
+- revision内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
+- 監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
 ## 台帳、残高、evaluationTotal
 
@@ -2587,17 +2587,12 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 ## 前提
 
 - Points独自のGoogle/GitHubログイン・明示linkとsessionを持つ。
-- 評価結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が不変FIX revisionとしてアップロードする。
 - 負のFIXと負残高を許可するが、残高不足時の消費系操作は拒否する。
 - Task、PWA、画像は実装しない。
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## 貢献度アップロード
 
-- FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
-- アップロード済みFIX revisionは不変とし、修正時は新しいrevisionを追加する。
-- 新revisionの各対象者・評価軸の額と直前revisionとの差分だけを台帳へ記録する。
-- revision内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態は1回のD1原子処理で確定し、部分成功を許可しない。
 - 負のFIXを許可し、結果として負の残高も許可する。
 - `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
@@ -2607,7 +2602,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - 利用者が未登録でも、外部の貢献者を宛先として正負どちらのFIXも先に保存する。
 - 未受領FIXは暫定ユーザー残高へ入れない。宛先と評価額を不変FIX revisionに保存し、受領時に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
 - PointsはAccountsの許可済み照合結果に基づいて受領先を特定し、受領可能な正負すべての未受領FIXを選択不可で一括受領する。
-- 一度受領済みのFIXとその訂正先は同じPointsユーザーに保持する。
 
 ## デプロイ設定
 
