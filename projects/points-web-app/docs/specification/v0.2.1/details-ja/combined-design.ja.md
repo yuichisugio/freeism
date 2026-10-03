@@ -225,15 +225,16 @@
        - 入力は任意。
     4. **公式パッケージ**
        - 説明
-         - このプロフィールに紐づく公式パッケージを表示する（0件のときは当該ブロックを空表示または非表示。複数件のときは一覧ですべて表示）
+         - このプロフィールに紐づく公式パッケージを表示する
+         - 0件のときは当該ブロックを空表示する。
+         - 複数件のときは一覧ですべて表示
        - 表示項目
-         1. 公式パッケージ名の表示
-         2. 公式パッケージのIDの表示
-         3. 公式パッケージを構成する評価軸のそれぞれの割合の表示
-            - 評価軸を一つ以上を組み合わせたパッケージを登録する
+         1. 公式パッケージ名
+         2. 公式パッケージID
+         3. 公式パッケージを構成する評価軸のそれぞれの割合
          4. 組み合わせている評価軸の名前・IDの表示
        - 要件
-         1. 名前・IDをハイパーリンク化して、その評価軸のプロフィールへ飛べるようにする
+         1. 構成する評価軸やパッケージの名前・IDをハイパーリンク化して、その評価軸のプロフィールへ飛べるようにする
        - 使用場面
          1. 参考にされた場合に、この公式評価軸の貢献度を元にポイントを付与することを示す。
     5. **各評価軸の保有ポイントの一覧**
@@ -1474,9 +1475,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - API namespaceをauth、app、public、resource、internal、oauth、well-knownへ分離する。
 
-- 通常成功は`{data}`、一覧は`{data, meta}`、失敗はRFC 9457 `application/problem+json`とする。
-  - Status: 採用
-  - 上書き・撤回関係: `PromiseResult`等の後方互換を廃止。
 
 
 
@@ -1639,8 +1637,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - browser BFF path: `/api/...`
 - OAuth/Discovery: Better Authと標準の`/.well-known/...`
 - JSON propertyは`camelCase`。
-- success envelopeは`data`、metadataは`meta`。
-- errorはRFC 9457で、機械判定codeは`SCREAMING_SNAKE_CASE`。
 - DBの`snake_case`をAPIへそのまま露出しない。
 
 ### Hono
@@ -1968,12 +1964,20 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - 単一resource、配列、command resultはすべて`data`へ入れる。
 - success envelopeは`data`と`meta`を必須にし、`meta.requestId`も必須にする。
+- mutationの`data`には、作成/更新されたresource ID、revision/version、idempotency resultを入れる。
 - paginationは`meta.cursor`、`meta.hasMore`を使う。
 - `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
 
 ### 失敗
 
-失敗はRFC 9457 Problem Detailsで返す。`type`は安定したHTTPS URI、`title`はcodeごとの短い固定文言とし、`status`はHTTP statusと一致させる。`code`は安定した`SCREAMING_SNAKE_CASE`とする。`type`、`title`、`status`、`code`、`requestId`を必須とし、`detail`と`instance`は任意とする。`detail`へsecret、SQL、stack、個人情報を入れない。入力検証のエラーは`errors[]`へ返す。各要素の`code`は`SCREAMING_SNAKE_CASE`の必須項目で、`row`、`field`、`message`はすべて任意項目とする。`row`は0以上の整数、`field`と`message`は文字列で返す。`message`にも秘密値を含めない。CSVの入力検証では、行番号、`column`で表す列名、エラーcodeを返す。
+- 失敗はRFC 9457 Problem Detailsで返し、`Content-Type`は`application/problem+json`とする。
+- `type`は安定したHTTPS URI、`title`はcodeごとの短い固定文言とし、`status`はHTTP statusと一致させる。`code`は安定した`SCREAMING_SNAKE_CASE`とする。
+- `type`、`title`、`status`、`code`、`requestId`を必須とし、`detail`と`instance`は任意とする。
+- エラー応答にはsecret、token、SQL、stack、内部binding名を含めない。`detail`には個人情報も含めず、入力検証の`message`にも秘密値を含めない。
+- 入力検証のエラーは`errors[]`へ返す。
+  - 各要素の`code`は`SCREAMING_SNAKE_CASE`の必須項目で、`row`、`field`、`message`はすべて任意項目とする。
+  - `row`は0以上の整数、`field`と`message`は文字列で返す。
+  - CSVの入力検証では、行番号、`column`で表す列名、エラーcodeを返す。
 
 ```json
 {
@@ -1998,6 +2002,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 - `401`: session/bearerなし・無効
 - `403`: 認証済みだが権限/scope不足
 - `404`: resourceを開示できない場合を含むnot found
+- `409`: revision/version/idempotency/state/残高競合
 - `413`: body/file上限
 - `415`: Content-Type/MIME不正
 - `422`: field/domain validation
@@ -2060,9 +2065,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
 
-- mutationは作成/更新されたresource ID、revision/version、idempotency resultを返す。
 
-- `409`: revision/version/idempotency/state/残高競合
 
 - FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
@@ -2531,8 +2534,6 @@ Marketsが登録した各提供先について次を保証する。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
 - mutationは`application/json`を要求し、一般bodyは最大64KiB
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
-- successは`{data, meta?}`、errorはRFC 9457 Problem Detailsに統一する。
-- errorへstack、SQL、token、secret、内部binding名を出さない。
 
 ```text
 default-src 'none';
