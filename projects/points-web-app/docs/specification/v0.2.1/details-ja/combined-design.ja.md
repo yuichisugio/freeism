@@ -23,8 +23,8 @@
     - [Accountsと連携](#accountsと連携)
     - [連携解除と退会](#連携解除と退会)
   - [評価軸](#評価軸)
-    - [基本情報](#基本情報-1)
-    - [要件](#要件-1)
+    - [評価軸のプロフィール画面](#評価軸のプロフィール画面)
+    - [評価軸の作成画面](#評価軸の作成画面)
     - [CSV列](#csv列)
     - [交換比率](#交換比率)
     - [画面](#画面)
@@ -292,12 +292,12 @@
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     10. 譲渡の履歴
-       - 説明
-         - `譲渡の仕組み`を実行した履歴
-       - 表示する項目
-         - 表示できる関連情報
-        - 要件
-          1. この項目の公開設定が出来るようにする。初期値は非公開
+    - 説明
+      - `譲渡の仕組み`を実行した履歴
+    - 表示する項目
+      - 表示できる関連情報
+    - 要件
+      1. この項目の公開設定が出来るようにする。初期値は非公開
 
 4.  **編集**
     - 編集ボタン
@@ -317,22 +317,31 @@
 
 - 目的・使用場面
   1. 目的とした項目を探す
+  2. ポイント交換する評価軸、指定するパッケージを探す
 
 - 説明
   - 検索できる機能
 
 - 要件
-  1. ユーザーの名前、ユーザーID、評価軸の名前、評価軸ID、パッケージ名、パッケージIDで検索可能
-  2. ソート可能
-  3. 一気に最大20件を検索可能
-  4. 部分一致で検索可能
-  5. ヘッダーの検索欄から検索できるようにする
-  6. 検索欄は、プロフィール・評価軸・パッケージの検索結果や他の検索結果と一緒に表示する
-  7. 以下の項目を検索できる機能
-  8. ユーザー（公開プロフィール）
-  9. 評価軸
-  10. パッケージ
-  11. 非公開プロフィールを結果へ含めない。
+  1. 全文検索できるよう設定
+  2. 検索欄一つで、プロフィール・評価軸・パッケージの検索ができ、同じ検索結果に表示する
+  3. 検索結果で、admin系の権限がある場合はバッチ表示
+  4. 検索結果で、ユーザー、評価軸、パッケージのどれであるかバッチ表示
+  5. ユーザーの名前、ユーザーID、評価軸の名前、評価軸ID、パッケージ名、パッケージIDで検索可能
+  6. 自分が管理者である評価軸とパッケージだけを検索できるフィルターを用意する
+     1. ボタン一つで、自分が`evalueterAdmin`の評価軸を探す
+     2. ボタン一つで、自分が`packageAdmin`の評価軸を探す
+  7. 検索結果の一覧で、`evalueterAdmin`、`packageAdmin`、`appAdmin`の場合だけ「管理者・編集可能」バッジを表示する
+  8. ソート可能
+  9. 一気に最大20件を検索可能
+  10. 部分一致で検索可能
+  11. ヘッダーの検索欄から検索できるようにする
+  12. 検索欄は、プロフィール・評価軸・パッケージの検索結果や他の検索結果と一緒に表示する
+  13. 以下の項目を検索できる機能
+  14. ユーザー（公開プロフィール）
+  15. 評価軸
+  16. パッケージ
+  17. 非公開プロフィールを結果へ含めない。
 
 ## 「設定」画面
 
@@ -390,8 +399,8 @@
 
 - 処理の流れ
   1. 次のどちらかの「評価代用アップロード」ボタンを押す。
-      1. プロフィールURLの保有ポイント一覧の上
-      2. 評価軸のプロフィール画面の上
+     1. プロフィールURLの保有ポイント一覧の上
+     2. 評価軸のプロフィール画面の上
   2. [CSVアップロードの確認手順](#csvアップロード)に従ってCSVを検証し、確認後に評価代用を実行する。
 
 ### ポイント譲渡する機能
@@ -560,7 +569,6 @@
 - 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に不変setting revisionを原子的に追加する。validationだけでは設定を保存しない。
 - 同じsource FIX revisionを二重分配しない。最初の正のrevisionでsnapshotを作り、後の訂正は設定、対象者、score、tie-breakを再取得せず同じsnapshotで新配分額を再計算し、旧配分との利用者別差分だけをledgerへ追加する。正から0／負への訂正は元の分配を同じsnapshotで全取消し、受取人残高が負になってもFIX訂正として反映する。初回の正のrevisionが後の訂正で現れた場合はその時点で初めてsnapshotを作る。
 
-
 ## 多言語に対応
 
 - 日本語と英語に対応する
@@ -600,23 +608,14 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 
 ## 評価軸
 
-### 基本情報
-
-- 概要
-  - 評価軸に関する画面についての仕様
-
-- 使用場面
-  1.  評価軸ポイントの付与
-  2.  ポイント分配する際の貢献度の参考
-
-### 要件
-
-1.  **評価軸のプロフィール画面**
+### 評価軸のプロフィール画面
 
 - 目的・使用場面
-  1.  評価軸を使用したいときに、この評価軸がどのような内容なのか確認するために使用する
+  1. 評価軸を使用したいときに、この評価軸がどのような内容なのか確認するために使用する
+
 - 説明
   - 評価軸の設定事項などをすべて一覧表示できる機能
+
 - 要件
   1.  評価軸のプロフィールURL
       - 要件
@@ -771,95 +770,78 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
             - 要件
               1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
 
-2.  **評価軸の作成画面**
+### 評価軸の作成画面
 
-- 使用場面
-  1.  評価軸を新規作成するために使用する
+1. 評価軸の作成は、「設定」画面で行う
+   - 「評価軸を作成」ボタンを押したら、「フォーム」or「CSV」をラジオボタンで選択して作成する
+
+2. フォームまたはCSVによる登録
+
 - 説明
-  - 評価軸を新規作成する画面
+  - 評価軸は、フォームまたはCSVで作成する
+
+- CSVアップロードを実装する理由
+  1.  一括で複数登録したい
+  2.  登録操作をCSVに統一するため
+
 - 要件
-  1.  作成画面は、「商材の出品」、「評価軸の作成」等と同じ画面で行う
-      - 1つ目の設問（作成する内容）で「評価軸」を選択すると、以降はフォームまたはCSVで作成する
-  2.  フォームまたはCSVによる登録
+  1.  CSVアップロード結果を確認できるようにする
       - 説明
-        - 評価軸は、フォームまたはCSVで作成する
-      - CSVアップロードを実装する理由
-        1.  一括で複数登録したい
-        2.  登録操作をCSVに統一するため
-      - 要件
-        1.  CSVアップロード結果を確認できるようにする
-            - 説明
-              - CSVアップロード結果をモーダルとして表示して、一つの評価軸ごとに登録内容を確認できるようにしたい
-        2.  CSVアップロード上限
-            - 説明
-              - 一回のCSVアップロードで、20個まで登録できるよう制限する
-  3.  設定項目
-      1. 評価軸の名前
-         - 説明
-           - 評価軸の名前を指定する
-         - 要件
-           1. 名前は、評価軸の中でユニークにする必要がある
-           2. 30文字以下のバリデーションを入れる
-           3. 必須項目
-      2. 評価軸の説明
-         - 説明
-           - 評価軸の目指す目標などを自由に記載する場所
-         - 要件
-           1. 200文字以下のバリデーションを入れる
-           2. 必須項目
-           3. URLのハイパーリンク化も行う
-      3. 評価軸に関連するURL
-         - 説明
-           - Discordサーバー、GitHubアカウント、Xアカウント、ホームページなどの評価軸に関するURLを記載する
-         - 要件
-           1. 20個まで設定可能なバリデーション
-      4. 評価軸の管理者
-         - 説明
-           - 管理者は、その評価軸のOrganizationで管理する
-         - 要件
-           1. 追加、招待、削除、ロール変更は、Organizationの標準APIを使う
-      5. 評価軸の設定項目
-         - 説明
-           - 評価軸に関するルールを設定する
-         - 設定項目
-           1. 評価軸ポイントの他者への譲渡を許可するか
-              1. 許可する
-              2. 許可しない
-           2. 評価軸ポイントの他者との交換を許可するか
-              1. 許可する
-              2. 許可しない
-           3. 「即決価格」を許可するか
-              1. 許可する
-              2. 許可しない
-           4. ポイントの最小単位
-              - 必要な理由
-                1. この最小単位に到達するまで分配し続けるため
+        - CSVアップロード結果をモーダルとして表示して、一つの評価軸ごとに登録内容を確認できるようにしたい
+  2.  CSVアップロード上限
+      - 説明
+        - 一回のCSVアップロードで、20個まで登録できるよう制限する
 
-3.  **評価軸の編集**
+1.  設定項目
+    1. 評価軸の名前
+       - 説明
+         - 評価軸の名前を指定する
+       - 要件
+         1. 名前は、評価軸の中でユニークにする必要がある
+         2. 30文字以下のバリデーションを入れる
+         3. 必須項目
+    2. 評価軸の説明
+       - 説明
+         - 評価軸の目指す目標などを自由に記載する場所
+       - 要件
+         1. 200文字以下のバリデーションを入れる
+         2. 必須項目
+         3. URLのハイパーリンク化も行う
+    3. 評価軸に関連するURL
+       - 説明
+         - Discordサーバー、GitHubアカウント、Xアカウント、ホームページなどの評価軸に関するURLを記載する
+       - 要件
+         1. 20個まで設定可能なバリデーション
+    4. 評価軸の管理者
+       - 説明
+         - 管理者は、その評価軸のOrganizationで管理する
+       - 要件
+         1. 追加、招待、削除、ロール変更は、Organizationの標準APIを使う
+    5. 評価軸の設定項目
+       - 説明
+         - 評価軸に関するルールを設定する
+       - 設定項目
+         1. 評価軸ポイントの他者への譲渡を許可するか
+            1. 許可する
+            2. 許可しない
+         2. 評価軸ポイントの他者との交換を許可するか
+            1. 許可する
+            2. 許可しない
+         3. 「即決価格」を許可するか
+            1. 許可する
+            2. 許可しない
+         4. ポイントの最小単位
+            - 必要な理由
+              1. この最小単位に到達するまで分配し続けるため
 
-- 目的・使用場面
-  1.  評価軸の情報を更新するために使用する
-- 説明
-  - 評価軸の情報を更新するために使用する画面
-- 要件
-  1.  その評価軸の`evalueterAdmin`または`appAdmin`だけが、評価軸のプロフィール画面から更新できる
-  2.  更新は、フォームまたはCSVで行う
-
-4.  **評価軸を検索する機能**
-
-- 目的・使用場面
-  1.  使用したい評価軸を探すために使用する
-  2.  自分が`evalueterAdmin`または`appAdmin`である評価軸を探す
-  3.  ポイント交換する評価軸を探す
-- 説明
-  - 評価軸を検索できる機能・画面
-- 要件
-  1.  全文検索できるよう設定
-  2.  評価軸の名前、評価軸IDで検索できるようにする
-  3.  ヘッダーの検索欄から検索できるようにする
-      - 検索欄は、プロフィール・評価軸・パッケージの検索結果や他の検索結果と一緒に表示する
-  4.  検索結果の一覧で、`evalueterAdmin`、`packageAdmin`、`appAdmin`の場合だけ「管理者・編集可能」バッジを表示する
-  5.  自分が管理者である評価軸とパッケージだけを検索できるフィルターを用意する
+2.  **評価軸の編集**
+    - 目的・使用場面
+      1.  評価軸の情報を更新するために使用する
+    - 説明
+      - 評価軸の情報を更新するために使用する画面
+    - 要件
+      1.  その評価軸の`evalueterAdmin`または`appAdmin`だけが、評価軸のプロフィール画面から更新できる
+      2.  更新は、フォームまたはCSVで行う
 
 - `evaluation-criteria`
   - 説明
@@ -1306,7 +1288,6 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 変更履歴はGitで残す。共有、プルリクエスト、自動実行はGitHubで行う。使い慣れているためである。差分の追跡からレビュー、自動ビルドまでを一つの流れにできる。
 
-
 E2EテストはPlaywrightで行う。他のE2Eと比べてAPIが安定している。ブラウザの自動操作とトレース、ドキュメントも揃いやすい。参考は[Playwrightの記事](https://reffect.co.jp/html/playwright)である。
 
 UIの単体テストはTesting Libraryで行う。実装の内部ではなく、利用者の操作に近い形で確かめやすい。
@@ -1343,10 +1324,7 @@ APIの形はRESTにする。HTTPのメソッドとURLで、リソースの取得
 
 ログイン認証はBetter Authを使う。使っていたAuth.js v5が合併し、より単純で機能も多いためである。公式の`better-auth/minimal`を使い、未使用のKysely adapterはWorkerのバンドルに含めない。
 
-
 UIはReactで組み立てる。コンポーネントに分け、宣言的に描画できる。採用例と学習資料、周辺のライブラリが多く、長い期間にわたって人を巻き込みやすい。初めて描画するまで読み込みを遅らせるときは、`React.lazy`と`Suspense`を使う。
-
-
 
 パッケージ管理はpnpmを使う。モノレポに向いている。
 
@@ -1360,7 +1338,6 @@ UIはReactで組み立てる。コンポーネントに分け、宣言的に描�
 
 コミット前の検査はHusky、lint-staged、commitlint、commitizenで行う。手元の差分だけを軽く見て、履歴の粒度を揃えやすい。
 
-
 検索パラメータはnuqsで、Reactの状態と双方向に同期する。フィルタやタブをURLにし、共有や再読み込みに強くするためである。
 
 アイコンはlucide-reactを使う。線画のSVGをReactコンポーネントとして渡せる。画面のUIと合い、読み込みも分けやすい。
@@ -1370,7 +1347,6 @@ UIはReactで組み立てる。コンポーネントに分け、宣言的に描�
 CSVの読み取りはpapaparseを使う。圧縮とクライアントへの保存はfflateとfile-saverを使う。ファイル選択は`<input type="file">`など、ブラウザ標準のUIに揃える。ドラッグアンドドロップは使わない。
 
 未使用のexport、ファイル、依存の検出はknipとts-pruneで補助する。不要なコードと依存を減らし、保守する範囲を狭くするためである。
-
 
 バックエンドのHTTPはHonoで実装する。軽くて速く、読みやすいためである。Next.jsのServer Actions、Route Handlers、TanStack StartのServer Functionsは使わない。外部から呼ぶAPIもあるので、HTTPのエンドポイントに揃える。Server Functionsを使えないフレームワークへ移る可能性もある。
 
@@ -1419,8 +1395,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 精算の手動再試行は置かない。
 
-
-
 - 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
 
 - 負のFIXと負残高を許可する。
@@ -1431,35 +1405,21 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 譲渡、交換、落札の引き落としは`evaluationTotal`を変更しない。Substitution FIXは変更する。
 
-
 - FIX CSVの受領先は、外部プロフィールURLか、AccountsのユーザーIDの、どちらか一方である。
 
 - Exchange比率は不変Revisionと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
-
 
 - 動的公開ページのv0.2.1 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。
 
 - API namespaceをauth、app、public、resource、internal、oauth、well-knownへ分離する。
 
-
-
-
-
-
-
-
 - 定期R2 DB backup、30日超の長期backup Workflowは不要
-
 
 - 読取専用Public APIとしてPoints残高・公開ユーザー情報、Markets落札proof／Shields向け情報を提供する。
 
-
 - 公開URLは名前ではなく不変IDを使用し、名前変更後もURLを維持する。
 
-
-
 - Accountsの紐付け・照合に基づく未受領FIXの対象集合はPOINTSに従う。
-
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
@@ -1468,7 +1428,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。
 - runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
 - 永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
-
 
 ## CSVエクスポート仕様
 
@@ -1840,12 +1799,12 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 ## Cookie、CSRF、Origin
 
-| 項目           | Points                           | Markets                          |
-| -------------- | -------------------------------- | -------------------------------- |
-| Cookie domain  | `points.freeism.app` host-only   | `markets.freeism.app` host-only  |
-| Cookie prefix  | Points専用                       | Markets専用                      |
+| 項目           | Points                                   | Markets                                  |
+| -------------- | ---------------------------------------- | ---------------------------------------- |
+| Cookie domain  | `points.freeism.app` host-only           | `markets.freeism.app` host-only          |
+| Cookie prefix  | Points専用                               | Markets専用                              |
 | 属性           | `Secure; HttpOnly; SameSite=Lax; Path=/` | `Secure; HttpOnly; SameSite=Lax; Path=/` |
-| 認証DB・Secret | Points専用                       | Markets専用                      |
+| 認証DB・Secret | Points専用                               | Markets専用                              |
 
 - Cookieとセッションの処理はBetter Authの標準機能に任せる。
 - OAuth Tokenは暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。session/account/tokenをlocalStorageへ保存しない。
@@ -1985,7 +1944,6 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - 同一retryで同じresult、異なるpayloadで409
 
-
 - 全chunk、台帳、projection、idempotency result、auditをstatement数100以下の同じD1 `batch()`へ入れる。複数batchへの分割や1行1queryを禁止し、途中失敗は全rollbackする。
 
 - idempotencyは`Idempotency-Key` header、内部propertyは`idempotencyKey`。
@@ -2033,7 +1991,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
   - rate limit responseは`429`と`Retry-After`を返す。
 
-
 - chunkごとの各target table statement、command guard、ledger、idempotency result、auditを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
 
 - `sourceFixRevisionId`、idempotency key、Auction command/seq、settlement plan hashを一意にする。
@@ -2070,7 +2027,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。期限切れの試行は、15分ごとのcronで削除する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
 - revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
-
 
 サーバー状態はTanStack Queryで扱う。キャッシュ、再取得、失敗時の再試行を宣言的に書け、各画面の定型処理を減らせる。参考は[TanStack Query v5](https://reffect.co.jp/react/tanstack-query-v5)と[TanStack Queryの記事](https://reffect.co.jp/react/tanstack-query)である。
 
@@ -2280,7 +2236,6 @@ PointsはOAuth 2.1 Authorization Server兼Protected Resource、MarketsはOAuth C
 - Markets D1をPointsから直接参照しない。
 - Marketsが登録したPoints互換提供先のoriginへ外部`fetch()`でHono API contractを呼ぶ。
 - Pointsが所有するOpenAPIを正本にし、Marketsは生成clientを使う。MarketsがPoints backend sourceやHono RPC型を直接importしない。
-
 
 ### 開発者向けOAuthクライアント管理
 
@@ -2536,10 +2491,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - `minimumReleaseAge: 4320`分
   - `blockExoticSubdeps: true`
 
-
-
-
-
 ## フォルダ構成
 
 - `infra/{table_name}`
@@ -2686,7 +2637,6 @@ export default defineConfig({
 - 管理者の招待メールは送らない。未受諾の招待は、ログイン中の画面で一覧し、その画面で受諾する。
 
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
-
 
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
 
