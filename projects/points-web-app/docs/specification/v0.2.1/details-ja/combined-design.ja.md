@@ -467,38 +467,69 @@
 
 ### 公式パッケージの設定・自動分配
 
-- 説明
-  - 自分に付与された評価軸ポイントを、どう分配するか指定する
-  - 指定方法は、パッケージを自分と紐づけることで設定する
-  - 設定したパッケージを、自分の「公式パッケージ」と呼ぶ
-  - ここに設定した公式のパッケージが、自分に付与されたポイントを、自分へ貢献した人たちへポイントを分配する割合になる
+- 設定
+  - 利用者は画面のフォームで、公式パッケージ、自動分配の有効・無効、分配する割合または固定額を設定する。
+  - 保存時は本人の認証とサーバー側の検証を行い、最新の設定を一括更新する。
+  - 自分や他の利用者が作成したパッケージを、重複なく最大100件登録できる。登録した全パッケージを使い、各パッケージへの配分割合を設定する。
+  - 分配する割合は0％〜100％とする。固定額は0以上とし、各段階の実際の受取額を上限にする。
+  - 初期状態は無効とする。パッケージを1件以上登録すると有効にでき、有効時は「自動分配を設定中」と表示する。
+  - パッケージを登録解除すると、その配分割合も削除し、残った比率を合計100％へ正規化する。最後の1件を解除すると自動分配を無効にする。
+  - 手動で送る場合は、既存のポイント譲渡機能を使う。
 
-- 要件
-  1. 自分が作成したパッケージ以外以外でも、自動分配する設定として公式パッケージを選択できる
-  2. 自分に紐づける公式パッケージは0件以上100以下で設定可能
-     - 公式パッケージの紐づけは任意
-     - 最大100個まで登録して自動分配できる
-  3. 分配割合の設定では、どれだけ自分に残すのかも指定できる
-     - 例）90%を分配して、10%を自分に残す。など
-  4. 自動で分配するか、手動分配するかも設定できる
-     - 自動分配をONになった場合は、Toggleだけではわかりづらいので、「自動分配を設定中」と表示したい
-     - 自動分配は、プロフィールへ公式パッケージを1件以上登録した場合だけ有効化できる。
-  5. 付与ポイントを商材に残す額は、「割合」or「固定値」のどちらにするかRadioボタンで選べる
-  6. 「割合」の場合は、0.001%〜100%まで選べる
-  7. 「固定値」の場合は、0以上からシステム上のMAX値までで選べる
-  8.  初期値はOFF。ON時はUIに「自動分配を設定中」と表示する。
-  9.  正のFIXだけを分配対象にする。
-      - 負または0のFIXは元の本人へそのまま反映し、分配しない
+- 分配方式
+  - 評価軸の作成者は、作成時に「本人の取り分から配る方式」または「追加発行して配る方式」を選ぶ。更新は、その評価軸の管理者が行う。自動分配は譲渡可否とは別に扱う。
+  - 本人の取り分から配る方式では、他の人へ実際に配る額を本人の残高から差し引き、受取人の残高へ加える。分配元の累計評価額は減らさず、受取人の累計評価額へ分配額を加える。
+  - 追加発行して配る方式では、本人に受取額全額を残し、他の人への配分額を追加発行する。追加発行分は受取人の残高と累計評価額の両方へ加える。
+  - 配るポイントの種類は受け取った種類のままとする。パッケージ内の評価軸は配分割合の計算に使う。
+  - 例えば100ポイントを受け取り80％を分配する場合、取り分方式では本人に最低20を残して最大80を配り、追加発行方式では本人に100を残して最大80を追加発行する。
 
-- 初回の本人FIX ledgerは全額`A`を`affectsEvaluationTotal=true`で記録し、訂正時は更新前の額との差分を記録する。分配時だけ本人から`-D`、受取人へ合計`+D`の`affectsEvaluationTotal=false`台帳を追加する。これにより本人の`evaluationTotal`は評価額全体、本人の`balance`は`R`だけ増え、受取人の`evaluationTotal`は変更しない。
-- weight cutoffはsource FIXの評価期間のUTC終端を含まない`weightCutoffExclusive`とする。月だけの入力なら次月月初00:00:00Z、日／時刻がある場合はその正規化期間終端を使う。
-- candidateはsnapshot時にACTIVEなPointsユーザーのうちsource FIX本人を除いた利用者とする。Packageのcomponent `c`とcandidate `u`ごとに、cutoff前の差分ledgerから`positiveEvaluationTotal(u,c) = max(evaluationTotalScaled(u,c), 0)`を再構成する。`score(u) = SUM(positiveEvaluationTotal(u,c) * componentWeight(c))`とし、複数軸の評価を加算する。`totalWeight`による共通の除算は相対scoreで打ち消し合うため行わない。中間値はBigInt、保存scoreはJavaScript安全整数範囲を必須とする。
-- `score(u) > 0`の対象者だけを分配集合に入れる。対象者が0件または全score合計が0なら、分配debit／creditを作らず正のFIX全額を本人の`balance`へ残し、snapshotに`NO_ELIGIBLE_WEIGHT`を記録する。
-- 固定小数点の最大剰余方式で配分する。`unitCount = D / M`を整数unitとし、各対象者へ`floor(unitCount * score(u) / totalScore)`unitを配る。残りunitは除算の余りが大きい順、同値はPointsユーザーID昇順で1unitずつ与える。0unit行はledgerを作らない。`minimumUnit`未満の額を作らず、対象者がいる時は余りを本人やsystemへ残さず常に合計`D`を配り切る。
-- 1 source FIXの対象者上限は1,000件、1つのFIX commit command内の分配credit合計上限も1,000行とする。いずれかを超えるpreview／commitは`AUTO_DISTRIBUTION_TARGET_LIMIT_EXCEEDED`で全FIX commandを0件へrollbackし、部分分配や上位1,000件の暗黙抽出をしない。
-- 初回の正のFIXを分配するとき、Package IDと構成割合、残額rule、source FIX IDと実行ID、評価期間・`A/R/D/M`、cutoff、component軸IDとweight、candidate状態、利用者ごとのcomponent evaluation total／score／商／余り／配分unit、tie-break順を不変snapshotへ保存する。
-- 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に最新の設定レコードを原子的に更新し、実行記録と監査を保存する。validationだけでは設定を保存しない。
-- 同じFIX実行を二重分配しない。初回の正のFIXで保存した構成割合、残額rule、対象者、score、tie-breakのsnapshotを訂正時にも使い、新配分額と旧配分額の利用者別差分だけを台帳へ派生反映する。正から0／負への訂正は元の分配を全取消し、受取人残高が負になっても反映する。訂正で初めて正の額になった場合は、その時点で初回snapshotを作る。
+- 分配を始める時点
+  - 正の貢献評価（FIX）を付与するとき、今回の付与額を累計評価額へ反映する前に、最初の配分割合を計算する。元の付与額は本人の残高と累計評価額へ全額反映し、その後に分配する。
+  - 新規の0または負のFIXは、その額を本人へ反映する。
+  - 未受領のFIXは、本人が受領を確定する時点の設定で分配する。今回受領する評価額を累計へ反映する前に、配分割合を計算する。
+
+- 配分の計算順序
+  - 受取額と設定した割合・固定額から、分配する総額を求める。
+  - 総額をパッケージ間の割合で分け、次に各パッケージの構成割合で評価軸ごとに分ける。最後に、各評価軸の累計評価額に応じて利用者へ割り当てる。
+  - 利用者ごとの累計評価額は、訂正と負の評価を反映した値を使う。利用者の累計評価額が負の値の場合は分配の計算上だけ0とする。
+  - 本人・未受領者・退会者を含む全員の正の累計評価額の合計を分母とし、各人の正の累計評価額を分子とする。
+  - 例えば評価軸への配分額が30、Bさんの累計が60、Cさんが40なら、Bさんへ18、Cさんへ12を割り当てる。
+  - 各段階で、その段階を処理する時点の設定・パッケージ構成・累計評価額を使う。先に計算した分配による受取額も、方式にかかわらず後の段階の累計評価額へ反映する。
+
+- 本人分と配れない分
+  - 本人自身、未受領者、退会者に割り当てた額は、他の人へ配らない。
+  - 無効なパッケージ・評価軸への配分額と、正の累計評価額を持つ人がいない評価軸への配分額も、他の人へ配らない。他の有効な分の計算は続ける。
+  - 取り分方式では、これらの額を本人に残す。追加発行方式では、元の受取額を本人に残し、これらの額は発行しない。
+
+- 端数の配分
+  - パッケージ間・評価軸間・利用者間の各段階で、受け取ったポイントの最小単位へ切り捨てる。
+  - 余った額は端数の大きい順に最小単位ずつ追加する。同じ端数なら、その段階のパッケージID・評価軸ID・利用者IDの昇順で決める。
+  - 本人・未受領者・退会者の取り分も計算してから、本人分と配れない分の扱いを適用する。
+  - 分配総額の割合計算で最小単位未満になった端数は、取り分方式では本人に残し、追加発行方式では発行しない。整数の最小単位数で計算し、金額の精度を維持する。
+
+- 再分配と終了条件
+  - 受取人が自動分配を有効にしている場合は、受取額を基に再分配する。方式は、受け取ったポイントの評価軸の設定に従う。
+  - 同じ段階の全受取人への反映を終えてから次の段階へ進む。各段階は受取人IDの昇順とし、同じ人への別経路は経路上の利用者IDの並び順で処理する。
+  - 別経路の受取額はそれぞれ処理する。各段階の分配額は受取額以内とする。
+  - 自動分配が無効、受取額が最小単位以下、または再分配額が最小単位未満の場合は、受取人に残して終了する。
+  - 同じ経路で同じ人に戻った場合、直前にその人を通過してから今回まで追加発行がなく、端数処理後の受取額が前回より小さければ、再分配を続ける。
+  - 区間内に追加発行がある場合、または受取額が減っていない場合は、戻った額をその人に残して終了する。
+
+- FIXの訂正
+  - FIXは同じレコードの現在額を更新する。計算時は、そのFIXによる旧付与・旧分配・旧追加発行が残高と累計評価額へ与えた全影響を仮に取り除く。
+  - 他のFIXの最新結果と訂正時点の設定を使い、訂正後の付与から始まる全経路を計算し直す。各段階では、その再計算で先に反映した結果を含む値を使う。
+  - 利用者・評価軸ごとに新旧結果を比較し、残高と累計評価額の差分を台帳へ追加する。分配先から外れた人の旧結果も取り消す。
+  - 0または負への訂正は、旧分配・旧追加発行を取り消し、訂正後のFIXを本人へ反映する。差分によって残高が負になっても反映する。
+  - 別のFIXで完了した分配は維持する。以後の新規分配は訂正後の累計評価額を使う。
+
+- 一括処理と保存する情報
+  - CSVは記載順で各FIXとその全再分配を計算し、後のFIXには先の計算結果を反映する。最後にFIX・残高・累計評価額・台帳を一括確定する。
+  - 一回の確定処理では、各経路の各受取段階を計算するたびに件数を数え、最大1,000行とする。保存時の合算にかかわらず、この操作上限を適用する。超過は`AUTO_DISTRIBUTION_TARGET_LIMIT_EXCEEDED`とし、付与・分配全体を確定せず、設定を直して再実行する。他の検証失敗も全件を確定しない。
+  - 追加発行の総額は、各段階の受取額上限、終了条件、処理件数上限に従う。
+  - 経路、各段階の設定・計算値、循環判定に使う前回受取額と追加発行の有無は、計算中のメモリで扱う。
+  - 台帳は既存の参照で元のFIXに紐付け、元FIX・利用者・評価軸・累計評価額への反映有無ごとに金額を合算する。既存の`affectsEvaluationTotal`がtrueの行は残高と累計評価額、falseの行は残高だけに反映する。本人の取り分からの引き落としはfalse、両方式の受取人への加算はtrueとする。訂正は同じ区分で集計した旧結果との差分を追加し、差分0の行は追加しない。
+  - 保存する情報は、現在の設定とFIX、差分台帳、既存の監査と冪等性の処理結果とする。台帳から各人の最終増減を確認できる。
+  - 同じ要求を再送した場合は既存の冪等性の結果を返し、二重に付与・分配しない。
 
 ## 多言語に対応
 
@@ -564,7 +595,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
            1. データ取得APIで使用する
          - 要件
            1. IDコピペのボタンアイコンを表示
-           2. IDは、プロフィールURLと同じく**標準Nano ID**（文字列）にする
+           2. IDは、プロフィールURLと同じく標準Nano ID（文字列）にする
       2. 管理者
          - 表示項目
            1. 管理者名
@@ -700,6 +731,8 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
                   - 「履歴」と「残高」の両方の更新処理をまとめた関数を用意して、それですべてを更新するよう徹底する
             - 要件
               1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
+  8. 分配の設定
+     - 新規発行 or 取り分から分配
 
 ### 評価軸の作成画面
 
@@ -741,22 +774,19 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
         - 管理者は、その評価軸のOrganizationで管理する
       - 要件
         1. 追加、招待、削除、ロール変更は、Organizationの標準APIを使う
-   5. 評価軸の設定項目
-      - 説明
-        - 評価軸に関するルールを設定する
-      - 設定項目
-        1. 評価軸ポイントの他者への譲渡を許可するか
-           1. 許可する
-           2. 許可しない
-        2. 評価軸ポイントの他者との交換を許可するか
-           1. 許可する
-           2. 許可しない
-        3. 「即決価格」を許可するか
-           1. 許可する
-           2. 許可しない
-        4. ポイントの最小単位
-           - 必要な理由
-             1. この最小単位に到達するまで分配し続けるため
+   5. 評価軸ポイントの他者への譲渡を許可するか
+     1. 許可する
+     2. 許可しない
+   6. 評価軸ポイントの他者との交換を許可するか
+     1. 許可する
+     2. 許可しない
+   7. 「即決価格」を許可するか
+     1. 許可する
+     2. 許可しない
+   8. ポイントの最小単位
+     - 必要な理由
+       1. この最小単位に到達するまで分配し続けるため
+   9. 参考者への配分は、新規発行 or 取り分から分配
 
 4. **評価軸の編集**
    - 要件
@@ -822,7 +852,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - 評価軸は、ポイントの種類である。FIX（確定した付与）、台帳（ポイント増減の履歴）、Package（評価軸の組み合わせ）、落札の引き落としは、対象がどの評価軸のポイントかを、評価軸のIDで参照する。このいずれかから参照された評価軸は、データベースの行を消す物理削除をしない。行を消すと、過去の付与、残高の増減、Packageの構成、確定済みの落札が、どの評価軸のポイントだったかを失う。使わなくなった評価軸は削除せず、新規の利用だけを止め、最新の評価軸レコードと過去の実行記録を保持する。評価軸IDは再利用しない。
   - 評価軸を消すとき、それを参照するFIX、台帳、Package、落札の引き落としまで一緒に消すcascade deleteは採らない。台帳は監査上の正本であり、確定済みの引き落としも残すためである。
 
-- 交換比率は`appAdmin`がCSVで登録する有向pair別の最新レコードとし、ACTIVEは正の整数比率、DISABLEDは比率なし、出力はtarget minimumUnitへ切り下げる。
+- 交換比率は`appAdmin`がCSVで登録する有向pair別の最新レコードとし、ACTIVEは正の整数比率、DISABLEDは比率なし、出力は共通の保存精度である0.0001ポイント単位へ切り下げる。
   - Status: 採用
   - 上書き・撤回関係: 未登録と旧0比率はDISABLEDとする。過去参照は保持する。
 
@@ -838,6 +868,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - `transferEnabled`: boolean
 - `exchangeEnabled`: boolean
 - `buyNowEnabled`: boolean
+- `autoDistributionMode`: `OWN_SHARE`（本人の取り分から配る方式）または`ADDITIONAL_ISSUANCE`（追加発行して配る方式）
 - `relatedUrl`: 1行1URL。最大20件になるよう同じIDの複数行で表す
 
 ### 交換比率
@@ -854,7 +885,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - 評価軸のCSV、実行記録、reconciliation、無効化は、その評価軸の`evalueterAdmin`または`appAdmin`に表示する。
 - 交換比率は交換元・交換先・正規化比率・状態・実行記録を表示する。CSVの登録は、`appAdmin`、または交換元か交換先の`evalueterAdmin`が行う。
 - 評価軸の登録と更新は、フォームまたはCSVで行う。一般利用者向けのmember管理とowner移譲は表示しない。
-- 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・versionを表示する。
+- 名前・ID・description・関連URL・`minimumUnit`・譲渡/交換可否・自動分配方式・versionを表示する。
 
 ### 基本属性
 
@@ -865,17 +896,19 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - `minimumUnit`: `0.0001`以上。最大4桁の小数
 - 譲渡可否、交換可否、残高公開初期値
 - 即決価格利用可否
+- 自動分配方式: 「本人の取り分から配る方式」または「追加発行して配る方式」。受け取ったポイントの評価軸の設定を、初回の分配と再分配の両方に適用する。
 - version、作成日時、更新日時
 
-評価軸は同じIDの最新レコードを更新する。`minimumUnit`は評価軸作成時に決め、作成後は固定する。実行時の属性と計算条件は、実行記録、監査、台帳、競売snapshotへ保存する。
+評価軸は同じIDの最新レコードを更新する。`minimumUnit`は作成後も、登録・更新の権限を持つ管理者がフォームまたはCSVで変更できる。保存精度は小数4桁で固定し、最小単位の変更後も過去の付与額・残高・累計評価額・台帳の金額を保持する。自動分配の丸めと再分配の終了判定には、処理時点の最小単位を使う。付与・譲渡・交換・競売精算の金額は、共通の保存精度である小数4桁で検証する。FIX訂正や取消の差額も小数4桁で正確に反映する。実行済みの増減は台帳と実行記録へ保存する。競売snapshotには、競売作成時のパッケージ構成・割合・入札額の刻み・表示名を保存する。
 
 ### 登録・更新
 
 - 作成は、ログインしたPoints利用者が行う。更新は、その評価軸の`evalueterAdmin`または`appAdmin`が行う。
 - 登録と更新は、フォームまたはCSVで行う。状態は`ACTIVE`または`INACTIVE`とする。
+- 自動分配方式は作成時に必須とし、フォームでもCSVでも選択できる。変更後の分配とFIX訂正の再計算には、処理時点の方式を適用する。
 - 1回のCSVは最大20評価軸とする。関連URLの複数行は同じ論理評価軸として数える。
 - フォームではserver validation後、確定直前のpreviewを表示し、利用者が確認してから原子的に確定する。
-- 同じ名前の重複、URL上限超過、無効な`minimumUnit`、作成後の最小単位変更、version競合を拒否する。
+- 同じ名前の重複、URL上限超過、無効な`minimumUnit`、version競合を拒否する。
 
 ### 交換比率の更新
 
@@ -886,7 +919,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 - `status=DISABLED`では比率を空にし、新規交換だけを停止する。比率0を無効化の代用にしない。
 - 初回は`expectedVersion`を空、更新・無効化は現在versionを必須とし、競合は`409`にする。
 - 作成時は交換比率のレコードを追加し、変更・無効化は同じ有向pairの最新レコードを更新する。交換・代用の実行記録には、適用した比率と丸め条件を保存する。
-- 出力額は正の入力に対してtargetの`minimumUnit`倍数へ常に切り下げ、理論値との差を整数の余りとして台帳へ保存する。丸め後が0なら交換を拒否する。
+- 出力額は正の入力に対して0.0001ポイント単位へ常に切り下げ、理論値との差を整数の余りとして台帳へ保存する。丸め後が0なら交換を拒否する。
   - 評価軸IDは不変の標準Nano ID、名前30文字以下、説明200文字以下、関連URL最大20件とする。
 
 - 無料主義v2では、グループ管理するけど、グループ内しか評価できないのが問題
@@ -1037,7 +1070,7 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
 
 Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnicode White_Spaceを除去し、連続するWhite_SpaceをASCII space 1つへ畳み、JavaScriptのlocale非依存`toLowerCase()`を適用した値とする。オリジナル表示値はNFCで保存する。statusに関係なく同じ正規化名を別Package IDで再利用できず、CSV内重複とD1 unique constraintの両方で拒否する。
 
-Packageは同じIDの最新レコードを更新する。Marketsは競売作成時に現在データを取得し、評価軸ID、構成割合、最小単位、`packageTick`、Packageと評価軸の表示名を競売snapshotへ保存する。
+Packageは同じIDの最新レコードを更新する。Marketsは競売作成時に現在データを取得し、評価軸ID、構成割合、`packageTick`、Packageと評価軸の表示名を競売snapshotへ保存する。
 
 `pointPackages.status`は現在の`ACTIVE | INACTIVE`を表す。Package本体とcomponentの更新、競合検査、監査は同じD1原子処理で確定する。
 
@@ -1076,7 +1109,7 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
          1. `ratio`
          2. `evaluation-criteria-id`（評価軸のNano ID）
 
-- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへ公開時の`packageLifecycleStatus`、表示field、package tick、componentの軸ID／name／displayOrder／weight／minimumUnit／buy-now可否を含める。
+- Packageはnameを必須かつ30文字以下、descriptionを任意かつ0〜500文字、関連URLを最大20件とする。各URLはHTTPSで、userinfoとfragmentを禁止し、正規化後UTF-8 2,048 bytes以下とする。NFKC＋Unicode空白圧縮＋locale非依存小文字化した名前を状態に関係なく一意とし、Public content hashへ公開時の`packageLifecycleStatus`、表示field、package tick、componentの軸ID／name／displayOrder／weight／buy-now可否を含める。
 
 - Package構成比: 正の整数`weight`と合計`totalWeight`。`ratioScaled`や`rateFloat`へ近似しない。
 
@@ -1093,9 +1126,9 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 
 ### 金額とvector
 
-- Marketsは競売snapshotを使い、評価軸別に`requiredAmountScaled = priceTicks * quantity * packageTick * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
-- Pointsは利用者とクライアントの認証・権限、各評価軸の存在、非負の安全整数金額、軸の重複、作成後固定の`minimumUnit`との整合、残高を検証する。競売作成後にPackageや評価軸が無効化されても、保存済みsnapshotの条件で精算する。
-- すべてのcomponent amount、合計、途中値をJavaScript安全整数範囲内で検証する。
+- Marketsは競売snapshotを使い、入札刻みの個数`priceTickCount`へ`packageTick`を乗じてscale済み価格`priceTicks`を求める。評価軸別に`requiredAmountScaled = priceTicks * quantity * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
+- Pointsは利用者とクライアントの認証・権限、各評価軸の存在、非負の安全整数金額、軸の重複、共通の保存精度、残高を検証する。競売作成後にPackageや評価軸が無効化されても、保存済みsnapshotの条件で精算する。
+- component amountと合計はJavaScript安全整数範囲内で検証する。乗除算の途中値はBigIntで保持し、整数として確定した結果を保存・返却前に検証する。
 
 ### 現在のPoint Package
 
@@ -1122,7 +1155,6 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 				"name": "Example criterion",
 				"displayOrder": 0,
 				"weight": 1,
-				"minimumUnitScaled": "1",
 				"buyNowEnabled": true
 			}
 		]
@@ -1134,10 +1166,10 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 ```
 
 - `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
-- `packageTick`はJavaScript安全整数、金額である`minimumUnitScaled`はASCII整数文字列とし、小数JSON numberを返さない。Marketsは文字列をparseする全境界で安全整数を検証する
+- `packageTick`は、各componentへの配分額が0.0001ポイント単位の整数になる最小の正の刻みとする。scale済み整数で`LCM(totalWeight / GCD(totalWeight, weight))`を各componentについて計算し、JavaScript安全整数の範囲を検証する
 - `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
-- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`minimumUnitScaled`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
-- Marketsは競売作成時に`weight / totalWeight`と`minimumUnitScaled`から`packageTick`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
+- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
+- Marketsは競売作成時に構成割合と共通の保存精度から`packageTick`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
 - success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。
 
 ### パッケージの現在の利用可否
@@ -1317,13 +1349,13 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 負残高でもFIXは反映するが、reserve、transfer、exchange等の消費系は残高不足なら原子的に拒否する。
 
-- `evaluationTotal`を残高とは別に、FIX評価だけの符号付き累計として管理する。
+- `evaluationTotal`を残高とは別に、FIX評価と自動分配による受取額による符号付き累計として管理する。
 
 - 譲渡、交換、落札の引き落としは`evaluationTotal`を変更しない。Substitution FIXは変更する。
 
 - FIX CSVの受領先は、外部プロフィールURLか、AccountsのユーザーIDの、どちらか一方である。
 
-- Exchange比率は最新レコードと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
+- Exchange比率は最新レコードと整数`numerator / denominator`で保持し、共通の保存精度である0.0001ポイント単位へ決定的に丸める。
 
 - 動的公開ページのv0.2.1 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。
 
@@ -1339,7 +1371,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
-- 貢献評価代用は有向methodとUTC月別resultを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算してtarget minimumUnitへ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
+- 貢献評価代用は有向methodとUTC月別resultを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算して0.0001ポイント単位へ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
 
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。
 - runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
@@ -1363,7 +1395,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - amountは小数文字列とし、指数表記やlocale区切りを使わない
   - timestampはUTCのRFC 3339、IDは不変文字列で出力する
   - formula injectionを防ぐため、自由入力cellの最初のcode pointが`=`、`+`、`-`、`@`、tab、CRまたはLFならASCII apostropheを1つ付ける。
-  - 判定前にtrimしない。符号付きamount列はschema上のtyped numeric cellと分離し、ASCII十進文字列・小数4桁以下・安全整数・対象`minimumUnit`倍数を再検証できた`-1.2500`等はapostropheを付けず数値のまま保つ。
+  - 判定前にtrimしない。符号付きamount列はschema上のtyped numeric cellと分離し、ASCII十進文字列・小数4桁以下・安全整数を再検証できた`-1.2500`等はapostropheを付けず数値のまま保つ。
   - cell内改行はCRLFと単独CRをLFへ正規化してquoteし、record区切りだけをCRLFで出力する。このためLF開始の自由入力もformula対策対象とする。
 
 - API
@@ -1391,7 +1423,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - encoding: UTF-8 with BOMは先頭だけ許可する。
   - 最大size: 5MiB。
   - 共通transport上限: headerを除く1,000非空行。空行は件数に含めず無視する。
-  - import type固有の上限が1,000未満なら小さい方を適用する。評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用／自動分配は1,000件を上限とする。
+  - import type固有の上限が1,000未満なら小さい方を適用する。評価軸と公式Packageは各20件、その他のFIX／譲渡／交換／交換比率／代用は1,000件を上限とする。
   - header名、順序、必須列、余剰列の可否をimport typeごとに固定する。
   - 1cellの最大長を列schemaで制限し、memoは200文字以下とする。
   - ZIP、Excel、JSON、複数file、drag-and-dropはv0.2.1.\*で扱わない。
@@ -1402,7 +1434,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - すべての行を検査し、全エラーを行番号、列名、error code、修正可能な説明付きでまとめて返す。
   - 1件でもerrorがある場合や同一ファイル内に重複行がある場合は、ファイル全体を失敗させ、確定APIを実行せず、部分反映しない。
   - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
-  - scale済みamountが対象評価軸の`minimumUnit`の倍数であることを検査する。
   - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
   - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
 
@@ -1425,7 +1456,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - 検証観点
   - 空行、余剰列、不足列、重複header、重複business key
   - `0.0001`、小数5桁、指数表記、Unicodeマイナス、安全整数境界
-  - `minimumUnit`倍数と非倍数
+  - 評価軸の最小単位にかかわらず、小数4桁以内の金額を受け付けること
   - validation成功後のversion/権限競合
   - 1行errorで0件反映、D1失敗で全rollback
   - 非権限者、stale session、hostile Origin、誤Content-Typeの拒否
@@ -1465,7 +1496,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 ### 金額と時刻
 
 - 表示値文字列: `amount`またはdomain名付き`fixAmount`。
-- scale済み整数: suffix `Scaled`。例: `amountScaled`、`minimumUnitScaled`。
+- scale済み整数: suffix `Scaled`。例: `amountScaled`。
 - Pointsの残高確認・精算APIは、評価軸IDとscale済み必要額`requiredAmountScaled`のvectorを扱う。
 
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
@@ -1682,7 +1713,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 1. 受領資格と未claim対象集合を確認し、集合hashを再検査する。
 2. 正・負を区別せず対象全件を選択不可でclaimする。
-3. FIX実行記録ごとの差分ledgerを追加する。
+3. FIX実行記録ごとの差分と、受領時点の設定による自動分配を計算し、元のFIXに紐付く差分台帳を追加する。
 4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
 5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
 
@@ -1876,7 +1907,8 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | FIXの確定                              | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
 | 交換比率の確定                         | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
 | 貢献評価代用の確定                     | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
-| 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`                               | 本人、idempotency                                                               |
+| 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                               | 本人、idempotency                                                               |
+| 自動分配設定の保存 | 自動分配設定フォーム | 本人認証、サーバー側検証、既存の冪等性と監査 |
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
@@ -2033,7 +2065,7 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
 
 ## 金額表現
 
-金額は小数第4位までとする。保存は、評価軸ごとに決めた最小単位の整数とする。設定できる最小単位の最小額は0.0001ポイントで、1単位は0.0001ポイントである。金額はその単位の倍数にする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、残高、価格は、対象評価軸の`minimumUnit`の倍数である。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、計算の途中、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。範囲を超えたら、その処理全体を拒否する。
+金額は小数第4位までとする。保存は、評価軸の最小単位とは独立した0.0001ポイント単位の整数とする。自動分配に設定できる最小単位は0.0001ポイント以上、小数4桁以下とする。保存する金額は0.0001ポイントの倍数とする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、価格、残高、台帳、訂正・取消の差額は共通の保存精度で扱う。評価軸の`minimumUnit`は自動分配の丸めと再分配の終了判定に使う。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。BigIntによる乗除算の途中値はそのまま保持し、確定した金額を検証する。範囲を超えたら、その処理全体を拒否する。
 
 ## FIX訂正と差分台帳
 
@@ -2060,7 +2092,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - 初回取込で安定した`fixResultId`を発行する。
 - 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録と監査へ保存する。
 - 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
-- 訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分だけを不変台帳へ追加して残高と`evaluationTotal`へ反映する。差分0は台帳を増やさない。取消は最新額を0へ更新する。額が同じで評価月だけを訂正する場合は、残高差分を0とし、最新結果の評価月を更新して実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
+- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
 - 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
 
@@ -2094,7 +2126,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - `point_ledger_entries`を、経済と監査の正本とする。追記だけとし、UPDATEとDELETEはしない。残高と`evaluationTotal`は、台帳から再構築できる。
 - `point_accounts`は、利用者と評価軸ごとの`balance`と`evaluation_total`の投影である。同じtransaction内の`point_ledger_entries AFTER INSERT` triggerだけが更新する。client、別Worker、application repositoryから、投影を直接INSERTまたはUPDATEしない。消費の事前条件と引き落としの拒否は、D1のguard triggerの`RAISE(ABORT)`で、そのbatch全体を失敗させる。
 - `balance = SUM(ledger.deltaAmount)`を満たす。
-- `evaluationTotal = SUM(FIX起因ledger.deltaAmount)`を満たす。
+- `evaluationTotal = SUM(affectsEvaluationTotal=trueの台帳.deltaAmount)`を満たす。FIXと両方式の自動分配による受取額・その訂正を含む。取り分からの分配では、分配元の引き落としは残高だけを変更し、受取人への加算は残高と累計評価額を変更する。
 - 負のFIX、差し戻し、過去の実行記録との差分により、`balance`と`evaluationTotal`は負になってよい。
 - 負残高を0へ丸めない。履歴を削除して帳尻を合わせない。
 
@@ -2123,7 +2155,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 - 交換元・交換先の両評価軸が交換可で、現在の有効な交換比率がある場合だけ実行できる。比率は整数`numerator / denominator`で保持し、`REAL`へ変換しない。
 - CSVは交換元評価軸ID、交換元額、交換先評価軸ID、交換先額を持つ。元額・先額の少なくとも一方を必須とし、片方から固定小数点で他方を計算する。
-- rate、rounding、minimumUnitの結果が一意にならない入力は拒否する。出力側`minimumUnit`へ切り下げ、参照rateの実行時snapshot、rounding rule、整数の余りを台帳へ記録する。
+- rateとroundingの結果が一意にならない入力は拒否する。出力額を0.0001ポイント単位へ切り下げ、参照rateの実行時snapshot、rounding rule、整数の余りを台帳へ記録する。
 - burnとmintを同一原子処理にし、`evaluationTotal`は変更しない。
 
 ### 貢献評価代用
@@ -2131,7 +2163,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 - 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録と監査を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
 - `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
 - 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
-- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。targetの`minimumUnitScaled`倍数へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または`minimumUnit`未満は0結果とし、範囲超過は全体を拒否する。
+- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
 - 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 ## UI
@@ -2306,7 +2338,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - Pointsは利用者アクセストークンと有効な連携、クライアント、権限を検証して本人の残高を照会する。
 - request required: `components`。各要素は`evaluationCriterionId`、`requiredAmountScaled`とする。
 - success `200`の`data` required: `vectorHash`、`components`、`checkedAt`。
-- requestの`components`は1件以上で、評価軸IDの重複を拒否する。`requiredAmountScaled`は非負のASCII整数文字列で、JavaScript安全整数範囲と固定`minimumUnit`の倍数を必須とする。応答は評価軸ID昇順で、各要素に`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`を返す。残高はsigned integer文字列とする。
+- requestの`components`は1件以上で、評価軸IDの重複を拒否する。`requiredAmountScaled`は非負のASCII整数文字列で、JavaScript安全整数範囲を必須とする。金額は共通の保存scaleである10,000を使う。応答は評価軸ID昇順で、各要素に`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`を返す。残高はsigned integer文字列とする。
 - 残高の照会はポイントを確保しない。
 
 ### 落札精算の引き落とし
@@ -2316,8 +2348,8 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - 呼び出し元は連携済みの機密クライアントである。認証は認可コード交換と同じ`private_key_jwt`とDPoPとする。利用者のいないクライアント資格情報グラントは使わない。
 - 各落札者の利用者アクセストークンをrequestに含める。Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
 - アクセストークンは検証にだけ使い、台帳、受領証、ログ、監査、応答へ残さない。
-- request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・重複軸・固定最小単位の検証を行う。`marketsUserId`はrequest内で重複しない。
-- Pointsは各評価軸の存在と固定最小単位を検証し、競売作成後のPackage・評価軸の無効化を理由にsnapshotの精算を拒否しない。
+- request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・保存精度・重複軸の検証を行う。`marketsUserId`はrequest内で重複しない。
+- Pointsは各評価軸の存在と共通の保存精度を検証し、競売作成後のPackage・評価軸の無効化を理由にsnapshotの精算を拒否しない。
 - pathの`settlementId`はrequestの精算と一致させる。
 - 認可が無効な落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 - success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
@@ -2433,7 +2465,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 ## 貢献度アップロード
 
 - 負のFIXを許可し、結果として負の残高も許可する。
-- `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
+- `balance`とは別に、FIX評価と自動分配による受取額の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
 
 ## デプロイ設定
@@ -2582,5 +2614,5 @@ export default defineConfig({
 - 全部のOAuth紐づけは、退会に備えた紐づけとして保持する
 
 - 評価軸、Package、FIX、交換比率、貢献評価代用のmethod／result、自動分配設定の履歴revisionを廃止し、同じIDの最新レコードを更新する。実行記録、監査、冪等性、不変の差分台帳を保持し、FIX訂正と代用の再計算は旧額との差分を反映する。
-- 自動分配は初回の構成割合、対象者、score、残額ruleのsnapshotを保持し、FIX訂正で配分差分を派生反映する。評価軸の最小単位は作成後固定とする。
-- Marketsは競売作成時にPackage IDの現在データを取得して構成・最小単位・tick・表示名を保存し、その後の無効化を含め保存済み条件で精算する。現在Package APIは`no-store`とし、Marketsが計算した評価軸別vectorを残高確認・精算APIへ渡し、Pointsが認証・権限・金額・残高を検証する。
+- 自動分配はフォームで複数パッケージの割合を設定し、評価軸ごとに選んだ取り分方式または追加発行方式で再分配する。減少する循環は継続し、訂正は旧FIXの全影響を仮に除いて最新条件で再計算する。元FIXに紐付く残高・累計評価額の差分台帳を保存する。両方式の分配受取額を累計評価額へ加える。評価軸の最小単位は作成後も変更でき、自動分配の丸めと終了判定に使う。付与・譲渡・交換・競売精算と訂正は共通の保存精度で扱い、既存額を保持する。
+- Marketsは競売作成時にPackage IDの現在データを取得して構成・tick・表示名を保存し、その後の無効化を含め保存済み条件で精算する。現在Package APIは`no-store`とし、Marketsが計算した評価軸別vectorを残高確認・精算APIへ渡し、Pointsが認証・権限・金額・残高を検証する。

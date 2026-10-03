@@ -456,7 +456,7 @@
 - seller本人のbid、終了後bid、価格引下げ、bid撤回を拒否する。
   - Status: 採用
   - 上書き・撤回関係: 旧自由変更案を不採用。
-- 入札後にseller、数量、評価軸、比率、minimum unit、価格式、Points serviceを変更できない。
+- 入札後にseller、数量、評価軸、比率、入札額の刻み、価格式、Points serviceを変更できない。
   - Status: 採用
   - 上書き・撤回関係: live Auctionの条件変更を禁止。
 - Auction history、winning history、watchlistをMarketsへ残す。
@@ -511,7 +511,7 @@ Marketsは、終了時点の入札、または即時購入の要求から、不�
 
 引き落としは、その時点の落札者全員を利用者認可で1回の処理とする。一人でも失敗すれば台帳も受領証も0件である。引き落としは評価軸ごとの負の台帳とし、`evaluationTotal`は変えない。必要額が0のときは台帳を作らず、残高と`evaluationTotal`は変えない。認可が無効なら0でも拒否する。成功していない引き落としは台帳に残さない。成功した引き落としは戻さない。同じ計画の再送は同じ受領証を返す。
 
-Marketsは競売作成時に保存した構成・割合・最小単位・入札額の刻みから、落札価格と数量に対応する評価軸別の引き落とし額を計算する。Pointsは認証、利用者の権限、評価軸ID、金額、残高を検証して引き落としを確定する。金額は非負の安全整数かつ各評価軸の固定最小単位の倍数とし、重複する評価軸を拒否する。競売作成後のパッケージや評価軸の更新・無効化によって、確定した競売条件を変更しない。
+Marketsは競売作成時に保存した構成・割合・入札額の刻みから、落札価格と数量に対応する評価軸別の引き落とし額を計算する。Pointsは認証、利用者の権限、評価軸ID、金額、残高を検証して引き落としを確定する。金額は共通保存精度の小数4桁で扱い、scale10000で表した非負の安全整数であることを検証する。重複する評価軸を拒否する。競売作成後のパッケージや評価軸の更新・無効化によって、確定した競売条件を変更しない。
 
 即時購入は、購入ボタンのあとで利用者認可と残高を確認する。成功した引き落としの応答を受け取ったときだけ販売数量を減らし、購入を成立させる。認可がない、または残高が足りない失敗応答では数量を変えず、競売を止めない。応答を受け取れないときも購入は成立させず、競売は続ける。同じ購入要求の再送で引き落とし受領証が返ったときだけ数量を減らす。残り数量が0のときだけ競売を終了する。
 
@@ -706,7 +706,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - AutoBidを取り消しても、すでに到達・確定した入札額は巻き戻さない。
 - sellerの自己入札、終了後の入札、価格tick不一致、数量不正を拒否する。
 - server時刻を正とし、clientでは利用者local timeへ変換して表示する。
-- 最初の有効bid以後、価格・数量など結果に影響するAuction項目を変更できない。パッケージの構成・割合・最小単位・入札額の刻み・表示名は競売作成時に固定する。
+- 最初の有効bid以後、価格・数量など結果に影響するAuction項目を変更できない。パッケージの構成・割合・入札額の刻み・表示名は競売作成時に固定する。
 
 ### 5.2 入札時のPoints扱い
 
@@ -738,7 +738,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
-- Marketsは内部の`priceTickCount`へ作成時に保存した`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換する。各評価軸の`requiredAmountScaled = priceTicks * quantity * weight / totalWeight`をBigIntで計算し、固定最小単位の倍数かつ安全整数範囲内であることを確認してPointsへ渡す。残高照会と精算の`components`は`evaluationCriterionId`と`requiredAmountScaled`を持ち、評価軸ID昇順とする。精算では各落札者の`marketsUserId`、`accessToken`、`components`を`auctionId`と`planHash`とともに送る。Pointsは利用者認可・金額・残高を検証し、全落札者の引き落としを原子的に確定する。
+- Marketsは内部の`priceTickCount`へ作成時に保存した`packageTick`を乗じ、安全整数のscale済み`priceTicks`へ変換する。各評価軸の`requiredAmountScaled = priceTicks * quantity * weight / totalWeight`をBigIntで計算し、共通保存精度の小数4桁（scale10000）で非負の整数となり、安全整数範囲内であることを確認してPointsへ渡す。残高照会と精算の`components`は`evaluationCriterionId`と`requiredAmountScaled`を持ち、評価軸ID昇順とする。精算では各落札者の`marketsUserId`、`accessToken`、`components`を`auctionId`と`planHash`とともに送る。Pointsは利用者認可・金額・残高を検証し、全落札者の引き落としを原子的に確定する。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
 
 1. `minimumReleaseAge: 4320`を使う
@@ -838,13 +838,13 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - 出品CSVでは、出品者が利用するパッケージIDを指定する。
 
 
-- Marketsは競売作成時にPointsの現在のパッケージ情報を取得し、パッケージID・表示名、各評価軸のID・表示名・最小単位・weight・表示順、totalWeight、packageTick、即決価格利用可否を競売へ保存する。作成済み競売は、その後の更新・無効化にかかわらず保存した条件で開始・精算する。
+- Marketsは競売作成時にPointsの現在のパッケージ情報を取得し、パッケージID・表示名、各評価軸のID・表示名・weight・表示順、totalWeight、packageTick、即決価格利用可否を競売へ保存する。作成済み競売は、その後の更新・無効化にかかわらず保存した条件で開始・精算する。
 
 
-- 作成時は、取得したパッケージの`packageLifecycleStatus`が`ACTIVE`であることを確認する。評価軸の最小単位は評価軸作成後に固定する。
+- 作成時は、取得したパッケージの`packageLifecycleStatus`が`ACTIVE`であることを確認する。評価軸の`minimumUnit`は作成後も変更でき、自動分配の丸めと終了判定だけに使用する。
 
 
-- 販売数量は1〜1,000とし、Packageの複数軸minimum unitからLCMによる整数package tickを作る。
+- 販売数量は1〜1,000とする。`packageTick`は構成の`weight`と`totalWeight`から、各成分の金額が共通保存精度の小数4桁（scale10000）で整数になる最小の価格刻みとして計算する。
 
 
 - 1ユーザー1Auctionにつき有効bid position 1件とし、再入札はposition更新＋不変bid event追加とする。
@@ -995,5 +995,7 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 ## v0.2.0からv0.2.1への変更
 
 - revision管理を廃止し、現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。
-- 競売作成時にパッケージの構成・割合・評価軸の最小単位・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず同じ条件で開始・精算する。
+- 競売作成時にパッケージの構成・割合・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず同じ条件で開始・精算する。
+- 評価軸の`minimumUnit`は作成後も変更でき、自動分配の丸めと終了判定だけに使用する。
+- 金額は共通保存精度の小数4桁（scale10000）で表した非負の安全整数として検証する。`packageTick`は構成の`weight`から各成分が保存精度の整数になる最小の価格刻みとして計算する。
 - Marketsが評価軸別の引き落とし額を計算し、Pointsが認証・権限・金額・残高を検証して確定する。
