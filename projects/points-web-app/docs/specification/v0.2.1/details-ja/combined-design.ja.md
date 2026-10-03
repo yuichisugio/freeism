@@ -71,10 +71,6 @@
     - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
   - [未受領FIX](#未受領fix)
     - [未受領FIX](#未受領fix-1)
-  - [Points–Markets OAuth](#pointsmarkets-oauth)
-    - [ユーザー対応と同意](#ユーザー対応と同意)
-    - [Authorization Code flow](#authorization-code-flow)
-    - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
   - [Cookie、CSRF、Origin](#cookiecsrforigin)
   - [退会](#退会)
   - [評価軸とパッケージの管理](#評価軸とパッケージの管理)
@@ -107,7 +103,12 @@
   - [UI](#ui)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
+    - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
     - [提供先ごとの1対1連携](#提供先ごとの1対1連携)
+    - [同意と連携の開始](#同意と連携の開始)
+    - [Authorization Code flow](#authorization-code-flow)
+    - [連携解除と外部失効](#連携解除と外部失効)
+    - [再認可](#再認可)
   - [共通HTTP contract](#共通http-contract)
     - [headers](#headers)
   - [Endpoint](#endpoint)
@@ -248,18 +249,22 @@
          1. 公開OKのみ表示
          2. ID・名前を、評価軸プロフィール画面に遷移するハイパーリンク化する
     6. **連携アカウント一覧**
-       - PointsはAccounts APIから取得した連携アカウントを表示する。
-       - サービス名、取得できるユーザー名・表示名、OAuthサービス内の固有ID・検証したプロフィールURL、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。
-       - Pointsへの提供同意は公開表示の許可を含み、Accounts自身の一般公開設定とは独立する。Pointsプロフィール自体の公開・非公開に従って表示する。
+       - 説明
+         - PointsはAccounts APIから取得した連携アカウントを表示する。
+       - 要件
+         1. この項目の公開設定が出来るようにする。初期値は非公開
+         2. サービス名、取得できるユーザー名・表示名、OAuthサービス内の固有ID・検証したプロフィールURL、検証状態・検証方法・検証日時・連携日時のうち、Accountsが提供元ごとに提供する項目に限ってテキストで示す。
+         3. Pointsへの提供同意は公開表示の許可を含み、Accounts自身の一般公開設定とは独立する。Pointsプロフィール自体の公開・非公開に従って表示する。
     7. **貢献度のアップロード履歴**
        - 説明
          - アップロードされた貢献度アップロードのCSVのレコードごとのデータを表示する
        - 表示する項目
          1. **連携・認証したサービスのプロフィールURL or サービス名とユーザーID**
-            - 貢献アップロードに記載したURL
-            - 例）`https://x.com/sugi_sugi_329` のように、当該ユーザーを表す**プロフィールURL**を表示する
+            - 貢献アップロードに記載した貢献の識別子
+            - 例）`https://x.com/example` のような情報
          2. **タスクの実行年月**
-            - **年月は必須・日時は任意**（評価軸の貢献者アップロードのCSV項目、および「貢献評価を代用する仕組み」の二重付与防止の前提と整合）
+            - 年月は必須・日時は任意
+            - 評価軸の貢献者アップロードのCSV項目、および「貢献評価を代用する仕組み」の二重付与防止の前提と整合
             - 日時まで含めて記録されている場合は、そのまま（または`YYYY-MM`に集約した表示等）表示する
          3. 貢献度の数値
             - マイナス評価もアップロード可能
@@ -270,14 +275,21 @@
          5. 評価軸内の管理ID
             - 「アップロード内容の修正」や「ポイント付与履歴」の際に、「評価軸内の管理ID」を参考に確認できるようにしたい
          6. メモ
-            - 設定がある場合のみ
-    8. 交換の履歴
+            - 記載がある場合のみ
+         7. その他に便利な情報や関連情報があれば表示する
+       - 要件
+         1. この項目の公開設定が出来るようにする。初期値は非公開
+    8. **ポイント交換の履歴**
+       - 説明
+         - ポイント交換でburnした評価軸ポイントとmintした評価軸ポイントを表示する
+       - 表示する項目
+         1. burnした評価軸ポイント名・評価軸ID・その額
+         2. mintした評価軸ポイント・評価軸ID・その額
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     9. 評価代用の履歴
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
-
     10. 譲渡の履歴
         - 要件
           1. この項目の公開設定が出来るようにする。初期値は非公開
@@ -1415,11 +1427,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 精算の手動再試行は置かない。
 
-- PointsをOAuth 2.1 Authorization Server／Protected Resource、MarketsをOAuth Clientとする。
 
-- MarketsとPointsの有効連携は、提供先ごとに1対1とする。
-  - 連携キーは、提供先の`providerId`と利用者の`subject`である。
-  - issuerは、その提供先に登録した値と一致することを確認して保存する。emailや表示名では対応付けない。
 
 - 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。
 
@@ -1791,76 +1799,6 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 受領後の訂正は同じ受領者への差分台帳として反映する。
 - Accountsの紐付けや公開許可が変更されても既受領FIXを巻き戻さない。
 
-## Points–Markets OAuth
-
-### ユーザー対応と同意
-
-Marketsは独立アカウントを持ち、利用者がログイン後に、Marketsの`appAdmin`が登録したPoints互換提供先へ個別に明示linkする。有効な対応は提供先ごとに1対1である。
-
-- 1 Marketsユーザーと1提供先につき1 Points subject
-- 1提供先のPoints subjectにつき1 Marketsユーザー
-- email、Google ID、GitHub IDでは対応付けない。
-- 連携解除は、その時点以降の利用者認可を無効にし、終了済みの精算には影響させない。
-- unlink履歴は削除しない。
-
-revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Authでapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
-
-利用者がprovider側でgrantを外部失効させた場合は通常unlinkと区別する。Pointsのapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていても新規の残高参照と引き落としを拒否する。
-
-初回とscope追加時にはPoints側で明示的な同意画面を表示する。同意画面では、残高の参照、落札時のポイント引き落とし、オフラインでの利用を説明する。
-
-### Authorization Code flow
-
-各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
-
-1. Marketsがstate、nonce、PKCE verifier／challengeを生成し、現在のMarkets SessionとMarkets userへserver-sideで束縛する。
-2. ブラウザでPointsの認可画面を開く。利用者用クライアントID、redirect URI、scope、PKCE challenge、stateを渡す。requestの任意の利用者IDを信用しない。
-3. Pointsで利用者がscopeを承認する。
-4. Pointsは同意のD1処理で、そのクライアントとPoints利用者の有効な連携を1件に制限する。既に別のMarkets利用者へ有効連携があるPoints利用者は、新しい同意を拒否する。
-5. Better Auth標準の認可コードを発行し、Markets Workerがコードを利用者トークンへ交換する。クライアントの証明は`private_key_jwt`とDPoPで行う。
-6. Marketsは、署名検証済み利用者JWTの`subject`を提供先の`providerId`と組にしてlocal connectionへ保存する。issuerは、その提供先の登録値と一致することを確認して保存する。トークンを保存できたときだけ連携を有効にする。emailや表示名はキーにしない。
-7. トークン交換後にlocal保存へ失敗した場合は、保持しているトークンだけRFC 7009 revocationを試し、連携は有効にしない。利用者は同じ連携をやり直す。
-
-認可コードは一回限りとし、PKCE S256、state、nonce、issuer、redirect URI、resourceを検証する。OAuth Clientはログイン中の登録者が「開発者向け」画面で管理する。
-
-Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user IDとし、有効期間は最長15分とする。
-
-Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userの有効状態、有効な連携、利用者用scopeを要求する。別resourceのTokenやscope混在を拒否する。Marketsは登録した提供先originへ外部`fetch`で要求する。
-
-MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
-
-### 開発者向けOAuthクライアント管理
-
-Pointsへログインした利用者は、「開発者向け」画面で自分のアプリをOAuthクライアントとして登録、更新、削除できます。Marketsの`appAdmin`は、提供先ごとにこの画面から登録します。入力と管理の方法は、[Accounts v0.1のOAuthクライアント管理](../../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用します。v0.1以降、外部サービスの開発者はAccountsの画面でも自分のアプリを登録できます。OAuthクライアント側では、接続設定した複数のPoints互換サービスから選べるよう、OAuth Providerとして連携します。
-
-必須は、アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開鍵です。公開鍵はインラインJWKSの`{"keys":[...]}`で登録します。紹介URLはHTTPSの任意項目で、説明文も任意です。未入力でも、ほかの登録条件を満たせば登録できます。説明文は標準の列が無いため、`oauthClient.metadata.description`へ保存します。Client IDはPointsが発行し、対応する秘密鍵は利用側サービスのバックエンドだけが保管します。項目の整理は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にします。アプリ名、紹介URL、説明文をアプリ情報とし、リダイレクトURL、Client ID、公開鍵を接続情報とします。入力項目と提供機能は、本仕様で定めた内容です。
-
-リダイレクトURLは、認証と同意のあとで利用者を戻す先です。1つのクライアントへ1件以上を登録でき、認可要求ごとに`redirect_uri`を1つ指定します。バックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認します。URLはHTTPSとします。HTTPSのホストには、loopback（`localhost`、`127.0.0.0/8`、`[::1]`）を使えません。ローカル開発用には、ホストが`localhost`、`127.0.0.1`、`[::1]`のいずれかのURLをHTTPで登録できます。一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。`private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
-
-登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共有のschemaで検査します。リダイレクトURLの規則は、Better Auth標準の登録時の検査と同じです。Pointsにログインした利用者が、開発者向け画面で自分のアプリを最大5件登録します。Marketsも、接続先ごとに、同じ画面から登録します。画面とバックエンドの両方で確認します。一覧、詳細、更新、削除は、ログイン中の登録者本人のクライアントだけが対象です。登録したアプリは、そのPoints利用者が管理し、設定の変更とアプリ自体の削除を行えます。「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
-
-登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。標準の更新APIは公開鍵を受け付けず、紹介URLを削除できません。公開鍵の更新と紹介URLの削除（`NULL`への更新）は、提供・技術要件の手続きで承認した独自拡張とし、`oauthClient`の`jwks`と`uri`をAccountsの保存処理で更新します。更新する鍵の検査は、`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`と同等です。この関数は公開APIの互換性保証の対象外です。保存形式は、標準の登録と同じくJWK SetのJSON文字列です。次のクライアント認証から、新しい鍵で検証します。鍵を切り替えるときは、JWK Setに新旧の`kid`を併存させてから、旧鍵を外します。
-
-発行済みJWTの有効期間は、クライアント認証と権限の定めに従います。鍵の更新とトークンの有効期限は、それぞれ管理します。認可と保存トークンの失効には、Better Auth標準の操作を使います。署名付きJWTのAccess Tokenは失効できず、鍵の更新後も期限（最長15分）まで有効です。即時に止める場合は、クライアントを削除します。削除後は、Resource APIがClientの有効状態を見て、発行済みTokenを拒否します。
-
-Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライアントをPointsの画面から登録します。`authorization_code`と`refresh_token`、利用者scope、Points API resource、linkとunlinkのredirect URIを設定します。linkのcallbackは`/api/points-connection/callback`、unlinkのcallbackは`/api/points-connection/unlink/callback`です。scopeとresourceの検査は、Token発行時とResource API利用時に行います。クライアント資格情報グラントは使いません。Marketsは、提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化したEd25519鍵をD1に保持します。公開JWKSだけをPointsに登録します。
-
-| 用途       | grant                                 | scope・検査                                                                                                                                                                |
-| ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.settlements.debit`。unlinkは専用認可で`points.connection.unlink`だけを要求する。 |
-
-落札の引き落としは、この利用者認可の`points.settlements.debit`だけで行います。Marketsの利用者callbackは、Points API resourceと利用者scopeを検証します。
-
-`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、呼び出すPointsのtoken、introspect、revoke endpointの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
-
-Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送、連携状態を検査します。利用者には、有効なPoints userと有効な連携を確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。
-
-Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは既存の連携を更新します。Pointsは、Client ID、Points利用者、issuer、subjectが既存の連携と一致することを確認します。同じ`pointsConnectionId`のgrant scopeとversionを更新し、確認応答の`grantVersion`を返します。Marketsは、その値を既存連携に保存します。すでに成功した引き落としは、戻しません。
-
-一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
-
-- OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
-
 ## Cookie、CSRF、Origin
 
 | 項目           | Points                           | Markets                          |
@@ -2024,14 +1962,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
 - 同じFIX Revisionの二重受領を一意制約で防ぐ。
-
-通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsのconnection deactivation APIを呼ぶ。Pointsは同じD1原子処理でapp-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outboxと監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規の残高参照と引き落としを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
-
-- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
-
-- [Hono HTTPレスポンス仕様の冪等性](#5-idempotency)に従う。
-
-
 
 - FIXの保存、差分台帳、未受領FIX、idempotency result、監査はPointsの同じD1原子処理で確定する。監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
@@ -2360,28 +2290,89 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 - Points と Markets は別 Better Auth、別 host-only Cookie、別 D1、別 user ID、別 session を持つ。
 - `points.freeism.app`と`markets.freeism.app`を独立アプリとして分離する。
 
-PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client兼Settlement Orchestratorである。両者は同じrepositoryにあっても、DB、session、Secret、domain model、runtime型を共有しない。
+PointsはOAuth 2.1 Authorization Server兼Protected Resource、MarketsはOAuth Client兼Settlement Orchestratorである。両者は同じrepositoryにあっても、DB、session、Secret、domain model、runtime型を共有しない。
 
 - Points D1をMarketsから直接参照しない。
 - Markets D1をPointsから直接参照しない。
 - Marketsが登録したPoints互換提供先のoriginへ外部`fetch()`でHono API contractを呼ぶ。
 - Pointsが所有するOpenAPIを正本にし、Marketsは生成clientを使う。MarketsがPoints backend sourceやHono RPC型を直接importしない。
 
+
+### 開発者向けOAuthクライアント管理
+
+Pointsへログインした利用者は、「開発者向け」画面で自分のアプリをOAuthクライアントとして登録、更新、削除できます。Marketsの`appAdmin`は、提供先ごとにこの画面から登録します。入力と管理の方法は、[Accounts v0.1のOAuthクライアント管理](../../../../projects/accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を採用します。v0.1以降、外部サービスの開発者はAccountsの画面でも自分のアプリを登録できます。OAuthクライアント側では、接続設定した複数のPoints互換サービスから選べるよう、OAuth Providerとして連携します。
+
+必須は、アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開鍵です。公開鍵はインラインJWKSの`{"keys":[...]}`で登録します。紹介URLはHTTPSの任意項目で、説明文も任意です。未入力でも、ほかの登録条件を満たせば登録できます。説明文は標準の列が無いため、`oauthClient.metadata.description`へ保存します。Client IDはPointsが発行し、対応する秘密鍵は利用側サービスのバックエンドだけが保管します。項目の整理は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にします。アプリ名、紹介URL、説明文をアプリ情報とし、リダイレクトURL、Client ID、公開鍵を接続情報とします。入力項目と提供機能は、本仕様で定めた内容です。
+
+リダイレクトURLは、認証と同意のあとで利用者を戻す先です。1つのクライアントへ1件以上を登録でき、認可要求ごとに`redirect_uri`を1つ指定します。バックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認します。URLはHTTPSとします。HTTPSのホストには、loopback（`localhost`、`127.0.0.0/8`、`[::1]`）を使えません。ローカル開発用には、ホストが`localhost`、`127.0.0.1`、`[::1]`のいずれかのURLをHTTPで登録できます。一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。`private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
+
+登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共有のschemaで検査します。リダイレクトURLの規則は、Better Auth標準の登録時の検査と同じです。Pointsにログインした利用者が、開発者向け画面で自分のアプリを最大5件登録します。Marketsも、接続先ごとに、同じ画面から登録します。画面とバックエンドの両方で確認します。一覧、詳細、更新、削除は、ログイン中の登録者本人のクライアントだけが対象です。登録したアプリは、そのPoints利用者が管理し、設定の変更とアプリ自体の削除を行えます。「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
+
+登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。標準の更新APIは公開鍵を受け付けず、紹介URLを削除できません。公開鍵の更新と紹介URLの削除（`NULL`への更新）は、提供・技術要件の手続きで承認した独自拡張とし、`oauthClient`の`jwks`と`uri`をAccountsの保存処理で更新します。更新する鍵の検査は、`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`と同等です。この関数は公開APIの互換性保証の対象外です。保存形式は、標準の登録と同じくJWK SetのJSON文字列です。次のクライアント認証から、新しい鍵で検証します。鍵を切り替えるときは、JWK Setに新旧の`kid`を併存させてから、旧鍵を外します。
+
+発行済みJWTの有効期間は、クライアント認証と権限の定めに従います。鍵の更新とトークンの有効期限は、それぞれ管理します。認可と保存トークンの失効には、Better Auth標準の操作を使います。署名付きJWTのAccess Tokenは失効できず、鍵の更新後も期限（最長15分）まで有効です。即時に止める場合は、クライアントを削除します。削除後は、Resource APIがClientの有効状態を見て、発行済みTokenを拒否します。
+
+Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライアントをPointsの画面から登録します。`authorization_code`と`refresh_token`、利用者scope、Points API resource、linkとunlinkのredirect URIを設定します。linkのcallbackは`/api/points-connection/callback`、unlinkのcallbackは`/api/points-connection/unlink/callback`です。scopeとresourceの検査は、Token発行時とResource API利用時に行います。クライアント資格情報グラントは使いません。Marketsは、提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化したEd25519鍵をD1に保持します。公開JWKSだけをPointsに登録します。
+
+| 用途       | grant                                 | scope・検査                                                                                                                                                                |
+| ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.settlements.debit`。unlinkは専用認可で`points.connection.unlink`だけを要求する。 |
+
+落札の引き落としは、この利用者認可の`points.settlements.debit`だけで行います。Marketsの利用者callbackは、Points API resourceと利用者scopeを検証します。
+
+`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、呼び出すPointsのtoken、introspect、revoke endpointの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
+
+Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送、連携状態を検査します。利用者には、有効なPoints userと有効な連携を確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。
+
+一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
+
+- OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
+
 ### 提供先ごとの1対1連携
 
-Marketsが登録した各提供先について次を保証する。
+- Marketsは独立アカウントを持ち、利用者がログイン後に、Marketsの`appAdmin`が登録したPoints互換提供先へ個別に明示linkする。
+- Marketsが登録した各提供先について、有効な対応は次の1対1とする。
+  - 1 Markets userと1提供先にACTIVEなPoints連携は1件だけ。
+  - 1提供先のPoints subjectにACTIVEなMarkets userは1件だけ。
+- 連携キーは、署名検証済み利用者JWTの`subject`と提供先の`providerId`の組とする。issuerは登録した提供先originと一致することを確認して保存する。email、表示名、Google ID、GitHub IDでは対応付けない。
 
-- 1 Markets userと1提供先にACTIVEなPoints連携は1件だけ。
-- 1提供先のPoints subjectにACTIVEなMarkets userは1件だけ。
-- link開始stateは現在のMarkets session、固定`/settings/points-connection`のhash、PKCE challenge、nonce、期限へserver-sideで束縛する。
+### 同意と連携の開始
+
+- 初回とscope追加時にはPoints側で明示的な同意画面を表示する。同意画面では、残高の参照、落札時のポイント引き落とし、オフラインでの利用を説明する。
+- 連携開始は、利用者のブラウザによる認可コードの流れだけで行う。
 - link／unlink／relinkのreturn URLはqueryなしの固定`/settings/points-connection`とする。callerが任意return URLを指定するinterfaceを公開しない。fragment、query、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる値を拒否する。Pointsへはraw URLではなく完全一致redirect URIと固定return URL hashを渡し、callback queryのreturn URLを遷移先に使わない。
-- request bodyの任意`marketsUserId`を信用しない。
-- 連携開始は、利用者のブラウザによる認可コードの流れだけで行う。Marketsはstateを現在のSessionと利用者へserver-sideで束縛し、Pointsは同意時にそのクライアントとPoints利用者の有効な連携を1件に制限する。
-- link完了時にMarketsは、署名検証済み利用者JWTの`subject`を提供先の`providerId`と組にして保存する。issuerは、その提供先の登録値と一致することを確認して保存する。emailや表示名は連携キーにしない。
-- トークン交換とlocal保存が成功したときだけMarketsの連携を有効にする。保存に失敗し、トークンを保持している場合だけRFC 7009 revocationを試みる。
-- 連携解除と外部失効のあと、その利用者認可での新規の残高参照と引き落としを拒否する。解除を理由に、すでに成功した引き落としは戻さない。
-- 通常unlinkは専用Authorization Code + PKCEと`points.connection.unlink`のあと、Pointsの`deactivatePointsConnection`を呼ぶ。Pointsはapp-owned grantを認可の正本とし、grant `UNLINKED`化、revocation outbox、receipt、auditを1つのD1 transactionで確定する。Marketsは成功receipt後だけlocal rowを閉じる。
-- 外部失効はapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で残高参照と引き落としを拒否する。
+
+### Authorization Code flow
+
+各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
+
+1. Marketsがstate、nonce、PKCE verifier／challengeを生成する。stateを現在のMarkets SessionとMarkets user、固定`/settings/points-connection`のhash、PKCE challenge、nonce、期限へserver-sideで束縛する。
+2. ブラウザでPointsの認可画面を開く。利用者用クライアントID、redirect URI、scope、PKCE challenge、stateを渡す。requestの任意の利用者IDやrequest bodyの`marketsUserId`を信用しない。
+3. Pointsで利用者がscopeを承認する。
+4. Pointsは同意のD1処理で、そのクライアントとPoints利用者の有効な連携を1件に制限する。既に別のMarkets利用者へ有効連携があるPoints利用者は、新しい同意を拒否する。
+5. Better Auth標準の認可コードを発行し、Markets Workerがコードを利用者トークンへ交換する。クライアントの証明は`private_key_jwt`とDPoPで行う。
+6. Marketsは、署名検証済み利用者JWTから「提供先ごとの1対1連携」で定めた連携キーを作り、local connectionへ保存する。トークンを保存できたときだけ連携を有効にする。
+7. トークン交換後にlocal保存へ失敗した場合は、保持しているトークンだけRFC 7009 revocationを試し、連携は有効にしない。利用者は同じ連携をやり直す。
+
+認可コードは一回限りとし、PKCE S256、state、nonce、issuer、redirect URI、resourceを検証する。OAuth Clientはログイン中の登録者が「開発者向け」画面で管理する。
+
+Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user IDとし、有効期間は最長15分とする。
+
+Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userの有効状態、有効な連携、利用者用scopeを要求する。別resourceのTokenやscope混在を拒否する。
+
+MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
+
+### 連携解除と外部失効
+
+- 連携解除と外部失効のあと、その利用者認可での新規の残高参照と引き落としを拒否する。終了済みの精算には影響させず、すでに成功した引き落としは戻さない。
+- unlink履歴は削除しない。
+- 通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsの`deactivatePointsConnection`を呼ぶ。Pointsは同じD1原子処理でapp-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outbox、成功receipt、監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規の残高参照と引き落としを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
+- revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Authでapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
+- 利用者がprovider側でgrantを外部失効させた場合は通常unlinkと区別する。Pointsのapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で新規の残高参照と引き落としを拒否する。
+
+### 再認可
+
+- Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは既存の連携を更新します。Pointsは、Client ID、Points利用者、issuer、subjectが既存の連携と一致することを確認します。同じ`pointsConnectionId`のgrant scopeとversionを更新し、確認応答の`grantVersion`を返します。Marketsは、その値を既存連携に保存します。すでに成功した引き落としは、戻しません。
 
 ## 共通HTTP contract
 
@@ -2741,7 +2732,6 @@ export default defineConfig({
 
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
 
-- 連携キーは、提供先の`providerId`と利用者の`subject`である。issuerは、その提供先の登録値と一致することを確認する。
 
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
 
