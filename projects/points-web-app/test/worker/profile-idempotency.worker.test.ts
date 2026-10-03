@@ -100,7 +100,6 @@ describe("authenticated profile and idempotency", () => {
         description: "",
         displayName: expect.any(String),
         evaluationVisibilities: [],
-        externalUrls: [],
         pointPackages: [],
         pointsUserId: expect.stringMatching(/^pusr_/),
         visibility: "PUBLIC",
@@ -119,7 +118,6 @@ describe("authenticated profile and idempotency", () => {
       profileRequest({
         description: "Profile description",
         displayName: "Updated display name",
-        externalUrls: ["https://example.com/profile"],
         visibility: "PRIVATE",
       }),
       env,
@@ -131,7 +129,6 @@ describe("authenticated profile and idempotency", () => {
         description: "Profile description",
         displayName: "Updated display name",
         evaluationVisibilities: [],
-        externalUrls: ["https://example.com/profile"],
         pointPackages: [],
         pointsUserId: initial.data.pointsUserId,
         visibility: "PRIVATE",
@@ -148,7 +145,6 @@ describe("authenticated profile and idempotency", () => {
           displayName: "Canonical profile",
           description: "same payload",
           visibility: "PUBLIC",
-          externalUrls: ["https://example.com/a", "https://example.com/b"],
         },
         idempotencyKey,
       ),
@@ -159,7 +155,6 @@ describe("authenticated profile and idempotency", () => {
     const replay = await app.fetch(
       profileRequest(
         {
-          externalUrls: ["https://example.com/a", "https://example.com/b"],
           visibility: "PUBLIC",
           description: "same payload",
           displayName: "Canonical profile",
@@ -179,7 +174,7 @@ describe("authenticated profile and idempotency", () => {
     const idempotencyKey = `idem_${crypto.randomUUID()}`;
     const first = await app.fetch(
       profileRequest(
-        { displayName: "First", description: "", externalUrls: [], visibility: "PUBLIC" },
+        { displayName: "First", description: "", visibility: "PUBLIC" },
         idempotencyKey,
       ),
       env,
@@ -188,7 +183,7 @@ describe("authenticated profile and idempotency", () => {
 
     const conflict = await app.fetch(
       profileRequest(
-        { displayName: "Second", description: "", externalUrls: [], visibility: "PUBLIC" },
+        { displayName: "Second", description: "", visibility: "PUBLIC" },
         idempotencyKey,
       ),
       env,
@@ -208,7 +203,6 @@ describe("authenticated profile and idempotency", () => {
       profileRequest({
         description: "x".repeat(65_536),
         displayName: "large body",
-        externalUrls: [],
         visibility: "PUBLIC",
       }),
       env,

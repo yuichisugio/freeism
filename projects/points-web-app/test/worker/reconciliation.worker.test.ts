@@ -97,15 +97,17 @@ async function seedFixSource(input: {
       : db
           .prepare(
             `INSERT INTO unclaimed_fix_entry
-               (id, source_fix_revision_id, recipient_profile_url,
+               (id, source_fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+                accounts_origin, accounts_resolved_at,
                 evaluation_criterion_id, evaluation_criterion_revision_id,
                 delta_amount_scaled, evaluation_at, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, '2026-07', ?)`,
+             VALUES (?, ?, 'url', ?, 'https://accounts.test', ?, ?, ?, ?, '2026-07', ?)`,
           )
           .bind(
             unclaimedFixEntryId,
             revisionId,
             input.recipientProfileUrl,
+            now,
             input.criterionId,
             input.criterionRevisionId,
             input.amountScaled,

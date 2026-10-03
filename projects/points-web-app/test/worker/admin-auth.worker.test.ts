@@ -1,11 +1,10 @@
 import { env } from "cloudflare:test";
+import type { BetterAuthOptions } from "better-auth";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { createPointsAuth } from "../../src/backend/auth/create-auth";
-import type { Bindings } from "../../src/backend/http/context";
 import { adminMembershipRoutePolicies } from "../../src/backend/http/routes/admin-routes";
-import { bootstrapInitialAdmin } from "../../src/backend/usecases/bootstrap-admin";
 import { changeAdminMembership } from "../../src/backend/usecases/change-admin-membership";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
 
@@ -272,35 +271,11 @@ describe("Points user and global ADMIN", () => {
     expect(second.id).toBe("pusr_first");
   });
 
-  it("bootstraps only the configured Google account", async () => {
-    await seedAuthUser("owner", "google-owner");
-    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
-
-    expect(
-      await bootstrapInitialAdmin(db, {
-        authUserId: "owner",
-        initialGoogleAccountId: "google-owner",
-        membershipId: "adm_owner",
-        pointsUserId: owner.id,
-      }),
-    ).toBe(true);
-    expect(
-      await bootstrapInitialAdmin(db, {
-        authUserId: "owner",
-        initialGoogleAccountId: "google-owner",
-        membershipId: "adm_duplicate",
-        pointsUserId: owner.id,
-      }),
-    ).toBe(false);
-  });
-
-  it("provisions and bootstraps from the Better Auth session create hook", async () => {
+  it("provisions from the Better Auth session create hook", async () => {
     await seedAuthUser("hook-owner", "google-hook-owner");
-    const auth = createPointsAuth({
-      ...(env as Bindings),
-      INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: "google-hook-owner",
-    });
-    const hook = (await auth.$context).options.databaseHooks?.session?.create?.after;
+    const auth = createPointsAuth(env);
+    const hook = ((await auth.$context).options as BetterAuthOptions).databaseHooks?.session?.create
+      ?.after;
 
     expect(hook).toBeTypeOf("function");
     await hook?.(
@@ -318,22 +293,22 @@ describe("Points user and global ADMIN", () => {
     const pointsUser = await db
       .prepare("SELECT id FROM points_user WHERE auth_user_id = 'hook-owner'")
       .first<{ id: string }>();
+    expect(pointsUser?.id).toMatch(/^pusr_/);
     const admin = await db
       .prepare("SELECT points_user_id AS pointsUserId FROM admin_membership")
       .first<{ pointsUserId: string }>();
-    expect(pointsUser?.id).toMatch(/^pusr_/);
-    expect(admin?.pointsUserId).toBe(pointsUser?.id);
+    expect(admin).toBeNull();
   });
 
   it("refuses to delete the final ADMIN", async () => {
     await seedAuthUser("owner", "google-owner");
     const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "owner",
-      initialGoogleAccountId: "google-owner",
-      membershipId: "adm_owner",
-      pointsUserId: owner.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
 
     await expect(
       changeAdminMembership(db, {
@@ -352,12 +327,12 @@ describe("Points user and global ADMIN", () => {
     await seedAuthUser("second");
     const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
     const second = await provisionPointsUser(db, "second", () => "pusr_second");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "owner",
-      initialGoogleAccountId: "google-owner",
-      membershipId: "adm_owner",
-      pointsUserId: owner.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
 
     await changeAdminMembership(db, {
       action: "ADD",
@@ -395,12 +370,12 @@ describe("Points user and global ADMIN", () => {
     await seedAuthUser("second");
     const first = await provisionPointsUser(db, "first", () => "pusr_first");
     const second = await provisionPointsUser(db, "second", () => "pusr_second");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "first",
-      initialGoogleAccountId: "google-first",
-      membershipId: "adm_first",
-      pointsUserId: first.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_first', ?, 'ADMIN')",
+      )
+      .bind(first.id)
+      .run();
     await changeAdminMembership(db, {
       action: "ADD",
       actorPointsUserId: first.id,

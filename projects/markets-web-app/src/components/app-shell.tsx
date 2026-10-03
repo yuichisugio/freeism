@@ -1,10 +1,12 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
+import { marketsClient, type MarketsClient } from "../client/api/markets-client";
 import { useMarketsLocale } from "../client/i18n/markets-locale";
 
 export const CANONICAL_MARKETS_ROUTES = [
   "/login",
   "/settings/points-connection",
+  "/admin/points-connections",
   "/auctions",
   "/auctions/import",
   "/auctions/$auctionId",
@@ -15,8 +17,34 @@ export const CANONICAL_MARKETS_ROUTES = [
   "/settlements/$settlementId",
 ] as const;
 
-export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
+export function AppShell({
+  children,
+  client = marketsClient,
+}: Readonly<{ children: ReactNode; client?: MarketsClient }>) {
   const { locale, setLocale, t } = useMarketsLocale();
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    let active = true;
+    void client.session().then(
+      (session) => {
+        if (active)
+          setIsAdmin(
+            Boolean(
+              session?.user?.role
+                ?.split(",")
+                .map((role) => role.trim())
+                .includes("admin"),
+            ),
+          );
+      },
+      () => {
+        if (active) setIsAdmin(false);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [client]);
   return (
     <>
       <header className="app-header">
@@ -30,6 +58,7 @@ export function AppShell({ children }: Readonly<{ children: ReactNode }>) {
           <a href="/me/auctions/bids">{t("bids")}</a>
           <a href="/me/auctions/won">{t("won")}</a>
           <a href="/settings/points-connection">{t("pointsConnection")}</a>
+          {isAdmin ? <a href="/admin/points-connections">接続先の管理</a> : null}
         </nav>
         <div className="locale-switch" aria-label={t("language")} role="group">
           <button aria-pressed={locale === "ja"} onClick={() => setLocale("ja")} type="button">

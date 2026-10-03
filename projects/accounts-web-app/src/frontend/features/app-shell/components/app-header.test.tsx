@@ -1,0 +1,325 @@
+// @vitest-environment happy-dom
+import { screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useState } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { renderWithProviders } from "../../../test/render-with-providers";
+import { useUnsavedChangesGuard } from "../hooks/use-unsaved-changes-guard";
+import { AppFooter, AppHeader } from "./app-header";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
+
+// 応答はテストごとに必要な項目だけを返すため、呼出しの型を緩める。
+type AuthClientCall = (...args: unknown[]) => Promise<unknown>;
+
+const authClientMock = vi.hoisted(() => ({
+  useSession: vi.fn<() => { data: unknown; isPending: boolean }>(),
+  signIn: { social: vi.fn<AuthClientCall>() },
+  getLastUsedLoginMethod: vi.fn<() => string | null>(),
+  multiSession: {
+    listDeviceSessions: vi.fn<AuthClientCall>(),
+    setActive: vi.fn<AuthClientCall>(),
+    revoke: vi.fn<AuthClientCall>(),
+  },
+  $store: { notify: vi.fn<(signal: string) => void>() },
+}));
+
+vi.mock("../../../lib/auth-client", () => ({ authClient: authClientMock }));
+
+const alice = { session: { id: "session-a", token: "token-a", userId: "ausr_alice" }, user: { id: "ausr_alice", name: "alice" } };
+const bob = { session: { id: "session-b", token: "token-b", userId: "ausr_bob" }, user: { id: "ausr_bob", name: "Bob" } };
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  authClientMock.useSession.mockReturnValue({ data: null, isPending: false });
+  authClientMock.getLastUsedLoginMethod.mockReturnValue(null);
+  authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [], error: null });
+});
+
+/**
+ * aliceでログインした状態でヘッダーを描画し、アカウントのメニューを開く。
+ */
+async function openAccountMenu(path = "/") {
+  authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+  authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice, bob], error: null });
+  const rendered = renderWithProviders(<AppHeader />, { path });
+  await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
+  const menu = await screen.findByRole("menu");
+  await within(menu).findByRole("menuitem", { name: /Bob/ });
+  return { ...rendered, menu };
+}
+
+describe("AppHeader", () => {
+  it("左上にロゴとサービス名を置き、トップページへのリンクにする", async () => {
+    renderWithProviders(<AppHeader />);
+
+    const homeLink = await screen.findByRole("link", { name: "Freeism Accounts" });
+    expect(homeLink.getAttribute("href")).toBe("/");
+    expect(homeLink.querySelector("svg")).not.toBeNull();
+  });
+
+  it("トップページでは、現在のページの印をロゴに付けず「トップ」のタブだけに付ける", async () => {
+    renderWithProviders(<AppHeader />, { path: "/" });
+
+    expect((await screen.findByRole("link", { name: "トップ" })).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Freeism Accounts" }).getAttribute("aria-current")).toBeNull();
+  });
+
+  it("メインメニューに「トップ」「アカウント連携」「その他」のタブだけを置く", async () => {
+    renderWithProviders(<AppHeader />);
+
+    const navigation = await screen.findByRole("navigation", { name: "メインメニュー" });
+    const tabs = within(navigation).getAllByRole("link");
+    expect(tabs.map((tab) => tab.textContent)).toEqual(["トップ", "アカウント連携", "その他"]);
+    expect(screen.queryByRole("link", { name: "開発者向け" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "プライバシーポリシー" })).toBeNull();
+  });
+
+  it("ログインしていない場合は、タブをユーザーIDの無い経路にし、右端に何も置かない", async () => {
+    renderWithProviders(<AppHeader />);
+
+    const navigation = await screen.findByRole("navigation", { name: "メインメニュー" });
+    expect(within(navigation).getAllByRole("link").map((tab) => tab.getAttribute("href"))).toEqual([
+      "/",
+      "/account-links",
+      "/settings",
+    ]);
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("ログイン済みの場合は、タブに現在のユーザーのIDを付け、右端に人のアイコンのメニューを置く", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<AppHeader />);
+
+    const trigger = await screen.findByRole("button", { name: "アカウントのメニュー（alice）" });
+    expect(trigger.textContent).toBe("");
+    expect(trigger.querySelector("svg")).not.toBeNull();
+    expect(screen.getByRole("link", { name: "アカウント連携" }).getAttribute("href")).toBe("/ausr_alice/account-links");
+    expect(screen.getByRole("link", { name: "その他" }).getAttribute("href")).toBe("/ausr_alice/settings");
+    expect(screen.queryByRole("button", { name: "ログインする" })).toBeNull();
+  });
+
+  it("同意画面のヘッダーは、タブを置かずにロゴと人のアイコンだけにする", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<AppHeader hasTabs={false} />);
+
+    expect(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Freeism Accounts" })).toBeTruthy();
+    expect(screen.queryByRole("navigation", { name: "メインメニュー" })).toBeNull();
+  });
+
+  it("開いている画面のタブを現在のページとして示す", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    renderWithProviders(<AppHeader />, { path: "/ausr_alice/settings" });
+
+    expect((await screen.findByRole("link", { name: "その他" })).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "トップ" }).getAttribute("aria-current")).toBeNull();
+    expect(screen.getByRole("link", { name: "アカウント連携" }).getAttribute("aria-current")).toBeNull();
+  });
+
+  it("メニューは見出しを置かず、現在のユーザー・ほかのユーザー・アカウントの追加・「表示名」からのログアウトの順に並べる", async () => {
+    const { menu } = await openAccountMenu();
+
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items.map((item) => item.textContent)).toEqual([
+      expect.stringContaining("alice"),
+      expect.stringContaining("Bob"),
+      "アカウントを追加",
+      "「alice」からログアウト",
+    ]);
+    // ユーザーの行はアバター（頭文字）を置かず、表示名・ユーザーID・「現在」チップだけにする。
+    expect(items[0]?.textContent).toBe("aliceausr_alice現在");
+    expect(items[1]?.textContent).toBe("Bobausr_bob");
+    expect(within(menu).queryByText("このブラウザーでログイン中のユーザー")).toBeNull();
+  });
+
+  it("現在のユーザーは、ほかのユーザーの並びにかかわらず先頭に置く", async () => {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [bob, alice], error: null });
+    renderWithProviders(<AppHeader />);
+    await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
+    const menu = await screen.findByRole("menu");
+    await within(menu).findByRole("menuitem", { name: /Bob/ });
+
+    const items = within(menu).getAllByRole("menuitem");
+    expect(items[0]?.textContent).toBe("aliceausr_alice現在");
+  });
+
+  it("トップページで別のユーザーを押すと、そのユーザーのセッションへ切り替える", async () => {
+    authClientMock.multiSession.setActive.mockResolvedValue({ data: bob, error: null });
+    const { menu } = await openAccountMenu();
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /Bob/ }));
+
+    expect(authClientMock.multiSession.setActive).toHaveBeenCalledWith({ sessionToken: "token-b" });
+  });
+
+  it("ユーザーID付きの画面で別のユーザーを押すと、同じ画面のそのユーザーのURLへ移動する", async () => {
+    const { menu, router } = await openAccountMenu("/ausr_alice/settings");
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /Bob/ }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/ausr_bob/settings"));
+    // セッションの切替は、移動先の画面がURLのユーザーに合わせて行う。
+    expect(authClientMock.multiSession.setActive).not.toHaveBeenCalled();
+  });
+
+  it("切替に失敗した場合は、失敗を示す", async () => {
+    authClientMock.multiSession.setActive.mockResolvedValue({ data: null, error: { status: 401 } });
+    const { menu } = await openAccountMenu();
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /Bob/ }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("切り替えられませんでした");
+  });
+
+  it("失敗の案内は、メニューを開き直すと消す", async () => {
+    authClientMock.multiSession.setActive.mockResolvedValue({ data: null, error: { status: 401 } });
+    const { menu } = await openAccountMenu();
+    await userEvent.click(within(menu).getByRole("menuitem", { name: /Bob/ }));
+    await screen.findByRole("alert");
+
+    await userEvent.click(screen.getByRole("button", { name: "アカウントのメニュー（alice）" }));
+
+    await screen.findByRole("menu");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("「アカウントを追加」は、別のユーザーとしてログインするダイアログを開く", async () => {
+    const { menu } = await openAccountMenu();
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "アカウントを追加" }));
+
+    expect(within(await screen.findByRole("dialog")).getByRole("button", { name: "GitHubでログイン" })).toBeDefined();
+  });
+
+  it("ログアウトは、トップページへ移動してから現在のユーザーのセッションだけを終了し、セッションを読み直す", async () => {
+    authClientMock.multiSession.revoke.mockResolvedValue({ data: { status: true }, error: null });
+    const { menu, router } = await openAccountMenu("/ausr_alice/settings");
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "「alice」からログアウト" }));
+
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" });
+  });
+
+  it("ログアウトに失敗した場合は、失敗を示す", async () => {
+    authClientMock.multiSession.revoke.mockResolvedValue({ data: null, error: { status: 500 } });
+    const { menu } = await openAccountMenu();
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "「alice」からログアウト" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("ログアウトできませんでした");
+    expect(authClientMock.$store.notify).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * 未保存の変更を持つ編集画面の代わり。
+ * 「保存」を押すまで未保存の変更がある状態にし、別画面への移動を確認ダイアログで止める。
+ */
+function DirtyEditor() {
+  const [isDirty, setIsDirty] = useState(true);
+  const guard = useUnsavedChangesGuard(isDirty);
+  return (
+    <>
+      <button type="button" onClick={() => setIsDirty(false)}>
+        保存
+      </button>
+      <UnsavedChangesDialog isOpen={guard.isConfirming} onDiscard={guard.discardAndLeave} onKeepEditing={guard.keepEditing} />
+    </>
+  );
+}
+
+describe("AppHeader: 未保存の変更がある画面からのログアウト", () => {
+  /**
+   * aliceでログインし、未保存の変更がある設定画面でログアウトを押して、確認ダイアログを開く。
+   */
+  async function signOutWithUnsavedChanges() {
+    authClientMock.useSession.mockReturnValue({ data: alice, isPending: false });
+    authClientMock.multiSession.listDeviceSessions.mockResolvedValue({ data: [alice, bob], error: null });
+    authClientMock.multiSession.revoke.mockResolvedValue({ data: { status: true }, error: null });
+    const rendered = renderWithProviders(
+      <>
+        <AppHeader />
+        <DirtyEditor />
+      </>,
+      { path: "/ausr_alice/settings" },
+    );
+    await userEvent.click(await screen.findByRole("button", { name: "アカウントのメニュー（alice）" }));
+    const menu = await screen.findByRole("menu");
+    await userEvent.click(await within(menu).findByRole("menuitem", { name: "「alice」からログアウト" }));
+    const dialog = await screen.findByRole("alertdialog");
+    return { ...rendered, dialog };
+  }
+
+  it("「編集に戻る」を選ぶとログアウトせず、その後に保存してトップページへ移動してもログアウトしない", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "編集に戻る" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    await userEvent.click(screen.getByRole("link", { name: "トップ" }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
+    expect(authClientMock.multiSession.revoke).not.toHaveBeenCalled();
+    expect(authClientMock.$store.notify).not.toHaveBeenCalled();
+  });
+
+  it("「編集に戻る」の後に保存してもう一度ログアウトすると、セッションの終了は1回だけ行う", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "編集に戻る" }));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "保存" }));
+    await userEvent.click(screen.getByRole("button", { name: "アカウントのメニュー（alice）" }));
+    await userEvent.click(within(await screen.findByRole("menu")).getByRole("menuitem", { name: "「alice」からログアウト" }));
+
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("「変更を破棄して移動」を選ぶと、トップページへ移動してからログアウトする", async () => {
+    const { dialog, router } = await signOutWithUnsavedChanges();
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "変更を破棄して移動" }));
+
+    await waitFor(() => expect(authClientMock.$store.notify).toHaveBeenCalledWith("$sessionSignal"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledTimes(1);
+    expect(authClientMock.multiSession.revoke).toHaveBeenCalledWith({ sessionToken: "token-a" });
+  });
+});
+
+describe("AppFooter", () => {
+  it("使い方・OSSライセンス・プライバシーポリシー・利用規約へのリンクを置く", async () => {
+    renderWithProviders(<AppFooter />);
+
+    const footer = await screen.findByRole("contentinfo");
+    const links = within(footer).getAllByRole("link");
+    expect(links.map((link) => link.textContent)).toEqual(["使い方", "OSSライセンス", "プライバシーポリシー", "利用規約"]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/help", "/licenses", "/privacy", "/terms"]);
+  });
+
+  it("英語の画面では英語の名前で示す", async () => {
+    renderWithProviders(<AppFooter />, { language: "en" });
+
+    const footer = await screen.findByRole("contentinfo");
+    expect(within(footer).getAllByRole("link").map((link) => link.textContent)).toEqual([
+      "Guide",
+      "Open source licenses",
+      "Privacy policy",
+      "Terms of use",
+    ]);
+  });
+
+  it("ユーザーID付きの画面では、リンクに同じユーザーのIDを付ける", async () => {
+    renderWithProviders(<AppFooter />, { path: "/ausr_alice/settings" });
+
+    expect((await screen.findByRole("link", { name: "使い方" })).getAttribute("href")).toBe("/ausr_alice/help");
+  });
+});

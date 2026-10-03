@@ -2,8 +2,6 @@ import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-pool-worker
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { defineConfig } from "vite-plus";
 
-import { fixedPagesPlugin } from "./build/fixed-pages-plugin";
-
 export default defineConfig({
   plugins: [
     cloudflareTest(async () => ({
@@ -17,15 +15,12 @@ export default defineConfig({
           GOOGLE_CLIENT_SECRET: "test-google-client-secret",
           OPS_ALERT_FROM: "alerts@example.test",
           OPS_ALERT_TO: "ops@example.test",
-          OPS_RESOURCE_HASH_SALT: "test-markets-ops-resource-hash-salt",
-          POINTS_AUDIENCE: "https://points.example.test/api/v1",
-          POINTS_ISSUER: "https://points.example.test/api/auth",
+          POINTS_KEY_ENCRYPTION_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
         },
         d1Databases: ["DB"],
         serviceBindings: {
           ASSETS: "test-assets",
-          POINTS_SERVICE: "test-points-service",
         },
         workers: [
           {
@@ -33,7 +28,16 @@ export default defineConfig({
             modules: true,
             name: "test-assets",
             script: `export default {
-              fetch() {
+              fetch(request) {
+                const pathname = new URL(request.url).pathname;
+                if (pathname === '/assets/test.js') {
+                  return new Response(request.method === 'HEAD' ? null : '/* markets-test-asset */', {
+                    headers: { 'Content-Type': 'application/javascript' },
+                  });
+                }
+                if (pathname !== '/' && pathname !== '/index.html') {
+                  return new Response(null, { status: 404 });
+                }
                 return new Response('<!doctype html><main data-markets-shell>Markets shell</main>', {
                   headers: {
                     'Cache-Control': 'no-store',
@@ -43,23 +47,12 @@ export default defineConfig({
               },
             };`,
           },
-          {
-            compatibilityDate: "2026-07-12",
-            modules: true,
-            name: "test-points-service",
-            script: `export default {
-              fetch() {
-                return new Response('Points test service has no configured route', { status: 503 });
-              },
-            };`,
-          },
         ],
       },
       wrangler: {
         configPath: "./wrangler.jsonc",
       },
     })),
-    fixedPagesPlugin(),
     tanstackStart({
       router: {
         routeFileIgnorePattern: "\\.test\\.",

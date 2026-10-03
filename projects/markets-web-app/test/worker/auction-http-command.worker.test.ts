@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env, runInDurableObject } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
@@ -11,7 +12,9 @@ interface SeededAuction {
   sellerMarketsUserId: string;
 }
 
-async function seedAuction(options: { activePoints?: boolean; quantity?: number } = {}) {
+async function seedAuction(
+  options: { activePoints?: boolean; quantity?: number; providerId?: string } = {},
+) {
   const suffix = crypto.randomUUID();
   const auctionId = `auc_command_${suffix}`;
   const sellerAuthUserId = `auth_seller_${suffix}`;
@@ -21,6 +24,13 @@ async function seedAuction(options: { activePoints?: boolean; quantity?: number 
   const snapshotId = `pps_${suffix}`;
   const revisionId = `rev_${suffix}`;
   const now = Date.now();
+  const providerId = options.providerId ?? testPointsProviderId;
+  await seedPointsProvider(env.DB, {
+    id: providerId,
+    ...(options.providerId
+      ? { origin: `https://${providerId.replaceAll("_", "-")}.example.test` }
+      : {}),
+  });
   await env.DB.batch([
     env.DB.prepare("INSERT INTO user (id, name, email) VALUES (?, 'Seller', ?)").bind(
       sellerAuthUserId,
@@ -45,11 +55,11 @@ async function seedAuction(options: { activePoints?: boolean; quantity?: number 
       buyerAuthUserId,
     ),
     env.DB.prepare(
-      "INSERT INTO point_package_snapshots (id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, 'Command package', 1)",
-    ).bind(snapshotId, `pp_${suffix}`, `ppr_${suffix}`),
+      "INSERT INTO point_package_snapshots (id, provider_id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, ?, 'Command package', 1)",
+    ).bind(snapshotId, providerId, `pp_${suffix}`, `ppr_${suffix}`),
     env.DB.prepare(
-      "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'OPEN', 1)",
-    ).bind(auctionId, sellerMarketsUserId),
+      "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'OPEN', 1)",
+    ).bind(auctionId, providerId, sellerMarketsUserId),
     env.DB.prepare(
       `INSERT INTO auction_revisions
        (id, auction_id, revision_number, title, description, external_url,
@@ -82,14 +92,15 @@ async function seedAuction(options: { activePoints?: boolean; quantity?: number 
   if (options.activePoints !== false) {
     await env.DB.prepare(
       `INSERT INTO points_connection
-       (id, markets_user_id, auth_user_id, status, link_attempt_id, attempt_payload_hash,
+       (id, provider_id, markets_user_id, auth_user_id, status, link_attempt_id, attempt_payload_hash,
         points_issuer, points_subject, user_client_id, m2m_client_id, granted_scopes,
         session_id, expires_at)
-       VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'points.freeism.app', ?, 'markets-user',
+       VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, 'points.freeism.app', ?, 'markets-user',
         'markets-m2m', 'auction:bid', ?, ?)`,
     )
       .bind(
         `pc_${suffix}`,
+        providerId,
         buyerMarketsUserId,
         buyerAuthUserId,
         `attempt_${suffix}`,
@@ -235,6 +246,57 @@ describe("authenticated auction HTTP commands", () => {
       positions: 1,
       version: 3,
     });
+  });
+
+  it("allows cancelling an existing AutoBid after its provider stops", async () => {
+    const providerId = `ppr_stopped_${crypto.randomUUID()}`;
+    const seeded = await seedAuction({ providerId });
+    const app = appFor(seeded.buyerAuthUserId);
+    const placed = await app.fetch(
+      commandRequest(seeded, "bids", {
+        autoBidMaxTickCount: 10,
+        commandId: `cmd_${crypto.randomUUID()}`,
+        expectedAuctionVersion: 1,
+        priceTickCount: 2,
+        quantity: 1,
+      }),
+      env,
+    );
+    expect(placed.status).toBe(200);
+    await env.DB.prepare("UPDATE points_provider SET status = 'STOPPED' WHERE id = ?")
+      .bind(providerId)
+      .run();
+    const newBid = await app.fetch(
+      commandRequest(seeded, "bids", {
+        commandId: `cmd_${crypto.randomUUID()}`,
+        expectedAuctionVersion: 2,
+        priceTickCount: 3,
+        quantity: 1,
+      }),
+      env,
+    );
+    expect(newBid.status).toBe(409);
+    expect(await newBid.json()).toMatchObject({ code: "POINTS_PROVIDER_INACTIVE" });
+    const cancelled = await app.fetch(
+      commandRequest(
+        seeded,
+        "auto-bid",
+        {
+          commandId: `cmd_${crypto.randomUUID()}`,
+          expectedAuctionVersion: 2,
+        },
+        { method: "DELETE" },
+      ),
+      env,
+    );
+    expect(cancelled.status).toBe(200);
+    expect(
+      await env.DB.prepare(
+        "SELECT active FROM auto_bid_rules WHERE auction_id = ? AND bidder_markets_user_id = ?",
+      )
+        .bind(seeded.auctionId, seeded.buyerMarketsUserId)
+        .first<number>("active"),
+    ).toBe(0);
   });
 
   it("allows exactly one of two commands with the same expected Auction version", async () => {

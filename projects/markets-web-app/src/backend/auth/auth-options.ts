@@ -1,4 +1,5 @@
 import type { BetterAuthOptions } from "better-auth";
+import { admin } from "better-auth/plugins/admin";
 
 import { marketsSocialProviderIds } from "../../shared/auth/social-providers";
 
@@ -62,6 +63,7 @@ export function createMarketsAuthOptions(
     },
     baseURL: config.APP_ORIGIN,
     emailAndPassword: { enabled: false },
+    plugins: [admin()],
     rateLimit: { enabled: true, storage: "database" },
     secrets: parseBetterAuthSecrets(config.BETTER_AUTH_SECRETS),
     socialProviders: {

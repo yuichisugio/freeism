@@ -148,6 +148,48 @@
       "when": 1783948263253,
       "tag": "0020_points-security-controls",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1790384435410,
+      "tag": "0021_accounts-client-integration",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1790387257154,
+      "tag": "0022_unclaimed-fix-entry-accounts-origin-unique",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1790445238340,
+      "tag": "0023_remove-ops-alert-resource-hash",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1790499608848,
+      "tag": "0024_oauth-client-management",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1790661001524,
+      "tag": "0025_points_dpop",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1790850706146,
+      "tag": "0026_accounts-link-oauth-completion",
+      "breakpoints": true
     }
   ]
 }

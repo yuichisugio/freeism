@@ -1,5 +1,4 @@
 import { reconcilePoints } from "../usecases/reconcile-points";
-import { hashOpsResourceId } from "./ops-metrics";
 import {
   listOpsAlertsDueForNotification,
   observeOpsAlert,
@@ -17,19 +16,8 @@ const MINUTE = 60_000;
 export async function inspectPointsOpsAlerts(
   db: D1Database,
   now: number,
-  resourceHashSalt = "points-ops-alert",
 ): Promise<ObservedOpsAlert[]> {
-  const [laggingJobs, stuckCommands, stuckRevocations, reconciliation] = await Promise.all([
-    db
-      .prepare(
-        `SELECT identity_ownership_id AS resourceId
-         FROM ownership_revalidation_job
-         WHERE status IN ('PENDING', 'LEASED')
-           AND due_at <= ?
-         ORDER BY identity_ownership_id`,
-      )
-      .bind(now - 15 * MINUTE)
-      .all<{ resourceId: string }>(),
+  const [stuckCommands, stuckRevocations, reconciliation] = await Promise.all([
     db
       .prepare(
         `SELECT id AS resourceId FROM idempotency_results
@@ -48,29 +36,16 @@ export async function inspectPointsOpsAlerts(
   ]);
 
   const alerts: ObservedOpsAlert[] = [];
-  for (const row of laggingJobs.results) {
-    const resourceIdHash = await hashOpsResourceId(row.resourceId, resourceHashSalt);
-    alerts.push({
-      alertKey: `ownership-scheduler-lag:${resourceIdHash}`,
-      resourceIdHash,
-      safeDetailCode: "DUE_OVER_15_MINUTES",
-      type: "OWNERSHIP_SCHEDULER_LAG",
-    });
-  }
   for (const row of [...stuckCommands.results, ...stuckRevocations.results]) {
-    const resourceIdHash = await hashOpsResourceId(row.resourceId, resourceHashSalt);
     alerts.push({
-      alertKey: `command-outbox-stuck:${resourceIdHash}`,
-      resourceIdHash,
+      alertKey: `command-outbox-stuck:${row.resourceId}`,
       safeDetailCode: "PENDING_OVER_5_MINUTES",
       type: "COMMAND_OUTBOX_STUCK",
     });
   }
   if (!reconciliation.consistent) {
-    const resourceIdHash = await hashOpsResourceId("points-reconciliation", resourceHashSalt);
     alerts.push({
-      alertKey: `reconciliation-mismatch:${resourceIdHash}`,
-      resourceIdHash,
+      alertKey: "reconciliation-mismatch:points-reconciliation",
       safeDetailCode: "POINTS_STATE_MISMATCH",
       type: "RECONCILIATION_MISMATCH",
     });
@@ -101,8 +76,7 @@ export async function monitorOpsAlerts(
   let notified = 0;
   const due = await listOpsAlertsDueForNotification(db, now);
   for (const alert of due) {
-    const deliveryResourceHash = await hashOpsResourceId(alert.alertKey, "ops-alert-delivery");
-    const deliveryAlertKey = `alert-delivery-failed:${deliveryResourceHash}`;
+    const deliveryAlertKey = `alert-delivery-failed:${alert.alertKey}`;
     try {
       await options.notify(alert);
       await recordOpsAlertNotification(db, alert, now);
@@ -113,7 +87,6 @@ export async function monitorOpsAlerts(
         db,
         {
           alertKey: deliveryAlertKey,
-          resourceIdHash: deliveryResourceHash,
           safeDetailCode: "EMAIL_SEND_FAILED",
           type: "ALERT_DELIVERY_FAILED",
         },

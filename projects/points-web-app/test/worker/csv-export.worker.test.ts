@@ -27,8 +27,8 @@ async function createExportApp() {
   await db
     .prepare(
       `INSERT INTO profiles
-         (points_user_id, display_name, description, external_urls, visibility, created_at, updated_at)
-       VALUES (?, '=CSV User', 'first,description', '[]', 'PRIVATE', ?, ?)`,
+         (points_user_id, display_name, description, visibility, created_at, updated_at)
+       VALUES (?, '=CSV User', 'first,description', 'PRIVATE', ?, ?)`,
     )
     .bind(pointsUser.id, now, now)
     .run();
@@ -96,6 +96,47 @@ describe("CSV export snapshots", () => {
     expect(await page.text()).toBe(
       `pointsUserId,displayName,description,visibility\r\n${pointsUserId},'=CSV User,"first,description",PRIVATE\r\n`,
     );
+  });
+
+  it("rejects another user's snapshot, an expired snapshot, and an invalid ordinal", async () => {
+    const owner = await createExportApp();
+    const otherUser = await createExportApp();
+    const created = await owner.app.request(
+      "https://points.test/api/csv-exports",
+      {
+        body: JSON.stringify({ type: "PROFILE" }),
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `idem_${crypto.randomUUID()}`,
+        },
+        method: "POST",
+      },
+      env,
+    );
+    expect(created.status).toBe(201);
+    const body = (await created.json()) as { data: { cursor: string; exportId: string } };
+    const pageUrl = `https://points.test/api/csv-exports/${body.data.exportId}/pages`;
+
+    const forbidden = await otherUser.app.request(
+      `${pageUrl}?cursor=${body.data.cursor}`,
+      undefined,
+      env,
+    );
+    expect(forbidden.status).toBe(404);
+
+    const invalid = await owner.app.request(`${pageUrl}?cursor=-1`, undefined, env);
+    expect(invalid.status).toBe(422);
+
+    await db
+      .prepare("UPDATE csv_export_snapshot SET expires_at = ? WHERE id = ?")
+      .bind(Date.now() - 1, body.data.exportId)
+      .run();
+    const expired = await owner.app.request(
+      `${pageUrl}?cursor=${body.data.cursor}`,
+      undefined,
+      env,
+    );
+    expect(expired.status).toBe(410);
   });
 
   it("rejects an unsupported export type and a page size over 1,000", async () => {

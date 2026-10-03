@@ -1,20 +1,36 @@
-import { z } from "zod";
+import * as v from "valibot";
 
 const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER;
 
-const opaqueIdSchema = z.string().min(1).max(255);
-const reservationKeySchema = z.string().min(1).max(512);
-const sha256HashSchema = z.string().regex(/^sha256:[0-9a-f]{64}$/);
-const utcInstantSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/);
-const priceTicksSchema = z.number().int().min(0).max(MAX_SAFE_INTEGER);
-const positiveSafeIntegerSchema = z.number().int().min(1).max(MAX_SAFE_INTEGER);
-const nonNegativeSafeIntegerSchema = z.number().int().min(0).max(MAX_SAFE_INTEGER);
-const signedIntegerStringSchema = z.string().regex(/^-?(0|[1-9][0-9]*)$/);
-const nonNegativeIntegerStringSchema = z.string().regex(/^(0|[1-9][0-9]*)$/);
+const opaqueIdSchema = v.pipe(v.string(), v.minLength(1), v.maxLength(255));
+const reservationKeySchema = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
+const sha256HashSchema = v.pipe(v.string(), v.regex(/^sha256:[0-9a-f]{64}$/));
+const utcInstantSchema = v.pipe(
+  v.string(),
+  v.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/),
+);
+const priceTicksSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(0),
+  v.maxValue(MAX_SAFE_INTEGER),
+);
+const positiveSafeIntegerSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(1),
+  v.maxValue(MAX_SAFE_INTEGER),
+);
+const nonNegativeSafeIntegerSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(0),
+  v.maxValue(MAX_SAFE_INTEGER),
+);
+const signedIntegerStringSchema = v.pipe(v.string(), v.regex(/^-?(0|[1-9][0-9]*)$/));
+const nonNegativeIntegerStringSchema = v.pipe(v.string(), v.regex(/^(0|[1-9][0-9]*)$/));
 
-const userScopeSchema = z.enum([
+const userScopeSchema = v.picklist([
   "openid",
   "profile",
   "offline_access",
@@ -23,315 +39,268 @@ const userScopeSchema = z.enum([
   "points.reservations.create",
 ]);
 
-const requestMetaSchema = z.object({ requestId: opaqueIdSchema }).strict();
+const requestMetaSchema = v.strictObject({ requestId: opaqueIdSchema });
 
-function uniqueItems<T extends z.ZodTypeAny>(schema: z.ZodArray<T>) {
-  return schema.refine((items) => new Set(items).size === items.length);
+function uniqueItems<T extends v.GenericSchema<unknown[]>>(schema: T) {
+  return v.pipe(
+    schema,
+    v.check((items) => new Set(items).size === items.length),
+  );
 }
 
-function envelope<T extends z.ZodTypeAny>(data: T) {
-  return z.object({ data, meta: requestMetaSchema }).strict();
+function envelope<T extends v.GenericSchema>(data: T) {
+  return v.strictObject({ data, meta: requestMetaSchema });
 }
 
-export const createLinkAttemptRequestSchema = z
-  .object({
-    marketsUserId: opaqueIdSchema,
-    stateHash: sha256HashSchema,
-    pkceChallenge: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
-    redirectUri: z.string().url(),
-    requestedScopes: uniqueItems(z.array(userScopeSchema).min(1)),
-    expiresAt: utcInstantSchema,
-    returnUrlHash: sha256HashSchema,
-  })
-  .strict();
+export const createLinkAttemptRequestSchema = v.strictObject({
+  marketsUserId: opaqueIdSchema,
+  stateHash: sha256HashSchema,
+  pkceChallenge: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{43}$/)),
+  redirectUri: v.pipe(v.string(), v.url()),
+  requestedScopes: uniqueItems(v.pipe(v.array(userScopeSchema), v.minLength(1))),
+  expiresAt: utcInstantSchema,
+  returnUrlHash: sha256HashSchema,
+});
 
-export const finalizeLinkAttemptRequestSchema = z.discriminatedUnion("outcome", [
-  z
-    .object({
-      outcome: z.literal("CONFIRM"),
-      marketsPointsConnectionId: opaqueIdSchema,
-      attemptPayloadHash: sha256HashSchema,
-      pointsIssuer: z.string().url(),
-      pointsSubject: opaqueIdSchema,
-      userClientId: opaqueIdSchema,
-    })
-    .strict(),
-  z
-    .object({
-      outcome: z.literal("CANCEL"),
-      marketsPointsConnectionId: opaqueIdSchema,
-      attemptPayloadHash: sha256HashSchema,
-    })
-    .strict(),
+export const finalizeLinkAttemptRequestSchema = v.variant("outcome", [
+  v.strictObject({
+    outcome: v.literal("CONFIRM"),
+    marketsPointsConnectionId: opaqueIdSchema,
+    attemptPayloadHash: sha256HashSchema,
+    pointsIssuer: v.pipe(v.string(), v.url()),
+    pointsSubject: opaqueIdSchema,
+    userClientId: opaqueIdSchema,
+  }),
+  v.strictObject({
+    outcome: v.literal("CANCEL"),
+    marketsPointsConnectionId: opaqueIdSchema,
+    attemptPayloadHash: sha256HashSchema,
+  }),
 ]);
 
-export const auctionEligibilityRequestItemSchema = z
-  .object({
-    auctionItemId: opaqueIdSchema,
-    pointPackageId: opaqueIdSchema,
-    pointPackageRevisionId: opaqueIdSchema,
-    contentHash: sha256HashSchema,
-  })
-  .strict();
+export const auctionEligibilityRequestItemSchema = v.strictObject({
+  auctionItemId: opaqueIdSchema,
+  pointPackageId: opaqueIdSchema,
+  pointPackageRevisionId: opaqueIdSchema,
+  contentHash: sha256HashSchema,
+});
 
-export const auctionEligibilityRequestSchema = z
-  .object({
-    auctionCommandId: opaqueIdSchema,
-    auctionCommandHash: sha256HashSchema,
-    items: z.array(auctionEligibilityRequestItemSchema).min(1).max(1000),
-  })
-  .strict();
+export const auctionEligibilityRequestSchema = v.strictObject({
+  auctionCommandId: opaqueIdSchema,
+  auctionCommandHash: sha256HashSchema,
+  items: v.pipe(v.array(auctionEligibilityRequestItemSchema), v.minLength(1), v.maxLength(1000)),
+});
 
-export const balanceCheckRequestSchema = z
-  .object({
-    pointPackageRevisionId: opaqueIdSchema,
-    priceTicks: priceTicksSchema,
-    quantity: positiveSafeIntegerSchema,
-  })
-  .strict();
+export const balanceCheckRequestSchema = v.strictObject({
+  pointPackageRevisionId: opaqueIdSchema,
+  priceTicks: priceTicksSchema,
+  quantity: positiveSafeIntegerSchema,
+});
 
-export const createReservationRequestSchema = z
-  .object({
-    reservationKey: reservationKeySchema,
-    marketsUserId: opaqueIdSchema,
-    auctionId: opaqueIdSchema,
-    settlementId: opaqueIdSchema,
-    planHash: sha256HashSchema,
-    pointPackageRevisionId: opaqueIdSchema,
-    priceTicks: priceTicksSchema,
-    quantity: positiveSafeIntegerSchema,
-    leaseSeconds: z.literal(900),
-  })
-  .strict();
+export const createReservationRequestSchema = v.strictObject({
+  reservationKey: reservationKeySchema,
+  marketsUserId: opaqueIdSchema,
+  auctionId: opaqueIdSchema,
+  settlementId: opaqueIdSchema,
+  planHash: sha256HashSchema,
+  pointPackageRevisionId: opaqueIdSchema,
+  priceTicks: priceTicksSchema,
+  quantity: positiveSafeIntegerSchema,
+  leaseSeconds: v.literal(900),
+});
 
-export const reservationStatusRequestSchema = z.discriminatedUnion("lookupBy", [
-  z
-    .object({
-      lookupBy: z.literal("POINT_RESERVATION_ID"),
-      pointReservationIds: uniqueItems(z.array(opaqueIdSchema).min(1)),
-    })
-    .strict(),
-  z
-    .object({
-      lookupBy: z.literal("RESERVATION_KEY"),
-      reservationKeys: uniqueItems(z.array(reservationKeySchema).min(1)),
-    })
-    .strict(),
+export const reservationStatusRequestSchema = v.variant("lookupBy", [
+  v.strictObject({
+    lookupBy: v.literal("POINT_RESERVATION_ID"),
+    pointReservationIds: uniqueItems(v.pipe(v.array(opaqueIdSchema), v.minLength(1))),
+  }),
+  v.strictObject({
+    lookupBy: v.literal("RESERVATION_KEY"),
+    reservationKeys: uniqueItems(v.pipe(v.array(reservationKeySchema), v.minLength(1))),
+  }),
 ]);
 
-export const captureSettlementRequestSchema = z
-  .object({
-    auctionId: opaqueIdSchema,
-    planHash: sha256HashSchema,
-    reservations: z
-      .array(
-        z
-          .object({
-            pointReservationId: opaqueIdSchema,
-            expectedVectorHash: sha256HashSchema,
-          })
-          .strict(),
-      )
-      .min(1),
-  })
-  .strict();
+export const captureSettlementRequestSchema = v.strictObject({
+  auctionId: opaqueIdSchema,
+  planHash: sha256HashSchema,
+  reservations: v.pipe(
+    v.array(
+      v.strictObject({
+        pointReservationId: opaqueIdSchema,
+        expectedVectorHash: sha256HashSchema,
+      }),
+    ),
+    v.minLength(1),
+  ),
+});
 
-export const releaseReservationRequestSchema = z
-  .object({
-    pointReservationId: opaqueIdSchema,
-    reason: z.string().min(1).max(1000),
-    planHash: sha256HashSchema,
-  })
-  .strict();
+export const releaseReservationRequestSchema = v.strictObject({
+  pointReservationId: opaqueIdSchema,
+  reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+  planHash: sha256HashSchema,
+});
 
-export const deactivateConnectionRequestSchema = z
-  .object({
-    pointsConnectionId: opaqueIdSchema,
-    reason: z.string().min(1).max(1000),
-    deactivationKey: opaqueIdSchema,
-  })
-  .strict();
+export const deactivateConnectionRequestSchema = v.strictObject({
+  pointsConnectionId: opaqueIdSchema,
+  reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+  deactivationKey: opaqueIdSchema,
+});
 
-export const publicPointPackageRevisionComponentSchema = z
-  .object({
-    evaluationCriterionId: opaqueIdSchema,
-    evaluationCriterionRevisionId: opaqueIdSchema,
-    name: z.string().min(1),
-    displayOrder: nonNegativeSafeIntegerSchema,
-    weight: positiveSafeIntegerSchema,
-    minimumUnitScaled: signedIntegerStringSchema,
-    buyNowEnabled: z.boolean(),
-  })
-  .strict();
+export const publicPointPackageRevisionComponentSchema = v.strictObject({
+  evaluationCriterionId: opaqueIdSchema,
+  evaluationCriterionRevisionId: opaqueIdSchema,
+  name: v.pipe(v.string(), v.minLength(1)),
+  displayOrder: nonNegativeSafeIntegerSchema,
+  weight: positiveSafeIntegerSchema,
+  minimumUnitScaled: signedIntegerStringSchema,
+  buyNowEnabled: v.boolean(),
+});
 
-export const publicPointPackageRevisionDataSchema = z
-  .object({
-    pointPackageId: opaqueIdSchema,
-    pointPackageRevisionId: opaqueIdSchema,
-    status: z.enum(["ACTIVE", "INACTIVE"]),
-    name: z.string().min(1),
-    description: z.string().nullable(),
-    relatedUrl: z.string().url().nullable(),
-    totalWeight: positiveSafeIntegerSchema,
-    packageTick: positiveSafeIntegerSchema,
-    contentHash: sha256HashSchema,
-    components: z.array(publicPointPackageRevisionComponentSchema).min(1),
-  })
-  .strict();
+export const publicPointPackageRevisionDataSchema = v.strictObject({
+  pointPackageId: opaqueIdSchema,
+  pointPackageRevisionId: opaqueIdSchema,
+  status: v.picklist(["ACTIVE", "INACTIVE"]),
+  name: v.pipe(v.string(), v.minLength(1)),
+  description: v.nullable(v.string()),
+  relatedUrl: v.nullable(v.pipe(v.string(), v.url())),
+  totalWeight: positiveSafeIntegerSchema,
+  packageTick: positiveSafeIntegerSchema,
+  contentHash: sha256HashSchema,
+  components: v.pipe(v.array(publicPointPackageRevisionComponentSchema), v.minLength(1)),
+});
 
 export const publicPointPackageRevisionResponseSchema = envelope(
   publicPointPackageRevisionDataSchema,
 );
 
 export const auctionEligibilityResponseSchema = envelope(
-  z
-    .object({
-      pointPackageAuctionEligibilityReceiptId: opaqueIdSchema,
-      auctionCommandId: opaqueIdSchema,
-      auctionCommandHash: sha256HashSchema,
-      items: z
-        .array(
-          z
-            .object({
-              auctionItemId: opaqueIdSchema,
-              pointPackageId: opaqueIdSchema,
-              pointPackageRevisionId: opaqueIdSchema,
-              contentHash: sha256HashSchema,
-              packageEligibilityVersion: positiveSafeIntegerSchema,
-            })
-            .strict(),
-        )
-        .min(1),
-      checkedAt: utcInstantSchema,
-      validUntil: utcInstantSchema,
-    })
-    .strict(),
+  v.strictObject({
+    pointPackageAuctionEligibilityReceiptId: opaqueIdSchema,
+    auctionCommandId: opaqueIdSchema,
+    auctionCommandHash: sha256HashSchema,
+    items: v.pipe(
+      v.array(
+        v.strictObject({
+          auctionItemId: opaqueIdSchema,
+          pointPackageId: opaqueIdSchema,
+          pointPackageRevisionId: opaqueIdSchema,
+          contentHash: sha256HashSchema,
+          packageEligibilityVersion: positiveSafeIntegerSchema,
+        }),
+      ),
+      v.minLength(1),
+    ),
+    checkedAt: utcInstantSchema,
+    validUntil: utcInstantSchema,
+  }),
 );
 
-export const auctionEligibilityItemErrorSchema = z
-  .object({
-    auctionItemId: opaqueIdSchema,
-    code: z.enum([
-      "POINT_PACKAGE_NOT_FOUND",
-      "POINT_PACKAGE_REVISION_NOT_FOUND",
-      "POINT_PACKAGE_REVISION_MISMATCH",
-      "POINT_PACKAGE_REVISION_INACTIVE",
-      "POINT_PACKAGE_INACTIVE",
-      "CONTENT_HASH_MISMATCH",
-    ]),
-  })
-  .strict();
+export const auctionEligibilityItemErrorSchema = v.strictObject({
+  auctionItemId: opaqueIdSchema,
+  code: v.picklist([
+    "POINT_PACKAGE_NOT_FOUND",
+    "POINT_PACKAGE_REVISION_NOT_FOUND",
+    "POINT_PACKAGE_REVISION_MISMATCH",
+    "POINT_PACKAGE_REVISION_INACTIVE",
+    "POINT_PACKAGE_INACTIVE",
+    "CONTENT_HASH_MISMATCH",
+  ]),
+});
 
 export const createLinkAttemptResponseSchema = envelope(
-  z
-    .object({
-      linkAttemptId: opaqueIdSchema,
-      expiresAt: utcInstantSchema,
-    })
-    .strict(),
+  v.strictObject({
+    linkAttemptId: opaqueIdSchema,
+    expiresAt: utcInstantSchema,
+  }),
 );
 
 export const finalizeLinkAttemptResponseSchema = envelope(
-  z.discriminatedUnion("outcome", [
-    z
-      .object({
-        linkAttemptFinalizationReceiptId: opaqueIdSchema,
-        linkAttemptId: opaqueIdSchema,
-        marketsPointsConnectionId: opaqueIdSchema,
-        outcome: z.literal("CONFIRM"),
-        grantStatus: z.literal("ACTIVE"),
-        finalizedAt: utcInstantSchema,
-      })
-      .strict(),
-    z
-      .object({
-        linkAttemptFinalizationReceiptId: opaqueIdSchema,
-        linkAttemptId: opaqueIdSchema,
-        marketsPointsConnectionId: opaqueIdSchema,
-        outcome: z.literal("CANCEL"),
-        grantStatus: z.literal("CANCELLED"),
-        finalizedAt: utcInstantSchema,
-      })
-      .strict(),
+  v.variant("outcome", [
+    v.strictObject({
+      linkAttemptFinalizationReceiptId: opaqueIdSchema,
+      linkAttemptId: opaqueIdSchema,
+      marketsPointsConnectionId: opaqueIdSchema,
+      outcome: v.literal("CONFIRM"),
+      grantStatus: v.literal("ACTIVE"),
+      grantVersion: positiveSafeIntegerSchema,
+      finalizedAt: utcInstantSchema,
+    }),
+    v.strictObject({
+      linkAttemptFinalizationReceiptId: opaqueIdSchema,
+      linkAttemptId: opaqueIdSchema,
+      marketsPointsConnectionId: opaqueIdSchema,
+      outcome: v.literal("CANCEL"),
+      grantStatus: v.literal("CANCELLED"),
+      finalizedAt: utcInstantSchema,
+    }),
   ]),
 );
 
 export const pointsConnectionResponseSchema = envelope(
-  z
-    .object({
-      pointsConnectionId: opaqueIdSchema,
-      issuer: z.string().url(),
-      subject: opaqueIdSchema,
-      status: z.enum(["ACTIVE", "REAUTH_REQUIRED"]),
-      grantedScopes: uniqueItems(z.array(userScopeSchema).min(1)),
-      grantVersion: positiveSafeIntegerSchema,
-      linkedAt: utcInstantSchema,
-    })
-    .strict(),
+  v.strictObject({
+    pointsConnectionId: opaqueIdSchema,
+    issuer: v.pipe(v.string(), v.url()),
+    subject: opaqueIdSchema,
+    status: v.picklist(["ACTIVE", "REAUTH_REQUIRED"]),
+    grantedScopes: uniqueItems(v.pipe(v.array(userScopeSchema), v.minLength(1))),
+    grantVersion: positiveSafeIntegerSchema,
+    linkedAt: utcInstantSchema,
+  }),
 );
 
 export const deactivateConnectionResponseSchema = envelope(
-  z
-    .object({
-      connectionDeactivationReceiptId: opaqueIdSchema,
-      pointsConnectionId: opaqueIdSchema,
-      status: z.literal("UNLINKED"),
-      grantVersion: positiveSafeIntegerSchema,
-      reason: z.string().min(1).max(1000),
-      deactivatedAt: utcInstantSchema,
-    })
-    .strict(),
+  v.strictObject({
+    connectionDeactivationReceiptId: opaqueIdSchema,
+    pointsConnectionId: opaqueIdSchema,
+    status: v.literal("UNLINKED"),
+    grantVersion: positiveSafeIntegerSchema,
+    reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+    deactivatedAt: utcInstantSchema,
+  }),
 );
 
 export const balanceCheckResponseSchema = envelope(
-  z
-    .object({
-      pointPackageRevisionId: opaqueIdSchema,
-      priceTicks: priceTicksSchema,
-      quantity: positiveSafeIntegerSchema,
-      vectorHash: sha256HashSchema,
-      components: z
-        .array(
-          z
-            .object({
-              evaluationCriterionId: opaqueIdSchema,
-              evaluationCriterionRevisionId: opaqueIdSchema,
-              requiredAmountScaled: nonNegativeIntegerStringSchema,
-              availableBalanceScaled: signedIntegerStringSchema,
-              sufficient: z.boolean(),
-            })
-            .strict(),
-        )
-        .min(1),
-      canReserve: z.boolean(),
-      checkedAt: utcInstantSchema,
-    })
-    .strict(),
+  v.strictObject({
+    pointPackageRevisionId: opaqueIdSchema,
+    priceTicks: priceTicksSchema,
+    quantity: positiveSafeIntegerSchema,
+    vectorHash: sha256HashSchema,
+    components: v.pipe(
+      v.array(
+        v.strictObject({
+          evaluationCriterionId: opaqueIdSchema,
+          evaluationCriterionRevisionId: opaqueIdSchema,
+          requiredAmountScaled: nonNegativeIntegerStringSchema,
+          availableBalanceScaled: signedIntegerStringSchema,
+          sufficient: v.boolean(),
+        }),
+      ),
+      v.minLength(1),
+    ),
+    canReserve: v.boolean(),
+    checkedAt: utcInstantSchema,
+  }),
 );
 
 export const createReservationResponseSchema = envelope(
-  z
-    .object({
-      pointReservationId: opaqueIdSchema,
-      reservationKey: reservationKeySchema,
-      status: z.literal("ACTIVE"),
-      planHash: sha256HashSchema,
-      vectorHash: sha256HashSchema,
-      expiresAt: utcInstantSchema,
-      components: z
-        .array(
-          z
-            .object({
-              evaluationCriterionId: opaqueIdSchema,
-              evaluationCriterionRevisionId: opaqueIdSchema,
-              amountScaled: nonNegativeIntegerStringSchema,
-            })
-            .passthrough(),
-        )
-        .optional()
-        .default([]),
-    })
-    .passthrough(),
+  v.looseObject({
+    pointReservationId: opaqueIdSchema,
+    reservationKey: reservationKeySchema,
+    status: v.literal("ACTIVE"),
+    planHash: sha256HashSchema,
+    vectorHash: sha256HashSchema,
+    expiresAt: utcInstantSchema,
+    components: v.optional(
+      v.array(
+        v.looseObject({
+          evaluationCriterionId: opaqueIdSchema,
+          evaluationCriterionRevisionId: opaqueIdSchema,
+          amountScaled: nonNegativeIntegerStringSchema,
+        }),
+      ),
+      [],
+    ),
+  }),
 );
 
 const reservationStatusItemBase = {
@@ -346,108 +315,95 @@ const reservationStatusItemBase = {
 };
 
 export const reservationStatusResponseSchema = envelope(
-  z
-    .object({
-      items: z.array(
-        z.discriminatedUnion("status", [
-          z
-            .object({
-              ...reservationStatusItemBase,
-              status: z.literal("ACTIVE"),
-              terminalAt: z.null(),
-              terminalReceiptId: z.null(),
-            })
-            .strict(),
-          z
-            .object({
-              ...reservationStatusItemBase,
-              status: z.literal("CAPTURED"),
-              terminalAt: utcInstantSchema,
-              terminalReceiptId: opaqueIdSchema,
-            })
-            .strict(),
-          z
-            .object({
-              ...reservationStatusItemBase,
-              status: z.literal("RELEASED"),
-              terminalAt: utcInstantSchema,
-              terminalReceiptId: opaqueIdSchema,
-            })
-            .strict(),
-          z
-            .object({
-              ...reservationStatusItemBase,
-              status: z.literal("EXPIRED"),
-              terminalAt: utcInstantSchema,
-              terminalReceiptId: opaqueIdSchema.nullable(),
-            })
-            .strict(),
-        ]),
-      ),
-    })
-    .strict(),
+  v.strictObject({
+    items: v.array(
+      v.variant("status", [
+        v.strictObject({
+          ...reservationStatusItemBase,
+          status: v.literal("ACTIVE"),
+          terminalAt: v.null(),
+          terminalReceiptId: v.null(),
+        }),
+        v.strictObject({
+          ...reservationStatusItemBase,
+          status: v.literal("CAPTURED"),
+          terminalAt: utcInstantSchema,
+          terminalReceiptId: opaqueIdSchema,
+        }),
+        v.strictObject({
+          ...reservationStatusItemBase,
+          status: v.literal("RELEASED"),
+          terminalAt: utcInstantSchema,
+          terminalReceiptId: opaqueIdSchema,
+        }),
+        v.strictObject({
+          ...reservationStatusItemBase,
+          status: v.literal("EXPIRED"),
+          terminalAt: utcInstantSchema,
+          terminalReceiptId: v.nullable(opaqueIdSchema),
+        }),
+      ]),
+    ),
+  }),
 );
 
 export const captureSettlementResponseSchema = envelope(
-  z
-    .object({
-      captureReceiptId: opaqueIdSchema,
-      settlementId: opaqueIdSchema,
-      auctionId: opaqueIdSchema,
-      planHash: sha256HashSchema,
-      status: z.literal("CAPTURED"),
-      reservations: z
-        .array(
-          z
-            .object({
-              pointReservationId: opaqueIdSchema,
-              vectorHash: sha256HashSchema,
-              status: z.literal("CAPTURED"),
-            })
-            .passthrough(),
-        )
-        .min(1),
-      capturedAt: utcInstantSchema,
-      contentHash: sha256HashSchema,
-    })
-    .strict(),
+  v.strictObject({
+    captureReceiptId: opaqueIdSchema,
+    settlementId: opaqueIdSchema,
+    auctionId: opaqueIdSchema,
+    planHash: sha256HashSchema,
+    status: v.literal("CAPTURED"),
+    reservations: v.pipe(
+      v.array(
+        v.looseObject({
+          pointReservationId: opaqueIdSchema,
+          vectorHash: sha256HashSchema,
+          status: v.literal("CAPTURED"),
+        }),
+      ),
+      v.minLength(1),
+    ),
+    capturedAt: utcInstantSchema,
+    contentHash: sha256HashSchema,
+  }),
 );
 
 export const releaseReservationResponseSchema = envelope(
-  z
-    .object({
-      releaseReceiptId: opaqueIdSchema,
-      pointReservationId: opaqueIdSchema,
-      status: z.literal("RELEASED"),
-      reason: z.string().min(1).max(1000),
-      planHash: sha256HashSchema,
-      releasedAt: utcInstantSchema,
-      contentHash: sha256HashSchema,
-    })
-    .strict(),
+  v.strictObject({
+    releaseReceiptId: opaqueIdSchema,
+    pointReservationId: opaqueIdSchema,
+    status: v.literal("RELEASED"),
+    reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+    planHash: sha256HashSchema,
+    releasedAt: utcInstantSchema,
+    contentHash: sha256HashSchema,
+  }),
 );
 
-export type CreateLinkAttemptRequest = z.infer<typeof createLinkAttemptRequestSchema>;
-export type FinalizeLinkAttemptRequest = z.infer<typeof finalizeLinkAttemptRequestSchema>;
-export type AuctionEligibilityRequest = z.infer<typeof auctionEligibilityRequestSchema>;
-export type BalanceCheckRequest = z.infer<typeof balanceCheckRequestSchema>;
-export type CreateReservationRequest = z.infer<typeof createReservationRequestSchema>;
-export type ReservationStatusRequest = z.infer<typeof reservationStatusRequestSchema>;
-export type CaptureSettlementRequest = z.infer<typeof captureSettlementRequestSchema>;
-export type ReleaseReservationRequest = z.infer<typeof releaseReservationRequestSchema>;
-export type DeactivateConnectionRequest = z.infer<typeof deactivateConnectionRequestSchema>;
-export type PublicPointPackageRevisionData = z.infer<typeof publicPointPackageRevisionDataSchema>;
-export type PublicPointPackageRevisionResponse = z.infer<
+export type CreateLinkAttemptRequest = v.InferOutput<typeof createLinkAttemptRequestSchema>;
+export type FinalizeLinkAttemptRequest = v.InferOutput<typeof finalizeLinkAttemptRequestSchema>;
+export type AuctionEligibilityRequest = v.InferOutput<typeof auctionEligibilityRequestSchema>;
+export type BalanceCheckRequest = v.InferOutput<typeof balanceCheckRequestSchema>;
+export type CreateReservationRequest = v.InferOutput<typeof createReservationRequestSchema>;
+export type ReservationStatusRequest = v.InferOutput<typeof reservationStatusRequestSchema>;
+export type CaptureSettlementRequest = v.InferOutput<typeof captureSettlementRequestSchema>;
+export type ReleaseReservationRequest = v.InferOutput<typeof releaseReservationRequestSchema>;
+export type DeactivateConnectionRequest = v.InferOutput<typeof deactivateConnectionRequestSchema>;
+export type PublicPointPackageRevisionData = v.InferOutput<
+  typeof publicPointPackageRevisionDataSchema
+>;
+export type PublicPointPackageRevisionResponse = v.InferOutput<
   typeof publicPointPackageRevisionResponseSchema
 >;
-export type AuctionEligibilityResponse = z.infer<typeof auctionEligibilityResponseSchema>;
-export type AuctionEligibilityItemError = z.infer<typeof auctionEligibilityItemErrorSchema>;
-export type CreateLinkAttemptResponse = z.infer<typeof createLinkAttemptResponseSchema>;
-export type FinalizeLinkAttemptResponse = z.infer<typeof finalizeLinkAttemptResponseSchema>;
-export type PointsConnectionResponse = z.infer<typeof pointsConnectionResponseSchema>;
-export type DeactivateConnectionResponse = z.infer<typeof deactivateConnectionResponseSchema>;
-export type BalanceCheckResponse = z.infer<typeof balanceCheckResponseSchema>;
-export type CreateReservationResponse = z.infer<typeof createReservationResponseSchema>;
-export type ReservationStatusResponse = z.infer<typeof reservationStatusResponseSchema>;
-export type CaptureSettlementResponse = z.infer<typeof captureSettlementResponseSchema>;
-export type ReleaseReservationResponse = z.infer<typeof releaseReservationResponseSchema>;
+export type AuctionEligibilityResponse = v.InferOutput<typeof auctionEligibilityResponseSchema>;
+export type AuctionEligibilityItemError = v.InferOutput<typeof auctionEligibilityItemErrorSchema>;
+export type CreateLinkAttemptResponse = v.InferOutput<typeof createLinkAttemptResponseSchema>;
+export type FinalizeLinkAttemptResponse = v.InferOutput<typeof finalizeLinkAttemptResponseSchema>;
+export type PointsConnectionResponse = v.InferOutput<typeof pointsConnectionResponseSchema>;
+export type DeactivateConnectionResponse = v.InferOutput<typeof deactivateConnectionResponseSchema>;
+export type BalanceCheckResponse = v.InferOutput<typeof balanceCheckResponseSchema>;
+export type CreateReservationResponse = v.InferOutput<typeof createReservationResponseSchema>;
+export type ReservationStatusResponse = v.InferOutput<typeof reservationStatusResponseSchema>;
+export type CaptureSettlementResponse = v.InferOutput<typeof captureSettlementResponseSchema>;
+export type ReleaseReservationResponse = v.InferOutput<typeof releaseReservationResponseSchema>;

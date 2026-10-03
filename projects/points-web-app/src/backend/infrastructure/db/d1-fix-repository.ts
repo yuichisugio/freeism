@@ -6,6 +6,7 @@ import {
 } from "../../csv/d1-json-chunks";
 import { computeFixRevisionDeltas, type FixRevisionValue } from "../../domain/fix/fix-revision";
 import { hashCanonicalPayload } from "../../domain/idempotency/idempotency-result";
+import { recipientBusinessKey } from "../../identity/accounts-recipient-resolver";
 import type { ValidatedFixCsvRow } from "../../usecases/validate-fix-csv";
 import {
   emptyAutoDistributionPlan,
@@ -13,11 +14,29 @@ import {
 } from "../../usecases/distribute-positive-fix";
 
 interface PreviousEntry extends FixRevisionValue {
+  accountsOrigin: string;
+  accountsResolvedAt: number;
   evaluationAt: string;
   evaluationCriterionRevisionId: string;
-  recipientAccountId: string | null;
-  recipientProfileUrl: string;
-  recipientProviderId: string | null;
+  recipientIdentifierType: string;
+  recipientIdentifierValue: string;
+  resolvedAccountsUserId: string | null;
+}
+
+/**
+ * 受領者の対象者キーを SQL で求める式。
+ * `recipientBusinessKey` と同じ値を返す。
+ */
+export function recipientBusinessKeySql(alias: string): string {
+  return `${alias}.recipient_identifier_type || ':' || ${alias}.accounts_origin || ':' || ${alias}.recipient_identifier_value`;
+}
+
+/** 検証済みの CSV 行から対象者キーを求める。 */
+function rowBusinessKey(row: ValidatedFixCsvRow): string {
+  return recipientBusinessKey(
+    { type: row.recipientIdentifierType, value: row.recipientIdentifierValue },
+    row.accountsOrigin,
+  );
 }
 
 async function findPreviousEntries(db: D1Database, resultIds: readonly string[]) {
@@ -25,13 +44,13 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
   const rows = await db
     .prepare(
       `SELECT result.id AS fixResultId,
-              CASE WHEN entry.recipient_provider_id = 'github'
-                THEN 'github:' || entry.recipient_account_id
-                ELSE 'web:' || entry.recipient_profile_url END AS recipientKey,
-              entry.recipient_profile_url AS recipientProfileUrl,
+              ${recipientBusinessKeySql("entry")} AS recipientKey,
+              entry.recipient_identifier_type AS recipientIdentifierType,
+              entry.recipient_identifier_value AS recipientIdentifierValue,
+              entry.accounts_origin AS accountsOrigin,
+              entry.resolved_accounts_user_id AS resolvedAccountsUserId,
+              entry.accounts_resolved_at AS accountsResolvedAt,
               entry.points_user_id AS pointsUserId,
-              entry.recipient_provider_id AS recipientProviderId,
-              entry.recipient_account_id AS recipientAccountId,
               entry.evaluation_criterion_id AS evaluationCriterionId,
               entry.evaluation_criterion_revision_id AS evaluationCriterionRevisionId,
               entry.amount_scaled AS amountScaled, entry.evaluation_at AS evaluationAt
@@ -44,9 +63,7 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
   const claimedRows = await db
     .prepare(
       `SELECT revision.fix_result_id AS fixResultId,
-              CASE WHEN unclaimed.recipient_provider_id = 'github'
-                THEN 'github:' || unclaimed.recipient_account_id
-                ELSE 'web:' || unclaimed.recipient_profile_url END AS recipientKey,
+              ${recipientBusinessKeySql("unclaimed")} AS recipientKey,
               unclaimed.evaluation_criterion_id AS evaluationCriterionId,
               claim.points_user_id AS pointsUserId
        FROM fix_revision revision
@@ -82,6 +99,8 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
 }
 
 export interface CommitFixInput {
+  /** 受領者の照合に使った接続先 Accounts。監査に記録する。 */
+  accountsConnectionId: string;
   actorPointsUserId: string;
   auditEventId: string;
   fileHash: string;
@@ -169,25 +188,22 @@ export async function commitFixRows(
     const fixRevisionId = `fixrev_${crypto.randomUUID()}`;
     if (isNew) heads.push({ createdAt: input.now.getTime(), fixResultId, fixRevisionId, revision });
     const oldValues = previous.get(fixResultId) ?? [];
-    const originalRecipients = new Map(
-      oldValues
-        .filter((value): value is PreviousEntry & { pointsUserId: string } =>
-          Boolean(value.pointsUserId),
-        )
-        .map((value) => [
-          `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
-          value.pointsUserId,
-        ]),
+    // 旧 revision にある対象者は、その受領者（未受領なら null）を引き継ぐ。
+    // 受領前の修正差分を先に台帳へ入れず、旧 revision と一緒に受領させるため。
+    const previousRecipients = new Map(
+      oldValues.map((value) => [
+        `${value.recipientKey}\u0000${value.evaluationCriterionId}`,
+        value.pointsUserId,
+      ]),
     );
     const resolvedRows = rows.map((row) => {
-      const recipientKey = row.recipientAccountId
-        ? `github:${row.recipientAccountId}`
-        : `web:${row.normalizedRecipientProfileUrl}`;
+      const previousRecipient = previousRecipients.get(
+        `${rowBusinessKey(row)}\u0000${row.evaluationCriterionId}`,
+      );
       return {
         ...row,
         recipientPointsUserId:
-          originalRecipients.get(`${recipientKey}\u0000${row.evaluationCriterionId}`) ??
-          row.recipientPointsUserId,
+          previousRecipient === undefined ? row.recipientPointsUserId : previousRecipient,
       };
     });
     revisions.push({
@@ -205,9 +221,7 @@ export async function commitFixRows(
       amountScaled: row.amountScaled,
       evaluationCriterionId: row.evaluationCriterionId,
       pointsUserId: row.recipientPointsUserId,
-      recipientKey: row.recipientAccountId
-        ? `github:${row.recipientAccountId}`
-        : `web:${row.normalizedRecipientProfileUrl}`,
+      recipientKey: rowBusinessKey(row),
     }));
     resolvedRows.forEach((row) =>
       entries.push({
@@ -215,7 +229,6 @@ export async function commitFixRows(
         createdAt: input.now.getTime(),
         fixRevisionEntryId: `fixentry_${crypto.randomUUID()}`,
         fixRevisionId,
-        identityResolvedAt: row.recipientProviderId ? input.now.getTime() : null,
       }),
     );
     const oldByKey = new Map(
@@ -225,12 +238,9 @@ export async function commitFixRows(
       ]),
     );
     const nextByKey = new Map<string, ValidatedFixCsvRow>(
-      resolvedRows.map((row) => {
-        const recipientKey = row.recipientAccountId
-          ? `github:${row.recipientAccountId}`
-          : `web:${row.normalizedRecipientProfileUrl}`;
-        return [`${recipientKey}\u0000${row.evaluationCriterionId}`, row] as const;
-      }),
+      resolvedRows.map(
+        (row) => [`${rowBusinessKey(row)}\u0000${row.evaluationCriterionId}`, row] as const,
+      ),
     );
     for (const businessKey of new Set([...oldByKey.keys(), ...nextByKey.keys()])) {
       const next = nextByKey.get(businessKey);
@@ -248,12 +258,7 @@ export async function commitFixRows(
         fixRevisionId,
         minimumUnitScaled: next?.minimumUnitScaled ?? 1,
         pointsUserId,
-        recipientKey:
-          "recipientKey" in detail
-            ? detail.recipientKey
-            : detail.recipientAccountId
-              ? `github:${detail.recipientAccountId}`
-              : `web:${detail.normalizedRecipientProfileUrl}`,
+        recipientKey: "recipientKey" in detail ? detail.recipientKey : rowBusinessKey(detail),
       });
       autoDistribution.ledger.push(...plan.ledger);
       autoDistribution.revisions.push(...plan.revisions);
@@ -284,16 +289,15 @@ export async function commitFixRows(
           pointsUserId: delta.pointsUserId,
         });
       } else {
-        const source = detail as PreviousEntry | ValidatedFixCsvRow;
         unclaimed.push({
           ...common,
+          accountsOrigin: detail.accountsOrigin,
+          accountsResolvedAt:
+            "accountsResolvedAt" in detail ? detail.accountsResolvedAt : input.now.getTime(),
           id: `unclaimed_${crypto.randomUUID()}`,
-          recipientAccountId: "recipientAccountId" in source ? source.recipientAccountId : null,
-          recipientProfileUrl:
-            "normalizedRecipientProfileUrl" in source
-              ? source.normalizedRecipientProfileUrl
-              : source.recipientProfileUrl,
-          recipientProviderId: "recipientProviderId" in source ? source.recipientProviderId : null,
+          recipientIdentifierType: detail.recipientIdentifierType,
+          recipientIdentifierValue: detail.recipientIdentifierValue,
+          resolvedAccountsUserId: detail.resolvedAccountsUserId,
         });
       }
     }
@@ -334,14 +338,15 @@ export async function commitFixRows(
     ),
     ...jsonStatements(
       `INSERT INTO fix_revision_entry
-         (id, fix_revision_id, recipient_provider_id, recipient_account_id,
-          recipient_profile_url, identity_resolved_at, points_user_id,
+         (id, fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+          accounts_origin, resolved_accounts_user_id, accounts_resolved_at, points_user_id,
           evaluation_criterion_id, evaluation_criterion_revision_id, amount_scaled,
           evaluation_at, management_id, memo, created_at)
        SELECT json_extract(value, '$.fixRevisionEntryId'), json_extract(value, '$.fixRevisionId'),
-              json_extract(value, '$.recipientProviderId'), json_extract(value, '$.recipientAccountId'),
-              json_extract(value, '$.normalizedRecipientProfileUrl'),
-              json_extract(value, '$.identityResolvedAt'), json_extract(value, '$.recipientPointsUserId'),
+              json_extract(value, '$.recipientIdentifierType'),
+              json_extract(value, '$.recipientIdentifierValue'),
+              json_extract(value, '$.accountsOrigin'), json_extract(value, '$.resolvedAccountsUserId'),
+              json_extract(value, '$.createdAt'), json_extract(value, '$.recipientPointsUserId'),
               json_extract(value, '$.evaluationCriterionId'),
               json_extract(value, '$.evaluationCriterionRevisionId'), json_extract(value, '$.amountScaled'),
               json_extract(value, '$.evaluationAt'), NULLIF(json_extract(value, '$.managementId'), ''),
@@ -419,12 +424,15 @@ export async function commitFixRows(
     ),
     ...jsonStatements(
       `INSERT INTO unclaimed_fix_entry
-         (id, source_fix_revision_id, recipient_provider_id, recipient_account_id,
-          recipient_profile_url, evaluation_criterion_id, evaluation_criterion_revision_id,
+         (id, source_fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+          accounts_origin, resolved_accounts_user_id, accounts_resolved_at,
+          evaluation_criterion_id, evaluation_criterion_revision_id,
           delta_amount_scaled, evaluation_at, created_at)
        SELECT json_extract(value, '$.id'), json_extract(value, '$.fixRevisionId'),
-              json_extract(value, '$.recipientProviderId'), json_extract(value, '$.recipientAccountId'),
-              json_extract(value, '$.recipientProfileUrl'), json_extract(value, '$.evaluationCriterionId'),
+              json_extract(value, '$.recipientIdentifierType'),
+              json_extract(value, '$.recipientIdentifierValue'),
+              json_extract(value, '$.accountsOrigin'), json_extract(value, '$.resolvedAccountsUserId'),
+              json_extract(value, '$.accountsResolvedAt'), json_extract(value, '$.evaluationCriterionId'),
               json_extract(value, '$.evaluationCriterionRevisionId'),
               json_extract(value, '$.deltaAmountScaled'), json_extract(value, '$.evaluationAt'),
               json_extract(value, '$.createdAt') FROM json_each(?)`,
@@ -477,10 +485,24 @@ export async function commitFixRows(
       input.requestId,
       input.now.getTime(),
     );
+  const accountsResolvedAudit = db
+    .prepare(
+      `INSERT INTO audit_event
+         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
+       VALUES (?, ?, 'FIX_ACCOUNTS_RESOLVED', ?, ?, ?, 'SUCCESS', ?)`,
+    )
+    .bind(
+      `audit_${crypto.randomUUID()}`,
+      input.actorPointsUserId,
+      input.accountsConnectionId,
+      input.reason,
+      input.requestId,
+      input.now.getTime(),
+    );
   await runCsvAtomicBatch(
     db,
     composeCsvAtomicBatch({
-      audit: [...sealWrites, audit],
+      audit: [...sealWrites, audit, accountsResolvedAudit],
       domainWrites,
       idempotencyResult: [idempotency],
       ledger: ledgerWrites,

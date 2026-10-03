@@ -12,7 +12,6 @@ export interface StructuredLogInput {
   operation: string;
   outcome: string;
   requestId?: string;
-  resourceIdHash?: string;
   resourceType?: string;
 }
 
@@ -21,7 +20,6 @@ const OPTIONAL_FIELDS = [
   "correlationId",
   "durationMs",
   "requestId",
-  "resourceIdHash",
   "resourceType",
 ] as const;
 

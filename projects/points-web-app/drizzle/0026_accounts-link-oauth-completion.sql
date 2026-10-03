@@ -1,0 +1,2 @@
+ALTER TABLE `accounts_link_attempts` ADD `verified_accounts_user_id` text;--> statement-breakpoint
+CREATE INDEX `accounts_link_attempts_verifier_idx` ON `accounts_link_attempts` (`code_verifier`,`accounts_connection_id`);

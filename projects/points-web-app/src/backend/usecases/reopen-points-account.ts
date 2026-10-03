@@ -1,6 +1,6 @@
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
+import type { CreateAccountsRecipientResolver } from "../identity/accounts-recipient-resolver";
 import {
-  eligibleReopenFixSql,
   loadPointsAccountReopenPreview,
   PointsAccountReopenError,
 } from "./preview-points-account-reopen";
@@ -36,6 +36,7 @@ export async function reopenPointsAccount(
   db: D1Database,
   input: {
     authUserId: string;
+    createResolver: CreateAccountsRecipientResolver;
     currentSessionId?: string;
     idempotencyKey: string;
     now?: Date;
@@ -48,7 +49,11 @@ export async function reopenPointsAccount(
   const replay = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
   if (replay) return replay;
 
-  const preview = await loadPointsAccountReopenPreview(db, input.pointsUserId);
+  const preview = await loadPointsAccountReopenPreview(
+    db,
+    input.pointsUserId,
+    input.createResolver,
+  );
   if (preview.reopenSetHash !== input.reopenSetHash) {
     throw new PointsAccountReopenError("REOPEN_SET_CHANGED");
   }
@@ -74,7 +79,6 @@ export async function reopenPointsAccount(
       };
     }),
   );
-  const expectedEntryIds = JSON.stringify(preview.entries.map(({ id }) => id));
   const responseBody = {
     data: {
       claimedCount: preview.totalCount,
@@ -96,19 +100,20 @@ export async function reopenPointsAccount(
   }));
   const groupedEntries = new Map<string, typeof preview.entries>();
   for (const entry of preview.entries) {
-    const grouped = groupedEntries.get(entry.identityOwnershipId) ?? [];
+    const linkKey = `${entry.accountsOrigin}\u0000${entry.accountsUserId}`;
+    const grouped = groupedEntries.get(linkKey) ?? [];
     grouped.push(entry);
-    groupedEntries.set(entry.identityOwnershipId, grouped);
+    groupedEntries.set(linkKey, grouped);
   }
   const claimGroups = await Promise.all(
-    [...groupedEntries.entries()].map(async ([identityOwnershipId, entries], index) => ({
+    [...groupedEntries.values()].map(async (entries, index) => ({
+      accountsOrigin: entries[0]!.accountsOrigin,
+      accountsUserId: entries[0]!.accountsUserId,
       claimId: `fixclaim_${crypto.randomUUID()}`,
       claimSetHash: await hashCanonicalPayload({ entries }),
       commandId: `fixclaimcmd_${crypto.randomUUID()}`,
       entries,
       idempotencyKey: `${input.idempotencyKey}:${index}`,
-      identityOwnershipId,
-      ownershipEpochId: entries[0]!.ownershipEpochId,
     })),
   );
   const claimItems = claimGroups.flatMap((group) =>
@@ -130,12 +135,7 @@ export async function reopenPointsAccount(
               status, response_body, created_at)
            SELECT ?, user.id, '${OPERATION}', ?, ?, 200, ?, ?
            FROM points_user user
-           WHERE user.id = ? AND user.account_status = 'CLOSED'
-             AND ? = COALESCE((
-               SELECT json_group_array(id) FROM (
-                 SELECT entry.id ${eligibleReopenFixSql} ORDER BY entry.id
-               )
-             ), '[]')`,
+           WHERE user.id = ? AND user.account_status = 'CLOSED'`,
         )
         .bind(
           `idem_${crypto.randomUUID()}`,
@@ -144,17 +144,15 @@ export async function reopenPointsAccount(
           JSON.stringify(responseBody),
           now,
           input.pointsUserId,
-          expectedEntryIds,
-          input.pointsUserId,
         ),
       db
         .prepare(
           `INSERT INTO fix_claim_command
-             (id, identity_ownership_id, ownership_epoch_id, actor_points_user_id,
+             (id, accounts_origin, accounts_user_id, actor_points_user_id,
               expected_entry_ids, claim_set_hash, created_at)
            SELECT json_extract(value, '$.commandId'),
-                  json_extract(value, '$.identityOwnershipId'),
-                  json_extract(value, '$.ownershipEpochId'), ?,
+                  json_extract(value, '$.accountsOrigin'),
+                  json_extract(value, '$.accountsUserId'), ?,
                   json_extract(value, '$.expectedEntryIds'),
                   json_extract(value, '$.claimSetHash'), ?
            FROM json_each(?) WHERE ${guardSql}`,
@@ -176,10 +174,10 @@ export async function reopenPointsAccount(
       db
         .prepare(
           `INSERT INTO fix_claim
-             (id, command_id, ownership_epoch_id, points_user_id, claim_set_hash,
+             (id, command_id, accounts_origin, accounts_user_id, points_user_id, claim_set_hash,
               item_count, request_id, idempotency_key, claimed_at)
            SELECT json_extract(value, '$.claimId'), json_extract(value, '$.commandId'),
-                  json_extract(value, '$.ownershipEpochId'), ?,
+                  json_extract(value, '$.accountsOrigin'), json_extract(value, '$.accountsUserId'), ?,
                   json_extract(value, '$.claimSetHash'),
                   json_array_length(json_extract(value, '$.expectedEntryIds')), ?,
                   json_extract(value, '$.idempotencyKey'), ?
@@ -254,21 +252,6 @@ export async function reopenPointsAccount(
         ),
       db
         .prepare(
-          `UPDATE identity_ownership SET status = 'ACTIVE'
-           WHERE status = 'INACTIVE' AND permanent_correspondence = 1 AND id IN (
-             SELECT identity_ownership_id FROM account_close_ownership_suspension
-             WHERE points_user_id = ? AND restored_at IS NULL
-           ) AND ${guardSql}`,
-        )
-        .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `UPDATE account_close_ownership_suspension SET restored_at = ?
-           WHERE points_user_id = ? AND restored_at IS NULL AND ${guardSql}`,
-        )
-        .bind(now, input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
           `UPDATE points_user SET account_status = 'ACTIVE'
            WHERE id = ? AND account_status = 'CLOSED' AND ${guardSql}`,
         )
@@ -316,7 +299,7 @@ export async function reopenPointsAccount(
 
   const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
   if (stored) return stored;
-  const latest = await loadPointsAccountReopenPreview(db, input.pointsUserId);
+  const latest = await loadPointsAccountReopenPreview(db, input.pointsUserId, input.createResolver);
   if (latest.reopenSetHash !== input.reopenSetHash) {
     throw new PointsAccountReopenError("REOPEN_SET_CHANGED");
   }

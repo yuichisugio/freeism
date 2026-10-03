@@ -1,13 +1,15 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
+import { createAccountsFailureReporter } from "../../src/backend/accounts/accounts-failure-reporter";
 import {
   createStructuredLog,
   type StructuredLogInput,
 } from "../../src/backend/observability/structured-logger";
-import { emitOpsMetric, hashOpsResourceId } from "../../src/backend/observability/ops-metrics";
+import { emitOpsMetric } from "../../src/backend/observability/ops-metrics";
 import { cleanupResolvedOpsAlerts } from "../../src/backend/observability/cleanup-ops-alerts";
 import {
+  inspectPointsOpsAlerts,
   monitorOpsAlerts,
   type ObservedOpsAlert,
 } from "../../src/backend/observability/monitor-ops-alerts";
@@ -30,6 +32,36 @@ beforeEach(async () => {
 });
 
 describe("structured Workers observability", () => {
+  it("omits Accounts connection IDs from logs and metric indexes", async () => {
+    const logs: unknown[] = [];
+    const points: AnalyticsEngineDataPoint[] = [];
+    const log = vi.spyOn(console, "log").mockImplementation((entry) => logs.push(entry));
+    try {
+      const reportFailure = createAccountsFailureReporter({
+        APP_ENV: "staging",
+        OPS_METRICS: {
+          writeDataPoint: (point) => {
+            if (point) points.push(point);
+          },
+        },
+      });
+      const failure = {
+        code: "NETWORK_ERROR",
+        connectionId: "acon_secret_internal_id",
+        operation: "accounts_resolve" as const,
+      };
+      await reportFailure(failure);
+      expect(logs).toEqual([
+        expect.objectContaining({ event: "accounts_request", code: "NETWORK_ERROR" }),
+      ]);
+      expect(JSON.stringify(logs)).not.toContain(failure.connectionId);
+      expect(points[0]?.indexes).toEqual(["accounts_request"]);
+      expect(JSON.stringify(points)).not.toContain(failure.connectionId);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
   it("keeps only the canonical fields and never emits credentials or private payloads", () => {
     const input: StructuredLogInput & Record<string, unknown> = {
       app: "points",
@@ -43,7 +75,7 @@ describe("structured Workers observability", () => {
       operation: "fix.csv.validate",
       outcome: "rejected",
       requestId: "request-1",
-      resourceIdHash: "hash-1",
+      resourceId: "private-resource-id",
       resourceType: "fix-import",
       authorization: "Bearer secret-token",
       cookie: "session=secret-cookie",
@@ -67,7 +99,6 @@ describe("structured Workers observability", () => {
       operation: "fix.csv.validate",
       outcome: "rejected",
       requestId: "request-1",
-      resourceIdHash: "hash-1",
       resourceType: "fix-import",
     });
     expect(encoded).not.toContain("secret-token");
@@ -75,6 +106,7 @@ describe("structured Workers observability", () => {
     expect(encoded).not.toContain("person@example.com");
     expect(encoded).not.toContain("private.example");
     expect(encoded).not.toContain("private cell");
+    expect(encoded).not.toContain("private-resource-id");
   });
 
   it("writes one allowlisted Analytics Engine point and absorbs metric failures", async () => {
@@ -84,7 +116,6 @@ describe("structured Workers observability", () => {
         if (point) points.push(point);
       },
     };
-    const resourceIdHash = await hashOpsResourceId("ownership-123", "test-salt");
 
     expect(
       emitOpsMetric(dataset, {
@@ -97,7 +128,6 @@ describe("structured Workers observability", () => {
         event: "ops.alert.observed",
         lagSeconds: 901,
         outcome: "open",
-        resourceIdHash,
         resourceState: "OPEN",
       }),
     ).toBe(true);
@@ -105,7 +135,7 @@ describe("structured Workers observability", () => {
       {
         blobs: ["ops.alert.observed", "points", "staging", "open", "DUE_OVER_15_MINUTES", "OPEN"],
         doubles: [1, 25, 901, 2],
-        indexes: [resourceIdHash],
+        indexes: ["ops.alert.observed"],
       },
     ]);
 
@@ -125,7 +155,6 @@ describe("structured Workers observability", () => {
         event: "ops.metric.write",
         lagSeconds: 0,
         outcome: "failed",
-        resourceIdHash,
         resourceState: "OPEN",
       }),
     ).toBe(false);
@@ -133,12 +162,33 @@ describe("structured Workers observability", () => {
 });
 
 describe("ops alert monitor", () => {
-  const lagAlert: ObservedOpsAlert = {
-    alertKey: "ownership-scheduler-lag:hash-1",
-    resourceIdHash: "hash-1",
-    safeDetailCode: "DUE_OVER_15_MINUTES",
-    type: "OWNERSHIP_SCHEDULER_LAG",
+  const stuckAlert: ObservedOpsAlert = {
+    alertKey: "command-outbox-stuck:command-1",
+    safeDetailCode: "PENDING_OVER_5_MINUTES",
+    type: "COMMAND_OUTBOX_STUCK",
   };
+
+  it("identifies a stuck command with its raw internal ID", async () => {
+    await env.DB.prepare(
+      "INSERT INTO user (id, name, email) VALUES ('user_ops', 'Ops', 'ops@example.test')",
+    ).run();
+    await env.DB.prepare(
+      "INSERT INTO points_user (id, auth_user_id) VALUES ('points_ops', 'user_ops')",
+    ).run();
+    await env.DB.prepare(
+      `INSERT INTO idempotency_results
+       (id, actor_points_user_id, operation, idempotency_key, payload_hash, status, response_body, created_at)
+       VALUES ('command_internal_1', 'points_ops', 'test', 'key_1', ?, 102, '{}', ?)`,
+    )
+      .bind("0".repeat(64), NOW - 6 * 60_000)
+      .run();
+
+    expect(await inspectPointsOpsAlerts(env.DB, NOW)).toContainEqual({
+      alertKey: "command-outbox-stuck:command_internal_1",
+      safeDetailCode: "PENDING_OVER_5_MINUTES",
+      type: "COMMAND_OUTBOX_STUCK",
+    });
+  });
 
   it("opens, deduplicates, repeats after one hour, and notifies resolution", async () => {
     const notifications: Array<{ alertKey: string; status: "OPEN" | "RESOLVED" }> = [];
@@ -147,17 +197,17 @@ describe("ops alert monitor", () => {
     };
 
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 5 * 60_000,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 60 * 60_000,
     });
@@ -168,15 +218,15 @@ describe("ops alert monitor", () => {
     });
 
     expect(notifications).toEqual([
-      { alertKey: lagAlert.alertKey, status: "OPEN" },
-      { alertKey: lagAlert.alertKey, status: "OPEN" },
-      { alertKey: lagAlert.alertKey, status: "RESOLVED" },
+      { alertKey: stuckAlert.alertKey, status: "OPEN" },
+      { alertKey: stuckAlert.alertKey, status: "OPEN" },
+      { alertKey: stuckAlert.alertKey, status: "RESOLVED" },
     ]);
     const alert = await env.DB.prepare(
       `SELECT status, repeat_count AS repeatCount, resolved_at AS resolvedAt
        FROM ops_alert WHERE alert_key = ?`,
     )
-      .bind(lagAlert.alertKey)
+      .bind(stuckAlert.alertKey)
       .first<{ repeatCount: number; resolvedAt: number | null; status: string }>();
     expect(alert).toEqual({
       repeatCount: 3,
@@ -192,12 +242,12 @@ describe("ops alert monitor", () => {
       .mockResolvedValue(undefined);
 
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW,
     });
     await monitorOpsAlerts(env.DB, {
-      inspect: async () => [lagAlert],
+      inspect: async () => [stuckAlert],
       notify,
       now: NOW + 5 * 60_000,
     });
@@ -214,9 +264,9 @@ describe("resolved alert cleanup", () => {
   async function insertResolved(alertKey: string, resolvedAt: number) {
     await env.DB.prepare(
       `INSERT INTO ops_alert
-         (alert_key, type, resource_id_hash, status, first_observed_at,
+         (alert_key, type, status, first_observed_at,
           last_observed_at, resolved_at, repeat_count, safe_detail_code)
-       VALUES (?, 'TEST_ALERT', 'hash', 'RESOLVED', ?, ?, ?, 1, 'TEST')`,
+       VALUES (?, 'TEST_ALERT', 'RESOLVED', ?, ?, ?, 1, 'TEST')`,
     )
       .bind(alertKey, resolvedAt, resolvedAt, resolvedAt)
       .run();

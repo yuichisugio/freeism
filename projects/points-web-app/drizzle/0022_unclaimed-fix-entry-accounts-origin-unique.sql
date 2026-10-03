@@ -1,0 +1,2 @@
+DROP INDEX `unclaimed_fix_entry_source_subject_criterion_uidx`;--> statement-breakpoint
+CREATE UNIQUE INDEX `unclaimed_fix_entry_source_subject_criterion_uidx` ON `unclaimed_fix_entry` (`source_fix_revision_id`,`accounts_origin`,`recipient_identifier_type`,`recipient_identifier_value`,`evaluation_criterion_id`);

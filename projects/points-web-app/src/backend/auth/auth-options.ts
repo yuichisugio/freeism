@@ -1,4 +1,5 @@
 import type { BetterAuthOptions } from "better-auth";
+import { jwt, oAuthProxy, testUtils } from "better-auth/plugins";
 
 import { pointsSocialProviderIds } from "../../shared/auth/social-providers";
 import { createPointsOAuthProvider } from "./points-oauth-provider";
@@ -10,9 +11,8 @@ export interface PointsAuthConfig {
   GITHUB_CLIENT_SECRET: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
-  MARKETS_SETTLEMENT_RETRY_RESOURCE: string;
-  POINTS_OAUTH_CLIENT_BOOTSTRAP_TOKEN?: string;
-  POINTS_OAUTH_PAIRWISE_SECRET: string;
+  OAUTH_PROXY_PRODUCTION_URL?: string;
+  PREVIEW_WORKERS_SUBDOMAIN?: string;
   DB?: D1Database;
 }
 
@@ -50,8 +50,13 @@ export function parseBetterAuthSecrets(value: string): NonNullable<BetterAuthOpt
 export function createPointsAuthOptions(
   config: PointsAuthConfig,
   database?: BetterAuthOptions["database"],
-): BetterAuthOptions {
+  enableTestUtils = false,
+) {
   const secure = config.APP_ORIGIN.startsWith("https://");
+  const productionURL = config.OAUTH_PROXY_PRODUCTION_URL || config.APP_ORIGIN;
+  const previewOriginPattern = config.PREVIEW_WORKERS_SUBDOMAIN
+    ? `https://points-pr-*-points-worker-staging.${config.PREVIEW_WORKERS_SUBDOMAIN}.workers.dev`
+    : null;
 
   return {
     ...(database === undefined ? {} : { database }),
@@ -82,6 +87,13 @@ export function createPointsAuthOptions(
       useSecureCookies: secure,
     },
     baseURL: config.APP_ORIGIN,
+    disabledPaths: [
+      "/oauth2/register",
+      "/oauth2/create-client",
+      "/oauth2/update-client",
+      "/oauth2/delete-client",
+      "/oauth2/client/rotate-secret",
+    ],
     emailAndPassword: { enabled: false },
     rateLimit: {
       enabled: true,
@@ -98,7 +110,20 @@ export function createPointsAuthOptions(
         clientSecret: config.GOOGLE_CLIENT_SECRET,
       },
     },
-    plugins: [createPointsOAuthProvider(config)],
-    trustedOrigins: [config.APP_ORIGIN],
-  };
+    plugins: [
+      oAuthProxy({ productionURL }),
+      jwt({
+        disableSettingJwtHeader: true,
+        jwt: { issuer: config.APP_ORIGIN },
+        jwks: { keyPairConfig: { alg: "EdDSA" } },
+      }),
+      createPointsOAuthProvider(config),
+      ...(enableTestUtils ? [testUtils()] : []),
+    ],
+    trustedOrigins: [
+      config.APP_ORIGIN,
+      productionURL,
+      ...(previewOriginPattern === null ? [] : [previewOriginPattern]),
+    ],
+  } satisfies BetterAuthOptions;
 }

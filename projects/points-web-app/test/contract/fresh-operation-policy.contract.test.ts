@@ -27,7 +27,6 @@ describe("fresh operation policy", () => {
         "account-close",
         "account-reopen",
         "profile-visibility-update",
-        "settlement-retry",
         "reconciliation",
       ]),
     );

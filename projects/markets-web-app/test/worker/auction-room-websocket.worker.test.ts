@@ -2,11 +2,13 @@ import { env, runInDurableObject } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createMarketsBackendApp } from "../../src/backend/app";
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 
 const auctionId = "auction-room-websocket";
 const marketsUserId = "musr_auction_room";
 
 async function seedAuction() {
+  await seedPointsProvider(env.DB);
   await env.DB.batch([
     env.DB.prepare(
       "INSERT OR IGNORE INTO user (id, name, email) VALUES ('auth-room', 'Room', 'room@example.test')",
@@ -18,11 +20,11 @@ async function seedAuction() {
       "INSERT OR IGNORE INTO markets_user (id, auth_user_id) VALUES (?, 'auth-room')",
     ).bind(marketsUserId),
     env.DB.prepare(
-      "INSERT OR IGNORE INTO point_package_snapshots (id, point_package_id, point_package_revision_id, name, total_weight) VALUES ('pps-room', 'pp-room', 'ppr-room', 'Room package', 1)",
-    ),
+      "INSERT OR IGNORE INTO point_package_snapshots (id, provider_id, point_package_id, point_package_revision_id, name, total_weight) VALUES ('pps-room', ?, 'pp-room', 'ppr-room', 'Room package', 1)",
+    ).bind(testPointsProviderId),
     env.DB.prepare(
-      "INSERT OR IGNORE INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'OPEN', 1)",
-    ).bind(auctionId, marketsUserId),
+      "INSERT OR IGNORE INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'OPEN', 1)",
+    ).bind(auctionId, testPointsProviderId, marketsUserId),
     env.DB.prepare(
       "INSERT OR IGNORE INTO auction_revisions (id, auction_id, revision_number, title, description, external_url, seller_identity_snapshot, points_issuer, point_package_snapshot_id, quantity, starts_at, ends_at, package_tick, eligibility_receipt_id, auction_command_id, auction_command_hash, package_eligibility_version, eligibility_checked_at, eligibility_valid_until, commit_started_at) VALUES ('rev-room', ?, 1, 'Room', '', 'https://example.test/item', '{}', 'https://points.example.test', 'pps-room', 1, ?, ?, 1, 'receipt-room', 'command-room', 'hash-room', 1, ?, ?, ?)",
     ).bind(

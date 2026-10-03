@@ -8,6 +8,10 @@ export interface AuctionListQuery {
 
 interface AuctionRow {
   auctionId: string;
+  providerId: string;
+  providerDisplayName: string;
+  providerOrigin: string;
+  providerStatus: "ACTIVE" | "STOPPED" | "PENDING_CLIENT_REGISTRATION";
   buyNowPriceTickCount: number | null;
   createdAt: string;
   description: string;
@@ -19,6 +23,7 @@ interface AuctionRow {
   pointPackageRevisionId: string;
   quantity: number;
   sellerIdentitySnapshot: string;
+  sellerMarketsUserId: string;
   startsAt: string;
   status: string;
   title: string;
@@ -40,6 +45,18 @@ interface AllocationRow {
   quantity: number;
   settledAt: string;
   uniformPriceTickCount: number;
+}
+
+interface PositionRow {
+  marketsUserId: string;
+  priceTickCount: number;
+  quantity: number;
+  reachedSequence: number;
+}
+
+interface ViewerRow {
+  autoBidMaxTickCount: number | null;
+  watching: number;
 }
 
 const PUBLIC_STATUSES = new Set([
@@ -68,6 +85,10 @@ function publicIdentity(snapshot: string) {
 function publicAuction(row: AuctionRow) {
   return {
     auctionId: row.auctionId,
+    providerId: row.providerId,
+    providerDisplayName: row.providerDisplayName,
+    providerOrigin: row.providerOrigin,
+    providerStatus: row.providerStatus,
     buyNowPriceTickCount: row.buyNowPriceTickCount,
     description: row.description,
     endsAt: row.endsAt,
@@ -110,14 +131,19 @@ function decodeCursor(value: string): [string, string] {
   }
 }
 
-const AUCTION_SELECT = `SELECT a.id AS auctionId, a.status, a.version, a.created_at AS createdAt,
+const AUCTION_SELECT = `SELECT a.id AS auctionId, a.provider_id AS providerId,
+       pp.display_name AS providerDisplayName, pp.origin AS providerOrigin,
+       pp.status AS providerStatus,
+       a.status, a.version, a.created_at AS createdAt,
        r.title, r.description, r.external_url AS externalUrl, r.quantity,
        r.starts_at AS startsAt, r.ends_at AS endsAt, r.package_tick AS packageTick,
        r.buy_now_price_tick_count AS buyNowPriceTickCount,
        r.seller_identity_snapshot AS sellerIdentitySnapshot,
+       a.seller_markets_user_id AS sellerMarketsUserId,
        p.point_package_id AS pointPackageId,
        p.point_package_revision_id AS pointPackageRevisionId, p.name AS pointPackageName
 FROM auctions a
+JOIN points_provider pp ON pp.id = a.provider_id
 JOIN auction_revisions r ON r.id = a.current_revision_id
 JOIN point_package_snapshots p ON p.id = r.point_package_snapshot_id`;
 
@@ -169,17 +195,17 @@ export async function listPublicAuctions(db: D1Database, input: AuctionListQuery
 export async function readPublicAuction(
   db: D1Database,
   auctionId: string,
-  sellerMarketsUserId?: string,
+  viewerMarketsUserId?: string,
 ) {
-  const visibility = sellerMarketsUserId
-    ? "a.seller_markets_user_id = ?"
+  const visibility = viewerMarketsUserId
+    ? "(a.status NOT IN ('DRAFT', 'CANCELLED') OR a.seller_markets_user_id = ?)"
     : "a.status NOT IN ('DRAFT', 'CANCELLED')";
   const row = await db
     .prepare(`${AUCTION_SELECT} WHERE a.id = ? AND ${visibility} LIMIT 1`)
-    .bind(...(sellerMarketsUserId ? [auctionId, sellerMarketsUserId] : [auctionId]))
+    .bind(...(viewerMarketsUserId ? [auctionId, viewerMarketsUserId] : [auctionId]))
     .first<AuctionRow>();
   if (!row) throw new Error("AUCTION_NOT_FOUND");
-  const [events, allocations] = await Promise.all([
+  const [events, allocations, positions, hold, viewer] = await Promise.all([
     db
       .prepare(
         `SELECT bid_seq AS bidSeq, bidder_markets_user_id AS bidderMarketsUserId,
@@ -200,10 +226,50 @@ export async function readPublicAuction(
       )
       .bind(auctionId)
       .all<AllocationRow>(),
+    db
+      .prepare(`SELECT bidder_markets_user_id AS marketsUserId, quantity,
+               price_tick_count AS priceTickCount, reached_sequence AS reachedSequence
+               FROM bid_positions WHERE auction_id = ? AND status = 'ACTIVE'`)
+      .bind(auctionId)
+      .all<PositionRow>(),
+    db
+      .prepare(`SELECT COALESCE(SUM(quantity), 0) AS heldQuantity FROM buy_now_holds
+                WHERE auction_id = ? AND status IN ('PENDING','CAPTURED_PENDING_FINALIZE','SETTLED')`)
+      .bind(auctionId)
+      .first<{ heldQuantity: number }>(),
+    viewerMarketsUserId
+      ? db
+          .prepare(`SELECT
+          EXISTS(SELECT 1 FROM watchlist_entries WHERE auction_id = ? AND markets_user_id = ?) AS watching,
+          (SELECT auto_bid_max_tick_count FROM auto_bid_rules
+           WHERE auction_id = ? AND bidder_markets_user_id = ? AND active = 1) AS autoBidMaxTickCount`)
+          .bind(auctionId, viewerMarketsUserId, auctionId, viewerMarketsUserId)
+          .first<ViewerRow>()
+      : Promise.resolve(null),
   ]);
+  const availableQuantity = row.quantity - (hold?.heldQuantity ?? 0);
+  const provisional =
+    availableQuantity > 0
+      ? clearAuction({
+          excludedUserIds: new Set<string>(),
+          positions: positions.results,
+          saleQuantity: availableQuantity,
+        })
+      : null;
   return {
     ...publicAuction(row),
+    availableQuantity,
+    provisionalAllocatedQuantity: provisional?.totalAllocatedQuantity ?? 0,
+    publicPriceTickCount: provisional?.clearingPriceTickCount ?? 0,
     allocations: allocations.results,
     events: events.results,
+    viewer: viewerMarketsUserId
+      ? {
+          isSeller: row.sellerMarketsUserId === viewerMarketsUserId,
+          watching: viewer?.watching === 1,
+          autoBidMaxTickCount: viewer?.autoBidMaxTickCount ?? null,
+        }
+      : null,
   };
 }
+import { clearAuction } from "../auction/domain/clear-auction";

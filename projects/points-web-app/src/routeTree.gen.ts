@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsExportsRouteImport } from './routes/settings.exports'
@@ -31,6 +32,7 @@ import { Route as AdminMembersRouteImport } from './routes/admin.members'
 import { Route as AdminFixesRouteImport } from './routes/admin.fixes'
 import { Route as AdminExchangeRatesRouteImport } from './routes/admin.exchange-rates'
 import { Route as AdminEvaluationCriteriaRouteImport } from './routes/admin.evaluation-criteria'
+import { Route as AdminAccountsConnectionsRouteImport } from './routes/admin.accounts-connections'
 import { Route as AccountReopenRouteImport } from './routes/account.reopen'
 
 const TermsRoute = TermsRouteImport.update({
@@ -61,6 +63,11 @@ const HelpRoute = HelpRouteImport.update({
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -144,6 +151,12 @@ const AdminEvaluationCriteriaRoute = AdminEvaluationCriteriaRouteImport.update({
   path: '/admin/evaluation-criteria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAccountsConnectionsRoute =
+  AdminAccountsConnectionsRouteImport.update({
+    id: '/admin/accounts-connections',
+    path: '/admin/accounts-connections',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AccountReopenRoute = AccountReopenRouteImport.update({
   id: '/account/reopen',
   path: '/account/reopen',
@@ -152,6 +165,7 @@ const AccountReopenRoute = AccountReopenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -159,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -177,6 +192,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -184,6 +200,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -203,6 +220,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -210,6 +228,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
@@ -230,6 +249,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -237,6 +257,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -255,6 +276,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -262,6 +284,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -280,6 +303,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -287,6 +311,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
@@ -306,6 +331,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DeveloperRoute: typeof DeveloperRoute
   DocsRoute: typeof DocsRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
@@ -313,6 +339,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
   AccountReopenRoute: typeof AccountReopenRoute
+  AdminAccountsConnectionsRoute: typeof AdminAccountsConnectionsRoute
   AdminEvaluationCriteriaRoute: typeof AdminEvaluationCriteriaRoute
   AdminExchangeRatesRoute: typeof AdminExchangeRatesRoute
   AdminFixesRoute: typeof AdminFixesRoute
@@ -372,6 +399,13 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -486,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEvaluationCriteriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/accounts-connections': {
+      id: '/admin/accounts-connections'
+      path: '/admin/accounts-connections'
+      fullPath: '/admin/accounts-connections'
+      preLoaderRoute: typeof AdminAccountsConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/reopen': {
       id: '/account/reopen'
       path: '/account/reopen'
@@ -498,6 +539,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DeveloperRoute: DeveloperRoute,
   DocsRoute: DocsRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
@@ -505,6 +547,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,
   AccountReopenRoute: AccountReopenRoute,
+  AdminAccountsConnectionsRoute: AdminAccountsConnectionsRoute,
   AdminEvaluationCriteriaRoute: AdminEvaluationCriteriaRoute,
   AdminExchangeRatesRoute: AdminExchangeRatesRoute,
   AdminFixesRoute: AdminFixesRoute,
