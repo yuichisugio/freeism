@@ -121,8 +121,7 @@
     - [その他](#その他)
   - [Rate limit](#rate-limit)
   - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
-    - [browser sessionとCookie](#browser-sessionとcookie)
-    - [same-origin API](#same-origin-api)
+    - [Resource APIとOAuth Client](#resource-apiとoauth-client)
     - [D1 bulk write制約](#d1-bulk-write制約)
     - [D1不変条件](#d1不変条件)
     - [Observabilityと運用alert](#observabilityと運用alert)
@@ -181,7 +180,6 @@
    - 説明
      - 別アプリとして同じようなアプリとの連携をする前提で設計したいため
      - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」
-     - CORSとCookie共有しない
 
 ## 「プロフィール」画面
 
@@ -290,7 +288,7 @@
          1. この項目の公開設定が出来るようにする。初期値は非公開
     9. 評価代用の履歴
        - 説明
-         - 
+         - `貢献評価を代用する仕組み`を実行した履歴
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     10. 譲渡の履歴
@@ -569,7 +567,6 @@
 
 - 複数名義で参加する利用者が、個人名義とReactなどのソフトウェア名義を、**ログアウトせずTwitterのように簡単に切り替えられるようにする**。
 - Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。
-  - Cookieとセッションの処理はBetter Authの標準機能に任せる。
 
 ### OAuthログイン
 
@@ -1411,10 +1408,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - `disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`とする。`trustedProviders`は、そのアプリのログインProviderと同じにする。
 
-- OAuth Tokenを暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。
-
-- Points／Markets CookieはSecure、HttpOnly、SameSite=Lax、host-onlyで、prefixも分離する。
-
 - 外部アカウントの管理は、Accountsを使用する。Pointsは責務を負わない。
 
 - 未受領FIXはdraftではなく、受領先だけ未確定の正式FIXである。
@@ -1702,8 +1695,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - メール・パスワード認証
 - Appleその他の未承認Provider
 - メール一致による暗黙のAccount link・ユーザー統合
-- PointsとMarketsのBetter Authテーブル、Secret、Cookieの共有
-- `.freeism.app`をDomain属性とする共通Cookie
+- PointsとMarketsのBetter Authテーブル、Secretの共有
 - Google ID、GitHub ID、メールアドレスを使ったPoints–Markets間の暗黙対応
 
 ### Better Auth共通設定
@@ -1733,10 +1725,8 @@ betterAuth({
 ```
 
 - Social OAuth TokenはBetter Auth標準の`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。独自AES-GCM envelope、独自暗号key ring、read時lazy rewrapを実装せず、標準のversioned secretsを使う。標準暗号形式・algorithmをアプリ契約へ固定しない。
-- OAuth TokenをAccount Cookieへ保存せず、OAuth stateはD1-backed storageへ保存する。
-- Authorization Code flowではPKCE S256を必須とする。
-- CSRF検査とOrigin検査を無効化しない。
-- `trustedOrigins`は環境ごとの必要なoriginを列挙し、[PR Version URL](pr-preview.ja.md)には`points-pr-*-points-worker-staging.<subdomain>.workers.dev`のホスト形式だけを許可する。
+- OAuth stateはD1-backed storageへ保存する。
+- Authorization Code flowではPKCE S256を必須とし、callback URLは完全一致allowlistとする。
 
 明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前とメールで既存Pointsプロフィールを上書きしない。
 
@@ -1744,7 +1734,7 @@ betterAuth({
 
 PointsではGoogleとGitHubを同じSocial Provider集合として扱う。
 
-stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbackを共有し、認証後は開始元のoriginへ戻す。productionはproduction自身のcallbackを使う。PR originは実際の`workers.dev`ホスト形式に限定して許可し、同じstaging Workerの`BETTER_AUTH_SECRETS`を使う。
+stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbackを共有し、認証後は開始元のoriginへ戻す。productionはproduction自身のcallbackを使う。PR Version URLでは同じstaging Workerの`BETTER_AUTH_SECRETS`を使う。
 
 - ログイン画面にはGoogleとGitHubの両方を表示する。
 - ログイン済みユーザーの連携画面にもGoogleとGitHubの両方を表示する。
@@ -1800,12 +1790,17 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 | -------------- | -------------------------------- | -------------------------------- |
 | Cookie domain  | `points.freeism.app` host-only   | `markets.freeism.app` host-only  |
 | Cookie prefix  | Points専用                       | Markets専用                      |
-| 属性           | `Secure; HttpOnly; SameSite=Lax` | `Secure; HttpOnly; SameSite=Lax` |
+| 属性           | `Secure; HttpOnly; SameSite=Lax; Path=/` | `Secure; HttpOnly; SameSite=Lax; Path=/` |
 | 認証DB・Secret | Points専用                       | Markets専用                      |
 
-- 業務状態の変更はJSONのPOST／PUT／PATCH／DELETEとし、通常のGETで変更しない。
+- Cookieとセッションの処理はBetter Authの標準機能に任せる。
+- OAuth Tokenは暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。session/account/tokenをlocalStorageへ保存しない。
+- `disableCSRFCheck=false`、`disableOriginCheck=false`とする。
+- `trustedOrigins`は環境ごとに必要な当該アプリoriginを列挙する。Pointsの[PR Version URL](pr-preview.ja.md)には、`points-pr-*-points-worker-staging.<subdomain>.workers.dev`のホスト形式だけを追加する。
+- browserは各アプリの同一origin`/api/*`だけを呼び、同一origin BFFを通す。原則cross-origin browser APIを公開しない。
+- 業務状態の変更は`application/json`のPOST／PUT／PATCH／DELETEとし、通常のGETで変更しない。browser mutationのbodyは最大64KiBを基本とし、CSVだけは別途5MiB上限を適用する。
 - OAuth callbackのGETだけは、単回state／codeの消費と、後続POSTへ必要な期限付きprotocol state／検証済みpending claimsの保存を許可する例外とする。callback GETで経済状態、Auction／Settlement state、Workflow、grant statusを変更しない。
-- OriginとFetch Metadataを検査する。
+- browser APIではOrigin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。mutationではCSRFも検査する。
 - credential付き`Access-Control-Allow-Origin: *`を禁止する。
 - CORSを認証・認可として扱わない。
 - OAuth callback、WebSocket handshake、重要mutationで環境ごとの正しいoriginを検証する。
@@ -2287,7 +2282,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 ### 境界
 
 - 可能な限り、MarketsはPointsの仕様を知らなくても良い設計にしたい
-- Points と Markets は別 Better Auth、別 host-only Cookie、別 D1、別 user ID、別 session を持つ。
+- Points と Markets は別 Better Auth、別 D1、別 user ID、別 session を持つ。
 - `points.freeism.app`と`markets.freeism.app`を独立アプリとして分離する。
 
 PointsはOAuth 2.1 Authorization Server兼Protected Resource、MarketsはOAuth Client兼Settlement Orchestratorである。両者は同じrepositoryにあっても、DB、session、Secret、domain model、runtime型を共有しない。
@@ -2505,25 +2500,10 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ## セキュリティ・テスト・デリバリー仕様
 
-### browser sessionとCookie
+### Resource APIとOAuth Client
 
-- PointsとMarketsは別Better Auth secret、別D1、別host-only Cookieを持つ。
-- `Secure=true`、`HttpOnly=true`、`SameSite=Lax`、`Path=/`。
-- `Domain=.freeism.app`を設定せず、cross-subdomain Cookieを無効にする。
-- PointsとMarketsで異なるcookie prefixを使う。
-- session/account/tokenをlocalStorageへ保存しない。
-- `disableCSRFCheck=false`、`disableOriginCheck=false`。
-- `trustedOrigins`は環境ごとの当該アプリoriginに限定する。PointsのPR Version URLは固定の`workers.dev`ホスト形式だけを追加する。
-- OAuth stateはDB-backed、Authorization CodeはPKCE S256、callback URLは完全一致allowlistとする。
 - Points Resource APIは標準JWKS署名、issuer、audience、期限、Client ID、required scope、Clientの有効状態を検証する。利用者操作ではPoints userのACTIVE状態も確認する。Tokenの外形、emailを認可根拠にしない。
 - OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使う。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
-
-### same-origin API
-
-- browserは各アプリの同一origin`/api/*`だけを呼ぶ。
-- CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
-- mutationは`application/json`を要求し、一般bodyは最大64KiB
-- Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
 
 ### D1 bulk write制約
 
@@ -2615,7 +2595,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - TanStack StartのSPA shellは`/index.html`へ出力する。`/`はbuild時に生成した静的shellからhydrateしてtop routeをclient描画するSPAであり、top route本体のSSGとは扱わない。
 - build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけに限定し、それぞれ`/terms.html`、`/privacy.html`、`/help.html`、`/docs.html`へ明示出力する。自動static route discoveryとlink crawlを無効にし、公開プロフィール、Auction、proof、認証後画面をprerenderしない。
 - Workers Static Assetsはasset-first、`not_found_handling="none"`、`html_handling="auto-trailing-slash"`とする。`assets_navigation_has_no_effect` compatibility flagでasset missしたnavigationをWorkerへ到達させ、WorkerはGET/HEADのHTML navigationだけAsset Bindingのcanonical `/`からshellを取得して返す。存在しないAPI
-- browserから別subdomainのAPIを直接呼ばない。各アプリの同一origin BFFを通す。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
 - `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
 
@@ -2693,7 +2672,6 @@ export default defineConfig({
   - Cloudflare edge: DDoS、WAF、Rate Limit、Access、TLS
   - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
   - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
-- browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
 - Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
 - `main`の保護ルール
   - direct push、force push、branch delete、admin bypassを禁止する。
