@@ -10,8 +10,13 @@
     - [要件](#要件)
   - [検索の機能](#検索の機能)
   - [「設定」画面](#設定画面)
+    - [ポイント交換する機能](#ポイント交換する機能)
+    - [貢献評価を代用する仕組み](#貢献評価を代用する仕組み)
+    - [ポイント譲渡する機能](#ポイント譲渡する機能)
+    - [プロフィール全般の設定](#プロフィール全般の設定)
+    - [公式Packageの登録](#公式packageの登録)
+    - [評価軸ごとの公開設定](#評価軸ごとの公開設定)
     - [公開設定](#公開設定)
-    - [プロフィールの設定画面](#プロフィールの設定画面)
     - [自動分配](#自動分配)
   - [多言語に対応](#多言語に対応)
   - [複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)
@@ -122,12 +127,13 @@
     - [D1 bulk write制約](#d1-bulk-write制約)
     - [D1不変条件](#d1不変条件)
     - [Observabilityと運用alert](#observabilityと運用alert)
-    - [13. 依存関係とsupply chain](#13-依存関係とsupply-chain)
+    - [依存関係とsupply chain](#依存関係とsupply-chain)
   - [フォルダ構成](#フォルダ構成)
   - [前提](#前提-1)
-    - [不変FIX revisionと差分台帳](#不変fix-revisionと差分台帳)
-    - [未受領FIXとAccounts照合](#未受領fixとaccounts照合)
-  - [セキュリティ、品質、release gate](#セキュリティ品質release-gate)
+  - [貢献度アップロード](#貢献度アップロード)
+  - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
+  - [デプロイ設定](#デプロイ設定)
+  - [セキュリティ、品質](#セキュリティ品質)
   - [採用しないもの](#採用しないもの)
   - [v0.2.0からv0.2.1への変更](#v020からv021への変更)
 
@@ -321,120 +327,132 @@
 
 ## 「設定」画面
 
-1. **ポイント交換する機能**
-   - **処理の流れ**
-     1. プロフィールURLの保有ポイント一覧の上にある「ポイント交換アップロード」ボタンを押す
-     2. CSVをアップロード（ファイルの送信を完了する）
-     3. **アップロード完了後**（下記）に、交換内容の確認ダイアログを表示する
-     4. ユーザーが承認したら交換を実行する
-   - **「アップロード完了後」の定義**
-     - クライアントからサーバーへのファイル送信が完了し、サーバー側でCSVのパースとバリデーション（4のチェック、エラーの有無の判定）が終わった後、取り込み確定**直前**のタイミングを指す。いわゆる「ファイルを選んで即ダイアログ」ではなく、**検証のあと**に内容確認を出す。バリデーションエラー時は本ダイアログは出さず、5のエラー表示に従う。
-   - **要件**
-     1. GUIは用意せず、CSVアップロードのみ対応
-     2. ドラッグ＆ドロップ機能は廃止
-        - 「アップロード」ボタンを押してファイル選択画面から選択
-     3. 一回のアップロード上限は1,000件
-     4. アップロード時に、↓をチェックする
-        - 交換先との交換比率が設定されているポイントか
-        - 保有ポイント以下の額を交換するか
-     5. エラー時の処理
-        - エラーが出た初めの処理だけでなく、全部を見て、直すべき点をすべて指摘する
-     6. 交換履歴の表示
-        - 検索やフィルターなどのリッチなUIは不要。
-        - プルダウンで履歴を開けるようにしたい
-     7. 交換内容の確認ダイアログ（3〜4の内容）
-        - 文言の例：「OOさん」に「OO評価軸」を「OOポイント分」だけ交換するけどOK？の確認
-     8. アップロードCSVに記載する内容
-        1. 交換元の評価軸ID
-        2. 交換元の額（任意）
-        3. 交換先の評価軸ID
-        4. 交換先の額（任意）
-           - 「交換元の額」or「交換先の額」のどちらか必須
-           - 「交換先の額」が入力ある場合は、逆算して必要額を算出
-2. **貢献評価を代用する仕組み**
-   - 説明
-     - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
-     - 評価軸が貢献者に、この仕組みを使ってポイントを付与する方法でもある
-     - 類似度の係数は、「**ポイント交換する機能**」の交換比率を使用する
-   - 必要性
-     1. 必要性は、「貢献評価を代用する仕組み」ドキュメントに記載
-   - 目的・使用場面
-     1. 評価軸の評価が追いつかないときに使用する
-   - 仕様
-     1. CSVアップロードに対応する
-     2. 実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`
-     3. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
-        - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
-        - 実行の単位は、評価月`YYYY-MM`とする
-     4. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
-     5. 「付与し直す」ボタンを用意
-        - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
-     6. 計算式
-        - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
-        - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
-   - 処理の流れ
-     1. 次のどちらかの「評価代用アップロード」ボタンを押す
-        1. プロフィールURLの保有ポイント一覧の上
-        2. 評価軸のプロフィール画面の上
-     2. CSVをアップロード（ファイルの送信を完了する）
-     3. **アップロード完了後**（下記）に、内容の確認ダイアログを表示する
-     4. ユーザーが承認したら実行する
-   - **「アップロード完了後」の定義**
-     - **ポイント交換する機能**の「「アップロード完了後」の定義」に従う（**ポイント交換・ポイント譲渡**と**同じ**タイミング。CSVの内容は評価代用のパース・バリデーションに読み替える）。バリデーションエラー時は本ダイアログは出さず、エラー表示に従う。
-3. **ポイント譲渡する機能**
-   - **処理の流れ**
-     1. プロフィールURLの保有ポイント一覧の上にある「ポイント譲渡アップロード」ボタンを押す
-     2. CSVをアップロード（ファイルの送信を完了する）
-     3. **アップロード完了後**（下記）に、譲渡内容の確認ダイアログを表示する
-     4. ユーザーが承認したら譲渡を実行する
-   - **「アップロード完了後」の定義**
-     - ポイント交換と同じ。**ポイント交換する機能**の「「アップロード完了後」の定義」に従う（交換↔譲渡の文言差のみ）。バリデーションエラー時は本ダイアログは出さず、エラー表示に従う。
-   - **要件**
-     1. GUIは用意せず、CSVアップロードのみ対応
-     2. ドラッグ＆ドロップ機能は廃止
-        - 「アップロード」ボタンを押してファイル選択画面から選択
-     3. アップロード時に、↓をチェックする
-        - 譲渡可能なポイントか
-        - 保有ポイント以下の額を譲渡するか
-        - **マイナス残高（マイナス帳簿）のとき**
-          - 貢献度のマイナス付与などで残高が0未満になったあとも、**さらに0未満へ減算する処理（よりマイナスに積み上がること）は許可する**。
-          - ただし
-            **マイナス帳簿（保有ポイントが0未満）の状態では、他者へのポイント譲渡は行えない**（譲渡は非対応とするバリデーションを入れる）。
-     4. エラー時の処理
-        - エラーが出た初めの処理だけでなく、全部を見て、直すべき点をすべて指摘する
-     5. 譲渡履歴の表示
-        - 検索やフィルターなどのリッチなUIは不要。
-        - プルダウンで履歴を開けるようにしたい
-     6. 譲渡内容の確認ダイアログ（3〜4の内容）
-        - 文言の例：「OOさん」に「OO評価軸」を「OOポイント分」だけ譲渡するけどOK？の確認
-     7. アップロードCSVに記載する内容
-        1. 譲渡するポイントの評価軸ID
-        2. 譲渡するポイントの額
-        3. 譲渡先のユーザーID
+### ポイント交換する機能
 
-4. **プロフィール全般の設定**
-   - 要件
-     1. 表示内容や公開設定など、プロフィールに関するすべてを設定可能にする
-     2. プロフィール自体は初期値`PUBLIC`とする。
+- **処理の流れ**
+  1.  プロフィールURLの保有ポイント一覧の上にある「ポイント交換アップロード」ボタンを押す
+  2.  CSVをアップロード（ファイルの送信を完了する）
+  3.  **アップロード完了後**（下記）に、交換内容の確認ダイアログを表示する
+  4.  ユーザーが承認したら交換を実行する
+- **「アップロード完了後」の定義**
+  - クライアントからサーバーへのファイル送信が完了し、サーバー側でCSVのパースとバリデーション（4のチェック、エラーの有無の判定）が終わった後、取り込み確定**直前**のタイミングを指す。いわゆる「ファイルを選んで即ダイアログ」ではなく、**検証のあと**に内容確認を出す。バリデーションエラー時は本ダイアログは出さず、5のエラー表示に従う。
+- **要件**
+  1.  GUIは用意せず、CSVアップロードのみ対応
+  2.  ドラッグ＆ドロップ機能は廃止
+      - 「アップロード」ボタンを押してファイル選択画面から選択
+  3.  一回のアップロード上限は1,000件
+  4.  アップロード時に、↓をチェックする
+      - 交換先との交換比率が設定されているポイントか
+      - 保有ポイント以下の額を交換するか
+  5.  エラー時の処理
+      - エラーが出た初めの処理だけでなく、全部を見て、直すべき点をすべて指摘する
+  6.  交換履歴の表示
+      - 検索やフィルターなどのリッチなUIは不要。
+      - プルダウンで履歴を開けるようにしたい
+  7.  交換内容の確認ダイアログ（3〜4の内容）
+      - 文言の例：「OOさん」に「OO評価軸」を「OOポイント分」だけ交換するけどOK？の確認
+  8.  アップロードCSVに記載する内容
+      1. 交換元の評価軸ID
+      2. 交換元の額（任意）
+      3. 交換先の評価軸ID
+      4. 交換先の額（任意）
+         - 「交換元の額」or「交換先の額」のどちらか必須
+         - 「交換先の額」が入力ある場合は、逆算して必要額を算出
 
-5. **公式Packageの登録**
-   - 要件
-     1. 0件を許可し、複数件を登録・並べ替えできる
-        - profileは公式`pointPackageId`のordered setを0件以上持つ。同じPackageの重複登録を許さず、並び順は0始まりの連続した`displayOrder`とする。
-     2. 登録解除はprofileとPackageの関係だけを削除し、Package本体、不変revision、過去のMarkets snapshotを変更しない。
-     3. 登録・登録解除・並べ替えは公開情報の編集であり、通常の認証sessionを必須とする。
+### 貢献評価を代用する仕組み
 
-6. **評価軸ごとの公開設定**
-  - 各`pointsUserId + evaluationCriterionId`に次の5フラグを`PUBLIC | PRIVATE`で保存し、一括フラグに畳み込まない。
-  - 必要なプロパティ
-    - `balanceVisibility`
-    - `evaluationTotalVisibility`
-    - `fixHistoryVisibility`
-    - `transferHistoryVisibility`
-    - `exchangeHistoryVisibility`
-  - 評価軸を初めて参照する時は`balanceVisibility`だけをその評価軸revisionの残高公開初期値から作り、`evaluationTotalVisibility`と履歴3種は`PRIVATE`とする。
-  - `PUT /api/profile/evaluation-visibilities/{evaluationCriterionId}`は5フラグの完全な組を受け、本人だけが更新できる。
-  - `PRIVATE -> PUBLIC`を1つでも含む変更、またはprofile全体の`PRIVATE -> PUBLIC`は公開範囲の拡大である。`PUBLIC -> PRIVATE`だけの縮小もできる。
+- 説明
+  - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
+  - 評価軸が貢献者に、この仕組みを使ってポイントを付与する方法でもある
+  - 類似度の係数は、「**ポイント交換する機能**」の交換比率を使用する
+
+- 必要性・目的・使用場面
+  1.  評価軸の評価が追いつかないときに使用する
+
+- 仕様
+  1.  CSVアップロードに対応する
+  2.  実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`
+  3.  キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
+      - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
+      - 実行の単位は、評価月`YYYY-MM`とする
+  4.  「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
+  5.  「付与し直す」ボタンを用意
+      - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
+  6.  計算式
+      - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
+      - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
+
+- 処理の流れ
+  1.  次のどちらかの「評価代用アップロード」ボタンを押す
+      1. プロフィールURLの保有ポイント一覧の上
+      2. 評価軸のプロフィール画面の上
+  2.  CSVをアップロード（ファイルの送信を完了する）
+  3.  **アップロード完了後**（下記）に、内容の確認ダイアログを表示する
+  4.  ユーザーが承認したら実行する
+
+- **「アップロード完了後」の定義**
+  - **ポイント交換する機能**の「「アップロード完了後」の定義」に従う（**ポイント交換・ポイント譲渡**と**同じ**タイミング。CSVの内容は評価代用のパース・バリデーションに読み替える）。バリデーションエラー時は本ダイアログは出さず、エラー表示に従う。
+
+### ポイント譲渡する機能
+
+- **処理の流れ**
+  1.  プロフィールURLの保有ポイント一覧の上にある「ポイント譲渡アップロード」ボタンを押す
+  2.  CSVをアップロード（ファイルの送信を完了する）
+  3.  **アップロード完了後**（下記）に、譲渡内容の確認ダイアログを表示する
+  4.  ユーザーが承認したら譲渡を実行する
+
+- **「アップロード完了後」の定義**
+  - ポイント交換と同じ。**ポイント交換する機能**の「「アップロード完了後」の定義」に従う（交換↔譲渡の文言差のみ）。バリデーションエラー時は本ダイアログは出さず、エラー表示に従う。
+
+- **要件**
+  1.  GUIは用意せず、CSVアップロードのみ対応
+  2.  ドラッグ＆ドロップ機能は廃止
+      - 「アップロード」ボタンを押してファイル選択画面から選択
+  3.  アップロード時に、↓をチェックする
+      - 譲渡可能なポイントか
+      - 保有ポイント以下の額を譲渡するか
+      - **マイナス残高（マイナス帳簿）のとき**
+        - 貢献度のマイナス付与などで残高が0未満になったあとも、**さらに0未満へ減算する処理（よりマイナスに積み上がること）は許可する**。
+        - ただし
+          **マイナス帳簿（保有ポイントが0未満）の状態では、他者へのポイント譲渡は行えない**（譲渡は非対応とするバリデーションを入れる）。
+  4.  エラー時の処理
+      - エラーが出た初めの処理だけでなく、全部を見て、直すべき点をすべて指摘する
+  5.  譲渡履歴の表示
+      - 検索やフィルターなどのリッチなUIは不要。
+      - プルダウンで履歴を開けるようにしたい
+  6.  譲渡内容の確認ダイアログ（3〜4の内容）
+      - 文言の例：「OOさん」に「OO評価軸」を「OOポイント分」だけ譲渡するけどOK？の確認
+  7.  アップロードCSVに記載する内容
+      1. 譲渡するポイントの評価軸ID
+      2. 譲渡するポイントの額
+      3. 譲渡先のユーザーID
+
+### プロフィール全般の設定
+
+- 要件
+  1. 表示内容や公開設定など、プロフィールに関するすべてを設定可能にする
+  2. プロフィール自体は初期値`PUBLIC`とする。
+
+### 公式Packageの登録
+
+- 要件
+  1. 0件を許可し、複数件を登録・並べ替えできる
+     - profileは公式`pointPackageId`のordered setを0件以上持つ。同じPackageの重複登録を許さず、並び順は0始まりの連続した`displayOrder`とする。
+  2. 登録解除はprofileとPackageの関係だけを削除し、Package本体、不変revision、過去のMarkets snapshotを変更しない。
+  3. 登録・登録解除・並べ替えは公開情報の編集であり、通常の認証sessionを必須とする。
+
+### 評価軸ごとの公開設定
+
+- 各`pointsUserId + evaluationCriterionId`に次の5フラグを`PUBLIC | PRIVATE`で保存し、一括フラグに畳み込まない。
+- 必要なプロパティ
+  - `balanceVisibility`
+  - `evaluationTotalVisibility`
+  - `fixHistoryVisibility`
+  - `transferHistoryVisibility`
+  - `exchangeHistoryVisibility`
+- 評価軸を初めて参照する時は`balanceVisibility`だけをその評価軸revisionの残高公開初期値から作り、`evaluationTotalVisibility`と履歴3種は`PRIVATE`とする。
+- `PUT /api/profile/evaluation-visibilities/{evaluationCriterionId}`は5フラグの完全な組を受け、本人だけが更新できる。
+- `PRIVATE -> PUBLIC`を1つでも含む変更、またはprofile全体の`PRIVATE -> PUBLIC`は公開範囲の拡大である。`PUBLIC -> PRIVATE`だけの縮小もできる。
 
 ### 公開設定
 
@@ -447,8 +465,6 @@
 - 非公開プロフィールは検索へ出さず、直接アクセスでも存在を開示しない。
 
 公開プロフィールと`GET /api/v1/profiles/{pointsUserId}`の`accountsLinks`は、状態が`PROVIDED`の連携について、取得済みsnapshotだけを返す。閲覧のたびにAccountsへ問い合わせない。各連携は、origin、AccountsユーザーID、Accountsプロフィールへのリンク、取得日時、外部アカウント一覧を持つ。表示するのは、外部サービス名、取得できるユーザー名と表示名、固有IDとプロフィールURL、検証状態、検証方法、検証日時、連携日時のうち、Accountsが提供元ごとに提供する項目だけである。Pointsは最新の取得結果だけを保存し、過去の取得履歴は持たない。次回の取得で`NOT_PROVIDED`になった連携は、公開表示を止める。プロフィール自体が非公開のときは、連携アカウント一覧も公開しない。
-
-### プロフィールの設定画面
 
 1. **プロフィール画面への遷移URL・コピーボタン**
    - 要件
@@ -595,7 +611,7 @@ Accountsで先に登録と外部アカウントの連携を済ませた利用者
 
 ### 連携解除と退会
 
-Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。Pointsユーザーの退会時は[退会と再開の処理](#10-account-closeと認証記録)に従う。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。
+Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。
 
 ## 評価軸
 
@@ -1479,12 +1495,8 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 関係ない他projectだけの変更ではPoints／Markets/Docs/Main/Accountsをdeployしない。
 
-- `main`は直接push、force push、delete、admin bypassを禁止し、PR、required checks、up-to-date、merge queueを必須とする。
-- 一人運用中のrequired approvalは0、二人目のmaintainer追加後は1とする。
 
-- Cloudflare Edge防御、Worker認証、D1／DO不変条件を重ねる。
 
-- PointsとMarketsはCloudflare WAF、Rate Limit、D1の状態・一意制約を使う。
 
 - 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、reconciliation、Runbook、旧runtime通信0件を全て満たす。
 
@@ -2129,9 +2141,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
   - rate limit responseは`429`と`Retry-After`を返す。
 
-1. Cloudflare edge: DDoS、WAF、rate limit、Access、TLS
-2. Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
-3. D1/DO/Workflow: unique/check constraint、CAS、append-only history、単調状態遷移
 
 - chunkごとの各target table statement、command guard、ledger、idempotency result、auditを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
 
@@ -2620,7 +2629,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVEDへ進め、Emailは専用verified test destination、Analytics EngineはSQL API、Workers Logsはrequest／correlation IDで確認する。productionの個人宛先や実Auctionへtest alertを送らない。
 
-### 13. 依存関係とsupply chain
+### 依存関係とsupply chain
 
 - pnpm policy
   - `minimumReleaseAge: 4320`分
@@ -2632,13 +2641,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
   - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
-- main ruleset
-  - direct push、force push、branch delete禁止
-  - PR必須
-  - required checksとbranch up-to-date
-  - merge queue
-  - admin bypassなし
-  - 1人運用中のrequired approvalは0。2人目のmaintainer追加時に1へ変更
 
 - CI/CD pipeline
   - branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
@@ -2674,7 +2676,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
   - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
 
-### 不変FIX revisionと差分台帳
+## 貢献度アップロード
 
 - FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
 - アップロード済みFIX revisionは不変とし、修正時は新しいrevisionを追加する。
@@ -2684,18 +2686,18 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
 
-### 未受領FIXとAccounts照合
+## アカウント紐付け時のポイント付与
 
 - 利用者が未登録でも、外部の貢献者を宛先として正負どちらのFIXも先に保存する。
 - 未受領FIXは暫定ユーザー残高へ入れない。宛先と評価額を不変FIX revisionに保存し、受領時に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
 - PointsはAccountsの許可済み照合結果に基づいて受領先を特定し、受領可能な正負すべての未受領FIXを選択不可で一括受領する。
 - 一度受領済みのFIXとその訂正先は同じPointsユーザーに保持する。
-- 照合と受領対象の詳細は[未受領FIX仕様](../../../../projects/points-web-app/docs/specification/v0.2/details-ja/unclaimed-fix-and-ownership.md)に従う。
 
-2. named env の routes は staging/production domain を `custom_domain: true` で所有する。
-3. `main`の直接更新は行わず、branch／PR／merge queue経由で反映する。
-4. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
-5. Static Assetsは次の形にし、Cloudflareの既定値に暗黙依存せず`not_found_handling: "none"`を明示する。汎用`single-page-application` fallbackは使わない。
+## デプロイ設定
+
+1. named env の routes は staging/production domain を `custom_domain: true` で所有する。
+2. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
+3. Static Assetsは次の形にし、Cloudflareの既定値に暗黙依存せず`not_found_handling: "none"`を明示する。汎用`single-page-application` fallbackは使わない。
 
 - 両アプリともSPAを基本とし、固定した公開routeだけをbuild時にSSG/prerenderする。
 - APIは同一originのHono Workerへ`/api/*`として実装する。
@@ -2707,12 +2709,18 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
 - `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
 
-## セキュリティ、品質、release gate
+## セキュリティ、品質
 
-- Cloudflare edge、Hono authn/authz、D1/DO invariantの多層防御を使う。
+- PointsとMarketsは、Cloudflare edge、Worker/Hono、D1/DO/Workflowの多層防御を使う。
+  - Cloudflare edge: DDoS、WAF、Rate Limit、Access、TLS
+  - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
+  - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
 - browser mutationは同一origin、JSON、CSRF/Origin/Fetch Metadata検証、最大64KiBを基本とする。CSVだけは別途5MiB上限を適用する。
 - Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
-- `main`はdirect push、force push、deleteを禁止し、required checks、up-to-date、merge queueを必須にする。現在1名運用中はapproval 0、2人目のmaintainer追加時に1へ変更する。
+- `main`の保護ルール
+  - direct push、force push、branch delete、admin bypassを禁止する。
+  - branch／PR／merge queue経由で反映し、PR、required checks、branch up-to-date、merge queueを必須にする。
+  - 1人運用中のrequired approvalは0とし、2人目のmaintainer追加時に1へ変更する。
 
 ## 採用しないもの
 
