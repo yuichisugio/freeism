@@ -4,7 +4,6 @@
   - [言語](#言語)
   - [v0.2.1：実装する理由](#v021実装する理由)
   - [v0.2.1：基本方針](#v021基本方針)
-  - [URLの修正](#urlの修正)
   - [「プロフィール」画面](#プロフィール画面)
     - [基本情報](#基本情報)
     - [要件](#要件)
@@ -183,11 +182,6 @@
      - 別アプリとして同じようなアプリとの連携をする前提で設計したいため
      - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」
      - CORSとCookie共有しない
-
-## URLの修正
-
-1. `www`を抜く
-2. ドメインを`points.freeism.app`にする
 
 ## 「プロフィール」画面
 
@@ -1324,7 +1318,6 @@ Public Package RevisionのRFC 8785 content hashは、`pointPackageId`、`pointPa
 
 変更履歴はGitで残す。共有、プルリクエスト、自動実行はGitHubで行う。使い慣れているためである。差分の追跡からレビュー、自動ビルドまでを一つの流れにできる。
 
-継続的なビルドとテストはGitHub Actionsで行う。手順の参考は[GitHub Actionsの記事](https://zenn.dev/kiwichan101kg/articles/2d6850ff72bc98)である。
 
 E2EテストはPlaywrightで行う。他のE2Eと比べてAPIが安定している。ブラウザの自動操作とトレース、ドキュメントも揃いやすい。参考は[Playwrightの記事](https://reffect.co.jp/html/playwright)である。
 
@@ -1362,13 +1355,10 @@ APIの形はRESTにする。HTTPのメソッドとURLで、リソースの取得
 
 ログイン認証はBetter Authを使う。使っていたAuth.js v5が合併し、より単純で機能も多いためである。公式の`better-auth/minimal`を使い、未使用のKysely adapterはWorkerのバンドルに含めない。
 
-ホスティングはCloudflare Workersを使う。静的なHTML、JS、CSS、フォントはWorkers Static Assetsで配信する。Cloudflare PagesとVercelのCDNは使わない。PagesとStatic Assetsは、静的配信の料金と制限が同じである。Git連携、プレビュー、環境変数、グローバル配信を少ない設定でまとめられるので、Workersに揃える。カスタムドメインも`wrangler.jsonc`で定義する。料金と制限の比較は[Creationlineの記事](https://www.creationline.com/tech-blog/agile-devops/devops/83003)を参照する。
 
 UIはReactで組み立てる。コンポーネントに分け、宣言的に描画できる。採用例と学習資料、周辺のライブラリが多く、長い期間にわたって人を巻き込みやすい。初めて描画するまで読み込みを遅らせるときは、`React.lazy`と`Suspense`を使う。
 
-画面のルートはTanStack Startで扱う。フロントエンドだけに使い、バックエンドはHonoに揃える。Webアプリ以外からのリクエストにも応えるためである。Queryなどと同じ考え方で、データ取得とルートを通しやすい。実行時のSSR、RSC、ISRは使わない。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
 
-ドメインの取得はCloudflare Registerを使う。DNSやプロキシと併用しやすい。費用が安く、売り込みやダークパターンも少ない。住所の登録が英語圏向けで、設定がうまくいかないことがあった。
 
 パッケージ管理はpnpmを使う。モノレポに向いている。
 
@@ -1382,7 +1372,6 @@ UIはReactで組み立てる。コンポーネントに分け、宣言的に描�
 
 コミット前の検査はHusky、lint-staged、commitlint、commitizenで行う。手元の差分だけを軽く見て、履歴の粒度を揃えやすい。
 
-環境変数の型は`@t3-oss/env-core`で付ける。サーバー用とクライアント用をスキーマで分け、Vite+とTanStack Startから使う。ビルド時に不足や誤用を早く落とすためである。
 
 検索パラメータはnuqsで、Reactの状態と双方向に同期する。フィルタやタブをURLにし、共有や再読み込みに強くするためである。
 
@@ -1394,7 +1383,6 @@ CSVの読み取りはpapaparseを使う。圧縮とクライアントへの保�
 
 未使用のexport、ファイル、依存の検出はknipとts-pruneで補助する。不要なコードと依存を減らし、保守する範囲を狭くするためである。
 
-インフラの設定はTerraformで、コードとして管理する。
 
 バックエンドのHTTPはHonoで実装する。軽くて速く、読みやすいためである。Next.jsのServer Actions、Route Handlers、TanStack StartのServer Functionsは使わない。外部から呼ぶAPIもあるので、HTTPのエンドポイントに揃える。Server Functionsを使えないフレームワークへ移る可能性もある。
 
@@ -1481,7 +1469,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - Exchange比率は不変Revisionと整数`numerator / denominator`で保持し、出力最小単位に決定的に丸める。
 
-- Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。
 
 - 動的公開ページのv0.2.1 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。
 
@@ -1491,18 +1478,14 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
   - Status: 採用
   - 上書き・撤回関係: `PromiseResult`等の後方互換を廃止。
 
-- stagingは`staging.points.freeism.app`／`staging.markets.freeism.app`をAccess保護し、productionは`points.freeism.app`／`markets.freeism.app`とする。
-
-- 関係ない他projectだけの変更ではPoints／Markets/Docs/Main/Accountsをdeployしない。
 
 
 
 
-- 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、reconciliation、Runbook、旧runtime通信0件を全て満たす。
+
 
 - 定期R2 DB backup、30日超の長期backup Workflowは不要
 
-- Pointsは、PRごとに公開のプレビュー環境を作る。
 
 - 読取専用Public APIとしてPoints残高・公開ユーザー情報、Markets落札proof／Shields向け情報を提供する。
 
@@ -1510,9 +1493,7 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 公開URLは名前ではなく不変IDを使用し、名前変更後もURLを維持する。
 
-- `/`は`/index.html`へ出力する静的SPA shellからhydrateするtop routeとし、top本体のSSGとは扱わない。build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけを明示生成する。
 
-- Static Assetsは`not_found_handling=none`、`html_handling=auto-trailing-slash`、`assets_navigation_has_no_effect`とし、navigation missだけWorkerがAsset Bindingのcanonical `/`からshellを返す。
 
 - Accountsの紐付け・照合に基づく未受領FIXの対象集合はPOINTSに従う。
 
@@ -1526,7 +1507,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 - runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
 - 永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
 
-- テスト環境のみBASIC認証を入れて、環境変数でユーザー名とパスワードを設定する。本番環境はBASIC認証を入れない。
 
 ## CSVエクスポート仕様
 
@@ -2190,17 +2170,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 - revisionは不変で、strong `ETag`に`contentHash`を使い、`Cache-Control: public, max-age=31536000, immutable`を返す。`If-None-Match`一致時は`304`とする
 
-開発サーバーと本番のバンドルはVite+で担う。起動とHMRが速く、TypeScriptやバンドルの初期設定が小さいためである。タスクの実行はvite-plusのvite-taskを使う。cacheと、タスク同士の依存も設定する。案内は[vite-task](https://viteplus.dev/guide/run)である。Vite 8.1の実験的なフルバンドルモードも使いたい。開発サーバーの起動が約15倍、大規模アプリのフルリロードが約10倍速くなると案内されている。記事は[Vite 8.1の告知](https://vite.dev/blog/announcing-vite8-1)である。
-
-```js
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-	experimental: {
-		bundledDev: true
-	}
-});
-```
 
 サーバー状態はTanStack Queryで扱う。キャッシュ、再取得、失敗時の再試行を宣言的に書け、各画面の定型処理を減らせる。参考は[TanStack Query v5](https://reffect.co.jp/react/tanstack-query-v5)と[TanStack Queryの記事](https://reffect.co.jp/react/tanstack-query)である。
 
@@ -2379,7 +2348,7 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ## UI
 
-- `/terms`、`/privacy`、`/help`、`/docs`を固定公開ページとしてbuild時にSSGし、認証・外部URL・公開プロフィール・経済履歴の保持方針を明記する。`/`は`/index.html`の静的SPA shellからhydrateするtop routeで、top本体のSSGとは扱わない。
+[デプロイ設定](#デプロイ設定)
 
 ## Points–Markets連携契約
 
@@ -2635,21 +2604,9 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
   - `minimumReleaseAge: 4320`分
   - `blockExoticSubdeps: true`
 
-- GitHub Actions
-  - `pull_request`と`merge_group`で同じrequired CIを実行する。
-  - `pull_request_target`を使わない。
-  - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
-  - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
 
 
-- CI/CD pipeline
-  - branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
 
-- 環境とIaC所有権
-  - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
-    - `staging`は共有test環境のCloudflare内部名である。
-  - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
-  - 同じresourceをTerraformとWranglerで二重管理しない。
 
 ## フォルダ構成
 
@@ -2666,15 +2623,11 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 ## 前提
 
-- `points-worker`と画面を同じprojectで管理する。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
 - Points独自のGoogle/GitHubログイン・明示linkとsessionを持つ。
 - 評価結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が不変FIX revisionとしてアップロードする。
 - 負のFIXと負残高を許可するが、残高不足時の消費系操作は拒否する。
 - Task、PWA、画像は実装しない。
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
-- バックエンドは、`api.points.freeism.app`等の別API domainにしない
-  - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
-  - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
 
 ## 貢献度アップロード
 
@@ -2708,6 +2661,74 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - browserから別subdomainのAPIを直接呼ばない。各アプリの同一origin BFFを通す。
 - Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
 - `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
+
+1. `www`を抜く
+2. ドメインを`points.freeism.app`にする
+
+継続的なビルドとテストはGitHub Actionsで行う。手順の参考は[GitHub Actionsの記事](https://zenn.dev/kiwichan101kg/articles/2d6850ff72bc98)である。
+
+ホスティングはCloudflare Workersを使う。静的なHTML、JS、CSS、フォントはWorkers Static Assetsで配信する。Cloudflare PagesとVercelのCDNは使わない。PagesとStatic Assetsは、静的配信の料金と制限が同じである。Git連携、プレビュー、環境変数、グローバル配信を少ない設定でまとめられるので、Workersに揃える。カスタムドメインも`wrangler.jsonc`で定義する。料金と制限の比較は[Creationlineの記事](https://www.creationline.com/tech-blog/agile-devops/devops/83003)を参照する。
+
+画面のルートはTanStack Startで扱う。フロントエンドだけに使い、バックエンドはHonoに揃える。Webアプリ以外からのリクエストにも応えるためである。Queryなどと同じ考え方で、データ取得とルートを通しやすい。実行時のSSR、RSC、ISRは使わない。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
+
+ドメインの取得はCloudflare Registerを使う。DNSやプロキシと併用しやすい。費用が安く、売り込みやダークパターンも少ない。住所の登録が英語圏向けで、設定がうまくいかないことがあった。
+
+環境変数の型は`@t3-oss/env-core`で付ける。サーバー用とクライアント用をスキーマで分け、Vite+とTanStack Startから使う。ビルド時に不足や誤用を早く落とすためである。
+
+インフラの設定はTerraformで、コードとして管理する。
+
+- Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。
+
+- stagingは`staging.points.freeism.app`／`staging.markets.freeism.app`をAccess保護し、productionは`points.freeism.app`／`markets.freeism.app`とする。
+
+- 関係ない他projectだけの変更ではPoints／Markets/Docs/Main/Accountsをdeployしない。
+
+- 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、reconciliation、Runbook、旧runtime通信0件を全て満たす。
+
+- Pointsは、PRごとに公開のプレビュー環境を作る。
+
+- `/`は`/index.html`へ出力する静的SPA shellからhydrateするtop routeとし、top本体のSSGとは扱わない。build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけを明示生成する。
+
+- Static Assetsは`not_found_handling=none`、`html_handling=auto-trailing-slash`、`assets_navigation_has_no_effect`とし、navigation missだけWorkerがAsset Bindingのcanonical `/`からshellを返す。
+
+- テスト環境のみBASIC認証を入れて、環境変数でユーザー名とパスワードを設定する。本番環境はBASIC認証を入れない。
+
+開発サーバーと本番のバンドルはVite+で担う。起動とHMRが速く、TypeScriptやバンドルの初期設定が小さいためである。タスクの実行はvite-plusのvite-taskを使う。cacheと、タスク同士の依存も設定する。案内は[vite-task](https://viteplus.dev/guide/run)である。Vite 8.1の実験的なフルバンドルモードも使いたい。開発サーバーの起動が約15倍、大規模アプリのフルリロードが約10倍速くなると案内されている。記事は[Vite 8.1の告知](https://vite.dev/blog/announcing-vite8-1)である。
+
+```js
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+	experimental: {
+		bundledDev: true
+	}
+});
+```
+
+- `/terms`、`/privacy`、`/help`、`/docs`を固定公開ページとしてbuild時にSSGし、認証・外部URL・公開プロフィール・経済履歴の保持方針を明記する。`/`は`/index.html`の静的SPA shellからhydrateするtop routeで、top本体のSSGとは扱わない。
+
+- GitHub Actions
+  - `pull_request`と`merge_group`で同じrequired CIを実行する。
+  - `pull_request_target`を使わない。
+  - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
+  - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
+
+- CI/CD pipeline
+  - branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
+
+- 環境とIaC所有権
+  - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
+    - `staging`は共有test環境のCloudflare内部名である。
+  - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
+  - 同じresourceをTerraformとWranglerで二重管理しない。
+
+- `points-worker`と画面を同じprojectで管理する。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
+
+- バックエンドは、`api.points.freeism.app`等の別API domainにしない
+  - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
+  - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
+
+- ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
 
 ## セキュリティ、品質
 
@@ -2750,7 +2771,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 
 - 連携キーは、提供先の`providerId`と利用者の`subject`である。issuerは、その提供先の登録値と一致することを確認する。
 
-- ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
 
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
