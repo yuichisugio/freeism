@@ -69,8 +69,13 @@
     - [Google](#google)
     - [GitHub](#github)
     - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
-  - [未受領FIX](#未受領fix)
-    - [未受領FIX](#未受領fix-1)
+  - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
+    - [未受領FIXの受領資格](#未受領fixの受領資格)
+    - [一括claim](#一括claim)
+    - [受領の原子確定と再試行](#受領の原子確定と再試行)
+    - [Pointsが保存する経済データ](#pointsが保存する経済データ)
+      - [`unclaimedFixEntry`](#unclaimedfixentry)
+      - [`fixClaim`](#fixclaim)
   - [Cookie、CSRF、Origin](#cookiecsrforigin)
   - [退会](#退会)
   - [評価軸とパッケージの管理](#評価軸とパッケージの管理)
@@ -80,15 +85,9 @@
     - [失敗](#失敗)
     - [status](#status)
     - [idempotency](#idempotency)
-      - [`fixClaim`](#fixclaim)
     - [cache](#cache)
   - [security header](#security-header)
-  - [未受領FIXとAccounts連携](#未受領fixとaccounts連携)
-    - [Pointsが保存する経済データ](#pointsが保存する経済データ)
-      - [`unclaimedFixEntry`](#unclaimedfixentry)
-    - [FIX取込時の照合](#fix取込時の照合)
-    - [未受領FIXの受領資格](#未受領fixの受領資格)
-    - [一括claim](#一括claim)
+  - [FIX取込時の照合](#fix取込時の照合)
   - [金額表現](#金額表現)
   - [FIX revisionと差分台帳](#fix-revisionと差分台帳)
     - [入力](#入力)
@@ -129,7 +128,6 @@
   - [フォルダ構成](#フォルダ構成)
   - [前提](#前提-1)
   - [貢献度アップロード](#貢献度アップロード)
-  - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
   - [デプロイ設定](#デプロイ設定)
   - [セキュリティ、品質](#セキュリティ品質)
   - [採用しないもの](#採用しないもの)
@@ -289,9 +287,15 @@
     9. 評価代用の履歴
        - 説明
          - `貢献評価を代用する仕組み`を実行した履歴
+       - 表示する項目
+         - 表示できる関連情報
        - 要件
          1. この項目の公開設定が出来るようにする。初期値は非公開
     10. 譲渡の履歴
+       - 説明
+         - `譲渡の仕組み`を実行した履歴
+       - 表示する項目
+         - 表示できる関連情報
         - 要件
           1. この項目の公開設定が出来るようにする。初期値は非公開
 
@@ -586,13 +590,13 @@ Points利用者は、別サービスのAccountsで、Pointsへ提供する外部
 
 PointsユーザーIDはPointsが管理する。Accountsユーザーは、提供元Accountsサービスのoriginと、ID Tokenの`sub`であるAccountsユーザーIDの組み合わせで区別する。同じPointsサービス内では、1つのPointsユーザーへ複数のAccountsユーザーを連携できる。各Accountsユーザーの連携先は、そのPointsサービス内で最大1つのPointsユーザーとする。同じAccountsサービス内の複数ユーザーと、別々のAccountsサービスのユーザーを連携対象にできる。同じAccountsユーザーを別々のPointsサービスへ連携でき、各Pointsサービスへの情報提供には、それぞれ同意する。
 
-Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIXとAccounts連携](#未受領fixとaccounts連携)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
+Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIX](#未受領fix)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
 
 同じ手順を繰り返して、別のAccountsユーザーを追加できる。追加するAccountsユーザーごとに、本人が認証し、情報提供へ同意する。同じPointsユーザーが、連携済みのAccountsユーザーで再び連携した場合は、既存の連携を維持して再連携日時を更新する。設定画面では、接続先が`ACTIVE`の連携に「再連携」を表示する。同じPointsサービス内で、すでに別のPointsユーザーへ連携済みの場合は、保存せずに現在の連携状態を案内する。同じAccountsユーザーの連携先を、同じPointsサービス内の別のPointsユーザーへ変えるときは、元のPointsユーザーへログインして連携を解除したあと、移動先のPointsユーザーへログインして再連携する。再連携ではAccountsでの本人確認と情報提供への同意を行い、[ユーザー連携の件数と識別](#32-ユーザー連携の件数と識別)の一意性を確認する。Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り替えるときは、Accountsで外部アカウントを新しく登録し、所有権を証明して公開先を設定する。Pointsの貢献データとポイントは、Pointsが管理する。
 
 ### 連携解除と退会
 
-Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#7-未受領fixの受領資格)に従う。
+Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#未受領fixの受領資格)に従う。
 
 ## 評価軸
 
@@ -1410,12 +1414,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - 外部アカウントの管理は、Accountsを使用する。Pointsは責務を負わない。
 
-- 未受領FIXはdraftではなく、受領先だけ未確定の正式FIXである。
-
-- 正・負の未受領FIXを両方許可し、Accounts照合により受領可能と判定した集合を選択不可・原子的に受領する。
-
-- 受領前に評価軸別正味合計と正負件数を表示し、1件失敗で全件rollbackする。
-
 - 貢献度アップロードでは、任意でメモとして文章を入れられる
   - 200文字以下のバリデーションを入れる
 
@@ -1772,17 +1770,73 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 - 受領済みFIX、`evaluationTotal`、台帳、訂正先を別ユーザーへ移動しない。
 - この永久対応はPoints app-owned tableへ保存し、`(providerId, accountId)`複合一意制約を持たせる。
 
-## 未受領FIX
+## アカウント紐付け時のポイント付与
 
-### 未受領FIX
+- 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
+- Pointsに未登録の貢献者にも、外部の貢献者を宛先として正負どちらのFIXも先に保存し、後から本人がポイントを受け取れるようにする。
+- 不変FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存する。暫定ユーザー残高へ入れず、受領対象が確定した後に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
 
-未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
+### 未受領FIXの受領資格
 
-- 正・負のどちらも登録できる。
-- Accountsの照合結果とPointsユーザーへの対応を確認した後、最新previewと集合hashを確認し、claim可能な正負すべてを選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
-- 受領前に評価軸別の正味合計、正件数、負件数を表示する。
-- 同じ対象者について各Revisionの未受領差分をまとめて受領し、受領額は最新Revisionの額と一致する。
-- 単一のPoints D1 transactionで処理し、1件でも失敗すれば全件を未受領のままにする。
+Pointsは受領時点の照合結果を根拠に、受領資格を判定する。
+
+- 受領は本人のAccounts連携（origin・AccountsユーザーID）ごとに行う。
+- 候補は、同じoriginで照合された、まだ受領されていない未受領FIXとする。
+- 候補の識別子を、その時点のAccountsで改めて照合する。要求は1,000件ごとに分ける。結果が`matched`で、AccountsユーザーIDが連携先と一致するものを受領資格ありとする。
+- FIXの評価時刻、FIX取込時の照合結果、Pointsとの連携時刻は受領資格の条件にしない。
+
+連携前から蓄積した未受領FIXも、受領時点で本人の外部アカウントとして照合されれば受領できる。外部アカウントが別のAccountsユーザーへ移った場合は、受領時点の紐付け先が受領する。Accountsで公開許可を取り消した識別子や、Pointsとの連携を解除したAccountsユーザーの未受領FIXは、受領されないまま残る。再許可または再連携の後に受領できる。退会後の再開時に受領できる範囲は、[退会](#退会)に従う。
+
+### 一括claim
+
+- 受領資格を満たす未claimの正負全件を選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
+- 同じ対象者の各revisionの未受領差分はまとめて受領し、受領額は最新revisionの額と一致する。
+- 利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
+
+- `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全体の件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
+- serverはAccountsで再照合して対象集合とhashを再計算し、変化していれば`409 CLAIM_SET_CHANGED`で新しいpreviewを返す。
+- 接続先が`ACTIVE`でない場合は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。Accountsとの通信失敗・制限超過・不正な応答は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`の`Retry-After`を転記する。Access Tokenを取り直しても`401`の場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。これらの場合は何も受領せず、識別子・トークンを含めずに構造化ログとメトリクス（operation `accounts_resolve`）へ記録する。
+
+- previewを再取得し、利用者が一括受領を確認してから、`POST /api/unclaimed-fixes/claims`へ`{ "accountsLinkId", "claimSetHash" }`と`Idempotency-Key`を付けて送る。成功は`201`で`claimId`、`claimedCount`、`claimSetHash`を返す。
+
+- 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`、previewで`accountsLinkId`が無い場合は`422 ACCOUNTS_LINK_ID_REQUIRED`とする。確定では、対象が0件の場合は`409 NO_UNCLAIMED_FIXES`、同じ`Idempotency-Key`で内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`、bodyが不正な場合は`422 CLAIM_BODY_INVALID`とする。
+
+### 受領の原子確定と再試行
+
+hash付きconfirm POST時、次を同じD1原子処理で行う。
+
+1. 受領資格と未claim対象集合を確認し、集合hashを再検査する。
+2. 正・負を区別せず対象全件を選択不可でclaimする。
+3. FIX revisionごとの差分ledgerを追加する。
+4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
+5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
+
+- 単一のPoints D1原子処理で確定し、1件でも失敗すれば全件を未受領のままにする。
+- 同じFIX revisionの二重受領を一意制約で防ぐ。
+- 負の合計で残高が不足・負になってもclaim自体は成功させ、その後の消費系操作を拒否する。
+- 並行claim、再読込、Workflow retryは同じclaim集合hashに収束し、二重台帳を作らない。
+
+### Pointsが保存する経済データ
+
+#### `unclaimedFixEntry`
+
+- `sourceFixRevisionId`
+- 入力した識別子の種類（`url`または`accounts_user`）と値（入力値そのまま）
+- 照合した接続先のorigin、照合結果のAccountsユーザーID（`matched`の時だけ）、照合時刻
+- 評価軸IDと評価軸revision ID
+- 評価時刻
+- 符号付きscale済みamount
+
+未受領エントリーは`sourceFixRevisionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
+
+#### `fixClaim`
+
+- 受領者と、受領時点の連携先（origin・AccountsユーザーID）のsnapshot
+- claim対象集合hash、件数
+- `claimedAt`、request id、idempotency key
+- 受領したエントリーと、作成した台帳行の対応（`fixClaimItem`）
+
+受領コマンド（`fixClaimCommand`）も同じ連携先のsnapshotを持つ。連携先は外部キーにせず、連携の解除後も経済履歴として残す。すでにclaim済みのFIXと、確定済みの貢献・ポイントの帰属も、Pointsの経済履歴として保持する。
 
 ## Cookie、CSRF、Origin
 
@@ -1951,22 +2005,6 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`、`/api/settings/auto-distribution/csv/commit`                               | 本人、idempotency                                                               |
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
-- 同じFIX Revisionの二重受領を一意制約で防ぐ。
-
-- previewを再取得し、利用者が一括受領を確認してから、`POST /api/unclaimed-fixes/claims`へ`{ "accountsLinkId", "claimSetHash" }`と`Idempotency-Key`を付けて送る。成功は`201`で`claimId`、`claimedCount`、`claimSetHash`を返す。
-
-- 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`、previewで`accountsLinkId`が無い場合は`422 ACCOUNTS_LINK_ID_REQUIRED`とする。確定では、対象が0件の場合は`409 NO_UNCLAIMED_FIXES`、同じ`Idempotency-Key`で内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`、bodyが不正な場合は`422 CLAIM_BODY_INVALID`とする。
-
-hash付きconfirm POST時、次を同じD1原子処理で行う。
-
-1. 受領資格と未claim対象集合を確認し、集合hashを再検査する。
-2. 正・負を区別せず対象全件を選択不可でclaimする。
-3. FIX revisionごとの差分ledgerを追加する。
-4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
-5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
-
-負の合計で残高が不足・負になってもclaim自体は成功させ、その後の消費系操作を拒否する。並行claim、再読込、Workflow retryは同じclaim集合hashに収束し、二重台帳を作らない。
-
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
 
 - 実行者、対象評価軸、額、宛先、rate/revision、idempotency keyをledgerに残す。
@@ -2008,15 +2046,6 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
       7.  二重付与を防止
           - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
-
-#### `fixClaim`
-
-- 受領者と、受領時点の連携先（origin・AccountsユーザーID）のsnapshot
-- claim対象集合hash、件数
-- `claimedAt`、request id、idempotency key
-- 受領したエントリーと、作成した台帳行の対応（`fixClaimItem`）
-
-受領コマンド（`fixClaimCommand`）も同じ連携先のsnapshotを持つ。連携先は外部キーにせず、連携の解除後も経済履歴として残す。
 
 ### cache
 
@@ -2113,26 +2142,7 @@ upgrade-insecure-requests
 | `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
-## 未受領FIXとAccounts連携
-
-- 目的
-  - Pointsに未登録の貢献者にも先にFIX結果を記録し、後から本人がポイントを受け取れるようにする。
-  - FIX revisionへ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存し、受領対象が確定した後にPointsユーザーの台帳・残高・`evaluationTotal`へ反映する。
-
-### Pointsが保存する経済データ
-
-#### `unclaimedFixEntry`
-
-- `sourceFixRevisionId`
-- 入力した識別子の種類（`url`または`accounts_user`）と値（入力値そのまま）
-- 照合した接続先のorigin、照合結果のAccountsユーザーID（`matched`の時だけ）、照合時刻
-- 評価軸IDと評価軸revision ID
-- 評価時刻
-- 符号付きscale済みamount
-
-未受領エントリーは`sourceFixRevisionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
-
-### FIX取込時の照合
+## FIX取込時の照合
 
 FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プロフィールURL）と`recipientAccountsUserId`（AccountsユーザーID）のちょうど一方で指定する。列の順序と上限は[Pointsドメイン仕様](points-domain.md#71-入力)に従う。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
 
@@ -2148,27 +2158,6 @@ FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プ�
 - Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
   - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
   - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
-
-### 未受領FIXの受領資格
-
-Pointsは受領時点の照合結果を根拠に、受領資格を判定する。
-
-- 受領は本人のAccounts連携（origin・AccountsユーザーID）ごとに行う。
-- 候補は、同じoriginで照合された、まだ受領されていない未受領FIXとする。
-- 候補の識別子を、その時点のAccountsで改めて照合する。要求は1,000件ごとに分ける。結果が`matched`で、AccountsユーザーIDが連携先と一致するものを受領資格ありとする。
-- FIXの評価時刻、FIX取込時の照合結果、Pointsとの連携時刻は受領資格の条件にしない。
-
-連携前から蓄積した未受領FIXも、受領時点で本人の外部アカウントとして照合されれば受領できる。外部アカウントが別のAccountsユーザーへ移った場合は、受領時点の紐付け先が受領する。Accountsで公開許可を取り消した識別子や、Pointsとの連携を解除したAccountsユーザーの未受領FIXは、受領されないまま残る。再許可または再連携の後に受領できる。退会後の再開時に受領できる範囲は、[Account closeと認証記録](#10-account-closeと認証記録)に従う。
-
-すでにclaim済みのFIXと、確定済みの貢献・ポイントの帰属は、Pointsの経済履歴として保持する。
-
-### 一括claim
-
-受領は本人の連携ごとに、[受領資格](#7-未受領fixの受領資格)を満たす未claimの正負全件を対象にする。同じ対象者の各revisionの未受領差分はまとめて受領し、受領額は最新revisionの額と一致する。利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
-
-- `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
-- serverはAccountsで再照合して対象集合とhashを再計算し、変化していれば`409 CLAIM_SET_CHANGED`で新しいpreviewを返す。
-- 接続先が`ACTIVE`でない場合は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。Accountsとの通信失敗・制限超過・不正な応答は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`の`Retry-After`を転記する。Access Tokenを取り直しても`401`の場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。これらの場合は何も受領せず、識別子・トークンを含めずに構造化ログとメトリクス（operation `accounts_resolve`）へ記録する。
 
 ## 金額表現
 
@@ -2192,7 +2181,7 @@ FIX CSVの列は`fixResultId`、`expectedRevision`、`recipientProfileUrl`、`re
 
 URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
 
-受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#6-fix取込時の照合)に従う。
+受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
 
 ### 不変性
 
@@ -2576,12 +2565,6 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - 負のFIXを許可し、結果として負の残高も許可する。
 - `balance`とは別に、FIX評価の符号付き累計`evaluationTotal`を管理する。譲渡、交換、消費、落札の引き落としは`evaluationTotal`を変更しない。
 - 残高不足時は、譲渡、交換、落札の引き落としなどの消費系操作をすべて拒否する。単に残高が負であること自体は履歴や受領を拒否する理由にしない。
-
-## アカウント紐付け時のポイント付与
-
-- 利用者が未登録でも、外部の貢献者を宛先として正負どちらのFIXも先に保存する。
-- 未受領FIXは暫定ユーザー残高へ入れない。宛先と評価額を不変FIX revisionに保存し、受領時に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
-- PointsはAccountsの許可済み照合結果に基づいて受領先を特定し、受領可能な正負すべての未受領FIXを選択不可で一括受領する。
 
 ## デプロイ設定
 
