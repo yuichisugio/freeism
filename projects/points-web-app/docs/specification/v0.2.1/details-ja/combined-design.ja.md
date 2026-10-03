@@ -253,12 +253,10 @@
        - Pointsへの提供同意は公開表示の許可を含み、Accounts自身の一般公開設定とは独立する。Pointsプロフィール自体の公開・非公開に従って表示する。
     7. **貢献度のアップロード履歴**
        - 説明
-         - アップロードされたCSVのレコードごとのデータを表示する
-         - 各タスクごとの貢献度の算出結果は、各評価軸コミュニティ内で確認してもらう。
-         - アップロードされた単位にすることで、一定期間ごとの合算になりそう。
-         - 丁寧な評価軸であれば、タスクごとにレコードを分けてアップロードしてくれるかも
+         - アップロードされた貢献度アップロードのCSVのレコードごとのデータを表示する
        - 表示する項目
-         1. **連携・認証したサービスのプロフィールURL**（貢献アップロードに記載したURL）
+         1. **連携・認証したサービスのプロフィールURL or サービス名とユーザーID**
+            - 貢献アップロードに記載したURL
             - 例）`https://x.com/sugi_sugi_329` のように、当該ユーザーを表す**プロフィールURL**を表示する
          2. **タスクの実行年月**
             - **年月は必須・日時は任意**（評価軸の貢献者アップロードのCSV項目、および「貢献評価を代用する仕組み」の二重付与防止の前提と整合）
@@ -539,18 +537,12 @@
 - weight cutoffはsource FIX revisionの評価期間のUTC終端を含まない`weightCutoffExclusive`とする。月だけの入力なら次月月初00:00:00Z、日／時刻がある場合はその正規化期間終端を使う。
 - candidateはsnapshot時にACTIVEなPointsユーザーのうちsource FIX本人を除いた利用者とする。Package revisionのcomponent `c`とcandidate `u`ごとに、cutoff前の差分ledgerから`positiveEvaluationTotal(u,c) = max(evaluationTotalScaled(u,c), 0)`を再構成する。`score(u) = SUM(positiveEvaluationTotal(u,c) * componentWeight(c))`とし、複数軸の評価を加算する。`totalWeight`による共通の除算は相対scoreで打ち消し合うため行わない。中間値はBigInt、保存scoreはJavaScript安全整数範囲を必須とする。
 - `score(u) > 0`の対象者だけを分配集合に入れる。対象者が0件または全score合計が0なら、分配debit／creditを作らず正のFIX全額を本人の`balance`へ残し、snapshotに`NO_ELIGIBLE_WEIGHT`を記録する。
-- 固定小数点の最大剰余方式で配分し、余りのtieはPointsユーザーID昇順で決定する。
-- 分配は`unitCount = D / M`を整数unitとし、各対象者へ`floor(unitCount * score(u) / totalScore)`unitを配る。残りunitは除算の余りが大きい順、同値はPointsユーザーID昇順で1unitずつ与える。0unit行はledgerを作らない。`minimumUnit`未満の額を作らず、対象者がいる時は余りを本人やsystemへ残さず常に合計`D`を配り切る。
+- 固定小数点の最大剰余方式で配分する。`unitCount = D / M`を整数unitとし、各対象者へ`floor(unitCount * score(u) / totalScore)`unitを配る。残りunitは除算の余りが大きい順、同値はPointsユーザーID昇順で1unitずつ与える。0unit行はledgerを作らない。`minimumUnit`未満の額を作らず、対象者がいる時は余りを本人やsystemへ残さず常に合計`D`を配り切る。
 - 1 source FIXの対象者上限は1,000件、1つのFIX commit command内の分配credit合計上限も1,000行とする。いずれかを超えるpreview／commitは`AUTO_DISTRIBUTION_TARGET_LIMIT_EXCEEDED`で全FIX commandを0件へrollbackし、部分分配や上位1,000件の暗黙抽出をしない。
 - 対象Package revision、残額rule revision、source FIX revision／評価期間・`A/R/D/M`、cutoff、component軸revision／weight、candidate状態、利用者ごとのcomponent evaluation total／score／商／余り／配分unit、tie-break順を不変snapshotする。
+- 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に不変setting revisionを原子的に追加する。validationだけでは設定を保存しない。
+- 同じsource FIX revisionを二重分配しない。最初の正のrevisionでsnapshotを作り、後の訂正は設定、対象者、score、tie-breakを再取得せず同じsnapshotで新配分額を再計算し、旧配分との利用者別差分だけをledgerへ追加する。正から0／負への訂正は元の分配を同じsnapshotで全取消し、受取人残高が負になってもFIX訂正として反映する。初回の正のrevisionが後の訂正で現れた場合はその時点で初めてsnapshotを作る。
 
-- 自動分配は正のFIXだけを対象とし、負FIXは本人へ反映する。分配先の`evaluationTotal`を変更しない。
-
-- 自動分配はPackage Revisionと`max(evaluationTotal, 0)`をweightとし、最大剰余方式・user ID tie-breakで決定的にする。
-
-- 自動分配時のPackage Revision、設定、weightをsnapshot保存し、後の訂正にも同じsnapshotを使う。
-
-- 自動分配は正FIXだけを対象に、PERCENT 0.001〜100%または固定保持額をminimumUnitへ切下げ、Package componentごとの`max(evaluationTotal,0) × weight`をscoreとする最大剰余方式で配り切る。対象者とcreditは各1,000上限、訂正は初回snapshotの同じ対象へ差分だけを追加する。
 
 ## 多言語に対応
 
@@ -2002,10 +1994,6 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。CSVでは正規化した内容のhashで判定し、同じFIX revision、譲渡、交換を再送しても台帳を二重作成しない。連携解除の再送も同じreceiptを返す。
 
 - `PUT /api/profile/point-packages`は並べ替え後の`pointPackageIds[]`全体を受け、本人の現在行を同じD1原子処理で差し替える。存在しないID、重複ID、非本人を拒否し、`Idempotency-Key`再送は同じordered setへ収束させる。
-
-- 設定は`POST /api/settings/auto-distribution/csv/validate`と`POST /api/settings/auto-distribution/csv/commit`を使うCSV-only操作とする。commitは本人の通常Sessionと`Idempotency-Key`を要求し、server再検証後に不変setting revisionを原子的に追加する。validationだけでは設定を保存しない。
-
-- 同じsource FIX revisionを二重分配しない。最初の正のrevisionでsnapshotを作り、後の訂正は設定、対象者、score、tie-breakを再取得せず同じsnapshotで新配分額を再計算し、旧配分との利用者別差分だけをledgerへ追加する。正から0／負への訂正は元の分配を同じsnapshotで全取消し、受取人残高が負になってもFIX訂正として反映する。初回の正のrevisionが後の訂正で現れた場合はその時点で初めてsnapshotを作る。
 
 `appAdmin`は`/admin/accounts-connections`で、接続対象のAccounts互換サービスを管理する。作成、有効化、取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。有効化と取り下げの対象が無いときは`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。作成では、接続先のoriginと、前後の空白を除いて1〜100文字の表示名を受ける。originはHTTPSとし、path、query、fragment、userinfoを含まない。`APP_ENV=local`のときだけ、loopbackのHTTPを受ける。Pointsは接続先のメタデータを取得し、`issuer`がoriginと一致すること、`private_key_jwt`、EdDSA、DPoP、PKCE S256、`openid`と`identities:read`、認可応答の`iss`に対応することを確認する。表示名が条件を満たさないときは`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originが条件を満たさないときは`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、メタデータを取得できないか条件を満たさないときは`422 ACCOUNTS_DISCOVERY_INVALID`とする。
 
