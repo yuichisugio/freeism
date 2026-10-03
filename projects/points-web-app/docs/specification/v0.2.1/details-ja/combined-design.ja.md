@@ -19,10 +19,8 @@
     - [自動分配](#自動分配)
   - [多言語に対応](#多言語に対応)
   - [複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)
-  - [Social Account](#social-account)
-    - [Accountsとの情報連携](#accountsとの情報連携)
-    - [ユーザー連携の件数と識別](#ユーザー連携の件数と識別)
-    - [利用開始と連携先ユーザーの変更](#利用開始と連携先ユーザーの変更)
+    - [OAuthログイン](#oauthログイン)
+    - [Accountsと連携](#accountsと連携)
     - [連携解除と退会](#連携解除と退会)
   - [評価軸](#評価軸)
     - [基本情報](#基本情報-1)
@@ -578,7 +576,7 @@
 - Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。
   - Cookieとセッションの処理はBetter Authの標準機能に任せる。
 
-## Social Account
+### OAuthログイン
 
 Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理する。ログインとsessionはPoints独自に持つ。
 
@@ -588,17 +586,13 @@ Pointsへのログインに使うGoogle/GitHubの認証アカウントを管理�
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
 - Points利用者は、複数のAccounts系サービスと連携できる。
 
-### Accountsとの情報連携
+### Accountsと連携
 
 Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール、公開API、落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。Pointsは独立したOAuthクライアントとして、本人が提供を許可したアカウントを照合する。本人がPointsを操作していないときも、許可済みの情報を照合できる。設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元のAccountsサービス、Accounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
 
 作成時にPointsは、`private_key_jwt`のclient assertion用とDPoP用のEd25519鍵を1組ずつ生成する。秘密鍵とAccess Tokenは、Worker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）をKEKとするAES-256-GCMで暗号化してD1へ保存する。暗号化のAADには、接続先IDと用途を含める。作成した接続先は`PENDING_CLIENT_REGISTRATION`とする。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、client assertion用の公開JWK Setを表示する。`registration.redirectUri`は、stagingとPR Version URLでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とし、productionではproduction自身のoriginの同じpathとする。運営者は表示されたURLをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できたときだけ`ACTIVE`にする。取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`とし、メタデータが不正なら`422 ACCOUNTS_DISCOVERY_INVALID`として、`PENDING_CLIENT_REGISTRATION`のままにする。Client IDが、前後の空白を除いて空、または255文字を超えるときは`422 ACCOUNTS_CLIENT_ID_INVALID`とする。接続先が`PENDING_CLIENT_REGISTRATION`でないときは`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
 
-### ユーザー連携の件数と識別
-
 PointsユーザーIDはPointsが管理する。Accountsユーザーは、提供元Accountsサービスのoriginと、ID Tokenの`sub`であるAccountsユーザーIDの組み合わせで区別する。同じPointsサービス内では、1つのPointsユーザーへ複数のAccountsユーザーを連携できる。各Accountsユーザーの連携先は、そのPointsサービス内で最大1つのPointsユーザーとする。同じAccountsサービス内の複数ユーザーと、別々のAccountsサービスのユーザーを連携対象にできる。同じAccountsユーザーを別々のPointsサービスへ連携でき、各Pointsサービスへの情報提供には、それぞれ同意する。
-
-### 利用開始と連携先ユーザーの変更
 
 Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIXとAccounts連携](#未受領fixとaccounts連携)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開表示](#4-公開表示)の条件に従う。
 
@@ -1495,7 +1489,6 @@ TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
 
 - Accountsの紐付け・照合に基づく未受領FIXの対象集合はPOINTSに従う。
 
-- Static AssetsとHonoへ同じCSP、nosniff、no-referrer、Permissions Policy、frame拒否、環境別HSTSを適用し、inline scriptはbuild artifactのhashだけを許可する。
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
@@ -2190,7 +2183,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 - private/認証responseは`Cache-Control: private, no-store`。
 
-Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。OAuth authorization、callback、token exchange、consent、Accounts連携、link／unlinkのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
+OAuth authorization、callback、token exchange、consent、Accounts連携、link／unlinkのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
 
 - GitHub avatar等の外部画像をv0.2.1でproxy／表示しない。外部origin追加が必要になった場合は用途別directive、情報漏洩、cacheを再reviewする。
 
@@ -2205,11 +2198,44 @@ Pointsは、接続先のClient Credentials（`identities:read`）のAccess Token
 
 ## security header
 
+- 適用範囲
+  - Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。
+  - Static AssetsとHonoへ同じCSP、nosniff、no-referrer、Permissions Policy、frame拒否、環境別HSTSを適用する。
 - JSON mutationは`Content-Type: application/json; charset=utf-8`
 - browser downloadは正しい`Content-Disposition`と安全なfilename
 - token/proofを含む可能性がある画面は`Referrer-Policy`を明示
-- HTMLはCSP、`X-Content-Type-Options: nosniff`等の共通headerを適用
-- header値、環境差、Static AssetsとWorker responseの適用範囲は[セキュリティ・テスト・デリバリー仕様 5.1](./security-and-delivery.md#51-http-security-header)を正本とする
+
+- CSP
+  - inline scriptはbuild artifactのhashだけを許可する。
+  - `{artifactInlineScriptHashes}`はbuild artifactのinline script hash、`{appHost}`は対象アプリのstagingまたはproductionのhostを表す。
+
+```text
+default-src 'none';
+script-src 'self' {artifactInlineScriptHashes};
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob:;
+font-src 'self';
+connect-src 'self' wss://{appHost};
+form-action 'self';
+base-uri 'none';
+object-src 'none';
+frame-src 'none';
+frame-ancestors 'none';
+manifest-src 'self';
+worker-src 'none';
+upgrade-insecure-requests
+```
+
+共通headerは次のとおりとする。
+
+| Header                      | staging                                                        | production                            |
+| --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
+| `Content-Security-Policy`   | 上記のstaging host版                                           | 上記のproduction host版               |
+| `X-Content-Type-Options`    | `nosniff`                                                      | `nosniff`                             |
+| `Referrer-Policy`           | `no-referrer`                                                  | `no-referrer`                         |
+| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                  |
+| `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
+| `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
 ## 未受領FIXとAccounts連携
 
@@ -2534,34 +2560,6 @@ Marketsが登録した各提供先について次を保証する。
 - CORSは認証の代わりにしない。原則cross-origin browser APIを公開しない。
 - mutationは`application/json`を要求し、一般bodyは最大64KiB
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
-
-```text
-default-src 'none';
-script-src 'self' {artifactInlineScriptHashes};
-style-src 'self' 'unsafe-inline';
-img-src 'self' data: blob:;
-font-src 'self';
-connect-src 'self' wss://{appHost};
-form-action 'self';
-base-uri 'none';
-object-src 'none';
-frame-src 'none';
-frame-ancestors 'none';
-manifest-src 'self';
-worker-src 'none';
-upgrade-insecure-requests
-```
-
-共通headerは次のとおりとする。
-
-| Header                      | staging                                                        | production                            |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
-| `Content-Security-Policy`   | 上記のstaging host版                                           | 上記のproduction host版               |
-| `X-Content-Type-Options`    | `nosniff`                                                      | `nosniff`                             |
-| `Referrer-Policy`           | `no-referrer`                                                  | `no-referrer`                         |
-| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                  |
-| `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
-| `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
 ### D1 bulk write制約
 
