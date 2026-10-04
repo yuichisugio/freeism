@@ -284,21 +284,20 @@ async function executeReopenPointsAccount(
     throw error;
   }
 
-  const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
-  if (stored) {
-    if (batchResults[0]?.meta.changes === 1) {
-      writeAuditLog({
-        action: "ACCOUNT_REOPEN",
-        environment: input.environment,
-        requestId: input.requestId,
-        resourceType: "points_account",
-        previousState: "CLOSED",
-        nextState: "ACTIVE",
-        claimedCount: preview.totalCount,
-      });
-    }
-    return stored;
+  if (batchResults[0]?.meta.changes === 1) {
+    writeAuditLog({
+      action: "ACCOUNT_REOPEN",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "points_account",
+      previousState: "CLOSED",
+      nextState: "ACTIVE",
+      claimedCount: preview.totalCount,
+    });
+    return { responseBody, status: 200 };
   }
+  const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
+  if (stored) return stored;
   const latest = await loadPointsAccountReopenPreview(db, input.pointsUserId, input.createResolver);
   if (latest.reopenSetHash !== input.reopenSetHash) {
     throw new PointsAccountReopenError("REOPEN_SET_CHANGED");

@@ -119,8 +119,9 @@ async function executeDeactivatePointsConnection(
 
   const grantVersion = connection.grantVersion + 1;
   const receiptId = `pcd_${crypto.randomUUID()}`;
+  let batchResults: D1Result[];
   try {
-    await db.batch([
+    batchResults = await db.batch([
       db
         .prepare(
           `UPDATE points_oauth_connection
@@ -178,15 +179,7 @@ async function executeDeactivatePointsConnection(
     if (concurrentReplay.payloadHash !== payloadHash) throw new Error("IDEMPOTENCY_KEY_REUSED");
     return result(concurrentReplay);
   }
-  const stored = await db
-    .prepare(
-      `SELECT id, points_connection_id AS pointsConnectionId, payload_hash AS payloadHash,
-              reason, grant_version AS grantVersion, deactivated_at AS deactivatedAt
-       FROM points_oauth_connection_deactivation WHERE id = ?`,
-    )
-    .bind(receiptId)
-    .first<DeactivationRow>();
-  if (!stored) throw new Error("ACTIVE_RESERVATION_EXISTS");
+  if (batchResults[1]?.meta.changes !== 1) throw new Error("ACTIVE_RESERVATION_EXISTS");
   writeAuditLog({
     action: "POINTS_CONNECTION_DEACTIVATE",
     environment: input.environment,
@@ -195,7 +188,14 @@ async function executeDeactivatePointsConnection(
     previousState: "ACTIVE",
     nextState: "UNLINKED",
   });
-  return result(stored);
+  return result({
+    id: receiptId,
+    deactivatedAt: now.getTime(),
+    grantVersion,
+    payloadHash,
+    pointsConnectionId: connection.id,
+    reason: input.reason,
+  });
 }
 
 /** コマンドの拒否理由を安定したコードで記録し、取引を再実行せずに呼び出し元へ返す。 */

@@ -222,27 +222,26 @@ async function executeClosePointsAccount(
     throw error;
   }
 
-  const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
-  if (stored) {
-    if (batchResults[0]?.meta.changes === 1) {
-      writeAuditLog({
-        action: "ACCOUNTS_LINKS_RELEASED",
-        environment: input.environment,
-        requestId: input.requestId,
-        resourceType: "accounts_link",
-        releasedLinkCount: batchResults[1]?.meta.changes ?? 0,
-      });
-      writeAuditLog({
-        action: "ACCOUNT_CLOSE",
-        environment: input.environment,
-        requestId: input.requestId,
-        resourceType: "points_account",
-        previousState: "ACTIVE",
-        nextState: "CLOSED",
-      });
-    }
-    return stored;
+  if (batchResults[0]?.meta.changes === 1) {
+    writeAuditLog({
+      action: "ACCOUNTS_LINKS_RELEASED",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "accounts_link",
+      releasedLinkCount: batchResults[1]?.meta.changes ?? 0,
+    });
+    writeAuditLog({
+      action: "ACCOUNT_CLOSE",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "points_account",
+      previousState: "ACTIVE",
+      nextState: "CLOSED",
+    });
+    return { responseBody, status: 200 };
   }
+  const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
+  if (stored) return stored;
   await assertCloseAllowed(db, input.pointsUserId);
   throw new ClosePointsAccountError("ACCOUNT_CLOSE_STATE_CHANGED");
 }
