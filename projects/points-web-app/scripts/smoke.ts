@@ -31,7 +31,7 @@ export function smokeChecks(environment: ReleaseEnvironment): SmokeCheck[] {
     { path: "/search", expected: "navigation" },
     { path: "/api/v1/search?q=__points_smoke__", expected: "json" },
     { path: "/api/auth/get-session", expected: "json" },
-    { path: "/api/reconciliation", expected: "unauthorized" },
+    { path: "/api/accounts-links", expected: "unauthorized" },
   ];
   return checks.map((check) =>
     environment === "staging" && (check.expected === "html" || check.expected === "navigation")

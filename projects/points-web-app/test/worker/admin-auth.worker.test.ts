@@ -70,6 +70,16 @@ describe("Points user and global ADMIN", () => {
     ]);
   });
 
+  it.each([
+    ["GET", "/api/reconciliation"],
+    ["POST", "/api/reconciliation/run"],
+  ])("returns 404 for the removed %s %s route", async (method, path) => {
+    const app = createPointsBackendApp({ getSession: async () => null });
+    const response = await app.fetch(new Request(`https://points.test${path}`, { method }), env);
+
+    expect(response.status).toBe(404);
+  });
+
   it("returns a problem+json 401 when the Better Auth session is missing", async () => {
     const app = createPointsBackendApp({ getSession: async () => null });
 

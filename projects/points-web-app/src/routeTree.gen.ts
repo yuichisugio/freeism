@@ -26,7 +26,6 @@ import { Route as PointsTransfersRouteImport } from './routes/points.transfers'
 import { Route as PointsExchangesRouteImport } from './routes/points.exchanges'
 import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as AdminSubstitutionsRouteImport } from './routes/admin.substitutions'
-import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPointPackagesRouteImport } from './routes/admin.point-packages'
 import { Route as AdminMembersRouteImport } from './routes/admin.members'
 import { Route as AdminFixesRouteImport } from './routes/admin.fixes'
@@ -121,11 +120,6 @@ const AdminSubstitutionsRoute = AdminSubstitutionsRouteImport.update({
   path: '/admin/substitutions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminReconciliationRoute = AdminReconciliationRouteImport.update({
-  id: '/admin/reconciliation',
-  path: '/admin/reconciliation',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminPointPackagesRoute = AdminPointPackagesRouteImport.update({
   id: '/admin/point-packages',
   path: '/admin/point-packages',
@@ -179,7 +173,6 @@ export interface FileRoutesByFullPath {
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -206,7 +199,6 @@ export interface FileRoutesByTo {
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -234,7 +226,6 @@ export interface FileRoutesById {
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -263,7 +254,6 @@ export interface FileRouteTypes {
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -290,7 +280,6 @@ export interface FileRouteTypes {
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -317,7 +306,6 @@ export interface FileRouteTypes {
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -345,7 +333,6 @@ export interface RootRouteChildren {
   AdminFixesRoute: typeof AdminFixesRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminPointPackagesRoute: typeof AdminPointPackagesRoute
-  AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminSubstitutionsRoute: typeof AdminSubstitutionsRoute
   OauthConsentRoute: typeof OauthConsentRoute
   PointsExchangesRoute: typeof PointsExchangesRoute
@@ -478,13 +465,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubstitutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/reconciliation': {
-      id: '/admin/reconciliation'
-      path: '/admin/reconciliation'
-      fullPath: '/admin/reconciliation'
-      preLoaderRoute: typeof AdminReconciliationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/point-packages': {
       id: '/admin/point-packages'
       path: '/admin/point-packages'
@@ -553,7 +533,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminFixesRoute: AdminFixesRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminPointPackagesRoute: AdminPointPackagesRoute,
-  AdminReconciliationRoute: AdminReconciliationRoute,
   AdminSubstitutionsRoute: AdminSubstitutionsRoute,
   OauthConsentRoute: OauthConsentRoute,
   PointsExchangesRoute: PointsExchangesRoute,

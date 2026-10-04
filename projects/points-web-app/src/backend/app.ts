@@ -21,7 +21,6 @@ import { registerOAuthResourceRoutes } from "./http/routes/oauth-resource-routes
 import { registerOAuthClientRoutes } from "./http/routes/oauth-client-routes";
 import { registerProfileRoutes } from "./http/routes/profile-routes";
 import { registerPublicRoutes } from "./http/routes/public-routes";
-import { registerReconciliationRoutes } from "./http/routes/reconciliation-routes";
 import { registerTransactionRoutes } from "./http/routes/transaction-routes";
 import { registerUnclaimedFixRoutes } from "./http/routes/unclaimed-fix-routes";
 import { registerWellKnownRoutes } from "./http/routes/well-known-routes";
@@ -70,7 +69,6 @@ export function createPointsBackendApp(
   registerOAuthClientRoutes(app, dependencies.getSession);
   registerProfileRoutes(app, dependencies.getSession);
   registerPublicRoutes(app);
-  registerReconciliationRoutes(app, dependencies.getSession);
   registerTransactionRoutes(app, dependencies.getSession);
   registerUnclaimedFixRoutes(app, dependencies.getSession, { accountsRecipientResolverFor });
   return app;

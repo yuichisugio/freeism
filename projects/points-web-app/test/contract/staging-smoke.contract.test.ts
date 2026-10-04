@@ -15,7 +15,7 @@ function mockStagingResponses(
       return new Response(null, { status: pageStatus, headers });
     }
     return new Response("{}", {
-      status: url.pathname === "/api/reconciliation" ? 401 : 200,
+      status: url.pathname === "/api/accounts-links" ? 401 : 200,
       headers: { "Content-Type": "application/json" },
     });
   });
@@ -46,7 +46,7 @@ describe("staging deployment smoke", () => {
       ...pagePaths,
       "/api/v1/search",
       "/api/auth/get-session",
-      "/api/reconciliation",
+      "/api/accounts-links",
     ]);
   });
 

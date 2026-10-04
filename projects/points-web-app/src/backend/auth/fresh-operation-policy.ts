@@ -177,13 +177,6 @@ const baseFreshOperationPolicies = [
     reason: true,
     idempotency: true,
   },
-  {
-    operation: "reconciliation",
-    route: "/api/reconciliation/run",
-    admin: true,
-    reason: true,
-    idempotency: true,
-  },
 ] as const satisfies readonly (Omit<FreshOperationPolicy, "session" | "fresh"> & {
   session?: never;
   fresh?: never;
