@@ -59,7 +59,6 @@
     - [script](#script)
     - [例外](#例外)
   - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
-    - [ログインのUI](#ログインのui)
     - [アプリと認証データの境界](#アプリと認証データの境界)
     - [Better Auth共通設定](#better-auth共通設定)
     - [PointsのGoogle・GitHubログインと明示連携](#pointsのgooglegithubログインと明示連携)
@@ -436,32 +435,58 @@
 
 #### 「貢献評価を代用する仕組み」の設定
 
-- 説明
-  - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
-  - その評価軸に設定してある評価の代用の係数から、ポイントを付与する方法
+- 評価方式の選択
+  - 付与先の評価軸ごと・評価対象月ごとに、「直接評価」または「代用評価」を選ぶ。同じ月の方式を利用者全員へ一括適用する。
+  - 評価対象月はUTCの年月を`YYYY-MM`で指定する。9月分を10月に処理しても、9月の設定を使う。
+  - 設定と実行は、付与先の評価軸の`evalueterAdmin`または`appAdmin`が行う。
+  - 直接評価では、通常の貢献評価の登録・訂正を行う。代用評価を選択中の月に直接評価を登録・訂正しようとした場合は、直接評価への切替を案内する。
 
-- 要件
-  1. 実行できるのは、その評価軸の`evalueterAdmin`、または`appAdmin`
-  2. フォームとCSVアップロードに対応
-  3. 必要な情報は、代用する評価軸IDと係数を設定する
-  4. その評価軸ポイントを得ている人全員分に、その評価を代用する処理を実行するボタンも用意したい
-  5. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
-     - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
-     - 実行の単位は、評価月`YYYY-MM`とする
-  6. アップロード時に、↓をチェックする
-     1. 貢献評価を代用するための類似度の係数が評価軸に設定されているか
-  7. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
-  8. 「付与し直す」ボタンを用意
-     - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
-  9.  計算式
-     - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
-     - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
+- 代用元と係数の設定
+  - 代用評価では、同じ評価対象月の代用元を一つ選び、類似度の係数を設定する。方式・代用元・係数はすべて月別に保持する。
+  - 係数は1.5・0.3・−0.3のような倍率で入力する。0、負の値、1を超える値を設定でき、小数4桁までとする。
+  - 同じ月の代用関係をサーバーで検査し、循環する設定を保存時に拒否する。自分自身を代用元にする設定も循環として扱う。
+  - 例えばA軸→B軸→C軸は設定できるが、そこへC軸→A軸を追加することはできない。
 
-- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
-- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
-- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
-- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
-- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
+- 計算元の評価額
+  - 各人について、代用元の軸で対象月に採用されている直接評価または代用評価と、自動分配・再分配の受取額を合計する。訂正を反映した現在額を使う。
+  - 分配の受取額は、元の付与の評価対象月へ集計する。再分配先にも同じ月を引き継ぐ。
+  - 代用元でその月の付与が未確定なら実行を止め、代用元の管理者による確定後に再実行するよう案内する。
+  - 代用元が代用評価の場合も、その時点で確定している額を使う。他の軸の付与を、この操作で再計算しない。
+  - 元評価の変更後も、既存の代用結果は管理者が再計算するまで保持する。代用先への更新は管理者が順に実行する。
+
+- 付与額の計算
+  - 各人の付与額は「計算元の評価額×類似度の係数」とする。元のポイントを維持したまま、付与先の軸でポイントを新しく付与する。
+  - 100×1.5は150、100×−0.3は−30、−100×−0.3は30となる。負の結果も残高と累計評価額へ反映する。
+  - 係数を小数文字列として検証し、10,000倍した符号付き整数`coefficientScaled`へ変換する。`sourceTotalScaled * coefficientScaled / 10_000`をBigIntで計算し、0方向へ切り捨てる。
+  - 結果は0.0001ポイント単位とする。入力と保存・返却する結果は安全整数の範囲を検証し、範囲を超えた場合は操作全体を失敗させる。
+
+- 自動分配と未受領の評価
+  - 正の代用付与は、受取人の設定で自動分配する。0・負の付与は本人へ反映する。
+  - 未登録・未連携の人にも、計算元と同じ宛先へ未受領の代用評価を作る。未受領の間は現在額を更新し、分配は本人の受領時に行う。
+  - 受領時は最新額を反映し、その時点の本人設定を使う。今回の受領額を累計評価額へ加える前に、最初の分配割合を計算する。
+
+- 再計算と方式の切替
+  - 管理者が変更内容と全員の増減を確認してから、月別設定・付与・分配を一括確定する。失敗した場合は、旧設定と旧結果を維持する。
+  - 再計算では、付与先の軸・対象月に属する全員の旧付与とそこから発生した全分配が残高・累計評価額・月別の計算元へ与えた影響を計算上取り除き、最新条件で計算し直す。
+  - 新しい計算元にいる人と旧結果にいる人の両方を対象にし、受領済みの人には新旧結果の差額を台帳へ追加する。新結果が0なら旧付与と旧分配を取り消す。未受領の人は受領待ちの現在額を更新する。
+  - 直接評価から代用評価へ切り替える場合は、その月の直接付与と全分配を取り除いて代用結果を計算し、差し替える。直接評価の入力レコードは復元用に保持する。
+  - 直接評価へ戻す場合は、旧代用付与と全分配を取り除き、以前の直接評価の入力があれば、その額と現在の分配条件で計算し直す。入力がなければ0から開始する。新規評価や入力の変更は、切替後に通常の直接評価フローで行う。
+  - 再計算や切替による負の残高も反映する。別の月や別の軸の確定済み代用結果は、この操作では更新しない。
+
+- 保存と二重付与の防止
+  - 月別設定と採用結果は「付与先評価軸ID＋評価対象月」で識別する。代用元や係数を変更しても、同じ月の結果を更新する。
+  - 最新の設定・直接評価の入力・採用結果と、実行記録・差分台帳を保持する。直接評価の入力は採用中かどうかを区別し、代用中の計算元へ加えない。
+  - 台帳は元の付与と評価対象月に紐付け、受領者・評価軸別の残高と累計評価額の増減を集計できるようにする。評価月を変更した場合も、月別の増減を追える差分を記録する。
+  - 同じ確定要求の再送は既存の冪等性で処理する。繰り返し実行しても、現在の結果との差額だけを反映する。
+  - 分配の途中条件や経路は計算中だけ保持し、確定後は必要な差分を台帳へ保存する。
+
+- 画面とCSV
+  - フォームで月別設定と結果確認を行い、全員分の確定・再計算ボタンを用意する。CSVでも同じ処理を実行できる。
+  - 設定CSV列は`targetEvaluationCriterionId`、`evaluationMonth`、`evaluationMode`、`sourceEvaluationCriterionId`、`coefficient`、`expectedVersion`とする。
+  - `evaluationMode`は`DIRECT`または`SUBSTITUTION`とする。代用時は代用元と係数を必須とし、直接評価時は空にする。`coefficient`は符号付きの小数文字列である。
+  - 再計算CSV列は`targetEvaluationCriterionId`、`evaluationMonth`、`expectedVersion`とする。対象月の現在設定を使って全員分を計算する。
+  - 新規設定では`expectedVersion`を空、既存設定の変更・再計算では現在のversionを指定する。競合は`409 VERSION_CONFLICT`とする。確定時には管理者の認証・権限、reason、`Idempotency-Key`を検証する。
+  - 複数行のCSVは記載順に計算し、先の結果を後の行へ反映する。最後にまとめて確定し、1件でも失敗すれば全件を維持する。循環の検査には、そのCSVで変更する月別設定全体を使う。
 
 #### 「交換する仕組み」の係数を設定
 
@@ -492,7 +517,7 @@
 - 交換元／交換先の有向pairごとに`exchangeRate`を管理し、CSVで最新レコードを更新する。
 - CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`numerator`、`denominator`とする。
 - `ACTIVE`は正の安全整数比率を最大公約数で正規化する。`DISABLED`は比率を空にし、新規交換を停止する。
-- 更新・無効化は現在versionとの一致を要求し、過去の実行記録とそれを参照した交換／代用結果を変更しない。
+- 更新・無効化は現在versionとの一致を要求し、過去の実行記録とそれを参照した交換結果を変更しない。
 
 #### 評価軸ポイントの加算・減算
 
@@ -621,6 +646,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
 - 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
+- 直接FIXの登録・訂正では、対象の評価軸・評価月が直接評価を採用していることを検証する。評価月を変更する場合は、移動元と移動先の両月を検証する。代用中に保持した直接入力は復元用とし、台帳や受領待ちの有効額には加えない。
 - 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
 
 - FIX実行記録と未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。訂正の対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。訂正を別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新結果の額（そのoriginで照合していなければ0）と一致する。
@@ -738,7 +764,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
   - 例えば100ポイントを受け取り80％を分配する場合、取り分方式では本人に最低20を残して最大80を配り、追加発行方式では本人に100を残して最大80を追加発行する。
 
 - 分配を始める時点
-  - 正の貢献評価（FIX）を付与するとき、今回の付与額を累計評価額へ反映する前に、最初の配分割合を計算する。元の付与額は本人の残高と累計評価額へ全額反映し、その後に分配する。
+  - 正の直接評価または代用評価を付与するとき、今回の付与額を累計評価額へ反映する前に、最初の配分割合を計算する。元の付与額は本人の残高と累計評価額へ全額反映し、その後に分配する。
   - 新規の0または負のFIXは、その額を本人へ反映する。
   - 未受領のFIXは、本人が受領を確定する時点の設定で分配する。今回受領する評価額を累計へ反映する前に、配分割合を計算する。
 
@@ -804,6 +830,12 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - 同じ一覧をログイン画面にも表示する。
 - メール一致で自動linkせず、異なるメールの明示linkを許可する。
 - 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
+- ログインのUI
+  - モーダルを使用する
+     - ログイン画面に遷移させず、ログインするモーダルを表示させる。それにより遷移による面倒さを減らしたい。
+   - ログインのモーダルの背景にログイン後の画面を表示
+     - ログインのモーダルの背景はログイン後の画面にして、モザイクを掛けた状態にする
+     - これにより、利用率が上がるらしい
 
 ## Accountsと連携
 
@@ -868,8 +900,10 @@ Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}
     - この評価軸から交換可能なポイント一覧
     - 表示する項目
       1. 他の評価軸との交換比率一覧で、「評価軸ID、評価軸の名前、交換比率」の一覧
-    1.  「貢献評価を代用する仕組み」の可否
-    2.  「貢献評価を代用する仕組み」の類似度の係数
+    1.  月別の評価方式
+        - 評価対象月ごとに直接評価または代用評価を選び、代用時は代用元の評価軸と係数を設定する。
+    2.  代用評価の係数
+        - 符号付きの小数4桁の倍率とする。
     3.  即決価格を認めるか
     4.  自動分配方式
         - 「本人の取り分から配る方式」または「追加発行して配る方式」
@@ -1385,11 +1419,8 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 
 - OAuth後のreturn先は任意URLを保存せず、connectionは`/settings/points-connection`へ固定し、query／fragment／別origin／separator難読化を拒否する。
 
-- 貢献評価代用は有向methodとUTC月別resultを分け、正規FIXだけをsourceにし、`source × similarity × exchange rate`をBigIntで計算して0.0001ポイント単位へ0方向切捨てする。再計算は旧resultとの利用者和集合へ差分ledgerだけを追加する。
-
 - Social OAuth Tokenは`account.encryptOAuthTokens: true`とBetter Auth標準versioned secretsで暗号化し、独自AES-GCM key ring／read時lazy rewrapを廃止する。
 - runtime factoryと共通optionsを共有するCLI用の具体auth exportを用意し、schema生成は`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`を使う。
-- 永久`providerId + accountId -> Points userId`対応はapp-owned tableと複合一意制約でTask 9に実装し、production公開前に必ず完了する。
 
 ## CSVエクスポート仕様
 
@@ -1585,21 +1616,6 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 1. **アプリへのログイン**：PointsまたはMarketsの利用者セッションを作る。
 2. **Points–Markets間の認可**：Marketsが利用者の同意を得て残高を参照し、落札時にその利用者認可でポイントを引き落とす。
 
-メールアドレス、表示名、ユーザー名、プロフィールURLは変更可能な属性であり、本人識別の正本にしない。
-
-### ログインのUI
-
-1. ログインのモーダルを使用する
-
-- 説明
-  - ログイン画面に遷移させず、ログインするモーダルを表示させる。それにより遷移による面倒さを減らしたい。
-
-2. ログインのモーダルの背景にログイン後の画面を表示
-
-- 説明
-  - ログインのモーダルの背景はログイン後の画面にして、モザイクを掛けた状態にする
-  - これにより、利用率が上がるらしい
-
 ### アプリと認証データの境界
 
 | 対象               | ログインProvider                    | 本人識別                               | セッション・認証DB                  |
@@ -1710,7 +1726,10 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 ### 一括claim
 
 - 受領資格を満たす未claimの正負全件を選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
+- 対象は、その評価軸・評価月で採用中の直接評価または代用評価の未受領結果とする。代用評価も、計算元の宛先識別子と接続先originを引き継いで既存の受領処理で照合する。方式を切り替えると受領待ちの旧結果を取り消し、新しい採用結果へ更新する。復元用の直接入力は受領対象に含めない。
+
 - 同じ対象者の各実行の未受領差分はまとめて受領し、受領額は最新結果の額と一致する。
+
 - 利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
 
 - `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全体の件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
@@ -1919,22 +1938,14 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | 評価軸の更新                           | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
 | FIXの確定                              | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
 | 交換比率の確定                         | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
-| 貢献評価代用の確定                     | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
+| 貢献評価代用の確定                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                      | 付与先評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency |
 | 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、idempotency                                                               |
 | 自動分配設定の保存                     | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性                                    |
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
 消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency resultを同じbatchで全rollbackする。
 
-- 実行者、対象評価軸、額、宛先、rateの実行時snapshot、idempotency keyをledgerに残す。
-
-- 実行CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`evaluationMonth`、`methodId`、`expectedResultVersion`とする。`evaluationMonth`はASCII `YYYY-MM`で、UTCの月初00:00:00以上・次月月初00:00:00未満の評価時刻を対象にする。実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`である。reasonと`Idempotency-Key`を必須とする。
-
-- resultのbusiness keyは`sourceEvaluationCriterionId + targetEvaluationCriterionId + evaluationMonth`であり、methodを変えて二重付与する別keyを作らない。初回は`expectedResultVersion`を空、再計算は現在resultのversionを`expectedResultVersion`に必須とし、競合を`409 VERSION_CONFLICT`にする。
-
-- 再計算は同じresultの最新レコードを更新し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作る。実行条件と旧額・新額・差分は不変の実行記録へ保存する。
-
-- `Idempotency-Key: {opaque-id}`は7章のoperation matrixで「必須」とした操作だけで必須とする。GETとbalance-checkでは要求しない
+- `Idempotency-Key: {opaque-id}`は、GETとbalance-checkでは要求しない
 
 共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`は`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`だけを正本とし、このTaskで実装内部error codeを追加しない。
 
@@ -1960,7 +1971,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - 重要mutationは`Idempotency-Key`を必須にする。
 
-      7.  二重付与を防止
+      1.  二重付与を防止
           - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
 
 ### cache
@@ -2379,7 +2390,6 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - validation済みrowをcanonical JSON arrayへ変換し、UTF-8で1 chunk 1,500,000 bytes以下に分割する。1 rowがchunk上限を超える入力は事前に拒否する。
 - 各statementはJSON chunk 1個だけをbound parameterとし、固定SQLの`json_each(?)`／`json_extract`からset-based INSERT／UPDATEする。SQL文字列を入力件数に応じて伸ばさない。
 - 1 commitのstatement数を100以下に制限し、query上限1,000に余裕を持たせる。100を超えるschema設計なら行数を黙って削らず、実装を停止して計画を見直す。
-- integration testは1,000行、5MiB境界、100 parameter境界、2MB chunk境界、statement数、30秒timeout、途中statement失敗時0件を実D1 runtimeで確認する。
 
 ### D1不変条件
 
@@ -2563,7 +2573,7 @@ export default defineConfig({
 - 退会は、`appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のそれぞれで最後の1人ならできない。
 - 各対象の管理者は100人までとする。
 
-- 貢献評価代用は、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`が実行できる。単位は評価月`YYYY-MM`である。
+- 貢献評価代用は、付与先評価軸の`evalueterAdmin`または`appAdmin`が実行する。評価対象月`YYYY-MM`ごとに、評価軸全体で直接評価か代用評価を選択する。
 - Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。メールとPUSHは作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
@@ -2587,3 +2597,5 @@ export default defineConfig({
 - Pointsの定期実行をすべて廃止する。Accounts連携情報は連携直後と本人の設定画面の表示・リロード時に取得し、経過時間と取得件数の制限を設けず、本人の有効な連携すべてを取得対象とする。Marketsの期限切れ連携試行は新しい連携要求時に終了させる。運用上の失敗はログとメトリクスへ記録する。
 - 残高・累計評価額・FIXの受領状態を再計算して照合する定期実行と手動機能を廃止する。
 - 監査記録全般のDB保存をWorkersの構造化ログへ変更する。成功は業務データの確定後、拒否は拒否の確定またはロールバック後に記録する。台帳やFIX実行記録などの業務データはD1へ保存し、ログ出力の失敗で取引を再実行しない。
+
+- 貢献評価代用は付与先評価軸・評価対象月単位で直接評価と切り替え、全員へ一括適用する。代用元は一つとし、直接・代用評価と分配受取額へ符号付き係数を掛ける。月別の循環を防ぎ、管理者が再計算する。方式変更は旧付与・旧分配を差し替え、未受領の代用評価も扱う。
