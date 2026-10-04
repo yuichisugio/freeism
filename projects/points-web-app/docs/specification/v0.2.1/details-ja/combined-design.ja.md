@@ -98,7 +98,6 @@
     - [譲渡](#譲渡)
     - [交換](#交換)
     - [貢献評価代用](#貢献評価代用)
-  - [UI](#ui)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
@@ -1066,101 +1065,223 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 
 ### 使用するライブラリ
 
-変更履歴はGitで残す。共有、プルリクエスト、自動実行はGitHubで行う。使い慣れているためである。差分の追跡からレビュー、自動ビルドまでを一つの流れにできる。
+1. Git
+    - jujutsuも興味ある
 
-E2EテストはPlaywrightで行う。他のE2Eと比べてAPIが安定している。ブラウザの自動操作とトレース、ドキュメントも揃いやすい。参考は[Playwrightの記事](https://reffect.co.jp/html/playwright)である。
+2. GitHub
 
-UIの単体テストはTesting Libraryで行う。実装の内部ではなく、利用者の操作に近い形で確かめやすい。
+3. Playwright
+    - E2Eテスト
+    - 他のE2Eと比べてAPIが安定している。
 
-単体テストの実行はVitestで行う。Jestより実行が速く、設定も簡単である。参考は[Reactテストの記事](https://reffect.co.jp/react/react-test)と[Vitestの記事](https://reffect.co.jp/html/vitest)である。
+4. Testing Library
+    - UIの単体テスト
 
-ローカルとCIを同じ環境に寄せるため、DockerとDocker Composeを使う。同じcompose定義に揃えると、環境差のトラブルを減らせる。
+5. Vitest
+    - 単体テストの実行
 
-ホーム画面のMarkdownからHTMLへの変換はmicromarkで行う。リポジトリは[micromark](https://github.com/micromark/micromark)である。
+6. Docker
+    - ローカルとCIを同じ環境に寄せるため
 
-UIコンポーネントはHeroUI v3を使う。見た目が好きなためである。
+7. Docker Compose
+    - Dockerと併せて使う。同じcompose定義に揃えると、環境差のトラブルを減らせる。
 
-スタイルはTailwind CSSのユーティリティクラスで組み立てる。小さな調整が速く、余白や文字の揃えをルールにしやすい。クラス名は増やさない。
+8. micromark
+    - ホーム画面のMarkdownからHTMLへの変換
 
-配色は[Color Hunt](https://colorhunt.co/)、[Hue360](http://hue360.herokuapp.com/)、[Adobe Color](https://color.adobe.com/ja/create)を参考にする。配色だけで良いデザインに見せるためである。
+9. HeroUI v3
+    - UIコンポーネントはHeroUI v3を使う。見た目が好きなためである。
 
-言語はフロントエンドとバックエンドの両方でTypeScriptを使う。型を安全にしたい。読める人が多い言語にしたい。
+10. Tailwind CSS
+    - CSS
 
-コードの整形はOxfmtで行う。Oxide系の高速なフォーマッタである。保存時やCIの待ちを短くし、差分のノイズを減らすためである。
+11. TypeScript
+    - 言語はフロントエンドとバックエンドの両方でTypeScriptを使う。
+    - 型を安全にしたい。読める人が多い言語にしたい。
 
-静的解析はOxlintで行う。対象はJavaScriptとTypeScriptで、実行が速い。
+12. Oxfmt
+    - コードの整形
 
-エディタはCursorを使う。AIの補完とチャットがあり、実装の下書きやリファクタ案を早く出して待ち時間を減らせる。軽い編集にはZedも使う。
+13. Oxlint
+    - 静的解析
 
-画面案、ワイヤー、コンポーネント表の共有はFigmaで行う。レイアウトと用語を実装の前に揃え、手戻りを減らすためである。
+14. Cursor
+    - エディタ
 
-ORMはDrizzleを使う。軽くて速い。文法がSQLに近いので、学習の負荷が小さい。
+15. Zed
+    - 軽い編集
 
-APIの形はRESTにする。HTTPのメソッドとURLで、リソースの取得や更新を扱う。GraphQLより実装が単純なためである。
+16. Figma
+    - 画面案、ワイヤー、コンポーネント表の共有
 
-データベースはCloudflare D1を使う。設定が簡単なためである。
+17. Drizzle
+    - ORM
+    - 軽くて速い。文法がSQLに近いので、学習の負荷が小さい。
 
-値の形と制約はValibotのスキーマで定義する。型とバリデーションをまとめて扱える。サイズが小さい。
+18. REST
+    - APIの形はRESTにする。HTTPのメソッドとURLで、リソースの取得や更新を扱う。GraphQLより実装が単純なためである。
 
-ログイン認証はBetter Authを使う。使っていたAuth.js v5が合併し、より単純で機能も多いためである。公式の`better-auth/minimal`を使い、未使用のKysely adapterはWorkerのバンドルに含めない。
+19. Cloudflare D1
+    - データベース
 
-UIはReactで組み立てる。コンポーネントに分け、宣言的に描画できる。採用例と学習資料、周辺のライブラリが多く、長い期間にわたって人を巻き込みやすい。初めて描画するまで読み込みを遅らせるときは、`React.lazy`と`Suspense`を使う。
+20. Valibot
+    - 値の形と制約
+    - サイズが小さい。
 
-パッケージ管理はpnpmを使う。モノレポに向いている。
+21. Better Auth
+    - ログイン認証
+    - 公式の`better-auth/minimal`を使い、未使用のKysely adapterはWorkerのバンドルに含めない。
 
-利用規約とプライバシーポリシーの下書きは、kiyaku.jpのテンプレートを参考にする。ゼロから条文を書く工数を抑え、定型の抜けを減らすためである。サイトは[kiyaku.jp](https://kiyaku.jp/index.html)である。
+22. React
+    - UI
 
-日付の比較、加算、フォーマットはday.jsに統一する。必要十分で、バンドルが軽いためである。リポジトリは[dayjs](https://github.com/iamkun/dayjs)である。
+23. pnpm
+    - パッケージ管理
 
-フォームはReact Hook Formと`@hookform/resolvers`で扱う。入力が多い画面で、再描画を抑えつつスキーマ検証をまとめやすい。
+24. kiyaku.jp
+    - 利用規約とプライバシーポリシーのテンプレート
+    - サイトは[kiyaku.jp](https://kiyaku.jp/index.html)である。
 
-テスト用のダミーデータはfisheryと`@faker-js/faker`で作る。
+25. day.js
+    - 日付の比較、加算、フォーマットはday.jsに統一する。
+    - 必要十分で、バンドルが軽いため
 
-コミット前の検査はHusky、lint-staged、commitlint、commitizenで行う。手元の差分だけを軽く見て、履歴の粒度を揃えやすい。
+26. React Hook Form
+    - フォーム
 
-検索パラメータはnuqsで、Reactの状態と双方向に同期する。フィルタやタブをURLにし、共有や再読み込みに強くするためである。
+27. fishery
+    - テスト用のダミーデータ
 
-アイコンはlucide-reactを使う。線画のSVGをReactコンポーネントとして渡せる。画面のUIと合い、読み込みも分けやすい。
+28. @faker-js/faker
+    - fisheryと併せてテスト用のダミーデータを作る。
 
-コマンドパレットはcmdkで組み立てる。キーワードで絞り込むショートカット一覧を、短時間で作れる。
+29. Husky
+    - コミット前の検査
 
-CSVの読み取りはpapaparseを使う。圧縮とクライアントへの保存はfflateとfile-saverを使う。ファイル選択は`<input type="file">`など、ブラウザ標準のUIに揃える。ドラッグアンドドロップは使わない。
+30. lint-staged
+    - Huskyと併せてコミット前の検査に使う。
 
-未使用のexport、ファイル、依存の検出はknipとts-pruneで補助する。不要なコードと依存を減らし、保守する範囲を狭くするためである。
+31. nuqs
+    - 検索パラメータはnuqsで、Reactの状態と双方向に同期する。
+    - フィルタやタブをURLにし、共有や再読み込みに強くするためである。
 
-バックエンドのHTTPはHonoで実装する。軽くて速く、読みやすいためである。Next.jsのServer Actions、Route Handlers、TanStack StartのServer Functionsは使わない。外部から呼ぶAPIもあるので、HTTPのエンドポイントに揃える。Server Functionsを使えないフレームワークへ移る可能性もある。
+32. lucide-react
+    - アイコン
+
+33. cmdk
+    - コマンドパレットはcmdkで組み立てる。
+    - キーワードで絞り込むショートカット一覧を、短時間で作れる。
+
+34. papaparse
+    - CSVの読み取り
+
+35. fflate
+    - 圧縮に使う。
+
+36. file-saver
+    - クライアントへの保存に使う。ファイル選択は`<input type="file">`など、ブラウザ標準のUIに揃える。ドラッグアンドドロップは使わない。
+
+37. knip
+    - 未使用のexport、ファイル、依存の検出を補助する。
+
+38. ts-prune
+    - knipと併せて未使用のexport、ファイル、依存の検出を補助する。
+
+39. Hono
+    - バックエンドのHTTPはHonoで実装する。
+    - 軽くて速く、読みやすいためである。
+    - 外部から呼ぶAPIもあるので、HTTPのエンドポイントに揃える。
 
 ### 使用しないライブラリ
 
-ランタイムにBunは使わない。自分のしたいことができるか、まだ理解できていないためである。
+1. Bun
+    - ランタイム
+    - 自分のしたいことができるか、まだ理解できていないためである。
 
-モーションにframer-motionは使わない。v0.2.1では凝った動きをやめ、仕様の理解を優先するためである。
+2. framer-motion
+    - モーション
+    - v0.2.1では凝った動きをやめ、仕様の理解を優先するためである。
 
-ファイル選択にreact-dropzoneは使わない。ドラッグアンドドロップをやめ、ボタンと`<input type="file">`に揃えるためである。
+3. react-dropzone
+    - ファイル選択
+    - ドラッグアンドドロップをやめ、ボタンと`<input type="file">`に揃えるためである。
 
-RPCにtRPCは使わない。スキーマやコード生成なしで、型のあるAPIを作りやすい。一旦はTanStack Startで足りるためである。文書は[tRPC](https://trpc.io/docs)である。
+4. Google Analytics
+    - アクセス解析
 
-アクセス解析にGoogle Analyticsとreact-gaは使わない。今いる人数や、日次と月次の訪問、直帰率を見られる。初版は計測の必要が小さく、Cookieの表記と実装を先にやらないためである。
+5. react-ga
+    - アクセス解析
 
-広告にGoogle AdSenseとreact-adsenseは使わない。サイト内の広告枠で収益化する仕組みである。ポートフォリオの表示を優先する。審査、表示方針、プライバシー表記の工数に見合う収益が出にくいためである。
+6. Google AdSense
+    - 広告は使わない。
 
-検索結果の分析にGoogle Search Consoleは使わない。どの語で訪問されたか、索引されているかを見られる。無料で使える。このアプリに必要な機能ではないため、使わない。案内は[Search Console](https://search.google.com/search-console/about)である。
+7. react-adsense
+    - 広告は使わない。
 
-DDoS対策として前段に置くCDNは、必要になってから入れる。Cloudflareの無料枠で足りる。CDNも、一旦は使わない。
+8. Google Search Console
+    - 検索結果の分析にGoogle Search Consoleは使わない。どの語で訪問されたか、索引されているかを見られる。
 
-継続的な速度監視にPageSpeed Insightsは使わない。公開URLからLCPなどの指標と、改善のヒントを出す無料の診断である。常時の連携や、CIの閾値までは入れない。必要なときは手動で診断する。ツールは[PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/)である。
+9.  CDN
+    - DDoS対策として前段に置くCDNは、必要になってから入れる。
 
-作ったWebサービスを紹介するサイトは、今は使わない。候補は[Service Safari](https://www.service-safari.com/)、[startapp](http://startapp.jp/)、[applishow](https://applishow.com/)、[eightbit](http://creators.eightbit.jp/)、[webatume](http://webatume.net/)、[tsukutter](http://inajob.dip.jp/tsukutter/)、[seekups](https://seekups.seekgeeks.net/)、[eggineer](https://www.eggineer.com/)である。
+10. PageSpeed Insights
+    - 継続的な速度監視
+    - [PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/)
 
-Supabase、Next.js、Prisma ORM、Auth.js、Vercel、Upstash Redisは使わない。
+11. Webサービス紹介サイト
+    - 作ったWebサービスを紹介するサイト
+    - 候補は以下
+      - [Service Safari](https://www.service-safari.com/)
+      - [startapp](http://startapp.jp/)
+      - [applishow](https://applishow.com/)
+      - [eightbit](http://creators.eightbit.jp/)
+      - [webatume](http://webatume.net/)
+      - [tsukutter](http://inajob.dip.jp/tsukutter/)
+      - [seekups](https://seekups.seekgeeks.net/)
+      - [eggineer](https://www.eggineer.com/)である。
 
-次の依存も入れない。lodashの全体、巨大なアイコン集、日付ライブラリのlocale、チャート、エディタ、地図のライブラリである。
+12. Supabase
+    - 使用しない。
 
-メール送信のResend、`@react-email/*`、react-email、プッシュ通知のweb-pushは使わない。
+13. Next.js
+    - 使用しない。
 
-TanStack DB、OPFS、Service Workerはv0.2.1で使わない。
+14. Prisma ORM
+    - 使用しない。
 
-エラー通知のSentryは、今は使わない。今後入れる場合は、例外を一箇所に集める。利用者、リリース、環境を付けて追う。再読み込み時や認証時にuidを入れ、環境のtagで通知を分ける。Slackやメールへ通知できる。本番の例外を、文脈付きで追いやすいためである。
+15. Auth.js
+    - 使用しない。
+
+16. Vercel
+    - 使用しない。
+
+17. Upstash Redis
+    - 使用しない。
+
+18. Resend
+    - メール送信には使わない。
+
+19. @react-email/*
+    - メール送信には使わない。
+
+20. react-email
+    - メール送信には使わない。
+
+21. web-push
+    - プッシュ通知には使わない。
+
+22. TanStack DB
+    - v0.2.1では使わない。
+
+23. OPFS
+    - v0.2.1では使わない。
+
+24. Service Worker
+    - v0.2.1では使わない。
+
+25. Sentry
+    - エラー通知
+    - 今後入れる場合は、例外を一箇所に集める。利用者、リリース、環境を付けて追う。再読み込み時や認証時にuidを入れ、環境のtagで通知を分ける。Slackやメールへ通知できる。本番の例外を、文脈付きで追いやすいためである。
 
 ## 意思決定
 
@@ -1970,7 +2091,6 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 
 ### 共通
 
-- すべてCSV-onlyとし、確認・確定は[CSVアップロードの確認手順](#csvアップロード)に従う。
 - 使える残高は台帳上の残高である。必要額未満なら譲渡と交換を拒否する。
 - 残高が0未満のときは、他者への譲渡はできない。
 - FIXによる追加の負評価は残高不足に関係なく受け付ける。
@@ -1997,10 +2117,6 @@ ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／
 - 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
 - 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
 - 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
-
-## UI
-
-[デプロイ設定](#デプロイ設定)
 
 ## Points–Markets連携契約
 
