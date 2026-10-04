@@ -147,7 +147,7 @@ const baseFreshOperationPolicies = [
     route: "/api/csv-exports",
     admin: true,
     reason: false,
-    idempotency: true,
+    idempotency: false,
   },
   {
     operation: "accounts-connection-create",

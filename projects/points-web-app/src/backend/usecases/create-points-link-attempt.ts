@@ -71,6 +71,21 @@ export async function createPointsLinkAttempt(db: D1Database, input: CreatePoint
   try {
     await db
       .prepare(
+        `UPDATE points_oauth_link_attempt
+         SET status = 'CANCELLED', finalized_at = ?
+         WHERE user_client_id = ? AND status = 'PENDING_MARKETS_CONFIRMATION'
+           AND expires_at <= ? AND (markets_user_id = ? OR points_user_id = ?)`,
+      )
+      .bind(
+        now.getTime(),
+        input.userClientId,
+        now.getTime(),
+        input.marketsUserId,
+        input.pointsUserId ?? null,
+      )
+      .run();
+    await db
+      .prepare(
         `INSERT INTO points_oauth_link_attempt
            (id, idempotency_key, payload_hash, state_hash, user_client_id, m2m_client_id,
             markets_user_id, points_user_id, requested_scopes, status, created_at, expires_at)

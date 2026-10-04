@@ -18,7 +18,6 @@ Points v0.2.1 のレビュー環境は、staging の Worker `points-worker-stagi
 - staging Worker で `preview_urls: true` を有効にする。PR 更新時は同じ alias に version を upload し、URL を PR コメントと job summary に表示する。Version URL は alias の現在の version を参照し、PR close 後も参照できる。終了画面や close 時の削除処理は設けない。
 - Version URL の version は staging Worker の D1 binding と通常の staging 変数を継承する。Secret は同じ Worker で**直前に upload された version の Secret**を upload 時に継承する。稼働中の staging version の Secret を実行時に参照する構成ではない。`DB` は staging D1 を共有するため、PR 間と staging 本体のデータは共通である。production D1 と production の認証情報は分離する。
 - CI は build 時の CSP 用 host と、runtime の `APP_ORIGIN`・`APP_HOST` だけを PR URL に合わせる。その他の staging 変数、D1 binding、既存の Worker Secret は保持する。Secret は upload 時点の version に取り込まれるため、Secret 変更後は対象 PR の version を再 upload する。
-- Cron Trigger は staging 本体へデプロイした version で実行する。PR Version URL の受入では staging 本体の cron 動作を別に確認する。
 
 ## OAuth と利用者連携
 

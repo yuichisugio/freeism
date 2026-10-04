@@ -10,23 +10,13 @@ import {
 
 /**
  * 本人のAccounts連携の一覧（設定画面）。
- * 表示の前に、最後の取得から60秒以上たった連携のsnapshotを取得し直す。
+ * 表示のたびに、本人の有効な接続先の連携アカウント一覧を取得する。
  * @see ../../../test/worker/accounts-link.worker.test.ts
  */
 
 // --------------------------------------------------
 // 一覧
 // --------------------------------------------------
-
-/**
- * 本人の閲覧で取得し直すまでの間隔。
- */
-const refreshOnViewAfterMs = 60_000;
-
-/**
- * 本人の閲覧で取得し直す上限（1人の連携数として十分な値）。
- */
-const refreshOnViewLimit = 20;
 
 export type AccountsLinkView = {
   id: string;
@@ -58,19 +48,14 @@ function toAccountsLinkView(link: OwnAccountsLink): AccountsLinkView {
 }
 
 /**
- * 本人の連携を、必要ならsnapshotを取得し直してから返す。
+ * 本人の有効な接続先の連携アカウント一覧を取得してから、保存した連携情報を返す。
  */
 export async function listAccountsLinks(
   dependencies: AccountsSnapshotDependencies,
   pointsUserId: string,
 ): Promise<AccountsLinkView[]> {
-  const now = dependencies.now ?? Date.now;
-  const staleLinks = await listAccountsLinksToRefresh(dependencies.db, {
-    fetchedBefore: now() - refreshOnViewAfterMs,
-    limit: refreshOnViewLimit,
-    pointsUserId,
-  });
-  await refreshAccountsLinkSnapshots(dependencies, staleLinks);
+  const refreshTargets = await listAccountsLinksToRefresh(dependencies.db, pointsUserId);
+  await refreshAccountsLinkSnapshots(dependencies, refreshTargets);
   const links = await listOwnAccountsLinks(dependencies.db, pointsUserId);
   return links.map(toAccountsLinkView);
 }

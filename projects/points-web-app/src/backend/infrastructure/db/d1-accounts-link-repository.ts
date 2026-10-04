@@ -156,21 +156,6 @@ export async function consumeAccountsLinkAttempt(
     .first<AccountsLinkAttempt>();
 }
 
-/**
- * 期限切れの試行を消す（cron）。
- * @returns 消した件数
- */
-export async function deleteExpiredAccountsLinkAttempts(
-  db: D1Database,
-  now: number,
-): Promise<number> {
-  const result = await db
-    .prepare("DELETE FROM accounts_link_attempts WHERE expires_at <= ?")
-    .bind(now)
-    .run();
-  return result.meta.changes;
-}
-
 // --------------------------------------------------
 // 連携の保存・解除
 // --------------------------------------------------
@@ -328,16 +313,11 @@ export type AccountsLinkRefreshTarget = {
 };
 
 /**
- * 最後の取得が`fetchedBefore`以前（または未取得）で、接続先が`ACTIVE`の連携を古い順に返す。
- * @param pointsUserId 指定した場合は本人の連携だけを返す
+ * 本人の連携のうち、接続先が`ACTIVE`のものを返す。
  */
 export async function listAccountsLinksToRefresh(
   db: D1Database,
-  {
-    fetchedBefore,
-    limit,
-    pointsUserId = null,
-  }: { fetchedBefore: number; limit: number; pointsUserId?: string | null },
+  pointsUserId: string,
 ): Promise<AccountsLinkRefreshTarget[]> {
   const { results } = await db
     .prepare(
@@ -346,14 +326,10 @@ export async function listAccountsLinksToRefresh(
        FROM accounts_links link
        JOIN accounts_connections connection ON connection.id = link.accounts_connection_id
        WHERE connection.status = 'ACTIVE'
-         AND (link.external_accounts_fetched_at IS NULL
-              OR link.external_accounts_fetched_at <= ?)
-         AND (? IS NULL OR link.points_user_id = ?)
-       ORDER BY link.external_accounts_fetched_at IS NOT NULL,
-                link.external_accounts_fetched_at, link.id
-       LIMIT ?`,
+         AND link.points_user_id = ?
+       ORDER BY link.linked_at, link.id`,
     )
-    .bind(fetchedBefore, pointsUserId, pointsUserId, limit)
+    .bind(pointsUserId)
     .all<AccountsLinkRefreshTarget>();
   return results;
 }
