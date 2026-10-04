@@ -668,6 +668,8 @@ Accountsで先に登録と外部アカウントの連携を済ませた利用者
 
 同じ手順を繰り返して、別のAccountsユーザーを追加できる。追加するAccountsユーザーごとに、本人が認証し、情報提供へ同意する。同じPointsユーザーが、連携済みのAccountsユーザーで再び連携した場合は、既存の連携を維持して再連携日時を更新する。設定画面では、接続先が`ACTIVE`の連携に「再連携」を表示する。同じPointsサービス内で、すでに別のPointsユーザーへ連携済みの場合は、保存せずに現在の連携状態を案内する。同じAccountsユーザーの連携先を、同じPointsサービス内の別のPointsユーザーへ変えるときは、元のPointsユーザーへログインして連携を解除したあと、移動先のPointsユーザーへログインして再連携する。再連携ではAccountsでの本人確認と情報提供への同意を行い、[ユーザー連携の件数と識別](#32-ユーザー連携の件数と識別)の一意性を確認する。Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り替えるときは、Accountsで外部アカウントを新しく登録し、所有権を証明して公開先を設定する。Pointsの貢献データとポイントは、Pointsが管理する。
 
+Pointsは、接続先のClient Credentials（`identities:read`）のAccess Tokenで、`QUERY {origin}/api/v1/external-accounts`から連携アカウント一覧を取得する。Access TokenはDPoPへ結び付け、失効の60秒前まで暗号化して再利用する。Accountsが`401`を返したときはトークンを取り直して1回だけ再送し、再送しても`401`なら`ACCOUNTS_CLIENT_UNAUTHORIZED`として記録する。取得結果は連携ごとのsnapshotとして保存する。`200`は状態`PROVIDED`と一覧、`404`は状態`NOT_PROVIDED`と一覧の削除とする。通信失敗、制限超過、不正な応答では前回のsnapshotを維持し、識別子とトークンを含めずに構造化ログとメトリクスへ記録する。その連携の応答だけが不正な場合（`INVALID_RESPONSE`）は、記録して次の連携の取得へ進む。それ以外のAccountsとのやり取りの失敗は、接続先全体の失敗として1回だけ記録し、同じ接続先の残りの連携は取得しない。取得の対象は、接続先が`ACTIVE`の連携だけとする。契機は、連携の保存直後と、本人が設定画面の一覧（`GET /api/accounts-links`）を開いたときである。本人が設定画面を表示・リロードするたびに、接続先が`ACTIVE`の本人の連携すべてについて、Accounts APIから最新情報を取得する。Accounts側で公開情報や同意を変更した結果は、次の取得時にPointsの保存情報へ反映する。公開プロフィールには、その時点でPointsに保存されている情報を表示する。設定画面には、連携ごとに状態（提供中、情報提供が停止しています、未取得）、接続先の表示名とorigin、Accounts ID、取得した外部アカウント一覧、Accountsの管理画面`{origin}/account-links`とプロフィール`{origin}/profiles/{accountsUserId}`へのリンク、再連携、解除を表示する。
+
 ### 連携解除
 
 Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#未受領fixの受領資格)に従う。
@@ -1750,8 +1752,8 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - 重要mutationは`Idempotency-Key`を必須にする。
 
-      1.  二重付与を防止
-          - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
+1.  二重付与を防止
+    - 二重付与を防ぐために、貢献度アップロードの「タスクの実行年月」は**年月は必須・日時は任意**とし、タスク評価は更新できつつ二重の評価が発生しない仕組みにする
 
 ### cache
 
@@ -1768,16 +1770,13 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
    - 参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
 
 4. **できる限りサーバーの負荷をかけず、サーバーのアクセス回数も減らす設計**
-   - 説明
-     - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
+   - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
 
 同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
 - 現在Package APIは`Cache-Control: no-store`で最新データを返す。
-
-サーバー状態はTanStack Queryで扱う。キャッシュ、再取得、失敗時の再試行を宣言的に書け、各画面の定型処理を減らせる。参考は[TanStack Query v5](https://reffect.co.jp/react/tanstack-query-v5)と[TanStack Queryの記事](https://reffect.co.jp/react/tanstack-query)である。
 
 - authenticated responseは`Cache-Control: private, no-store`とする。
 
@@ -1795,16 +1794,9 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 OAuth authorization、callback、token exchange、consent、Accounts連携、link／unlinkのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
 
-- GitHub avatar等の外部画像をv0.2.1でproxy／表示しない。外部origin追加が必要になった場合は用途別directive、情報漏洩、cacheを再reviewする。
-
 - 更新頻度の低いデータはキャッシュし、リアルタイム性が必要なデータはキャッシュしない。サーバー負荷と取得回数を減らすためである。
-- 画面表示用のデータは、TanStack Queryのメモリにキャッシュする。更新後は、関連するquery keyを無効にする。IndexedDB、Service Worker、Next.jsへの永続化はしない。
 - バックエンドのキャッシュはCloudflare Cacheに置く。DBを更新したあとは、該当するキャッシュを消す。
 - 高頻度で更新される情報は、1時間ごとなどにstaleにする。
-
-- 静的assetはcontent hash付き長期cache、HTMLと認証済みAPIは適切な`no-store`または短い明示cacheとする。
-
-Pointsは、接続先のClient Credentials（`identities:read`）のAccess Tokenで、`QUERY {origin}/api/v1/external-accounts`から連携アカウント一覧を取得する。Access TokenはDPoPへ結び付け、失効の60秒前まで暗号化して再利用する。Accountsが`401`を返したときはトークンを取り直して1回だけ再送し、再送しても`401`なら`ACCOUNTS_CLIENT_UNAUTHORIZED`として記録する。取得結果は連携ごとのsnapshotとして保存する。`200`は状態`PROVIDED`と一覧、`404`は状態`NOT_PROVIDED`と一覧の削除とする。通信失敗、制限超過、不正な応答では前回のsnapshotを維持し、識別子とトークンを含めずに構造化ログとメトリクスへ記録する。その連携の応答だけが不正な場合（`INVALID_RESPONSE`）は、記録して次の連携の取得へ進む。それ以外のAccountsとのやり取りの失敗は、接続先全体の失敗として1回だけ記録し、同じ接続先の残りの連携は取得しない。取得の対象は、接続先が`ACTIVE`の連携だけとする。契機は、連携の保存直後と、本人が設定画面の一覧（`GET /api/accounts-links`）を開いたときである。本人が設定画面を表示・リロードするたびに、接続先が`ACTIVE`の本人の連携すべてについて、Accounts APIから最新情報を取得する。Accounts側で公開情報や同意を変更した結果は、次の取得時にPointsの保存情報へ反映する。公開プロフィールには、その時点でPointsに保存されている情報を表示する。設定画面には、連携ごとに状態（提供中、情報提供が停止しています、未取得）、接続先の表示名とorigin、Accounts ID、取得した外部アカウント一覧、Accountsの管理画面`{origin}/account-links`とプロフィール`{origin}/profiles/{accountsUserId}`へのリンク、再連携、解除を表示する。
 
 ## security header
 
