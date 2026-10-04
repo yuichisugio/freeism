@@ -85,19 +85,8 @@
     - [idempotency](#idempotency)
     - [cache](#cache)
   - [security header](#security-header)
-  - [FIX取込時の照合](#fix取込時の照合)
   - [金額表現](#金額表現)
-  - [FIX訂正と差分台帳](#fix訂正と差分台帳)
-    - [入力](#入力)
-    - [最新結果と不変台帳](#最新結果と不変台帳)
-    - [対象者と訂正先](#対象者と訂正先)
-    - [原子性](#原子性)
-  - [台帳、残高、evaluationTotal](#台帳残高evaluationtotal)
-  - [消費・譲渡・交換](#消費譲渡交換)
-    - [共通](#共通)
-    - [譲渡](#譲渡)
-    - [交換](#交換)
-    - [貢献評価代用](#貢献評価代用)
+  - [台帳、残高、累計評価額](#台帳残高累計評価額)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
@@ -470,7 +459,6 @@
       2. 交換比率の数値
   6.  設定できる画面
       - 評価軸のプロフィール画面の「交換比率アップロード」ボタンから可能
-
 - 交換元／交換先の有向pairごとに`exchangeRate`を管理し、CSVで最新レコードを更新する。
 - CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`numerator`、`denominator`とする。
 - `ACTIVE`は正の安全整数比率を最大公約数で正規化する。`DISABLED`は比率を空にし、新規交換を停止する。
@@ -564,6 +552,68 @@
             - 「履歴」と「残高」の両方の更新処理をまとめた関数を用意して、それですべてを更新するよう徹底する
       - 要件
         1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
+  10. FIXによる追加の負評価は残高不足に関係なく受け付ける。
+
+
+- 貢献度アップロードは、draftを持たず、FIXの内容のみアップロードしてもらう。
+  - draftは各自の評価軸で管理してもらう
+
+FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プロフィールURL）と`recipientAccountsUserId`（AccountsユーザーID）のちょうど一方で指定する。列の順序と上限は[Pointsドメイン仕様](points-domain.md#71-入力)に従う。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
+
+- どちらも空の行は`RECIPIENT_IDENTIFIER_REQUIRED`、両方ある行は`RECIPIENT_IDENTIFIER_AMBIGUOUS`の行エラーとする。URLの正規化・受付制約はAccountsが行い、Pointsは空でないことと長さだけを検査する。
+- 照合に使う接続先は、validateとcommitの両方で`X-Accounts-Connection-Id` headerに指定する。未指定は`422 ACCOUNTS_CONNECTION_REQUIRED`、`ACTIVE`でない接続先は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
+- 行エラーが無い時だけ、Accountsの`QUERY /api/v1/identities/resolve`で照合する。同じ識別子は1回だけ照合し、1,000件ごとに要求を分ける。
+- 照合結果は次のとおり扱う。
+  - `matched`: 結果のAccountsユーザーIDを保存する。
+  - `no_match`: AccountsユーザーIDは保存しない。
+  - `invalid_input`: その識別子を持つ行に、識別子の列を示す`RECIPIENT_IDENTIFIER_INVALID`の行エラーを付け、`422 CSV_VALIDATION_FAILED`とする。
+- validateの成功応答は、接続先ID、origin、照合の完了状態、行ごとの照合結果（`MATCHED`・`NO_MATCH`）とPoints内の連携の有無、`validationHash`を返す。`validationHash`には接続先ID、file hash、行ごとのorigin・照合結果・受領者を含める。
+- commitはAccountsで再照合して`validationHash`を再計算し、validate時と異なる場合は全件を`409 VALIDATION_CHANGED`で止めて再validateを要求する。Accounts側の紐付けの変更と、Points内の連携の変更の両方をこの比較で検出する。
+- Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
+  - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
+  - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
+
+FIX CSVの列は`fixResultId`、`expectedVersion`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
+
+- 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
+- `evaluationCriterionId`: 評価軸ID
+- `amount`: 符号付き評価額
+- `evaluationAt`: 評価期間。UTCの年月は必須、日・時刻は任意
+- `managementId`: 評価軸内管理ID。任意
+- `memo`: 任意、200文字以下
+- `fixResultId`と`expectedVersion`: 修正時だけ両方を指定する
+
+URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
+
+受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
+
+- 初回取込で安定した`fixResultId`を発行する。
+- 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録と監査へ保存する。
+- 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
+- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
+- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
+- 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
+
+- FIX実行記録と未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。訂正の対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。訂正を別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新結果の額（そのoriginで照合していなければ0）と一致する。
+
+- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
+  - 訂正で、更新前の結果に同じ対象者（上記の対象者キーと評価軸）の行がある場合は、更新前の結果の状態を引き継ぐ。更新前の結果の行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
+  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
+- 受領済みFIXとその訂正先は同じPointsユーザーに保持する。Accountsの紐付け・公開許可の変更や受領後のURL解除・再所有があっても、既受領FIXを移動・rollbackしない。
+
+1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
+
+1. FIX resultとentryの最新レコード、FIX実行記録
+2. 更新前の結果との差分
+3. ledger entryまたはunclaimed entry
+4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
+5. idempotency result
+6. audit event
+
+部分成功・行単位retry・server draftを許可しない。
+
+- FIX command内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
+- 監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
 ### ポイント交換する機能
 
@@ -595,6 +645,12 @@
         - 「交換先の額」が入力ある場合は、逆算して必要額を算出
   8. 権限は不要
      - 自分のポイントなら交換可能
+- 交換元・交換先の両評価軸が交換可で、現在の有効な交換比率がある場合だけ実行できる。比率は整数`numerator / denominator`で保持し、`REAL`へ変換しない。
+- CSVは交換元評価軸ID、交換元額、交換先評価軸ID、交換先額を持つ。元額・先額の少なくとも一方を必須とし、片方から固定小数点で他方を計算する。
+- rateとroundingの結果が一意にならない入力は拒否する。出力額を0.0001ポイント単位へ切り下げ、参照rateの実行時snapshot、rounding rule、整数の余りを台帳へ記録する。
+- burnとmintを同一原子処理にし、`evaluationTotal`は変更しない。
+- 使える残高は台帳上の残高である。必要額未満なら譲渡を拒否する。
+- 残高が0未満のときは、交換はできない。
 
 ### 貢献評価を代用する仕組み
 
@@ -622,6 +678,12 @@
   8. 計算式
      - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
      - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
+
+- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録と監査を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
+- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
+- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
+- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
+- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 ### ポイント譲渡する機能
 
@@ -651,6 +713,11 @@
      1. 譲渡するポイントの評価軸ID
      2. 譲渡するポイントの額
      3. 譲渡先のユーザーID
+  8. 評価軸が譲渡可の場合だけ実行できる。
+  9. CSVは評価軸ID、譲渡額、譲渡先PointsユーザーIDを持つ。
+  10. 送信者の負deltaと受信者の正deltaを同一D1原子処理で記録する。
+  11. 譲渡することでは`evaluationTotal`は両者とも変更しない。
+  12. 残高が0未満のときは、他者への譲渡はできない。
 
 ### 退会ボタン
 
@@ -1999,82 +2066,27 @@ upgrade-insecure-requests
 | `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
 
-## FIX取込時の照合
-
-FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プロフィールURL）と`recipientAccountsUserId`（AccountsユーザーID）のちょうど一方で指定する。列の順序と上限は[Pointsドメイン仕様](points-domain.md#71-入力)に従う。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
-
-- どちらも空の行は`RECIPIENT_IDENTIFIER_REQUIRED`、両方ある行は`RECIPIENT_IDENTIFIER_AMBIGUOUS`の行エラーとする。URLの正規化・受付制約はAccountsが行い、Pointsは空でないことと長さだけを検査する。
-- 照合に使う接続先は、validateとcommitの両方で`X-Accounts-Connection-Id` headerに指定する。未指定は`422 ACCOUNTS_CONNECTION_REQUIRED`、`ACTIVE`でない接続先は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
-- 行エラーが無い時だけ、Accountsの`QUERY /api/v1/identities/resolve`で照合する。同じ識別子は1回だけ照合し、1,000件ごとに要求を分ける。
-- 照合結果は次のとおり扱う。
-  - `matched`: 結果のAccountsユーザーIDを保存する。
-  - `no_match`: AccountsユーザーIDは保存しない。
-  - `invalid_input`: その識別子を持つ行に、識別子の列を示す`RECIPIENT_IDENTIFIER_INVALID`の行エラーを付け、`422 CSV_VALIDATION_FAILED`とする。
-- validateの成功応答は、接続先ID、origin、照合の完了状態、行ごとの照合結果（`MATCHED`・`NO_MATCH`）とPoints内の連携の有無、`validationHash`を返す。`validationHash`には接続先ID、file hash、行ごとのorigin・照合結果・受領者を含める。
-- commitはAccountsで再照合して`validationHash`を再計算し、validate時と異なる場合は全件を`409 VALIDATION_CHANGED`で止めて再validateを要求する。Accounts側の紐付けの変更と、Points内の連携の変更の両方をこの比較で検出する。
-- Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
-  - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
-  - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
-
 ## 金額表現
 
-金額は小数第4位までとする。保存は、評価軸の最小単位とは独立した0.0001ポイント単位の整数とする。自動分配に設定できる最小単位は0.0001ポイント以上、小数4桁以下とする。保存する金額は0.0001ポイントの倍数とする。保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。`minimumUnit`はscale適用後の正の整数である。FIX、譲渡、交換、落札の引き落とし、価格、残高、台帳、訂正・取消の差額は共通の保存精度で扱う。評価軸の`minimumUnit`は自動分配の丸めと再分配の終了判定に使う。D1には`INTEGER`だけを保存する。残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。APIの金額は、小数文字列とscale済み安全整数文字列を分ける。CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。入力、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。BigIntによる乗除算の途中値はそのまま保持し、確定した金額を検証する。範囲を超えたら、その処理全体を拒否する。
+1. 金額は小数第4位までとする。
+2. 保存は、評価軸の最小単位とは独立した0.0001ポイント単位の整数とする。
+3. 自動分配に設定できる最小単位は0.0001ポイント以上、小数4桁以下とする。
+4. 保存する金額は0.0001ポイントの倍数とする。
+5. 保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。
+6. `minimumUnit`はscale適用後の正の整数である。
+7. すべての処理で、共通の保存精度で扱う。
+8. 評価軸の`minimumUnit`は自動分配の丸めと再分配の終了判定に使う。
+9. D1には`INTEGER`だけを保存する。
+10. 残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。
+11. APIの金額は、小数文字列とscale済み安全整数文字列を分ける。
+12. CSVの金額は10進文字列とする。曖昧なJSONの小数は、金額の契約に出さない。
+13. 指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。
+14. 途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。
+15. 入力、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。
+16. BigIntによる乗除算の途中値はそのまま保持し、確定した金額を検証する。
+17. 範囲を超えたら、その処理全体を拒否する。
 
-## FIX訂正と差分台帳
-
-### 入力
-
-- FIX結果はdraftを持たず、その評価軸の`evalueterAdmin`または`appAdmin`が最終結果だけをCSVでアップロードする。
-
-FIX CSVの列は`fixResultId`、`expectedVersion`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
-
-- 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
-- `evaluationCriterionId`: 評価軸ID
-- `amount`: 符号付き評価額
-- `evaluationAt`: 評価期間。UTCの年月は必須、日・時刻は任意
-- `managementId`: 評価軸内管理ID。任意
-- `memo`: 任意、200文字以下
-- `fixResultId`と`expectedVersion`: 修正時だけ両方を指定する
-
-URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
-
-受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
-
-### 最新結果と不変台帳
-
-- 初回取込で安定した`fixResultId`を発行する。
-- 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録と監査へ保存する。
-- 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
-- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
-- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
-- 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
-
-### 対象者と訂正先
-
-- FIX実行記録と未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。訂正の対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。訂正を別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新結果の額（そのoriginで照合していなければ0）と一致する。
-
-- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
-  - 訂正で、更新前の結果に同じ対象者（上記の対象者キーと評価軸）の行がある場合は、更新前の結果の状態を引き継ぐ。更新前の結果の行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
-  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
-- 受領済みFIXとその訂正先は同じPointsユーザーに保持する。Accountsの紐付け・公開許可の変更や受領後のURL解除・再所有があっても、既受領FIXを移動・rollbackしない。
-
-### 原子性
-
-1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
-
-1. FIX resultとentryの最新レコード、FIX実行記録
-2. 更新前の結果との差分
-3. ledger entryまたはunclaimed entry
-4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
-5. idempotency result
-6. audit event
-
-部分成功・行単位retry・server draftを許可しない。
-
-- FIX command内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
-- 監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
-
-## 台帳、残高、evaluationTotal
+## 台帳、残高、累計評価額
 
 - `point_ledger_entries`を、経済と監査の正本とする。追記だけとし、UPDATEとDELETEはしない。残高と`evaluationTotal`は、台帳から再構築できる。
 - `point_accounts`は、利用者と評価軸ごとの`balance`と`evaluation_total`の投影である。同じtransaction内の`point_ledger_entries AFTER INSERT` triggerだけが更新する。client、別Worker、application repositoryから、投影を直接INSERTまたはUPDATEしない。消費の事前条件と引き落としの拒否は、D1のguard triggerの`RAISE(ABORT)`で、そのbatch全体を失敗させる。
@@ -2086,37 +2098,6 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 定期reconciliationは上記式とclaimed/unclaimed合計を再計算し、不一致を監査eventとして記録する。自動で不変台帳を書き換えない。
 
 ledger INSERT前triggerは、現在のaccountとdeltaを加算した`balance`／`evaluationTotal`が±`9_007_199_254_740_991`内であることを行ごとに検査し、超過時は`SAFE_INTEGER_OVERFLOW`でabortする。同じbatch内の複数entryも各trigger時点の更新済みprojectionを使い、SQLiteのREAL昇格を許さない。guard拒否の監査はrollback後の別append-only rejection auditへstable codeだけを記録し、監査write失敗を理由に経済commandを再実行しない。
-
-## 消費・譲渡・交換
-
-### 共通
-
-- 使える残高は台帳上の残高である。必要額未満なら譲渡と交換を拒否する。
-- 残高が0未満のときは、他者への譲渡はできない。
-- FIXによる追加の負評価は残高不足に関係なく受け付ける。
-- 落札の引き落としでも、各落札者の現在残高が必要額を満たすことを同じ処理の中で検査する。一人でも足りなければ、その処理の台帳追加は0件とする。足りない入札者を落札者にしたまま引き落とさない。
-
-### 譲渡
-
-- 評価軸が譲渡可の場合だけ実行できる。
-- CSVは評価軸ID、譲渡額、譲渡先PointsユーザーIDを持つ。
-- 送信者の負deltaと受信者の正deltaを同一D1原子処理で記録する。
-- `evaluationTotal`は両者とも変更しない。
-
-### 交換
-
-- 交換元・交換先の両評価軸が交換可で、現在の有効な交換比率がある場合だけ実行できる。比率は整数`numerator / denominator`で保持し、`REAL`へ変換しない。
-- CSVは交換元評価軸ID、交換元額、交換先評価軸ID、交換先額を持つ。元額・先額の少なくとも一方を必須とし、片方から固定小数点で他方を計算する。
-- rateとroundingの結果が一意にならない入力は拒否する。出力額を0.0001ポイント単位へ切り下げ、参照rateの実行時snapshot、rounding rule、整数の余りを台帳へ記録する。
-- burnとmintを同一原子処理にし、`evaluationTotal`は変更しない。
-
-### 貢献評価代用
-
-- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録と監査を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
-- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
-- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
-- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
-- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 ## Points–Markets連携契約
 
