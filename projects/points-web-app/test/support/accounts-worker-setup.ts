@@ -111,7 +111,7 @@ export async function seedActiveAccountsConnection(
     generateAccountsSigningKey(),
   ]);
   const now = Date.now();
-  const audit = { actorPointsUserId, reason: "test", requestId: `req_${crypto.randomUUID()}` };
+  const audit = { actorPointsUserId, environment: "test", requestId: `req_${crypto.randomUUID()}` };
   const idempotency = (operation: string) => ({
     operation,
     idempotencyKey: crypto.randomUUID(),

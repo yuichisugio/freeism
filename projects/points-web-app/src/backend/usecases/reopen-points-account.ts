@@ -1,3 +1,4 @@
+import { writeAuditLog } from "../observability/audit-logger";
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
 import type { CreateAccountsRecipientResolver } from "../identity/accounts-recipient-resolver";
 import {
@@ -32,12 +33,13 @@ async function findReplay(
   };
 }
 
-export async function reopenPointsAccount(
+async function executeReopenPointsAccount(
   db: D1Database,
   input: {
     authUserId: string;
     createResolver: CreateAccountsRecipientResolver;
     currentSessionId?: string;
+    environment?: string;
     idempotencyKey: string;
     now?: Date;
     pointsUserId: string;
@@ -126,8 +128,9 @@ export async function reopenPointsAccount(
     })),
   );
 
+  let batchResults: D1Result[];
   try {
-    await db.batch([
+    batchResults = await db.batch([
       db
         .prepare(
           `INSERT INTO idempotency_results
@@ -269,22 +272,6 @@ export async function reopenPointsAccount(
           input.idempotencyKey,
           payloadHash,
         ),
-      db
-        .prepare(
-          `INSERT INTO audit_event
-             (id, actor_points_user_id, action, target, request_id, result, created_at)
-           SELECT ?, ?, 'ACCOUNT_REOPEN', ?, ?, 'SUCCESS', ? WHERE ${guardSql}`,
-        )
-        .bind(
-          `audit_${crypto.randomUUID()}`,
-          input.pointsUserId,
-          input.pointsUserId,
-          input.requestId,
-          now,
-          input.pointsUserId,
-          input.idempotencyKey,
-          payloadHash,
-        ),
     ]);
   } catch (error) {
     const concurrentReplay = await findReplay(
@@ -298,10 +285,53 @@ export async function reopenPointsAccount(
   }
 
   const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
-  if (stored) return stored;
+  if (stored) {
+    if (batchResults[0]?.meta.changes === 1) {
+      writeAuditLog({
+        action: "ACCOUNT_REOPEN",
+        environment: input.environment,
+        requestId: input.requestId,
+        resourceType: "points_account",
+        previousState: "CLOSED",
+        nextState: "ACTIVE",
+        claimedCount: preview.totalCount,
+      });
+    }
+    return stored;
+  }
   const latest = await loadPointsAccountReopenPreview(db, input.pointsUserId, input.createResolver);
   if (latest.reopenSetHash !== input.reopenSetHash) {
     throw new PointsAccountReopenError("REOPEN_SET_CHANGED");
   }
   throw new PointsAccountReopenError("ACCOUNT_NOT_CLOSED");
+}
+
+/** コマンドの拒否理由を安定したコードで記録し、取引を再実行せずに呼び出し元へ返す。 */
+export async function reopenPointsAccount(
+  db: D1Database,
+  input: Parameters<typeof executeReopenPointsAccount>[1],
+) {
+  try {
+    return await executeReopenPointsAccount(db, input);
+  } catch (error) {
+    const knownCodes = [
+      "ACCOUNT_NOT_CLOSED",
+      "REOPEN_SET_CHANGED",
+      "SAFE_INTEGER_OVERFLOW",
+      "IDEMPOTENCY_KEY_REUSED",
+    ];
+    const code =
+      error instanceof Error && knownCodes.includes(error.message)
+        ? error.message
+        : "ACCOUNT_REOPEN_FAILED";
+    writeAuditLog({
+      action: "ACCOUNT_REOPEN",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "points_account",
+      outcome: "REJECTED",
+      code,
+    });
+    throw error;
+  }
 }

@@ -1,9 +1,10 @@
+import { writeAuditLog } from "../../observability/audit-logger";
 import type { AccountsPublicJwk } from "../../accounts/accounts-key-vault";
 
 /**
  * 接続先Accounts（`accounts_connections`表）の読み書き。
  * 状態は`PENDING_CLIENT_REGISTRATION` → `ACTIVE` → `WITHDRAWN`（終端）と遷移する。
- * 状態の変更は、監査と冪等結果を同じD1 batchで記録する。
+ * 状態の変更と冪等結果を同じD1 batchで保存し、成功後に監査ログを出す。
  * @see ../../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../../test/worker/accounts-connection.worker.test.ts
  */
@@ -65,7 +66,7 @@ export type ActiveAccountsConnectionSummary = Pick<
  */
 export type AccountsConnectionAudit = {
   actorPointsUserId: string;
-  reason: string;
+  environment?: string;
   requestId: string;
 };
 
@@ -188,48 +189,6 @@ export async function listActiveAccountsConnections(
 type SqlFragment = { sql: string; bindings: unknown[] };
 
 /**
- * `condition`が成り立つ時だけ監査を記録する文。
- * `target`には接続先IDだけを入れる。
- * `reason`の既定値は運営者が入力した理由。
- */
-function insertAuditWhen(
-  db: D1Database,
-  {
-    action,
-    connectionId,
-    audit,
-    now,
-    reason = { sql: "?", bindings: [audit.reason] },
-    condition,
-  }: {
-    action: string;
-    connectionId: string;
-    audit: AccountsConnectionAudit;
-    now: number;
-    reason?: SqlFragment;
-    condition: SqlFragment;
-  },
-): D1PreparedStatement {
-  return db
-    .prepare(
-      `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-       SELECT ?, ?, ?, ?, ${reason.sql}, ?, 'SUCCESS', ?
-       WHERE ${condition.sql}`,
-    )
-    .bind(
-      `audit_${crypto.randomUUID()}`,
-      audit.actorPointsUserId,
-      action,
-      connectionId,
-      ...reason.bindings,
-      audit.requestId,
-      now,
-      ...condition.bindings,
-    );
-}
-
-/**
  * `condition`が成り立つ時だけ冪等結果を保存する文。
  */
 function insertIdempotencyWhen(
@@ -317,13 +276,6 @@ export async function registerAccountsConnection(
           audit.actorPointsUserId,
           connection.createdAt,
         ),
-      insertAuditWhen(db, {
-        action: "ACCOUNTS_CONNECTION_CREATED",
-        connectionId: connection.id,
-        audit,
-        now: connection.createdAt,
-        condition: always,
-      }),
       insertIdempotencyWhen(db, {
         actorPointsUserId: audit.actorPointsUserId,
         idempotency,
@@ -335,6 +287,13 @@ export async function registerAccountsConnection(
     if (String(error).includes("accounts_connections.accounts_origin")) return "ORIGIN_DUPLICATED";
     throw error;
   }
+  writeAuditLog({
+    action: "ACCOUNTS_CONNECTION_CREATED",
+    environment: audit.environment,
+    requestId: audit.requestId,
+    resourceType: "accounts_connection",
+    nextState: "PENDING_CLIENT_REGISTRATION",
+  });
   return "REGISTERED";
 }
 
@@ -367,14 +326,7 @@ export async function activateAccountsConnection(
                   WHERE id = ? AND status = 'PENDING_CLIENT_REGISTRATION')`,
     bindings: [connectionId],
   };
-  const [, , activation] = await db.batch([
-    insertAuditWhen(db, {
-      action: "ACCOUNTS_CONNECTION_ACTIVATED",
-      connectionId,
-      audit,
-      now,
-      condition: isPending,
-    }),
+  const [, activation] = await db.batch([
     insertIdempotencyWhen(db, {
       actorPointsUserId: audit.actorPointsUserId,
       idempotency,
@@ -389,7 +341,17 @@ export async function activateAccountsConnection(
       )
       .bind(clientId, now, connectionId),
   ]);
-  return activation?.meta.changes === 1;
+  const activated = activation?.meta.changes === 1;
+  if (activated)
+    writeAuditLog({
+      action: "ACCOUNTS_CONNECTION_ACTIVATED",
+      environment: audit.environment,
+      requestId: audit.requestId,
+      resourceType: "accounts_connection",
+      previousState: "PENDING_CLIENT_REGISTRATION",
+      nextState: "ACTIVE",
+    });
+  return activated;
 }
 
 // --------------------------------------------------
@@ -399,7 +361,7 @@ export async function activateAccountsConnection(
 /**
  * 接続先を取り下げる。
  * 同じbatchで、その接続先への全連携・連携の試行・トークンキャッシュを削除し、秘密鍵の暗号文を消す。
- * 解除した連携の件数は、監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として残す。
+ * 解除した連携の件数は、監査ログの`releasedLinkCount`に残す。
  * FIX・claimに保存した`accounts_origin`のsnapshotは残す。
  * @returns 既に`WITHDRAWN`だった場合は`false`
  */
@@ -422,25 +384,6 @@ export async function withdrawAccountsConnection(
     bindings: [connectionId],
   };
   const results = await db.batch([
-    insertAuditWhen(db, {
-      action: "ACCOUNTS_CONNECTION_WITHDRAWN",
-      connectionId,
-      audit,
-      now,
-      condition: isLive,
-    }),
-    insertAuditWhen(db, {
-      action: "ACCOUNTS_LINKS_RELEASED",
-      connectionId,
-      audit,
-      now,
-      reason: {
-        sql: `'releasedLinkCount=' ||
-              (SELECT count(*) FROM accounts_links WHERE accounts_connection_id = ?)`,
-        bindings: [connectionId],
-      },
-      condition: isLive,
-    }),
     insertIdempotencyWhen(db, {
       actorPointsUserId: audit.actorPointsUserId,
       idempotency,
@@ -463,5 +406,22 @@ export async function withdrawAccountsConnection(
       )
       .bind(now, connectionId),
   ]);
-  return results.at(-1)?.meta.changes === 1;
+  const withdrawn = results.at(-1)?.meta.changes === 1;
+  if (withdrawn) {
+    writeAuditLog({
+      action: "ACCOUNTS_CONNECTION_WITHDRAWN",
+      environment: audit.environment,
+      requestId: audit.requestId,
+      resourceType: "accounts_connection",
+      nextState: "WITHDRAWN",
+    });
+    writeAuditLog({
+      action: "ACCOUNTS_LINKS_RELEASED",
+      environment: audit.environment,
+      requestId: audit.requestId,
+      resourceType: "accounts_link",
+      releasedLinkCount: results[1]?.meta.changes ?? 0,
+    });
+  }
+  return withdrawn;
 }

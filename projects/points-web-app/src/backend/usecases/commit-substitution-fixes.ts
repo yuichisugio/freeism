@@ -1,3 +1,5 @@
+import { writeEconomicRejectionLog } from "../observability/economic-rejection-logger";
+import { writeAuditLog } from "../observability/audit-logger";
 import { parseAndValidateCsv } from "../csv/csv-input";
 import { defineCsvSchema, textColumn } from "../csv/csv-schema";
 import { canonicalJson, sha256Hex, type CsvValidationError } from "../csv/csv-validation-result";
@@ -554,6 +556,7 @@ export async function commitSubstitutionCsv(
   bytes: Uint8Array,
   input: {
     actorPointsUserId: string;
+    environment?: string;
     expectedValidationHash: string;
     idempotencyKey: string;
     now?: Date;
@@ -787,13 +790,6 @@ export async function commitSubstitutionCsv(
         JSON.stringify(responseBody),
         now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-         VALUES (?, ?, 'SUBSTITUTION_CSV_COMMIT', 'substitution', ?, ?, 'SUCCESS', ?)`,
-      )
-      .bind(`audit_${crypto.randomUUID()}`, input.actorPointsUserId, input.reason, requestId, now),
   ];
   try {
     await runCsvAtomicBatch(db, statements);
@@ -806,7 +802,20 @@ export async function commitSubstitutionCsv(
       payloadHash,
     );
     if (concurrent) return { responseBody: concurrent.body, status: concurrent.status };
+    writeEconomicRejectionLog(error, {
+      action: "SUBSTITUTION_CSV_COMMIT",
+      environment: input.environment,
+      requestId,
+      resourceType: "substitution",
+    });
     throw error;
   }
+  writeAuditLog({
+    action: "SUBSTITUTION_CSV_COMMIT",
+    environment: input.environment,
+    requestId,
+    resourceType: "substitution",
+    affectedCount: results.length,
+  });
   return { responseBody, status: 201 };
 }

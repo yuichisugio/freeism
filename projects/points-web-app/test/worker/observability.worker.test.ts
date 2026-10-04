@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vite-plus/test";
+import { env } from "cloudflare:test";
 
 import { createAccountsFailureReporter } from "../../src/backend/accounts/accounts-failure-reporter";
 import {
@@ -7,6 +8,16 @@ import {
 } from "../../src/backend/observability/structured-logger";
 import { emitOpsMetric } from "../../src/backend/observability/ops-metrics";
 describe("structured Workers observability", () => {
+  it("removes audit storage while preserving the business ledger", async () => {
+    const tables = await env.DB.prepare(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('audit_event', 'point_ledger_entry', 'point_account') ORDER BY name",
+    ).all<{ name: string }>();
+    expect(tables.results.map((table) => table.name)).toEqual([
+      "point_account",
+      "point_ledger_entry",
+    ]);
+  });
+
   it("omits Accounts connection IDs from logs and metric indexes", async () => {
     const logs: unknown[] = [];
     const points: AnalyticsEngineDataPoint[] = [];

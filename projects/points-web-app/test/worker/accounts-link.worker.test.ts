@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { toAccountsProviderId } from "../../src/backend/accounts/accounts-provider-id";
@@ -25,6 +25,13 @@ import {
 } from "../support/fake-accounts";
 
 const db = env.DB!;
+const auditLogs = vi.spyOn(console, "log").mockImplementation(() => {});
+beforeEach(() => auditLogs.mockClear());
+function auditEvents(action: string) {
+  return auditLogs.mock.calls
+    .map(([entry]) => entry)
+    .filter((entry) => typeof entry === "object" && entry !== null && entry.operation === action);
+}
 
 // --------------------------------------------------
 // 準備
@@ -312,18 +319,8 @@ describe("Accountsとの連携", () => {
     const links = await listLinks(request);
     expect(links).toHaveLength(3);
     expect(links.find((item) => item.accountsUserId === accountsUserId)?.relinkedAt).not.toBeNull();
-    const audits = await db
-      .prepare(
-        "SELECT action FROM audit_event WHERE actor_points_user_id = ? ORDER BY created_at, action",
-      )
-      .bind(user.pointsUserId)
-      .all<{ action: string }>();
-    expect(audits.results.map(({ action }) => action)).toEqual([
-      "ACCOUNTS_LINK_CREATED",
-      "ACCOUNTS_LINK_CREATED",
-      "ACCOUNTS_LINK_CREATED",
-      "ACCOUNTS_LINK_RENEWED",
-    ]);
+    expect(auditEvents("ACCOUNTS_LINK_CREATED")).toHaveLength(3);
+    expect(auditEvents("ACCOUNTS_LINK_RENEWED")).toHaveLength(1);
   });
 
   it("別のPointsユーザーに連携済みのAccountsユーザーは保存せずに案内する", async () => {
@@ -337,15 +334,16 @@ describe("Accountsとの連携", () => {
       code: "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER",
     });
     expect(await listLinks(request)).toEqual([]);
-    const audit = await db
-      .prepare("SELECT action, target, reason FROM audit_event WHERE actor_points_user_id = ?")
-      .bind(user.pointsUserId)
-      .first();
-    expect(audit).toEqual({
-      action: "ACCOUNTS_LINK_REJECTED",
-      target: connection.connectionId,
-      reason: "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER",
-    });
+    expect(auditEvents("ACCOUNTS_LINK_REJECTED")).toEqual([
+      expect.objectContaining({
+        outcome: "REJECTED",
+        code: "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER",
+      }),
+    ]);
+    const logged = JSON.stringify(auditEvents("ACCOUNTS_LINK_REJECTED"));
+    expect(logged).not.toContain(user.pointsUserId);
+    expect(logged).not.toContain(accountsUserId);
+    expect(logged).not.toContain(connection.connectionId);
   });
 
   it("連携・解除でPointsのsessionとログイン手段を変えない", async () => {
@@ -490,16 +488,26 @@ describe("情報提供の停止と解除", () => {
     const response = await request("DELETE", `/api/accounts-links/${linked!.id}`);
 
     expect(response.status).toBe(204);
-    const audit = await db
-      .prepare(
-        `SELECT action, target, result FROM audit_event
-         WHERE actor_points_user_id = ? AND action = 'ACCOUNTS_LINK_DELETED'`,
-      )
-      .bind(user.pointsUserId)
-      .all();
-    expect(audit.results).toEqual([
-      { action: "ACCOUNTS_LINK_DELETED", target: linked!.id, result: "SUCCESS" },
+    expect(auditEvents("ACCOUNTS_LINK_DELETED")).toEqual([
+      expect.objectContaining({ outcome: "SUCCESS", environment: env.APP_ENV }),
     ]);
+  });
+
+  it("監査ログの出力に失敗しても解除した結果を返す", async () => {
+    const connection = await createConnection();
+    const user = await seedPointsUser(db);
+    const request = createUserClient(user);
+    await link(request, connection, newAccountsUserId());
+    const [linked] = await listLinks(request);
+    auditLogs.mockImplementationOnce(() => {
+      throw new Error("log sink unavailable");
+    });
+
+    const response = await request("DELETE", `/api/accounts-links/${linked!.id}`);
+
+    expect(response.status).toBe(204);
+    expect(await listLinks(request)).toEqual([]);
+    expect(auditEvents("ACCOUNTS_LINK_DELETED")).toHaveLength(1);
   });
 
   it("他人の連携は解除できない", async () => {
@@ -514,6 +522,7 @@ describe("情報提供の停止と解除", () => {
     expect(response.status).toBe(404);
     expect(await response.json()).toMatchObject({ code: "ACCOUNTS_LINK_NOT_FOUND" });
     expect(await listLinks(owner)).toHaveLength(1);
+    expect(auditEvents("ACCOUNTS_LINK_DELETED")).toHaveLength(0);
   });
 
   it("一覧の取得に失敗しても連携を成立させ、次の閲覧で取得し直す", async () => {

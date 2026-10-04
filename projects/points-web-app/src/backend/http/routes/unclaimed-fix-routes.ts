@@ -107,6 +107,7 @@ export function registerUnclaimedFixRoutes(
         const bindings = requireBindings(context.env);
         const result = await claimUnclaimedFixes(bindings.DB, {
           ...body.output,
+          environment: bindings.APP_ENV,
           createResolver: dependencies.accountsRecipientResolverFor(bindings),
           idempotencyKey: context.req.header("Idempotency-Key")!,
           now: new Date(),

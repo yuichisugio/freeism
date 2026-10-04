@@ -29,6 +29,7 @@ import { findProfileMutationReplay } from "./profile-mutation-idempotency";
  */
 export type AccountsConnectionCommand = {
   db: D1Database;
+  environment?: string;
   appOrigin: string;
   callbackOrigin?: string;
   actorPointsUserId: string;
@@ -177,7 +178,11 @@ export async function createAccountsConnection(
   };
   const result = await connectionRepository.registerAccountsConnection(command.db, {
     connection,
-    audit: { actorPointsUserId: command.actorPointsUserId, reason, requestId: command.requestId },
+    audit: {
+      actorPointsUserId: command.actorPointsUserId,
+      environment: command.environment,
+      requestId: command.requestId,
+    },
     idempotency: {
       operation,
       idempotencyKey: command.idempotencyKey,
@@ -248,7 +253,11 @@ export async function activateAccountsConnection(
     connectionId,
     clientId,
     now,
-    audit: { actorPointsUserId: command.actorPointsUserId, reason, requestId: command.requestId },
+    audit: {
+      actorPointsUserId: command.actorPointsUserId,
+      environment: command.environment,
+      requestId: command.requestId,
+    },
     idempotency: {
       operation,
       idempotencyKey: command.idempotencyKey,
@@ -340,7 +349,11 @@ export async function withdrawAccountsConnection(
   const isWithdrawn = await connectionRepository.withdrawAccountsConnection(command.db, {
     connectionId,
     now,
-    audit: { actorPointsUserId: command.actorPointsUserId, reason, requestId: command.requestId },
+    audit: {
+      actorPointsUserId: command.actorPointsUserId,
+      environment: command.environment,
+      requestId: command.requestId,
+    },
     idempotency: {
       operation,
       idempotencyKey: command.idempotencyKey,

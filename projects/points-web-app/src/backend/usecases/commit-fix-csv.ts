@@ -20,6 +20,7 @@ export async function commitFixCsv(
   input: {
     accountsConnectionId: string;
     actorPointsUserId: string;
+    environment?: string;
     createResolver: CreateAccountsRecipientResolver;
     expectedValidationHash: string;
     idempotencyKey: string;
@@ -57,9 +58,8 @@ export async function commitFixCsv(
     throw new Error("VALIDATION_CHANGED");
   const now = input.now ?? new Date();
   const committed = await commitFixRows(db, {
-    accountsConnectionId: validated.accountsConnectionId,
     actorPointsUserId: input.actorPointsUserId,
-    auditEventId: `audit_${crypto.randomUUID()}`,
+    environment: input.environment,
     fileHash: validated.fileHash,
     idempotencyKey: input.idempotencyKey,
     now,

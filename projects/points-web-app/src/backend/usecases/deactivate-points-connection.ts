@@ -1,3 +1,4 @@
+import { writeAuditLog } from "../observability/audit-logger";
 import { canonicalJson, sha256Hex } from "../csv/csv-validation-result";
 
 interface DeactivationRow {
@@ -46,9 +47,10 @@ async function findReplay(
     .first<DeactivationRow>();
 }
 
-export async function deactivatePointsConnection(
+async function executeDeactivatePointsConnection(
   db: D1Database,
   input: {
+    environment?: string;
     idempotencyKey: string;
     issuer: string;
     now?: Date;
@@ -169,18 +171,6 @@ export async function deactivatePointsConnection(
          WHERE id = ? AND status = 'UNLINKED' AND grant_version = ?`,
         )
         .bind(`pro_${crypto.randomUUID()}`, now.getTime(), connection.id, grantVersion),
-      db
-        .prepare(
-          `INSERT INTO audit_event
-             (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-           SELECT ?, connection.points_user_id, 'POINTS_CONNECTION_DEACTIVATE',
-                  connection.id, deactivation.reason, ?, 'SUCCESS', ?
-           FROM points_oauth_connection_deactivation deactivation
-           JOIN points_oauth_connection connection
-             ON connection.id = deactivation.points_connection_id
-           WHERE deactivation.id = ?`,
-        )
-        .bind(`audit_${crypto.randomUUID()}`, input.requestId, now.getTime(), receiptId),
     ]);
   } catch (error) {
     const concurrentReplay = await findReplay(db, input);
@@ -197,5 +187,44 @@ export async function deactivatePointsConnection(
     .bind(receiptId)
     .first<DeactivationRow>();
   if (!stored) throw new Error("ACTIVE_RESERVATION_EXISTS");
+  writeAuditLog({
+    action: "POINTS_CONNECTION_DEACTIVATE",
+    environment: input.environment,
+    requestId: input.requestId,
+    resourceType: "points_connection",
+    previousState: "ACTIVE",
+    nextState: "UNLINKED",
+  });
   return result(stored);
+}
+
+/** コマンドの拒否理由を安定したコードで記録し、取引を再実行せずに呼び出し元へ返す。 */
+export async function deactivatePointsConnection(
+  db: D1Database,
+  input: Parameters<typeof executeDeactivatePointsConnection>[1],
+) {
+  try {
+    return await executeDeactivatePointsConnection(db, input);
+  } catch (error) {
+    const knownCodes = [
+      "VALIDATION_FAILED",
+      "IDEMPOTENCY_KEY_REUSED",
+      "RESOURCE_NOT_FOUND",
+      "LINK_ATTEMPT_ALREADY_FINALIZED",
+      "ACTIVE_RESERVATION_EXISTS",
+    ];
+    const code =
+      error instanceof Error && knownCodes.includes(error.message)
+        ? error.message
+        : "POINTS_CONNECTION_DEACTIVATE_FAILED";
+    writeAuditLog({
+      action: "POINTS_CONNECTION_DEACTIVATE",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "points_connection",
+      outcome: "REJECTED",
+      code,
+    });
+    throw error;
+  }
 }

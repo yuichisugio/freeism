@@ -65,6 +65,7 @@ export function registerAccountRoutes(
         const result = await closePointsAccount(requireBindings(context.env).DB, {
           authUserId: context.get("authSession").user.id,
           currentSessionId: context.get("authSession").session.id,
+          environment: requireBindings(context.env).APP_ENV,
           idempotencyKey: context.req.header("Idempotency-Key")!,
           pointsUserId: context.get("pointsUser").id,
           requestId: `req_${crypto.randomUUID()}`,
@@ -124,6 +125,7 @@ export function registerAccountRoutes(
           authUserId: context.get("authSession").user.id,
           createResolver: dependencies.accountsRecipientResolverFor(bindings),
           currentSessionId: context.get("authSession").session.id,
+          environment: requireBindings(context.env).APP_ENV,
           idempotencyKey: context.req.header("Idempotency-Key")!,
           pointsUserId: context.get("pointsUser").id,
           reopenSetHash: (body as { reopenSetHash: string }).reopenSetHash,

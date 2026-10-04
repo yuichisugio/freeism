@@ -40,16 +40,11 @@ export async function completeVerifiedAccountsLink(
     accountsUserId,
     now,
     requestId,
+    environment: dependencies.environment,
   });
   if (saved.status === "LINKED_TO_OTHER_POINTS_USER") {
     const code = "ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER";
-    await recordAccountsLinkRejection(db, {
-      pointsUserId,
-      accountsConnectionId,
-      code,
-      now,
-      requestId,
-    });
+    recordAccountsLinkRejection({ code, requestId, environment: dependencies.environment });
     throw new AccountsProblemError(409, code);
   }
 

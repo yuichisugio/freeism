@@ -1,8 +1,9 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import type { CreateAccountsRecipientResolver } from "../../src/backend/identity/accounts-recipient-resolver";
+import { closePointsAccount } from "../../src/backend/usecases/close-points-account";
 import { createPointReservation } from "../../src/backend/usecases/create-point-reservation";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { importPointPackages } from "../../src/backend/usecases/import-point-packages";
@@ -338,7 +339,9 @@ async function seedUnclaimedFixes(
 }
 
 describe("Points account close and reopen", () => {
+  afterEach(() => vi.restoreAllMocks());
   it("closes the account while retaining economic and permanent subject records", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     const suffix = crypto.randomUUID();
     const account = await seedAccount(suffix);
     const accountsLinkId = await seedAccountsLink(account);
@@ -359,9 +362,7 @@ describe("Points account close and reopen", () => {
                 (SELECT count(*) FROM oauth_access_token
                   WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedAccessCount,
                 (SELECT count(*) FROM oauth_refresh_token
-                  WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedRefreshCount,
-                (SELECT count(*) FROM audit_event WHERE actor_points_user_id = user.id
-                  AND action = 'ACCOUNT_CLOSE') AS auditCount
+                  WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedRefreshCount
          FROM points_user user JOIN profiles profile ON profile.points_user_id = user.id
          WHERE user.id = ?`,
       )
@@ -370,7 +371,6 @@ describe("Points account close and reopen", () => {
     expect(state).toMatchObject({
       accountStatus: "CLOSED",
       accountCount: 2,
-      auditCount: 1,
       consentCount: 0,
       description: "",
       displayName: "Closed account",
@@ -383,16 +383,27 @@ describe("Points account close and reopen", () => {
     await expect(
       db.prepare("SELECT id FROM accounts_links WHERE id = ?").bind(accountsLinkId).first(),
     ).resolves.toBeNull();
-    const released = await db
-      .prepare(
-        `SELECT target, reason FROM audit_event
-         WHERE actor_points_user_id = ? AND action = 'ACCOUNTS_LINKS_RELEASED'`,
-      )
-      .bind(account.pointsUserId)
-      .all();
-    expect(released.results).toEqual([
-      { reason: "releasedLinkCount=1", target: account.pointsUserId },
-    ]);
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "ACCOUNTS_LINKS_RELEASED",
+        releasedLinkCount: 1,
+        outcome: "SUCCESS",
+        environment: env.APP_ENV,
+      }),
+    );
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: "ACCOUNT_CLOSE", outcome: "SUCCESS" }),
+    );
+    expect(JSON.stringify(logs.mock.calls)).not.toContain(account.pointsUserId);
+    const auditCount = logs.mock.calls.length;
+    const replay = await closePointsAccount(db, {
+      authUserId: account.authUserId,
+      pointsUserId: account.pointsUserId,
+      idempotencyKey: `close-${suffix}`,
+      requestId: "req-close-replay",
+    });
+    expect(replay.status).toBe(200);
+    expect(logs.mock.calls).toHaveLength(auditCount);
     await expect(
       db
         .prepare(
@@ -550,6 +561,7 @@ describe("Points account close and reopen", () => {
   });
 
   it("reopens with an empty FIX set because close released every Accounts link", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     const suffix = crypto.randomUUID();
     const account = await seedAccount(suffix);
     await seedAccountsLink(account);
@@ -580,6 +592,14 @@ describe("Points account close and reopen", () => {
     await expect(reopened.json()).resolves.toMatchObject({
       data: { claimedCount: 0, status: "ACTIVE" },
     });
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "ACCOUNT_REOPEN",
+        claimedCount: 0,
+        outcome: "SUCCESS",
+        environment: env.APP_ENV,
+      }),
+    );
   });
 
   it("claims positive and negative FIX resolved to a current Accounts link on reopen", async () => {

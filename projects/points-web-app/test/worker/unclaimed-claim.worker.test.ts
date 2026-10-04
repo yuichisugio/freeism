@@ -1,5 +1,7 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+afterEach(() => vi.restoreAllMocks());
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import type {
@@ -183,6 +185,7 @@ async function setup() {
 
 describe("unclaimed FIX claim", () => {
   it("claims only entries that Accounts currently resolves to the linked Accounts user", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const { accountsOrigin, aliceUrl, bobUrl, criterionId, link, pointsUser } = await setup();
     const createResolver = fakeAccounts(accountsOrigin, {
       [aliceUrl]: { accountsUserId: link.accountsUserId, status: "matched" },
@@ -230,14 +233,17 @@ describe("unclaimed FIX claim", () => {
       .bind(pointsUser.id)
       .first();
     expect(claim).toEqual({ accountsOrigin, accountsUserId: link.accountsUserId });
-    const audit = await env
-      .DB!.prepare(
-        `SELECT target, reason FROM audit_event
-         WHERE actor_points_user_id = ? AND action = 'UNCLAIMED_FIX_CLAIM'`,
-      )
-      .bind(pointsUser.id)
-      .all();
-    expect(audit.results).toEqual([{ reason: "claimedCount=1", target: link.accountsLinkId }]);
+    const claimLogs = log.mock.calls
+      .map(([entry]) => entry)
+      .filter((entry) => entry.operation === "UNCLAIMED_FIX_CLAIM");
+    expect(claimLogs).toEqual([
+      expect.objectContaining({
+        outcome: "SUCCESS",
+        claimedCount: 1,
+        requestId: input.requestId,
+      }),
+    ]);
+    expect(JSON.stringify(claimLogs)).not.toContain(link.accountsLinkId);
     await expect(
       previewUnclaimedFixes(env.DB!, {
         accountsLinkId: link.accountsLinkId,

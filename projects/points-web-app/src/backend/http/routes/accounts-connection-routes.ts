@@ -50,6 +50,7 @@ function toCommand(context: Context<BackendContext>, reason: unknown): AccountsC
   const env = requireBindings(context.env);
   return {
     db: env.DB,
+    environment: env.APP_ENV,
     appOrigin: env.APP_ORIGIN,
     callbackOrigin: env.OAUTH_PROXY_PRODUCTION_URL ?? env.APP_ORIGIN,
     actorPointsUserId: context.get("pointsUser").id,

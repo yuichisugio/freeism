@@ -1,3 +1,5 @@
+import { writeEconomicRejectionLog } from "../../observability/economic-rejection-logger";
+import { writeAuditLog } from "../../observability/audit-logger";
 import {
   chunkCanonicalJsonRows,
   composeCsvAtomicBatch,
@@ -99,10 +101,8 @@ async function findPreviousEntries(db: D1Database, resultIds: readonly string[])
 }
 
 export interface CommitFixInput {
-  /** 受領者の照合に使った接続先 Accounts。監査に記録する。 */
-  accountsConnectionId: string;
   actorPointsUserId: string;
-  auditEventId: string;
+  environment?: string;
   fileHash: string;
   idempotencyKey: string;
   now: Date;
@@ -472,41 +472,33 @@ export async function commitFixRows(
       JSON.stringify(responseBody),
       input.now.getTime(),
     );
-  const audit = db
-    .prepare(
-      `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-       VALUES (?, ?, 'FIX_CSV_COMMIT', 'FIX', ?, ?, 'SUCCESS', ?)`,
-    )
-    .bind(
-      input.auditEventId,
-      input.actorPointsUserId,
-      input.reason,
-      input.requestId,
-      input.now.getTime(),
+  try {
+    await runCsvAtomicBatch(
+      db,
+      composeCsvAtomicBatch({
+        finalizeWrites: sealWrites,
+        domainWrites,
+        idempotencyResult: [idempotency],
+        ledger: ledgerWrites,
+      }),
     );
-  const accountsResolvedAudit = db
-    .prepare(
-      `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-       VALUES (?, ?, 'FIX_ACCOUNTS_RESOLVED', ?, ?, ?, 'SUCCESS', ?)`,
-    )
-    .bind(
-      `audit_${crypto.randomUUID()}`,
-      input.actorPointsUserId,
-      input.accountsConnectionId,
-      input.reason,
-      input.requestId,
-      input.now.getTime(),
-    );
-  await runCsvAtomicBatch(
-    db,
-    composeCsvAtomicBatch({
-      audit: [...sealWrites, audit, accountsResolvedAudit],
-      domainWrites,
-      idempotencyResult: [idempotency],
-      ledger: ledgerWrites,
-    }),
-  );
+  } catch (error) {
+    writeEconomicRejectionLog(error, {
+      action: "FIX_CSV_COMMIT",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "fix",
+    });
+    throw error;
+  }
+  for (const action of ["FIX_CSV_COMMIT", "FIX_ACCOUNTS_RESOLVED"]) {
+    writeAuditLog({
+      action,
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "fix",
+      affectedCount: results.length,
+    });
+  }
   return { payloadHash, responseBody, results };
 }

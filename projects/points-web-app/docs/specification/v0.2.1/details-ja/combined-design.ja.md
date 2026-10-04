@@ -11,11 +11,10 @@
   - [「設定」画面](#設定画面)
     - [自分のプロフィールURL](#自分のプロフィールurl)
     - [評価軸の作成・更新・削除](#評価軸の作成更新削除)
-      - [「貢献評価を代用する仕組み」の係数を設定](#貢献評価を代用する仕組みの係数を設定)
+      - [「貢献評価を代用する仕組み」の設定](#貢献評価を代用する仕組みの設定)
       - [「交換する仕組み」の係数を設定](#交換する仕組みの係数を設定)
       - [評価軸ポイントの加算・減算](#評価軸ポイントの加算減算)
     - [ポイント交換する機能](#ポイント交換する機能)
-    - [貢献評価を代用する仕組み](#貢献評価を代用する仕組み)
     - [ポイント譲渡する機能](#ポイント譲渡する機能)
     - [退会ボタン](#退会ボタン)
     - [公式パッケージの設定・自動分配](#公式パッケージの設定自動分配)
@@ -92,7 +91,7 @@
     - [台帳への追加と自動更新](#台帳への追加と自動更新)
     - [残高と累計評価額の計算](#残高と累計評価額の計算)
     - [引き落としの検査と拒否](#引き落としの検査と拒否)
-    - [数値上限と拒否の監査](#数値上限と拒否の監査)
+    - [数値上限](#数値上限)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
@@ -435,9 +434,34 @@
 - 注意事項
   - 改訂版（`revision`）の設計は不要
 
-#### 「貢献評価を代用する仕組み」の係数を設定
+#### 「貢献評価を代用する仕組み」の設定
 
-- 評価軸のプロフィール画面の「評価代用アップロード」からも実行する。説明、使用場面、計算式、二重付与の防止、確認ダイアログは、プロフィール画面の「貢献評価を代用する仕組み」に従う。
+- 説明
+  - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
+  - その評価軸に設定してある評価の代用の係数から、ポイントを付与する方法
+
+- 要件
+  1. 実行できるのは、その評価軸の`evalueterAdmin`、または`appAdmin`
+  2. フォームとCSVアップロードに対応
+  3. 必要な情報は、代用する評価軸IDと係数を設定する
+  4. その評価軸ポイントを得ている人全員分に、その評価を代用する処理を実行するボタンも用意したい
+  5. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
+     - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
+     - 実行の単位は、評価月`YYYY-MM`とする
+  6. アップロード時に、↓をチェックする
+     1. 貢献評価を代用するための類似度の係数が評価軸に設定されているか
+  7. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
+  8. 「付与し直す」ボタンを用意
+     - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
+  9.  計算式
+     - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
+     - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
+
+- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
+- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
+- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
+- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
+- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 #### 「交換する仕組み」の係数を設定
 
@@ -560,7 +584,6 @@
         1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
   10. FIXによる追加の負評価は残高不足に関係なく受け付ける。
 
-
 - 貢献度アップロードは、draftを持たず、FIXの内容のみアップロードしてもらう。
   - draftは各自の評価軸で管理してもらう
 
@@ -594,9 +617,9 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
 
 - 初回取込で安定した`fixResultId`を発行する。
-- 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録と監査へ保存する。
+- 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録へ保存する。
 - 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
-- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録と監査を保存する。貢献評価代用は、この最新の評価月と額を集計する。
+- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
 - 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
 
@@ -614,12 +637,10 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 3. ledger entryまたはunclaimed entry
 4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
 5. idempotency result
-6. audit event
 
 部分成功・行単位retry・server draftを許可しない。
 
 - FIX command内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
-- 監査には照合に使った接続先IDを記録し、識別子の値は記録しない。
 
 ### ポイント交換する機能
 
@@ -657,39 +678,6 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 - burnとmintを同一原子処理にし、`evaluationTotal`は変更しない。
 - 使える残高は台帳上の残高である。必要額未満なら譲渡を拒否する。
 - 残高が0未満のときは、交換はできない。
-
-### 貢献評価を代用する仕組み
-
-- 説明
-  - 「貢献評価を代用する仕組み」を利用して、他の評価軸のポイントを得る方法の実装
-  - 評価軸が貢献者に、この仕組みを使ってポイントを付与する方法でもある
-
-- **処理の流れ**
-  1. 画面内にある「貢献評価の代用アップロード」ボタンを押す。
-  2. [CSVアップロードの確認手順](#csvアップロード)に従ってCSVを検証し、確認後に評価代用を実行する。
-
-- 要件
-  1. GUIは用意せず、CSVアップロードのみ対応
-  2. ドラッグ＆ドロップ機能は廃止
-     - 「アップロード」ボタンを押してファイル選択画面から選択
-  3. アップロード時に、↓をチェックする
-     1. 貢献評価を代用するための類似度の係数が評価軸に設定されているか
-  4. 実行できるのは、利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`
-  5. キーの粒度は、「貢献評価を代用する仕組み」の類似度で付与したポイント or 正規な評価しか選べない設計にする
-     - 後から何度でも、どの評価軸のポイントでも採用可能で、更新・変更できるようにする
-     - 実行の単位は、評価月`YYYY-MM`とする
-  6. 「貢献評価を代用する仕組み」の類似度は、どの評価軸を選択するか指定できるようにしたい
-  7. 「付与し直す」ボタンを用意
-     - 途中で類似度によって付与された場合に追加ポイント付与があった場合は、「付与し直す」ボタンで更新できるようにする
-  8. 計算式
-     - A評価軸の付与ポイントを「貢献評価を代用する仕組み」で、B評価軸ポイントを取得した場合は、↓計算式で算出する
-     - A評価軸の月ごとのポイント合計額×類似度＝その月のB評価軸ポイント額
-
-- 代用methodは有向`sourceEvaluationCriterionId -> targetEvaluationCriterionId`ごとの`substitutionMethod`の最新レコードを更新する。更新は現在versionとの一致を検査し、実行記録と監査を保存する。method CSV列は`sourceEvaluationCriterionId`、`targetEvaluationCriterionId`、`expectedVersion`、`status`、`similarityNumerator`、`similarityDenominator`、`exchangeRateId`とする。
-- `ACTIVE`の類似度は`0 < similarityNumerator <= similarityDenominator`の正の安全整数とし、最大公約数で正規化する。`exchangeRateId`は同じ有向pairのACTIVEな正の整数`numerator / denominator`を指す。`DISABLED`は類似度とrateを持たず新規実行を停止する。0、負数、逆方向の暗黙利用、`REAL`への変換を禁止する。
-- 各Pointsユーザーの`sourceTotalScaled`は、受領者が確定した正規FIXの最新結果から、評価月が対象UTC月に属する額を集計する。`SUBSTITUTION_FIX`、自動分配、譲渡、交換、落札の引き落としをsourceに使わない。この非再帰規則により有向pair間のcycleがあっても代用結果を再入力できない。
-- 各利用者の理論値は`sourceTotalScaled * similarityNumerator * exchangeNumerator / (similarityDenominator * exchangeDenominator)`とし、中間計算はBigIntだけを使う。0.0001ポイント単位へ絶対値を切り下げて符号を戻す、すなわち0方向の切捨てとする。負sourceは負の代用結果、0または保存精度未満は0結果とし、範囲超過は全体を拒否する。
-- 対象userは最新結果の評価月が対象UTC月に属する受領者確定済みのsource正規FIXを持つ`pointsUserId`と直前resultに存在した`pointsUserId`の和集合とする。close状態でも経済履歴の訂正先は同じuserのままとする。実行時の利用者別理論値、丸め値、source FIX実行記録集合hash、method／rate／source／target criterionの実行時属性、月境界、実行cutoffを不変snapshotする。
 
 ### ポイント譲渡する機能
 
@@ -794,7 +782,7 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
   - 追加発行の総額は、各段階の受取額上限、終了条件、処理件数上限に従う。
   - 経路、各段階の設定・計算値、循環判定に使う前回受取額と追加発行の有無は、計算中のメモリで扱う。
   - 台帳は既存の参照で元のFIXに紐付け、元FIX・利用者・評価軸・累計評価額への反映有無ごとに金額を合算する。既存の`affectsEvaluationTotal`がtrueの行は残高と累計評価額、falseの行は残高だけに反映する。本人の取り分からの引き落としはfalse、両方式の受取人への加算はtrueとする。訂正は同じ区分で集計した旧結果との差分を追加し、差分0の行は追加しない。
-  - 保存する情報は、現在の設定とFIX、差分台帳、既存の監査と冪等性の処理結果とする。台帳から各人の最終増減を確認できる。
+  - 保存する情報は、現在の設定とFIX、差分台帳、冪等性の処理結果とする。台帳から各人の最終増減を確認できる。
   - 同じ要求を再送した場合は既存の冪等性の結果を返し、二重に付与・分配しない。
 
 ## 多言語に対応
@@ -833,7 +821,7 @@ Accountsで先に登録と外部アカウントの連携を済ませた利用者
 
 ### 連携解除
 
-Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除して監査を記録する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#未受領fixの受領資格)に従う。
+Pointsでの個別の連携解除は`DELETE /api/accounts-links/{accountsLinkId}`とする。バックエンドで本人の連携であることを確認し、対象の連携を削除する。本人の連携でない、または存在しないときは`404 ACCOUNTS_LINK_NOT_FOUND`とする。Accountsへは要求しない。解除した連携を起点とする一覧取得を終了する。外部識別子の照合でAccountsユーザーIDが返っても、Points内に現在の対応があるときだけ、Pointsユーザーへ対応付ける。Accountsの照合結果と、Points内のユーザー対応を、それぞれ確認する。個別の連携解除では、Accounts側のそのPointsへの公開設定を維持する。情報提供を停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。以後の一覧取得と照合も、Accounts APIが定める現在の提供条件に従う。Accountsユーザーが退会した場合や、AccountsでPointsへ公開する証明済みの外部アカウントが0件になった場合は、一覧取得がAccountsの`404`になる。Pointsは対応を保持したまま、連携の状態を`NOT_PROVIDED`（「情報提供が停止しています」）にし、取得済みの一覧を消して公開表示を止める。本人はPointsへログインして解除できる。連携、公開設定、Accountsユーザーの退会による変更の後も、Pointsで確定済みの貢献とポイントの帰属は維持する。未受領FIXへの影響は[未受領FIXの受領資格](#未受領fixの受領資格)に従う。
 
 ## 評価軸のプロフィール画面
 
@@ -1011,7 +999,7 @@ Package名の一意keyは、表示値をUnicode NFKC正規化し、前後のUnic
 
 Packageは同じIDの最新レコードを更新する。Marketsは競売作成時に現在データを取得し、評価軸ID、構成割合、`packageTick`、Packageと評価軸の表示名を競売snapshotへ保存する。
 
-`pointPackages.status`は現在の`ACTIVE | INACTIVE`を表す。Package本体とcomponentの更新、競合検査、監査は同じD1原子処理で確定する。
+`pointPackages.status`は現在の`ACTIVE | INACTIVE`を表す。Package本体とcomponentの更新、競合検査は同じD1原子処理で確定する。
 
 ### lifecycle
 
@@ -1139,31 +1127,31 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 ### 使用するライブラリ
 
 1. Git
-    - jujutsuも興味ある
+   - jujutsuも興味ある
 
 2. GitHub
 
 3. Playwright
-    - E2Eテスト
-    - 他のE2Eと比べてAPIが安定している。
+   - E2Eテスト
+   - 他のE2Eと比べてAPIが安定している。
 
 4. Testing Library
-    - UIの単体テスト
+   - UIの単体テスト
 
 5. Vitest
-    - 単体テストの実行
+   - 単体テストの実行
 
 6. Docker
-    - ローカルとCIを同じ環境に寄せるため
+   - ローカルとCIを同じ環境に寄せるため
 
 7. Docker Compose
-    - Dockerと併せて使う。同じcompose定義に揃えると、環境差のトラブルを減らせる。
+   - Dockerと併せて使う。同じcompose定義に揃えると、環境差のトラブルを減らせる。
 
 8. micromark
-    - ホーム画面のMarkdownからHTMLへの変換
+   - ホーム画面のMarkdownからHTMLへの変換
 
 9. HeroUI v3
-    - UIコンポーネントはHeroUI v3を使う。見た目が好きなためである。
+   - UIコンポーネントはHeroUI v3を使う。見た目が好きなためである。
 
 10. Tailwind CSS
     - CSS
@@ -1268,34 +1256,34 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 ### 使用しないライブラリ
 
 1. Bun
-    - ランタイム
-    - 自分のしたいことができるか、まだ理解できていないためである。
+   - ランタイム
+   - 自分のしたいことができるか、まだ理解できていないためである。
 
 2. framer-motion
-    - モーション
-    - v0.2.1では凝った動きをやめ、仕様の理解を優先するためである。
+   - モーション
+   - v0.2.1では凝った動きをやめ、仕様の理解を優先するためである。
 
 3. react-dropzone
-    - ファイル選択
-    - ドラッグアンドドロップをやめ、ボタンと`<input type="file">`に揃えるためである。
+   - ファイル選択
+   - ドラッグアンドドロップをやめ、ボタンと`<input type="file">`に揃えるためである。
 
 4. Google Analytics
-    - アクセス解析
+   - アクセス解析
 
 5. react-ga
-    - アクセス解析
+   - アクセス解析
 
 6. Google AdSense
-    - 広告は使わない。
+   - 広告は使わない。
 
 7. react-adsense
-    - 広告は使わない。
+   - 広告は使わない。
 
 8. Google Search Console
-    - 検索結果の分析にGoogle Search Consoleは使わない。どの語で訪問されたか、索引されているかを見られる。
+   - 検索結果の分析にGoogle Search Consoleは使わない。どの語で訪問されたか、索引されているかを見られる。
 
-9.  CDN
-    - DDoS対策として前段に置くCDNは、必要になってから入れる。
+9. CDN
+   - DDoS対策として前段に置くCDNは、必要になってから入れる。
 
 10. PageSpeed Insights
     - 継続的な速度監視
@@ -1334,7 +1322,7 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 18. Resend
     - メール送信には使わない。
 
-19. @react-email/*
+19. @react-email/\*
     - メール送信には使わない。
 
 20. react-email
@@ -1530,7 +1518,7 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
 
 ### versionとstate
 
-- ドメインの各レコードは最新状態を保存する。実行記録、監査、冪等性の結果、差分台帳、必要なsnapshotは不変で保持する。
+- ドメインの各レコードは最新状態を保存する。実行記録、冪等性の結果、差分台帳、必要なsnapshotは不変で保持する。
 - 更新競合の検査には`version`と`expectedVersion`、または`expectedAuctionVersion`を使う。versionは最新レコードを更新するための競合検査値とする。
 - state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
 - terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
@@ -1741,7 +1729,7 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 2. 正・負を区別せず対象全件を選択不可でclaimする。
 3. FIX実行記録ごとの差分と、受領時点の設定による自動分配を計算し、元のFIXに紐付く差分台帳を追加する。
 4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
-5. 連携先のsnapshotを含む`fixClaim`、idempotency result、audit eventを保存する。
+5. 連携先のsnapshotを含む`fixClaim`、idempotency resultを保存する。
 
 - 単一のPoints D1原子処理で確定し、1件でも失敗すれば全件を未受領のままにする。
 - 同じFIX実行の未受領エントリーの二重受領を一意制約で防ぐ。
@@ -1798,20 +1786,19 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - 退会済みのプロフィールは検索結果に含めない。
 - SessionとOAuthの同意を失効させ、退会時点以降の利用者認可を無効にする。
 - 終了済みの精算には影響させない。
-- FIX、Claim、台帳、残高、負の残高、落札の引き落とし、監査、永久的なログイン対応は保持し、証明画面では経済履歴の対応に必要な不変の利用者IDだけを示す。
+- FIX、Claim、台帳、残高、負の残高、落札の引き落とし、永久的なログイン対応は保持し、証明画面では経済履歴の対応に必要な不変の利用者IDだけを示す。
 - `appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のいずれかで最後の1人なら退会できない。
 - バックエンドは`POST /api/account/close`でこの条件を確認し、該当するときは`409 ACCOUNT_CLOSE_LAST_ADMIN`を返して何も変更しない。
 - 利用者は管理者を追加してから再実行する。退会と同じD1原子処理で、本人に連携しているすべてのAccountsユーザーとの対応を削除する。
-- 削除した連携の件数は、監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。
 - Accounts側のそのPointsへの公開設定は維持する。
 - 情報提供も停止したい本人は、AccountsでPointsへの公開のチェックをすべて外す。
 - 以後の一覧取得と照合は、Accounts APIの現在の提供条件に従う。Pointsで確定済みの貢献とポイントの帰属は維持する。
-- 退会と再開の監査は、既存記録を書き換えず追記する。同じGoogleまたはGitHubで再びログインしたときは、新しい利用者を作らず、元の利用者へ戻す。
+- 同じGoogleまたはGitHubで再びログインしたときは、新しい利用者を作らず、元の利用者へ戻す。
 - callbackは元の`pointsUserId`へ、操作を制限したCLOSED sessionを結ぶ。
 - 利用者を`/account/reopen`へ導く。callbackのGETは状態を見る導線であり、公開へは戻さない。
 - 公開へ戻すのは、本人の明示の`POST /api/account/reopen`だけである。
 - 再開画面には、受領資格が確定した未受領FIXの評価軸別正味合計、正件数、負件数、全件数、`reopenSetHash`を表示する。
-- このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行、監査を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。戻したあとの表示名と説明は、本人が設定する。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後に連携した未受領FIXは、一括受領で受け取る。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
+- このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。戻したあとの表示名と説明は、本人が設定する。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後に連携した未受領FIXは、一括受領で受け取る。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
 
 ## 権限
 
@@ -1821,7 +1808,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 パッケージ1件にOrganizationを1件対応させる。評価軸1件にもOrganizationを1件対応させる。パッケージと評価軸の名称、公開情報、実行記録は、既存のドメインテーブルを正本とする。各対象に`organizationId`を保存し、Organizationとの対応を一意にする。Organizationは、その対象の管理者と権限を管理する単位である。
 
-管理者の紐づけは、Organizationの`userId`、`organizationId`、`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。経済履歴と監査はPointsのユーザーIDを使う。二つのIDは、既存の`points_user.auth_user_id`で対応づける。同じ利用者は、複数のパッケージと複数の評価軸の管理者になれる。各対象の管理者は100人までとする。
+管理者の紐づけは、Organizationの`userId`、`organizationId`、`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。経済履歴はPointsのユーザーIDを使う。二つのIDは、既存の`points_user.auth_user_id`で対応づける。同じ利用者は、複数のパッケージと複数の評価軸の管理者になれる。各対象の管理者は100人までとする。
 
 パッケージを作成できるのは、ログインしたPoints利用者である。評価軸を作成できるのは、ログインしたPoints利用者である。作成時に、対象の行、対応するOrganization、作成者の管理者所属を、同じD1の一つのbatchで書く。パッケージの作成者は`packageAdmin`、評価軸の作成者は`evalueterAdmin`になる。Pointsの`user`、`points_user`、評価軸、パッケージは同じD1にある。D1のbatchは、どれか一つの書き込みが失敗すると全体を戻す。対象の行だけ、またはOrganizationだけを残さない。
 
@@ -1829,7 +1816,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 管理者を変更できるのは、`appAdmin`か、その対象の管理者である。信頼されたサーバー向けAPIを呼ぶ前に、操作者を認可する。更新APIは、操作対象の`organizationId`からOrganizationを取得して権限を確認する。権限判定はバックエンドで行う。画面の表示も、同じ権限の意味に従う。
 
-`appAdmin`は、アプリ全体と、各パッケージ、各評価軸の管理操作を行える。`packageAdmin`は、所属するパッケージの管理操作を行える。`evalueterAdmin`は、所属する評価軸の管理操作を行える。操作理由、監査記録、再送制御は、必要な操作に引き続き使う。管理者の変更は、理由、変更前後、request ID、環境、結果を追記専用の監査に残す。
+`appAdmin`は、アプリ全体と、各パッケージ、各評価軸の管理操作を行える。`packageAdmin`は、所属するパッケージの管理操作を行える。`evalueterAdmin`は、所属する評価軸の管理操作を行える。管理者の変更など、必要な操作では操作理由の入力と再送制御を適用する。
 
 `appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evalueterAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#10-account-closeと認証記録)に従う。
 
@@ -1917,7 +1904,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - 同一retryで同じresult、異なるpayloadで409
 
-- 全chunk、台帳、projection、idempotency result、auditをstatement数100以下の同じD1 `batch()`へ入れる。複数batchへの分割や1行1queryを禁止し、途中失敗は全rollbackする。
+- 全chunk、台帳、projection、idempotency resultをstatement数100以下の同じD1 `batch()`へ入れる。複数batchへの分割や1行1queryを禁止し、途中失敗は全rollbackする。
 
 - idempotencyは`Idempotency-Key` header、内部propertyは`idempotencyKey`。
 
@@ -1934,10 +1921,10 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | 交換比率の確定                         | 交換比率のCSV                                                                                                       | `appAdmin`、または交換元か交換先の`evalueterAdmin`、reason、idempotency         |
 | 貢献評価代用の確定                     | 貢献評価代用のCSV                                                                                                   | 利用者本人、その評価軸の`evalueterAdmin`、または`appAdmin`、reason、idempotency |
 | 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、idempotency                                                               |
-| 自動分配設定の保存                     | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性と監査                                    |
+| 自動分配設定の保存                     | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性                                    |
 | 接続先Accountsの作成／有効化／取り下げ | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                                 |
 
-消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency result、成功auditを同じbatchで全rollbackする。
+消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency resultを同じbatchで全rollbackする。
 
 - 実行者、対象評価軸、額、宛先、rateの実行時snapshot、idempotency keyをledgerに残す。
 
@@ -1945,7 +1932,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 - resultのbusiness keyは`sourceEvaluationCriterionId + targetEvaluationCriterionId + evaluationMonth`であり、methodを変えて二重付与する別keyを作らない。初回は`expectedResultVersion`を空、再計算は現在resultのversionを`expectedResultVersion`に必須とし、競合を`409 VERSION_CONFLICT`にする。
 
-- 再計算は同じresultの最新レコードを更新し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作る。実行条件と旧額・新額・差分は不変の実行記録と監査へ保存する。
+- 再計算は同じresultの最新レコードを更新し、利用者ごとの`newRoundedAmount - previousRoundedAmount`だけを`SUBSTITUTION_FIX`の`affectsEvaluationTotal=true`な差分ledgerへ追加する。新結果0・旧結果非0の利用者には全額取消差分を作る。実行条件と旧額・新額・差分は不変の実行記録へ保存する。
 
 - `Idempotency-Key: {opaque-id}`は7章のoperation matrixで「必須」とした操作だけで必須とする。GETとbalance-checkでは要求しない
 
@@ -1965,11 +1952,11 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 - 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
   - rate limit responseは`429`と`Retry-After`を返す。
 
-- chunkごとの各target table statement、command guard、ledger、idempotency result、auditを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
+- chunkごとの各target table statement、command guard、ledger、idempotency resultを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
 
 - FIX実行IDと対象エントリー・台帳種別の組、idempotency key、Auction command/seq、settlement plan hashを一意にする。
 
-- 消費、譲渡、交換、落札の引き落とし、通常unlinkは、同じD1 `batch()`を`command PENDING INSERT -> canonical chunks INSERT -> PENDINGからVALIDATEDへのUPDATE -> domain／event／ledger write -> VALIDATEDからCOMMITTEDへのUPDATE -> idempotency result／成功audit`の順に固定する。2つのcommand transitionの`BEFORE UPDATE` triggerがprecondition、expected target count、actual event／ledger countを検査し、違反時は安定したcodeで`RAISE(ABORT, ...)`して全rollbackする。条件付きUPDATEの0行を成功として扱わない。
+- 消費、譲渡、交換、落札の引き落とし、通常unlinkは、同じD1 `batch()`を`command PENDING INSERT -> canonical chunks INSERT -> PENDINGからVALIDATEDへのUPDATE -> domain／event／ledger write -> VALIDATEDからCOMMITTEDへのUPDATE -> idempotency result`の順に固定する。2つのcommand transitionの`BEFORE UPDATE` triggerがprecondition、expected target count、actual event／ledger countを検査し、違反時は安定したcodeで`RAISE(ABORT, ...)`して全rollbackする。条件付きUPDATEの0行を成功として扱わない。
 
 - 重要mutationは`Idempotency-Key`を必須にする。
 
@@ -1994,7 +1981,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
    - 説明
      - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
 
-同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。解除した連携の件数は、監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として記録する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
+同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
@@ -2122,29 +2109,29 @@ upgrade-insecure-requests
   - `false`は残高だけに反映する印である。
   - 台帳行の正負と、累計評価額へ反映するかどうかは別に扱う。
 
-| 台帳に記録する操作 | 累計評価額への反映 | 更新する値 |
-| --- | --- | --- |
-| FIXによる評価とその訂正 | `true` | 残高・累計評価額 |
-| 貢献評価代用の`SUBSTITUTION_FIX`とその訂正 | `true` | 残高・累計評価額 |
-| 両方式の自動分配による受取額とその訂正 | `true` | 受取人の残高・累計評価額 |
-| 取り分からの自動分配による分配元の引き落としとその訂正 | `false` | 分配元の残高 |
-| 通常のポイント譲渡 | `false` | 送信者・受取人の残高 |
-| ポイント交換 | `false` | 交換元・交換先の評価軸の残高 |
-| 消費・落札の引き落とし | `false` | 利用者の残高 |
+| 台帳に記録する操作                                     | 累計評価額への反映 | 更新する値                   |
+| ------------------------------------------------------ | ------------------ | ---------------------------- |
+| FIXによる評価とその訂正                                | `true`             | 残高・累計評価額             |
+| 貢献評価代用の`SUBSTITUTION_FIX`とその訂正             | `true`             | 残高・累計評価額             |
+| 両方式の自動分配による受取額とその訂正                 | `true`             | 受取人の残高・累計評価額     |
+| 取り分からの自動分配による分配元の引き落としとその訂正 | `false`            | 分配元の残高                 |
+| 通常のポイント譲渡                                     | `false`            | 送信者・受取人の残高         |
+| ポイント交換                                           | `false`            | 交換元・交換先の評価軸の残高 |
+| 消費・落札の引き落とし                                 | `false`            | 利用者の残高                 |
 
 たとえば、残高と累計評価額がともに0の状態から、自動分配を行わずに評価で100ポイントを受け取り、その後30ポイントを消費すると、同じ利用者・評価軸の値は次のようになる。消費は台帳に記録するが、累計評価額には含めない。
 
-| 操作 | 台帳の増減額 | `affectsEvaluationTotal` | 操作後の残高 | 操作後の累計評価額 |
-| --- | ---: | --- | ---: | ---: |
-| 評価で100ポイントを受領 | +100 | `true` | 100 | 100 |
-| 30ポイントを消費 | −30 | `false` | 70 | 100 |
+| 操作                    | 台帳の増減額 | `affectsEvaluationTotal` | 操作後の残高 | 操作後の累計評価額 |
+| ----------------------- | -----------: | ------------------------ | -----------: | -----------------: |
+| 評価で100ポイントを受領 |         +100 | `true`                   |          100 |                100 |
+| 30ポイントを消費        |          −30 | `false`                  |           70 |                100 |
 
 取り分からの自動分配で他者へ20ポイントを渡す場合は、分配元と受取人にそれぞれ台帳行を追加する。分配元の評価は維持し、受取人には分配された額を評価として計上する。
 
-| 対象 | 台帳の増減額 | `affectsEvaluationTotal` | 残高の変化 | 累計評価額の変化 |
-| --- | ---: | --- | ---: | ---: |
-| 分配元 | −20 | `false` | −20 | 変化なし |
-| 受取人 | +20 | `true` | +20 | +20 |
+| 対象   | 台帳の増減額 | `affectsEvaluationTotal` | 残高の変化 | 累計評価額の変化 |
+| ------ | -----------: | ------------------------ | ---------: | ---------------: |
+| 分配元 |          −20 | `false`                  |        −20 |         変化なし |
+| 受取人 |          +20 | `true`                   |        +20 |              +20 |
 
 通常のポイント譲渡では、受取人への加算も`false`とし、送信者・受取人とも累計評価額を変更しない。
 
@@ -2155,11 +2142,9 @@ upgrade-insecure-requests
 - たとえば残高70で80ポイントを消費しようとしても、消費や台帳の追加は確定しない。残高は70のままとする。
 - 負のFIX、差し戻し、過去の実行記録との差分により、残高と累計評価額は負になってよい。負の残高を0に丸めたり、履歴を削除して帳尻を合わせたりしない。
 
-### 数値上限と拒否の監査
+### 数値上限
 
 台帳へのINSERT前のトリガーは、現在の残高と累計評価額に今回の増減額を加えた結果が、±`9_007_199_254_740_991`の範囲内に収まることを行ごとに検査する。範囲を超えた場合は`SAFE_INTEGER_OVERFLOW`で処理を中止する。同じバッチで複数の台帳行を追加する場合も、各トリガーが動く時点の更新済みの残高と累計評価額を使う。SQLiteで計算結果がREAL型へ変わることを許可しない。
-
-検査で拒否した場合は、ロールバック後に、拒否記録用の別の追記専用監査記録へ安定したエラーコードだけを残す。監査記録の書き込みに失敗しても、経済取引のコマンドを再実行しない。
 
 ## Points–Markets連携契約
 
@@ -2246,7 +2231,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - 連携解除と外部失効のあと、その利用者認可での新規の残高参照と引き落としを拒否する。終了済みの精算には影響させず、すでに成功した引き落としは戻さない。
 - unlink履歴は削除しない。
-- 通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsの`deactivatePointsConnection`を呼ぶ。Pointsは同じD1原子処理でapp-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outbox、成功receipt、監査eventを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規の残高参照と引き落としを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
+- 通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsの`deactivatePointsConnection`を呼ぶ。Pointsは同じD1原子処理でapp-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outbox、成功receiptを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規の残高参照と引き落としを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
 - revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Authでapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
 - 利用者がprovider側でgrantを外部失効させた場合は通常unlinkと区別する。Pointsのapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で新規の残高参照と引き落としを拒否する。
 
@@ -2320,7 +2305,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - success `200`の`data` required: `connectionDeactivationReceiptId`、`pointsConnectionId`、`status`、`grantVersion`、`reason`、`deactivatedAt`。`status`は`UNLINKED`とし、revocation outboxやTokenは返さない
 - Pointsはtokenのsubject／client IDから対象app-owned grantを解決し、bodyだけを信用しない
 - D1 guardはgrantが`ACTIVE`であることを再確認する。違えば何も変更しない
-- 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receipt、auditを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
+- 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receiptを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
 
 ### 残高
 
@@ -2340,7 +2325,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - 呼び出し元は連携済みの機密クライアントである。認証は認可コード交換と同じ`private_key_jwt`とDPoPとする。利用者のいないクライアント資格情報グラントは使わない。
 - 各落札者の利用者アクセストークンをrequestに含める。Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
-- アクセストークンは検証にだけ使い、台帳、受領証、ログ、監査、応答へ残さない。
+- アクセストークンは検証にだけ使い、台帳、受領証、ログ、応答へ残さない。
 - request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・保存精度・重複軸の検証を行う。`marketsUserId`はrequest内で重複しない。
 - Pointsは各評価軸の存在と共通の保存精度を検証し、競売作成後のPackage・評価軸の無効化を理由にsnapshotの精算を拒否しない。
 - pathの`settlementId`はrequestの精算と一致させる。
@@ -2408,6 +2393,13 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
   - productionはWorkers PaidのWorkers Logs 7日保持、stagingもPaid環境として7日保持をrelease条件にする。
 - structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeを記録する。個別のresource IDは記録しない。OAuth token、Cookie、Secret、email、外部URL／HTML、CSV cell、AutoBid上限、profile本文も記録しない。
 - `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、固定されたevent名をindexに使う。個別のresource IDは含めない。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
+- 監査記録は、Pointsバックエンドが既存の構造化ロガーでWorkers Logsへ出力する。対象は管理者の変更、退会と再開、接続先Accountsの作成・有効化・取り下げ、Accounts連携と解除、評価軸・Package・交換比率・自動分配設定・貢献評価代用の変更、FIXの確定と訂正、未受領FIXの受領、譲渡・交換・消費・落札の引き落とし、Points–Markets連携解除とする。
+  - `timestamp`、処理名を表す`event`と`operation`、`app`、`environment`、`requestId`、`outcome`、安定した`code`、対象の種類を表す`resourceType`を出力する。
+  - 業務データの変更を伴う成功は、D1の処理が確定し、実際の変更を確認した後に出力する。冪等性の保存済み結果を返す再送では、変更成功の監査ログを重ねて出力しない。
+  - 拒否は、拒否が確定した後に出力する。D1のバッチが失敗したときは、ロールバック後に安定したエラーコードを記録する。生のSQLや例外の`message`は含めない。
+  - 退会や接続先の取り下げによる連携解除は、`ACCOUNTS_LINKS_RELEASED`と削除件数`releasedLinkCount`を記録する。未受領FIXの受領は`claimedCount`、一括変更は`affectedCount`を、対象の値を含めない件数として記録する。
+  - 管理者の追加・削除は処理名と結果を記録する。接続先や利用者の状態変更は、変更後の状態を`nextState`に記録し、変更前の状態が確定している場合は`previousState`も記録する。操作理由の入力が必須の操作では入力を検証し、ログに残す理由は安定した`code`で表す。操作者ID、対象ID、接続先ID、外部識別子、入力された理由の自由文、リクエスト本文は出力しない。
+  - ログ出力が失敗しても、確定した業務結果や返す応答を変えず、取引コマンドを再実行しない。台帳、FIX実行記録、Claim、冪等性の結果、経済履歴に必要なsnapshotは、それぞれの業務データとしてD1へ保存する。
 - 処理中に発生した運用上の失敗は、Workersの構造化ログとメトリクスへ記録する。ログには処理名、結果、安定したエラーコードを含める。
 - Cloudflare native Notificationは、公式alert typeで確認できるincident／5xx率／usage threshold用とする。Workerの実行時例外は、Workers Logs／Tracesで確認する。
 - staging acceptanceでは、処理の成功・失敗がWorkers Logsへ記録されることをrequest／correlation IDで確認し、メトリクスをAnalytics EngineのSQL APIで確認する。
@@ -2589,8 +2581,9 @@ export default defineConfig({
   - CSVの文字コード、列構成、出力上限、数式として解釈される入力への対策は、CSVエクスポート仕様に従う。
 - 全部のOAuth紐づけは、退会に備えた紐づけとして保持する
 
-- 評価軸、Package、FIX、交換比率、貢献評価代用のmethod／result、自動分配設定の履歴revisionを廃止し、同じIDの最新レコードを更新する。実行記録、監査、冪等性、不変の差分台帳を保持し、FIX訂正と代用の再計算は旧額との差分を反映する。
+- 評価軸、Package、FIX、交換比率、貢献評価代用のmethod／result、自動分配設定の履歴revisionを廃止し、同じIDの最新レコードを更新する。実行記録、冪等性、不変の差分台帳を保持し、FIX訂正と代用の再計算は旧額との差分を反映する。
 - 自動分配はフォームで複数パッケージの割合を設定し、評価軸ごとに選んだ取り分方式または追加発行方式で再分配する。減少する循環は継続し、訂正は旧FIXの全影響を仮に除いて最新条件で再計算する。元FIXに紐付く残高・累計評価額の差分台帳を保存する。両方式の分配受取額を累計評価額へ加える。評価軸の最小単位は作成後も変更でき、自動分配の丸めと終了判定に使う。付与・譲渡・交換・競売精算と訂正は共通の保存精度で扱い、既存額を保持する。
 - Marketsは競売作成時にPackage IDの現在データを取得して構成・tick・表示名を保存し、その後の無効化を含め保存済み条件で精算する。現在Package APIは`no-store`とし、Marketsが計算した評価軸別vectorを残高確認・精算APIへ渡し、Pointsが認証・権限・金額・残高を検証する。
 - Pointsの定期実行をすべて廃止する。Accounts連携情報は連携直後と本人の設定画面の表示・リロード時に取得し、経過時間と取得件数の制限を設けず、本人の有効な連携すべてを取得対象とする。Marketsの期限切れ連携試行は新しい連携要求時に終了させる。運用上の失敗はログとメトリクスへ記録する。
 - 残高・累計評価額・FIXの受領状態を再計算して照合する定期実行と手動機能を廃止する。
+- 監査記録全般のDB保存をWorkersの構造化ログへ変更する。成功は業務データの確定後、拒否は拒否の確定またはロールバック後に記録する。台帳やFIX実行記録などの業務データはD1へ保存し、ログ出力の失敗で取引を再実行しない。

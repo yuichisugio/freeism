@@ -274,9 +274,7 @@ describe("substitution and automatic distribution", () => {
       .bind(sourceId, targetId)
       .first<{ revisionId: string }>();
     await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-sub-source-${suffix}`,
       fileHash: "6".repeat(64),
       idempotencyKey: `fix-sub-source-${suffix}`,
       now: new Date(),
@@ -433,9 +431,7 @@ describe("substitution and automatic distribution", () => {
     );
 
     const beforeSetting = await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-before-setting-${suffix}`,
       fileHash: "a".repeat(64),
       idempotencyKey: `fix-before-setting-${suffix}`,
       now: new Date(),
@@ -499,9 +495,7 @@ describe("substitution and automatic distribution", () => {
     expect(setting.status).toBe(201);
 
     await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-before-setting-correction-${suffix}`,
       fileHash: "c".repeat(64),
       idempotencyKey: `fix-before-setting-correction-${suffix}`,
       now: new Date(Date.now() + 1),
@@ -556,9 +550,7 @@ describe("substitution and automatic distribution", () => {
     });
 
     const initialFix = await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-dist-${suffix}`,
       fileHash: "4".repeat(64),
       idempotencyKey: `fix-dist-${suffix}`,
       now: new Date(),
@@ -645,9 +637,7 @@ describe("substitution and automatic distribution", () => {
       .bind(candidate.id)
       .run();
     await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-dist-correction-${suffix}`,
       fileHash: "8".repeat(64),
       idempotencyKey: `fix-dist-correction-${suffix}`,
       now: new Date(Date.now() + 1),
@@ -698,9 +688,7 @@ describe("substitution and automatic distribution", () => {
 
     await updateProfilePointPackages(env.DB!, { pointPackageIds: [], pointsUserId: source.id });
     await commitFixRows(env.DB!, {
-      accountsConnectionId: "acon_substitution",
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-unregistered-package-${suffix}`,
       fileHash: "e".repeat(64),
       idempotencyKey: `fix-unregistered-package-${suffix}`,
       now: new Date(Date.now() + 2),

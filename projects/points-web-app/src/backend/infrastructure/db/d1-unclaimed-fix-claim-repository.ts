@@ -1,3 +1,5 @@
+import { writeEconomicRejectionLog } from "../../observability/economic-rejection-logger";
+import { writeAuditLog } from "../../observability/audit-logger";
 import { hashCanonicalPayload } from "../../domain/idempotency/idempotency-result";
 import {
   recipientIdentifierKey,
@@ -245,13 +247,14 @@ export async function previewUnclaimedFixes(
 
 /**
  * preview と同じ集合であることを確かめて、未受領 FIX をまとめて受領する。
- * 受領件数は監査 `UNCLAIMED_FIX_CLAIM` の `reason` に `claimedCount=N` として残す。
+ * 確定後に受領件数を構造化監査ログの `claimedCount` に残す。
  */
 export async function claimUnclaimedFixes(
   db: D1Database,
   input: {
     accountsLinkId: string;
     claimSetHash: string;
+    environment?: string;
     createResolver: CreateAccountsRecipientResolver;
     idempotencyKey: string;
     now: Date;
@@ -383,22 +386,8 @@ export async function claimUnclaimedFixes(
       JSON.stringify(responseBody),
       claimedAt,
     );
-  const audit = db
-    .prepare(
-      `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-       VALUES (?, ?, 'UNCLAIMED_FIX_CLAIM', ?, ?, ?, 'SUCCESS', ?)`,
-    )
-    .bind(
-      `audit_${crypto.randomUUID()}`,
-      input.pointsUserId,
-      link.accountsLinkId,
-      `claimedCount=${preview.entries.length}`,
-      input.requestId,
-      claimedAt,
-    );
   try {
-    await db.batch([guard, claim, ledger, items, idempotency, audit]);
+    await db.batch([guard, claim, ledger, items, idempotency]);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     // 確定の直前に連携が消えた（guard が0行）か、別の確定が同じエントリーを先に受領した。
@@ -419,13 +408,35 @@ export async function claimUnclaimedFixes(
         payloadHash,
       );
       if (concurrentReplay) return concurrentReplay;
-      if (isClaimSetConflict)
+      if (isClaimSetConflict) {
+        writeAuditLog({
+          action: "UNCLAIMED_FIX_CLAIM",
+          environment: input.environment,
+          requestId: input.requestId,
+          outcome: "REJECTED",
+          code: "CLAIM_SET_CHANGED",
+          resourceType: "unclaimed_fix",
+        });
         throw new UnclaimedFixClaimError(
           "CLAIM_SET_CHANGED",
           await previewUnclaimedFixes(db, input),
         );
+      }
     }
+    writeEconomicRejectionLog(error, {
+      action: "UNCLAIMED_FIX_CLAIM",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "unclaimed_fix",
+    });
     throw error;
   }
+  writeAuditLog({
+    action: "UNCLAIMED_FIX_CLAIM",
+    environment: input.environment,
+    requestId: input.requestId,
+    resourceType: "unclaimed_fix",
+    claimedCount: preview.entries.length,
+  });
   return { responseBody, status: 201 };
 }

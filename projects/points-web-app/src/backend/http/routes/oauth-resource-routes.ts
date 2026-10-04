@@ -365,6 +365,7 @@ export function registerOAuthResourceRoutes(
       const responseRequestId = requestId(context);
       if (body.deactivationKey !== key) throw new Error("IDEMPOTENCY_KEY_REUSED");
       const deactivated = await deactivatePointsConnection(env.DB, {
+        environment: env.APP_ENV,
         idempotencyKey: key,
         issuer: principal.issuer,
         pointsConnectionId: body.pointsConnectionId,

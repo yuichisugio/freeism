@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { listAccountsConnectionViews } from "../../src/backend/usecases/list-accounts-connections";
@@ -11,6 +11,13 @@ import {
 import { createFakeAccounts, type FakeAccounts } from "../support/fake-accounts";
 
 const db = env.DB!;
+const auditLogs = vi.spyOn(console, "log").mockImplementation(() => {});
+beforeEach(() => auditLogs.mockClear());
+function auditEvents(action: string) {
+  return auditLogs.mock.calls
+    .map(([entry]) => entry)
+    .filter((entry) => typeof entry === "object" && entry !== null && entry.operation === action);
+}
 
 // --------------------------------------------------
 // 準備
@@ -163,17 +170,6 @@ async function seedLinkAttempt(connectionId: string) {
       now + 600_000,
     )
     .run();
-}
-
-/**
- * 運営者が残した、接続先への指定した操作の監査の件数。
- */
-async function countConnectionAudits(connectionId: string, action: string) {
-  const row = await db
-    .prepare("SELECT count(*) AS count FROM audit_event WHERE target = ? AND action = ?")
-    .bind(connectionId, action)
-    .first<{ count: number }>();
-  return row?.count;
 }
 
 // --------------------------------------------------
@@ -421,7 +417,7 @@ describe("接続先の有効化", () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(await second.json()).toEqual(await first.json());
-    expect(await countConnectionAudits(connection.id, "ACCOUNTS_CONNECTION_ACTIVATED")).toBe(1);
+    expect(auditEvents("ACCOUNTS_CONNECTION_ACTIVATED").length).toBe(1);
   });
 });
 
@@ -464,27 +460,18 @@ describe("接続先の取り下げ", () => {
       .bind(connection.id, connection.id, connection.id)
       .first<{ links: number; attempts: number; tokens: number }>();
     expect(remaining).toEqual({ links: 0, attempts: 0, tokens: 0 });
-    const audits = await db
-      .prepare(
-        `SELECT action, target, reason FROM audit_event
-         WHERE actor_points_user_id = ? AND target = ? ORDER BY action`,
-      )
-      .bind(admin.pointsUserId, connection.id)
-      .all<{ action: string; target: string; reason: string }>();
-    expect(audits.results).toEqual([
-      {
-        action: "ACCOUNTS_CONNECTION_ACTIVATED",
-        target: connection.id,
-        reason: "Accountsに登録した",
-      },
-      { action: "ACCOUNTS_CONNECTION_CREATED", target: connection.id, reason: "接続先を追加する" },
-      {
-        action: "ACCOUNTS_CONNECTION_WITHDRAWN",
-        target: connection.id,
-        reason: "接続先を廃止する",
-      },
-      { action: "ACCOUNTS_LINKS_RELEASED", target: connection.id, reason: "releasedLinkCount=2" },
+    expect(auditEvents("ACCOUNTS_CONNECTION_CREATED")).toHaveLength(1);
+    expect(auditEvents("ACCOUNTS_CONNECTION_ACTIVATED")).toHaveLength(1);
+    expect(auditEvents("ACCOUNTS_CONNECTION_WITHDRAWN")).toEqual([
+      expect.objectContaining({ outcome: "SUCCESS", environment: env.APP_ENV }),
     ]);
+    expect(auditEvents("ACCOUNTS_LINKS_RELEASED")).toEqual([
+      expect.objectContaining({ releasedLinkCount: 2, outcome: "SUCCESS" }),
+    ]);
+    const logged = JSON.stringify(auditLogs.mock.calls);
+    expect(logged).not.toContain(admin.pointsUserId);
+    expect(logged).not.toContain(connection.id);
+    expect(logged).not.toContain("接続先を廃止する");
   });
 
   it("別のURLの接続先を追加しても、旧接続先の連携は取り下げるまで維持し、取り下げ後は同じoriginを追加できる", async () => {
@@ -539,6 +526,6 @@ describe("接続先の取り下げ", () => {
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(await second.json()).toEqual(await first.json());
-    expect(await countConnectionAudits(connection.id, "ACCOUNTS_CONNECTION_WITHDRAWN")).toBe(1);
+    expect(auditEvents("ACCOUNTS_CONNECTION_WITHDRAWN").length).toBe(1);
   });
 });

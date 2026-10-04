@@ -1,10 +1,11 @@
+import { writeAuditLog } from "../../observability/audit-logger";
 import type { AccountsProvidedExternalAccount } from "../../accounts/accounts-api-schema";
 import type { AccountsExternalAccountListResult } from "../../accounts/accounts-resource-client";
 import type { AccountsConnectionStatus } from "./d1-accounts-connection-repository";
 
 /**
  * 利用者のAccounts連携（`accounts_links`表）と、連携の試行（`accounts_link_attempts`表）の読み書き。
- * 監査の`target`には連携IDまたは接続先IDだけを入れ、AccountsユーザーIDは入れない。
+ * 保存・解除の成功後に、個人情報を含めず監査ログを出す。
  * @see ../../../../docs/specification/v0.2/details-ja/profile-setting.md
  * @see ../../../../test/worker/accounts-link.worker.test.ts
  */
@@ -171,7 +172,7 @@ export type SaveAccountsLinkResult =
   | { status: "LINKED_TO_OTHER_POINTS_USER" };
 
 /**
- * 連携を保存し、監査を同じbatchで記録する。
+ * 連携を保存し、成功後に監査ログを出す。
  * 一意性は`(accounts_origin, accounts_user_id)`で、別のPointsユーザーの行があれば何も変えない。
  */
 export async function saveAccountsLink(
@@ -183,6 +184,7 @@ export async function saveAccountsLink(
     accountsUserId: string;
     now: number;
     requestId: string;
+    environment?: string;
   },
 ): Promise<SaveAccountsLinkResult> {
   const newLinkId = `alnk_${crypto.randomUUID()}`;
@@ -207,63 +209,43 @@ export async function saveAccountsLink(
         link.accountsUserId,
         link.now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, request_id, result, created_at)
-         SELECT ?, ?, CASE WHEN id = ? THEN 'ACCOUNTS_LINK_CREATED'
-                           ELSE 'ACCOUNTS_LINK_RENEWED' END,
-                id, ?, 'SUCCESS', ?
-         FROM accounts_links
-         WHERE accounts_origin = ? AND accounts_user_id = ? AND points_user_id = ?`,
-      )
-      .bind(
-        `audit_${crypto.randomUUID()}`,
-        link.pointsUserId,
-        newLinkId,
-        link.requestId,
-        link.now,
-        link.accountsOrigin,
-        link.accountsUserId,
-        link.pointsUserId,
-      ),
   ]);
   const accountsLinkId = saved?.results[0]?.id;
   if (accountsLinkId === undefined) return { status: "LINKED_TO_OTHER_POINTS_USER" };
-  return { status: accountsLinkId === newLinkId ? "CREATED" : "RENEWED", accountsLinkId };
+  const status = accountsLinkId === newLinkId ? "CREATED" : "RENEWED";
+  writeAuditLog({
+    action: `ACCOUNTS_LINK_${status}`,
+    environment: link.environment,
+    requestId: link.requestId,
+    resourceType: "accounts_link",
+  });
+  return { status, accountsLinkId };
 }
 
 /**
- * 保存しなかった連携（一意性違反・ID Tokenの不正）を監査に記録する。
+ * 保存しなかった連携の安定したエラーコードを監査ログに残す。
  */
-export async function recordAccountsLinkRejection(
-  db: D1Database,
-  {
-    pointsUserId,
-    accountsConnectionId,
-    code,
-    now,
+export function recordAccountsLinkRejection({
+  code,
+  requestId,
+  environment,
+}: {
+  code: string;
+  requestId: string;
+  environment?: string;
+}): void {
+  writeAuditLog({
+    action: "ACCOUNTS_LINK_REJECTED",
+    environment,
     requestId,
-  }: {
-    pointsUserId: string;
-    accountsConnectionId: string;
-    code: string;
-    now: number;
-    requestId: string;
-  },
-): Promise<void> {
-  await db
-    .prepare(
-      `INSERT INTO audit_event
-         (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-       VALUES (?, ?, 'ACCOUNTS_LINK_REJECTED', ?, ?, ?, 'REJECTED', ?)`,
-    )
-    .bind(`audit_${crypto.randomUUID()}`, pointsUserId, accountsConnectionId, code, requestId, now)
-    .run();
+    code,
+    outcome: "REJECTED",
+    resourceType: "accounts_link",
+  });
 }
 
 /**
- * 本人の連携を解除し、監査を同じbatchで記録する。
+ * 本人の連携を解除し、成功後に監査ログを出す。
  * Accountsへは何も要求しない。
  * @returns 本人の連携が無かった場合は`false`
  */
@@ -272,31 +254,28 @@ export async function deleteAccountsLink(
   {
     accountsLinkId,
     pointsUserId,
-    now,
     requestId,
-  }: { accountsLinkId: string; pointsUserId: string; now: number; requestId: string },
+    environment,
+  }: {
+    accountsLinkId: string;
+    pointsUserId: string;
+    requestId: string;
+    environment?: string;
+  },
 ): Promise<boolean> {
-  const [, deleted] = await db.batch([
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, request_id, result, created_at)
-         SELECT ?, ?, 'ACCOUNTS_LINK_DELETED', id, ?, 'SUCCESS', ?
-         FROM accounts_links WHERE id = ? AND points_user_id = ?`,
-      )
-      .bind(
-        `audit_${crypto.randomUUID()}`,
-        pointsUserId,
-        requestId,
-        now,
-        accountsLinkId,
-        pointsUserId,
-      ),
-    db
-      .prepare("DELETE FROM accounts_links WHERE id = ? AND points_user_id = ?")
-      .bind(accountsLinkId, pointsUserId),
-  ]);
-  return deleted?.meta.changes === 1;
+  const deleted = await db
+    .prepare("DELETE FROM accounts_links WHERE id = ? AND points_user_id = ?")
+    .bind(accountsLinkId, pointsUserId)
+    .run();
+  const changed = deleted.meta.changes === 1;
+  if (changed)
+    writeAuditLog({
+      action: "ACCOUNTS_LINK_DELETED",
+      environment,
+      requestId,
+      resourceType: "accounts_link",
+    });
+  return changed;
 }
 
 // --------------------------------------------------

@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { Hono } from "hono";
 
 import {
@@ -29,6 +29,7 @@ const resourceConfig: PointsOAuthResourceConfig = {
 };
 
 describe("Points OAuth resource core", () => {
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(async () => {
     await db.exec(
       "DELETE FROM points_oauth_revocation_outbox; DELETE FROM points_oauth_connection_deactivation; DELETE FROM points_oauth_connection; DELETE FROM points_oauth_link_attempt; DELETE FROM admin_membership; DELETE FROM oauth_client;",
@@ -483,6 +484,7 @@ describe("Points OAuth resource core", () => {
       now: new Date(now.getTime() + 1_000),
     });
     if (connection.status === "CANCELLED") throw new Error("expected active connection");
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     const input = {
       idempotencyKey: "idem-deactivate",
       issuer: "https://points.example.test/api/auth",
@@ -507,12 +509,18 @@ describe("Points OAuth resource core", () => {
         .bind(connection.pointsConnectionId)
         .first(),
     ).toEqual({ action: "DELETE_CONSENT", status: "PENDING" });
-    expect(
-      await db
-        .prepare("SELECT action, result FROM audit_event WHERE request_id = ?")
-        .bind(input.requestId)
-        .first(),
-    ).toEqual({ action: "POINTS_CONNECTION_DEACTIVATE", result: "SUCCESS" });
+    const auditLogs = logs.mock.calls
+      .map(([log]) => log)
+      .filter((log) => log.operation === "POINTS_CONNECTION_DEACTIVATE");
+    expect(auditLogs).toEqual([
+      expect.objectContaining({
+        operation: "POINTS_CONNECTION_DEACTIVATE",
+        outcome: "SUCCESS",
+        requestId: input.requestId,
+      }),
+    ]);
+    expect(JSON.stringify(auditLogs)).not.toContain(input.reason);
+    expect(JSON.stringify(auditLogs)).not.toContain(input.pointsConnectionId);
     await expect(
       deactivatePointsConnection(db, { ...input, pointsSubject: "other-subject" }),
     ).rejects.toThrow("RESOURCE_NOT_FOUND");

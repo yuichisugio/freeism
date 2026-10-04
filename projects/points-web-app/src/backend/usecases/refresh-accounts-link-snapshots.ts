@@ -22,6 +22,7 @@ import {
  */
 export type AccountsSnapshotDependencies = {
   db: D1Database;
+  environment?: string;
   kek: CryptoKey;
   fetch: typeof globalThis.fetch;
   reportFailure: AccountsFailureReporter;

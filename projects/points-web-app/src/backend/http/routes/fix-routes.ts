@@ -172,6 +172,7 @@ export function registerFixRoutes(
           {
             accountsConnectionId,
             actorPointsUserId: context.get("pointsUser").id,
+            environment: bindings.APP_ENV,
             createResolver: dependencies.accountsRecipientResolverFor(bindings),
             expectedValidationHash,
             idempotencyKey: context.req.header("Idempotency-Key")!,

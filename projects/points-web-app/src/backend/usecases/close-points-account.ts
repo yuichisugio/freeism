@@ -1,3 +1,4 @@
+import { writeAuditLog } from "../observability/audit-logger";
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
 
 const OPERATION = "ACCOUNT_CLOSE";
@@ -72,14 +73,15 @@ async function assertCloseAllowed(db: D1Database, pointsUserId: string) {
 
 /**
  * Pointsアカウントを閉鎖する。
- * 同じbatchで全Accounts連携を削除し、解除した件数を監査`ACCOUNTS_LINKS_RELEASED`の`reason`に`releasedLinkCount=N`として残す。
+ * 同じbatchで全Accounts連携を削除し、確定後に解除件数を構造化監査ログへ記録する。
  * @see ../../../test/worker/account-close.worker.test.ts
  */
-export async function closePointsAccount(
+async function executeClosePointsAccount(
   db: D1Database,
   input: {
     authUserId: string;
     currentSessionId?: string;
+    environment?: string;
     idempotencyKey: string;
     now?: Date;
     pointsUserId: string;
@@ -108,8 +110,9 @@ export async function closePointsAccount(
       AND idempotency_key = ? AND payload_hash = ?
   )`;
 
+  let batchResults: D1Result[];
   try {
-    await db.batch([
+    batchResults = await db.batch([
       db
         .prepare(
           `INSERT INTO idempotency_results
@@ -137,27 +140,6 @@ export async function closePointsAccount(
           JSON.stringify(responseBody),
           now,
           input.pointsUserId,
-        ),
-      db
-        .prepare(
-          `INSERT INTO audit_event
-             (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-           SELECT ?, ?, 'ACCOUNTS_LINKS_RELEASED', ?,
-                  'releasedLinkCount=' ||
-                    (SELECT count(*) FROM accounts_links WHERE points_user_id = ?),
-                  ?, 'SUCCESS', ?
-           WHERE ${guardSql}`,
-        )
-        .bind(
-          `audit_${crypto.randomUUID()}`,
-          input.pointsUserId,
-          input.pointsUserId,
-          input.pointsUserId,
-          input.requestId,
-          now,
-          input.pointsUserId,
-          input.idempotencyKey,
-          payloadHash,
         ),
       db
         .prepare(`DELETE FROM accounts_links WHERE points_user_id = ? AND ${guardSql}`)
@@ -228,23 +210,6 @@ export async function closePointsAccount(
       db
         .prepare(`DELETE FROM admin_membership WHERE points_user_id = ? AND ${guardSql}`)
         .bind(input.pointsUserId, input.pointsUserId, input.idempotencyKey, payloadHash),
-      db
-        .prepare(
-          `INSERT INTO audit_event
-             (id, actor_points_user_id, action, target, request_id, result, created_at)
-           SELECT ?, ?, 'ACCOUNT_CLOSE', ?, ?, 'SUCCESS', ?
-           WHERE ${guardSql}`,
-        )
-        .bind(
-          `audit_${crypto.randomUUID()}`,
-          input.pointsUserId,
-          closeReceiptId,
-          input.requestId,
-          now,
-          input.pointsUserId,
-          input.idempotencyKey,
-          payloadHash,
-        ),
     ]);
   } catch (error) {
     const concurrentReplay = await findReplay(
@@ -258,7 +223,57 @@ export async function closePointsAccount(
   }
 
   const stored = await findReplay(db, input.pointsUserId, input.idempotencyKey, payloadHash);
-  if (stored) return stored;
+  if (stored) {
+    if (batchResults[0]?.meta.changes === 1) {
+      writeAuditLog({
+        action: "ACCOUNTS_LINKS_RELEASED",
+        environment: input.environment,
+        requestId: input.requestId,
+        resourceType: "accounts_link",
+        releasedLinkCount: batchResults[1]?.meta.changes ?? 0,
+      });
+      writeAuditLog({
+        action: "ACCOUNT_CLOSE",
+        environment: input.environment,
+        requestId: input.requestId,
+        resourceType: "points_account",
+        previousState: "ACTIVE",
+        nextState: "CLOSED",
+      });
+    }
+    return stored;
+  }
   await assertCloseAllowed(db, input.pointsUserId);
   throw new ClosePointsAccountError("ACCOUNT_CLOSE_STATE_CHANGED");
+}
+
+/** コマンドの拒否理由を安定したコードで記録し、取引を再実行せずに呼び出し元へ返す。 */
+export async function closePointsAccount(
+  db: D1Database,
+  input: Parameters<typeof executeClosePointsAccount>[1],
+) {
+  try {
+    return await executeClosePointsAccount(db, input);
+  } catch (error) {
+    const knownCodes = [
+      "ACCOUNT_ALREADY_CLOSED",
+      "ACCOUNT_CLOSE_ACTIVE_RESERVATION",
+      "ACCOUNT_CLOSE_LAST_ADMIN",
+      "ACCOUNT_CLOSE_STATE_CHANGED",
+      "IDEMPOTENCY_KEY_REUSED",
+    ];
+    const code =
+      error instanceof Error && knownCodes.includes(error.message)
+        ? error.message
+        : "ACCOUNT_CLOSE_FAILED";
+    writeAuditLog({
+      action: "ACCOUNT_CLOSE",
+      environment: input.environment,
+      requestId: input.requestId,
+      resourceType: "points_account",
+      outcome: "REJECTED",
+      code,
+    });
+    throw error;
+  }
 }

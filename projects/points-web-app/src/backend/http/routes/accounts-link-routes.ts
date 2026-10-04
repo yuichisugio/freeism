@@ -45,6 +45,7 @@ async function toSnapshotDependencies(
   const env = requireBindings(context.env);
   return {
     db: env.DB,
+    environment: env.APP_ENV,
     kek: await importAccountsKeyEncryptionKey(env.ACCOUNTS_KEY_ENCRYPTION_KEY),
     fetch: accountsFetch,
     reportFailure: createAccountsFailureReporter(env),
@@ -185,9 +186,9 @@ export function registerAccountsLinkRoutes(
 
   app.delete("/api/accounts-links/:accountsLinkId", session, async (context) => {
     const isDeleted = await deleteAccountsLink(requireBindings(context.env).DB, {
+      environment: requireBindings(context.env).APP_ENV,
       accountsLinkId: context.req.param("accountsLinkId"),
       pointsUserId: context.get("pointsUser").id,
-      now: Date.now(),
       requestId: `req_${crypto.randomUUID()}`,
     });
     if (!isDeleted)

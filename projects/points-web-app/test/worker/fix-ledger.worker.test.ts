@@ -1,5 +1,7 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+afterEach(() => vi.restoreAllMocks());
 
 import {
   generateAccountsSigningKey,
@@ -301,6 +303,7 @@ describe("FIX CSV の Accounts 照合", () => {
   });
 
   it("連携済みの matched だけを台帳へ反映し、連携の無い matched と no_match は未受領にする", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const { accounts, admin, connectionId, criterionId, validate, commit } = await setUp();
     const linkedPointsUserId = await seedLinkedPointsUser(accounts, connectionId, "ausr_linked");
     accounts.setResolve(
@@ -408,14 +411,14 @@ describe("FIX CSV の Accounts 照合", () => {
       .first<{ balance: number }>();
     expect(balance?.balance).toBe(30_000);
 
-    const audit = await db
-      .prepare(
-        `SELECT target FROM audit_event
-         WHERE action = 'FIX_ACCOUNTS_RESOLVED' AND actor_points_user_id = ?`,
-      )
-      .bind(admin.pointsUserId)
-      .all<{ target: string }>();
-    expect(audit.results).toEqual([{ target: connectionId }]);
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "FIX_ACCOUNTS_RESOLVED",
+        outcome: "SUCCESS",
+      }),
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain(connectionId);
+    expect(JSON.stringify(log.mock.calls)).not.toContain(admin.pointsUserId);
   });
 
   it("1,000行を1回の要求で照合して確定できる", async () => {
