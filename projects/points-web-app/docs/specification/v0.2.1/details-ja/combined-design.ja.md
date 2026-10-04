@@ -14,6 +14,9 @@
       - [「貢献評価を代用する仕組み」の設定](#貢献評価を代用する仕組みの設定)
       - [「交換する仕組み」の係数を設定](#交換する仕組みの係数を設定)
       - [評価軸ポイントの加算・減算](#評価軸ポイントの加算減算)
+        - [登録・訂正する操作](#登録訂正する操作)
+        - [宛先の指定](#宛先の指定)
+        - [FIX取込時の照合](#fix取込時の照合)
     - [ポイント交換する機能](#ポイント交換する機能)
     - [ポイント譲渡する機能](#ポイント譲渡する機能)
     - [退会ボタン](#退会ボタン)
@@ -460,142 +463,92 @@
 
 #### 評価軸ポイントの加算・減算
 
-- 説明
-  - 評価軸が貢献者にポイントを付与するための機能
+##### 登録・訂正する操作
 
-- 処理の流れ
-  1. 評価軸のプロフィール画面の「貢献者アップロード」ボタンを押す
-  2. 「貢献者アップロード」のモーダルが開く
-  3. 「アップロードに必要な項目」のヘッダーが順番通りに記載されたCSVファイルのテンプレをダウンロード
-  4. 「アップロードに必要な項目」の内容が記載されたCSVファイルを作成
-  5. 「貢献者アップロード」のモーダルの「ポイントの付与」ボタンを押す
-  6. 開いたファイル選択画面から、作成したCSVファイルを選択
-  7. [CSVアップロードの確認手順](#csvアップロード)に従ってCSVを検証し、確認後に登録する。
-  8. 一致する場合は、貢献者にポイント付与
+- 対象評価軸の管理者`evalueterAdmin`またはアプリ全体管理者`appAdmin`が、評価軸のプロフィール画面からフォームまたはCSVで直接評価を登録・訂正する。
+- 新規登録は独立した評価として追加し、評価IDを発行する。同じ人・同じ評価軸・同じ評価対象月にも、複数の評価を登録できる。
+- 訂正では、既存の評価アップロードID`fixResultId`を指定し、その評価の現在額を置き換える。更新番号は同じ評価の更新を検証する値として保持する。
+- 評価額は符号付きの小数4桁までとし、負の残高になる評価も受け付ける。100から50への訂正では差額−50と、関連する分配の訂正を反映する。
+- 取消は、CSVで既存の評価IDと更新番号を指定し、額を0へ更新する。
+- 訂正する評価軸は固定する。
+  - 別の評価軸へ移す場合は、元の評価を取り消し、別の評価軸へ新規登録する。
+- 評価対象はUTCの年月を必須とし、日・時刻は任意とする。
+- 管理IDは任意の照合用メモとして保存し、訂正対象は評価IDで指定する。
+- メモは任意で200文字以内とする。
+- 入力するのは確定する評価額とする。
+  - 残高と累計評価額は別に保持し、ポイント増減の台帳と同じ原子処理で更新する。
 
-- 要件
-  1.  **設定できる画面**
-      1. 評価軸のプロフィールの「貢献者アップロード」ボタンから可能
-  2.  **アップロード形式は、CSVファイルのみ対応**
-      - その理由
-        1.  一括で登録するのに対応したいため
-      - JSONに対応しない理由
-        1.  開発者以外は使い慣れていないため
-  3.  **「GUIフォーム」は非対応**
-      - その理由
-        1.  GUIで設定するのは大変なため
-  4.  権限
-      - この操作ができるのは、その評価軸の`evalueterAdmin`または`appAdmin`のみ
-  5.  **アップロードに必要な項目**
-      1. **貢献者のプロフィールURL**
-      2. **貢献度の数値**
-         - 要件
-           1. 負の数も記載可能
-              - その理由
-                1. 負の数が来たら、マイナス評価（貢献度ポイントを差し引く処理）にするために対応する
-              - 例）「-15」のようにハイフンを前に入れるとマイナスにする
-      3. **評価軸ID**
-      4. **評価軸内の管理ID**
-         - 要件
-           1. 記載は任意
-         - 実装する理由
-           1. 評価軸内で管理しているIDと突合するために使用する
-              - これとは別で、無料主義アプリ側で発行したレコードのIDもあるので、これを使用すれば問題ない場合は不要だが、一緒に評価軸側で管理しているIDも登録したい場合に使用する
-              - 「貢献者アップロードの内容を修正したり、ポイント付与履歴で付与結果を確認する際に、「評価軸内の管理ID」を参考に確認できるようにしたい」
-      5. **タスクの実行年月**
-         - 使用場面
-           1. 「貢献評価を代用する仕組み」で二重評価しないために使用
-           2. 履歴を遡るためにも使用
-         - 要件
-           1. **年月は必須・日時は任意**：タイムゾーンがUTCの、`年`と`月`は必ず記載する
-           2. 日付・時刻までは必須としない。任意で日時まで記載してもよい（記載する場合は`00:00:00`等で登録する想定）
-      6. 無料主義アプリが発行する貢献者アップロードした際に返されるID
-         - 使用場面
-           1. 貢献者アップロードのデータを上書きするために使用
-         - 要件
-           1. 記載は任意
-              - 記載した場合に、データが上書きされる
-      7. メモ
-         - 要件
-           1. 記載は任意
-           2. 型は文字列
-           3. 200文字以内の登録が可能
-           4. バリデーションする
-  6.  **貢献者アップロードは、その評価軸の`evalueterAdmin`または`appAdmin`だけができる**
-  7.  **CSVアップロードを再度提出したら結果を上書き**
-      - 要件
-        1.  上書きする旨を表示する
-        2.  「無料主義アプリが発行する貢献者アップロードした際に返されるID」を記載したら上書きされる
-      - v0.2.1の方針
-        1.  上記**返却ID付き再アップロードによる上書き**はv0.2.1で実装する
-        2.  一覧から**1件ずつ**数値を直接修正する**リッチな修正UI**はv0.2.1では作らない（必要になったら将来検討する）
-  8.  **一人あたり複数アカウントをアップロード可能**
-      - その目的
-        - 一つのアカウント名が変更されてても、他のアカウントでチェックできる様にしたい
-        - アカウント名を変更すると、アップロードしたURL文字列も変化する。その際にも確実に登録できるようにしたい
-        - 例）`https://note.com/freeism,https://x.com/sugi_sugi_329`
-      - 実装方法
-        1.  報酬額のテーブルとアカウントのテーブルを分けてリレーションを持たせて、アカウントのテーブルに外部キーを持たせて、その外部キー指定でアカウント名を取得
-        2.  アップロード時は、カンマ区切りで複数アカウントのアップロード可能
-  9.  **「保有ポイント」と「付与履歴」と「累計獲得ポイント」と「ポイント残高」は、「都度合算」しない**
-      - 説明
-        - 貢献度ポイントを付与された場合は、「付与履歴」と「累計獲得ポイント」と「ポイント残高」の別々のカラムで足し算する
-          - 「累計獲得ポイント」は、自動分配で割合を決める際に使用する
-          - 「保有ポイント」だと消費した分が省かれてしまうため、別途必要
-          - 同じポイントを別々で管理するので、処理漏れ対策
-            - 「履歴」と「残高」の両方の更新処理をまとめた関数を用意して、それですべてを更新するよう徹底する
-      - 要件
-        1.  「累計獲得ポイント」と「残高」と「付与履歴」は別で管理
-  10. FIXによる追加の負評価は残高不足に関係なく受け付ける。
+##### 宛先の指定
 
-- 貢献度アップロードは、draftを持たず、FIXの内容のみアップロードしてもらう。
-  - draftは各自の評価軸で管理してもらう
+- 宛先は、外部プロフィールURLの候補またはAccountsユーザーIDのどちらか一方で指定する。本人から共有された情報など、対象者との対応を確認できる識別子を使う。
+- URL候補は最大5件を保存する。
+  - フォームでは候補を追加し、CSVでは`recipientProfileUrl`の一つのセルへカンマ区切りで入力する。
+  - 複数URLのセルはCSVの二重引用符で囲む。
+- PointsサーバーがAccounts系サービスへ順番に問い合わせ、その処理で見つかった一人を付与先にする。URL候補の優先順位は保証しない。
+- 全候補が未照合の場合も、宛先候補を未受領評価として保持する。受領時は同じ照合方法で人物を特定し、受領資格を満たす本人へ一度だけ反映する。
+- 受領済みの訂正先は、同じ評価IDに保存されたPoints利用者に固定する。
+  - 入力URLやAccountsの紐付けが変わっても、この受領者を保持する。
+- 未受領の訂正では最新の宛先と額へ更新する。
+  - 照合で連携済みの本人が見つかれば、旧未受領分を置き換え、最新額全体をその本人へ一度だけ付与する。
 
-FIX CSVの各行は、受領者の識別子を`recipientProfileUrl`（外部プロフィールURL）と`recipientAccountsUserId`（AccountsユーザーID）のちょうど一方で指定する。列の順序と上限は[Pointsドメイン仕様](points-domain.md#71-入力)に従う。アップロードする識別子は、本人から共有された情報など、対象者との対応を確認できるものを指定する。
+##### FIX取込時の照合
 
-- どちらも空の行は`RECIPIENT_IDENTIFIER_REQUIRED`、両方ある行は`RECIPIENT_IDENTIFIER_AMBIGUOUS`の行エラーとする。URLの正規化・受付制約はAccountsが行い、Pointsは空でないことと長さだけを検査する。
-- 照合に使う接続先は、validateとcommitの両方で`X-Accounts-Connection-Id` headerに指定する。未指定は`422 ACCOUNTS_CONNECTION_REQUIRED`、`ACTIVE`でない接続先は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
-- 行エラーが無い時だけ、Accountsの`QUERY /api/v1/identities/resolve`で照合する。同じ識別子は1回だけ照合し、1,000件ごとに要求を分ける。
-- 照合結果は次のとおり扱う。
-  - `matched`: 結果のAccountsユーザーIDを保存する。
-  - `no_match`: AccountsユーザーIDは保存しない。
-  - `invalid_input`: その識別子を持つ行に、識別子の列を示す`RECIPIENT_IDENTIFIER_INVALID`の行エラーを付け、`422 CSV_VALIDATION_FAILED`とする。
-- validateの成功応答は、接続先ID、origin、照合の完了状態、行ごとの照合結果（`MATCHED`・`NO_MATCH`）とPoints内の連携の有無、`validationHash`を返す。`validationHash`には接続先ID、file hash、行ごとのorigin・照合結果・受領者を含める。
-- commitはAccountsで再照合して`validationHash`を再計算し、validate時と異なる場合は全件を`409 VALIDATION_CHANGED`で止めて再validateを要求する。Accounts側の紐付けの変更と、Points内の連携の変更の両方をこの比較で検出する。
-- Accountsから照合結果を得られない場合（通信失敗、タイムアウト、5xx、制限超過、要求全体の拒否、応答のschema・originの不一致）は、ファイル全体を0件反映とする。
-  - validateは`200`で`accountsResolution.status`を`UNAVAILABLE`とし、code `ACCOUNTS_RESOLVE_UNAVAILABLE`と、Accountsの制限超過時は`Retry-After`の値を`retryAfter`に返す。Access Tokenを取り直してもAccountsが`401`を返す場合のcodeは`ACCOUNTS_CLIENT_UNAUTHORIZED`とする。全行を`UNRESOLVED`とし、`validationHash`は`null`とする。照合が正常に完了した`no_match`とはこの応答で区別する。
-  - commit時に照合結果を得られない場合は`409 VALIDATION_CHANGED`とする。
+- 送信から登録まで
+  - 管理者がフォームまたはCSVを送信すると、Pointsサーバーが入力の検証、宛先の照合、評価と分配の計算を行い、全件を一括で保存・付与する。
+  - 画面は処理後に、新規・訂正の区別、付与先、旧額・新額、評価対象月、未受領の有無、分配による増減を表示する。
+  - 同じ送信の再試行には保存済みの結果を返し、二重付与を防ぐ。
 
-FIX CSVの列は`fixResultId`、`expectedVersion`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
+- 照合先を選ぶ処理
+  - Pointsサーバーが、PointsをOAuthクライアントとして登録している有効なAccounts系サービスを取得し、サービスごとに順番に問い合わせる。
+  - 照合には管理者が入力した宛先を使い、問い合わせるサービスはサーバーが決める。
+  - 一つのサービスでその行のURL候補またはAccountsユーザーIDを照合し、人物が見つからなければ次のサービスへ進む。
+  - 人物が見つかった行は、そのサービスのoriginとAccountsユーザーIDの組で付与先を決める。Points連携済みなら付与し、未連携ならその人物宛ての未受領評価として保存する。
+  - 複数のサービスやURL候補に人物が紐付く場合は、その処理で見つかった一人を選ぶ。サービス間・URL候補間の優先順位は保証しない。URLの入力順を付与先の選択条件にしない。
+  - 有効な照合先が一つもない場合は、`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`を返し、全件の登録を止める。
 
-- 受領者識別子: `recipientProfileUrl`（外部プロフィールURL、512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
+- 入力の検証と問い合わせ
+  - 宛先は`recipientProfileUrl`のURL候補または`recipientAccountsUserId`のどちらか一方を指定する。
+  - 両方空なら`RECIPIENT_IDENTIFIER_REQUIRED`、両方指定した場合は`RECIPIENT_IDENTIFIER_AMBIGUOUS`を該当行へ返す。
+  - PointsはURL候補の件数、空欄、長さを検証する。URLの正規化や受付条件の判定はAccountsが行う。
+  - 入力エラーがなければ、各サービスの`QUERY /api/v1/identities/resolve`へ問い合わせる。同じサービスへの同じ識別子の問い合わせは、その処理内で1回にまとめ、1回の要求は最大1,000件とする。
+
+- Accountsの回答と登録する内容
+  - 人物を特定できた回答が`matched`である。選ばれた人物のoriginとAccountsユーザーIDを保存する。
+  - 人物が見つからない回答が`no_match`である。全サービス・全候補で人物が見つからなければ、宛先の候補と評価額を未受領として保存する。この時点では受領先のoriginとAccountsユーザーIDは未確定とする。
+  - 受付できない入力への回答が`invalid_input`である。該当する行・列に`RECIPIENT_IDENTIFIER_INVALID`を付け、`422 CSV_VALIDATION_FAILED`を返す。フォームも同じ入力条件で検証し、入力エラーがあれば全件を反映しない。
+  - 成功時は、実際に選ばれた付与先と接続先、照合結果、付与済み・未受領の別、評価と分配の処理結果を画面へ返す。
+
+- 照合できない場合
+  - 通信失敗、タイムアウト、サービス側の障害や制限、認証失敗、要求の拒否、不正な応答などで照合を完了できなければ、評価も分配も全件を反映しない。
+  - 照合できない場合は`503 ACCOUNTS_RESOLVE_UNAVAILABLE`を返す。問い合わせ制限で待ち時間が指定された場合は、`Retry-After`を返す。
+  - Access Tokenを取得し直しても認証が拒否される場合は、`503 ACCOUNTS_CLIENT_UNAUTHORIZED`を返す。
+  - 「正常に照合したが人物が見つからない場合」は未受領として登録できる。「照合処理を完了できない場合」はエラーとして登録を止める。
+
+- FIX CSVの列は`fixResultId`、`expectedVersion`、`recipientProfileUrl`、`recipientAccountsUserId`、`evaluationCriterionId`、`amount`、`evaluationAt`、`managementId`、`memo`の順とする。
+
+- 受領者識別子: `recipientProfileUrl`（外部プロフィールURL候補、最大5件・各512文字以下）と`recipientAccountsUserId`（AccountsユーザーID、256文字以下）のちょうど一方を必須とする。provider ID、account ID、内部Points user IDを入力列にしない
 - `evaluationCriterionId`: 評価軸ID
-- `amount`: 符号付き評価額
+- `amount`: 符号付き評価額。小数4桁まで
 - `evaluationAt`: 評価期間。UTCの年月は必須、日・時刻は任意
-- `managementId`: 評価軸内管理ID。任意
+- `managementId`: 評価軸内管理ID。任意の照合用メモ
 - `memo`: 任意、200文字以下
 - `fixResultId`と`expectedVersion`: 修正時だけ両方を指定する
 
-URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない。
-
-受領者識別子の照合結果の扱い、validationとcommitの比較、通信失敗時の応答は[FIX取込時の照合](#fix取込時の照合)に従う。
+URL候補はカンマ区切りで最大5件を受け付ける。フォームも同じ受付条件を使う。
 
 - 初回取込で安定した`fixResultId`を発行する。
 - 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録へ保存する。
 - 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
-- 元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
-- 差分は受領者が決まれば台帳へ、決まらなければ`unclaimedFixEntry`へ反映する。
+- 受領済みの元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
+- 受領済みの差額は台帳へ反映する。未受領の`unclaimedFixEntry`は現在額へ更新し、訂正時に受領者が決まった場合は最新額全体を台帳へ反映する。
 - 直接FIXの登録・訂正では、対象の評価軸・評価月が直接評価を採用していることを検証する。評価月を変更する場合は、移動元と移動先の両月を検証する。代用中に保持した直接入力は復元用とし、台帳や受領待ちの有効額には加えない。
 - 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
 
-- FIX実行記録と未受領FIXは、入力した識別子の種類と値、照合した接続先のorigin、照合結果のAccountsユーザーID、照合時刻を不変snapshotとして保持する。訂正の対象者は、照合結果ではなく入力識別子で揃える。対象者キーは、識別子の種類と値を照合した接続先のorigin付きで表した`{種類}:{origin}:{値}`とし、URLの値は入力値そのままとする。訂正を別の接続先で照合した場合は、旧originの対象者へ旧額を取り消す差分、新originの対象者へ新額の差分を記録するため、各originの差分の合計は最新結果の額（そのoriginで照合していなければ0）と一致する。
-
-- 各行の受領者は次のとおり決める。自動分配と貢献評価代用の集計もこの受領者に基づいて行う。
-  - 訂正で、更新前の結果に同じ対象者（上記の対象者キーと評価軸）の行がある場合は、更新前の結果の状態を引き継ぐ。更新前の結果の行が台帳反映済み・受領済みなら差分を同じ受領者の台帳へ反映し、受領者が未確定（未受領）なら、今回の照合結果と連携の有無にかかわらず差分も未受領とする。
-  - それ以外の行は、`matched`でPoints内に同じoriginとAccountsユーザーIDの連携がある場合だけ、そのPointsユーザーを受領者として台帳へ反映する。`no_match`の行と、連携が無い`matched`の行は未受領とする。
+- 最新の評価レコードには、入力識別子の種類、URL候補またはAccountsユーザーID、照合先のorigin、照合結果、照合時刻、受領状態と確定したPoints受領者を保持する。実行済みの照合・変更内容は実行記録と監査へ保存する。
+- 受領者は評価ID単位で決める。受領済みなら同じPoints利用者へ訂正の差額を反映する。未受領なら最新の候補を再照合し、連携済みの本人が見つかった場合は最新額を付与し、それ以外は最新の未受領状態へ更新する。旧宛先の未受領額を受領対象から外す。
 - 受領済みFIXとその訂正先は同じPointsユーザーに保持する。Accountsの紐付け・公開許可の変更や受領後のURL解除・再所有があっても、既受領FIXを移動・rollbackしない。
 
-1ファイルのvalidationがすべて成功した後、次を1つのD1原子処理で確定する。
+フォームまたはCSVの送信を受け、入力の検証と照合・計算がすべて成功した後、次を1つのD1原子処理で確定する。
 
 1. FIX resultとentryの最新レコード、FIX実行記録
 2. 更新前の結果との差分
@@ -605,7 +558,11 @@ URLは1行1件とし、1セル内のカンマ区切り複数URLは使わない�
 
 部分成功・行単位retry・server draftを許可しない。
 
-- FIX command内の全行、差分台帳、`balance`、`evaluationTotal`、未受領状態をこの原子処理で確定する。
+- サーバーはフォーム・CSVの両方で管理権限、宛先、金額、評価対象月の直接評価選択、現在の更新番号を検証する。月の変更では移動元・移動先の両月を検証する。
+- 正の新規評価は既存の自動分配に従って処理し、未受領分は受領時に分配する。訂正では旧評価と全分配の影響を計算上取り除き、最新条件で計算し直す。
+- CSVは記載順に評価と全再分配を計算する。先の行の結果を後の行へ反映し、既存の1,000行上限と分配処理件数上限を検証する。
+- FIXの全行、実行記録、差分台帳、残高、累計評価額、未受領状態、再送防止の結果をまとめて確定する。1件でも失敗すれば全件を反映しない。
+- 同じ送信要求の再送には保存済みの結果を返す。
 
 ### ポイント交換する機能
 
@@ -1406,12 +1363,16 @@ Packageは同じIDの最新レコードを更新する。Marketsは競売作成�
   - client previewは補助であり、serverが同じfileを再parseして正とする。
   - header、列数、必須値、値域、ID、URL、年月、enum、文字数、参照先存在、権限、一意性、重複header、重複business key、重複行を検査する。
   - すべての行を検査し、全エラーを行番号、列名、error code、修正可能な説明付きでまとめて返す。
-  - 1件でもerrorがある場合や同一ファイル内に重複行がある場合は、ファイル全体を失敗させ、確定APIを実行せず、部分反映しない。
+  - 1件でもerrorがある場合や同一ファイル内に重複行がある場合は、ファイル全体を失敗させ、全件を反映しない。
   - amountはASCIIの10進文字列だけを受け付け、小数4桁超、指数表記、Unicodeマイナス、NaN/Infinity、safe integer超過を拒否する。
-  - URLは1行1件とし、1cellのカンマ区切り複数URLを許可しない。
+  - 通常のURL列は1行1件とする。FIXの`recipientProfileUrl`は例外として、候補を最大5件、カンマ区切りで受け付ける。
   - 評価期間はUTCの年・月を必須とし、日・時刻は任意。曖昧なlocale日付を受け付けない。
 
-- 確認・確定の共通手順
+- FIXの送信・登録
+  - 管理者がファイルを送信すると、サーバーが全行を検証・照合・計算し、一括で保存・付与する。処理後に結果またはエラーを表示する。
+  - 送信に`Idempotency-Key`を付け、同じ要求の再送による二重付与を防ぐ。
+
+- 交換・譲渡・評価代用などの確認・確定の共通手順
   1. 利用者が「アップロード」ボタンからファイルを選び、browserがclient previewを表示する。
   2. serverへvalidation requestを送り、全行を再parseする。
   3. errorがあれば全件表示し、confirm dialogを出さない。
@@ -1646,8 +1607,8 @@ GoogleとGitHubで別々のPointsユーザーを作成した後、それらを�
 Pointsは受領時点の照合結果を根拠に、受領資格を判定する。
 
 - 受領は本人のAccounts連携（origin・AccountsユーザーID）ごとに行う。
-- 候補は、同じoriginで照合された、まだ受領されていない未受領FIXとする。
-- 候補の識別子を、その時点のAccountsで改めて照合する。要求は1,000件ごとに分ける。結果が`matched`で、AccountsユーザーIDが連携先と一致するものを受領資格ありとする。
+- 候補は、まだ受領されていない最新の未受領FIXとする。取込時に人物が見つからずoriginが未確定の評価も含める。
+- Pointsサーバーが有効なAccounts系サービスへ順番に問い合わせ、宛先候補を再照合する。その処理で選ばれた人物のorigin・AccountsユーザーIDが本人の連携先と一致する場合に受領資格ありとする。URL候補の優先順位は保証しない。要求は1,000件ごとに分ける。
 - FIXの評価時刻、FIX取込時の照合結果、Pointsとの連携時刻は受領資格の条件にしない。
 
 連携前から蓄積した未受領FIXも、受領時点で本人の外部アカウントとして照合されれば受領できる。外部アカウントが別のAccountsユーザーへ移った場合は、受領時点の紐付け先が受領する。Accountsで公開許可を取り消した識別子や、Pointsとの連携を解除したAccountsユーザーの未受領FIXは、受領されないまま残る。再許可または再連携の後に受領できる。退会後の再開時に受領できる範囲は、[退会](#退会)に従う。
@@ -1655,13 +1616,13 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 ### 一括claim
 
 - 受領資格を満たす未claimの正負全件を選択不可で一括受領する。ledgerへの反映はPointsの明示confirmで行う。
-- 対象は、その評価軸・評価月で採用中の直接評価または代用評価の未受領結果とする。代用評価も、計算元の宛先識別子と接続先originを引き継いで既存の受領処理で照合する。方式を切り替えると受領待ちの旧結果を取り消し、新しい採用結果へ更新する。復元用の直接入力は受領対象に含めない。
+- 対象は、その評価軸・評価月で採用中の直接評価または代用評価の未受領結果とする。代用評価も計算元の宛先候補を引き継ぎ、受領時に再照合する。方式を切り替えると受領待ちの旧結果を取り消し、新しい採用結果へ更新する。復元用の直接入力は受領対象に含めない。
 
-- 同じ対象者の各実行の未受領差分はまとめて受領し、受領額は最新結果の額と一致する。
+- 各評価IDの最新の未受領額をまとめて受領する。訂正前の宛先や置き換え済みの額は受領対象から外し、受領額を最新結果と一致させる。
 
 - 利用者は設定画面`/settings/connections`の「未受領FIX」区画で、連携ごとにpreviewを確認して受領する。
 
-- `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全体の件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は対象エントリー集合と連携先のorigin・AccountsユーザーIDから計算する。
+- `GET /api/unclaimed-fixes/claim-preview?accountsLinkId={accountsLinkId}`（session）はread-only previewを返す。previewは`accountsLinkId`、評価軸ごとの正味合計（`netAmountScaled`）・正件数・負件数・全件数、全体の件数、`claimSetHash`を含み、行や正負を選択するfieldを持たない。`claimSetHash`は最新の対象エントリー集合、額、URL候補と照合で選ばれた人物、連携先のorigin・AccountsユーザーIDから計算する。
 - serverはAccountsで再照合して対象集合とhashを再計算し、変化していれば`409 CLAIM_SET_CHANGED`で新しいpreviewを返す。
 - 接続先が`ACTIVE`でない場合は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。Accountsとの通信失敗・制限超過・不正な応答は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`の`Retry-After`を転記する。Access Tokenを取り直しても`401`の場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。これらの場合は何も受領せず、識別子・トークンを含めずに構造化ログとメトリクス（operation `accounts_resolve`）へ記録する。
 
@@ -1675,12 +1636,12 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 
 1. 受領資格と未claim対象集合を確認し、集合hashを再検査する。
 2. 正・負を区別せず対象全件を選択不可でclaimする。
-3. FIX実行記録ごとの差分と、受領時点の設定による自動分配を計算し、元のFIXに紐付く差分台帳を追加する。
+3. 各評価IDの最新の未受領額と、受領時点の設定による自動分配を計算し、元のFIXに紐付く台帳を追加する。
 4. ledger INSERT triggerが`point_accounts.balance`と`evaluationTotal`を更新する。
 5. 連携先のsnapshotを含む`fixClaim`、idempotency resultを保存する。
 
 - 単一のPoints D1原子処理で確定し、1件でも失敗すれば全件を未受領のままにする。
-- 同じFIX実行の未受領エントリーの二重受領を一意制約で防ぐ。
+- 同じ評価IDの二重受領や、未受領の訂正による即時付与との二重反映を一意制約で防ぐ。
 - 負の合計で残高が不足・負になってもclaim自体は成功させ、その後の消費系操作を拒否する。
 - 並行claim、再読込、Workflow retryは同じclaim集合hashに収束し、二重台帳を作らない。
 
@@ -1689,13 +1650,13 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 #### `unclaimedFixEntry`
 
 - `sourceFixExecutionId`
-- 入力した識別子の種類（`url`または`accounts_user`）と値（入力値そのまま）
-- 照合した接続先のorigin、照合結果のAccountsユーザーID（`matched`の時だけ）、照合時刻
+- 評価IDと、入力識別子の種類（`url`または`accounts_user`）、URL候補またはAccountsユーザーID
+- 選ばれた接続先のoriginとAccountsユーザーID（人物を特定できた場合）、照合時刻。全候補が未照合ならoriginとAccountsユーザーIDは未確定
 - 評価軸ID
 - 評価時刻
 - 符号付きscale済みamount
 
-未受領エントリーは`sourceFixExecutionId`、origin、識別子の種類と値、評価軸IDの組で一意とする。同じ識別子でも、接続先が異なれば別の対象者として扱う。
+未受領の有効額は評価ID単位で最新の宛先・額へ更新する。受領・即時付与は同じ評価IDで一度だけ確定し、実行記録と差分台帳で変更内容を保持する。
 
 #### `fixClaim`
 
@@ -1865,7 +1826,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 | 未受領FIX claim                        | `/api/unclaimed-fixes/claims`                                                                                       | 最新preview hash、idempotency                                                   |
 | 評価軸の作成                           | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                   |
 | 評価軸の更新                           | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
-| FIXの確定                              | FIXのCSV                                                                                                            | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
+| FIXの確定                              | FIXのフォーム・CSV                                                                                                 | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
 | 交換比率の確定                         | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency            |
 | 貢献評価代用の確定                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                      | 付与先評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency |
 | ポイント交換のフォーム確定             | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、idempotency                                |
@@ -1922,7 +1883,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
    - 説明
      - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
 
-同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面とFIX取込画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
+同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
@@ -2484,6 +2445,10 @@ export default defineConfig({
   - PWA、offline cache、画像アップロード、Q&A、chatは廃止する。
 
 ## v0.2.0からv0.2.1への変更
+
+- 直接評価は一度の送信で照合・保存・付与し、処理後に結果を表示する。照合先はPointsサーバーが選ぶ。
+
+- 直接評価の登録・訂正をフォーム・CSVに対応させる。URL候補は最大5件を受け付け、Pointsが有効なAccounts系サービスを順番に照合して選んだ人物へ付与する。URLの優先順位は保証しない。受領済みの訂正先は本人に固定し、未受領の訂正で連携済みなら最新額を付与する。評価IDと更新番号で訂正し、分配も再計算して差分を一括反映する。
 
 - 外部アカウントの管理はAccountsが行い、Pointsの仕様にはその手順を書かない。
 - 落札の支払いは、ポイントの仮押さえでは扱わない。
