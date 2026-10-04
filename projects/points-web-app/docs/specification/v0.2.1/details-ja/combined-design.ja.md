@@ -125,6 +125,12 @@
     - [依存関係とsupply chain](#依存関係とsupply-chain)
   - [フォルダ構成](#フォルダ構成)
   - [デプロイ設定](#デプロイ設定)
+    - [環境と配信先](#環境と配信先)
+    - [画面・静的ファイル・ビルド](#画面静的ファイルビルド)
+    - [テスト環境の認証とPRプレビュー](#テスト環境の認証とprプレビュー)
+    - [自動配信と設定の管理](#自動配信と設定の管理)
+    - [DB更新と失敗時の対応](#db更新と失敗時の対応)
+    - [実環境での確認](#実環境での確認)
   - [セキュリティ、品質](#セキュリティ品質)
   - [採用しないもの](#採用しないもの)
   - [v0.2.0からv0.2.1への変更](#v020からv021への変更)
@@ -633,30 +639,90 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 ## 多言語に対応
 
-- 全ページを日本語と英語に対応する
-  - 言語切替は同一originの`localStorage` key `freeism-language`へ`ja|en`だけを保存する。
-  - 初期値resolverは、JavaScript有効時は、同一originに保存済み有効値、`navigator.languages`内で最初に現れる`ja|en`、`en`の順で決定し、URL／query／Cookie／server content negotiation/未知／破損した保存値は参照しない。
+- 表示と言語の選択
+  - 全画面の項目名・操作ボタン・案内・エラーを日本語と英語に対応させる。管理画面、ログイン・同意画面、ヘルプ、規約も対象とする。
+  - 未ログインでも共通ヘッダーから言語を切り替えられる。
+  - 選択した言語は、同じブラウザの同じオリジンにあるPoints全画面へ適用する。`localStorage`の`freeism-language`へ`ja`または`en`を保存する。
+  - 初期言語は、保存済みの有効な選択、`navigator.languages`で最初に現れる日本語・英語、英語の順で決める。`ja-JP`・`en-US`なども対応する言語として扱う。
+  - 保存値が不正、または保存領域を利用できない場合は、ブラウザの優先言語から決める。保存できない場合も画面内では切り替えられる。
+- 翻訳する内容
+  - 利用者が登録した名前・説明・メモ・URL・IDは、入力された内容を表示する。
+  - 日時・数値の表示形式は日英共通とする。日時にはUTCを明記し、評価対象月もUTC基準とする。
+  - 金額の入力、CSV・APIの列名、値、計算方法は、表示言語にかかわらず既存の共通形式を使う。
+  - 利用規約・プライバシーポリシーは、日本語を正本、英語を参照翻訳と明記する。
+  - 選択した言語の翻訳が欠けた文言は、もう一方の言語で表示する。翻訳の欠落は静的検査で検出する。
+- 切替時の動作
+  - 言語を切り替えても、入力内容・検索条件・ページ・確認中の結果を維持する。切替操作では登録や確定を実行しない。
+  - 項目名・案内・入力エラー・確認結果の説明を、選んだ言語へ切り替える。
+  - ページ再読み込みや画面移動後も、保存した言語を適用する。
+  - JavaScriptが無効な場合、規約・プライバシー・ヘルプなどの固定ページは日英を併記する。
 
 ## 複数のPointsアカウントの切り替え
 
-- 複数名義で参加する利用者が、個人名義とReactなどのソフトウェア名義を、**ログアウトせずTwitterのように簡単に切り替えられるようにする**。
-- Better Authの標準の複数セッションを使い、同じブラウザでログアウトせずにプロフィールを切り替える。
+- アカウントと追加
+  - 個人名義やソフトウェア名義など、各名義は別々に認証する独立したPointsアカウントとする。残高・評価・管理権限・Accounts連携・公開設定は、各アカウントに属する。
+  - Better Authの標準の複数セッションを使い、`maximumSessions: 10`を設定する。同じブラウザの同じPointsサービスで最大10アカウントのログイン状態を保持する。
+  - 共通ヘッダーに、現在の表示名とアカウント切替の導線を設ける。
+  - 「アカウントを追加」からGoogle・GitHubでログインする。初回は通常の新規登録を行う。
+  - 上限時は追加を開始せず、既存のアカウントをログアウトするよう案内する。
+  - 同じアカウントを再度追加しても一覧を重複させない。ログイン手段の連携は、別の管理操作として扱う。
+  - 追加に成功したら追加先へ切り替える。中止・失敗した場合は、元のログインと画面の場所を維持し、入力は初期状態にする。
+- 一覧と切替
+  - 一覧には表示名・PointsユーザーID・現在選択中の印を表示する。非公開プロフィールも、ログイン済み本人の切替一覧には表示する。
+  - 名前順、同名ならPointsユーザーID順に並べる。
+  - 切替後は、切替先のホームを表示する。未保存の入力や未確定の確認結果がある場合は、破棄を確認してから切り替える。追加ログインでも切り替わるため、未保存の入力や未確定の確認結果があれば、追加を開始する前に破棄を確認する。認証開始後は中止・失敗した場合も入力を復元しない。
+  - 切替先の残高・権限・設定を取得し直し、切替前の本人用情報を画面から消す。ブラウザに保存した表示言語は維持する。
+  - 切替先のログインが期限切れ・失効していた場合は、一覧から外して再ログインを案内する。現在のアカウントは維持する。
+  - 外部連携の途中で切り替える場合は、連携の中止を確認する。切替前にサーバーで元の本人・セッションに属する進行中の連携試行を無効化し、成功してから切り替える。認証応答と連携確定時に試行の有効性を検証し、中止後に戻った応答では連携を保存しない。
+  - 退会済みアカウントへのログインは、既存の再開手順へ案内する。
+- 別タブとログアウト
+  - 別タブで切り替えた場合、他のタブは表示を維持する。次の操作時に変更を案内し、未確定の内容を反映せず、切替先のホームへ移動する。
+  - 登録・確定要求には、入力・確認時のPointsユーザーIDを含める。サーバーは現在の認証本人のIDと照合し、不一致なら書込み前に拒否する。一致した場合も現在の権限を検証する。
+  - 「このアカウントをログアウト」と「このブラウザの全アカウントをログアウト」を用意する。
+  - 個別ログアウトでは他のログインを保持する。現在のアカウントをログアウトした場合は、残ったアカウントの選択画面を表示する。
+  - 選択画面から未ログインの公開画面へ進める。ログインが残っていない場合も公開画面へ移動する。
+  - ログアウトでは、ポイントやアカウントの登録情報を保持する。
+- 保持する情報
+  - ログイン状態はBetter Authの複数セッションで管理し、一覧の表示には既存のPointsユーザー情報を使う。
+  - 一覧取得は`multiSession.listDeviceSessions`、切替は`multiSession.setActive`、個別ログアウトは`multiSession.revoke`、全件ログアウトは`signOut`を使う。
+  - 個別ログアウト後に標準機能が残ったセッションを選んだ場合も、本人用画面へ進まず選択画面を表示する。利用者が選んだアカウントを有効にしてからホームを表示する。
 
 ## OAuthログイン
 
-- PointsはGoogle/GitHubのOAuth認証でログインを提供する
-- ログインとsessionはPoints独自に持つ。
-- GoogleとGitHubを同じProvider一覧から明示linkできる。
-- 同じ一覧をログイン画面にも表示する。
-- メール一致で自動linkせず、異なるメールの明示linkを許可する。
-- 本人識別は`providerId + accountId`で行い、メール一致による暗黙linkを禁止する。
-- ログインのUI
-  - モーダルを使用する
-     - ログイン画面に遷移させず、ログインするモーダルを表示させる。それにより遷移による面倒さを減らしたい。
-   - ログインのモーダルの背景にログイン後の画面を表示
-     - ログインのモーダルの背景はログイン後の画面にして、モザイクを掛けた状態にする
-     - これにより、利用率が上がるらしい
-- `disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`とする。`trustedProviders`は、そのアプリのログインProviderと同じにする。
+- ログインと本人識別
+  - Google・GitHubのOAuth認証を提供し、Points独自のログイン状態をBetter Authで管理する。
+  - 認証元の種類と不変のアカウントIDで本人を識別する。Googleは`sub`、GitHubは数値のアカウントIDを使う。
+  - ログイン用OAuthアカウントとPoints本人の対応は永久に保持する。
+  - 未連携の認証元が既存ユーザーと同じメールを返した場合は、`account_not_linked`としてログインを拒否する。既存の手段でログインし、設定画面から連携するよう案内する。
+  - Google・GitHubを同じ認証元一覧に含め、通常ログインとログイン手段の追加で共通に使う。
+- 画面と認証後の動作
+  - 共通ヘッダーからログインモーダルを開き、Google・GitHubのボタンを表示する。
+  - 背景には閲覧中の公開画面を表示する。本人用画面へ直接来た場合は、公開の案内画面を背景にする。
+  - 利用規約・プライバシーポリシーのリンクと、初回登録に適用する利用条件を表示する。
+  - 認証は同じタブで認証元の画面へ移動する。通常ログイン・別アカウント追加・ログイン手段の連携では、両認証元へ`prompt=select_account`を送り、毎回アカウント選択を要求する。
+  - 認証開始前に、未保存入力と未確定の確認結果を破棄することを案内する。認証開始時に破棄し、成功・中止・失敗のいずれでも復元しない。
+  - 通常ログイン成功後は、Points内の開始した画面へ戻る。権限がなければホームへ移動し、未確定操作は自動実行しない。
+  - 別アカウント追加の成功後は、そのアカウントのホームへ移動する。中止・失敗時は元のログインと画面の場所を維持し、入力は初期状態にする。
+  - 同意拒否・通信失敗・認証失敗を区別して案内し、再試行できるようにする。表示言語は維持する。
+- 初回登録
+  - 初回はPointsユーザーを作成し、表示名「仮ユーザー」、プロフィール非公開で利用を開始する。
+  - プロフィール設定とAccounts連携を案内する。設定を完了する前も通常利用できる。
+- ログイン手段の追加
+  - 設定画面にログイン手段の一覧と追加操作を設ける。
+  - 別アカウントへのログインと、現在の本人へのログイン手段追加を、別の操作として表示する。
+  - ログイン済み本人は、異なるメールのGoogle・GitHubも明示的に連携できる。
+  - 既に別のPoints本人へ対応するOAuthアカウントの連携は拒否する。追加の中止・失敗では既存の手段を維持する。
+  - ログイン手段の解除は提供しない。
+  - 連携によって既存のプロフィール情報を上書きしない。
+- セッションと認証処理
+  - セッションは有効期間7日、更新間隔1日とする。利用時に更新条件を満たしたら、その時点から7日へ延長する。
+  - 認証処理とセッション検証はBetter Authの標準機能を使う。復帰先は許可されたPoints内の画面に限定する。
+  - 退会済み本人は既存の再開手順へ案内する。
+  - 明示連携には`linkSocial`を使い、`disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`を設定する。`trustedProviders`は`google`・`github`とする。
+  - セッションには`expiresIn: 604800`、`updateAge: 86400`を設定する。単位は秒とする。
+- 公式資料
+  - 明示連携と同一メールの扱いは[Better Authのユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts)、有効期間と延長は[セッション管理](https://better-auth.com/docs/concepts/session-management)を参照する。
+  - アカウント選択は[GoogleのOpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)と[GitHubのOAuth認可](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)を参照する。
 
 ## Accountsと連携
 
@@ -665,11 +731,15 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 Points利用者は、別サービスのAccountsで、Pointsへ提供する外部アカウントを選ぶ。この同意は、Pointsの公開プロフィール、公開API、落札証明での公開表示を含む。Accounts自身の一般公開設定とは独立した許可として扱う。Pointsは独立したOAuthクライアントとして、本人が提供を許可したアカウントを照合する。本人がPointsを操作していないときも、許可済みの情報を照合できる。設定画面には、複数のAccountsユーザーとの連携一覧を表示し、提供元のAccountsサービス、Accounts ID、各連携状態、取得した外部アカウント一覧、各Accounts管理画面への導線を示す。
 
-作成時にPointsは、`private_key_jwt`のclient assertion用とDPoP用のEd25519鍵を1組ずつ生成する。秘密鍵とAccess Tokenは、Worker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）をKEKとするAES-256-GCMで暗号化してD1へ保存する。暗号化のAADには、接続先IDと用途を含める。作成した接続先は`PENDING_CLIENT_REGISTRATION`とする。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、client assertion用の公開JWK Setを表示する。`registration.redirectUri`は、stagingとPR Version URLでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とし、productionではproduction自身のoriginの同じpathとする。運営者は表示されたURLをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できたときだけ`ACTIVE`にする。取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`とし、メタデータが不正なら`422 ACCOUNTS_DISCOVERY_INVALID`として、`PENDING_CLIENT_REGISTRATION`のままにする。Client IDが、前後の空白を除いて空、または255文字を超えるときは`422 ACCOUNTS_CLIENT_ID_INVALID`とする。接続先が`PENDING_CLIENT_REGISTRATION`でないときは`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
+作成時にPointsは、`private_key_jwt`のclient assertion用とDPoP用のEd25519鍵を1組ずつ生成する。秘密鍵とAccess Tokenは、Worker secret `ACCOUNTS_KEY_ENCRYPTION_KEY`（base64の32 bytes）をKEKとするAES-256-GCMで暗号化してD1へ保存する。暗号化のAADには、接続先IDと用途を含める。作成した接続先は`PENDING_CLIENT_REGISTRATION`とする。管理画面には、Accountsの開発者向け画面へ登録する情報として、アプリ名の推奨値`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、client assertion用の公開JWK Setを表示する。`registration.redirectUri`は、ローカル・staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とし、productionではproduction自身のoriginの同じpathとする。運営者は表示されたURLをAccountsへ登録してClient IDを得る。DPoP用の鍵はAccountsへ登録しない。運営者がClient IDを入力すると、PointsはそのClient IDと保存した鍵で、Client Credentials（`identities:read`）のAccess Tokenを取得する。取得できたときだけ`ACTIVE`にする。取得できなければ`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`とし、メタデータが不正なら`422 ACCOUNTS_DISCOVERY_INVALID`として、`PENDING_CLIENT_REGISTRATION`のままにする。Client IDが、前後の空白を除いて空、または255文字を超えるときは`422 ACCOUNTS_CLIENT_ID_INVALID`とする。接続先が`PENDING_CLIENT_REGISTRATION`でないときは`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
+
+- 共有テストD1を使う環境では、`ACCOUNTS_KEY_ENCRYPTION_KEY`をそろえる。
+  - staging・プレビュー共通設定・作成済みPR・ローカルで同じ値を使う。
+  - 共有D1に保存したAccounts接続先の秘密鍵とTokenを、各環境で同じ鍵により復号するためである。
 
 PointsユーザーIDはPointsが管理する。Accountsユーザーは、提供元Accountsサービスのoriginと、ID Tokenの`sub`であるAccountsユーザーIDの組み合わせで区別する。同じPointsサービス内では、1つのPointsユーザーへ複数のAccountsユーザーを連携できる。各Accountsユーザーの連携先は、そのPointsサービス内で最大1つのPointsユーザーとする。同じAccountsサービス内の複数ユーザーと、別々のAccountsサービスのユーザーを連携対象にできる。同じAccountsユーザーを別々のPointsサービスへ連携でき、各Pointsサービスへの情報提供には、それぞれ同意する。
 
-Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIX](#未受領fix)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開する情報と画面の構成](#公開する情報と画面の構成)の条件に従う。
+Accountsで先に登録と外部アカウントの連携を済ませた利用者も、PointsからAccountsの利用を始める利用者も、次の順で連携する。Pointsへログインして設定画面`/settings/connections`を開く。運営者が用意した`ACTIVE`の接続先から自分が使うAccountsサービスを選び、「Accountsと連携する」を押す。Pointsは`POST /api/accounts-links/attempts`でBetter Authの`linkSocial`を開始し、Accountsの認可URLへ移動する。Accountsへログインし、アカウントがなければ新規作成する。Accountsで、貢献の識別に使う外部アカウントを連携する。Pointsへ提供するアカウントと利用目的を確認して同意する。Accountsは、管理画面に表示した固定callbackへ戻す。OAuth Proxy経由で元のPoints画面へ復帰し、Generic OAuthが[クライアント認証と権限](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#クライアント認証と権限)に従って認可応答とID Tokenを検証する。アカウント切替時に中止した連携は、認証応答から保存しない。その後`GET /api/accounts-links/finish?ticket=...`が、開始時のPoints本人とsessionを照合し、Accountsユーザーとの対応を保存して設定画面へ戻す。貢献とポイントの処理は[未受領FIX](#未受領fix)に従う。Pointsの設定とプロフィールには、連携した各Accountsサービスと、Accountsユーザーのプロフィールへのリンクを表示する。プロフィール上の表示は[公開する情報と画面の構成](#公開する情報と画面の構成)の条件に従う。
 
 同じ手順を繰り返して、別のAccountsユーザーを追加できる。追加するAccountsユーザーごとに、本人が認証し、情報提供へ同意する。同じPointsユーザーが、連携済みのAccountsユーザーで再び連携した場合は、既存の連携を維持して再連携日時を更新する。設定画面では、接続先が`ACTIVE`の連携に「再連携」を表示する。同じPointsサービス内で、すでに別のPointsユーザーへ連携済みの場合は、保存せずに現在の連携状態を案内する。同じAccountsユーザーの連携先を、同じPointsサービス内の別のPointsユーザーへ変えるときは、元のPointsユーザーへログインして連携を解除したあと、移動先のPointsユーザーへログインして再連携する。再連携ではAccountsでの本人確認と情報提供への同意を行い、[ユーザー連携の件数と識別](#32-ユーザー連携の件数と識別)の一意性を確認する。Pointsに外部アカウントを登録済みの利用者も、Accountsへ切り替えるときは、Accountsで外部アカウントを新しく登録し、所有権を証明して公開先を設定する。Pointsの貢献データとポイントは、Pointsが管理する。
 
@@ -1454,16 +1524,20 @@ betterAuth({
 
 ### PointsのGoogle・GitHubログインと明示連携
 
-PointsではGoogleとGitHubを同じSocial Provider集合として扱う。
+- ローカル・staging・PRプレビューは、OAuth Proxyで固定したstaging callbackを共有する。
+  - `OAUTH_PROXY_PRODUCTION_URL`は`https://staging.points.freeism.app`とする。
+  - 認証後は、開始元のローカル・PR画面へ戻す。
+  - 本番は本番自身のURLとcallbackを使う。
+- 運営者は、Google・GitHubのOAuthアプリへcallbackを登録する。
+  - Googleは`https://staging.points.freeism.app/api/auth/callback/google`とする。
+  - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`とする。
+- OAuth Proxyは既存の認証鍵を使う。
+  - 参加するローカル・staging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。
+  - Better Authの更新時も、Proxyに参加する環境を同じバージョンへそろえる。
+  - 更新前から進行中のログイン・連携は、更新後にやり直す。
+  - 認証鍵とProxyの更新条件は[Better Auth公式資料](https://better-auth.com/docs/plugins/oauth-proxy)を参照する。
 
-stagingとPR Version URLはOAuth ProxyでGoogle・GitHubの固定staging callbackを共有し、認証後は開始元のoriginへ戻す。productionはproduction自身のcallbackを使う。PR Version URLでは同じstaging Workerの`BETTER_AUTH_SECRETS`を使う。
-
-- ログイン画面にはGoogleとGitHubの両方を表示する。
-- ログイン済みユーザーの連携画面にもGoogleとGitHubの両方を表示する。
-- `signIn.social`と`linkSocial`で異なるProvider許可リストを作らない。
-- Google・GitHubにはProvider別にログインだけを拒否するhookを設けない。
-
-GoogleとGitHubで別々のPointsユーザーを作成した後、それらをメール一致で統合しない。あるProvider Accountがすでに別のPointsユーザーに属する場合、そのAccountを別ユーザーへlinkできない。同一Pointsユーザーとして使いたい場合は、第二のProviderで別ユーザーを作る前に、ログイン済みの既存ユーザーへ明示linkする。
+- GoogleとGitHubで別々のPointsユーザーを作成済みの場合は、それぞれ独立した本人対応を保持する。同じPoints本人として使う場合は、第二の認証元で新規登録する前に、既存の本人へログインして設定画面から追加する。
 
 ### Google
 
@@ -1577,7 +1651,10 @@ hash付きconfirm POST時、次を同じD1原子処理で行う。
 - Cookieとセッションの処理はBetter Authの標準機能に任せる。
 - OAuth Tokenは暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。session/account/tokenをlocalStorageへ保存しない。
 - `disableCSRFCheck=false`、`disableOriginCheck=false`とする。
-- `trustedOrigins`は環境ごとに必要な当該アプリoriginを列挙する。Pointsの[PR Version URL](pr-preview.ja.md)には、`points-pr-*-points-worker-staging.<subdomain>.workers.dev`のホスト形式だけを追加する。
+- `trustedOrigins`は、環境ごとに必要な当該アプリのoriginを列挙する。
+  - Pointsのテスト環境には、開始元のローカルorigin、固定staging origin、`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
+  - `<subdomain>`はstaging設定の`PREVIEW_WORKERS_SUBDOMAIN`を使う。
+  - subdomainを変更するときは、stagingの許可先とPR配信のURL設定を一緒に変更する。
 - browserは各アプリの同一origin`/api/*`だけを呼び、同一origin BFFを通す。原則cross-origin browser APIを公開しない。
 - 業務状態の変更は`application/json`のPOST／PUT／PATCH／DELETEとし、通常のGETで変更しない。browser mutationのbodyは最大64KiBを基本とし、CSVだけは別途5MiB上限を適用する。
 - OAuth callbackのGETだけは、単回state／codeの消費と、後続POSTへ必要な期限付きprotocol state／検証済みpending claimsの保存を許可する例外とする。callback GETで経済状態、Auction／Settlement state、Workflow、grant statusを変更しない。
@@ -1783,7 +1860,7 @@ Points Workerは対象操作を散在するif文で管理せず、次のroute／
 
 同じoriginで`WITHDRAWN`以外の接続先は1件だけとし、重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。別のURLへ切り替えるときは、新しい接続先として追加する。利用者は新しい接続先で認証と同意をして連携し、旧接続先のユーザー連携は、その接続先を取り下げるまで維持する。取り下げは終端の`WITHDRAWN`へ進める。同じD1 batchで、その接続先のユーザー連携、連携の試行、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。Accounts側の公開設定、Pointsで確定済みの貢献とポイント、FIXとclaimに保存したoriginは維持する。取り下げ後は、同じoriginを新しい接続先として追加できる。すでに`WITHDRAWN`の接続先は`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。利用者の連携画面は、`GET /api/accounts-connections`が返す`ACTIVE`の接続先（ID、表示名、origin）だけを選択肢にする。接続先の設定、切り替え、取り下げと、Points内のユーザー連携の管理はPointsの責務とする。Accountsが提供する認証、外部アカウント情報、照合APIの条件は[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に従う。
 
-認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
+認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。再連携を含め、毎回Accountsの同意画面を表示する。試行には、ランダムなticketのSHA-256 hash、PointsユーザーID、session IDのSHA-256 hash、接続先ID、Better Authが生成した`nonce`とcode verifierを保存する。有効期間は10分とし、同じPointsユーザー・同じsessionの`finish`で1回だけ消費する。開始の要求bodyはJSONとし、`Content-Type`が`application/json`でないときは`415 JSON_CONTENT_TYPE_REQUIRED`とする。開始は利用者ごとに1時間10回までとし、超えたときは`429 ACCOUNTS_LINK_RATE_LIMITED`とする。Generic OAuthのcode交換では、保存したverifier、nonce、接続先を照合し、`private_key_jwt`とDPoP proofを付ける。DPoP nonceを要求された場合は、nonceを付けて再試行する。ID Tokenは、AccountsのJWKSによる署名と、`iss`、`aud`、`exp`、`iat`、`nonce`を検証する。Accountsユーザーは接続先originと`sub`で識別する。Better Auth内部に必要なemailは、この組から決定的に生成する。実emailは本人識別に使わない。認証callbackで作られたAccounts用のBetter Auth core account行は、検証済み`sub`を試行へ記録した直後に、その行だけ削除する。切替時に中止した試行は無効とし、元のアカウントへ戻っても消費できない。`finish`はticketと元のPoints本人・sessionを照合し、`accounts_links`へ連携を保存する。Accounts Providerによる通常ログインはサーバー側で拒否し、ログイン済み本人の明示連携だけを許す。`finish`は`303`で`/settings/connections?accountsLinkResult=LINKED`へ戻す。失敗時は`accountsLinkError={code}`へ戻し、`Cache-Control: no-store`を付ける。ticketの不一致、期限切れ、再使用は`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。別のPointsユーザーへ連携済みなら`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。OAuth Proxyでの認可・検証失敗は`ACCOUNTS_UNAVAILABLE`として設定画面に示す。`ACCOUNTS_UNAVAILABLE`と標準の`error=access_denied`が同時に返る同意拒否は、設定画面で拒否として表示する。開始時の接続先無効は`ACCOUNTS_CONNECTION_NOT_ACTIVE`、回数超過は`ACCOUNTS_LINK_RATE_LIMITED`とする。連携を保存した直後に[連携アカウント一覧](#35-連携アカウント一覧の取得)を取得する。取得に失敗しても連携は成立し、一覧は「未取得」と表示する。連携と解除は、Pointsのログイン手段とsessionに影響しない。
 
 - 現在Package APIは`Cache-Control: no-store`で最新データを返す。
 
@@ -2220,91 +2297,156 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 ## デプロイ設定
 
-1. named env の routes は staging/production domain を `custom_domain: true` で所有する。
-2. 後方互換、旧 URL/API/schema/session fallback、旧データ移行を実装しない。
-3. Static Assetsは次の形にし、Cloudflareの既定値に暗黙依存せず`not_found_handling: "none"`を明示する。汎用`single-page-application` fallbackは使わない。
+### 環境と配信先
 
-- 両アプリともSPAを基本とし、固定した公開routeだけをbuild時にSSG/prerenderする。
-- APIは同一originのHono Workerへ`/api/*`として実装する。
-- build成果物はCloudflare Workers Static Assetsで配信する。
-- TanStack StartのSPA shellは`/index.html`へ出力する。`/`はbuild時に生成した静的shellからhydrateしてtop routeをclient描画するSPAであり、top route本体のSSGとは扱わない。
-- build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけに限定し、それぞれ`/terms.html`、`/privacy.html`、`/help.html`、`/docs.html`へ明示出力する。自動static route discoveryとlink crawlを無効にし、公開プロフィール、Auction、proof、認証後画面をprerenderしない。
-- Workers Static Assetsはasset-first、`not_found_handling="none"`、`html_handling="auto-trailing-slash"`とする。`assets_navigation_has_no_effect` compatibility flagでasset missしたnavigationをWorkerへ到達させ、WorkerはGET/HEADのHTML navigationだけAsset Bindingのcanonical `/`からshellを取得して返す。存在しないAPI
-- Cloudflare Vite pluginを使うbuildでは`CLOUDFLARE_ENV=staging|production`でnamed environmentを選び、生成されたflattened Wrangler設定をdeployする。`wrangler deploy --env`だけでbuild済み成果物の環境を切り替えない。
-- `test/*`へのpushは共有test環境だけ、`main`へのpushはproduction環境だけを更新する
+- PointsはCloudflare WorkersとStatic Assetsで配信する。
+  - TanStack Startで画面のルートを扱い、Honoで同じドメインの`/api/*`を提供する。
+  - 画面とAPIを一つのWorkerとして管理する。
+  - HTML、JavaScript、CSS、フォントはStatic Assetsで配信する。
+- 本番と共有テスト環境を分ける。
+  - 本番は`points.freeism.app`、Workerは`points-worker-production`とする。
+  - 共有テスト環境は`staging.points.freeism.app`、Workerは`points-worker-staging`とする。
+  - `staging`と`production`の環境別設定に、`custom_domain: true`のドメインを定義する。
+  - ドメインはCloudflare Registrarで取得する。
+- ローカル・共有テスト環境・PRプレビューは、同じテスト用D1を使う。
+  - ローカルではコードを手元で実行し、`DB`の接続設定に`remote: true`を指定してテスト用D1へ接続する。
+  - 本番のD1、認証鍵、外部サービスの認証情報はテスト環境と分離する。
+  - Pointsと他サービスのDBは、サービスごとに管理する。
+  - 接続方式は[Cloudflareの対応表](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)を参照する。
 
-1. `www`を抜く
-2. ドメインを`points.freeism.app`にする
+### 画面・静的ファイル・ビルド
 
-継続的なビルドとテストはGitHub Actionsで行う。
+- 画面はSPAとし、`/index.html`へSPAの初期HTMLを出力する。
+  - `/`を含む画面は、このHTMLから起動してブラウザで描画する。
+  - ビルド時に静的生成するページは`/terms`、`/privacy`、`/help`、`/docs`とする。
+  - 出力先はそれぞれ`/terms.html`、`/privacy.html`、`/help.html`、`/docs.html`とする。
+  - 静的生成の対象は明示し、`autoStaticPathsDiscovery`と`crawlLinks`を無効にする。
+- Static Assetsの配信設定を明示する。
+  - `not_found_handling: "none"`、`html_handling: "auto-trailing-slash"`とする。
+  - 本番では静的ファイルを先に配信し、`/api/*`と`/.well-known/*`はWorkerを先に実行する。
+  - `assets_navigation_has_no_effect`を指定し、静的ファイルが見つからない画面への移動をWorkerで処理する。
+  - WorkerはGET・HEADのHTML画面への移動だけに、`ASSETS`の`/`から取得した初期HTMLを返す。
+  - 存在しないAPIやJavaScript・CSSなどの静的ファイルには、404を返す。
+- Vite+で開発サーバーとビルドを実行する。
+  - タスクの実行・キャッシュ・依存関係は[vite-task](https://viteplus.dev/guide/run)で管理する。
+  - 開発時の高速化には、[Vite 8.1の実験的なフルバンドルモード](https://vite.dev/blog/announcing-vite8-1)の`experimental.bundledDev`を検討する。
+  - `@t3-oss/env-core`でサーバー用とクライアント用の環境変数を分け、型と必須値を検証する。
+- ビルド時に`CLOUDFLARE_ENV=staging|production`で配信先の環境を選ぶ。
+  - Cloudflare Vite pluginが生成した、その環境用のWrangler設定と成果物を配信する。
+  - 配信前にWorker名、ドメイン、環境変数、D1接続先が対象環境と一致することを確認する。
+  - 環境の選択時点は[Cloudflareの公式資料](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/)を参照する。
 
-ホスティングはCloudflare Workersを使う。静的なHTML、JS、CSS、フォントはWorkers Static Assetsで配信する。Cloudflare PagesとVercelのCDNは使わない。PagesとStatic Assetsは、静的配信の料金と制限が同じである。Git連携、プレビュー、環境変数、グローバル配信を少ない設定でまとめられるので、Workersに揃える。カスタムドメインも`wrangler.jsonc`で定義する。料金と制限の比較は[Creationlineの記事](https://www.creationline.com/tech-blog/agile-devops/devops/83003)を参照する。
+### テスト環境の認証とPRプレビュー
 
-画面のルートはTanStack Startで扱う。フロントエンドだけに使い、バックエンドはHonoに揃える。Webアプリ以外からのリクエストにも応えるためである。Queryなどと同じ考え方で、データ取得とルートを通しやすい。実行時のSSR、RSC、ISRは使わない。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
+- 共有テスト環境とPRプレビューの画面・静的ファイルを、同じBASIC認証で保護する。
+  - ユーザー名とパスワードはWorker Secretで設定する。
+  - `run_worker_first: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
+  - API、OAuth callback、認証メタデータは、それぞれのSession・Bearer認証・公開範囲で扱う。
+  - 本番の画面・静的ファイルは、アプリの公開範囲と通常の認証で扱う。
+  - 配信順序は[Static Assetsの公式資料](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)を参照する。
+- プレビューは、stagingのWorker `points-worker-staging`配下に作成する。
+  - 同一リポジトリのPRごとにGitHub Actionsが配信し、レビュアーが画面・API・認証を確認する。
+  - プレビュー名は`points-pr-<PR番号>`とする。
+  - 安定したURLは`https://points-pr-<PR番号>-points-worker-staging.<subdomain>.workers.dev`とする。
+  - `<subdomain>`にはstaging設定の`PREVIEW_WORKERS_SUBDOMAIN`を使う。
+  - 現在の設定値`kyogoku`なら、URLは`https://points-pr-<PR番号>-points-worker-staging.kyogoku.workers.dev`となる。
+- 配信前に、公式のURL形式からアプリのURLと許可先を設定する。
+  - `APP_ORIGIN`・`APP_HOST`とCSPを、同じプレビューURLにそろえる。
+  - 配信後はWranglerが返した安定したURLと一致することを確認する。
+  - 一致しない場合は処理を止め、URLと設定を修正して配信し直す。
+  - 確認後に、PRコメントとGitHub Actionsの実行結果へURLを表示する。
+- Worker Previews用の設定を明示する。
+  - 元のWrangler設定では`env.staging.previews`へ、テスト用の変数と共有D1の`DB`接続先を指定する。
+  - 静的ファイルの設定と互換性設定は、staging用のWorker設定へ置く。
+  - Cloudflare Vite pluginの生成設定にも、staging配下のプレビューに必要な変数・接続先・静的配信設定を保持する。
+  - 作成・更新・削除と秘密情報の操作は、同じstagingのWorkerを対象にする。
+  - 元の環境別設定を使う操作では`--env staging`を指定する。
+  - 環境を選択済みの生成設定では、Worker名と接続先がstagingであることを確認する。
+  - stagingでは`preview_urls: true`を明示する。
+  - Worker PreviewsにはWrangler 4.135.0以降を使う。
+- 運営者は、プレビュー配信に必要なstagingを先に用意する。
+  - 必要なDB変更を`test/*`の配信で反映する。
+  - OAuth Proxy、Accounts連携、BASIC認証、プレビュー設定に対応したstagingを配信する。
+  - Google・GitHubとAccounts接続先へ固定callbackを登録し、stagingでログイン・連携の往復を確認する。
+  - プレビュー共通設定へ必要な秘密情報を登録する。
+- 運営者が、staging用のプレビュー共通設定へ秘密情報を登録・更新する。
+  - `BETTER_AUTH_SECRETS`、`ACCOUNTS_KEY_ENCRYPTION_KEY`、Google・GitHubの認証情報、BASIC認証のユーザー名とパスワードを設定する。
+  - 新しいプレビューは、作成時点の共通の秘密情報を受け取る。
+  - 共通の秘密情報を変更した場合は、staging・プレビュー共通設定・作成済みプレビュー・ローカルの共有値をそろえる。
+  - 秘密情報の値はリポジトリ・仕様書・ログへ書かない。
+- GitHub Actionsは、PRの作成・更新・再開時に検査と配信を行う。
+  - Pointsに影響する変更を対象とし、`web-app-staging`の配信用資格情報を使う。
+  - [配信前の共通検査](#自動配信と設定の管理)を行い、プレビューURL用にビルドする。
+  - `CLOUDFLARE_ENV=staging`でビルドし、生成設定のWorker・変数・D1・Static Assetsを確認する。
+  - `pnpm exec wrangler preview`で同じプレビュー名へ配信し、staging本体の稼働コードは維持する。
+- GitHub Actionsは、PR終了時にプレビューを削除する。
+  - マージ済み・未マージの両方で、`pnpm exec wrangler preview delete`を同じ環境・プレビュー名へ実行する。
+  - 対象プレビューだけを削除し、共有D1のデータとstaging本体を保持する。
+  - 再開したPRは、同じ名前で再作成する。
+- プレビューの設定と操作は、Cloudflareの公式資料を参照する。
+  - [URL形式](https://developers.cloudflare.com/workers/previews/custom-domains/)、[構成と秘密情報](https://developers.cloudflare.com/workers/previews/configuration/)、[環境別プレビュー](https://developers.cloudflare.com/workers/previews/compare-workflows/)に従う。
+  - [導入条件](https://developers.cloudflare.com/workers/previews/get-started/)と[GitHub Actionsでの作成・更新・削除](https://developers.cloudflare.com/workers/previews/examples/)を確認する。
 
-ドメインの取得はCloudflare Registerを使う。DNSやプロキシと併用しやすい。費用が安く、売り込みやダークパターンも少ない。住所の登録が英語圏向けで、設定がうまくいかないことがあった。
+### 自動配信と設定の管理
 
-環境変数の型は`@t3-oss/env-core`で付ける。サーバー用とクライアント用をスキーマで分け、Vite+とTanStack Startから使う。ビルド時に不足や誤用を早く落とすためである。
+- GitHub Actionsで、Pointsに関係する変更を検査・配信する。
+  - Points本体と、Pointsに影響する共通依存・ビルド・配信設定を対象とする。
+  - `pull_request`と`merge_group`で同じ必須検査を実行する。
+  - `test/*`へのpushは共有テスト環境へ、`main`へのpushは本番へ、検査成功後に自動配信する。
+- 配信前の検査を毎回実行する。
+  - 型、書式、環境・生成設定、単体テスト、Workerテスト、ビルドを確認する。
+  - ブラウザ操作と認証は、[実環境での確認](#実環境での確認)に従って確認する。
+  - 初回本番配信では、ブランチ保護、Cloudflareの認証・利用プラン、依存関係、必要なDB構造、接続先、復旧手順も確認する。
+- 配信は「検査→ビルド→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
+- GitHub Environmentで配信用の資格情報を管理する。
+  - テスト用は`web-app-staging`、本番用は`web-app-production`とする。
+  - `CLOUDFLARE_ACCOUNT_ID`と`CLOUDFLARE_API_TOKEN`は対象環境ごとに管理する。
+  - API Tokenの権限は、対象Workerと配信・DB更新に必要な資源へ限定する。
+  - PRの配信資格情報は同一リポジトリのPRにだけ渡す。
+  - 認証方法は[GitHub Actions向けの公式資料](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)を参照する。
+- WranglerとTerraformの管理範囲を分ける。
+  - WranglerはWorker、Static Assets、カスタムドメインと接続先の設定・配信を管理する。
+  - TerraformはDNS、WAF、レート制限などの基盤設定を管理する。
+  - 各資源の管理元を一つに定め、他サービスの配信・基盤設定はそのサービスで管理する。
 
-インフラの設定はTerraformで、コードとして管理する。
+### DB更新と失敗時の対応
 
-- Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。
+- テスト・本番とも、既存のデータを保持してDBを更新する。
+  - 共有テストD1の更新は、`test/*`の配信で一元的に行う。
+  - DB構造を変更するPRは、必要な変更を共有テスト環境へ反映してからプレビューを配信する。
+- 共有DBの変更で既存環境が動かなくなる場合は、運営者が対象環境を停止・更新する。
+  - 運営者はstaging、既存PRプレビュー、ローカルへの影響を変更前に確認する。
+  - 影響する環境を一時停止し、DBとコードを更新して、確認後に再開する。
+- DB更新後に配信や疎通確認が失敗した場合は、処理を止める。
+  - 運営者がDBの更新状況、稼働中のコード、失敗した処理を確認し、修正・再配信・復旧を判断する。
+  - Workerの切り戻しとDBの復旧は、別々に判断する。
+  - DBの復旧手段は[D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)を参照する。
 
-- stagingは`staging.points.freeism.app`／`staging.markets.freeism.app`をAccess保護し、productionは`points.freeism.app`／`markets.freeism.app`とする。
+### 実環境での確認
 
-- 関係ない他projectだけの変更ではPoints／Markets/Docs/Main/Accountsをdeployしない。
-
-- 初回ProductionはGitHub ruleset、Cloudflare認証、Paid plan、dependency安全性、staging E2E、migration、DO／Workflow、Runbook、旧runtime通信0件を全て満たす。
-
-- Pointsは、PRごとに公開のプレビュー環境を作る。
-
-- `/`は`/index.html`へ出力する静的SPA shellからhydrateするtop routeとし、top本体のSSGとは扱わない。build-time SSGは`/terms`、`/privacy`、`/help`、`/docs`だけを明示生成する。
-
-- Static Assetsは`not_found_handling=none`、`html_handling=auto-trailing-slash`、`assets_navigation_has_no_effect`とし、navigation missだけWorkerがAsset Bindingのcanonical `/`からshellを返す。
-
-- テスト環境のみBASIC認証を入れて、環境変数でユーザー名とパスワードを設定する。本番環境はBASIC認証を入れない。
-
-開発サーバーと本番のバンドルはVite+で担う。起動とHMRが速く、TypeScriptやバンドルの初期設定が小さいためである。タスクの実行はvite-plusのvite-taskを使う。cacheと、タスク同士の依存も設定する。案内は[vite-task](https://viteplus.dev/guide/run)である。Vite 8.1の実験的なフルバンドルモードも使いたい。開発サーバーの起動が約15倍、大規模アプリのフルリロードが約10倍速くなると案内されている。記事は[Vite 8.1の告知](https://vite.dev/blog/announcing-vite8-1)である。
-
-```js
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-	experimental: {
-		bundledDev: true
-	}
-});
-```
-
-- `/terms`、`/privacy`、`/help`、`/docs`を固定公開ページとしてbuild時にSSGし、認証・外部URL・公開プロフィール・経済履歴の保持方針を明記する。`/`は`/index.html`の静的SPA shellからhydrateするtop routeで、top本体のSSGとは扱わない。
-
-- GitHub Actions
-  - `pull_request`と`merge_group`で同じrequired CIを実行する。
-  - `pull_request_target`を使わない。
-  - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
-  - OIDCまたは最小scopeのCloudflare API tokenを使い、長期global API keyを使わない。
-
-- CI/CD pipeline
-  - branch pushはpath filterで省略せず、`test/*`と`main`の各pushを対応環境へ反映する。
-
-- 環境とIaC所有権
-  - ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
-    - `staging`は共有test環境のCloudflare内部名である。
-  - Terraform: Points／Marketsのzone DNS、WAF、rate limit、Access等のedge設定。apex portalとDocsのhosting／DNSは各サイトのdelivery境界で管理する。
-  - 同じresourceをTerraformとWranglerで二重管理しない。
-
-- `points-worker`と画面を同じprojectで管理する。画面はSPAとし、決めた公開ページだけをビルド時に静的化する。
-
-- バックエンドは、`api.points.freeism.app`等の別API domainにしない
-  - サービスごとに疎結合にしたいけど、フロントエンドとバックエンドの疎結合は求めすぎない
-  - 1ドメインにつき1つのFull-stack Workerとし、UI WorkerとAPI Workerをさらに分割しない。
-
-- ローカル、テスト、プレビューは共有する。プロダクションは共有しない。
+- 配信後の疎通を自動で確認する。
+  - HTML・JavaScript・CSSの取得と、画面からのAPI呼び出しを確認する。
+  - BASIC認証付きの環境では、未認証のHTML・静的ファイルへのアクセスが401となり、認証後に取得できることを確認する。
+  - 公開JSON APIの200と、認証必須APIの401・403を確認する。
+- 初回と認証に関する変更時は、実際のログイン・連携を確認する。
+  - Cookie、Google・GitHubのログインと明示連携を確認する。
+  - Accountsの明示連携、`accounts_links`とsnapshotの更新を確認する。
+  - 固定callbackから開始元の画面へ、同じPoints利用者として戻ることを確認する。
+- PRプレビューの作成・更新・終了を確認する。
+  - 配信結果とアプリ設定のURLが一致することを確認する。
+  - 更新後もURLが同じで、最新コードを確認できることを確認する。
+  - PR終了後に対象プレビューが削除されることを確認する。
+  - 本番DBの分離、共有DBのデータ保持、秘密情報の更新、DB更新、配信失敗時の手順を確認する。
+- 文書の検査と、実機での受入結果を区別する。
+  - 文書では環境・認証・DB・手順の整合性と、参照リンクを確認する。
+  - 2026-10-01にsubdomain `kyogoku`を読み取り確認した記録は保持する。
+  - 今回の仕様更新では、Worker Previewsの実配信、DB更新、GitHub Actions実行、外部OAuth、実URLへのアクセスは実施していない。
+  - 実機での受入は、上記の操作を確認してから完了とする。
 
 ## セキュリティ、品質
 
 - PointsとMarketsは、Cloudflare edge、Worker/Hono、D1/DO/Workflowの多層防御を使う。
-  - Cloudflare edge: DDoS、WAF、Rate Limit、Access、TLS
+  - Cloudflare edge: DDoS、WAF、Rate Limit、TLS
   - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
   - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
 - Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
@@ -2329,6 +2471,14 @@ export default defineConfig({
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## v0.2.0からv0.2.1への変更
+
+- OAuthログインは公開画面を背景とするモーダルから開始し、毎回認証元のアカウント選択を要求する。通常ログイン後は開始した画面へ戻り、認証開始後の入力は復元しない。ログイン手段は設定画面で明示追加し、セッションは有効7日・更新間隔1日とする。
+
+- 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、別タブの未確定操作と中止した外部連携は切替後に反映しない。
+
+- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。ローカル・staging・PRはテスト用D1を共有し、本番を分離する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新し、失敗時の復旧は運営者が判断する。
+
+- 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。言語切替時も入力と確認結果を維持し、日時・数値は日英共通、規約・プライバシーポリシーは日本語を正本とする。
 
 - ポイント譲渡をフォーム・CSVに対応させ、有効な他のPoints利用者へ送れるようにする。譲渡自体は累計評価額を変えず、受取人の設定で自動分配する。全再分配を一括確定し、分配の記録にはUTCの譲渡確定月を使い、全再分配先の累計評価額は変更しない。
 

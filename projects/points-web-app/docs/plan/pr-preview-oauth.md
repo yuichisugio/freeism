@@ -1,6 +1,6 @@
 # Points PR Version URL と OAuth の実装・検証計画
 
-作成日: 2026-10-01。仕様正本は [PR Version URL と OAuth](../specification/v0.2.1/details-ja/pr-preview.ja.md)。この文書には作業順、進捗、検証結果、未受入事項を記録する。
+作成日: 2026-10-01。仕様正本は [デプロイ設定](../specification/v0.2.1/details-ja/combined-design.ja.md#デプロイ設定)。この文書には作業順、進捗、検証結果、未受入事項を記録する。
 
 ## 作業順と進捗
 
