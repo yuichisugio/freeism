@@ -30,6 +30,7 @@
   - [多言語に対応](#多言語に対応)
   - [複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)
   - [OAuthログイン](#oauthログイン)
+    - [Better Auth共通設定](#better-auth共通設定)
   - [Accountsと連携](#accountsと連携)
     - [Accounts連携の役割と単位](#accounts連携の役割と単位)
     - [連携・再連携の操作](#連携再連携の操作)
@@ -78,9 +79,6 @@
     - [test](#test)
     - [script](#script)
     - [例外](#例外)
-  - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
-    - [Better Auth共通設定](#better-auth共通設定)
-    - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
   - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
     - [未受領FIXの受領資格](#未受領fixの受領資格)
     - [自動受領と再実行](#自動受領と再実行)
@@ -579,7 +577,7 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 ### 退会ボタン
 
-- 退会ボタンを押した際の挙動は、[退会と再開の処理](#10-account-closeと認証記録)に従う。
+- 退会ボタンを押した際の挙動は、[退会と再開の処理](#退会)に従う。
 
 ### 公式パッケージの設定・自動分配
 
@@ -719,6 +717,12 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - Google・GitHubのOAuth認証を提供し、Points独自のログイン状態をBetter Authで管理する。
   - 認証元の種類と不変のアカウントIDで本人を識別する。Googleは`sub`、GitHubは数値のアカウントIDを使う。
   - ログイン用OAuthアカウントとPoints本人の対応は永久に保持する。
+    - Pointsが管理するテーブルへ、`(providerId, accountId) -> Points userId`の対応を保存する。
+    - `(providerId, accountId)`の複合一意制約で、同じOAuthアカウントの対応先を一人に限定する。
+    - Better Auth標準のAccountによる再利用の検査に加え、この永久対応と一意制約を本番公開前に必ず実装する。
+    - 成立した対応は別のPointsユーザーへ移さない。
+    - 受領済みFIX、累計評価額、台帳、訂正先も別のPointsユーザーへ移さない。
+
   - 未連携の認証元が既存ユーザーと同じメールを返した場合は、`account_not_linked`としてログインを拒否する。既存の手段でログインし、設定画面から連携するよう案内する。
   - Google・GitHubを同じ認証元一覧に含め、通常ログインとログイン手段の追加で共通に使う。
 
@@ -736,12 +740,11 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 - 初回登録
   - 初回はPointsユーザーを作成し、表示名「仮ユーザー」、プロフィール非公開で利用を開始する。
   - プロフィール設定とAccounts連携を案内する。設定を完了する前も通常利用できる。
-  - メール一致による暗黙のAccount link・ユーザー統合
 
 - ログイン手段の追加
   - 設定画面にログイン手段の一覧と追加操作を設ける。
   - 別アカウントへのログインと、現在の本人へのログイン手段追加を、別の操作として表示する。
-  - ログイン済み本人は、異なるメールのGoogle・GitHubも明示的に連携できる。
+  - ログイン済み本人は、`linkSocial`で異なるメールのGoogle・GitHubも明示的に連携できる。
   - 既に別のPoints本人へ対応するOAuthアカウントの連携は拒否する。追加の中止・失敗では既存の手段を維持する。
   - ログイン手段の解除は提供しない。
   - 連携によって既存のプロフィール情報を上書きしない。
@@ -750,7 +753,6 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - セッションは有効期間7日、更新間隔1日とする。利用時に更新条件を満たしたら、その時点から7日へ延長する。
   - 認証処理とセッション検証はBetter Authの標準機能を使う。復帰先は許可されたPoints内の画面に限定する。
   - 退会済み本人は既存の再開手順へ案内する。
-  - 明示連携には`linkSocial`を使い、`disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`を設定する。`trustedProviders`は`google`・`github`とする。
   - セッションには`expiresIn: 604800`、`updateAge: 86400`を設定する。単位は秒とする。
 
 - Google
@@ -786,6 +788,34 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 - 公式資料
   - 明示連携と同一メールの扱いは[Better Authのユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts)、有効期間と延長は[セッション管理](https://better-auth.com/docs/concepts/session-management)を参照する。
   - アカウント選択は[GoogleのOpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)と[GitHubのOAuth認可](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)を参照する。
+
+### Better Auth共通設定
+
+- OAuthアカウントの連携と保存の設定は、`account`と`account.accountLinking`の配下へ置く。
+- Google・GitHubのOAuthトークンは、`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。
+  - 暗号化にはBetter Auth標準のバージョン付き認証鍵を使う。
+  - 暗号化形式とアルゴリズムはBetter Authの標準仕様に従う。
+- Workers Secretsから認証鍵の一覧を組み立てる。
+  - 先頭の鍵を現在の暗号化に使い、残りの鍵は復号だけに使う。
+
+```ts
+betterAuth({
+	secrets: versionedBetterAuthSecrets,
+	account: {
+		encryptOAuthTokens: true,
+		storeStateStrategy: 'database',
+		storeAccountCookie: false,
+		accountLinking: {
+			enabled: true,
+			disableImplicitLinking: true,
+			trustedProviders: ['google', 'github'],
+			allowDifferentEmails: true,
+			updateUserInfoOnLink: false,
+			allowUnlinkingAll: false
+		}
+	}
+});
+```
 
 ## Accountsと連携
 
@@ -1400,6 +1430,9 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
   - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
   - 外部OAuthの処理・検証には、導入済みのoauth4webapiも使う。
+  - CLIで認証スキーマを生成するため、`auth-cli.ts`で認証インスタンスをエクスポートする。
+    - 実行時と同じ認証インスタンス生成処理と共通設定を使う。
+    - 生成コマンドは`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`とする。
 
 - 環境変数の検証には、`@t3-oss/env-core`を導入する。
   - サーバー用とクライアント用を分け、型と必須値を検証する。
@@ -1811,53 +1844,6 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 - Cloudflare binding/config fieldは公式schemaの名前を維持する。
 - 例外を増やす場合は理由とsourceを近接commentまたは仕様へ記録する。
 
-## 認証・外部ID・サービス間認可仕様
-
-### Better Auth共通設定
-
-Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
-
-Account linkingとOAuth state／Cookieの正本設定形は次とする。各optionをtop-levelへ置かず、Better Authの`account`／`account.accountLinking`配下へ設定する。
-
-```ts
-betterAuth({
-	// Workers Secretsから組み立てる。先頭がcurrent、残りがdecrypt-only。
-	secrets: versionedBetterAuthSecrets,
-	account: {
-		encryptOAuthTokens: true,
-		storeStateStrategy: 'database',
-		storeAccountCookie: false,
-		accountLinking: {
-			enabled: true,
-			disableImplicitLinking: true,
-			trustedProviders: ['google', 'github'],
-			allowDifferentEmails: true,
-			updateUserInfoOnLink: false,
-			allowUnlinkingAll: false
-		}
-	}
-});
-```
-
-- Social OAuth TokenはBetter Auth標準の`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。独自AES-GCM envelope、独自暗号key ring、read時lazy rewrapを実装せず、標準のversioned secretsを使う。標準暗号形式・algorithmをアプリ契約へ固定しない。
-- CLIから認証スキーマを生成するため、実行時と同じ認証インスタンス生成処理・共通設定を使う`auth-cli.ts`を用意し、認証インスタンスをエクスポートする。生成コマンドは`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`とする。
-- OAuth stateはD1-backed storageへ保存する。
-- Authorization Code flowではPKCE S256を必須とし、callback URLは完全一致allowlistとする。
-
-明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前とメールで既存Pointsプロフィールを上書きしない。
-
-### Pointsログイン用OAuth主体の永久対応
-
-成立した対応は永久記録とする。
-
-```text
-(providerId, accountId) -> Points userId
-```
-
-- 永久対応を別のPointsユーザーへ移動しない。
-- 受領済みFIX、`evaluationTotal`、台帳、訂正先を別ユーザーへ移動しない。
-- この永久対応はPoints app-owned tableへ保存し、`(providerId, accountId)`複合一意制約を持たせる。
-
 ## アカウント紐付け時のポイント付与
 
 - 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
@@ -1928,7 +1914,10 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 | 認証DB・Secret | Points専用                               | Markets専用                              |
 
 - Cookieとセッションの処理はBetter Authの標準機能に任せる。
-- OAuth Tokenは暗号化してD1へ保存し、Account Cookieとブラウザへ保存しない。session/account/tokenをlocalStorageへ保存しない。
+- OAuthトークンはAccount Cookieやブラウザへ保存しない。
+- セッション・アカウント・トークンを`localStorage`へ保存しない。
+- OAuthの`state`はD1へ保存する。
+- 認可コードの処理にはPKCE S256を必須とし、callback URLを許可されたURLと完全一致で検証する。
 - `disableCSRFCheck=false`、`disableOriginCheck=false`とする。
 - `trustedOrigins`は、環境ごとに必要な当該アプリのoriginを列挙する。
   - Pointsのテスト環境には、開始元のローカルorigin、固定staging origin、`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
@@ -1982,7 +1971,7 @@ Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグ�
 
 `appAdmin`は、アプリ全体と、各パッケージ、各評価軸の管理操作を行える。`packageAdmin`は、所属するパッケージの管理操作を行える。`evalueterAdmin`は、所属する評価軸の管理操作を行える。管理者の変更など、必要な操作では操作理由の入力と再送制御を適用する。
 
-`appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evalueterAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#10-account-closeと認証記録)に従う。
+`appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evalueterAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#退会)に従う。
 
 初期の`appAdmin`は、`appAdmin`が0人のときだけ、Secretsで指定したGoogleの`accountId`と一致するログインを一度だけ昇格する。公開の昇格APIは置かない。既存の`admin_membership`の全体管理者は、`appAdmin`へ移す。既存の管理者照会、管理画面、関連APIは、この権限に揃える。
 
