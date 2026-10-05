@@ -55,8 +55,14 @@
     - [文書の更新と公開](#文書の更新と公開)
     - [OSSライセンス画面](#ossライセンス画面)
   - [ライブラリ](#ライブラリ)
-    - [使用するライブラリ](#使用するライブラリ)
-    - [使用しないライブラリ](#使用しないライブラリ)
+    - [画面・画面遷移・取得データ](#画面画面遷移取得データ)
+    - [入力フォーム・表示補助](#入力フォーム表示補助)
+    - [CSV・ファイル・日時](#csvファイル日時)
+    - [バックエンド・認証・配信](#バックエンド認証配信)
+    - [開発・品質検査・テスト](#開発品質検査テスト)
+    - [開発支援・文書作成](#開発支援文書作成)
+    - [標準機能へまとめる項目](#標準機能へまとめる項目)
+    - [v0.2.1の対象外・今後の検討](#v021の対象外今後の検討)
   - [CSVエクスポート仕様](#csvエクスポート仕様)
   - [CSVアップロード](#csvアップロード)
   - [命名規則](#命名規則)
@@ -1151,7 +1157,8 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - 利用制限や責任の範囲は法令に従い、運営に無制限の裁量や免責を認める内容にはしない。
   - 退会後も、確定済みの取引記録と、負の残高を含む残高を、退会・再開の仕様に沿って保持する。
   - 準拠法は日本法とし、裁判管轄は法令に従って定める。
-  - 問い合わせ・処分への異議申立て先は、公開リポジトリの[Issues](https://github.com/yuichisugio/freeism/issues)とする。
+  - 一般の問い合わせ・処分への異議申立て先は、公開リポジトリの[Issues](https://github.com/yuichisugio/freeism/issues)とする。
+  - 個人情報を含む問い合わせ・請求は、プライバシーポリシーに掲載する非公開のメール窓口へ案内する。
 
 - 規約違反に対するポイント没収の方針
   - 没収の実行機能・本人への表示の設計と実装時期は別途決める。
@@ -1166,18 +1173,76 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 ## プライバシーポリシー
 
-- 概要
-  - プライバシーポリシーのページについて定める
+- 対象と掲載
+  - Pointsが取得・利用・保存・提供する情報の扱いを定める。
+  - Accounts・Marketsには各サービスのポリシーを適用し、Pointsとの連携における役割と情報の扱いを説明する。
+  - `/privacy`は未ログインでも閲覧できる。
+  - 共通フッターとログイン画面に、ポリシーへのリンクを表示する。
+  - 日本語を正本、英語を参照翻訳と明記し、Points共通の言語選択を適用する。
+  - JavaScriptが無効な場合は日英の本文を併記する。
 
-- ↓を参考
-  - [https://www.hayabusatrip.com/](https://www.hayabusatrip.com/)
-  - [https://nani.now/ja/terms?tab=privacy](https://nani.now/ja/terms?tab=privacy)
+- 取得する情報と利用目的
+  - 認証情報は、Google・GitHubの認証元ID・名前・メール・画像URL・受領したトークンなどとする。
+  - 認証、ログイン手段の連携、同じPoints本人との対応に使い、認証元の情報と公開プロフィールを区別する。
+  - 本人が入力した表示名・説明・公開範囲・自動分配設定などを、プロフィールの表示と本人が設定した処理に使う。
+  - 管理者が登録した宛先URL候補またはAccountsユーザーID、評価額・対象月・メモなどを、貢献者の照合と評価の付与・受領・訂正に使う。
+  - Pointsに未登録・未連携の人への評価も、未受領評価として保存する。
+  - Accountsが許可に基づいて提供した本人識別情報・外部アカウント情報を、照合、本人への対応付け、許可された表示と外部連携に使う。
+  - 残高・累計評価額・付与・分配・譲渡・交換・精算・訂正の記録を、ポイントの計算と取引結果の確認に使う。
+  - 問い合わせの連絡先・内容・対応に必要な本人確認情報を、問い合わせと本人の請求への対応に使う。
+  - セッションのIPアドレス・User-Agentなどの通信・端末情報を、認証と不正対策に使う。
+  - 処理の結果・件数・所要時間などの運用情報を、障害調査とサービスの運用・改善に使う。
 
-- プライバシーポリシーのテンプレート
-  - [https://kiyaku.jp/index.html](https://kiyaku.jp/index.html)
+- 公開範囲と外部サービス
+  - 一般公開は本人が選んだ公開範囲に限定する。
+  - 管理操作や取引に必要な情報は、各機能の権限に基づいて扱う。
+  - Google・GitHubには、ログインとログイン手段の連携に必要な認証要求を送り、認証情報を受け取る。
+  - Accountsには、本人の連携と貢献者の照合に必要な要求を送り、許可された本人識別情報・外部アカウント情報・照合結果を受け取る。
+  - 本人が認可した外部アプリには、その認可とAPIの権限で許可された情報を提供する。
+  - Cloudflareを、配信、DBへの保存、通信の保護、ログと運用指標の処理に利用する。
+  - 各外部サービスについて、利用目的と送受信する情報をポリシーへ掲載する。
+  - 国外での取り扱いは、実際の設定・契約と各サービスの公式情報を確認して説明する。
+  - Cloudflareの取り扱いは[公式ポリシー](https://www.cloudflare.com/policies/privacy/)も確認する。
 
-- 要件
-  1.  プライバシーポリシーのページを作成・更新して、ちゃんと文言を決める
+- ブラウザ保存と安全管理
+  - 認証用Cookieは、ログイン状態の管理に使う。
+  - 表示言語は、同じブラウザの`localStorage`の`freeism-language`へ保存する。
+  - 認証と表示設定の保存を、広告目的の追跡と区別して説明する。
+  - HTTPSによる通信保護、本人認証、管理権限と公開範囲の検証、OAuthトークンの暗号化を行う。
+  - 運用ログにはトークン・Cookie・メール・宛先URL・CSVセル・プロフィール本文を出力せず、処理名・結果・コード・件数などを記録する。
+
+- 保持と退会後の扱い
+  - 退会後は公開を止め、表示名・説明・公開設定・自動分配設定などを再開用に保持する。
+  - 確定済みの取引記録、負の残高を含む残高、累計評価額、不変のログイン対応も保持する。
+  - 未受領評価は、後から受領・訂正できるよう期限を設けず保持する。
+  - 運用ログは7日、運用指標は3か月保持する。
+  - セッションの有効期限と、保存情報を削除する時期は区別して説明する。
+
+- 本人の請求と問い合わせ
+  - 窓口名は「Freeism Points運営」とする。
+  - 一般の問い合わせは公開リポジトリの[Issues](https://github.com/yuichisugio/freeism/issues)へ案内する。
+  - 個人情報を含む問い合わせと、開示・訂正・利用停止・削除などの請求は、非公開のメール窓口で受け付ける。
+  - 運営が本人確認し、法令と情報を保持する必要性に基づいて対応する。
+  - 対応できない場合は、本人へ理由を伝える。
+  - 運営者の氏名または名称・住所、法人の場合は代表者氏名などの必要な情報は、請求に応じて遅滞なく回答する。
+  - ポリシーには請求方法を掲載し、取り扱いは[個人情報保護委員会のガイドライン](https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/)に沿って定める。
+  - 窓口メールの実際のアドレスと運営者情報は、ポリシー本文の公開前に運営が確定する。
+
+- 変更のお知らせ
+  - 施行前に、変更後の本文・変更内容・施行日・更新日を、日英のポリシーへ掲載する。
+  - 施行前に、全利用者共通の変更案内をアプリ内の利用者ごとのお知らせ一覧へ掲載する。
+  - お知らせには、変更内容・施行日・ポリシーへのリンクを表示する。
+  - ポリシー更新による再同意は求めない。
+  - Accounts連携や外部アプリへの情報提供の同意は、それぞれの機能で扱う。
+
+- 実装との確認事項
+  - 現在の認証処理で保存する認証元の名前・メール・画像URL・トークンと、セッションのIPアドレス・User-Agentを、掲載内容と照合する。
+  - OAuthのaccess／refresh tokenとID tokenについて、実際の暗号化対象と設定をポリシーの説明と照合する。
+  - 現在の固定ページは言語保存に`freeism.fixed-page-language.v1`を使うため、共通言語選択の`freeism-language`との差がある。
+  - 現在の公開プロフィール処理は、設定がない場合に公開扱いとし、認証元の名前を表示する。
+  - 仕様で定めた初期非公開と、本人が選んだ各区画の公開範囲に合わせる必要がある。
+  - 現在の退会処理は表示名を置き換え、説明を空にするため、再開用に保持する仕様との差がある。
+  - お知らせ一覧の具体的な実装と、ログ・運用指標の実際の保持設定は、提供前に仕様との一致を確認する。
 
 ## ドキュメント画面
 
@@ -1252,229 +1317,183 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 ## ライブラリ
 
-- 参考
-  - [https://zenn.dev/catnose99/articles/f8a90a1616dfb3](https://zenn.dev/catnose99/articles/f8a90a1616dfb3)
-  - [https://zenn.dev/catnose99/articles/nani-translate](https://zenn.dev/catnose99/articles/nani-translate)
+- v0.2.1で採用するライブラリ・開発ツール・サービスを、用途ごとに整理する。
+  - 「導入済み」は、現在の依存・設定・実装に含まれることを示す。機能全体の実装完了を意味するものではない。
+  - 「導入予定」は、v0.2.1で導入する方針が決まったものを示す。
+  - 細かな版は`package.json`とロックファイルで管理し、ここには互換性に関わる主な版だけを記載する。
 
-### 使用するライブラリ
+- 技術選定の参考資料
+  - [Webサービスの技術構成に関する記事](https://zenn.dev/catnose99/articles/f8a90a1616dfb3)
+  - [Nani Translateの技術構成に関する記事](https://zenn.dev/catnose99/articles/nani-translate)
 
-1. Git
-   - jujutsuも興味ある
+### 画面・画面遷移・取得データ
 
-2. GitHub
+- React 19以上で画面を作る。Reactは導入済みである。
 
-3. Playwright
-   - E2Eテスト
-   - 他のE2Eと比べてAPIが安定している。
+- HeroUI v3とTailwind CSS v4を導入する。
+  - HeroUIは入力欄・ボタン・一覧・モーダルなどの表示を担当する。見た目が好きなため採用する。
+  - Tailwind CSSは画面のスタイルを担当する。
+  - 両方とも導入予定とする。ReactとTailwind CSSの版は、[HeroUIの公式要件](https://heroui.com/en/docs/react/getting-started/quick-start)に合わせる。
 
-4. Testing Library
-   - UIの単体テスト
+- TanStack Start・TanStack Routerで、画面遷移と静的生成を扱う。両方とも導入済みである。
+  - 検索条件・ページ・タブは、[Router標準の検索パラメータ](https://tanstack.com/router/latest/docs/guide/search-params)で管理する。
+  - URLから条件を復元し、共有・再読み込み・詳細画面からの復帰に対応する。
 
-5. Vitest
-   - 単体テストの実行
+- TanStack QueryでAPIから取得したデータと、更新後の再取得を管理する。
+  - 依存は導入済みとし、画面への適用は導入予定とする。
+  - アカウント切替時は、切替前の本人用データを除去し、切替先の残高・権限・設定を取得し直す。
+  - 取得と更新の管理には、[公式のReact向け機能](https://tanstack.com/query/latest/docs/framework/react/overview)を使う。
 
-6. Docker
-   - ローカルとCIを同じ環境に寄せるため
+### 入力フォーム・表示補助
 
-7. Docker Compose
-   - Dockerと併せて使う。同じcompose定義に揃えると、環境差のトラブルを減らせる。
+- 登録・編集の入力状態はReact Hook Form、値の形と制約はValibotで管理する。
+  - React Hook Formと[公式のValibot resolver](https://github.com/react-hook-form/resolvers#valibot)は導入予定、Valibotは導入済みである。
+  - Valibotは、バンドルの小ささを重視して採用する。
+  - HeroUIで入力欄とエラーを表示し、React Hook FormからValibotの検証を呼び出す。
+  - サーバーでも入力値・認証・権限・業務条件を検証する。
 
-8. micromark
-   - ホーム画面のMarkdownからHTMLへの変換
+- Markdownの表示には、導入済みのreact-markdownを使う。
+  - ホームや固定ページの本文を、Reactの画面と静的HTMLへ描画する。
+  - Markdown内のHTMLは描画せず、[react-markdownの公式機能](https://github.com/remarkjs/react-markdown)で扱う。
 
-9. HeroUI v3
-   - UIコンポーネントはHeroUI v3を使う。見た目が好きなためである。
+- アイコンにはlucide-reactを導入する。
 
-10. Tailwind CSS
-    - CSS
+- コマンドパレットは、HeroUIの検索欄・一覧・モーダルを組み合わせる。
+  - キーワードで操作やショートカットを絞り込み、一覧から選べるようにする。
 
-11. TypeScript
-    - 言語はフロントエンドとバックエンドの両方でTypeScriptを使う。
-    - 型を安全にしたい。読める人が多い言語にしたい。
+### CSV・ファイル・日時
 
-12. Oxfmt
-    - コードの整形
+- CSVの構文解析にはPapa Parseを導入する。
+  - セルは文字列として読み取り、金額も小数文字列のまま検証する。
+  - 行の配列として読み取り、ヘッダーの重複・必須列・列数はPoints側で検証する。
+  - 文字コード・ファイルサイズ・件数上限・業務条件・全件の原子確定は、既存のCSV受付条件を維持する。
+  - 解析の設定は、[Papa Parseの公式資料](https://www.papaparse.com/docs)を参照する。
 
-13. Oxlint
-    - 静的解析
+- ファイル選択と保存には、導入済みのブラウザ標準機能を使う。
+  - 選択はボタンと`<input type="file">`で行う。
+  - サーバーからのCSVダウンロードと、ブラウザ内の`Blob`・オブジェクトURL・ダウンロードリンクを、出力方法に合わせて使う。
 
-14. Cursor
-    - エディタ
+- 日付の比較・加算・表示には、導入済みの標準`Date`のUTC機能を使う。
+  - 評価対象月や日時の表示・入力は、UTCを基準とする共通仕様に合わせる。
 
-15. Zed
-    - 軽い編集
+### バックエンド・認証・配信
 
-16. Figma
-    - 画面案、ワイヤー、コンポーネント表の共有
+- フロントエンドとバックエンドの言語は、導入済みのTypeScriptとする。
+  - 型で値の扱いを確認し、読める人が多い言語で実装するため採用する。
 
-17. Drizzle
-    - ORM
-    - 軽くて速い。文法がSQLに近いので、学習の負荷が小さい。
-
-18. REST
-    - APIの形はRESTにする。HTTPのメソッドとURLで、リソースの取得や更新を扱う。GraphQLより実装が単純なためである。
-
-19. Cloudflare D1
-    - データベース
-
-20. Valibot
-    - 値の形と制約
-    - サイズが小さい。
-
-21. Better Auth
-    - ログイン認証
-    - 公式の`better-auth/minimal`を使い、未使用のKysely adapterはWorkerのバンドルに含めない。
-
-22. React
-    - UI
-
-23. pnpm
-    - パッケージ管理
-
-24. kiyaku.jp
-    - 利用規約とプライバシーポリシーのテンプレート
-    - サイトは[kiyaku.jp](https://kiyaku.jp/index.html)である。
-
-25. day.js
-    - 日付の比較、加算、フォーマットはday.jsに統一する。
-    - 必要十分で、バンドルが軽いため
-
-26. React Hook Form
-    - フォーム
-
-27. fishery
-    - テスト用のダミーデータ
-
-28. @faker-js/faker
-    - fisheryと併せてテスト用のダミーデータを作る。
-
-29. Husky
-    - コミット前の検査
-
-30. lint-staged
-    - Huskyと併せてコミット前の検査に使う。
-
-31. nuqs
-    - 検索パラメータはnuqsで、Reactの状態と双方向に同期する。
-    - フィルタやタブをURLにし、共有や再読み込みに強くするためである。
-
-32. lucide-react
-    - アイコン
-
-33. cmdk
-    - コマンドパレットはcmdkで組み立てる。
-    - キーワードで絞り込むショートカット一覧を、短時間で作れる。
-
-34. papaparse
-    - CSVの読み取り
-
-35. fflate
-    - 圧縮に使う。
-
-36. file-saver
-    - クライアントへの保存に使う。ファイル選択は`<input type="file">`など、ブラウザ標準のUIに揃える。ドラッグアンドドロップは使わない。
-
-37. knip
-    - 未使用のexport、ファイル、依存の検出を補助する。
-
-38. ts-prune
-    - knipと併せて未使用のexport、ファイル、依存の検出を補助する。
-
-39. Hono
-    - バックエンドのHTTPはHonoで実装する。
-    - 軽くて速く、読みやすいためである。
-    - 外部から呼ぶAPIもあるので、HTTPのエンドポイントに揃える。
-
-### 使用しないライブラリ
-
-1. Bun
-   - ランタイム
-   - 自分のしたいことができるか、まだ理解できていないためである。
-
-2. framer-motion
-   - モーション
-   - v0.2.1では凝った動きをやめ、仕様の理解を優先するためである。
-
-3. react-dropzone
-   - ファイル選択
-   - ドラッグアンドドロップをやめ、ボタンと`<input type="file">`に揃えるためである。
-
-4. Google Analytics
-   - アクセス解析
-
-5. react-ga
-   - アクセス解析
-
-6. Google AdSense
-   - 広告は使わない。
-
-7. react-adsense
-   - 広告は使わない。
-
-8. Google Search Console
-   - 検索結果の分析にGoogle Search Consoleは使わない。どの語で訪問されたか、索引されているかを見られる。
-
-9. CDN
-   - DDoS対策として前段に置くCDNは、必要になってから入れる。
-
-10. PageSpeed Insights
-    - 継続的な速度監視
-    - [PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/)
-
-11. Webサービス紹介サイト
-    - 作ったWebサービスを紹介するサイト
-    - 候補は以下
-      - [Service Safari](https://www.service-safari.com/)
-      - [startapp](http://startapp.jp/)
-      - [applishow](https://applishow.com/)
-      - [eightbit](http://creators.eightbit.jp/)
-      - [webatume](http://webatume.net/)
-      - [tsukutter](http://inajob.dip.jp/tsukutter/)
-      - [seekups](https://seekups.seekgeeks.net/)
-      - [eggineer](https://www.eggineer.com/)である。
-
-12. Supabase
-    - 使用しない。
-
-13. Next.js
-    - 使用しない。
-
-14. Prisma ORM
-    - 使用しない。
-
-15. Auth.js
-    - 使用しない。
-
-16. Vercel
-    - 使用しない。
-
-17. Upstash Redis
-    - 使用しない。
-
-18. Resend
-    - メール送信には使わない。
-
-19. @react-email/\*
-    - メール送信には使わない。
-
-20. react-email
-    - メール送信には使わない。
-
-21. web-push
-    - プッシュ通知には使わない。
-
-22. TanStack DB
-    - v0.2.1では使わない。
-
-23. OPFS
-    - v0.2.1では使わない。
-
-24. Service Worker
-    - v0.2.1では使わない。
-
-25. Sentry
-    - エラー通知
-    - 今後入れる場合は、例外を一箇所に集める。利用者、リリース、環境を付けて追う。再読み込み時や認証時にuidを入れ、環境のtagで通知を分ける。Slackやメールへ通知できる。本番の例外を、文脈付きで追いやすいためである。
+- バックエンドのHTTP処理には、導入済みのHonoを使う。
+  - 軽さ・速さと、HTTP処理の読みやすさを重視して採用する。
+  - HTTP処理を読みやすくまとめ、外部から呼ぶAPIもHTTPのエンドポイントとして提供する。
+  - APIはREST形式とし、HTTPのメソッドとURLでリソースの取得・更新を扱う。
+  - GraphQLとの比較では、実装の単純さを重視してRESTを採用する。
+
+- 配信と保存には、導入済みのCloudflare Workers・Static Assets・D1を使う。
+  - Workersは画面の配信処理とAPI、Static AssetsはHTML・JavaScript・CSSなど、D1はデータベースを担当する。
+  - D1のテーブル定義・クエリ・マイグレーションは、導入済みのDrizzleで管理する。
+  - Drizzleは、軽さ・速さと、SQLに近い書き方による学習の負荷の小ささを重視して採用する。
+
+- ログイン認証には、導入済みのBetter Authと公式のDrizzle adapterを使う。
+  - [公式の`better-auth/minimal`](https://better-auth.com/docs/installation)を使い、adapterをDrizzleに絞って未使用のKysely adapterを除いたWorkerのバンドルを構成する。
+  - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
+  - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
+  - 外部OAuthの処理・検証には、導入済みのoauth4webapiも使う。
+
+- 環境変数の検証には、`@t3-oss/env-core`を導入する。
+  - サーバー用とクライアント用を分け、型と必須値を検証する。
+  - 検証する値の制約はValibotで定義する。[公式資料](https://env.t3.gg/docs/core)を参照する。
+
+- 開発・ビルドとCloudflareの接続には、導入済みのCloudflare Vite pluginとWranglerを使う。
+  - Cloudflare Vite pluginは、Viteの開発・ビルドとWorker・接続先・Static Assetsを結び付ける。
+  - Wranglerは環境別設定、D1の更新、配信、結合テスト用Workerの起動を担当する。
+
+### 開発・品質検査・テスト
+
+- パッケージ管理には、導入済みのpnpmを使う。
+
+- 開発・ビルド・整形・静的解析・テスト・コミット前検査は、Vite+へまとめる。
+  - Vite+は導入済みとし、コミット前検査と全テストの統一は導入予定とする。
+  - 整形はOxfmt、静的解析はOxlintをVite+から実行する。
+  - コミット前検査は、Vite+標準のフック管理と`vp staged`で行う。[公式資料](https://viteplus.dev/guide/commit-hooks)を参照する。
+
+- 未使用のexport・ファイル・依存の検出にはKnipを導入する。
+
+- 単体テストと結合テストの実行は、Vite+標準の`vp test`へ統一する。
+  - 計算ロジックは単体テスト、画面はTesting Library、ブラウザ操作はPlaywrightで検証する。
+  - Testing Libraryは導入予定、Playwrightは導入済みである。PlaywrightのE2Eテストは専用コマンドで実行する。
+  - E2Eの実行系は、APIの安定性を重視してPlaywrightを採用する。
+  - VitestはVite+に同梱されたものを使い、テストAPIは`vite-plus/test`から読み込む。[公式資料](https://viteplus.dev/guide/test)を参照する。
+
+- Worker・D1は、Wrangler標準の`createTestHarness()`による結合テストで検証する。
+  - Node.js上の`vp test`からビルド済みWorkerを起動し、APIの応答とD1への保存結果を確認する。
+  - このAPIは、任意のNode.jsテスト実行系から使える。[Cloudflare公式資料](https://developers.cloudflare.com/workers/testing/test-harness/)を参照する。
+  - 状態をリセットした後は、`applyD1Migrations()`でD1のマイグレーションを適用し、必要な初期データを準備する。[準備手順](https://developers.cloudflare.com/workers/testing/test-harness/prepare-test-state/)を参照する。
+  - 結合テスト用のデータはローカルに用意し、共有テスト環境や本番のD1から分離する。
+  - `createTestHarness()`への移行は導入予定とする。
+
+- テストデータはfisheryと`@faker-js/faker`を組み合わせて作る。両方とも導入予定とする。
+
+- 実装移行時は、現在のWorker内で実行するテストとの差異を確認する。
+  - 現在の`@cloudflare/vitest-pool-workers`と個別のVitest実行を、Node.jsからビルド済みWorkerを起動する構成へ移す。
+  - Worker固有API、外部通信の代替、D1の初期化・状態リセット、認証・原子確定の検証範囲が保たれることを確認する。
+  - Vite+の設定・テストAPIと、開発端末・CIのNode.js要件を揃える。
+
+### 開発支援・文書作成
+
+- ソースコード管理はGit、リポジトリとレビュー・CIはGitHubで行う。
+- エディタはCursor、軽い編集にはZedを使う。
+- 画面案・ワイヤー・コンポーネント表の共有にはFigmaを使う。
+- 利用規約とプライバシーポリシーのテンプレートには、[kiyaku.jp](https://kiyaku.jp/index.html)を使う。
+
+### 標準機能へまとめる項目
+
+- Huskyとlint-stagedの直接管理は、Vite+標準のフック管理と`vp staged`へまとめる。
+  - Vite+が内部で使うlint-stagedは、直接設定するツールと区別する。
+
+- nuqsの役割は、TanStack Router標準の検索パラメータへまとめる。
+- cmdkの役割は、HeroUIの検索欄・一覧・モーダルへまとめる。
+- micromarkの直接採用は、react-markdownへまとめる。
+  - react-markdownの内部依存にmicromarkが含まれる場合も、Pointsから直接呼ぶ処理とは区別する。
+
+- file-saverとreact-dropzoneの役割は、ブラウザ標準のファイル選択・保存へまとめる。
+- ts-pruneの未使用export検査は、ファイル・依存も検出するKnipへまとめる。
+- Day.jsの日付処理は、標準`Date`のUTC機能へまとめる。
+
+### v0.2.1の対象外・今後の検討
+
+- Docker・Docker Composeはv0.2.1の対象外とする。
+  - ローカルとCIを同じコンテナ・compose定義へ揃える案は、今回の構成には含めない。
+
+- fflateは、圧縮の用途が決まるまで保留とする。
+- Bunは対象外とする。必要な処理を実現できるか、理解が十分でないためである。
+- framer-motionは対象外とする。v0.2.1では凝った動きより仕様の理解を優先する。
+- Google Analytics・react-gaによるアクセス解析は対象外とする。
+- Google AdSense・react-adsenseによる広告は対象外とする。
+- Google Search Consoleによる検索結果の分析は対象外とする。
+  - 検索語や索引の状態を確認する用途の候補として扱う。
+
+- 追加のCDNは、DDoS対策として前段へ置く必要が生じた時点で検討する。
+  - 採用済みのCloudflareの配信基盤とは別の検討である。
+
+- [PageSpeed Insights](https://developers.google.com/speed/pagespeed/insights/)による継続的な速度監視は対象外とする。
+- Supabase・Next.js・Prisma ORM・Auth.js・Vercel・Upstash Redisは対象外とする。
+- Resend・`@react-email/*`・react-emailによるメール送信と、web-pushによるプッシュ通知は対象外とする。
+- TanStack DB・OPFS・Service Workerはv0.2.1の対象外とする。
+- jujutsuは、Git以外のソースコード管理として興味のある検討候補に残す。
+
+- Webサービス紹介サイトへの掲載は、今後の検討候補とする。
+  - [Service Safari](https://www.service-safari.com/)
+  - [startapp](http://startapp.jp/)
+  - [applishow](https://applishow.com/)
+  - [eightbit](http://creators.eightbit.jp/)
+  - [webatume](http://webatume.net/)
+  - [tsukutter](http://inajob.dip.jp/tsukutter/)
+  - [seekups](https://seekups.seekgeeks.net/)
+  - [eggineer](https://www.eggineer.com/)
+
+- Sentryによるエラー通知は、今後の検討候補とする。
+  - 導入する場合は例外を一箇所に集め、利用者・リリース・環境を付けて本番の例外を追う。
+  - 再読み込み時や認証時にuidを設定し、環境のtagで通知を分ける。
+  - Slackやメールへの通知も検討する。アプリ利用者への通知とは別に、運用者がエラーの文脈を確認する用途とする。
 
 ## CSVエクスポート仕様
 
@@ -1802,7 +1821,8 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 ## 退会
 
 - 利用者は設定画面の「アプリ退会」ボタンで退会する。
-- 負のポイントを退会と再登録で帳消しにできないよう、Pointsは利用者を退会済みの`CLOSED`にし、公開プロフィールを匿名化してログアウトさせる。
+- 負のポイントを退会と再登録で帳消しにできないよう、Pointsは利用者を退会済みの`CLOSED`にし、公開プロフィールとその公開応答を停止してログアウトさせる。
+- 表示名・説明・公開設定・自動分配設定などは、再開時に使えるよう保持する。
 - 退会済みのプロフィールは検索結果に含めない。
 - SessionとOAuthの同意を失効させ、退会時点以降の利用者認可を無効にする。
 - 終了済みの精算には影響させない。
@@ -1818,7 +1838,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 - 利用者を`/account/reopen`へ導く。callbackのGETは状態を見る導線であり、公開へは戻さない。
 - 公開へ戻すのは、本人の明示の`POST /api/account/reopen`だけである。
 - 再開画面には、受領資格が確定した未受領FIXの評価軸別正味合計、正件数、負件数、全件数、`reopenSetHash`を表示する。
-- このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。戻したあとの表示名と説明は、本人が設定する。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後にAccountsへ連携すると、対象の未受領FIXを自動受領する。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
+- このPOSTは、操作を制限した`CLOSED` sessionと直前の`reopenSetHash`を要求する。serverは同じD1原子処理で集合hashを再計算し、`CLOSED`から`ACTIVE`への変更、対象となる正負全件のclaimと差分ledger、Sessionの再発行を、全件成功か0件かで確定する。集合が変わっていれば`409 REOPEN_SET_CHANGED`とし、CLOSEDを維持する。再開後は保存した表示名・説明・設定を使い、本人が設定画面から変更できる。退会中に届いた正負のFIXは未受領のまま残す。退会済みの`CLOSED` sessionではAccounts連携ができない。そのため再開時の受領集合は空になる。Accountsとのやり取りに失敗したときの応答は、一括受領と同じcodeとする。再開後にAccountsへ連携すると、対象の未受領FIXを自動受領する。負の保留FIXで残高が負になっても、再開とそのときのclaimは成功させ、その後の消費系操作は拒否する。未定義の「ADMIN対象アーカイブ」経路は作らない。関連する検討事項として、全データを削除する方法を用意したほうがよいという案がある。利用期間が長い利用者に信頼の印を付ける案と、代案としてポイント管理アプリの外で評価軸チームがデータを保持する案もある。これらの採否と具体的な方法は未決とする。
 
 ## 権限
 
@@ -2463,7 +2483,6 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - Vite+で開発サーバーとビルドを実行する。
   - タスクの実行・キャッシュ・依存関係は[vite-task](https://viteplus.dev/guide/run)で管理する。
   - 開発時の高速化には、[Vite 8.1の実験的なフルバンドルモード](https://vite.dev/blog/announcing-vite8-1)の`experimental.bundledDev`を検討する。
-  - `@t3-oss/env-core`でサーバー用とクライアント用の環境変数を分け、型と必須値を検証する。
 - ビルド時に`CLOUDFLARE_ENV=staging|production`で配信先の環境を選ぶ。
   - Cloudflare Vite pluginが生成した、その環境用のWrangler設定と成果物を配信する。
   - 配信前にWorker名、ドメイン、環境変数、D1接続先が対象環境と一致することを確認する。
@@ -2527,10 +2546,11 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
   - `pull_request`と`merge_group`で同じ必須検査を実行する。
   - `test/*`へのpushは共有テスト環境へ、`main`へのpushは本番へ、検査成功後に自動配信する。
 - 配信前の検査を毎回実行する。
-  - 型、書式、環境・生成設定、単体テスト、Workerテスト、ビルドを確認する。
+  - 型、書式、環境・生成設定、`vp test`による単体テスト、ビルドを確認する。
+  - ビルド済みWorkerを使い、`vp test`によるWorker・D1の結合テストを実行する。
   - ブラウザ操作と認証は、[実環境での確認](#実環境での確認)に従って確認する。
   - 初回本番配信では、ブランチ保護、Cloudflareの認証・利用プラン、依存関係、必要なDB構造、接続先、復旧手順も確認する。
-- 配信は「検査→ビルド→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
+- 配信は「静的検査・単体テスト→ビルド→Worker結合テスト→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
 - GitHub Environmentで配信用の資格情報を管理する。
   - テスト用は`web-app-staging`、本番用は`web-app-production`とする。
   - `CLOUDFLARE_ACCOUNT_ID`と`CLOUDFLARE_API_TOKEN`は対象環境ごとに管理する。
@@ -2605,6 +2625,10 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 
 ## v0.2.0からv0.2.1への変更
 
+- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。単体・結合テストは`vp test`へ統一し、Worker・D1はWranglerの`createTestHarness()`で検証する。
+
+- プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会後のプロフィールと設定は再開用に保持し、個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
+
 - 利用規約をPoints専用とし、初回登録ボタン付近の同意案内、日英の公開ページ、変更の事前掲載を定める。変更後も操作を継続できる。規約違反に対するポイント没収は方針を定め、実行・表示の設計と実装時期は別途決める。
 
 - 公式パッケージはフォーム・CSVで作成・更新し、同名を許可する。初期値は有効・非公開とし、非公開でも独自の自動分配に使える。CSVは1行1パッケージで最大20件、構成軸はIDと整数比のカンマ区切りで指定する。Points内で未参照なら完全削除、参照済みなら停止・再開に対応する。新しい競売はパッケージと全構成軸が公開の場合に限り、作成済み競売は変更・非公開化・停止・削除後も保存済み条件で継続する。
@@ -2662,7 +2686,7 @@ CSV 1,000行とSettlementの複数winner書込みは、値を並べた巨大mult
 - 各対象の管理者は100人までとする。
 
 - 貢献評価代用は、付与先評価軸の`evalueterAdmin`または`appAdmin`が実行する。評価対象月`YYYY-MM`ごとに、評価軸全体で直接評価か代用評価を選択する。
-- Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。メールとPUSHは作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
+- Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。アプリからのメール通知とPUSH通知は作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
