@@ -73,11 +73,7 @@
     - [script](#script)
     - [例外](#例外)
   - [認証・外部ID・サービス間認可仕様](#認証外部idサービス間認可仕様)
-    - [アプリと認証データの境界](#アプリと認証データの境界)
     - [Better Auth共通設定](#better-auth共通設定)
-    - [PointsのGoogle・GitHubログインと明示連携](#pointsのgooglegithubログインと明示連携)
-    - [Google](#google)
-    - [GitHub](#github)
     - [Pointsログイン用OAuth主体の永久対応](#pointsログイン用oauth主体の永久対応)
   - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
     - [未受領FIXの受領資格](#未受領fixの受領資格)
@@ -733,6 +729,7 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 - 初回登録
   - 初回はPointsユーザーを作成し、表示名「仮ユーザー」、プロフィール非公開で利用を開始する。
   - プロフィール設定とAccounts連携を案内する。設定を完了する前も通常利用できる。
+  - メール一致による暗黙のAccount link・ユーザー統合
 
 - ログイン手段の追加
   - 設定画面にログイン手段の一覧と追加操作を設ける。
@@ -748,6 +745,36 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - 退会済み本人は既存の再開手順へ案内する。
   - 明示連携には`linkSocial`を使い、`disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`を設定する。`trustedProviders`は`google`・`github`とする。
   - セッションには`expiresIn: 604800`、`updateAge: 86400`を設定する。単位は秒とする。
+
+- Google
+  - Google Accountは`providerId = google`とGoogle `sub`に相当する`accountId`で識別する。
+  - email、email verified、表示名は本人識別に使用しない。
+  - Google APIを別用途で利用しない限り、ログインに不要な追加scopeやGoogle Refresh Tokenを要求しない。
+
+- GitHub
+  - GitHub OAuth Appを使用する。
+  - Better Auth GitHub Providerの既定の最小scopeを使用し、用途のないscopeを追加しない。
+  - GitHubの不変な数値Account IDを`accountId`とする。
+  - GitHub username、表示名、メール、プロフィールURLの変更で本人対応を変更しない。
+  - メールはBetter Auth schemaを満たす属性としてのみ保持し、本人識別、通知、暗黙linkに使用しない。
+  - Providerからメールを取得できない場合は、`github-{accountId}@github.oauth.invalid`形式の予約ドメイン値を使用できる。この値も本人識別・通知・link判定には使用しない。
+  - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
+
+- PointsのGoogle・GitHubログインと明示連携
+  - ローカル・staging・PRプレビューは、OAuth Proxyで固定したstaging callbackを共有する。
+    - `OAUTH_PROXY_PRODUCTION_URL`は`https://staging.points.freeism.app`とする。
+    - 認証後は、開始元のローカル・PR画面へ戻す。
+    - 本番は本番自身のURLとcallbackを使う。
+  - 運営者は、Google・GitHubのOAuthアプリへcallbackを登録する。
+    - Googleは`https://staging.points.freeism.app/api/auth/callback/google`とする。
+    - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`とする。
+  - OAuth Proxyは既存の認証鍵を使う。
+    - 参加するローカル・staging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。
+    - Better Authの更新時も、Proxyに参加する環境を同じバージョンへそろえる。
+    - 更新前から進行中のログイン・連携は、更新後にやり直す。
+    - 認証鍵とProxyの更新条件は[Better Auth公式資料](https://better-auth.com/docs/plugins/oauth-proxy)を参照する。
+  - GoogleとGitHubで別々のPointsユーザーを作成済みの場合は、それぞれ独立した本人対応を保持する。
+    - 同じPoints本人として使う場合は、第二の認証元で新規登録する前に、既存の本人へログインして設定画面から追加する。
 
 - 公式資料
   - 明示連携と同一メールの扱いは[Better Authのユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts)、有効期間と延長は[セッション管理](https://better-auth.com/docs/concepts/session-management)を参照する。
@@ -1105,7 +1132,7 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 - 規約の変更
   - 規約ページに施行日・更新日・変更内容を表示する。
-  - 運営は、法令で認められる条件と手続きに従って規約を変更し、変更内容と施行日を事前に規約ページへ掲載する。
+  - 運営は、法令で認められる条件と手続きに従って規約を変更し、変更後の規約本文・変更内容・施行日を事前に規約ページへ掲載する。
   - 重要な変更でも通常の操作を継続でき、再ログイン・再同意を求めたり、利用を止めたりしない。
   - 日英の本文を同時に更新し、施行日・更新日とリポジトリの記録から掲載した内容を確認できるようにする。
 
@@ -1134,7 +1161,7 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
   - 没収額と同じ額を、本人の残高と累計評価額の両方から減らす。
   - 残高が不足しても減算し、負の残高を許可する。
   - 累計評価額の減算は、処分を確定したUTCの月へ計上する。
-  - 過去の譲渡・分配や、他の利用者の残高・累計評価額へは波及させない。
+  - 過去の譲渡・分配や、他の利用者の確定済みの残高・累計評価額へは波及させない。
   - 本人だけが、処分の日時・評価軸・額・理由・問い合わせ先を確認できるようにする。
 
 ## プライバシーポリシー
@@ -1643,30 +1670,9 @@ URL候補はカンマ区切りで最大5件を受け付ける。フォームも�
 
 ## 認証・外部ID・サービス間認可仕様
 
-次の3種類を混同しない。
-
-1. **アプリへのログイン**：PointsまたはMarketsの利用者セッションを作る。
-2. **Points–Markets間の認可**：Marketsが利用者の同意を得て残高を参照し、落札時にその利用者認可でポイントを引き落とす。
-
-### アプリと認証データの境界
-
-| 対象               | ログインProvider                    | 本人識別                               | セッション・認証DB                  |
-| ------------------ | ----------------------------------- | -------------------------------------- | ----------------------------------- |
-| Points             | Google、GitHub                      | `providerId + accountId`               | Points専用D1・Points専用Cookie      |
-| Markets            | Google、GitHub                      | `providerId + accountId`               | Markets専用D1・Markets専用Cookie    |
-| Points–Markets連携 | 登録済み提供先が発行するOAuth Token | `providerId + subject`と登録issuer照合 | Markets D1の暗号化済みOAuth Account |
-
-両アプリで次を禁止する。
-
-- メール・パスワード認証
-- Appleその他の未承認Provider
-- メール一致による暗黙のAccount link・ユーザー統合
-- PointsとMarketsのBetter Authテーブル、Secretの共有
-- Google ID、GitHub ID、メールアドレスを使ったPoints–Markets間の暗黙対応
-
 ### Better Auth共通設定
 
-PointsとMarketsは、それぞれ独立したBetter Auth instanceを持つ。Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
+Better Auth標準AccountはProvider Accountの再利用を検査するが、Pointsの永久`providerId + accountId -> Points userId`対応の正本にはしない。永久対応とその一意制約は5節のapp-owned tableで保証し、本番公開前に必ず実装する。
 
 Account linkingとOAuth state／Cookieの正本設定形は次とする。各optionをtop-levelへ置かず、Better Authの`account`／`account.accountLinking`配下へ設定する。
 
@@ -1696,40 +1702,6 @@ betterAuth({
 - Authorization Code flowではPKCE S256を必須とし、callback URLは完全一致allowlistとする。
 
 明示linkではProviderのメールが既存ユーザーと異なっていてもよい。ただし、メールが一致していても自動linkしない。Providerから取得した名前とメールで既存Pointsプロフィールを上書きしない。
-
-### PointsのGoogle・GitHubログインと明示連携
-
-- ローカル・staging・PRプレビューは、OAuth Proxyで固定したstaging callbackを共有する。
-  - `OAUTH_PROXY_PRODUCTION_URL`は`https://staging.points.freeism.app`とする。
-  - 認証後は、開始元のローカル・PR画面へ戻す。
-  - 本番は本番自身のURLとcallbackを使う。
-- 運営者は、Google・GitHubのOAuthアプリへcallbackを登録する。
-  - Googleは`https://staging.points.freeism.app/api/auth/callback/google`とする。
-  - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`とする。
-- OAuth Proxyは既存の認証鍵を使う。
-  - 参加するローカル・staging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。
-  - Better Authの更新時も、Proxyに参加する環境を同じバージョンへそろえる。
-  - 更新前から進行中のログイン・連携は、更新後にやり直す。
-  - 認証鍵とProxyの更新条件は[Better Auth公式資料](https://better-auth.com/docs/plugins/oauth-proxy)を参照する。
-
-- GoogleとGitHubで別々のPointsユーザーを作成済みの場合は、それぞれ独立した本人対応を保持する。同じPoints本人として使う場合は、第二の認証元で新規登録する前に、既存の本人へログインして設定画面から追加する。
-
-### Google
-
-- Google Accountは`providerId = google`とGoogle `sub`に相当する`accountId`で識別する。
-- email、email verified、表示名は本人識別に使用しない。
-- Google APIを別用途で利用しない限り、ログインに不要な追加scopeやGoogle Refresh Tokenを要求しない。
-- GitHubだけで作成したPointsユーザーも通常ログインは可能である。
-
-### GitHub
-
-- GitHub OAuth Appを使用する。
-- Better Auth GitHub Providerの既定の最小scopeを使用し、用途のないscopeを追加しない。
-- GitHubの不変な数値Account IDを`accountId`とする。
-- GitHub username、表示名、メール、プロフィールURLの変更で本人対応を変更しない。
-- メールはBetter Auth schemaを満たす属性としてのみ保持し、本人識別、通知、暗黙linkに使用しない。
-- Providerからメールを取得できない場合は、`github-{accountId}@github.oauth.invalid`形式の予約ドメイン値を使用できる。この値も本人識別・通知・link判定には使用しない。
-- 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
 ### Pointsログイン用OAuth主体の永久対応
 
@@ -1830,7 +1802,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 ## 退会
 
 - 利用者は設定画面の「アプリ退会」ボタンで退会する。
-- 借金や負のポイントを退会と再登録で帳消しにできないよう、Pointsは利用者を退会済みの`CLOSED`にし、公開プロフィールを匿名化してログアウトさせる。
+- 負のポイントを退会と再登録で帳消しにできないよう、Pointsは利用者を退会済みの`CLOSED`にし、公開プロフィールを匿名化してログアウトさせる。
 - 退会済みのプロフィールは検索結果に含めない。
 - SessionとOAuthの同意を失効させ、退会時点以降の利用者認可を無効にする。
 - 終了済みの精算には影響させない。
