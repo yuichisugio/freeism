@@ -75,18 +75,19 @@
     - [保存・D1処理・ログ](#保存d1処理ログ)
     - [確認する例](#確認する例)
   - [命名規則](#命名規則)
-    - [前提](#前提)
-    - [repository・service・domain](#repositoryservicedomain)
-    - [ID](#id)
+    - [対象と基本方針](#対象と基本方針)
+    - [ファイル・型・変数の名前](#ファイル型変数の名前)
+    - [IDと照合キー](#idと照合キー)
     - [金額と時刻](#金額と時刻)
-    - [versionとstate](#versionとstate)
-    - [HTTP/OpenAPI](#httpopenapi)
-    - [Hono](#hono)
-    - [Drizzle/D1](#drizzled1)
-    - [frontend](#frontend)
-    - [test](#test)
-    - [script](#script)
-    - [例外](#例外)
+    - [versionと業務状態](#versionと業務状態)
+    - [HTTPとAPI](#httpとapi)
+    - [バックエンドのファイルと型](#バックエンドのファイルと型)
+    - [データベース](#データベース)
+    - [フロントエンド](#フロントエンド)
+    - [テスト](#テスト)
+    - [スクリプト](#スクリプト)
+    - [標準仕様・生成コードの例外](#標準仕様生成コードの例外)
+    - [実装との差の確認](#実装との差の確認)
   - [アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)
     - [未受領FIXの受領資格](#未受領fixの受領資格)
     - [自動受領と再実行](#自動受領と再実行)
@@ -211,7 +212,7 @@
 
 - 基本情報・ポイント一覧・公式パッケージ・連携情報を表示し、履歴は別タブにまとめる。
   - 公開項目がない場合も区画を表示し、「この情報は非表示です」と案内する。
-- ポイント一覧は評価軸の名前・IDと、公開した残高`balance`・累計評価額`evaluationTotal`を表示する。
+- ポイント一覧は評価軸の名前・IDと、公開した残高`balance`・累計評価額`evaluationTotal`を小数文字列で表示する。
   - 残高と累計評価額は評価軸ごとに別々に公開設定する。
   - 両方非公開の軸は一覧に表示しない。
 - 公開を選んだ軸は0・負の額もそのまま表示する。
@@ -272,7 +273,7 @@
 
 - 3種類を混ぜた一覧を1ページ20件で表示し、次・前のページへ移動できる。検索語が空なら名前順の一覧を表示する。
 - 種類は「すべて・ユーザー・評価軸・パッケージ」から選ぶ。「自分が管理する項目」「停止中も含む」でも絞り込める。
-- 管理対象フィルターはログイン時に表示する。対象軸の`evalueterAdmin`には管理する評価軸、`packageAdmin`には管理するパッケージ、`appAdmin`には編集可能な全評価軸・パッケージを表示する。
+- 管理対象フィルターはログイン時に表示する。対象軸の`evaluationCriterionAdmin`には管理する評価軸、`packageAdmin`には管理するパッケージ、`appAdmin`には編集可能な全評価軸・パッケージを表示する。
 - 一覧にも種類・名前・IDと、該当する状態・編集権限のバッジを表示する。各結果からプロフィールへ移動する。非公開の場合は、編集権限があっても404を返す。評価軸の結果には、交換倍率の一覧を開く導線も表示する。
 - 検索語・フィルター・並び順・ページを画面URLへ保存し、詳細から戻ったときに復元する。検索条件を変更したら最初のページへ戻す。
 
@@ -301,8 +302,8 @@
 ### 評価軸の作成・更新・削除
 
 - 操作する人と画面
-  - ログインしたPoints利用者は誰でも評価軸を作成できる。作成者は、その軸の`evalueterAdmin`になる。
-  - 更新・完全削除・利用停止・再開は、その軸の`evalueterAdmin`または`appAdmin`が行う。
+  - ログインしたPoints利用者は誰でも評価軸を作成できる。作成者は、その軸の`evaluationCriterionAdmin`になる。
+  - 更新・完全削除・利用停止・再開は、その軸の`evaluationCriterionAdmin`または`appAdmin`が行う。
   - 設定画面に管理できる評価軸の一覧を表示し、フォームまたはCSVで管理操作を行う。評価軸のプロフィール画面からも更新画面を開ける。
   - 管理者の追加・招待・削除・ロール変更は、その軸のOrganizationの標準APIで行う。
 
@@ -312,7 +313,7 @@
   - 新規作成の初期状態は`ACTIVE`とする。譲渡・交換・即決価格の利用可否はON、自動分配方式は「本人の取り分から配る方式」、分配用の最小単位は1ポイントを初期値とする。
   - 最小単位は0.0001以上、小数4桁まで設定でき、作成後も変更できる。自動分配の丸めと終了判定には、処理時点の値を使う。変更後も過去の付与額・残高・累計評価額・台帳の金額を保持する。
   - 保存精度は小数4桁で固定する。付与・譲渡・交換・競売精算をこの精度で検証し、FIX訂正や取消の差額も小数4桁で正確に反映する。実行済みの増減は台帳と実行記録へ保存する。
-  - 公開範囲は軸全体で`PUBLIC | PRIVATE`とし、新規作成時は`PRIVATE`とする。対象軸の`evalueterAdmin`または`appAdmin`がフォーム・CSVで変更できる。利用状態とは別に保存する。
+  - 公開範囲は軸全体で`PUBLIC | PRIVATE`とし、新規作成時は`PRIVATE`とする。対象軸の`evaluationCriterionAdmin`または`appAdmin`がフォーム・CSVで変更できる。利用状態とは別に保存する。
   - フォーム・CSVの作成・更新項目に公開範囲を含める。非公開の軸は、設定画面の管理対象一覧から管理画面を開く。
   - 自動分配方式は`autoDistributionMode`へ保存する。値は`OWN_SHARE`（本人の取り分から配る方式）または`ADDITIONAL_ISSUANCE`（追加発行して配る方式）とし、受け取ったポイントの評価軸の設定を初回分配と再分配へ適用する。
   - 月別の直接・代用評価と交換倍率は、それぞれの設定操作で管理する。
@@ -343,7 +344,7 @@
 - 評価方式の選択
   - 付与先の評価軸ごと・評価対象月ごとに、「直接評価」または「代用評価」を選ぶ。同じ月の方式を利用者全員へ一括適用する。
   - 評価対象月はUTCの年月を`YYYY-MM`で指定する。9月分を10月に処理しても、9月の設定を使う。
-  - 設定と実行は、付与先の評価軸の`evalueterAdmin`または`appAdmin`が行う。
+  - 設定と実行は、付与先の評価軸の`evaluationCriterionAdmin`または`appAdmin`が行う。
   - 直接評価では、通常の貢献評価の登録・訂正を行う。代用評価を選択中の月に直接評価を登録・訂正しようとした場合は、直接評価への切替を案内する。
 
 - 代用元と係数の設定
@@ -395,7 +396,7 @@
 #### 「交換する仕組み」の係数を設定
 
 - 設定する人と管理操作
-  - 交換先の評価軸の`evalueterAdmin`または`appAdmin`が、フォーム・CSVで設定する。A軸からB軸への倍率はB軸の管理者が決め、逆方向はA軸の管理者が別に設定する。
+  - 交換先の評価軸の`evaluationCriterionAdmin`または`appAdmin`が、フォーム・CSVで設定する。A軸からB軸への倍率はB軸の管理者が決め、逆方向はA軸の管理者が別に設定する。
   - 倍率は0.5・1.5のような正の小数4桁までとし、交換の有効・無効を別に設定する。複数の交換を経てポイントが増える組合せも許可する。
   - 作成・更新・無効化・再有効化・完全削除に対応する。停止中・交換許可OFFの軸でも設定を編集できる。
   - 実際の交換では、両軸の状態・交換許可・その方向の設定を検証する。設定が有効でも、軸の停止などで交換できない場合がある。
@@ -419,7 +420,7 @@
 
 ##### 登録・訂正する操作
 
-- 対象評価軸の管理者`evalueterAdmin`またはアプリ全体管理者`appAdmin`が、評価軸の管理画面からフォームまたはCSVで直接評価を登録・訂正する。公開プロフィールからも、その操作画面を開ける。
+- 対象評価軸の管理者`evaluationCriterionAdmin`またはアプリ全体管理者`appAdmin`が、評価軸の管理画面からフォームまたはCSVで直接評価を登録・訂正する。公開プロフィールからも、その操作画面を開ける。
 - 新規登録は独立した評価として追加し、評価IDを発行する。同じ人・同じ評価軸・同じ評価対象月にも、複数の評価を登録できる。
 - 訂正では、既存の評価アップロードID`fixResultId`を指定し、その評価の現在額を置き換える。更新番号は同じ評価の更新を検証する値として保持する。
 - 評価額は符号付きの小数4桁までとし、負の残高になる評価も受け付ける。100から50への訂正では差額−50と、関連する分配の訂正を反映する。
@@ -480,7 +481,7 @@
 - 初回取込で安定した`fixResultId`を発行する。
 - 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録へ保存する。
 - 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
-- 受領済みの元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotal`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
+- 受領済みの元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotalScaled`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 受領済みの差額は台帳へ反映する。未受領の`unclaimedFixEntry`は現在額へ更新し、訂正時に受領者が決まった場合は最新額全体を台帳へ反映する。
 - 直接FIXの登録・訂正では、対象の評価軸・評価月が直接評価を採用していることを検証する。評価月を変更する場合は、移動元と移動先の両月を検証する。代用中に保持した直接入力は復元用とし、台帳や受領待ちの有効額には加えない。
 - 台帳行は不変で、FIX実行IDと対象エントリー・台帳種別の組を一意にし、同じ実行の再送による二重反映を防ぐ。
@@ -494,7 +495,7 @@
 1. FIX resultとentryの最新レコード、FIX実行記録
 2. 更新前の結果との差分
 3. ledger entryまたはunclaimed entry
-4. ledger INSERT triggerによる`point_accounts.balance`／`evaluation_total` projection
+4. ledger INSERT triggerによる`point_accounts.balance_scaled`／`evaluation_total_scaled` projection
 5. idempotency result
 
 - サーバーはフォーム・CSVの両方で管理権限、宛先、金額、評価対象月の直接評価選択、現在の更新番号を検証する。月の変更では移動元・移動先の両月を検証する。
@@ -1044,12 +1045,12 @@ betterAuth({
   - 管理者は同じIDのまま`ACTIVE`へ戻せる。既存の設定・構成・登録を使って利用を再開する。
 
 - 作成済み競売
-  - Marketsは競売作成時に現在データを取得し、評価軸ID・構成割合・`packageTick`・パッケージと評価軸の表示名を競売レコードへ保存する。
+  - Marketsは競売作成時に現在データを取得し、評価軸ID・構成割合・`packageTickScaled`・パッケージと評価軸の表示名を競売レコードへ保存する。
   - 作成後の変更・非公開化・停止・完全削除にかかわらず、保存した条件で表示・開始・精算する。
 
 ### 競売の金額計算と精算
 
-- Marketsは競売snapshotを使い、入札刻みの個数`priceTickCount`へ`packageTick`を乗じてscale済み価格`priceTicks`を求める。評価軸別に`requiredAmountScaled = priceTicks * quantity * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
+- Marketsは競売snapshotを使い、`priceScaled = priceTickCount * packageTickScaled`で整数価格を求める。`priceTickCount`は入札刻みの個数、`packageTickScaled`は10,000倍した価格刻みとする。評価軸別に`requiredAmountScaled = priceScaled * quantity * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
 - Pointsは利用者とクライアントの認証・権限、各評価軸の存在、非負の安全整数金額、軸の重複、共通の保存精度、残高を検証する。競売作成後にパッケージや評価軸が非公開・停止になっても、保存済みsnapshotの条件で精算する。パッケージを完全削除した場合も同じ条件で精算する。
 - component amountと合計はJavaScript安全整数範囲内で検証する。乗除算の途中値はBigIntで保持し、整数として確定した結果を保存・返却前に検証する。
 
@@ -1069,17 +1070,17 @@ betterAuth({
 ```json
 {
 	"data": {
-		"pointPackageId": "pkg_01...",
+		"pointPackageId": "V1StGXR8_Z5jdHi6B-myT",
 		"packageLifecycleStatus": "ACTIVE",
 		"name": "Example package",
 		"description": "Example description",
 		"relatedUrl": ["https://example.com/package"],
 		"totalWeight": 1,
-		"packageTick": 1,
+		"packageTickScaled": 1,
 		"contentHash": "sha256:...",
 		"components": [
 			{
-				"evaluationCriterionId": "evc_01...",
+				"evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
 				"name": "Example criterion",
 				"displayOrder": 0,
 				"weight": 1,
@@ -1088,16 +1089,16 @@ betterAuth({
 		]
 	},
 	"meta": {
-		"requestId": "req_01..."
+		"requestId": "req_550e8400-e29b-41d4-a716-446655440000"
 	}
 }
 ```
 
 - `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
-- `packageTick`は、各componentへの配分額が0.0001ポイント単位の整数になる最小の正の刻みとする。scale済み整数で`LCM(totalWeight / GCD(totalWeight, weight))`を各componentについて計算し、JavaScript安全整数の範囲を検証する
+- `packageTickScaled`は、各componentへの配分額が0.0001ポイント単位の整数になる最小の正の刻みとする。scale済み整数で`LCM(totalWeight / GCD(totalWeight, weight))`を各componentについて計算し、JavaScript安全整数の範囲を検証する
 - `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
-- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTick`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
-- Marketsは競売作成時に構成割合と共通の保存精度から`packageTick`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
+- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTickScaled`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
+- Marketsは競売作成時に構成割合と共通の保存精度から`packageTickScaled`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
 - success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。
 
 ### パッケージの現在の利用可否
@@ -1847,105 +1848,172 @@ betterAuth({
 
 ## 命名規則
 
-### 前提
+### 対象と基本方針
 
-1. 外部protocol、generated code、Cloudflare/Better Authの予約名は変更しない。
+- Pointsの開発者が、コード・DB・API・CSVの名前を決めるときの規則とする。
+- 名前で対象と用途を区別し、金額には入力値か整数値かが分かる名前を付ける。
+- Pointsのプロジェクトは`points-web-app`、Workerの基本名は`points-worker`、公開ドメインは`points.freeism.app`とする。
+  - 環境別のWorker名は、その環境の配信設定を使う。
+  - Marketsは別サービスとして扱い、Pointsのコードや型と分ける。
 
-### repository・service・domain
+### ファイル・型・変数の名前
 
-- project directory: `points-web-app`、`markets-web-app`
-- Worker service: `points-worker`、`auction-worker`
-- domain: `points.freeism.app`、`markets.freeism.app`
-- class/type/component: `PascalCase`
-- TypeScript関数・変数・property: `camelCase`
-- file/directory/route segment: `kebab-case`
-- environment variable・enum wire value: `SCREAMING_SNAKE_CASE`
-- D1 table/column/index/constraint: `snake_case`
+- クラス・型・Reactコンポーネントは`PascalCase`とする。例は`EvaluationCriterion`とする。
+- TypeScriptの関数・変数・プロパティとJSONの項目名は`camelCase`とする。
+- 通常のファイル・ディレクトリ・URLの経路名は`kebab-case`とする。
+- 環境変数とPoints独自の列挙値は`SCREAMING_SNAKE_CASE`とする。
+  - 状態・種類・方式・操作などの値を大文字でそろえる。
+  - 例は`ACTIVE`・`PRIVATE`・`SAVE`・宛先の種類`URL`・`ACCOUNTS_USER`とする。
+- D1のテーブル・列・インデックス・制約の名前は`snake_case`とする。
+- 評価軸の英語名は`evaluationCriterion`とする。複数形は`evaluationCriteria`とする。
+  - 評価軸管理者は`evaluationCriterionAdmin`、アプリ全体管理者は`appAdmin`、パッケージ管理者は`packageAdmin`とする。
+  - 権限のロール名は`camelCase`とし、状態・種類・方式・操作の列挙値と区別する。
 
-### ID
+### IDと照合キー
 
-- opaque IDはdomain prefix付きのURL-safe stringにする。例: `pusr_`, `musr_`, `evc_`, `pkg_`, `fix_`, `auc_`, `stl_`。
-- IDを整数の連番やemailで公開しない。
-- OAuth identityは`providerId` + `accountId`。
-- Points–Markets主体は`issuer` + `subject`。
-- correlationは`requestId`、`workflowInstanceId`、`planHash`。
+- Pointsユーザー・評価軸・パッケージのIDは、接頭辞なしの標準Nano IDとする。
+  - 作成時に標準の`nanoid()`で21文字を発行し、同じ対象では不変とする。
+  - 項目名は、それぞれ`pointsUserId`・`evaluationCriterionId`・`pointPackageId`とする。
+  - [Nano IDの公式資料](https://github.com/ai/nanoid#api)を参照する。
+
+- その他のPoints独自の内部IDは、対象を示す接頭辞とUUIDを組み合わせる。
+  - 評価は`fix_`、台帳は`ledger_`、要求は`req_`など、対象を示す接頭辞を使う。
+  - 例は`req_550e8400-e29b-41d4-a716-446655440000`とする。
+  - 外部へ渡すIDは、内部に保存したIDと同じ値を使う。
+
+- IDは文字列として扱い、公開するIDには整数の連番やメールアドレスを使わない。
+- Better Authの`userId`は認証ユーザーのIDとし、Points本人の`pointsUserId`と区別する。
+- ログイン用OAuthアカウントは`providerId`と`accountId`の組で識別する。
+- PointsとMarketsの連携主体は`issuer`と`subject`の組で識別する。
+- 処理の照合には`requestId`・`workflowInstanceId`・`planHash`を使う。
+  - `planHash`は内容のハッシュとし、レコードのIDと区別する。
 
 ### 金額と時刻
 
-- 表示値文字列: `amount`またはdomain名付き`fixAmount`。
-- scale済み整数: suffix `Scaled`。例: `amountScaled`。
-- Pointsの残高確認・精算APIは、評価軸IDとscale済み必要額`requiredAmountScaled`のvectorを扱う。
+- 入力・表示用の小数文字列と、10,000倍した整数金額を名前で区別する。
+  - 整数金額には`Scaled`、そのDB列には`_scaled`を付ける。
+  - APIで整数金額を文字列として送る場合も`Scaled`を付ける。
+  - 複数の額を区別する場合は、評価額の`fixAmount`・`fixAmountScaled`など対象名を付ける。
 
-- timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
-- duration: unitをsuffixに含める。例: `leaseSeconds`。
+| 意味 | 小数文字列 | 整数金額 | 整数金額のDB列 |
+| --- | --- | --- | --- |
+| 金額 | `amount` | `amountScaled` | `amount_scaled` |
+| 残高 | `balance` | `balanceScaled` | `balance_scaled` |
+| 累計評価額 | `evaluationTotal` | `evaluationTotalScaled` | `evaluation_total_scaled` |
+| 分配用最小単位 | `minimumUnit` | `minimumUnitScaled` | `minimum_unit_scaled` |
+| 競売の価格刻み | `packageTick` | `packageTickScaled` | `package_tick_scaled` |
+| 価格 | `price` | `priceScaled` | `price_scaled` |
+| 台帳の増減額 | `deltaAmount` | `deltaAmountScaled` | `delta_amount_scaled` |
 
-### versionとstate
+- `minimumUnit="1"`は`minimumUnitScaled=10000`に対応する。
+  - CSVの`minimumUnit`は小数文字列で入力し、検証後に整数へ変換する。
+  - 保存精度は常に0.0001ポイントとし、分配用最小単位を変更しても保存済み金額は維持する。
 
-- ドメインの各レコードは最新状態を保存する。実行記録、冪等性の結果、差分台帳、必要なsnapshotは不変で保持する。
-- 更新競合の検査には`version`と`expectedVersion`、または`expectedAuctionVersion`を使う。versionは最新レコードを更新するための競合検査値とする。
-- state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
-- terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
+- Pointsの残高確認・精算APIは、評価軸IDと整数金額`requiredAmountScaled`の組を配列で扱う。
+- 個数を表す名前には`Count`を付ける。例は`priceTickCount`とする。
+  - 個数・割合の重み・versionは、それぞれの値として扱う。
+  - 金額の`Scaled`は、表示値を10,000倍した値に付ける。
 
-### HTTP/OpenAPI
+- 時刻の項目名は`createdAt`・`effectiveAt`・`expiresAt`などとする。
+  - APIの時刻はUTCのRFC 3339形式とする。
+- 時間の長さには単位を付ける。例は秒単位の`leaseSeconds`とする。
 
-- public path: `/api/v1/...`
-- browser BFF path: `/api/...`
-- OAuth/Discovery: Better Authと標準の`/.well-known/...`
-- JSON propertyは`camelCase`。
-- DBの`snake_case`をAPIへそのまま露出しない。
+### versionと業務状態
 
-### Hono
+- 各レコードは最新の状態を保存する。
+  - 実行記録・冪等性の結果・差分台帳・必要なsnapshotは不変で保持する。
 
-- route file: `{resource}-routes.ts`
-- middleware: 名詞または目的の`*-middleware.ts`
-- use case: 動詞開始の`create-*`, `verify-*`, `capture-*`。
-- repository interface: `{Domain}Repository`、実装は`D1{Domain}Repository`。
-- Hono bindings型: `Bindings`、request context variables: `Variables`。
-- Points/Markets backendの型を相互importせず、OpenAPI generated clientの型を使う。
+- 最新レコードの更新競合を検査する値は`version`とする。
+  - 更新要求には`expectedVersion`を指定する。
+  - 複数対象を区別する場合は`grantVersion`・`expectedAuctionVersion`など対象名を付ける。
 
-### Drizzle/D1
+- 業務上の状態は`status`を基本とする。
+  - 複数対象を扱う場合は`packageLifecycleStatus`など対象を明記する。
+  - パッケージの保存項目`status`と公開応答の`packageLifecycleStatus`は同じ状態を表す。
+  - 状態の値と遷移は各機能で定義し、複数の真偽値を組み合わせて一つの状態を表さない。
 
-- schema sourceはdomainごとに分割し、table constantはcamelCase複数形。例: `fixResults`。
-- DB名はsnake_case複数形。例: `fix_results`。
-- FKは`{target}_id`、Drizzle propertyは`{target}Id`。
-- unique/check/indexへ目的を含む明示名を付ける。
-- migration file名はtoolが生成するsequence + kebab/snakeの説明を既存tool規約に合わせる。手書きでsequenceを偽造しない。
-- D1 bindingは各appで`DB`とする。
+- 公開範囲は`visibility`、操作許可は`transferEnabled`などの`*Enabled`として、利用状態と分ける。
+- 完了済みの経済処理を未実行へ戻す`reset*`・`undo*`という操作は設けない。
+- OAuthの`state`とHTTP応答の`status`は、業務状態とは別の標準項目として扱う。
 
-### frontend
+### HTTPとAPI
 
-- route componentはTanStack Routerの予約命名に従う。
-- React component `PascalCase`、hook `useXxx`、fileは`kebab-case.tsx`。
-- server state key factoryは`camelCase`。domain namespaceを先頭elementにする。
-- browser公開環境変数は`VITE_`prefix。ただしsecret、token、client secretへ絶対に付けない。
-- `NEXT_PUBLIC_`、Server Action名、Next.js予約file名を新規コードへ持ち込まない。
+- 公開APIの経路は`/api/v1/...`、ブラウザ用BFFの経路は`/api/...`とする。
+- OAuthと公開メタデータの経路は、Better Authと標準の`/.well-known/...`を使う。
+- APIの項目名はDBの列名と分ける。
+  - DBの`balance_scaled`に対応する項目名は、APIでは`balanceScaled`とする。
+- 参照する項目名を指定するときは、その項目の名前を使う。
+  - ソート対象の`sortColumn`に作成時刻を指定する値は`createdAt`とする。
 
-### test
+- 他サービスとの契約には、OpenAPIから生成したクライアントの型を使う。
+  - PointsとMarketsのバックエンドの型は、それぞれのサービス内で管理する。
 
-- test fileは`*.test.ts`/`*.test.tsx`。
-- Workers integrationは`*.worker.test.ts`。
-- contract fixtureは`test/fixtures`、秘密を含む実credentialを置かない。
-- test名は期待behaviorを表し、実装method名だけにしない。
+### バックエンドのファイルと型
 
-### script
+- Honoの経路定義は`{resource}-routes.ts`、ミドルウェアは対象名か目的を示す`*-middleware.ts`とする。
+- ユースケースのファイル名は動詞から始める。例は`create-*`・`verify-*`・`capture-*`とする。
+- リポジトリのインターフェースは`{Domain}Repository`、D1実装は`D1{Domain}Repository`とする。
+- Honoの環境型は`Bindings`、要求ごとの変数型は`Variables`とする。
 
-- package scriptはnamespaceを`:`で区切る。例: `test:worker`、`db:migrate:staging`。
-- scripts内の単語は`kebab-case`。
-- environmentを省略したproduction commandを作らない。
-- `npm`/`npx`をrepository script/docsへ追加せず、pnpm/Vite Plusの正本commandを使う。
+### データベース
 
-### 例外
+- スキーマのソースは業務領域ごとに分ける。
+- Drizzleのテーブル定数は`camelCase`の複数形、DBのテーブル名は`snake_case`の複数形とする。
+  - 例は`fixResults`と`fix_results`とする。
+- 外部キーのDB列は`{target}_id`、Drizzleのプロパティは`{target}Id`とする。
+- 一意制約・検査制約・インデックスには、目的が分かる明示的な名前を付ける。
+- マイグレーションの番号とファイル名は、生成ツールの規則に従う。
+  - 連番と`kebab-case`または`snake_case`の説明を使い、番号はツールが生成する。
+- D1のバインディング名は`DB`とする。
 
-- OAuth wire field、JWT claim、RFC header、Better Auth generated schemaは外部互換名を維持する。
-- generated OpenAPI clientは手編集しない。
-- Cloudflare binding/config fieldは公式schemaの名前を維持する。
-- 例外を増やす場合は理由とsourceを近接commentまたは仕様へ記録する。
+### フロントエンド
+
+- TanStack Routerの経路ファイルと経路コンポーネントは、ライブラリが定める名前を使う。
+- Reactコンポーネントは`PascalCase`、フックは`useXxx`、通常のファイルは`kebab-case.tsx`とする。
+- サーバー状態のキーを作る関数は`camelCase`とし、キー配列の先頭に対象の業務領域を置く。
+- ブラウザへ公開する環境変数には`VITE_`を付ける。
+  - 秘密鍵・トークン・Client Secretを含む環境変数には付けない。
+- 新規コードのファイル名と機能名は、採用しているVite・React・TanStack Routerの規則を使う。
+
+### テスト
+
+- テストファイルは`*.test.ts`・`*.test.tsx`、Workersの結合テストは`*.worker.test.ts`とする。
+- 契約の検証用データは`test/fixtures`へ置く。
+  - 秘密を含む実際の認証資格情報を置かない。
+- テスト名は、操作と期待する結果を表す名前にする。
+
+### スクリプト
+
+- パッケージのスクリプト名は、用途を`:`で区切る。
+  - 例は`test:worker`・`db:migrate:staging`とする。
+- スクリプト名の単語は`kebab-case`とする。
+- 本番操作のコマンド名には、対象の環境を明記する。
+- リポジトリのスクリプトと説明に載せるコマンドは、pnpm・Vite+の規則を使う。
+
+### 標準仕様・生成コードの例外
+
+- OAuthの項目名・値、JWTのclaim、RFCで定めるヘッダー、Better Authの生成スキーマは標準の名前を維持する。
+- Cloudflareのバインディングと設定項目は、公式スキーマの名前を維持する。
+- 生成したOpenAPIクライアントは、元の定義から再生成して更新する。
+- ライブラリが発行するIDは、そのライブラリの規則に従う。
+- 例外を加える場合は、理由と根拠を近くのコメントか仕様へ記録する。
+
+### 実装との差の確認
+
+- 現在の実装には、`pusr_`を付けたUUIDのPointsユーザーIDがある。
+  - 標準Nano IDへの変更は、今後の実装で対応する。
+- 現在の独自DBには、`points_user`・`evaluation_criterion`・`fix_result`など単数形のテーブル名がある。
+  - 独自テーブルは今後の実装で複数形にそろえ、認証ライブラリの生成スキーマは標準の名前を維持する。
+- 金額の実装には`minimumUnitScaled`と`minimum_unit_scaled`など、既に整数値を区別する名前がある。
+  - API・集計値・関連する項目も、今回の名前との対応を確認する。
+- 管理者のロール名と宛先の種類は、権限検査・入力検証・保存値を含めて今回の名前にそろえる。
+- PointsとMarketsの連携では、`packageTickScaled`を含む応答と利用側の項目名を、実装時にそろえる。
 
 ## アカウント紐付け時のポイント付与
 
 - 未受領FIXはdraftではなく、受領先だけが未確定の正式なFIX結果である。
 - Pointsに未登録の貢献者にも、外部の貢献者を宛先として正負どちらのFIXも先に保存し、後から本人がポイントを受け取れるようにする。
-- 不変FIX実行記録へ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存する。暫定ユーザー残高へ入れず、受領対象が確定した後に実ユーザーの台帳・残高・`evaluationTotal`へ一括反映する。
+- 不変FIX実行記録へ入力された貢献者識別子、Accountsから取得できた照合結果、符号付き評価額を保存する。暫定ユーザー残高へ入れず、受領対象が確定した後に実ユーザーの台帳・残高・`evaluationTotalScaled`へ一括反映する。
 
 ### 未受領FIXの受領資格
 
@@ -1973,7 +2041,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 
 - サーバーで最新の宛先を照合し、対象評価の現在額と受領時点の本人設定による自動分配を計算する。
 - 同じD1原子処理で、現在の連携・受領資格・対象評価の未受領状態と現在額を検証し、全件の受領、元のFIXに紐付く台帳、残高・累計評価額・分配、受領記録、冪等性の結果を確定する。
-- 台帳のINSERT triggerで`point_accounts.balance`と`evaluationTotal`を更新する。受領記録には本人と受領時点の連携先origin・AccountsユーザーIDを保存する。
+- 台帳のINSERT triggerで`point_accounts.balance_scaled`と`point_accounts.evaluation_total_scaled`を更新する。受領記録には本人と受領時点の連携先origin・AccountsユーザーIDを保存する。
 - 一件でも失敗すれば全件を未受領のままにし、PointsとAccountsの連携は維持する。自動分配の処理件数上限も、一回の受領処理全体に適用する。
 - 同じ評価IDの二重受領と、未受領の訂正による即時付与との二重反映を、一意制約で防ぐ。
 - 正・負の合計で残高が負になっても受領は成功させ、その後の消費系操作を拒否する。
@@ -1984,7 +2052,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 #### `unclaimedFixEntry`
 
 - `sourceFixExecutionId`
-- 評価IDと、入力識別子の種類（`url`または`accounts_user`）、URL候補またはAccountsユーザーID
+- 評価IDと、入力識別子の種類（`URL`または`ACCOUNTS_USER`）、URL候補またはAccountsユーザーID
 - 選ばれた接続先のoriginとAccountsユーザーID（人物を特定できた場合）、照合時刻。全候補が未照合ならoriginとAccountsユーザーIDは未確定
 - 評価軸ID
 - 評価時刻
@@ -2037,7 +2105,7 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 - SessionとOAuthの同意を失効させ、退会時点以降の利用者認可を無効にする。
 - 終了済みの精算には影響させない。
 - FIX、Claim、台帳、残高、負の残高、落札の引き落とし、永久的なログイン対応は保持し、証明画面では経済履歴の対応に必要な不変の利用者IDだけを示す。
-- `appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のいずれかで最後の1人なら退会できない。
+- `appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evaluationCriterionAdmin`のいずれかで最後の1人なら退会できない。
 - バックエンドは`POST /api/account/close`でこの条件を確認し、該当するときは`409 ACCOUNT_CLOSE_LAST_ADMIN`を返して何も変更しない。
 - 利用者は管理者を追加してから再実行する。退会と同じD1原子処理で、本人に連携しているすべてのAccountsユーザーとの対応を削除する。
 - Accounts側のそのPointsへの公開設定は維持する。
@@ -2054,21 +2122,21 @@ Pointsは受領時点の照合結果を根拠に、受領資格を判定する�
 
 Pointsの権限は、Better AuthのAdminプラグインとOrganizationプラグインで管理する。対象ごとの管理者の紐づけと、管理APIの自作を減らすためである。
 
-アプリ全体の管理者を`appAdmin`とする。パッケージの管理者を`packageAdmin`とする。評価軸の管理者を`evalueterAdmin`とする。`appAdmin`はAdminプラグインのカスタムロールである。`packageAdmin`と`evalueterAdmin`はOrganizationプラグインのカスタムロールである。各ロールの操作権限は、コードで固定する。
+アプリ全体の管理者を`appAdmin`とする。パッケージの管理者を`packageAdmin`とする。評価軸の管理者を`evaluationCriterionAdmin`とする。`appAdmin`はAdminプラグインのカスタムロールである。`packageAdmin`と`evaluationCriterionAdmin`はOrganizationプラグインのカスタムロールである。各ロールの操作権限は、コードで固定する。
 
 パッケージ1件にOrganizationを1件対応させる。評価軸1件にもOrganizationを1件対応させる。パッケージと評価軸の名称、公開情報、実行記録は、既存のドメインテーブルを正本とする。各対象に`organizationId`を保存し、Organizationとの対応を一意にする。Organizationは、その対象の管理者と権限を管理する単位である。
 
-管理者の紐づけは、Organizationの`userId`、`organizationId`、`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。経済履歴はPointsのユーザーIDを使う。二つのIDは、既存の`points_user.auth_user_id`で対応づける。同じ利用者は、複数のパッケージと複数の評価軸の管理者になれる。各対象の管理者は100人までとする。
+管理者の紐づけは、Organizationの`userId`、`organizationId`、`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。経済履歴はPointsのユーザーIDを使う。二つのIDは、`points_users.auth_user_id`で対応づける。同じ利用者は、複数のパッケージと複数の評価軸の管理者になれる。各対象の管理者は100人までとする。
 
-パッケージを作成できるのは、ログインしたPoints利用者である。評価軸を作成できるのは、ログインしたPoints利用者である。作成時に、対象の行、対応するOrganization、作成者の管理者所属を、同じD1の一つのbatchで書く。パッケージの作成者は`packageAdmin`、評価軸の作成者は`evalueterAdmin`になる。Pointsの`user`、`points_user`、評価軸、パッケージは同じD1にある。D1のbatchは、どれか一つの書き込みが失敗すると全体を戻す。対象の行だけ、またはOrganizationだけを残さない。
+パッケージを作成できるのは、ログインしたPoints利用者である。評価軸を作成できるのは、ログインしたPoints利用者である。作成時に、対象の行、対応するOrganization、作成者の管理者所属を、同じD1の一つのbatchで書く。パッケージの作成者は`packageAdmin`、評価軸の作成者は`evaluationCriterionAdmin`になる。Pointsの認証テーブル`user`、本人テーブル`points_users`、評価軸、パッケージは同じD1にある。D1のbatchは、どれか一つの書き込みが失敗すると全体を戻す。対象の行だけ、またはOrganizationだけを残さない。
 
 管理者一覧の取得、管理者の追加、削除、ロール変更は、Organizationの標準APIを使う。招待の作成も同じ標準APIを使う。招待メールは送らない。未受諾の招待は、ログイン中の画面に一覧し、その画面で受諾する。受諾時、標準APIは招待に保存したメールアドレスと、ログイン中ユーザーのメールアドレスが一致することを確認する。Pointsの本人識別は、Googleなら`providerId`と`sub`、GitHubなら`providerId`と数値Account IDである。メールは本人識別に使わない。GitHubからメールを取得できないときの`github-{accountId}@github.oauth.invalid`は、招待先の特定に使わない。そのため、メールを取得できないGitHub利用者は、この招待の宛先にできない。招待を受諾した人は、ログイン済みのGoogleまたはGitHubのアカウントとして参加する。
 
 管理者を変更できるのは、`appAdmin`か、その対象の管理者である。信頼されたサーバー向けAPIを呼ぶ前に、操作者を認可する。更新APIは、操作対象の`organizationId`からOrganizationを取得して権限を確認する。権限判定はバックエンドで行う。画面の表示も、同じ権限の意味に従う。
 
-`appAdmin`は、アプリ全体と、各パッケージ、各評価軸の管理操作を行える。`packageAdmin`は、所属するパッケージの管理操作を行える。`evalueterAdmin`は、所属する評価軸の管理操作を行える。管理者の変更など、必要な操作では操作理由の入力と再送制御を適用する。
+`appAdmin`は、アプリ全体と、各パッケージ、各評価軸の管理操作を行える。`packageAdmin`は、所属するパッケージの管理操作を行える。`evaluationCriterionAdmin`は、所属する評価軸の管理操作を行える。管理者の変更など、必要な操作では操作理由の入力と再送制御を適用する。
 
-`appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evalueterAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#退会)に従う。
+`appAdmin`は、最後の1人となる削除、降格、退出を拒否する。`packageAdmin`と`evaluationCriterionAdmin`は、その対象の中で最後の1人となる削除、降格、退出を拒否する。アカウントの退会は[退会と再開の処理](#退会)に従う。
 
 初期の`appAdmin`は、`appAdmin`が0人のときだけ、Secretsで指定したGoogleの`accountId`と一致するログインを一度だけ昇格する。公開の昇格APIは置かない。既存の`admin_membership`の全体管理者は、`appAdmin`へ移す。既存の管理者照会、管理画面、関連APIは、この権限に揃える。
 
@@ -2084,7 +2152,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 {
 	"data": {},
 	"meta": {
-		"requestId": "req_01..."
+		"requestId": "req_550e8400-e29b-41d4-a716-446655440000"
 	}
 }
 ```
@@ -2113,7 +2181,7 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 	"detail": "Reload the auction snapshot and retry.",
 	"instance": "/api/auctions/auc_01.../bids",
 	"code": "AUCTION_VERSION_CONFLICT",
-	"requestId": "req_01...",
+	"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
 	"currentAuctionVersion": 43
 }
 ```
@@ -2158,18 +2226,18 @@ Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventと
 
 - headerは標準表記`Idempotency-Key`、`Authorization`、`Content-Type`、`X-Request-Id`。
 
-Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、`appAdmin`、`packageAdmin`、`evalueterAdmin`、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時に拒否する。
+Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、`appAdmin`、`packageAdmin`、`evaluationCriterionAdmin`、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時に拒否する。
 
 | operation                              | route／protocol                                                                                                     | 追加条件                                                                        |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | 未受領FIX claim                        | `/api/unclaimed-fixes/claims`                                                                                       | 本人の連携ID、最新対象の再照合、idempotency                                                   |
 | 評価軸の作成                           | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                   |
-| 評価軸の更新・停止・再開・完全削除      | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
+| 評価軸の更新・停止・再開・完全削除      | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency               |
 | 公式パッケージの作成 | パッケージのフォーム・CSV | ログインしたPoints利用者、reason、idempotency |
 | 公式パッケージの更新・停止・再開・完全削除 | パッケージのフォーム・CSV | そのパッケージの`packageAdmin`または`appAdmin`、reason、idempotency |
-| FIXの確定                              | FIXのフォーム・CSV                                                                                                 | その評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency               |
-| 交換倍率の保存・削除                   | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency            |
-| 貢献評価代用の確定                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                      | 付与先評価軸の`evalueterAdmin`または`appAdmin`、reason、idempotency |
+| FIXの確定                              | FIXのフォーム・CSV                                                                                                 | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency               |
+| 交換倍率の保存・削除                   | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency            |
+| 貢献評価代用の確定                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                      | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency |
 | ポイント交換のフォーム確定             | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、idempotency                                |
 | 譲渡フォームの確定 | 譲渡フォームの確認・確定 | 本人、譲渡条件・宛先・金額・残高の検証、idempotency |
 | 利用者CSV確定                          | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、idempotency                                                               |
@@ -2292,13 +2360,13 @@ upgrade-insecure-requests
 3. 自動分配に設定できる最小単位は0.0001ポイント以上、小数4桁以下とする。
 4. 保存する金額は0.0001ポイントの倍数とする。
 5. 保存scaleは`10_000`で、D1の`INTEGER`には表示値の10,000倍を保存する。
-6. `minimumUnit`はscale適用後の正の整数である。
+6. `minimumUnitScaled`はscale適用後の正の整数である。
 7. すべての処理で、共通の保存精度で扱う。
-8. 評価軸の`minimumUnit`は自動分配の丸めと再分配の終了判定に使う。
+8. 評価軸の`minimumUnitScaled`は自動分配の丸めと再分配の終了判定に使う。
 9. D1には`INTEGER`だけを保存する。
 10. 残高、台帳、価格、比率、FIX、落札の引き落とし計算で、`REAL`とJavaScriptの浮動小数点は使わない。
-11. APIの金額は、小数文字列とscale済み安全整数文字列を分ける。
-12. JSONの金額も小数文字列とし、曖昧な数値型の小数を受け付けない。
+11. APIの入力・表示用の金額は小数文字列、引き落としなどの整数金額は`Scaled`付きのASCII整数文字列として分ける。公開パッケージの`packageTickScaled`は、応答例のとおり数値型の安全整数とする。
+12. JSONの入力・表示用の金額も小数文字列とし、曖昧な数値型の小数を受け付けない。
 13. 指数表記、Unicodeマイナス、4桁を超える小数、非有限値は拒否する。入力文字列を10進として検証したあと、整数化する。
 14. 途中の乗除算にはBigIntを使ってよい。D1のWorker APIはBigIntを直接扱わない。
 15. 入力、D1へ渡す前、集計のあと、APIが返す前に、JavaScriptの安全整数の範囲を確認する。
@@ -2319,7 +2387,7 @@ upgrade-insecure-requests
 - 台帳は`point_ledger_entries`テーブルに保存し、誰の、どの評価軸のポイントが、いくら増減したかを記録する。
 - 記録は追記だけとし、`UPDATE`と`DELETE`は行わない。
 - 残高と累計評価額は、この台帳から再計算して復元できる。
-- `point_accounts`テーブルには、台帳から集計した利用者・評価軸ごとの残高`balance`と累計評価額`evaluation_total`を保存する。画面で表示するたびに台帳を全件集計する必要を減らす。
+- `point_accounts`テーブルには、台帳から集計した利用者・評価軸ごとの残高`balance_scaled`と累計評価額`evaluation_total_scaled`を保存する。画面で表示するたびに台帳を全件集計する必要を減らす。
 
 ### 台帳への追加と自動更新
 
@@ -2330,9 +2398,9 @@ upgrade-insecure-requests
 ### 残高と累計評価額の計算
 
 - 残高は、累計評価額への反映有無にかかわらず、台帳の増減額を合計する。
-  - `balance = SUM(ledger.deltaAmount)`を満たす。
+  - `balanceScaled = SUM(ledger.deltaAmountScaled)`を満たす。
 - 累計評価額は、`affectsEvaluationTotal=true`の台帳の増減額だけを合計する。
-  - `evaluationTotal = SUM(affectsEvaluationTotal=trueの台帳.deltaAmount)`を満たす。
+  - `evaluationTotalScaled = SUM(affectsEvaluationTotal=trueの台帳.deltaAmountScaled)`を満たす。
 - `affectsEvaluationTotal=true`は、残高に加えて累計評価額にも反映する印である。
   - `false`は残高だけに反映する印である。
   - 台帳行の正負と、累計評価額へ反映するかどうかは別に扱う。
@@ -2506,11 +2574,11 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
         2.  ページネーション機能あり
             - `{"page":2}`
         3.  ユーザー指定あり
-            - `{"userId": ["ewfrgthsngbdfvewgtw", "efgrhtjytiuytsegzdfbv"]}`
+            - `{"pointsUserId": ["V1StGXR8_Z5jdHi6B-myT", "Uakgb_J5m9g-0JDMbcJqL"]}`
         4.  ソート順も指定可能
             - デフォルトではサイト登録順に返す
               1.  ソートで順番を固定しないと、ページネーションした場合の取得データが変わるため
-            - `{"sortColumn":"createdAt", "sortDirection": "desc"}`
+            - `{"sortColumn":"createdAt", "sortDirection": "DESC"}`
         5.  Json形式で返す
 
 ### 連携status
@@ -2573,7 +2641,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 	"title": "Point authorization unavailable",
 	"status": 409,
 	"code": "AUTHORIZATION_UNAVAILABLE",
-	"requestId": "req_01...",
+	"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
 	"rejectedWinners": [
 		{
 			"marketsUserId": "musr_01...",
@@ -2634,7 +2702,7 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
   - 業務データの変更を伴う成功は、D1の処理が確定し、実際の変更を確認した後に出力する。冪等性の保存済み結果を返す再送では、変更成功の監査ログを重ねて出力しない。
   - 拒否は、拒否が確定した後に出力する。D1のバッチが失敗したときは、ロールバック後に安定したエラーコードを記録する。生のSQLや例外の`message`は含めない。
   - 退会や接続先の取り下げによる連携解除は、`ACCOUNTS_LINKS_RELEASED`と削除件数`releasedLinkCount`を記録する。未受領FIXの受領は`claimedCount`、一括変更は`affectedCount`を、対象の値を含めない件数として記録する。
-  - 管理者の追加・削除は処理名と結果を記録する。接続先や利用者の状態変更は、変更後の状態を`nextState`に記録し、変更前の状態が確定している場合は`previousState`も記録する。操作理由の入力が必須の操作では入力を検証し、ログに残す理由は安定した`code`で表す。操作者ID、対象ID、接続先ID、外部識別子、入力された理由の自由文、リクエスト本文は出力しない。
+  - 管理者の追加・削除は処理名と結果を記録する。接続先や利用者の状態変更は、変更後の状態を`nextStatus`に記録し、変更前の状態が確定している場合は`previousStatus`も記録する。操作理由の入力が必須の操作では入力を検証し、ログに残す理由は安定した`code`で表す。操作者ID、対象ID、接続先ID、外部識別子、入力された理由の自由文、リクエスト本文は出力しない。
   - ログ出力が失敗しても、確定した業務結果や返す応答を変えず、取引コマンドを再実行しない。台帳、FIX実行記録、Claim、冪等性の結果、経済履歴に必要なsnapshotは、それぞれの業務データとしてD1へ保存する。
 - 処理中に発生した運用上の失敗は、Workersの構造化ログとメトリクスへ記録する。ログには処理名、結果、安定したエラーコードを含める。
 - Cloudflare native Notificationは、公式alert typeで確認できるincident／5xx率／usage threshold用とする。Workerの実行時例外は、Workers Logs／Tracesで確認する。
@@ -2887,7 +2955,7 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 
 - すべての操作でfreshness sessionは要求しない。
 
-- 権限は`appAdmin`、`packageAdmin`、`evalueterAdmin`の3つである。`appAdmin`はBetter AuthのAdminプラグイン、`packageAdmin`と`evalueterAdmin`はOrganizationプラグインのカスタムロールである。既存の全体管理者は`appAdmin`へ移す。
+- 権限は`appAdmin`、`packageAdmin`、`evaluationCriterionAdmin`の3つである。`appAdmin`はBetter AuthのAdminプラグイン、`packageAdmin`と`evaluationCriterionAdmin`はOrganizationプラグインのカスタムロールである。既存の全体管理者は`appAdmin`へ移す。
 - 管理者の招待メールは送らない。未受諾の招待は、ログイン中の画面で一覧し、その画面で受諾する。
 
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
@@ -2895,10 +2963,10 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 - PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
 
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
-- 退会は、`appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evalueterAdmin`のそれぞれで最後の1人ならできない。
+- 退会は、`appAdmin`、所属パッケージの`packageAdmin`、所属評価軸の`evaluationCriterionAdmin`のそれぞれで最後の1人ならできない。
 - 各対象の管理者は100人までとする。
 
-- 貢献評価代用は、付与先評価軸の`evalueterAdmin`または`appAdmin`が実行する。評価対象月`YYYY-MM`ごとに、評価軸全体で直接評価か代用評価を選択する。
+- 貢献評価代用は、付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`が実行する。評価対象月`YYYY-MM`ごとに、評価軸全体で直接評価か代用評価を選択する。
 - Auction単位のDurable ObjectとWebSocket Hibernationを採用する。Task、PWA、画像は実装しない。アプリからのメール通知とPUSH通知は作らない。アプリ内に、利用者ごとのお知らせ一覧を置く。
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
@@ -2920,3 +2988,5 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 - ポイント交換と倍率設定をフォーム・CSVで行えるようにする。交換先の管理者が正の小数4桁の倍率を設定し、本人の残高間で交換する。希望受取額の逆算、倍率変更時の再確認、CSV記載順の一括確定に対応し、累計評価額と自動分配は変更しない。
 
 - 評価軸の同名を許可し、作成・更新CSVは1回20軸までとする。初期値は譲渡・交換・即決価格ON、取り分方式、分配用最小単位1ポイントとする。未参照の軸は完全削除でき、参照済みの軸は停止・再開で管理する。停止中も既存分の訂正・受領・精算と、過去評価を使う代用・分配の計算を行える。
+
+- 公開する利用者・評価軸・パッケージのIDは標準Nano ID、その他の内部IDは接頭辞付きUUIDとする。評価軸管理者名は`evaluationCriterionAdmin`、整数金額は`Scaled`付き、業務状態は`status`、独自の列挙値は大文字へ統一する。
