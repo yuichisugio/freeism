@@ -3083,6 +3083,9 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ## Rate limit
 
+- ライブラリやCloudflareの標準機能を使う
+- BetterAuth標準のRateLimitは受け入れる。でも独自テーブルでRateLimitのカウントを行うことは一旦はしない。
+- AIによるクロールやスクレイピングの被害を抑えたい。それはCloudflareのRateLimitで十分か調べたい
 - OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
 - RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
 
@@ -3128,6 +3131,19 @@ upgrade-insecure-requests
 | `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                  |
 | `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
 | `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
+
+## セキュリティ
+
+- PointsとMarketsは、Cloudflare edge、Worker/Hono、D1/DO/Workflowの多層防御を使う。
+  - Cloudflare edge: DDoS、WAF、Rate Limit、TLS
+  - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
+  - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
+- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
+- 利用者認可によるAPI要求では、対応するPoints本人が`ACTIVE`で、現在の利用者認可も有効であることをサーバーで検証する。発行済みトークンの期限が残っていても、退会によって失効した認可での新しい操作を拒否する。再開後も、新しい認証・同意で認可を取得する。
+- `main`の保護ルール
+  - direct push、force push、branch delete、admin bypassを禁止する。
+  - branch／PR／merge queue経由で反映し、PR、required checks、branch up-to-date、merge queueを必須にする。
+  - 1人運用中のrequired approvalは0とし、2人目のmaintainer追加時に1へ変更する。
 
 ### Resource APIとOAuth Client
 
@@ -3333,19 +3349,6 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
   - 2026-10-01にsubdomain `kyogoku`を読み取り確認した記録は保持する。
   - 今回の仕様更新では、Worker Previewsの実配信、DB更新、GitHub Actions実行、外部OAuth、実URLへのアクセスは実施していない。
   - 実機での受入は、上記の操作を確認してから完了とする。
-
-## セキュリティ、品質
-
-- PointsとMarketsは、Cloudflare edge、Worker/Hono、D1/DO/Workflowの多層防御を使う。
-  - Cloudflare edge: DDoS、WAF、Rate Limit、TLS
-  - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
-  - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
-- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
-- 利用者認可によるAPI要求では、対応するPoints本人が`ACTIVE`で、現在の利用者認可も有効であることをサーバーで検証する。発行済みトークンの期限が残っていても、退会によって失効した認可での新しい操作を拒否する。再開後も、新しい認証・同意で認可を取得する。
-- `main`の保護ルール
-  - direct push、force push、branch delete、admin bypassを禁止する。
-  - branch／PR／merge queue経由で反映し、PR、required checks、branch up-to-date、merge queueを必須にする。
-  - 1人運用中のrequired approvalは0とし、2人目のmaintainer追加時に1へ変更する。
 
 ## 採用しないもの
 
