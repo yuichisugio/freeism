@@ -101,13 +101,17 @@
   - [Cookie、CSRF、Origin](#cookiecsrforigin)
   - [退会](#退会)
   - [権限](#権限)
-  - [HTTPレスポンス](#httpレスポンス)
-    - [対象](#対象)
-    - [成功](#成功)
-    - [失敗](#失敗)
-    - [status](#status)
-    - [idempotency](#idempotency)
-    - [cache](#cache)
+    - [管理操作の認証・権限](#管理操作の認証権限)
+  - [HTTPリクエスト・HTTPレスポンス](#httpリクエストhttpレスポンス)
+    - [適用範囲と標準](#適用範囲と標準)
+    - [HTTPメソッドと入力](#httpメソッドと入力)
+    - [CSVの要求形式と容量上限](#csvの要求形式と容量上限)
+    - [成功時の応答](#成功時の応答)
+    - [失敗時の応答](#失敗時の応答)
+    - [HTTP状態コード](#http状態コード)
+    - [通信IDと二重処理防止](#通信idと二重処理防止)
+    - [応答のキャッシュ](#応答のキャッシュ)
+    - [確認例と実装との差](#確認例と実装との差)
   - [金額表現](#金額表現)
   - [ポイント増減の履歴、残高、累計評価額](#ポイント増減の履歴残高累計評価額)
     - [概要](#概要)
@@ -124,9 +128,8 @@
     - [Authorization Code flow](#authorization-code-flow)
     - [連携解除と外部失効](#連携解除と外部失効)
     - [再認可](#再認可)
-  - [共通HTTP contract](#共通http-contract)
-    - [headers](#headers)
   - [Endpoint](#endpoint)
+    - [外部APIの操作と要求](#外部apiの操作と要求)
     - [連携status](#連携status)
     - [`appAdmin`の照会](#appadminの照会)
     - [連携解除](#連携解除-1)
@@ -138,6 +141,7 @@
     - [security header](#security-header)
     - [Resource APIとOAuth Client](#resource-apiとoauth-client)
     - [D1 bulk write制約](#d1-bulk-write制約)
+    - [業務変更の一括確定](#業務変更の一括確定)
     - [D1不変条件](#d1不変条件)
     - [Observabilityと運用ログ](#observabilityと運用ログ)
     - [依存関係とsupply chain](#依存関係とsupply-chain)
@@ -149,7 +153,7 @@
     - [自動配信と設定の管理](#自動配信と設定の管理)
     - [DB更新と失敗時の対応](#db更新と失敗時の対応)
     - [実環境での確認](#実環境での確認)
-  - [セキュリティ、品質](#セキュリティ品質)
+    - [配信・取得の効率](#配信取得の効率)
   - [採用しないもの](#採用しないもの)
   - [v0.2.0からv0.2.1への変更](#v020からv021への変更)
 
@@ -565,6 +569,13 @@
 
 ### 公式パッケージの設定・自動分配
 
+- パッケージ登録・並べ替えは、`PUT /api/profile/point-packages`へ順序付きの`pointPackageIds`配列全体を送る。
+  - 本人の現在の登録を、同じD1原子処理で置き換える。
+  - 存在しないID、重複ID、本人以外を対象にした要求を拒否する。
+  - 新しく登録する非公開パッケージは、本人の編集権限を検証する。
+  - 公開時から登録済みのパッケージは、非公開になっても保持できる。
+  - 同じ`Idempotency-Key`の再送には、確定した同じ順序の登録結果を返す。
+
 - 設定
   - 利用者は画面のフォームで、公式パッケージ、自動分配の有効・無効、分配する割合または固定額を設定する。
   - 保存時は本人の認証とサーバー側の検証を行い、最新の設定を一括更新する。
@@ -874,7 +885,7 @@ betterAuth({
 - 管理画面は`/admin/accounts-connections`とする。作成・有効化・取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。有効化・取り下げの対象がない場合は`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。
 - 作成時はoriginと、前後の空白を除いて1〜100文字の表示名を入力する。originはHTTPSとし、path・query・fragment・userinfoを含めない。`APP_ENV=local`ではloopbackのHTTPも受け付ける。
 - 接続先のメタデータを取得し、`issuer`がoriginと一致すること、`private_key_jwt`・EdDSA・DPoP・PKCE S256・`openid`・`identities:read`・認可応答の`iss`への対応を検証する。
-- 表示名の違反は`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originの違反は`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、メタデータの取得失敗・条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
+- 表示名の違反は`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originの違反は`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、取得したメタデータの条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
 - 同じoriginで`WITHDRAWN`以外の接続先は1件だけとする。重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。
 - 別のURLへ変更する場合は新しい接続先を追加し、利用者が新しい接続先で認証と同意をして連携する。旧接続先の連携は、その接続先を取り下げるまで維持する。
 - 接続先の作成時に、Pointsは`private_key_jwt`の署名用とDPoP用にEd25519鍵を一組ずつ生成し、状態を`PENDING_CLIENT_REGISTRATION`とする。
@@ -884,7 +895,9 @@ betterAuth({
 - 連携完了URLは、ローカル・staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`、本番では本番originの同じpathとする。
 - 管理者は表示されたアプリ情報・URL・署名用公開鍵をAccountsへ登録し、取得したClient IDをPointsへ入力する。
 - PointsはClient IDと保存済みの鍵で、Client Credentialsの`identities:read` Access Tokenを取得する。取得できた場合だけ接続先を`ACTIVE`にする。
-- Token取得失敗は`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`、不正なメタデータは`422 ACCOUNTS_DISCOVERY_INVALID`とし、接続先を`PENDING_CLIENT_REGISTRATION`に保つ。
+- Client IDや登録鍵の条件によるToken取得の拒否は`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`、取得したメタデータの条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
+- 外部サービスの通信失敗・一時的な利用不能は`503 DEPENDENCY_UNAVAILABLE`、不正な外部応答は`502 DEPENDENCY_UNAVAILABLE`、応答待ちのタイムアウトは`504 DEPENDENCY_UNAVAILABLE`とする。待ち時間が分かる場合は`Retry-After`を返す。
+- 有効化の検証に失敗した場合は、接続先を`PENDING_CLIENT_REGISTRATION`に保つ。
 - Client IDは前後の空白を除いて1〜255文字とする。違反は`422 ACCOUNTS_CLIENT_ID_INVALID`、登録待ち以外の接続先への入力は`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
 - 取り下げは終端状態`WITHDRAWN`への変更とする。
 - 同じD1 batchで、その接続先のユーザー連携、Accounts連携用の標準OAuth state、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。
@@ -899,7 +912,6 @@ betterAuth({
     - [Generic OAuth公式資料](https://better-auth.com/docs/plugins/generic-oauth)
   - Accountsの認証元は、ログイン済み本人への明示連携に限って使う。
   - 開始要求はJSONとし、`application/json`以外は`415 JSON_CONTENT_TYPE_REQUIRED`を返す。
-  - 開始は本人ごとに1時間10回までとし、超過は`429 ACCOUNTS_LINK_RATE_LIMITED`を返す。
   - サーバーは、開始時のPointsユーザーID・セッションIDのSHA-256 hash・接続先IDを、標準OAuth stateのサーバー側情報へ結び付ける。
   - この情報はサーバーが本人認証と接続先の検証後に設定し、ブラウザからの入力で上書きできないようにする。
   - stateはBetter Authの標準verificationレコードとしてD1へ保存し、nonceとcode verifierも標準の保存情報を使う。
@@ -1829,7 +1841,7 @@ betterAuth({
 - 全操作を、サーバーでの検証・計算、利用者による確認、明示的な確定の順に進める。
   - サーバーはファイルを解析し直し、列・値・参照先・権限・更新番号・宛先の照合・金額と分配を検証する。
   - 構文が壊れているファイルは、解析エラーとして受け付けない。
-  - 解析できた場合は全行の入力を検査し、エラーを行番号、`column`で表す列名、安定した`code`、修正可能な説明付きでまとめて返す。
+  - 解析できた場合は全行の入力を検査し、エラーを`row`で表す行番号、`field`で表す列名、安定した`code`、修正可能な説明付きでまとめて返す。
   - 行番号は見出しを1行目とするCSV解析後の行番号とし、途中の空行を無視しても番号を詰めない。
   - エラーがある場合は確認画面へ進めず、全件を反映しない。
 
@@ -1840,7 +1852,8 @@ betterAuth({
   - ファイルを選ぶだけでは、登録・付与・確定を行わない。
 
 - 利用者が確定した場合だけ、サーバーへ確定要求を送る。
-  - 選択したファイル、元ファイルのhash、検証結果のhash、`Idempotency-Key`を送る。
+  - `multipart/form-data`で`file`・`fileHash`・`validationHash`を送る。
+  - 必要な`reason`もフォーム項目へ入れ、`Idempotency-Key`は要求ヘッダーへ送る。
   - 管理操作では、通常の管理操作と同じreasonを要求する。
   - サーバーは入力と現在の条件を再検証・再計算し、対象の設定・付与・分配・残高・累計評価額・未受領状態・差分台帳・実行記録・冪等性の結果を、一つのD1原子処理で確定する。
   - 一部の行だけを成功させず、1件でも失敗した場合は全件を反映しない。
@@ -2229,10 +2242,11 @@ flowchart LR
   - 対象0件も`claimedCount: 0`で正常完了とする。
 
 - 入力・接続先の失敗は次の応答とする。
-  - 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`、連携IDがない場合は`422 ACCOUNTS_LINK_ID_REQUIRED`、本文不正は`422 CLAIM_BODY_INVALID`とする。
+  - 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`、連携IDがない場合は`422 ACCOUNTS_LINK_ID_REQUIRED`、解析後の本文の入力値が不正なら`422 CLAIM_BODY_INVALID`、JSONの構文を解析できなければ`400 MALFORMED_REQUEST`とする。
   - 同じ冪等性キーで別の内容を送った場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
   - 接続先が有効でない場合は`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
-  - 一覧の通信失敗・制限超過・不正な応答は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`では`Retry-After`を転記する。
+  - 一覧の通信失敗・一時的な利用不能・制限超過は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`では`Retry-After`を転記する。
+  - 不正な一覧応答は`502 ACCOUNTS_UNAVAILABLE`、応答待ちのタイムアウトは`504 ACCOUNTS_UNAVAILABLE`とする。
   - Tokenを取り直しても`401`の場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。
   - 識別子・Tokenを含めずに、構造化ログとメトリクスへ記録する。
 
@@ -2513,180 +2527,265 @@ flowchart LR
   - 現在のResource APIの利用者状態検証に、ログイン停止の検証を加える。ログイン停止・再開とトークン更新の連動も実装時に確認する。
   - 停止中の受取りと外部操作の拒否、再開後の認可利用、OAuth登録の途中失敗と残存分の削除、再送時の二重処理防止を確認する。
 
-## HTTPレスポンス
+### 管理操作の認証・権限
 
-### 対象
+- Points Workerは、経路ごとの認証・認可条件を操作の一覧で管理する。
+  - 本人セッション、各管理者権限、操作理由、冪等性キーの要否を一覧から適用する。
+  - 一覧に登録されていない重要な変更操作は、起動時に拒否する。
 
-Points/MarketsのHono REST API、browser BFFへ適用する。WebSocket eventとOAuth標準endpointはそれぞれの標準contractを優先する。
+| 操作                                  | 経路・操作方法                                                                                                     | 追加条件                                                                      |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 未受領評価・分配の受領                     | `/api/unclaimed-fixes/claim-preview`、`/api/unclaimed-fixes/claims`                                                 | 本人の連携ID、最新一覧と宛先の照合、確認結果の比較、冪等性キー               |
+| 評価軸の作成                               | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、冪等性キー                                 |
+| 評価軸の更新・停止・再開・完全削除         | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、冪等性キー   |
+| 公式パッケージの作成                       | パッケージのフォーム・CSV                                                                                           | ログインしたPoints利用者、reason、冪等性キー                                 |
+| 公式パッケージの更新・停止・再開・完全削除 | パッケージのフォーム・CSV                                                                                           | そのパッケージの`packageAdmin`または`appAdmin`、reason、冪等性キー           |
+| OAuthクライアントの更新・削除              | Better Auth OAuth Providerの標準管理API                                                                             | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証            |
+| 管理者の追加・解除・退出 | 管理者設定画面 | 全体管理者の変更は`appAdmin`、対象の変更は対象管理者または`appAdmin`、本人の退出、人数・件数・最後の管理者、reason、冪等性キー |
+| 利用者のログイン停止・再開 | 管理者設定画面 | `appAdmin`、最後の管理者、reason、冪等性キー |
+| FIXの確定                                  | FIXのフォーム・CSV                                                                                                  | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、冪等性キー   |
+| 交換倍率の保存・削除                       | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、冪等性キー |
+| 貢献評価代用の確定                         | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                     | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、冪等性キー |
+| ポイント交換のフォーム確定                 | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、冪等性キー                             |
+| 譲渡フォームの確定                         | 譲渡フォームの確認・確定                                                                                            | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                           |
+| 利用者CSV確定                              | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、冪等性キー                                                             |
+| 自動分配設定の保存                         | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性                                        |
+| JSON設定復元の確認・確定                   | `/api/settings/restore/{validate,commit}`                                                                           | 本人、各設定の管理権限・通常操作のreason、確定時の冪等性キー                 |
+| 接続先Accountsの作成／有効化／取り下げ     | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、冪等性キー                                               |
 
-### 成功
+## HTTPリクエスト・HTTPレスポンス
+
+### 適用範囲と標準
+
+- Points独自のREST APIと、ブラウザの画面が呼ぶAPIに適用する。
+  - メソッド・ヘッダー・状態コードは[HTTP標準（RFC 9110）](https://www.rfc-editor.org/rfc/rfc9110.html)を基準とする。
+  - JSONの構文と文字コードは[JSON標準（RFC 8259）](https://www.rfc-editor.org/rfc/rfc8259.html)を基準とする。
+  - 失敗応答は[Problem Details（RFC 9457）](https://www.rfc-editor.org/rfc/rfc9457.html)、キャッシュは[HTTPキャッシュ標準（RFC 9111）](https://www.rfc-editor.org/rfc/rfc9111.html)を基準とする。
+
+- 標準が定める形式と、Pointsの補足ルールを区別する。
+  - 成功本文の`data`・`meta`、ページ情報、エラーコード、通信IDはPointsの共通ルールとする。
+  - OAuth・公開メタデータ・Better Auth標準APIは、それぞれの標準形式で要求と応答を扱う。
+  - HTML、リダイレクト、ファイルダウンロード、WebSocketのイベントは、それぞれの形式を維持する。
+  - JSONエクスポートは復元用のファイル形式を返す。
+  - Shields.io向けの応答は、バッジで必要となる形式を返す。
+
+### HTTPメソッドと入力
+
+- HTTPメソッドは、処理の目的に合わせて使う。
+  - `GET`は情報の取得、`HEAD`は本文を受け取らない情報の取得とする。
+  - `POST`は新規作成・検証・確定など、その操作で定めた処理とする。
+  - `PUT`は指定した内容全体への置換、`DELETE`は対象の削除とする。
+  - 各操作の既存の経路・メソッドを維持する。
+  - 残高確認は、検査する金額を本文へ送る既存の`POST`を使う。
+
+- GETの取得条件は、URLのクエリへ入れる。
+  - 検索語・フィルター・並び順・ページなど、各操作で定めた項目を送る。
+  - ブラウザでは`URL`・`URLSearchParams`で値を符号化する。
+  - OAuthコールバックでは、標準の認証検証後に連携情報を保存する既存の手順を維持する。
+
+- 通常の要求本文は、UTF-8の`application/json`で送る。
+  - 各操作で定めた入力項目を、JSON本文へ直接記載する。
+  - 金額の文字列表現と保存精度は、金額の共通仕様を適用する。
+
+- `Content-Type`は送信内容の形式、`Accept`は受け取れる形式を示す。
+  - 通常のJSON APIでは、`Accept: application/json, application/problem+json`で成功と失敗の形式を指定できる。
+  - JSONの文字コードはUTF-8とし、`charset`パラメーターを必須にしない。
+  - サーバーはメディアタイプとパラメーターを解析し、ヘッダー全体の文字列一致で形式を判定しない。
+  - ヘッダー名はHTTP標準どおり、大文字・小文字を区別せずに扱う。
+
+- 本人と操作権限は、サーバーで検証する。
+  - Cookie認証では、Better Authのセッションと標準の要求元検査を適用する。
+  - 利用者の認可による外部APIでは、`Authorization: DPoP {token}`と`DPoP: {proof}`を送る。
+  - 各外部APIで必要なscope、クライアントと本人の状態、対象の権限を検証する。
+  - 精算など、別途クライアント認証を定めた操作は、その条件も検証する。
+  - 本文に書かれた本人ID・ロールだけを、認証や権限の根拠にしない。
+
+### CSVの要求形式と容量上限
+
+- CSVは[フォーム送信の標準（RFC 7578）](https://www.rfc-editor.org/rfc/rfc7578.html)に基づく`multipart/form-data`で送る。
+  - ブラウザは`FormData`を使い、`Content-Type`の`boundary`を含む送信用の区切り情報を自動生成する。
+  - 検証要求には、CSVファイルを`file`へ入れる。
+  - 確定要求には、同じ`file`、元ファイルのhashを表す`fileHash`、確認した検証結果のhashを表す`validationHash`を送る。
+  - 操作理由が必要な確定要求では、`reason`もフォーム項目へ入れる。
+  - 確定要求の`Idempotency-Key`は、要求ヘッダーへ送る。
+  - サーバーは受け取ったファイルを解析し直し、両hash・入力・権限・更新番号・宛先・計算条件を再検証する。
+
+- 要求の容量上限は、受け取る形式と操作ごとに定める。
+  - 上限を超えた要求は`413 REQUEST_BODY_TOO_LARGE`とし、業務処理を行わない。
+  - JSON本文の上限を超えた場合は、JSONを解析する前に拒否する。
+  - CSVでは、ファイル部分と、フォーム項目・各部分のヘッダー・区切り情報を含む本文全体を別々に検証する。
+  - 設定復元では、ブラウザが選ぶ最大50MiBのファイルと、サーバーへ送る最大5MiBの設定JSONを区別する。
+
+| 対象 | 容量を数える範囲 | 上限 |
+| --- | --- | --- |
+| 通常のJSON要求 | UTF-8の本文全体 | 65,536 bytes（64KiB） |
+| 設定復元の検証・確定 | UTF-8の設定JSON本文全体 | 5,242,880 bytes（5MiB） |
+| 精算の一括引き落とし | UTF-8のJSON本文全体 | 1,048,576 bytes（1MiB） |
+| CSVファイル | `file`のファイル内容 | 5,242,880 bytes（5MiB） |
+| CSVのフォーム送信 | 区切り情報を含む本文全体 | 5,308,416 bytes（5MiB＋64KiB） |
+
+### 成功時の応答
+
+- 成功本文は`application/json`で返す。
+  - 単一の対象、一覧、処理結果を`data`へ入れ、補足情報を`meta`へ入れる。
+  - `data`・`meta`・`meta.requestId`を必須とする。
+  - 作成・更新したIDやversion、実行結果などは、各操作で必要な項目を`data`へ返す。
 
 ```json
 {
-	"data": {},
-	"meta": {
-		"requestId": "req_550e8400-e29b-41d4-a716-446655440000"
-	}
+  "data": {},
+  "meta": {
+    "requestId": "req_550e8400-e29b-41d4-a716-446655440000"
+  }
 }
 ```
 
-- 単一resource、配列、command resultはすべて`data`へ入れる。
-- success envelopeは`data`と`meta`を必須にし、`meta.requestId`も必須にする。
-- mutationの`data`には、作成/更新されたresource ID、version、idempotency resultを入れる。
-- paginationは`meta.cursor`、`meta.hasMore`を使う。
-- `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
+- 一覧は、1から始まるページ番号を指定する。
+  - `meta.page`は現在ページ、`meta.pageSize`は1ページの表示件数とする。
+  - `meta.hasPrevious`・`meta.hasNext`は、前後のページの有無を表す真偽値とする。
+  - 検索の20件など、各機能で決めた表示件数と並び順を維持する。
+  - 該当項目がない場合も正常完了とし、`data`へ空の配列を返す。
 
-### 失敗
+- HTTP標準で本文を返さない応答は、本文なしで返す。
+  - HEADの応答、`204`、`304`が該当する。
+  - 通信IDは`X-Request-Id`応答ヘッダーへ返す。
 
-- 失敗はRFC 9457 Problem Detailsで返し、`Content-Type`は`application/problem+json`とする。
-- `type`は安定したHTTPS URI、`title`はcodeごとの短い固定文言とし、`status`はHTTP statusと一致させる。`code`は安定した`SCREAMING_SNAKE_CASE`とする。
-- `type`、`title`、`status`、`code`、`requestId`を必須とし、`detail`と`instance`は任意とする。
-- エラー応答にはsecret、token、SQL、stack、内部binding名を含めない。`detail`には個人情報も含めず、入力検証の`message`にも秘密値を含めない。
-- 入力検証のエラーは`errors[]`へ返す。
-  - 各要素の`code`は`SCREAMING_SNAKE_CASE`の必須項目で、`row`、`field`、`message`はすべて任意項目とする。
-  - `row`は0以上の整数、`field`と`message`は文字列で返す。
+### 失敗時の応答
+
+- 失敗本文は`application/problem+json`で返す。
+  - `type`・`title`・`status`・`code`・`requestId`を必須とする。
+  - `type`は問題の種類を示す安定したHTTPS URIとする。
+  - `title`は問題の種類ごとの短い固定文言、`status`は実際のHTTP状態コードとする。
+  - `code`は安定した`SCREAMING_SNAKE_CASE`とする。
+  - 状況の説明を表す`detail`と、個々の問題の発生を識別する`instance`は任意とする。
+  - 各操作で必要な補足情報は、Problem Detailsの拡張項目として返す。
+
+- APIの説明文は英語とし、画面は`code`に対応する日英文を表示する。
+  - 入力エラーの説明も、エラーコードと項目名から表示する。
+  - 秘密情報、トークン、SQL、スタック情報、内部のbinding名を応答へ含めない。
+  - 説明文には個人情報・入力された秘密値を含めない。
+  - 各操作で明示した補足項目は、認証と表示権限を検証して返す。
+
+- 入力エラーは`errors`配列へまとめる。
+  - 各要素の`code`と、修正の説明を表す英語の`message`を必須とする。
+  - 項目に対応するエラーは`field`へ項目名を入れる。
+  - CSVの行別エラーは、`row`と、列に対応する場合の`field`も返す。
+  - CSVの`row`は解析後の行番号とし、見出しを1行目、最初のデータを2行目とする。
+  - セル内改行で番号を増やさず、空行を無視しても番号を詰めない。
+  - 構文を解析できたCSVは全行を検査し、入力エラーをまとめて返す。
 
 ```json
 {
-	"type": "https://markets.freeism.app/problems/auction-version-conflict",
-	"title": "Auction version conflict",
-	"status": 409,
-	"detail": "Reload the auction snapshot and retry.",
-	"instance": "/api/auctions/auc_01.../bids",
-	"code": "AUCTION_VERSION_CONFLICT",
-	"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
-	"currentAuctionVersion": 43
+  "type": "https://points.freeism.app/problems/validation-failed",
+  "title": "Validation failed",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
+  "errors": [
+    {
+      "row": 2,
+      "field": "amount",
+      "code": "INVALID_AMOUNT",
+      "message": "Enter an amount with up to four decimal places."
+    }
+  ]
 }
 ```
 
-### status
+- 共通のエラーコードを定める。
+  - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
+  - 操作固有のコードには、`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`、`PACKAGE_COMPONENT_NOT_PUBLIC`など、各操作で定めた値を使う。
+  - `rejectedWinners`など、既存の操作固有の拡張項目と返却範囲を維持する。
 
-- `200`: readまたはoperation contractで200と定義したcommand成功
-- `201`: resource作成
-- `202`: Workflow等の非同期開始
-- `204`: bodyなしの成功
-- `400`: malformed request
-- `401`: session/bearerなし・無効
-- `403`: 認証済みだが権限/scope不足
-- `404`: resourceを開示できない場合を含むnot found
-- `409`: version/idempotency/state/残高競合
-- `413`: body/file上限
-- `415`: Content-Type/MIME不正
-- `422`: field/domain validation
-- `500`: 想定外内部error
-- `502/503/504`: 外部依存・一時不能・timeout。retry可否をcodeで示す
+### HTTP状態コード
 
-残高不足は再計算可能な経済状態競合なので`409 INSUFFICIENT_BALANCE`とする。
+| 状態コード | 用途 |
+| --- | --- |
+| `200` | 情報の取得、または各操作で200と定めた処理の成功 |
+| `201` | 新しい対象の作成 |
+| `202` | 非同期処理の受付 |
+| `204` | 本文なしの成功 |
+| `304` | 条件付き取得で、保存済みの応答を利用できる場合 |
+| `400` | JSON・CSV・フォームなど、要求の構文を解析できない場合 |
+| `401` | 必要な認証がない、または無効な場合 |
+| `403` | 認証済みだが、操作権限・scopeが不足する場合 |
+| `404` | 対象が存在しない、または開示できない場合 |
+| `405` | 経路は存在するが、そのHTTPメソッドを受け付けない場合 |
+| `409` | 更新番号、保存済みの冪等性キー、利用状態、残高などが要求と両立しない場合 |
+| `413` | 要求本文・ファイルの容量上限を超えた場合 |
+| `415` | その操作で受け付ける本文形式と異なる場合 |
+| `422` | 解析後の必須項目・型・入力値・登録条件が不正な場合 |
+| `429` | 要求回数の制限を超えた場合 |
+| `500` | 想定外の内部障害 |
+| `502` | 外部サービスから必要な正常応答を得られない場合 |
+| `503` | 一時的にサービスや外部依存を利用できない場合 |
+| `504` | 外部サービスの応答待ちがタイムアウトした場合 |
 
-### idempotency
+- 状態コードと、具体的な理由を表す`code`を組み合わせる。
+  - 残高不足は`409 INSUFFICIENT_BALANCE`とする。
+  - `405`では、利用できるメソッドを`Allow`応答ヘッダーへ返す。
+  - 外部認可APIの認証チャレンジなど、認証方式で必要な応答ヘッダーも維持する。
+  - 外部障害で待ち時間が分かる場合も、`Retry-After`で案内する。
+  - `Retry-After`はHTTP標準の秒数またはHTTP日時で扱う。
+  - 外部サービスの制限を`503`として返す操作では、取得した待ち時間も引き継ぐ。
+
+### 通信IDと二重処理防止
 
 <a id="5-idempotency"></a>
 
-重要な変更操作は`Idempotency-Key`を必須とする。同じキーと同じpayload hashの再送には、初回と同じHTTP status、結果ID、成功時の`data`または失敗時のProblem Detailsのドメイン結果を返す。初回が`201`なら再送も`201`とする。同じキーでpayloadが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`を返す。通信の観測に使う`meta.requestId`とProblem Detailsの`requestId`は、再試行ごとに再発行してよい。連携解除の再送も同じreceiptを返す。
+- Pointsは通信ごとに、`req_`付きUUIDの`requestId`を発行する。
+  - 成功時の`meta.requestId`、失敗時の`requestId`、`X-Request-Id`応答ヘッダー、その処理の運用ログに同じ値を使う。
+  - 呼び出し元が送ったIDとは別に、Pointsが発行したIDを使う。
+  - 同じ業務要求の再送でも、今回の通信IDを発行する。
 
-- `PUT /api/profile/point-packages`は並べ替え後の`pointPackageIds[]`全体を受け、本人の現在行を同じD1原子処理で差し替える。存在しないID、重複ID、非本人を拒否し、`Idempotency-Key`再送は同じordered setへ収束させる。
-  - 新しく登録する非公開パッケージは、本人の編集権限を検証する。公開時から登録済みの非公開パッケージは保持できる。
+- 重要な変更操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
+  - 必須となる操作と本人・対象の条件は、各操作の契約に記載する。
+  - GETと残高確認では要求しない。
+  - 内部の項目名は`idempotencyKey`とする。
+  - HTTPメソッドの冪等性と、Pointsが業務結果を保存して返す処理を区別する。
+  - `Idempotency-Key`はPointsの補足ルールとする。[IETF文書](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/)は2026-10-07時点で期限切れの草案として掲載されている。
 
-- 一般JSON bodyは64 KiB、設定復元のvalidate・commitは5MiB、private responseは`no-store`、重要mutationはIdempotency-Key必須とする。
+- 確定済みの同じ要求には、保存済みの業務結果を返す。
+  - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
+  - 初回が`201`なら再送も`201`とする。
+  - 保存済みのキーで内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
+  - 連携解除の再送も、同じ解除結果を返す。
+  - 全件未確定で終わった失敗は結果として固定せず、同じ要求の再送時に現在の条件で再検証する。
 
-- FIX、ledger、claim、落札の引き落としは実行ID、source ID、idempotency key、createdAtを含める。
+- 再送する要求と、新しい操作を区別する。
+  - 通信失敗で成否不明なら、同じ入力・確認結果・キーを使う。
+  - 入力や確認結果を変更した場合は、新しいキーを使う。
+  - CSVの内容照合にはファイル内容と入力項目を使い、送信用の区切り情報や各部分の配置に依存しない。
+  - 画面からの更新・確定要求は、本人の再試行操作で送る。
+  - 待ち時間が指定された場合は画面で案内し、その時間を待って再試行する。
+  - 認証プロトコル、失効用outbox、精算などの背景処理は、各処理の再試行条件を維持する。
 
-- 同一retryで同じresult、異なるpayloadで409
+### 応答のキャッシュ
 
-- 全chunk、台帳、projection、idempotency resultをstatement数100以下の同じD1 `batch()`へ入れる。複数batchへの分割や1行1queryを禁止し、途中失敗は全rollbackする。
+- 認証済み・非公開のAPI応答は`Cache-Control: private, no-store`とする。
+  - 本人の連携情報、権限、残高、JSONエクスポートなどが対象となる。
+  - 認証情報を含む失敗応答にも同じ条件を適用する。
 
-- idempotencyは`Idempotency-Key` header、内部propertyは`idempotencyKey`。
+- OAuthの認可・トークン・コールバック・同意、Accounts連携、外部連携の開始・解除は、成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。
 
-- headerは標準表記`Idempotency-Key`、`Authorization`、`Content-Type`、`X-Request-Id`。
+- 現在の公開パッケージAPIは、`Cache-Control: no-store`で最新の情報を返す。
 
-Points Workerは対象操作を散在するif文で管理せず、次のroute／operation policy registryを認可の正本にする。各routeはregistryからsession、`appAdmin`、`packageAdmin`、`evaluationCriterionAdmin`、`oauthClientAdmin`、reason、idempotencyの要否を適用し、未登録の重要mutationを起動時に拒否する。
+### 確認例と実装との差
 
-| operation                                  | route／protocol                                                                                                     | 追加条件                                                                      |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 未受領評価・分配の受領                     | `/api/unclaimed-fixes/claim-preview`、`/api/unclaimed-fixes/claims`                                                 | 本人の連携ID、最新一覧と宛先の照合、確認結果の比較、idempotency               |
-| 評価軸の作成                               | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                 |
-| 評価軸の更新・停止・再開・完全削除         | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency   |
-| 公式パッケージの作成                       | パッケージのフォーム・CSV                                                                                           | ログインしたPoints利用者、reason、idempotency                                 |
-| 公式パッケージの更新・停止・再開・完全削除 | パッケージのフォーム・CSV                                                                                           | そのパッケージの`packageAdmin`または`appAdmin`、reason、idempotency           |
-| OAuthクライアントの更新・削除              | Better Auth OAuth Providerの標準管理API                                                                             | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証            |
-| 管理者の追加・解除・退出 | 管理者設定画面 | 全体管理者の変更は`appAdmin`、対象の変更は対象管理者または`appAdmin`、本人の退出、人数・件数・最後の管理者、reason、idempotency |
-| 利用者のログイン停止・再開 | 管理者設定画面 | `appAdmin`、最後の管理者、reason、idempotency |
-| FIXの確定                                  | FIXのフォーム・CSV                                                                                                  | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency   |
-| 交換倍率の保存・削除                       | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency |
-| 貢献評価代用の確定                         | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                     | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、idempotency |
-| ポイント交換のフォーム確定                 | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、idempotency                             |
-| 譲渡フォームの確定                         | 譲渡フォームの確認・確定                                                                                            | 本人、譲渡条件・宛先・金額・残高の検証、idempotency                           |
-| 利用者CSV確定                              | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、idempotency                                                             |
-| 自動分配設定の保存                         | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性                                        |
-| JSON設定復元の確認・確定                   | `/api/settings/restore/{validate,commit}`                                                                           | 本人、各設定の管理権限・通常操作のreason、確定時のidempotency                 |
-| 接続先Accountsの作成／有効化／取り下げ     | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、idempotency                                               |
-
-消費系commandは、canonical payload hashを持つ`point_mutation_commands`をD1 `batch()`の先頭で`PENDING` INSERTし、chunkを登録してから`VALIDATED`へ進める。`PENDING -> VALIDATED`のtriggerが対象行の存在、version、available balance、使える残高とexpected target countを検査し、domain／event／ledger write後の`VALIDATED -> COMMITTED` triggerがactual event／ledger countを検査する。違反時は安定したcodeで`RAISE(ABORT, ...)`し、0行の条件付きUPDATEを成功とみなさず、command、domain write、ledger、idempotency resultを同じbatchで全rollbackする。
-
-- `Idempotency-Key: {opaque-id}`は、GETとbalance-checkでは要求しない
-
-共通Problem `code`は`MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。operation固有の`code`には`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`、`PACKAGE_COMPONENT_NOT_PUBLIC`を定義する。
-
-| Method／path                                     | operationId                  | Success | Body上限        | `Idempotency-Key` |
-| ------------------------------------------------ | ---------------------------- | ------- | --------------- | ----------------- |
-| `GET /api/v1/point-packages/{pointPackageId}`    | `getPublicPointPackage`      | 200     | なし            | 不要              |
-| `GET /api/v1/me/connection`                      | `getPointsConnection`        | 200     | なし            | 不要              |
-| `GET /api/v1/me/admin-membership`                | `getPointsAdminMembership`   | 200     | なし            | 不要              |
-| `POST /api/v1/me/connection-deactivations`       | `deactivatePointsConnection` | 200     | 65,536 bytes    | 必須              |
-| `POST /api/v1/me/balance-checks`                 | `checkPointBalance`          | 200     | 65,536 bytes    | 不要              |
-| `POST /api/v1/settlements/{settlementId}/debits` | `debitPointSettlement`       | 200     | 1,048,576 bytes | 必須              |
-
-- request required: `pointsConnectionId`、`reason`、`deactivationKey`。`deactivationKey`は`Idempotency-Key` headerと完全一致する
-
-- 落札の引き落としはクライアントIDと精算IDをkeyにし、再送を壊さないようidempotency cacheを先に確認する。
-  - rate limit responseは`429`と`Retry-After`を返す。
-
-- chunkごとの各target table statement、command guard、ledger、idempotency resultを一つのD1 `batch()`へ入れ、projectionはledger triggerだけで更新する。1 statement／triggerでも失敗すれば全rollbackし、複数の独立`batch()`へ分割しない。
-
-- FIX実行IDと対象エントリー・台帳種別の組、idempotency key、Auction command/seq、settlement plan hashを一意にする。
-
-- 消費、譲渡、交換、落札の引き落とし、通常unlinkは、同じD1 `batch()`を`command PENDING INSERT -> canonical chunks INSERT -> PENDINGからVALIDATEDへのUPDATE -> domain／event／ledger write -> VALIDATEDからCOMMITTEDへのUPDATE -> idempotency result`の順に固定する。2つのcommand transitionの`BEFORE UPDATE` triggerがprecondition、expected target count、actual event／ledger countを検査し、違反時は安定したcodeで`RAISE(ABORT, ...)`して全rollbackする。条件付きUPDATEの0行を成功として扱わない。
-
-- 重要mutationは`Idempotency-Key`を必須にする。
-
-### cache
-
-- session/private API: `Cache-Control: private, no-store`
-- OAuth/token/callback: `Cache-Control: no-store`
-- 現在Package API: `Cache-Control: no-store`
-
-- error responseは認証内容を共有cacheしない
-
-3. **バンドルサイズを小さくする**
-   - サービスを早く表示するため、バンドルサイズを可能な限り小さくする。
-   - 未使用コードを残さず、HTTP caching、ETag、長期キャッシュ、filename hashingによって、変更されていないscriptを再転送しない。
-   - サイズが大きいSVGは`<img>`として読み込む。
-   - 参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
-
-4. **できる限りサーバーの負荷をかけず、サーバーのアクセス回数も減らす設計**
-   - 可能な限りキャッシュを行い、できる限りState管理で最終タイミングのみサーバーへリクエストして登録する
-
-- 現在Package APIは`Cache-Control: no-store`で最新データを返す。
-
-- authenticated responseは`Cache-Control: private, no-store`とする。
-
-- 認証済み・非公開レスポンスは`Cache-Control: private, no-store`、OAuth／token／callback responseは`Cache-Control: no-store`とする。
-
-- private responseは`Cache-Control: private, no-store`
-
-- protected responseのexact cache値は`Cache-Control: private, no-store`とする。公開Package APIは`Cache-Control: no-store`とする。
-
-`GET /api/v1/me/admin-membership`
-
-- `Cache-Control: private, no-store`。
-
-- private/認証responseは`Cache-Control: private, no-store`。
-
-OAuth authorization、callback、token exchange、consent、Accounts連携、link／unlinkのresponseは成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。認証済みAPIは`Cache-Control: private, no-store`とする。
-
-- 更新頻度の低いデータはキャッシュし、リアルタイム性が必要なデータはキャッシュしない。サーバー負荷と取得回数を減らすためである。
-- バックエンドのキャッシュはCloudflare Cacheに置く。DBを更新したあとは、該当するキャッシュを消す。
-- 高頻度で更新される情報は、1時間ごとなどにstaleにする。
+- JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
+- CSVの検証・確定、必須のフォーム項目、両hash、理由、5MiBのファイル境界、本文全体の容量境界を確認する。
+- CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
+- ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
+- 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
+- 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
+- 実装との差は、実装時の確認事項として扱う。
+  - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`fileHash`・`validationHash`の再検証へそろえる。
+  - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
+  - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
+  - 現在の応答には`meta.requestId`がない経路があり、入力ヘッダー・エラー本文・拒否ログのIDも一致していない経路がある。今回の通信IDへ統一する。
+  - 現在のCSV画面は確定ごとに新しいキーを発行し、通信失敗で確認結果を消す。成否不明時の同じ要求・キーの保持へそろえる。
+  - 保存する失敗結果がある操作は、未確定失敗の再検証と区別して見直す。
+  - この仕様更新では実装コードを変更せず、Worker・実D1・外部サービスを使う動作検証は実装時に行う。
 
 ## 金額表現
 
@@ -2955,16 +3054,18 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは既存の連携を更新します。Pointsは、Client ID、Points利用者、issuer、subjectが既存の連携と一致することを確認します。同じ`pointsConnectionId`のgrant scopeとversionを更新し、確認応答の`grantVersion`を返します。Marketsは、その値を既存連携に保存します。すでに成功した引き落としは、戻しません。
 
-## 共通HTTP contract
-
-### headers
-
-- OAuth認証付き外部APIは`Authorization: DPoP {token}`と`DPoP: {proof}`を送る。
-- `Content-Type: application/json`
-- `X-Request-Id`はcallerが設定可能。未指定時はPointsが発行する
-- 落札精算の一括引き落としは1,048,576 bytes、設定復元のvalidate・commitは5,242,880 bytes、それ以外のJSON POSTは65,536 bytesをrequest body上限とし、超過時はbodyをparseせず`413`を返す
-
 ## Endpoint
+
+### 外部APIの操作と要求
+
+| メソッド・経路                                     | operationId                  | 成功状態 | 本文上限        | `Idempotency-Key` |
+| ------------------------------------------------ | ---------------------------- | ------- | --------------- | ----------------- |
+| `GET /api/v1/point-packages/{pointPackageId}`    | `getPublicPointPackage`      | 200     | なし            | 不要              |
+| `GET /api/v1/me/connection`                      | `getPointsConnection`        | 200     | なし            | 不要              |
+| `GET /api/v1/me/admin-membership`                | `getPointsAdminMembership`   | 200     | なし            | 不要              |
+| `POST /api/v1/me/connection-deactivations`       | `deactivatePointsConnection` | 200     | 65,536 bytes    | 必須              |
+| `POST /api/v1/me/balance-checks`                 | `checkPointBalance`          | 200     | 65,536 bytes    | 不要              |
+| `POST /api/v1/settlements/{settlementId}/debits` | `debitPointSettlement`       | 200     | 1,048,576 bytes | 必須              |
 
 - 公開情報を返すAPIは読取専用とし、Marketsの落札証明も提供対象とする。利用者の認可で残高を参照・引き落とす外部APIは、必要なscopeとDPoP認証を要求する。
 
@@ -2989,13 +3090,13 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
         1.  以下の情報のみ情報を返す
             - 「ユーザー名」、「ユーザーID」、「アプリ登録日」。残高不足のときは、その競売とその利用者の組のブラックリストを1件だけ記録する
         2.  ページネーション機能あり
-            - `{"page":2}`
+            - クエリの`page=2`
         3.  ユーザー指定あり
-            - `{"pointsUserId": ["V1StGXR8_Z5jdHi6B-myT", "Uakgb_J5m9g-0JDMbcJqL"]}`
+            - クエリの`pointsUserId=V1StGXR8_Z5jdHi6B-myT&pointsUserId=Uakgb_J5m9g-0JDMbcJqL`
         4.  ソート順も指定可能
             - デフォルトではサイト登録順に返す
               1.  ソートで順番を固定しないと、ページネーションした場合の取得データが変わるため
-            - `{"sortColumn":"createdAt", "sortDirection": "DESC"}`
+            - クエリの`sortColumn=createdAt&sortDirection=DESC`
         5.  Json形式で返す
 
 ### 連携status
@@ -3018,6 +3119,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 `POST /api/v1/me/connection-deactivations`
 
+- request required: `pointsConnectionId`、`reason`、`deactivationKey`。`deactivationKey`は`Idempotency-Key`要求ヘッダーと完全一致させる。
 - token: 通常unlink専用の一回限りtoken
 - scope: `points.connection.unlink`
 - success `200`の`data` required: `connectionDeactivationReceiptId`、`pointsConnectionId`、`status`、`grantVersion`、`reason`、`deactivatedAt`。`status`は`UNLINKED`とし、revocation outboxやTokenは返さない
@@ -3047,6 +3149,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・保存精度・重複軸の検証を行う。`marketsUserId`はrequest内で重複しない。
 - Pointsは各評価軸の存在と共通の保存精度を検証する。競売作成後のパッケージ・評価軸の非公開化・停止や、パッケージの完全削除後も、保存済みsnapshotの条件で精算する。
 - pathの`settlementId`はrequestの精算と一致させる。
+- 落札の引き落としはクライアントIDと精算IDの組で識別し、保存済みの冪等性の結果を先に確認する。確定済みの同じ要求には、同じ引き落とし結果を返す。
 - 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 - success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
 
@@ -3083,11 +3186,73 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ## Rate limit
 
-- ライブラリやCloudflareの標準機能を使う
-- BetterAuth標準のRateLimitは受け入れる。でも独自テーブルでRateLimitのカウントを行うことは一旦はしない。
-- AIによるクロールやスクレイピングの被害を抑えたい。それはCloudflareのRateLimitで十分か調べたい
-- OAuth開始/Callback/Token endpointはBetter AuthのD1 rate limitとCloudflare WAFを併用する。
-- RateLimitは、Cloudflare Workers側の設定でRateLimitを設定する
+- APIの要求回数に共通の上限を設ける。
+  - 認証以外のAPIは、同じ操作主体の要求を60秒間に合計60回までとする。
+  - 情報取得・検索・登録・確認・確定を合算し、URL・操作の種類・管理対象ごとに枠を分けない。
+  - AIによるアクセスにも同じ制限を適用する。
+  - 静的ファイル、CORSの事前確認（OPTIONS）、ヘルスチェック、認証用の公開メタデータは共通枠の対象外とする。
+
+- 標準機能で回数を数える。
+  - 共通枠には、[Cloudflare WorkersのRate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)を使う。
+  - Wranglerで`limit: 60`・`period: 60`を設定し、対象のHTTP要求ごとに`limit({ key })`を1回呼ぶ。
+  - 回数はCloudflareの拠点ごとに非同期で反映されるため、全拠点を通じた厳密な上限にはならない。
+  - ログイン・セッション取得・OAuthの認証開始・コールバック・トークン発行などには、[Better Auth標準の制限](https://better-auth.com/docs/concepts/rate-limit)を適用する。
+  - Better Authの保存先は標準のD1モデルとし、開発環境でも制限を有効にする。
+  - 認証処理には、Cloudflare WAFによる共通の対策も適用する。
+  - Better Auth配下の管理・設定操作も共通枠へ含め、認証処理か管理操作かで判定する。
+  - Better Auth自身の標準制限は、共通枠の対象となる管理・設定APIにも適用する。
+
+- サーバーが確認した操作主体で枠を区別する。
+  - 通常のセッションでは認証済みの認証ユーザーID、利用者認可では検証済みの`sub`とClient IDを使う。
+  - 管理対象の本人IDや、要求本文に書かれた任意の本人IDを計数に使わない。
+  - キーには要求の種類も含め、本人ID・Client ID・IPが同じ文字列でも別の種類の枠と区別する。
+
+| 要求の種類 | 同じ枠として数える単位 |
+| --- | --- |
+| 通常のログイン利用者 | 認証済み本人のID |
+| 利用者の認可による外部アプリ | 認証済み本人のID＋検証済みClient ID |
+| 利用者を伴わない外部アプリ | 検証済みClient ID |
+| 未ログインの公開API | Cloudflareが確認した接続元IP |
+
+- HTTP要求の入口で、業務処理の前に制限を確認する。
+  - 操作主体の認証・識別を済ませてから、本人用の業務レコードの作成、外部の業務処理、冪等性の予約・結果保存へ進む前に判定する。
+  - CSVの行数・分配人数・内部関数の呼び出し回数は、要求回数へ加えない。
+  - 再送も1回数え、制限を通過した後に保存済みの冪等な結果を返す。
+  - Accounts連携の専用開始APIと、Better Authの`/api/auth/link-social`によるAccounts連携開始は、同じ本人枠で数える。
+  - 専用開始APIから内部の`auth.api.linkSocialAccount`を呼ぶ場合、HTTP要求の1回だけを数える。
+
+- Pointsの実行環境ごとに枠を分ける。
+  - 本番用と共有テスト用の`namespace_id`を分け、ステージング・PRプレビューは同じ共有テスト用の枠を使う。
+  - ローカルは、手元で実行する独立した60秒60回の枠とする。
+  - [Cloudflareの対応表](https://developers.cloudflare.com/workers/local-development/bindings-per-env/#local-development)では、Rate Limiting bindingはローカルの模擬動作に対応し、リモート接続には対応していない。
+  - 同じ`namespace_id`とキーは別Workerでも共有されるため、Worker名やbinding名だけで分離した扱いにしない。
+  - 接続先のAccounts・Marketsとは別の枠とする。
+
+- 制限を超えた場合は、待ってから利用者が再試行する。
+  - 共通枠の超過ではHTTP `429`、`RATE_LIMITED`、`Retry-After: 60`を返し、本文はPointsのProblem Details形式とする。
+  - 60秒は再試行の目安であり、正確な解除時刻を表すものではない。
+  - 業務データを変更せず、429を冪等性の確定結果として保存しない。
+  - Better Auth自身が返す429は、[標準の本文と`X-Retry-After`](https://better-auth.com/docs/concepts/rate-limit#handling-rate-limit-errors)を保持する。
+  - この標準応答は、Better Authの認証APIと管理・設定APIのどちらにも適用する。
+  - 画面は本文の`code`の有無にかかわらずHTTP 429を扱い、`Retry-After`または`X-Retry-After`の待機時間を表示する。
+  - 入力内容と確認結果を維持し、確定要求は利用者の操作で再送する。
+  - 再試行時に条件が変わった場合は、その操作で定めた再確認を求める。
+  - 超過の状況は、既存のWorkersログとメトリクスで確認する。
+
+- 回数の数え方を例で示す。
+  - 同じ本人の検索40回と更新20回は、合計60回として同じ枠を使う。
+  - この計数が反映された状態で、同じ60秒間の次の要求が上限超過と判定された場合は429を返す。
+  - CSVの100行を一つの要求で送った場合は1回とし、確認と確定をそれぞれ送った場合は合計2回とする。
+
+- 実装時に、仕様との差異と動作を確認する。
+  - 現在のAccounts連携開始には、独自のD1カウンターによる本人ごとの1時間10回制限がある。
+  - API共通の制限とWranglerのRate Limiting bindingは未導入である。
+  - 現在の429の待機時間ヘッダーと画面の扱いを、共通枠とBetter Auth標準応答の両方に合わせる。
+  - 本人別・Client別・未ログインIP別の枠、管理APIとAccounts開始の両経路、内部呼び出しの二重計数防止を確認する。
+  - 本番と共有テスト環境の分離、ステージング・PR間の共有、ローカル枠の独立を確認する。
+  - 再送・待機後の再試行、条件変更時の再確認を確認する。
+  - 対象外の要求、超過時の業務データ未変更と冪等性結果の未保存、両形式の429表示を確認する。
+  - 実Cloudflare環境で、拠点ごとの制限と非同期の計数を検証する。
 
 ## セキュリティ・テスト・デリバリー仕様
 
@@ -3096,7 +3261,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - 適用範囲
   - Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。
   - Static AssetsとHonoへ同じCSP、nosniff、no-referrer、Permissions Policy、frame拒否、環境別HSTSを適用する。
-- JSON mutationは`Content-Type: application/json; charset=utf-8`
+- 通常のJSON更新要求はUTF-8の`application/json`、CSV要求は`multipart/form-data`で送る。形式の判定は[HTTPメソッドと入力](#httpメソッドと入力)に従う。
 - browser downloadは正しい`Content-Disposition`と安全なfilename
 - token/proofを含む可能性がある画面は`Referrer-Policy`を明示
 
@@ -3157,6 +3322,28 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 - validation済みrowをcanonical JSON arrayへ変換し、UTF-8で1 chunk 1,500,000 bytes以下に分割する。1 rowがchunk上限を超える入力は事前に拒否する。
 - 各statementはJSON chunk 1個だけをbound parameterとし、固定SQLの`json_each(?)`／`json_extract`からset-based INSERT／UPDATEする。SQL文字列を入力件数に応じて伸ばさない。
 - 1 commitのstatement数を100以下に制限し、query上限1,000に余裕を持たせる。100を超えるschema設計なら行数を黙って削らず、実装を停止して計画を見直す。
+
+### 業務変更の一括確定
+
+- 消費、譲渡、交換、落札の引き落とし、通常の連携解除は、一つのD1 `batch()`で確定する。
+  - 正規化した要求内容のhashを持つ`point_mutation_commands`を、先頭で`PENDING`として追加する。
+  - 正規化したJSONのchunkを登録し、commandを`PENDING`から`VALIDATED`へ更新する。
+  - 業務データ・イベント・台帳を書き込み、commandを`VALIDATED`から`COMMITTED`へ更新する。
+  - 確定した冪等性の結果も同じbatchへ保存する。
+
+- commandの状態更新は、`BEFORE UPDATE` triggerで検証する。
+  - `PENDING`から`VALIDATED`への更新時に、対象行の存在、version、利用可能な残高、その他の前提条件、予定する対象件数を検証する。
+  - `VALIDATED`から`COMMITTED`への更新時に、実際に保存したイベント・台帳の件数を検証する。
+  - 違反時は安定したエラーコードで`RAISE(ABORT, ...)`し、command・業務データ・台帳・冪等性の結果をすべて取り消す。
+  - 条件付きUPDATEの更新行数が0の場合を、成功として扱わない。
+
+- 全chunk、対象テーブルへの各書き込み、commandの検証、台帳、冪等性の結果は、合計100 statement以下の同じbatchへ入れる。
+  - 複数の独立したbatchへ分割せず、1行ごとにqueryを発行しない。
+  - 残高・累計評価額の集計値は、台帳のtriggerだけで更新する。
+  - 一つのstatementまたはtriggerが失敗した場合は、全件を取り消す。
+
+- FIX、台帳、受領、落札の引き落としには、実行ID、元の処理のID、冪等性キー、作成日時を保存する。
+  - FIX実行ID・対象エントリー・台帳種別の組、冪等性キー、競売commandとseqの組、精算のplan hashには、既存の一意条件を適用する。
 
 ### D1不変条件
 
@@ -3350,6 +3537,19 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
   - 今回の仕様更新では、Worker Previewsの実配信、DB更新、GitHub Actions実行、外部OAuth、実URLへのアクセスは実施していない。
   - 実機での受入は、上記の操作を確認してから完了とする。
 
+### 配信・取得の効率
+
+- 表示を速くするため、バンドルサイズを可能な限り小さくする。
+  - 未使用コードを除き、HTTPキャッシュ、ETag、長期キャッシュ、ファイル名のhashで、変更されていないscriptの再転送を減らす。
+  - 大きいSVGは`<img>`として読み込む。
+  - 参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
+
+- サーバー負荷と取得回数を減らすため、画面の状態を保持し、登録に必要な要求は最終確認の時点で送る。
+  - キャッシュできる公開データは更新頻度に応じて保存し、リアルタイム性が必要なデータは最新値を取得する。
+  - バックエンドのキャッシュはCloudflare Cacheへ保存し、DB更新後に該当するキャッシュを削除する。
+  - 高頻度で更新され、キャッシュを許可する情報は、1時間ごとなどに再取得が必要な状態にする。
+  - 認証済み・非公開応答、認証関連、現在の公開パッケージAPIは、[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
+
 ## 採用しないもの
 
 - email/password、Apple、ORCIDのv0.2認証Provider
@@ -3366,6 +3566,10 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## v0.2.0からv0.2.1への変更
+
+- 認証以外のAPIは、操作主体ごとに共通の60秒60回制限をCloudflare Workersの標準機能で設ける。認証はBetter Auth標準の制限を適用し、Accounts連携開始も共通枠へ統一する。429では待機時間を表示し、入力と確認結果を保って再試行できるようにする。
+
+- HTTPリクエスト・レスポンスを標準仕様に基づいて一か所へ整理し、標準とPointsの補足を区別する。CSVはフォーム送信、一覧はページ番号、入力エラーは`field`へ統一する。通信IDはPointsが毎回発行し、未確定失敗の再検証と確定済み結果の再送を区別する。
 
 - 金額の入力は半角の小数4桁まで、画面表示は日英共通の3桁区切りとする。保存は0.0001ポイント単位の安全整数に統一し、分配用最小単位と区別する。入力・表示・保存の数値例と、操作ごとの端数処理、APIの文字列表現を定める。
 
