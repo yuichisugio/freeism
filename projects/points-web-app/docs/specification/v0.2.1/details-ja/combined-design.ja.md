@@ -111,6 +111,7 @@
     - [HTTP状態コード](#http状態コード)
     - [通信IDと二重処理防止](#通信idと二重処理防止)
     - [応答のキャッシュ](#応答のキャッシュ)
+    - [セキュリティヘッダーとダウンロード](#セキュリティヘッダーとダウンロード)
     - [確認例と実装との差](#確認例と実装との差)
   - [金額表現](#金額表現)
   - [ポイント増減の履歴、残高、累計評価額](#ポイント増減の履歴残高累計評価額)
@@ -120,6 +121,9 @@
     - [残高と累計評価額の計算](#残高と累計評価額の計算)
     - [引き落としの検査と拒否](#引き落としの検査と拒否)
     - [数値上限](#数値上限)
+    - [業務変更の一括確定](#業務変更の一括確定)
+    - [D1の一括書き込み制約](#d1の一括書き込み制約)
+    - [一括保存の確認例と実装との差](#一括保存の確認例と実装との差)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [境界](#境界)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
@@ -137,15 +141,6 @@
     - [落札精算の引き落とし](#落札精算の引き落とし)
     - [その他](#その他)
   - [Rate limit](#rate-limit)
-  - [セキュリティ・テスト・デリバリー仕様](#セキュリティテストデリバリー仕様)
-    - [security header](#security-header)
-    - [セキュリティ](#セキュリティ)
-    - [Resource APIとOAuth Client](#resource-apiとoauth-client)
-    - [D1 bulk write制約](#d1-bulk-write制約)
-    - [業務変更の一括確定](#業務変更の一括確定)
-    - [D1不変条件](#d1不変条件)
-    - [Observabilityと運用ログ](#observabilityと運用ログ)
-    - [依存関係とsupply chain](#依存関係とsupply-chain)
   - [フォルダ構成](#フォルダ構成)
   - [デプロイ設定](#デプロイ設定)
     - [環境と配信先](#環境と配信先)
@@ -153,6 +148,8 @@
     - [テスト環境の認証とPRプレビュー](#テスト環境の認証とprプレビュー)
     - [自動配信と設定の管理](#自動配信と設定の管理)
     - [DB更新と失敗時の対応](#db更新と失敗時の対応)
+    - [基盤のセキュリティと運用監視](#基盤のセキュリティと運用監視)
+    - [監査ログ](#監査ログ)
     - [実環境での確認](#実環境での確認)
     - [配信・取得の効率](#配信取得の効率)
   - [採用しないもの](#採用しないもの)
@@ -1485,6 +1482,9 @@ betterAuth({
 ### 開発・品質検査・テスト
 
 - パッケージ管理には、導入済みのpnpmを使う。
+  - `minimumReleaseAge: 4320`で、公開から4,320分経過した版を依存解決の対象にする。
+  - `blockExoticSubdeps: true`で、間接依存の特殊な取得元を制限する。
+  - 適用する例外は、リポジトリのpnpm設定で管理する。[pnpm公式資料](https://pnpm.io/settings)
 
 - 開発・ビルド・整形・静的解析・テスト・コミット前検査は、Vite+へまとめる。
   - Vite+は導入済みとし、コミット前検査と全テストの統一は導入予定とする。
@@ -1920,7 +1920,7 @@ betterAuth({
   - 確定済みの実行記録と差分台帳を保持する。
   - ファイル本文、自由入力セル、個人情報を通常ログへ出さない。
 
-- D1への保存は、[D1の一括書き込み制約](#d1-bulk-write制約)にあるJSONの分割と固定SQLを使う。
+- D1への保存は、[D1の一括書き込み制約](#d1の一括書き込み制約)にあるJSONの分割と固定SQLを使う。
   - 1,000行・5MiBの境界を実D1環境で測定し、一括処理が30秒を超える場合は、上限を黙って下げず、スキーマと一括書き込みのSQLを見直す。
 
 ### 確認する例
@@ -2791,8 +2791,56 @@ flowchart LR
 
 - 現在の公開パッケージAPIは、`Cache-Control: no-store`で最新の情報を返す。
 
+### セキュリティヘッダーとダウンロード
+
+- 静的配信とWorkerの応答へ、共通のセキュリティヘッダーを付ける。
+  - 配信する静的HTML、SPAの初期HTML、画面へのフォールバック、Workerが返すHTML・JSON・Problem Detailsを対象とする。
+  - CSP、コンテンツ形式の推測防止、参照元情報の抑制、ブラウザ機能の制限、フレーム内表示の拒否、環境別HSTSの設定値をそろえる。
+
+- Workerの応答には、Hono標準の`secureHeaders()`を使って必要な値を設定する。[Hono公式資料](https://hono.dev/docs/middleware/builtin/secure-headers)
+  - CSPとPermissions Policyは、下記の値を明示して設定する。
+  - 静的配信では、ビルド時に生成する`_headers`へ同じ設定を記載する。
+  - `_headers`はWorkerが生成する応答には適用されないため、Worker側にも設定する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/static-assets/headers/)
+
+- CSPでは、ビルド成果物のハッシュに一致するインラインスクリプトだけを許可する。
+  - `{artifactInlineScriptHashes}`は、ビルド成果物内のインラインスクリプトから生成したハッシュを表す。
+  - `{appHost}`は、対象アプリのstagingまたはproductionのホストを表す。
+
+- ファイルのダウンロード応答には、内容に合った`Content-Disposition`と、安全なファイル名を設定する。
+- トークンや認証の証明を含む可能性がある画面にも、共通の`Referrer-Policy: no-referrer`を適用する。
+
+```text
+default-src 'none';
+script-src 'self' {artifactInlineScriptHashes};
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob:;
+font-src 'self';
+connect-src 'self' wss://{appHost};
+form-action 'self';
+base-uri 'none';
+object-src 'none';
+frame-src 'none';
+frame-ancestors 'none';
+manifest-src 'self';
+worker-src 'none';
+upgrade-insecure-requests
+```
+
+共通の応答ヘッダーは次のとおりとする。
+
+| ヘッダー                    | staging                                                     | production                          |
+| --------------------------- | ----------------------------------------------------------- | ----------------------------------- |
+| `Content-Security-Policy`    | 上記CSPへstagingのホストを指定                               | 上記CSPへproductionのホストを指定     |
+| `X-Content-Type-Options`     | `nosniff`                                                   | `nosniff`                           |
+| `Referrer-Policy`            | `no-referrer`                                               | `no-referrer`                       |
+| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                |
+| `X-Frame-Options`           | `DENY`                                                      | `DENY`                              |
+| `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
+
 ### 確認例と実装との差
 
+- 静的HTML、SPAの初期HTML、画面へのフォールバック、Workerの成功・失敗応答で共通ヘッダーを確認する。
+- インラインスクリプトのハッシュ、環境別CSP・HSTS、安全なダウンロード名を確認する。
 - JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
 - CSVの検証・確定、必須のフォーム項目、両hash、理由、5MiBのファイル境界、本文全体の容量境界を確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
@@ -2800,6 +2848,7 @@ flowchart LR
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
 - 実装との差は、実装時の確認事項として扱う。
+  - 現在の静的ヘッダー生成は5個のHTMLを列挙し、Worker側には独自のヘッダー設定処理がある。配信する全HTMLとWorkerの応答へ、同じ設定を適用する構成を確認する。
   - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`fileHash`・`validationHash`の再検証へそろえる。
   - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
   - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
@@ -2954,14 +3003,66 @@ flowchart LR
 
 ### 引き落としの検査と拒否
 
-- 消費の事前条件と引き落としの可否は、D1の検査用トリガーで確認する。
-- 拒否するときの`RAISE(ABORT)`は、処理をエラーとして中止する命令である。拒否したバッチは全体を失敗させ、関連する変更を途中まで確定しない。
+- 消費の事前条件と引き落としの可否は、D1の一括処理内で検査する。
+- 残高不足などの条件違反は、SQLや必要な制約・トリガーでエラーにし、一括処理の全件を取り消す。
+- トリガーで使う`RAISE(ABORT)`は、SQLをエラーとして中止する命令である。
 - たとえば残高70で80ポイントを消費しようとしても、消費や台帳の追加は確定しない。残高は70のままとする。
 - 負の評価額、差し戻し、過去の実行記録との差分により、残高と累計評価額は負になってよい。負の残高を0に丸めたり、履歴を削除して帳尻を合わせたりしない。
 
 ### 数値上限
 
 台帳へのINSERT前のトリガーは、現在の残高と累計評価額に今回の増減額を加えた結果が、±`9_007_199_254_740_991`の範囲内に収まることを行ごとに検査する。範囲を超えた場合は`SAFE_INTEGER_OVERFLOW`で処理を中止する。同じバッチで複数の台帳行を追加する場合も、各トリガーが動く時点の更新済みの残高と累計評価額を使う。SQLiteで計算結果がREAL型へ変わることを許可しない。
+
+### 業務変更の一括確定
+
+- 消費、譲渡、交換、落札の引き落とし、通常の連携解除は、D1標準の`batch()`で一括確定する。[D1公式資料](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)
+  - 業務レコード、イベント、台帳、確定済みの二重処理防止結果を、同じ一括処理へ入れる。
+  - 操作ごとに必要な業務状態を保存する。
+  - 一つのSQL文またはトリガーが失敗したら、全件を取り消す。
+
+- 一括処理内で、保存に必要な条件を検証する。
+  - 対象の存在、現在version、利用可能な残高、認可、その他の前提条件、予定する対象件数を検証する。
+  - 実際に保存するイベント・台帳の件数も、操作で必要な件数と一致させる。
+  - 条件違反は、一括処理内のSQLや必要な制約・トリガーでエラーにする。
+  - 業務レコード・台帳・二重処理防止結果の全件を取り消し、安定したエラーコードを返す。
+
+- 条件付きUPDATEで更新が0件となった場合は、成功として扱わない。
+  - 更新対象がなければ、後続の台帳や業務レコードだけが確定することを防ぐ。
+  - 保存後の更新件数確認だけに依存せず、一括処理内で条件違反として失敗させる。
+
+- 正規化したJSONの全分割データと、各テーブルへの書き込み・検証・台帳・二重処理防止結果を、合計100 SQL文以下の同じ一括処理へ入れる。
+- 評価結果、台帳、受領、落札の引き落としには、実行ID、元の処理のID、冪等性キー、作成日時を保存する。
+  - 評価処理の実行ID・対象エントリー・台帳種別の組と、冪等性キーに、既存の一意条件を適用する。
+
+### D1の一括書き込み制約
+
+- CSV最大1,000行、JSON設定復元、複数落札者の引き落としは、入力を正規化したJSON配列へ変換して、一括で書き込む。
+  - UTF-8で、一つの分割データを1,500,000バイト以下にする。
+  - 1行だけでこの上限を超える入力は、保存前に拒否する。
+  - 各SQL文には、分割したJSON一つだけをパラメーターとして渡す。
+  - 固定SQLの`json_each(?)`・`json_extract`を使い、複数行をまとめてINSERT・UPDATEする。
+
+- Pointsの上限は、一回の確定につき100 SQL文とする。
+  - 入力件数によってSQL文字列を伸ばさず、1行ごとのクエリや複数の独立した一括処理へ分割しない。
+  - 100 SQL文を超える設計では、対象行を削らず、実装を止めて計画を見直す。
+
+- D1のサービス上限も満たす。[Cloudflare公式資料](https://developers.cloudflare.com/d1/platform/limits/)
+  - 一つのクエリのパラメーターは100個、SQLは100KBまでとする。
+  - 文字列・BLOB・一つの行のサイズは、それぞれ2MBまでとする。
+  - Paid環境の一回のWorker実行は1,000クエリまで、一括処理の実行時間は30秒までとする。
+  - JSON分割の1,500,000バイトと100 SQL文は、サービス上限に余裕を持たせるPointsの設計値である。
+
+### 一括保存の確認例と実装との差
+
+- 対象なし、versionの競合、残高不足、認可の失効、予定件数の不一致で、業務レコード・台帳・二重処理防止結果が全件未確定となることを確認する。
+- 途中のSQLエラーと更新0件で、後続の変更だけが残らないことを確認する。
+- JSON分割のバイト数、1行の容量超過、100 SQL文の境界、最大件数の一括保存を確認する。
+- 同じキーの再送で保存済みの結果を返し、台帳と集計値を二重に増減しないことを確認する。
+- 現在の譲渡・交換には、業務固有の処理状態と検査用トリガーがある。
+  - 操作に必要な状態・検査条件を保ち、標準の一括処理で全件確定・取消となることを実装時に確認する。
+  - 再開処理には集計値を直接保存する経路があり、台帳のトリガーによる更新へそろえる必要がある。
+  - 現在の落札精算は予約の確定を使っているため、現在残高・認可を検証する引き落とし仕様との差を実装時に確認する。
+  - この仕様更新では実装コードを変更せず、Worker・実D1での動作検証は実装時に行う。
 
 ## Points–Markets連携契約
 
@@ -3059,7 +3160,10 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 
 Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user IDとし、有効期間は最長15分とする。
 
-Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userの有効状態、有効な連携、利用者用scopeを要求する。別resourceのTokenやscope混在を拒否する。
+Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userの有効状態、現在ログイン停止中ではないこと、有効な連携、利用者用scopeを要求する。別resourceのTokenやscope混在を拒否する。
+
+- トークンの見た目やメールを認可の根拠にしない。
+- 対応するOrganizationまたは管理者がない未完成クライアントは、認可・トークン発行・API利用を拒否する。
 
 MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
 
@@ -3165,12 +3269,25 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 `POST /api/v1/settlements/{settlementId}/debits`
 
 - 呼び出し元は連携済みの機密クライアントである。認証は認可コード交換と同じ`private_key_jwt`とDPoPとする。利用者のいないクライアント資格情報グラントは使わない。
-- 各落札者の利用者アクセストークンをrequestに含める。Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
+- 各落札者の利用者アクセストークンをrequestに含める。未確定の要求では、Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
 - アクセストークンは検証にだけ使い、台帳、受領証、ログ、応答へ残さない。
 - request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・保存精度・重複軸の検証を行う。`marketsUserId`はrequest内で重複しない。
 - Pointsは各評価軸の存在と共通の保存精度を検証する。競売作成後のパッケージ・評価軸の非公開化・停止や、パッケージの完全削除後も、保存済みsnapshotの条件で精算する。
 - pathの`settlementId`はrequestの精算と一致させる。
-- 落札の引き落としはクライアントIDと精算IDの組で識別し、保存済みの冪等性の結果を先に確認する。確定済みの同じ要求には、同じ引き落とし結果を返す。
+- 引き落とし結果には、クライアントID、精算ID、競売ID、精算内容を照合する`planHash`を保存する。
+- 二重処理防止は、同じ`Idempotency-Key`の再送を対象とする。
+  - 同じキーと同じ要求内容には保存済みの引き落とし結果を返し、内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
+  - 呼び出し元の認証と内容照合の後、確定済みなら落札者の現在の認可・残高を再検査せず、保存済みの結果を返す。
+  - 再送の`planHash`も保存済みの要求内容と照合する。
+  - 未確定なら落札者の認証と本人の対応を検証する。
+  - 同じ本人のアクセストークン更新だけでは精算内容の変更として扱わない。
+  - 内容照合のhashには、アクセストークン本体を含めない。
+  - 同じ競売の精算を重ねて確定しない管理は、Marketsが行う。
+- 全落札者の現在の認可と、全評価軸の残高を、同じ一括処理の条件として検査する。
+  - 一人でも認可が無効、または必要額を満たさなければ、台帳追加を0件にし、全件を反映しない。
+  - Marketsは拒否された入札者を除き、同じ競売終了時点の情報から計算し直す。
+  - 残高不足のまま引き落として負の残高を作らない。
+  - 全落札者・全評価軸の引き落としを、一回で確定する。
 - 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 - success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
 
@@ -3274,128 +3391,6 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   - 再送・待機後の再試行、条件変更時の再確認を確認する。
   - 対象外の要求、超過時の業務データ未変更と冪等性結果の未保存、両形式の429表示を確認する。
   - 実Cloudflare環境で、拠点ごとの制限と非同期の計数を検証する。
-
-## セキュリティ・テスト・デリバリー仕様
-
-### security header
-
-- 適用範囲
-  - Static Assetsの5 HTML、SPA shell、navigation fallbackと、Honoが返すHTML／JSON／Problem Detailsへ同じbaselineを適用する。
-  - Static AssetsとHonoへ同じCSP、nosniff、no-referrer、Permissions Policy、frame拒否、環境別HSTSを適用する。
-- 通常のJSON更新要求はUTF-8の`application/json`、CSV要求は`multipart/form-data`で送る。形式の判定は[HTTPメソッドと入力](#httpメソッドと入力)に従う。
-- browser downloadは正しい`Content-Disposition`と安全なfilename
-- token/proofを含む可能性がある画面は`Referrer-Policy`を明示
-
-- CSP
-  - inline scriptはbuild artifactのhashだけを許可する。
-  - `{artifactInlineScriptHashes}`はbuild artifactのinline script hash、`{appHost}`は対象アプリのstagingまたはproductionのhostを表す。
-
-```text
-default-src 'none';
-script-src 'self' {artifactInlineScriptHashes};
-style-src 'self' 'unsafe-inline';
-img-src 'self' data: blob:;
-font-src 'self';
-connect-src 'self' wss://{appHost};
-form-action 'self';
-base-uri 'none';
-object-src 'none';
-frame-src 'none';
-frame-ancestors 'none';
-manifest-src 'self';
-worker-src 'none';
-upgrade-insecure-requests
-```
-
-共通headerは次のとおりとする。
-
-| Header                      | staging                                                        | production                            |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
-| `Content-Security-Policy`   | 上記のstaging host版                                           | 上記のproduction host版               |
-| `X-Content-Type-Options`    | `nosniff`                                                      | `nosniff`                             |
-| `Referrer-Policy`           | `no-referrer`                                                  | `no-referrer`                         |
-| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                  |
-| `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
-| `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
-
-### セキュリティ
-
-- PointsとMarketsは、Cloudflare edge、Worker/Hono、D1/DO/Workflowの多層防御を使う。
-  - Cloudflare edge: DDoS、WAF、Rate Limit、TLS
-  - Worker/Hono: session/OAuth検証、authorization、Origin/CSRF、input limit、idempotency
-  - D1/DO/Workflow: 状態・一意制約（unique/check constraint）、CAS、append-only history、単調状態遷移
-- Points Resource APIは標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、scope、Client有効状態を照合する。利用者Tokenの`sub`はPoints auth user IDとする。落札精算に、利用者のいないサービス権限トークンは使わない。
-- 利用者認可によるAPI要求では、対応するPoints本人が`ACTIVE`で、現在の利用者認可も有効であることをサーバーで検証する。発行済みトークンの期限が残っていても、退会によって失効した認可での新しい操作を拒否する。再開後も、新しい認証・同意で認可を取得する。
-- `main`の保護ルール
-  - direct push、force push、branch delete、admin bypassを禁止する。
-  - branch／PR／merge queue経由で反映し、PR、required checks、branch up-to-date、merge queueを必須にする。
-  - 1人運用中のrequired approvalは0とし、2人目のmaintainer追加時に1へ変更する。
-
-### Resource APIとOAuth Client
-
-- Points Resource APIは標準JWKS署名、issuer、audience、期限、Client ID、required scope、Clientの有効状態を検証する。対応するOrganizationまたは管理者所属が存在しない未完成クライアントは、認可・トークン発行・API利用を拒否する。利用者操作ではPoints userのACTIVE状態と、現在ログイン停止中ではないことも確認する。Tokenの外形、emailを認可根拠にしない。
-- OAuth ClientはPointsにログインした利用者が「開発者向け」画面で登録する。Marketsも同じ登録方式を使う。公開JWKSはPointsのClientに登録し、Client削除後のTokenはResource APIでも拒否する。
-
-### D1 bulk write制約
-
-CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を並べた巨大multi-value SQLや1行1queryで実装しない。現行D1の1 query 100 bound parameters、SQL 100KB、string／BLOB 2MB、Paid 1 invocation 1,000 queries、batch全体30秒の上限をすべて満たす。
-
-- validation済みrowをcanonical JSON arrayへ変換し、UTF-8で1 chunk 1,500,000 bytes以下に分割する。1 rowがchunk上限を超える入力は事前に拒否する。
-- 各statementはJSON chunk 1個だけをbound parameterとし、固定SQLの`json_each(?)`／`json_extract`からset-based INSERT／UPDATEする。SQL文字列を入力件数に応じて伸ばさない。
-- 1 commitのstatement数を100以下に制限し、query上限1,000に余裕を持たせる。100を超えるschema設計なら行数を黙って削らず、実装を停止して計画を見直す。
-
-### 業務変更の一括確定
-
-- 消費、譲渡、交換、落札の引き落とし、通常の連携解除は、一つのD1 `batch()`で確定する。
-  - 正規化した要求内容のhashを持つ`point_mutation_commands`を、先頭で`PENDING`として追加する。
-  - 正規化したJSONのchunkを登録し、commandを`PENDING`から`VALIDATED`へ更新する。
-  - 業務データ・イベント・台帳を書き込み、commandを`VALIDATED`から`COMMITTED`へ更新する。
-  - 確定した冪等性の結果も同じbatchへ保存する。
-
-- commandの状態更新は、`BEFORE UPDATE` triggerで検証する。
-  - `PENDING`から`VALIDATED`への更新時に、対象行の存在、version、利用可能な残高、その他の前提条件、予定する対象件数を検証する。
-  - `VALIDATED`から`COMMITTED`への更新時に、実際に保存したイベント・台帳の件数を検証する。
-  - 違反時は安定したエラーコードで`RAISE(ABORT, ...)`し、command・業務データ・台帳・冪等性の結果をすべて取り消す。
-  - 条件付きUPDATEの更新行数が0の場合を、成功として扱わない。
-
-- 全chunk、対象テーブルへの各書き込み、commandの検証、台帳、冪等性の結果は、合計100 statement以下の同じbatchへ入れる。
-  - 複数の独立したbatchへ分割せず、1行ごとにqueryを発行しない。
-  - 残高・累計評価額の集計値は、台帳のtriggerだけで更新する。
-  - 一つのstatementまたはtriggerが失敗した場合は、全件を取り消す。
-
-- 評価結果、台帳、受領、落札の引き落としには、実行ID、元の処理のID、冪等性キー、作成日時を保存する。
-  - 評価処理の実行ID・対象エントリー・台帳種別の組、冪等性キー、競売commandとseqの組、精算のplan hashには、既存の一意条件を適用する。
-
-### D1不変条件
-
-- 落札の引き落としは、全落札者の現在残高が必要額を満たすことを同じguardで検査する。一人でも認可が無効、または残高が足りなければ台帳追加を0件にし、Marketsは同じ終了時点からその入札者を除いて計算し直す。残高不足のまま引き落として負残高を作らない。
-- 一括引き落としは全落札者、全評価軸を1回に確定する。
-
-### Observabilityと運用ログ
-
-- Workers Observabilityを有効化する。
-  - stagingはlogs／tracesともhead sampling `1`、productionはlogs `1`、traces `0.05`を初期値とする。
-  - productionはWorkers PaidのWorkers Logs 7日保持、stagingもPaid環境として7日保持をrelease条件にする。
-- structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeを記録する。個別のresource IDは記録しない。OAuth token、Cookie、Secret、email、外部URL／HTML、AutoBid上限、profile本文も記録しない。
-- `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、固定されたevent名をindexに使う。個別のresource IDは含めない。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
-
-- 監査記録は、Pointsバックエンドが既存の構造化ロガーでWorkers Logsへ出力する。
-  - 対象は管理者の変更、退会と再開、接続先Accountsの作成・有効化・取り下げ、Accounts連携と解除、評価軸・Package・交換比率・自動分配設定・貢献評価代用の変更、JSON設定復元の確定、直接評価の登録・訂正、未受領の評価結果の受領、譲渡・交換・消費・落札の引き落とし、Points–Markets連携解除とする。
-  - `timestamp`、処理名を表す`event`と`operation`、`app`、`environment`、`requestId`、`outcome`、安定した`code`、対象の種類を表す`resourceType`を出力する。
-  - 業務データの変更を伴う成功は、D1の処理が確定し、実際の変更を確認した後に出力する。冪等性の保存済み結果を返す再送では、変更成功の監査ログを重ねて出力しない。
-  - 拒否は、拒否が確定した後に出力する。D1のバッチが失敗したときは、ロールバック後に安定したエラーコードを記録する。生のSQLや例外の`message`は含めない。
-  - 退会や接続先の取り下げによる連携解除は、`ACCOUNTS_LINKS_RELEASED`と削除件数`releasedLinkCount`を記録する。未受領の評価結果の受領は`claimedCount`、一括変更は`affectedCount`を、対象の値を含めない件数として記録する。
-  - 管理者の追加・削除は処理名と結果を記録する。接続先や利用者の状態変更は、変更後の状態を`nextStatus`に記録し、変更前の状態が確定している場合は`previousStatus`も記録する。操作理由の入力が必須の操作では入力を検証し、ログに残す理由は安定した`code`で表す。操作者ID、対象ID、接続先ID、外部識別子、入力された理由の自由文、リクエスト本文は出力しない。
-  - ログ出力が失敗しても、確定した業務結果や返す応答を変えず、取引コマンドを再実行しない。台帳、評価処理の実行記録、Claim、冪等性の結果、経済履歴に必要なsnapshotは、それぞれの業務データとしてD1へ保存する。
-- 処理中に発生した運用上の失敗は、Workersの構造化ログとメトリクスへ記録する。ログには処理名、結果、安定したエラーコードを含める。
-- Cloudflare native Notificationは、公式alert typeで確認できるincident／5xx率／usage threshold用とする。Workerの実行時例外は、Workers Logs／Tracesで確認する。
-- staging acceptanceでは、処理の成功・失敗がWorkers Logsへ記録されることをrequest／correlation IDで確認し、メトリクスをAnalytics EngineのSQL APIで確認する。
-
-### 依存関係とsupply chain
-
-- pnpm policy
-  - `minimumReleaseAge: 4320`分
-  - `blockExoticSubdeps: true`
 
 ## フォルダ構成
 
@@ -3505,8 +3500,14 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 
 - GitHub Actionsで、Pointsに関係する変更を検査・配信する。
   - Points本体と、Pointsに影響する共通依存・ビルド・配信設定を対象とする。
-  - `pull_request`と`merge_group`で同じ必須検査を実行する。
+  - `pull_request`で必須検査を実行する。
+  - 配信前にも、対象コードの検査が成功していることを確認する。
   - `test/*`へのpushは共有テスト環境へ、`main`へのpushは本番へ、検査成功後に自動配信する。
+- `main`は、現在のリポジトリ構成でPRを使って保護する。
+  - PR、必須検査の成功、最新の`main`との一致を、取り込みの条件とする。
+  - 直接push、強制push、ブランチ削除、管理者による保護の迂回を禁止する。
+  - 一人運用中の必須承認人数は0人とし、二人目の保守担当者を追加したら1人へ変更する。
+
 - 配信前の検査を毎回実行する。
   - 型、書式、環境・生成設定、`vp test`による単体テスト、ビルドを確認する。
   - ビルド済みWorkerを使い、`vp test`によるWorker・D1の結合テストを実行する。
@@ -3537,7 +3538,64 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
   - Workerの切り戻しとDBの復旧は、別々に判断する。
   - DBの復旧手段は[D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)を参照する。
 
+### 基盤のセキュリティと運用監視
+
+- CloudflareのDDoS対策、WAF、レート制限、TLSを使い、WorkerとD1で必要な業務条件を検証する。
+  - Workerでは本人認証、OAuth、権限、Origin・CSRF、入力・容量、二重処理防止を検査する。
+  - D1では一意制約・値の制約、versionなどの更新条件、追記型の台帳、操作ごとの状態遷移を検証する。
+
+- Workers Observabilityでログとトレースを取得する。
+  - stagingの取得割合は、ログ・トレースとも`1`とする。
+  - productionの初期値は、ログ`1`、トレース`0.05`とする。
+  - staging・productionともWorkers Paid環境を使い、Workers Logsの7日保持を配信条件とする。
+
+- アプリケーションの構造化ログには、処理の照合と運用に必要な項目を記録する。
+  - `level`、`event`、`app`、`environment`、`requestId`・`correlationId`、`operation`、`outcome`、安定した`code`、`durationMs`、`attempt`、`resourceType`を使う。
+  - 個別の対象ID、OAuthトークン、Cookie、Secret、メール、外部URL・HTML、自動入札の上限、プロフィール本文を出力しない。
+
+- 運用指標は、`OPS_METRICS`でAnalytics Engineへ非同期に書き込む。
+  - アプリ・環境ごとにデータセットを分ける。
+  - イベント種別、アプリ、環境、結果・コード、対象の状態は文字列項目`blobs`へ保存する。
+  - 件数、所要時間、遅延秒数、試行回数は数値項目`doubles`へ保存し、固定のイベント名をインデックスにする。
+  - 個別の対象IDを含めず、書き込みに失敗しても業務処理を再実行しない。
+  - 保持期間は現行の上限である3か月とし、SQL API・Grafanaの照会定義を運用手順書で管理する。
+
+- 処理中の運用上の失敗は、Workersの構造化ログと運用指標へ記録する。
+- Cloudflare標準の通知は、公式の通知種別で提供される障害、5xx率、使用量のしきい値に使う。
+- Workerの実行時例外は、Workers Logs・Tracesで確認する。
+
+### 監査ログ
+
+- Pointsバックエンドは、既存の構造化ロガーで監査記録をWorkers Logsへ出力する。
+  - 管理者の変更、退会・再開、Accounts接続先の作成・有効化・取り下げ、Accounts連携・解除を対象とする。
+  - 評価軸、パッケージ、交換倍率、自動分配設定、貢献評価代用、JSON設定復元の確定を対象とする。
+  - 直接評価の登録・訂正、未受領評価の受領、譲渡、交換、消費、落札の引き落とし、Points–Markets連携解除を対象とする。
+
+- 監査には、時点と処理の結果を記録する。
+  - 共通の構造化ログ項目に加え、処理時点を表す`timestamp`を出力する。
+  - 業務変更の成功は、D1の確定と実際の変更を確認した後に記録する。
+  - 保存済みの結果を返す再送では、変更成功の監査ログを重ねて出力しない。
+  - 拒否は拒否の確定後、一括保存の失敗は全件取消後に記録する。
+  - 生のSQLや例外の`message`を出力しない。
+
+- 件数や状態は、個別の対象の値を含めずに記録する。
+  - 退会や接続先の取り下げによるAccounts連携解除は、`ACCOUNTS_LINKS_RELEASED`と解除件数`releasedLinkCount`を使う。
+  - 未受領評価の受領は`claimedCount`、一括変更は`affectedCount`を使う。
+  - 管理者の追加・解除は、処理名と結果を記録する。
+  - 接続先・利用者の状態変更は`nextStatus`を記録し、変更前の状態が確定している場合は`previousStatus`も記録する。
+
+- 操作理由が必須の場合は入力を検証し、ログには安定した`code`で理由を記録する。
+  - 操作者ID、対象ID、接続先ID、外部識別子、入力された理由の自由文、リクエスト本文を出力しない。
+
+- ログの出力失敗でも、確定した業務結果と応答を保持し、取引を再実行しない。
+  - 台帳、評価処理の実行記録、受領記録、二重処理防止結果、経済履歴に必要な保存情報は、各業務の仕様に沿ってD1へ保存する。
+
 ### 実環境での確認
+
+- stagingで、処理の成功・拒否・失敗のログと運用指標を確認する。
+  - `requestId`・`correlationId`でWorkers Logsの対象処理を照合する。
+  - Analytics EngineのSQL APIで、件数・所要時間・結果を確認する。
+  - 機密情報がログへ混入しないこと、再送で成功監査が重複しないこと、ログの出力失敗で業務処理を再実行しないことを確認する。
 
 - 配信後の疎通を自動で確認する。
   - HTML・JavaScript・CSSの取得と、画面からのAPI呼び出しを確認する。
@@ -3587,6 +3645,8 @@ CSV 1,000行、JSON設定復元、Settlementの複数winner書込みは、値を
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## v0.2.0からv0.2.1への変更
+
+- セキュリティ・保存・運用の仕様を、HTTP、OAuth、ポイント台帳、精算、ライブラリ、デプロイの関連節へ統合する。D1は標準の一括処理と必要な業務条件で全件確定・取消を行い、mainはPR・必須検査・最新ブランチとの一致で保護する。精算の再送防止は同じキーを対象とし、競売単位の重複確定管理はMarketsが行う。
 
 - 評価の宛先・評価軸・対象月・評価額・受領状態を持つデータの呼び名を「評価結果」に統一する。登録・訂正・受領・分配の説明と見出しをそろえる。
 
