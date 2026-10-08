@@ -125,18 +125,18 @@
     - [D1の一括書き込み制約](#d1の一括書き込み制約)
     - [一括保存の確認例と実装との差](#一括保存の確認例と実装との差)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
-    - [境界](#境界)
+    - [サービスごとの役割](#サービスごとの役割)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
-    - [提供先ごとの1対1連携](#提供先ごとの1対1連携)
+    - [複数名義の連携と支払名義](#複数名義の連携と支払名義)
     - [同意と連携の開始](#同意と連携の開始)
-    - [Authorization Code flow](#authorization-code-flow)
+    - [認可コードによる連携手順](#認可コードによる連携手順)
     - [連携解除と外部失効](#連携解除と外部失効)
     - [再認可](#再認可)
+    - [連携・精算の確認例](#連携精算の確認例)
   - [Endpoint](#endpoint)
     - [外部APIの操作と要求](#外部apiの操作と要求)
-    - [連携status](#連携status)
+    - [認可された本人の確認](#認可された本人の確認)
     - [`appAdmin`の照会](#appadminの照会)
-    - [連携解除](#連携解除-1)
     - [残高](#残高)
     - [落札精算の引き落とし](#落札精算の引き落とし)
     - [その他](#その他)
@@ -1589,7 +1589,7 @@ betterAuth({
 
 - 参照用データの出力
   - 本人の残高・累計評価額と、本人に関わる付与・訂正・分配・譲渡・交換・消費・精算の実行記録と差分台帳を含める。
-  - 本人のお知らせ、管理者所属、認証元の識別情報、Accounts・Marketsとの連携情報を含める。
+  - 本人のお知らせ、管理者所属、認証元の識別情報、Accountsとの連携情報、外部アプリへのOAuth認可情報を含める。
   - 非公開情報も、本人が閲覧できる範囲で出力する。
   - 管理者であることだけを根拠に、管理する軸の全員分の評価入力・付与結果を出力対象へ加えない。
   - 未受領評価は出力対象から外す。
@@ -1976,8 +1976,7 @@ betterAuth({
 - Better Authの`userId`は認証ユーザーのIDとし、Points本人の`pointsUserId`と区別する。
 - ログイン用OAuthアカウントは`providerId`と`accountId`の組で識別する。
 - PointsとMarketsの連携主体は`issuer`と`subject`の組で識別する。
-- 処理の照合には`requestId`・`workflowInstanceId`・`planHash`を使う。
-  - `planHash`は内容のハッシュとし、レコードのIDと区別する。
+- 通信の照合には`requestId`、確定要求の二重処理防止には`idempotencyKey`を使う。
 
 ### 金額と時刻
 
@@ -2015,7 +2014,6 @@ betterAuth({
 
 - 最新レコードの更新競合を検査する値は`version`とする。
   - 更新要求には`expectedVersion`を指定する。
-  - 複数対象を区別する場合は`grantVersion`・`expectedAuctionVersion`など対象名を付ける。
 
 - 業務上の状態は`status`を基本とする。
   - 複数対象を扱う場合は`packageLifecycleStatus`など対象を明記する。
@@ -2715,7 +2713,7 @@ flowchart LR
 
 - 共通のエラーコードを定める。
   - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
-  - 操作固有のコードには、`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`SETTLEMENT_PLAN_HASH_MISMATCH`、`PACKAGE_COMPONENT_NOT_PUBLIC`など、各操作で定めた値を使う。
+  - 操作固有のコードには、`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`PACKAGE_COMPONENT_NOT_PUBLIC`など、各操作で定めた値を使う。
   - `rejectedWinners`など、既存の操作固有の拡張項目と返却範囲を維持する。
 
 ### HTTP状態コード
@@ -2770,7 +2768,6 @@ flowchart LR
   - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
   - 初回が`201`なら再送も`201`とする。
   - 保存済みのキーで内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
-  - 連携解除の再送も、同じ解除結果を返す。
   - 全件未確定で終わった失敗は結果として固定せず、同じ要求の再送時に現在の条件で再検証する。
 
 - 再送する要求と、新しい操作を区別する。
@@ -2779,7 +2776,7 @@ flowchart LR
   - CSVの内容照合にはファイル内容と入力項目を使い、送信用の区切り情報や各部分の配置に依存しない。
   - 画面からの更新・確定要求は、本人の再試行操作で送る。
   - 待ち時間が指定された場合は画面で案内し、その時間を待って再試行する。
-  - 認証プロトコル、失効用outbox、精算などの背景処理は、各処理の再試行条件を維持する。
+  - 認証プロトコル、精算などの背景処理は、各処理の再試行条件を維持する。
 
 ### 応答のキャッシュ
 
@@ -3015,7 +3012,7 @@ upgrade-insecure-requests
 
 ### 業務変更の一括確定
 
-- 消費、譲渡、交換、落札の引き落とし、通常の連携解除は、D1標準の`batch()`で一括確定する。[D1公式資料](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)
+- 消費、譲渡、交換、落札の引き落としは、D1標準の`batch()`で一括確定する。[D1公式資料](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)
   - 業務レコード、イベント、台帳、確定済みの二重処理防止結果を、同じ一括処理へ入れる。
   - 操作ごとに必要な業務状態を保存する。
   - 一つのSQL文またはトリガーが失敗したら、全件を取り消す。
@@ -3033,6 +3030,7 @@ upgrade-insecure-requests
 - 正規化したJSONの全分割データと、各テーブルへの書き込み・検証・台帳・二重処理防止結果を、合計100 SQL文以下の同じ一括処理へ入れる。
 - 評価結果、台帳、受領、落札の引き落としには、実行ID、元の処理のID、冪等性キー、作成日時を保存する。
   - 評価処理の実行ID・対象エントリー・台帳種別の組と、冪等性キーに、既存の一意条件を適用する。
+  - 落札の引き落としでは、Client IDと冪等性キーの組を一意にする。
 
 ### D1の一括書き込み制約
 
@@ -3066,20 +3064,23 @@ upgrade-insecure-requests
 
 ## Points–Markets連携契約
 
-### 境界
+### サービスごとの役割
 
-- 可能な限り、MarketsはPointsの仕様を知らなくても良い設計にしたい
-- Points と Markets は別 Better Auth、別 D1、別 user ID、別 session を持つ。
-- `points.freeism.app`と`markets.freeism.app`を独立アプリとして分離する。
+- PointsとMarketsは独立したサービスとする。
+  - `points.freeism.app`と`markets.freeism.app`は、Better Auth、D1、利用者ID、セッション、Secret、業務モデル、実行時の型をそれぞれ管理する。
+  - PointsのD1はPointsだけ、MarketsのD1はMarketsだけが参照する。
+  - Marketsは、登録したPoints互換サービスのoriginへ`fetch()`でAPIを呼び出す。
+  - Pointsが管理するOpenAPIからMarkets用のクライアントを生成する。
+  - バックエンドのソースとHono RPC型は各サービス内に限定し、サービス間の呼び出しには生成したクライアントを使う。
 
-PointsはOAuth 2.1 Authorization Server兼Protected Resource、MarketsはOAuth Client兼Settlement Orchestratorである。両者は同じrepositoryにあっても、DB、session、Secret、domain model、runtime型を共有しない。
+- Marketsは連携と競売の進行を管理する。
+  - 認可を受けたPoints名義、アクセストークン、更新用トークン、連携状態を保存する。
+  - 入札時の支払名義の選択、落札者と引き落とし額の計算、精算要求の再送を担当する。
 
-Marketsとの連携試行は、Pointsが開始・認可・確定の各要求で有効期限を確認する。新しい試行を開始するときと、Points本人を試行へ紐付けるときは、同じクライアントで対象の利用者に残っている期限切れの試行を`CANCELLED`にする。
-
-- Points D1をMarketsから直接参照しない。
-- Markets D1をPointsから直接参照しない。
-- Marketsが登録したPoints互換提供先のoriginへ外部`fetch()`でHono API contractを呼ぶ。
-- Pointsが所有するOpenAPIを正本にし、Marketsは生成clientを使う。MarketsがPoints backend sourceやHono RPC型を直接importしない。
+- Pointsは認可とポイントの増減を管理する。
+  - OAuth 2.1の認可サーバーとして、本人認証・同意・トークン発行を提供する。
+  - APIでは標準のOAuth検証に加え、本人とクライアントの利用可否、金額、評価軸、残高を検証する。
+  - 引き落としと二重処理防止の実行記録を一括保存する。
 
 ### 開発者向けOAuthクライアント管理
 
@@ -3114,53 +3115,67 @@ JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が�
 
 発行済みJWTの有効期間は、クライアント認証と権限の定めに従います。鍵の更新とトークンの有効期限は、それぞれ管理します。認可と保存トークンの失効には、Better Auth標準の操作を使います。署名付きJWTのAccess Tokenは失効できず、鍵の更新後も期限（最長15分）まで有効です。即時に止める場合は、クライアントを削除します。削除後は、Resource APIがClientの有効状態を見て、発行済みTokenを拒否します。利用者のログイン停止中も、Resource APIとトークン更新で現在の停止状態を検証し、発行済みTokenによる操作を拒否します。
 
-Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライアントをPointsの画面から登録します。`authorization_code`と`refresh_token`、利用者scope、Points API resource、linkとunlinkのredirect URIを設定します。linkのcallbackは`/api/points-connection/callback`、unlinkのcallbackは`/api/points-connection/unlink/callback`です。scopeとresourceの検査は、Token発行時とResource API利用時に行います。クライアント資格情報グラントは使いません。Marketsは、提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化したEd25519鍵をD1に保持します。公開JWKSだけをPointsに登録します。
+Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライアントをPointsの画面から登録します。`authorization_code`と`refresh_token`、利用者scope、Points API resource、連携用のredirect URIを設定します。callbackは`/api/points-connection/callback`です。scopeとresourceの検査は、Token発行時とResource API利用時に行います。クライアント資格情報グラントは使いません。Marketsは、提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化したEd25519鍵をD1に保持します。公開JWKSだけをPointsに登録します。
 
 | 用途       | grant                                 | scope・検査                                                                                                                                                                |
 | ---------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.connection.read`、`points.balance.read`、`points.settlements.debit`。unlinkは専用認可で`points.connection.unlink`だけを要求する。 |
+| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access`、`points.balance.read`、`points.settlements.debit`。 |
 
 落札の引き落としは、この利用者認可の`points.settlements.debit`だけで行います。Marketsの利用者callbackは、Points API resourceと利用者scopeを検証します。
 
-`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、呼び出すPointsのtoken、introspect、revoke endpointの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
+`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、認証を受け付けるPointsのOAuthエンドポイントまたは精算APIの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
 
-Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送、連携状態を検査します。利用者には、有効なPoints userと有効な連携を確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。
+Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、JWTの署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送を検査します。利用者とクライアントの現在の利用可否も確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、引き落としAPIに記載します。
 
 一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
 
-### 提供先ごとの1対1連携
+### 複数名義の連携と支払名義
 
-- Marketsは独立アカウントを持ち、利用者がログイン後に、Marketsの`appAdmin`が登録したPoints互換提供先へ個別に明示linkする。
-- Marketsが登録した各提供先について、有効な対応は次の1対1とする。
-  - 1 Markets userと1提供先にACTIVEなPoints連携は1件だけ。
-  - 1提供先のPoints subjectにACTIVEなMarkets userは1件だけ。
-- 連携キーは、署名検証済み利用者JWTの`subject`と提供先の`providerId`の組とする。issuerは登録した提供先originと一致することを確認して保存する。email、表示名、Google ID、GitHub IDでは対応付けない。
+- サービスと名義を区別する。
+  - サービスは、独立して運営するPointsまたはMarketsのアプリを指す。
+  - 名義は、そのサービス内の利用者アカウントを指す。
+  - 別のMarketsサービスの競売は、それぞれ独立して精算する。
+
+- Marketsの利用者は、登録済みのPointsサービスへログイン・同意して連携する。
+  - 一つのMarkets名義に、同じPointsサービスの複数名義を連携できる。
+  - 同じPoints名義を、複数のMarkets名義へ連携できる。
+  - Marketsは、Markets本人・提供先の`providerId`・検証済みのPointsの`sub`の組で連携を区別する。
+  - issuerは提供先のoriginと一致させ、メール・表示名・Google ID・GitHub IDで本人を対応付けない。
+
+- 出品者と入札者は、それぞれ必要な条件を選ぶ。
+  - 出品者は、競売に使うPointsサービスとパッケージを作成時に選ぶ。
+  - 入札者は、初回の入札・自動入札設定・即時購入で、そのサービスへ連携済みの本人のPoints名義を選ぶ。
+  - Marketsは、選んだ支払名義をその競売とMarkets本人の組へ固定する。
+  - 同じ競売で複数のMarkets名義が同じPoints名義を使う場合、Pointsはその本人の必要額を評価軸ごとに合算して残高を検証する。
 
 ### 同意と連携の開始
 
 - 初回とscope追加時にはPoints側で明示的な同意画面を表示する。同意画面では、残高の参照、落札時のポイント引き落とし、オフラインでの利用を説明する。
 - 連携開始は、利用者のブラウザによる認可コードの流れだけで行う。
-- link／unlink／relinkのreturn URLはqueryなしの固定`/settings/points-connection`とする。callerが任意return URLを指定するinterfaceを公開しない。fragment、query、userinfo/credential、scheme/host、`//`始まり、rawまたはpercent decode後のbackslash／control文字、複数回decodeで意味が変わる値を拒否する。Pointsへはraw URLではなく完全一致redirect URIと固定return URL hashを渡し、callback queryのreturn URLを遷移先に使わない。
+- 連携・再連携後は、固定の`/settings/points-connection`へ戻す。
+  - 任意の戻り先は受け付けず、callbackのqueryを遷移先へ使わない。
+  - fragment、query、認証情報、scheme・host、`//`始まり、元の値またはpercent decode後のbackslash・制御文字、複数回decodeで意味が変わる値を拒否する。
+  - 認可要求のredirect URIは登録済みURLと完全一致させ、固定の戻り先はMarkets側のstateへ紐付ける。
 
-### Authorization Code flow
+### 認可コードによる連携手順
 
 各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
 
 1. Marketsがstate、nonce、PKCE verifier／challengeを生成する。stateを現在のMarkets SessionとMarkets user、固定`/settings/points-connection`のhash、PKCE challenge、nonce、期限へserver-sideで束縛する。
 2. ブラウザでPointsの認可画面を開く。利用者用クライアントID、redirect URI、scope、PKCE challenge、stateを渡す。requestの任意の利用者IDやrequest bodyの`marketsUserId`を信用しない。
 3. Pointsで利用者がscopeを承認する。
-4. Pointsは同意のD1処理で、そのクライアントとPoints利用者の有効な連携を1件に制限する。既に別のMarkets利用者へ有効連携があるPoints利用者は、新しい同意を拒否する。
+4. PointsはBetter Auth標準の本人認証と同意の結果から、対象クライアントへ操作を許可する。
 5. Better Auth標準の認可コードを発行し、Markets Workerがコードを利用者トークンへ交換する。クライアントの証明は`private_key_jwt`とDPoPで行う。
-6. Marketsは、署名検証済み利用者JWTから「提供先ごとの1対1連携」で定めた連携キーを作り、local connectionへ保存する。トークンを保存できたときだけ連携を有効にする。
-7. トークン交換後にlocal保存へ失敗した場合は、保持しているトークンだけRFC 7009 revocationを試し、連携は有効にしない。利用者は同じ連携をやり直す。
+6. Marketsは、開始時のMarkets本人とセッション、stateの有効期限を確認し、検証済みのPoints本人とトークンを紐付けて保存する。トークンを保存できたときだけ連携を有効にする。
+7. 保存に失敗した場合は、取得したトークンを破棄して連携を未完了とする。利用者は連携をやり直す。
 
 認可コードは一回限りとし、PKCE S256、state、nonce、issuer、redirect URI、resourceを検証する。OAuthクライアントは、対象の`oauthClientAdmin`または`appAdmin`が「開発者向け」画面で管理する。
 
 Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user IDとし、有効期間は最長15分とする。
 
-Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、required scope、OAuth Clientの有効状態を確認する。利用者TokenにはPoints userの有効状態、現在ログイン停止中ではないこと、有効な連携、利用者用scopeを要求する。別resourceのTokenやscope混在を拒否する。
+Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、必要なscope、OAuthクライアントの有効状態を確認する。利用者Tokenには有効なPoints本人と利用者用scopeを要求し、退会・ログイン停止中の本人による新規利用を拒否する。別resourceのTokenやscope混在を拒否する。
 
 - トークンの見た目やメールを認可の根拠にしない。
 - 対応するOrganizationまたは管理者がない未完成クライアントは、認可・トークン発行・API利用を拒否する。
@@ -3169,15 +3184,34 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ### 連携解除と外部失効
 
-- 連携解除と外部失効のあと、その利用者認可での新規の残高参照と引き落としを拒否する。終了済みの精算には影響させず、すでに成功した引き落としは戻さない。
-- unlink履歴は削除しない。
-- 通常unlinkはMarketsのlocal rowだけを変更しない。Marketsが利用者用Client IDの専用Authorization Code + PKCE flowで`points.connection.unlink`を要求し、Pointsが対象連携を確認して一回限りのunlink authorizationを発行する。Markets BFFはそれを使ってPointsの`deactivatePointsConnection`を呼ぶ。Pointsは同じD1原子処理でapp-owned grantを`UNLINKED`へ進め、標準OAuth consent／token family失効用outbox、成功receiptを作る。Resource middlewareは各user requestでapp-owned grantのstatusとversionを再取得するため、標準OAuth tokenの物理失効が遅れても新規の残高参照と引き落としを直ちに拒否する。MarketsはPointsの成功receiptを保存した後だけlocal connectionを`UNLINKED`にする。通信失敗時は同じidempotency keyでPointsの同じreceiptへ収束させる。
-- revocation outboxはBetter Authの公開されたconsent削除／RFC 7009 revocation APIだけを呼び、Better Auth内部tableを直接UPDATEしない。Better Authでapp-owned transactionへ参加できる公開APIが確認できた場合だけ同一transaction化を再検討する。app-owned grantが認可の正本なので、outbox retry中もuser resource accessは復活しない。
-- 利用者がprovider側でgrantを外部失効させた場合は通常unlinkと区別する。Pointsのapp-owned grantを`REAUTH_REQUIRED`へ進め、標準tokenの期限が残っていてもResource middlewareのlive status/version検査で新規の残高参照と引き落としを拒否する。
+- 連携の解除は、Marketsの設定画面で行う。
+  - 本人が選んだMarkets名義・Pointsサービス・Points名義の組を利用対象から外し、その組のアクセストークンと更新用トークンを削除する。
+  - 他の名義・サービスとの連携、双方のログイン、確定済みのポイントと精算を保持する。
+  - 解除した連携による新しい残高照会・引き落としをMarketsから送らず、処理中のトークン更新が戻っても解除した連携へ保存しない。
+  - 解除までに送信した精算の結果が不明な場合は、同じ要求の結果を確認し、成功済みの引き落としを維持する。
+
+- Marketsでの解除と、Points側のOAuth認可の失効を区別する。
+  - Marketsでトークンを削除しても、Points側の同意情報や発行済みJWTの有効期限は変わらない。
+  - Points側の認可・トークン管理にはBetter Auth標準の機能を使い、JWTアクセストークンは最長15分の期限で扱う。
+  - Marketsはトークン更新やAPIで認可の無効を確認した場合、その連携を再認可が必要な状態にする。
 
 ### 再認可
 
-- Refresh Tokenの失効後に同じ利用者が再認可する場合、Marketsは既存の連携を更新します。Pointsは、Client ID、Points利用者、issuer、subjectが既存の連携と一致することを確認します。同じ`pointsConnectionId`のgrant scopeとversionを更新し、確認応答の`grantVersion`を返します。Marketsは、その値を既存連携に保存します。すでに成功した引き落としは、戻しません。
+- 再認可は、通常の本人認証と同意から行う。
+  - 同じPoints本人なら、Marketsがその組の連携へ新しいトークンと許可されたscopeを保存する。
+  - 別のPoints本人で認可した場合は別名義の連携とし、作成済みの入札の支払名義を変更しない。
+  - 確定済みの引き落としと二重処理防止の実行記録を保持する。
+
+### 連携・精算の確認例
+
+- 複数名義の追加、同じ組の再連携、別名義での再認可、初回入札時の支払名義の固定を確認する。
+- 選んだ組だけの解除、他の連携とログインの維持、トークン更新中の解除、解除前に送った精算の結果確認を確認する。
+- 同じ競売の複数落札者の一括確定、同じPoints本人の必要額の合算、認可無効・残高不足による全件未反映を確認する。
+- 同じキー・同じ内容の再送、金額・落札者・支払名義の変更の拒否、トークン更新・署名の作り直し、同時再送での一回だけの確定を確認する。
+- 即時購入の結果待ちでは競売全体を待機し、成功・失敗の判明後に残数量と元の競売終了時点から処理を再開することを確認する。
+- 現在の実装にはPoints側の連携状態・世代管理・独自解除APIと、名義の1対1制限がある。
+  - 実装時はMarketsでの連携管理、標準OAuth検証、一括精算の入力と処理順への移行を確認する。
+  - 今回は仕様書を更新し、依存・DB・認証・精算の実装コードは変更していない。
 
 ## Endpoint
 
@@ -3186,9 +3220,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 | メソッド・経路                                     | operationId                  | 成功状態 | 本文上限        | `Idempotency-Key` |
 | ------------------------------------------------ | ---------------------------- | ------- | --------------- | ----------------- |
 | `GET /api/v1/point-packages/{pointPackageId}`    | `getPublicPointPackage`      | 200     | なし            | 不要              |
-| `GET /api/v1/me/connection`                      | `getPointsConnection`        | 200     | なし            | 不要              |
 | `GET /api/v1/me/admin-membership`                | `getPointsAdminMembership`   | 200     | なし            | 不要              |
-| `POST /api/v1/me/connection-deactivations`       | `deactivatePointsConnection` | 200     | 65,536 bytes    | 必須              |
 | `POST /api/v1/me/balance-checks`                 | `checkPointBalance`          | 200     | 65,536 bytes    | 不要              |
 | `POST /api/v1/settlements/{settlementId}/debits` | `debitPointSettlement`       | 200     | 1,048,576 bytes | 必須              |
 
@@ -3213,7 +3245,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
         1.  「無料主義アプリの発展の評価軸」に必要なデータ
       - 要件
         1.  以下の情報のみ情報を返す
-            - 「ユーザー名」、「ユーザーID」、「アプリ登録日」。残高不足のときは、その競売とその利用者の組のブラックリストを1件だけ記録する
+            - 「ユーザー名」、「ユーザーID」、「アプリ登録日」
         2.  ページネーション機能あり
             - クエリの`page=2`
         3.  ユーザー指定あり
@@ -3224,33 +3256,20 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
             - クエリの`sortColumn=createdAt&sortDirection=DESC`
         5.  Json形式で返す
 
-### 連携status
+### 認可された本人の確認
 
-`GET /api/v1/me/connection`
-
-- token: user
-- scope: `points.connection.read`
-- success `200`の`data` required: `pointsConnectionId`、`issuer`、`subject`、`status`、`grantedScopes`、`grantVersion`、`linkedAt`
-- `status`は`ACTIVE | REAUTH_REQUIRED`、`grantedScopes`はuniqueで通常user allowlistの`openid | profile | offline_access | points.connection.read | points.balance.read | points.settlements.debit`だけを許可する。email、表示名、Points内部user IDは返さない
+- Marketsは、検証済みJWTのissuerと`sub`でPoints本人を識別する。
+  - 許可されたscopeはトークンから確認する。
+  - 本人情報を取得する場合は、discoveryに掲載されたBetter Auth標準のUserInfo APIを使う。
+  - UserInfoには`openid`を要求し、`profile`を許可した本人の表示情報を取得できる。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#userinfo-endpoint)
+  - 連携日時と連携状態はMarketsが保存する。
 
 ### `appAdmin`の照会
 
 `GET /api/v1/me/admin-membership`
 
-- token: 通常のUSER Access Token。`points.connection.read`、Points API audience、ACTIVEな連携を要求する。
-- response: `{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`。呼び出し元が`appAdmin`なら`true`を返す。`admin_membership`は使わない。連携解除後は401。
-
-### 連携解除
-
-`POST /api/v1/me/connection-deactivations`
-
-- request required: `pointsConnectionId`、`reason`、`deactivationKey`。`deactivationKey`は`Idempotency-Key`要求ヘッダーと完全一致させる。
-- token: 通常unlink専用の一回限りtoken
-- scope: `points.connection.unlink`
-- success `200`の`data` required: `connectionDeactivationReceiptId`、`pointsConnectionId`、`status`、`grantVersion`、`reason`、`deactivatedAt`。`status`は`UNLINKED`とし、revocation outboxやTokenは返さない
-- Pointsはtokenのsubject／client IDから対象app-owned grantを解決し、bodyだけを信用しない
-- D1 guardはgrantが`ACTIVE`であることを再確認する。違えば何も変更しない
-- 成功時はgrant `UNLINKED`、grant version増加、標準consent／token family revocation outbox、immutable receiptを同じtransactionへ入れる。標準OAuth tableを直接UPDATEしない
+- token: 利用者アクセストークン。`openid`、Points API audience、DPoP認証を要求する。
+- response: `{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`。トークンで認可された本人が`appAdmin`なら`true`を返す。
 
 ### 残高
 
@@ -3258,7 +3277,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - token: user
 - scope: `points.balance.read`
-- Pointsは利用者アクセストークンと有効な連携、クライアント、権限を検証して本人の残高を照会する。本人がログイン停止中の場合は照会を拒否する。
+- Pointsは利用者アクセストークン、DPoP署名、クライアント、権限を検証して本人の残高を照会する。本人が退会・ログイン停止中の場合は照会を拒否する。
 - request required: `components`。各要素は`evaluationCriterionId`、`requiredAmountScaled`とする。
 - success `200`の`data` required: `vectorHash`、`components`、`checkedAt`。
 - requestの`components`は1件以上で、評価軸IDの重複を拒否する。`requiredAmountScaled`は非負のASCII整数文字列で、JavaScript安全整数範囲を必須とする。金額は共通の保存scaleである10,000を使う。応答は評価軸ID昇順で、各要素に`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`を返す。残高はsigned integer文字列とする。
@@ -3268,30 +3287,63 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 `POST /api/v1/settlements/{settlementId}/debits`
 
-- 呼び出し元は連携済みの機密クライアントである。認証は認可コード交換と同じ`private_key_jwt`とDPoPとする。利用者のいないクライアント資格情報グラントは使わない。
-- 各落札者の利用者アクセストークンをrequestに含める。未確定の要求では、Pointsは署名、発行者、宛先、期限、クライアント、権限`points.settlements.debit`、連携が有効であることを確認する。bodyの利用者識別子だけを信用しない。
-- アクセストークンは検証にだけ使い、台帳、受領証、ログ、応答へ残さない。
-- request required: `auctionId`、`planHash`、`winners`。`winners`は1件以上で、各要素は`marketsUserId`、`accessToken`、`components`とする。各`components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`で、残高確認と同じ金額・保存精度・重複軸の検証を行う。`marketsUserId`はrequest内で重複しない。
-- Pointsは各評価軸の存在と共通の保存精度を検証する。競売作成後のパッケージ・評価軸の非公開化・停止や、パッケージの完全削除後も、保存済みsnapshotの条件で精算する。
-- pathの`settlementId`はrequestの精算と一致させる。
-- 引き落とし結果には、クライアントID、精算ID、競売ID、精算内容を照合する`planHash`を保存する。
-- 二重処理防止は、同じ`Idempotency-Key`の再送を対象とする。
-  - 同じキーと同じ要求内容には保存済みの引き落とし結果を返し、内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
-  - 呼び出し元の認証と内容照合の後、確定済みなら落札者の現在の認可・残高を再検査せず、保存済みの結果を返す。
-  - 再送の`planHash`も保存済みの要求内容と照合する。
-  - 未確定なら落札者の認証と本人の対応を検証する。
-  - 同じ本人のアクセストークン更新だけでは精算内容の変更として扱わない。
-  - 内容照合のhashには、アクセストークン本体を含めない。
-  - 同じ競売の精算を重ねて確定しない管理は、Marketsが行う。
-- 全落札者の現在の認可と、全評価軸の残高を、同じ一括処理の条件として検査する。
-  - 一人でも認可が無効、または必要額を満たさなければ、台帳追加を0件にし、全件を反映しない。
-  - Marketsは拒否された入札者を除き、同じ競売終了時点の情報から計算し直す。
-  - 残高不足のまま引き落として負の残高を作らない。
-  - 全落札者・全評価軸の引き落としを、一回で確定する。
-- 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
-- success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`planHash`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
+- 一つの競売の全落札者を、一つの要求で精算する。
+  - 例えば、同じ競売で田中さんが60ポイント、佐藤さんが30ポイントを支払う場合、その二人分をまとめて送る。
+  - 別の競売や別のMarketsサービスの落札者は、それぞれの精算要求へ分ける。
+  - ポイントは消費として引き落とし、出品者の残高と落札者の累計評価額を増減しない。
 
-拒否の例:
+- 呼び出し元と各落札者の認可を、それぞれ確認する。
+  - 呼び出し元のMarketsサービスは、登録済みの機密クライアントとして`private_key_jwt`で認証する。
+  - Marketsは、各落札者の利用者アクセストークンと、そのトークンに対応する今回の要求のDPoP署名を送る。
+  - JWTの署名・発行者・宛先・期限・クライアント・権限`points.settlements.debit`と、DPoPの鍵結合・HTTPメソッド・URL・トークンとの対応・再送を検証する。
+  - 呼び出し元の認証とトークン・DPoPの検証には、Better Authの公開APIを使う。
+  - 複数のWorkerでDPoPの再送を検出できるよう、検証済み署名の識別子にはBetter Auth標準のDB保存機能を使う。
+  - 各人のトークンと署名を一つの本文へまとめる形式は、承認済みの独自APIとする。
+  - トークン・署名・クライアント認証情報は検証にだけ使い、台帳・実行記録・ログ・応答へ保存しない。
+
+- 要求には競売・落札者・支払名義・評価軸ごとの必要額を指定する。
+  - pathには`settlementId`、本文には`auctionId`と`winners`、ヘッダーには`Idempotency-Key`を必須とする。
+  - 本文の`client_id`、`client_assertion_type`、`client_assertion`で呼び出し元を認証する。
+  - `client_assertion_type`は`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`とし、署名付きJWTの`aud`は今回の精算APIの絶対URLに一致させる。
+  - `winners`は1件以上とし、各要素には`marketsUserId`、`pointsSubject`、`components`を必須とする。
+  - 新しい引き落としには、各要素の`accessToken`と`dpopProof`も必須とする。
+  - 確定済みの結果を確認する再送では、利用者のトークンと署名を省略できる。未確定で両項目がそろわない場合は引き落としを行わない。
+  - `pointsSubject`は固定した支払名義の認証ユーザーIDを示し、新しい引き落としでは検証済みトークンの`sub`と一致させる。
+  - 再送でも支払名義を照合できるよう、Points内部の本人IDと区別して要求内容へ含める。
+  - `components`は1件以上の`{evaluationCriterionId, requiredAmountScaled}`とし、残高確認と同じ金額・保存精度・重複軸の検証を行う。
+  - `marketsUserId`は一つの要求内で重複させない。
+
+- Pointsは、次の順で処理する。
+  1. 呼び出し元を認証し、要求の形式を検証する。
+  2. 同じClient IDと`Idempotency-Key`の実行記録を探し、精算ID・競売ID・落札者・支払名義・評価軸ごとの必要額を照合する。
+  3. 確定済みで内容が同じなら、落札者の現在の認可・残高を再検査せず、保存済みの結果を返す。内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。
+  4. 未確定なら、各落札者のトークンとDPoP署名、支払名義の一致、本人とクライアントの現在の利用可否、評価軸の存在、金額と残高を検証する。
+  5. 全件が条件を満たせば、引き落とし・台帳・二重処理防止の実行記録を一括確定する。
+
+- 二重処理防止には、確定済み精算の実行記録を使う。
+  - Client ID・冪等性キー・正規化した要求内容の照合値・HTTP状態コード・確定結果を、引き落としと同じD1の一括処理で保存する。
+  - 正規化では、落札者と評価軸をID順へそろえ、金額の表記を統一する。
+  - トークン、DPoP署名、クライアント認証情報は内容照合の対象から外す。
+  - 同じ支払名義のトークン更新や、再送用の新しい署名だけでは、精算内容の変更として扱わない。
+  - 同じキーの要求が同時に届いても、確定する引き落としは一回とする。
+  - 確定結果とそのキーの対応を取引記録とともに保持し、日々のアクセスログの削除で二重処理防止の記録を失わないようにする。
+  - 別のキーによって同じ競売を二重精算しない管理は、Marketsが行う。
+
+- 全落札者・全評価軸の引き落としを、一回で確定する。
+  - 同じPoints本人が複数行に現れる場合、必要額を評価軸ごとに合算する。
+  - 例えば同じ本人の残高が100、二つのMarkets名義の必要額が60と50なら、合計110なので両方を残高不足とする。
+  - 一人でも認可が無効、または合算した必要額を満たさなければ、全件の引き落としと台帳追加を行わない。
+  - Marketsは拒否された入札者を除き、同じ競売終了時点の情報から計算し直して、新しい要求として送る。
+  - 競売作成後のパッケージ・評価軸の非公開化・停止や、パッケージの完全削除後も、Marketsが作成時に保存した条件で精算する。
+
+- 即時購入の結果が不明な間は、その競売全体の販売と落札確定を待つ。
+  - Marketsは同じ冪等性キーで結果を確認し、未確定の購入数量をほかの落札へ割り当てない。
+  - 結果の確認が競売終了後になった場合も、元の終了時点と購入結果による残数量から精算する。
+
+- 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
+- success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
+
+拒否の応答例
 
 ```json
 {
@@ -3569,7 +3621,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - Pointsバックエンドは、既存の構造化ロガーで監査記録をWorkers Logsへ出力する。
   - 管理者の変更、退会・再開、Accounts接続先の作成・有効化・取り下げ、Accounts連携・解除を対象とする。
   - 評価軸、パッケージ、交換倍率、自動分配設定、貢献評価代用、JSON設定復元の確定を対象とする。
-  - 直接評価の登録・訂正、未受領評価の受領、譲渡、交換、消費、落札の引き落とし、Points–Markets連携解除を対象とする。
+  - 直接評価の登録・訂正、未受領評価の受領、譲渡、交換、消費、落札の引き落としを対象とする。
 
 - 監査には、時点と処理の結果を記録する。
   - 共通の構造化ログ項目に加え、処理時点を表す`timestamp`を出力する。
@@ -3646,6 +3698,8 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ## v0.2.0からv0.2.1への変更
 
+- Points–Markets連携は複数名義に対応し、Marketsが連携・トークン・競売ごとの支払名義・解除を管理する。Pointsは共通のOAuth・DPoP検証と、一つの競売の全落札者の一括引き落としを担当する。再送はClient ID・冪等性キー・要求内容で照合し、確定結果を取引記録とともに保持する。
+
 - セキュリティ・保存・運用の仕様を、HTTP、OAuth、ポイント台帳、精算、ライブラリ、デプロイの関連節へ統合する。D1は標準の一括処理と必要な業務条件で全件確定・取消を行い、mainはPR・必須検査・最新ブランチとの一致で保護する。精算の再送防止は同じキーを対象とし、競売単位の重複確定管理はMarketsが行う。
 
 - 評価の宛先・評価軸・対象月・評価額・受領状態を持つデータの呼び名を「評価結果」に統一する。登録・訂正・受領・分配の説明と見出しをそろえる。
@@ -3709,7 +3763,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - 外部アカウントの管理はAccountsが行い、Pointsの仕様にはその手順を書かない。
 - 落札の支払いは、ポイントの仮押さえでは扱わない。
 
-- 引き落としは利用者認可で行い、その時点の落札者全員を1回の処理とする。一人でも失敗すれば台帳は0件である。成功した引き落としは戻さない。
+- 引き落としは利用者認可で行い、一つの競売の全落札者を1回の処理とする。同じPoints本人の必要額を評価軸ごとに合算し、一人でも失敗すれば台帳は0件とする。成功した引き落としは保持する。
 
 - すべての操作でfreshness sessionは要求しない。
 
@@ -3733,7 +3787,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
-- OAuthクライアント経由で、任意の引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
+- OAuthクライアント経由で、落札の一括引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
 
 - 本人データと、本人が管理者として登録されている対象の設定を、最大50MiBの一つのJSONへ出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は最大5MiBの要求を確認後に一括確定する。月別評価設定に伴う付与・分配は復元先で再計算し、確定済みの取引は参照用として保持する。
 - Google・GitHubのログイン用の認証元対応は、退会後も同じPoints本人を識別できるよう非公開で保持する。
