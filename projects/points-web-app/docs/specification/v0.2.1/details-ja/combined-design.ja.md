@@ -8,12 +8,14 @@
     - [公開プロフィールと本人の設定画面](#公開プロフィールと本人の設定画面)
     - [公開する情報と画面の構成](#公開する情報と画面の構成)
     - [ポイント増減の履歴](#ポイント増減の履歴)
+    - [利用者の公開API](#利用者の公開api)
   - [検索の機能](#検索の機能)
     - [検索対象と表示範囲](#検索対象と表示範囲)
     - [ヘッダーからの検索](#ヘッダーからの検索)
     - [検索画面の一覧と絞り込み](#検索画面の一覧と絞り込み)
     - [並び順と結果の更新](#並び順と結果の更新)
     - [検索の入出力とサーバー検証](#検索の入出力とサーバー検証)
+    - [検索API](#検索api)
   - [「設定」画面](#設定画面)
     - [自分のプロフィールURL](#自分のプロフィールurl)
     - [評価軸の作成・更新・削除](#評価軸の作成更新削除)
@@ -40,7 +42,9 @@
     - [接続先Accountsの管理](#接続先accountsの管理)
     - [Accounts認証・APIの処理](#accounts認証apiの処理)
   - [評価軸のプロフィール画面](#評価軸のプロフィール画面)
+    - [評価軸の公開プロフィールAPI](#評価軸の公開プロフィールapi)
   - [パッケージのプロフィール画面](#パッケージのプロフィール画面)
+    - [パッケージの公開プロフィールAPI](#パッケージの公開プロフィールapi)
   - [公式パッケージの作成・更新・削除](#公式パッケージの作成更新削除)
     - [利用停止・再開・完全削除](#利用停止再開完全削除)
     - [競売の金額計算と精算](#競売の金額計算と精算)
@@ -101,6 +105,7 @@
   - [Cookie、CSRF、Origin](#cookiecsrforigin)
   - [退会](#退会)
   - [権限](#権限)
+    - [外部APIによるアプリ全体管理者の照会](#外部apiによるアプリ全体管理者の照会)
     - [管理操作の認証・権限](#管理操作の認証権限)
   - [HTTPリクエスト・HTTPレスポンス](#httpリクエストhttpレスポンス)
     - [適用範囲と標準](#適用範囲と標準)
@@ -111,6 +116,7 @@
     - [HTTP状態コード](#http状態コード)
     - [通信IDと二重処理防止](#通信idと二重処理防止)
     - [応答のキャッシュ](#応答のキャッシュ)
+    - [公開APIの別サイトからの取得](#公開apiの別サイトからの取得)
     - [セキュリティヘッダーとダウンロード](#セキュリティヘッダーとダウンロード)
     - [確認例と実装との差](#確認例と実装との差)
   - [金額表現](#金額表現)
@@ -124,24 +130,26 @@
     - [業務変更の一括確定](#業務変更の一括確定)
     - [D1の一括書き込み制約](#d1の一括書き込み制約)
     - [一括保存の確認例と実装との差](#一括保存の確認例と実装との差)
+    - [本人の残高照会API](#本人の残高照会api)
   - [Points–Markets連携契約](#pointsmarkets連携契約)
     - [サービスごとの役割](#サービスごとの役割)
     - [開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)
+    - [認可された本人の確認](#認可された本人の確認)
     - [複数名義の連携と支払名義](#複数名義の連携と支払名義)
     - [同意と連携の開始](#同意と連携の開始)
     - [認可コードによる連携手順](#認可コードによる連携手順)
     - [連携解除と外部失効](#連携解除と外部失効)
     - [再認可](#再認可)
     - [連携・精算の確認例](#連携精算の確認例)
-  - [Endpoint](#endpoint)
-    - [外部APIの操作と要求](#外部apiの操作と要求)
-    - [認可された本人の確認](#認可された本人の確認)
-    - [`appAdmin`の照会](#appadminの照会)
-    - [残高](#残高)
     - [落札精算の引き落とし](#落札精算の引き落とし)
-    - [その他](#その他)
+    - [連携APIの確認例と実装との差](#連携apiの確認例と実装との差)
   - [Rate limit](#rate-limit)
   - [フォルダ構成](#フォルダ構成)
+    - [構成図](#構成図)
+    - [各領域の役割と依存関係](#各領域の役割と依存関係)
+    - [テストとスクリプトの配置](#テストとスクリプトの配置)
+    - [開発ツールの設定と生成先](#開発ツールの設定と生成先)
+    - [フォルダ構成の移行時に確認すること](#フォルダ構成の移行時に確認すること)
   - [デプロイ設定](#デプロイ設定)
     - [環境と配信先](#環境と配信先)
     - [画面・静的ファイル・ビルド](#画面静的ファイルビルド)
@@ -173,9 +181,8 @@
 2. **設計の大原則**
    1. 疎結合
       - 評価軸、評価ロジック、データ取得元が、いつでも簡単に差し替えられるように設計
-      - ファイルもタスクごとではなく、評価軸ごとに分けた
-      - 「評価ロジック」、「評価軸」のフォルダごと削除しても、他は通常通り動作するよう設計
-      - 冗長的な部分があるが、疎結合さを優先
+      - ソースをfrontend・backend・sharedへ分け、各領域内は役割別、その中は付与・分配・交換などの機能別に整理する。
+      - 計算ルールとDB・HTTPの処理を分離し、DB操作は差し替え可能なインターフェースを通して使う。
    2. 可読性
       - 可読性のために、シェルスクリプトはファイルを分ける。
    3. 簡潔さ
@@ -207,6 +214,7 @@
 
 - 利用者の本人確認や貢献・保有ポイントの確認に使う公開プロフィールを設ける。公開プロフィールはログイン不要で閲覧でき、本人が開いた場合も他人と同じ公開範囲を表示する。
 - 非公開プロフィールへの直接アクセスは404を返し、検索結果にも含めない。
+- 基本情報区画が非公開の利用者も、公開の利用者一覧と検索結果に含めない。
 - URLは`https://points.freeism.app/user-profile/{pointsUserId}`とする。PointsユーザーIDは不変の標準Nano IDを使い、表示名の変更後も同じURLを維持する。
 - 基本情報にはユーザーID・表示名・任意の説明を表示する。表示名は1〜100文字、初期値は「仮ユーザー」、説明は0〜500文字とする。
 - 本人は設定画面でプロフィールを編集し、公開範囲を設定する。非公開情報、すべてのポイントと履歴もこの画面で確認する。
@@ -219,7 +227,7 @@
   - 公開項目がない場合も区画を表示し、「この情報は非表示です」と案内する。
 - ポイント一覧は評価軸の名前・IDと、公開した残高`balance`・累計評価額`evaluationTotal`を表示する。金額には3桁区切りのカンマを付け、小数末尾の不要な0を除く。
   - 残高と累計評価額は評価軸ごとに別々に公開設定する。
-  - 両方非公開の軸は一覧に表示しない。
+  - 両方非公開の軸と、評価軸自体が非公開の軸は一覧に表示しない。
 - 公開を選んだ軸は0・負の額もそのまま表示する。
   - 停止中の軸には停止状態を表示する。
   - 評価軸の名前・IDからそのプロフィールへ移動できる。
@@ -248,7 +256,7 @@
   - 評価対象月がある操作では、その月も表示し、任意の日・時刻が記録されていれば確認できるようにする。
 - 宛先識別子・管理ID・メモ・相手方は本人が設定画面で確認する。
   - 公開履歴にはこれらの情報を含めない。
-- 残高と累計評価額が両方非公開の軸は、公開履歴でも隠す。
+- 残高と累計評価額が両方非公開の軸と、評価軸自体が非公開の軸は、公開履歴でも隠す。
   - 複数軸を含む取引は公開した軸の増減だけを表示し、非表示の軸の名前・ID・額と、その額を推測できる交換倍率を公開の応答へ含めない。
 - 例えばA軸だけを公開してAからBへ交換した場合は、Aの消費額だけを表示する。
   - Bの名前・ID・受取額と適用倍率は本人用の設定画面で確認する。
@@ -258,13 +266,68 @@
   - 種類・評価軸の絞り込みと、新しい順の20件表示は公開履歴と同じ構成にする。
 - サーバーで本人用の閲覧権限と公開設定を検証し、公開画面と公開応答には表示が許可された情報だけを含める。
 
+### 利用者の公開API
+
+- 他サービスから、公開プロフィールや貢献・保有ポイントを取得できるようにする。
+  - 利用者一覧は、「無料主義アプリの発展の評価軸」などの集計に使う。
+  - ポイントとバッジは、GitHub Issuesで貢献評価や保有ポイントを確認し、対応の優先順位を判断する用途などに使う。
+
+| メソッド・経路 | 目的・operationId | 入力 | 成功時の`data` |
+| --- | --- | --- | --- |
+| `GET /api/v1/users` | 利用者一覧・`listPublicPointsUsers` | `page`、複数指定できる`pointsUserId`、`sortColumn`、`sortDirection` | 表示名`name`と`pointsUserId`の配列 |
+| `GET /api/v1/profiles/{pointsUserId}` | 公開プロフィール・`getPublicPointsProfile` | PointsユーザーID | 公開された基本情報・ポイント一覧・公式パッケージ・連携情報 |
+| `GET /api/v1/profiles/{pointsUserId}/history` | 公開履歴・`listPublicPointHistory` | PointsユーザーID、`page`、種類、評価軸ID | 公開できる実行単位の履歴の配列 |
+| `GET /api/v1/profiles/{pointsUserId}/points/{evaluationCriterionId}` | 公開ポイント・`getPublicPointTotals` | PointsユーザーID、評価軸ID | `pointsUserId`、`evaluationCriterionId`、公開された`balanceScaled`・`evaluationTotalScaled` |
+| `GET /api/v1/profiles/{pointsUserId}/points/{evaluationCriterionId}/badge` | バッジ用JSON・`getPublicPointBadge` | 両ID、`metric` | Shields.io専用の本文を返す |
+
+- 認証と`Idempotency-Key`は要求しない。成功は200とし、GETの要求本文は使わない。
+  - Cookieや管理権限があっても、応答を本人用の情報へ切り替えない。
+  - プロフィール全体・区画・軸別金額・参照する評価軸やパッケージの公開設定を、取得時にサーバーで判定する。
+  - 非公開プロフィール・退会済み利用者・存在しない対象への個別取得は、同じ`404 RESOURCE_NOT_FOUND`を返す。
+  - 基本情報が非公開でも、プロフィール全体と該当区画が公開なら、その区画の個別取得は許可する。
+
+- 利用者一覧は、プロフィール全体と基本情報が公開の、退会していない利用者だけを返す。
+  - `name`と`pointsUserId`だけを返し、登録日時は並び替えに使う。
+  - `page`は1から始まり、既定は1、1ページ20件とする。
+  - `pointsUserId=V1StGXR8_Z5jdHi6B-myT&pointsUserId=Uakgb_J5m9g-0JDMbcJqL`のように指定すると、そのID集合へ絞り込む。
+  - `sortColumn`は`createdAt`、`sortDirection`は`ASC | DESC`とする。既定は`createdAt`・`ASC`、登録日時が同じ場合は常にPointsユーザーID昇順とする。
+  - 公開条件とID条件で絞り込み、並び替えてからページを分ける。対象0件は200と空配列を返す。
+
+- プロフィール取得は、画面に表示する公開情報を返す。
+  - 非公開の区画はその旨だけを示し、隠した項目の値や件数を含めない。公開区画に表示項目がない場合も区画を返し、画面と同じ案内を示す。
+  - 履歴は専用APIから、新しい順に20件ずつ取得する。種類は`kind`、評価軸IDは`evaluationCriterionId`で絞り込む。
+  - 公開できる増減のない実行を除外してからページを分け、ページ情報を算出する。
+  - 履歴区画が非公開なら、履歴の個別取得は404とする。非公開軸の指定でその軸の存在や履歴を返さない。
+  - 軸別ポイントの金額は、10,000倍した符号付き整数文字列で返す。0・負の値も返す。
+  - 非公開の金額項目は省き、両方非公開なら個別のポイント取得は404とする。
+  - ポイント区画が非公開、または評価軸自体が非公開の場合も、個別のポイント取得は404とする。
+  - 非公開軸の名前・ID・金額は、プロフィールと公開履歴の応答にも含めない。
+
+- バッジの`metric`は`BALANCE | EVALUATION_TOTAL`とし、省略時は`EVALUATION_TOTAL`を使う。
+  - 指定した金額の公開条件を満たす場合だけ200を返す。非公開・不存在は404とし、別の金額への自動切替は行わない。
+  - 成功本文は`schemaVersion: 1`、文字列の`label`・`message`を持つJSONとする。通常APIの`data`・`meta`で囲まない。[Shields.io公式資料](https://shields.io/badges/endpoint-badge)
+  - `label`は公開された評価軸名と指標名、`message`は共通の金額表示形式で整えた値とする。
+  - `metric`の不正値は422とする。404などの失敗は共通のProblem Details形式で返す。
+
+- 一覧・履歴のページ情報と、バッジ以外の応答形式は共通HTTP仕様を使う。
+  - バッジでも通信IDは`X-Request-Id`応答ヘッダーへ返す。
+  - ID・ページ・並び順・絞り込みの入力値の誤りは422とする。
+
+- 公開APIでは、全体・基本情報・各区画・軸別金額の公開設定と、参照先の公開範囲を組み合わせて確認する。
+  - 退会者の除外、0・負の金額、複数ID、同じ登録日時、20件の境界と次・前のページを確認する。
+  - バッジの指定省略で累計評価額、`BALANCE`指定で残高を返し、指定値が非公開なら404になることを確認する。
+  - 公開プロフィールで非公開構成軸を隠す処理と、競売用パッケージAPIの409を区別する。
+  - 別サイトからの取得、Cookieがある場合も公開範囲を広げないこと、CORSヘッダーと`no-store`を確認する。
+
+- 公開プロフィール・検索・公開ポイント・バッジの現行実装について、経路・応答項目・公開条件・ページ情報を実装時に確認する。
+
 ## 検索の機能
 
 ### 検索対象と表示範囲
 
 - 未ログインでも、利用者・評価軸・パッケージを一つの検索欄で探せる。ポイント交換に使う評価軸や、登録するパッケージもここから探す。
 - 名前とIDを検索対象とする。検索語を全角・半角の空白で区切り、すべての語が同じ項目の名前またはIDに部分一致するものを表示する。英字の大小は区別せず、入力の前後の空白を除く。
-- 非公開・退会済みの利用者プロフィールは検索結果に含めない。
+- プロフィール全体または基本情報が非公開の利用者と、退会済みの利用者は検索結果に含めない。
 - 評価軸・パッケージは公開項目を表示する。非公開項目も、検索している本人にその項目の編集権限があれば表示する。
 - 初期表示は有効な項目だけとし、「停止中も含む」で停止中の評価軸・パッケージも表示する。公開範囲と停止状態は別々に判定する。
 
@@ -295,6 +358,25 @@
 - 検索結果は種類・ID・表示名・公開状態・利用状態・本人の編集可否を持つ。検索画面では次・前のページへ移動できるかも返す。
 - サーバーは公開範囲・管理権限・状態・検索条件を検証してから結果を返す。非公開項目と編集可否は、ログイン中の本人の権限から判定する。
 - 検索結果から移動した画面で交換・編集などを実行するときは、その操作の権限と利用可否をサーバーで再検証する。
+
+### 検索API
+
+- `GET /api/v1/search`は、認証不要で公開の検索結果を返す。
+  - 入力は`q`、`type`、`includeInactive`、`sort`、`page`、`pageSize`とする。
+  - `type`は`ALL | USER | EVALUATION_CRITERION | POINT_PACKAGE`、既定は`ALL`とする。
+  - `includeInactive`は真偽値で既定は`false`、`sort`は`RELEVANCE | NAME`で既定は`RELEVANCE`とする。空の検索語では名前順とする。
+  - `page`は既定1、`pageSize`はヘッダー用の5または検索画面用の20とし、既定は20とする。
+  - 応答の`data`は種類・ID・表示名・公開状態・利用状態・編集可否を持つ結果の配列とする。公開APIの編集可否は常に`false`とする。
+  - 非公開の評価軸・パッケージを含めず、Cookieがあっても管理対象を追加しない。
+
+- `GET /api/search`は、Points画面用に本人の権限を反映する。
+  - 公開検索と同じ入力に、真偽値の`managedOnly`を加える。既定は`false`とする。
+  - 未ログインでは公開検索と同じ範囲とし、`managedOnly=true`には401を返す。
+  - ログイン中は、既存の検索仕様に従って編集可能な非公開の評価軸・パッケージも返す。
+  - 管理対象と編集可否は、本人セッションと現在の管理権限からサーバーで判定する。
+
+- 両APIはGETの本文と冪等性キーを要求せず、成功時は200と結果・ページ情報を返す。
+  - 対象0件は空配列、入力値の誤りは422とする。
 
 ## 「設定」画面
 
@@ -442,6 +524,7 @@
 - メモは任意で200文字以内とする。
 - 入力するのは確定する評価額とする。
   - 残高と累計評価額は別に保持し、ポイント増減の台帳と同じ原子処理で更新する。
+  - 加算・減算の応答に、操作者が閲覧できない受領者の非公開残高を含めない。本人用の残高取得は、本人認証・認可の条件で別に判定する。
 
 ##### 宛先の指定
 
@@ -1001,8 +1084,8 @@ betterAuth({
 
 - 管理者と更新者
   - 管理者、最終更新者、最後に停止や再開をした人を表示する。
-  - 本人プロフィールが公開なら、名前・PointsユーザーID・プロフィールへのリンクを表示する。
-  - 本人プロフィールが非公開なら、「非公開のユーザー」と表示し、名前・ID・リンクを隠す。
+  - 本人プロフィール全体と基本情報区画が公開なら、名前・PointsユーザーID・プロフィールへのリンクを表示する。
+  - 本人プロフィール全体または基本情報区画が非公開なら、「非公開のユーザー」と表示し、名前・ID・リンクを隠す。
   - 対象軸の管理者とアプリ全体管理者は、管理画面で非公開の管理者・更新者も確認できる。
   - 非公開の代用元の詳細は、その代用元を管理できる操作者だけに表示する。付与先の管理権限と代用元の管理権限は別に判定する。
   - 停止・再開などの記録がまだない区画も表示し、記録がない旨を案内する。
@@ -1018,6 +1101,24 @@ betterAuth({
 - サーバーでの検証
   - プロフィールの公開範囲を検証し、非表示の人物や代用元の情報を表示用応答から除く。
   - 操作時は、認証・権限・利用可否を再検証する。
+
+### 評価軸の公開プロフィールAPI
+
+- `GET /api/v1/evaluation-criteria/{evaluationCriterionId}`で、公開プロフィールの基本情報・設定・管理情報・月別評価方式を取得する。
+  - `operationId`は`getPublicEvaluationCriterion`とする。
+  - 月別評価方式は`page`で1ページ20件、新しい月から返す。既定は1とし、`evaluationMonth`でUTCの年月へ絞り込める。
+  - `data`に画面と同じ公開情報と月別設定を返し、月別設定のページ情報を`meta`へ返す。
+  - 非公開の管理者・更新者・代用元の名前とIDは含めず、画面用の非公開表示を返す。
+
+- `GET /api/v1/evaluation-criteria/{evaluationCriterionId}/exchange-rates`で、その軸を交換元または交換先とする公開の交換倍率一覧を取得する。
+  - `operationId`は`listPublicExchangeRates`とする。
+  - `data`に方向、両軸の名前・ID、倍率、設定の有効状態、現在の交換可否と理由を返す。
+  - 停止中・交換許可OFF・無効な設定も理由付きで返す。非公開の評価軸を含む設定は除く。
+  - 管理画面での非公開軸の閲覧可否は、本人認証と対象軸の管理権限で別に判定する。
+
+- 両APIは認証・要求本文・冪等性キーを要求せず、成功時は200を返す。
+  - 非公開・不存在は`404 RESOURCE_NOT_FOUND`、入力値の誤りは422とする。
+  - 停止中でも、公開されていれば取得できる。
 
 ## パッケージのプロフィール画面
 
@@ -1037,8 +1138,8 @@ betterAuth({
   - 利用状態を「有効」「停止中」と表示する。
   - 管理者・最終更新者・作成日時・更新日時・現在の更新番号を表示する。
   - 更新番号は、現在レコードの競合検査に使う`version`とする。日時にはUTCを明記する。
-  - 利用者のプロフィールが公開なら、名前・PointsユーザーID・プロフィールへのリンクを表示する。
-  - 非公開なら「非公開のユーザー」と表示し、名前・ID・リンクを隠す。
+  - 利用者のプロフィール全体と基本情報区画が公開なら、名前・PointsユーザーID・プロフィールへのリンクを表示する。
+  - プロフィール全体または基本情報区画が非公開なら「非公開のユーザー」と表示し、名前・ID・リンクを隠す。
 
 - 構成する評価軸と割合
   - 公開軸だけを登録順に並べ、1ページ20件表示する。次・前のページへ移動できるようにする。
@@ -1066,6 +1167,22 @@ betterAuth({
   - 問い合わせ時点の公開範囲を検証し、非公開の構成軸やユーザーの個別情報をプロフィールの表示用応答から除く。
   - 公式パッケージへの登録時は、本人認証・公開範囲・件数上限・重複を再検証する。
   - 管理操作時は認証・管理権限を再検証する。
+
+### パッケージの公開プロフィールAPI
+
+- `GET /api/v1/point-packages/{pointPackageId}/profile`で、パッケージの公開プロフィールを取得する。
+  - `operationId`は`getPublicPointPackageProfile`とする。
+  - 認証・要求本文・冪等性キーは要求しない。成功時は200とする。
+  - `page`は既定1とし、公開構成軸を登録順に20件ずつ返す。
+  - `data`には公開された基本情報・管理情報・用途別の利用可否と理由・構成軸を返す。構成軸のページ情報は`meta`へ返す。
+  - 非公開構成軸の名前・ID・割合は除く。表示する軸の割合は全構成に対する値を保ち、一部が非表示であることを示す。
+  - 全軸が非公開でも、基本情報と構成区画の非表示表示を返す。
+  - 非公開の管理者・更新者の名前・IDは含めない。
+  - 非公開パッケージ・不存在は`404 RESOURCE_NOT_FOUND`、入力値の誤りは422とする。停止中の公開パッケージは取得できる。
+
+- 競売作成用の現在データ取得とは、用途と応答を分ける。
+  - このプロフィールAPIは、非公開構成軸を隠した表示に使う。
+  - 競売作成には、全構成の公開を検証する`GET /api/v1/point-packages/{pointPackageId}`を使う。
 
 ## 公式パッケージの作成・更新・削除
 
@@ -1138,8 +1255,10 @@ betterAuth({
 
 `GET /api/v1/point-packages/{pointPackageId}`
 
-- token: 不要。読取専用public API
-- cache: `Cache-Control: no-store`
+- 競売作成時に、パッケージの現在の構成と金額計算条件を取得する。
+  - `operationId`は`getPublicPointPackage`とする。
+  - 認証・要求本文・冪等性キーは要求しない。成功時は200とする。
+  - IDの入力値の誤りは422とする。
 - 公開範囲と応答
   - 非公開パッケージは、本人・管理者が問い合わせた場合も`404 RESOURCE_NOT_FOUND`を返す。
   - 公開パッケージに非公開の構成軸がある場合は、`409 PACKAGE_COMPONENT_NOT_PUBLIC`を返す。構成軸の名前・ID・割合などの構成情報は返さない。
@@ -1467,9 +1586,9 @@ betterAuth({
   - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
   - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
   - 外部OAuthの処理・検証には、導入済みのoauth4webapiも使う。
-  - CLIで認証スキーマを生成するため、`auth-cli.ts`で認証インスタンスをエクスポートする。
+  - CLIで認証スキーマを生成するため、`src/backend/infrastructure/auth/auth-cli.ts`で認証インスタンスをエクスポートする。
     - 実行時と同じ認証インスタンス生成処理と共通設定を使う。
-    - 生成コマンドは`auth generate --config auth-cli.ts --adapter drizzle --dialect sqlite --yes`とする。
+    - Pointsのプロジェクト直下で、`pnpm exec auth generate --config src/backend/infrastructure/auth/auth-cli.ts --adapter drizzle --dialect sqlite --output src/backend/infrastructure/db/schema/auth.ts --yes`を実行する。
 
 - 環境変数の検証には、`@t3-oss/env-core`を導入する。
   - サーバー用とクライアント用を分け、型と必須値を検証する。
@@ -2066,8 +2185,7 @@ betterAuth({
 ### テスト
 
 - テストファイルは`*.test.ts`・`*.test.tsx`、Workersの結合テストは`*.worker.test.ts`とする。
-- 契約の検証用データは`test/fixtures`へ置く。
-  - 秘密を含む実際の認証資格情報を置かない。
+- 検証用データには、秘密を含む実際の認証資格情報を置かない。
 - テスト名は、操作と期待する結果を表す名前にする。
 
 ### スクリプト
@@ -2546,6 +2664,16 @@ flowchart LR
   - 現在のResource APIの利用者状態検証に、ログイン停止の検証を加える。ログイン停止・再開とトークン更新の連動も実装時に確認する。
   - 停止中の受取りと外部操作の拒否、再開後の認可利用、OAuth登録の途中失敗と残存分の削除、再送時の二重処理防止を確認する。
 
+### 外部APIによるアプリ全体管理者の照会
+
+- `GET /api/v1/me/admin-membership`で、認可された本人が`appAdmin`かを照会する。
+  - `operationId`は`getPointsAdminMembership`とする。
+  - 利用者アクセストークンに`openid`、Points API audience、DPoP認証を要求し、現在の本人・クライアント・権限を検証する。
+  - 要求本文と冪等性キーは要求しない。成功時は200とする。
+  - 応答は`{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`とする。
+  - 本人が管理者でなければ、200と`isAdmin: false`を返す。
+  - 認証不成立は401、scope不足は403とし、退会・ログイン停止中の本人の照会を拒否する。
+
 ### 管理操作の認証・権限
 
 - Points Workerは、経路ごとの認証・認可条件を操作の一覧で管理する。
@@ -2575,6 +2703,11 @@ flowchart LR
 ## HTTPリクエスト・HTTPレスポンス
 
 ### 適用範囲と標準
+
+- APIの仕様は、それぞれの機能の節へ記載する。
+  - 目的、メソッド・経路、認証・権限、入力、出力、主な失敗条件、二重処理防止の要否を明確にする。
+  - 本人設定・各管理操作・CSV・Accounts連携・受領・退会・復元も、対応する機能の条件をサーバーで検証する。
+  - Better Auth標準のログイン・セッション・管理者・OAuth APIは、各機能の説明から標準APIを参照する。
 
 - Points独自のREST APIと、ブラウザの画面が呼ぶAPIに適用する。
   - メソッド・ヘッダー・状態コードは[HTTP標準（RFC 9110）](https://www.rfc-editor.org/rfc/rfc9110.html)を基準とする。
@@ -2786,7 +2919,18 @@ flowchart LR
 
 - OAuthの認可・トークン・コールバック・同意、Accounts連携、外部連携の開始・解除は、成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。
 
-- 現在の公開パッケージAPIは、`Cache-Control: no-store`で最新の情報を返す。
+- 公開プロフィール・一覧・検索・ポイント・バッジ・交換倍率・競売用パッケージのAPIは、成功・失敗とも`Cache-Control: no-store`で返す。
+
+### 公開APIの別サイトからの取得
+
+- 認証不要の公開APIは、別サイトの画面とサーバーから取得できるようにする。
+  - `Access-Control-Allow-Origin: *`を成功・失敗の応答に付ける。
+  - ブラウザからは`credentials: "omit"`で取得する。`Access-Control-Allow-Credentials`は付けない。[Fetch標準](https://fetch.spec.whatwg.org/#http-cors-protocol)
+  - `X-Request-Id`と`Retry-After`は、`Access-Control-Expose-Headers`へ明記する。
+  - 公開GET・HEADに必要なCORS事前確認はOPTIONSで返す。
+  - 公開情報だけを返し、Cookieやトークンの有無によって応答へ非公開情報を加えない。
+
+- 本人セッションを使う画面用APIと、OAuthで認可する本人用APIには、それぞれの認証・要求元検査を適用する。
 
 ### セキュリティヘッダーとダウンロード
 
@@ -3062,6 +3206,27 @@ upgrade-insecure-requests
   - 現在の落札精算は予約の確定を使っているため、現在残高・認可を検証する引き落とし仕様との差を実装時に確認する。
   - この仕様更新では実装コードを変更せず、Worker・実D1での動作検証は実装時に行う。
 
+### 本人の残高照会API
+
+- `POST /api/v1/me/balance-checks`で、認可された本人の残高と必要額の充足を確認する。
+  - `operationId`は`checkPointBalance`、成功は200、本文上限は65,536バイトとする。
+  - 利用者アクセストークン、`points.balance.read`、Points API audience、DPoP認証を要求する。
+  - Pointsは本人・クライアント・権限を検証する。本人が退会・ログイン停止中なら照会を拒否する。
+  - 公開設定にかかわらず、認可された本人の残高を返す。照会ではポイントを確保せず、冪等性キーは要求しない。
+
+- 本文に`components`を必須とし、1件以上の`{evaluationCriterionId, requiredAmountScaled}`を指定する。
+  - 評価軸IDの重複を拒否する。
+  - `requiredAmountScaled`は非負のASCII整数文字列とし、JavaScript安全整数範囲を必須とする。共通の保存精度10,000を使う。
+  - `data`には`vectorHash`、`components`、`checkedAt`を必須とする。
+  - 応答の各要素は`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`とし、評価軸ID昇順で返す。
+  - 残高は符号付き整数文字列とし、必要額を満たさなくても200と`sufficient: false`を返す。
+  - 認証不成立は401、scope不足は403、入力値の誤りは422、存在しない評価軸は404とする。
+
+- `vectorHash`は、要求した評価軸と必要額の組を照合する値とする。
+  - 対象は`{ "components": [{ "evaluationCriterionId": "...", "requiredAmountScaled": "..." }] }`とし、残高・充足結果・本人ID・確認日時を含めない。
+  - 軸ID昇順へ並べ、金額を先頭の不要な0がない非負整数文字列へそろえる。0は`"0"`とする。
+  - RFC 8785でJSONを正規化してUTF-8化し、SHA-256の小文字16進表記へ`sha256:`を付ける。[RFC 8785](https://www.rfc-editor.org/rfc/rfc8785)
+
 ## Points–Markets連携契約
 
 ### サービスごとの役割
@@ -3076,6 +3241,7 @@ upgrade-insecure-requests
 - Marketsは連携と競売の進行を管理する。
   - 認可を受けたPoints名義、アクセストークン、更新用トークン、連携状態を保存する。
   - 入札時の支払名義の選択、落札者と引き落とし額の計算、精算要求の再送を担当する。
+  - 競売と落札結果に基づく公開の落札証明はMarketsが提供する。
 
 - Pointsは認可とポイントの増減を管理する。
   - OAuth 2.1の認可サーバーとして、本人認証・同意・トークン発行を提供する。
@@ -3130,6 +3296,14 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
+
+### 認可された本人の確認
+
+- Marketsは、検証済みJWTのissuerと`sub`でPoints本人を識別する。
+  - 許可されたscopeはトークンから確認する。
+  - 本人情報を取得する場合は、discoveryに掲載されたBetter Auth標準のUserInfo APIを使う。
+  - UserInfoには`openid`を要求し、`profile`を許可した本人の表示情報を取得できる。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#userinfo-endpoint)
+  - 連携日時と連携状態はMarketsが保存する。
 
 ### 複数名義の連携と支払名義
 
@@ -3213,79 +3387,12 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   - 実装時はMarketsでの連携管理、標準OAuth検証、一括精算の入力と処理順への移行を確認する。
   - 今回は仕様書を更新し、依存・DB・認証・精算の実装コードは変更していない。
 
-## Endpoint
-
-### 外部APIの操作と要求
-
-| メソッド・経路                                     | operationId                  | 成功状態 | 本文上限        | `Idempotency-Key` |
-| ------------------------------------------------ | ---------------------------- | ------- | --------------- | ----------------- |
-| `GET /api/v1/point-packages/{pointPackageId}`    | `getPublicPointPackage`      | 200     | なし            | 不要              |
-| `GET /api/v1/me/admin-membership`                | `getPointsAdminMembership`   | 200     | なし            | 不要              |
-| `POST /api/v1/me/balance-checks`                 | `checkPointBalance`          | 200     | 65,536 bytes    | 不要              |
-| `POST /api/v1/settlements/{settlementId}/debits` | `debitPointSettlement`       | 200     | 1,048,576 bytes | 必須              |
-
-- 公開情報を返すAPIは読取専用とし、Marketsの落札証明も提供対象とする。利用者の認可で残高を参照・引き落とす外部APIは、必要なscopeとDPoP認証を要求する。
-
-- 概要
-  - 他のサービスから、無料主義アプリの情報にアクセスする手段を作りたい
-
-- API全体の要件
-  1.  RESTのHTTPエンドポイントとして実装する
-
-- APIの種類
-  1.  **指定ユーザーの保有ポイントを取得**
-      - 目的
-        1.  GitHubのIssuesなどに表示するバッジで、保有ポイントが高い人から優先対応するなどで、保有ポイントを証明するために必要
-      - 要件
-        1.  「無料主義アプリのユーザーID」と「評価軸のID」（Nano ID）を指定して、そのユーザーの保有ポイントを取得
-        2.  Json形式で返す
-            - Shields.io を使ってバッジを表示できるJSON
-  2.  **ユーザー情報を取得**
-      - 目的
-        1.  「無料主義アプリの発展の評価軸」に必要なデータ
-      - 要件
-        1.  以下の情報のみ情報を返す
-            - 「ユーザー名」、「ユーザーID」、「アプリ登録日」
-        2.  ページネーション機能あり
-            - クエリの`page=2`
-        3.  ユーザー指定あり
-            - クエリの`pointsUserId=V1StGXR8_Z5jdHi6B-myT&pointsUserId=Uakgb_J5m9g-0JDMbcJqL`
-        4.  ソート順も指定可能
-            - デフォルトではサイト登録順に返す
-              1.  ソートで順番を固定しないと、ページネーションした場合の取得データが変わるため
-            - クエリの`sortColumn=createdAt&sortDirection=DESC`
-        5.  Json形式で返す
-
-### 認可された本人の確認
-
-- Marketsは、検証済みJWTのissuerと`sub`でPoints本人を識別する。
-  - 許可されたscopeはトークンから確認する。
-  - 本人情報を取得する場合は、discoveryに掲載されたBetter Auth標準のUserInfo APIを使う。
-  - UserInfoには`openid`を要求し、`profile`を許可した本人の表示情報を取得できる。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#userinfo-endpoint)
-  - 連携日時と連携状態はMarketsが保存する。
-
-### `appAdmin`の照会
-
-`GET /api/v1/me/admin-membership`
-
-- token: 利用者アクセストークン。`openid`、Points API audience、DPoP認証を要求する。
-- response: `{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`。トークンで認可された本人が`appAdmin`なら`true`を返す。
-
-### 残高
-
-`POST /api/v1/me/balance-checks`
-
-- token: user
-- scope: `points.balance.read`
-- Pointsは利用者アクセストークン、DPoP署名、クライアント、権限を検証して本人の残高を照会する。本人が退会・ログイン停止中の場合は照会を拒否する。
-- request required: `components`。各要素は`evaluationCriterionId`、`requiredAmountScaled`とする。
-- success `200`の`data` required: `vectorHash`、`components`、`checkedAt`。
-- requestの`components`は1件以上で、評価軸IDの重複を拒否する。`requiredAmountScaled`は非負のASCII整数文字列で、JavaScript安全整数範囲を必須とする。金額は共通の保存scaleである10,000を使う。応答は評価軸ID昇順で、各要素に`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`を返す。残高はsigned integer文字列とする。
-- 残高の照会はポイントを確保しない。
-
 ### 落札精算の引き落とし
 
 `POST /api/v1/settlements/{settlementId}/debits`
+
+- `operationId`は`debitPointSettlement`、成功は200、本文上限は1,048,576バイトとする。
+  - `Idempotency-Key`を必須とする。
 
 - 一つの競売の全落札者を、一つの要求で精算する。
   - 例えば、同じ競売で田中さんが60ポイント、佐藤さんが30ポイントを支払う場合、その二人分をまとめて送る。
@@ -3340,8 +3447,18 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   - Marketsは同じ冪等性キーで結果を確認し、未確定の購入数量をほかの落札へ割り当てない。
   - 結果の確認が競売終了後になった場合も、元の終了時点と購入結果による残数量から精算する。
 
-- 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。両方いる場合も、拒否された人を一人ずつ`reason`で分ける。extension `rejectedWinners`は、requestに含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
-- success `200`の`data` required: `debitReceiptId`、`settlementId`、`auctionId`、`status`、`winners`、`debitedAt`、`contentHash`。`status`は`DEBITED`とする。`winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
+- 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。
+  - 両方いる場合も、拒否された人を一人ずつ`reason`で分ける。
+  - 追加項目`rejectedWinners`は、要求に含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。
+  - 空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
+- 成功時の`data`には、`debitReceiptId`、`settlementId`、`auctionId`、`status`、`winners`、`debitedAt`、`contentHash`を必須とする。
+  - `status`は`DEBITED`とする。
+  - `winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
+
+- 各落札者の`vectorHash`は、本人の残高照会APIと同じ要求金額の構成から算出する。
+- 精算の`contentHash`は、`contentHash`自身を除いた結果の`data`全体を対象とする。
+  - `winners`を`marketsUserId`昇順へ並べ、RFC 8785でJSONを正規化してUTF-8化する。
+  - SHA-256の小文字16進表記へ`sha256:`を付ける。`meta`と通信ごとの`requestId`は含めない。
 
 拒否の応答例
 
@@ -3361,18 +3478,16 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 }
 ```
 
-### その他
+### 連携APIの確認例と実装との差
 
-- 管理者の追加／削除
-  - Better Auth Organizationプラグインの標準API
-- 退会・再開
-  - `POST /api/account/close`
-  - `POST /api/account/reopen`
-- 本人データのJSON出力・設定復元
-  - `GET /api/data-export`
-  - `POST /api/settings/restore/validate`
-  - `POST /api/settings/restore/commit`
-- ポイントを非公開にした場合に、加算or減算した場合でも、レスポンスに現在の保有ポイント数を入れずに返す
+- 本人認可による残高取得では、公開設定に関係なく認可された本人の値を返すことを確認する。
+  - 要求金額の軸順・先頭の0を変えても、同じ`vectorHash`になることを確認する。
+  - 精算の確定済み再送では、業務結果と`contentHash`を維持し、通信IDだけを新しくする。
+  - 本文上限、認可不成立、同一本人の複数名義の合算、全落札者の一括確定・取消も確認する。
+
+- 現在の実装には、ポイント予約・capture・パッケージ改訂参照を使うAPIがある。
+  - 最新仕様の現在パッケージ取得、必要額による残高照会、全落札者の一括引き落としとの差を実装時に確認する。
+  - OpenAPIの定義と生成クライアントの更新・動作検証は、実装時に行う。
 
 ## Rate limit
 
@@ -3446,16 +3561,121 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ## フォルダ構成
 
-- `infra/{table_name}`
-  - Table操作系やカラム定義を実装
-  - テーブル操作が変わっても、他が影響を受けない様に閉じ込める
-- `domain/{rule_name}`
-  - ドメインのルールを実装
-- `infra/config/drizzle`
-  - Drizzle定義
-- `infra/config/cloudflare`
-  - claudflareの設定項目
-- usecase → domain → infra
+### 構成図
+
+- v0.2.1のソース・テスト・補助スクリプトは、`src/frontend/`・`src/backend/`・`src/shared/`へ分類する。
+- 各領域内は役割別を基本とし、その中を付与・分配・交換などの機能で分ける。
+- 必要になったフォルダから作成する。
+
+```text
+points-web-app/
+├─ src/
+│  ├─ frontend/
+│  │  ├─ router.tsx
+│  │  ├─ routeTree.gen.ts
+│  │  ├─ routes/              URLと画面の接続
+│  │  ├─ components/          画面部品・フォーム
+│  │  ├─ api/                 API呼び出し
+│  │  ├─ query/               取得データ・キャッシュ
+│  │  ├─ auth/                ブラウザ側の認証操作
+│  │  ├─ i18n/                表示言語・翻訳
+│  │  ├─ styles/              画面のスタイル
+│  │  ├─ content/             日英のドキュメント・規約本文
+│  │  ├─ scripts/             表示用データなどの生成
+│  │  └─ test/                画面の結合テスト・検証用データ
+│  ├─ backend/
+│  │  ├─ server.ts            Workerの配信入口
+│  │  ├─ app.ts               APIと依存する実装の組み立て
+│  │  ├─ http/                API受付・認証確認・静的配信
+│  │  ├─ usecases/            付与・訂正などの処理手順
+│  │  │  └─ ports/            DB・外部サービス操作の型
+│  │  ├─ domain/              金額計算・分配などのルール
+│  │  ├─ infrastructure/     外部サービス・保存先・実行基盤へのアクセス
+│  │  │  ├─ db/
+│  │  │  │  ├─ schema/        テーブル定義
+│  │  │  │  ├─ drizzle/       マイグレーション・生成メタデータ
+│  │  │  │  └─ repositories/  D1の読み書き
+│  │  │  ├─ auth/             認証設定・認証処理・生成用入口
+│  │  │  ├─ accounts/         Accountsとの通信
+│  │  │  ├─ ratelimit/        Rate Limiting bindingの呼び出し
+│  │  │  └─ observability/    ログ・監査・運用指標の出力
+│  │  ├─ csv/                 CSVの解析・検証
+│  │  ├─ security/            暗号化などの処理
+│  │  ├─ scripts/             DB更新などの補助処理
+│  │  └─ test/
+│  │     ├─ integration/      API・D1の結合テスト
+│  │     └─ contract/         外部APIとの契約テスト
+│  └─ shared/
+│     ├─ contracts/           共通の入出力の型
+│     ├─ schemas/             共通の入力形式・値の検証
+│     ├─ utils/               共通の計算・変換処理
+│     ├─ scripts/             全体のビルド・配信・稼働確認
+│     └─ test/
+│        ├─ e2e/              ブラウザ・API・DBを通した検証
+│        ├─ fixtures/         複数領域で使う検証用データ
+│        └─ support/          複数領域で使うテスト補助
+└─ docs/                     開発者向け仕様書
+```
+
+### 各領域の役割と依存関係
+
+- frontendは画面とブラウザ側の処理を担当し、API経由でbackendを呼ぶ。
+- backendはAPI受付・認証・業務処理・DB操作を担当する。
+  - `http/`で要求を受け付け、`usecases/`で付与・訂正などの処理手順を組み立てる。
+  - ユースケースは`domain/`の計算ルールと、`usecases/ports/`のDB・外部サービス操作のインターフェースを使う。
+  - 外部サービス・保存先・実行基盤へアクセスする実装は、`infrastructure/`へまとめる。
+  - D1操作は`infrastructure/db/repositories/`、Accounts通信は`infrastructure/accounts/`、認証基盤との接続は`infrastructure/auth/`へ置く。
+  - Rate Limiting bindingの呼び出しは`infrastructure/ratelimit/`、ログ・監査・運用指標の出力は`infrastructure/observability/`へ置く。
+  - `app.ts`で各実装を組み立て、ユースケースやHTTP処理へ接続する。
+  - `http/`はAPI受付と認証・回数制限の適用、`infrastructure/`はその検証や計数に必要な外部アクセスを担当する。
+  - 外部アクセスを伴わないCSV解析や暗号計算は、それぞれ`csv/`・`security/`へ置く。
+  - 金額計算や配分ルールはDB・HTTPから独立させる。
+  - 付与・残高・分配・台帳は、業務処理全体を一括確定できる保存操作として提供する。
+
+- sharedには、frontendとbackendの両方で使う内容や、両方を操作する処理を置く。
+  - 共通の入出力の型は`contracts/`、入力形式と値の検証は`schemas/`、共通の計算・変換処理は`utils/`へ置く。
+  - 共通の型・入力形式・計算処理は、ブラウザ・Workerなどの実行環境から独立させる。
+  - ブラウザから読み込む共通処理に、秘密鍵・トークンの保管やDB接続などのサーバー専用処理を含めない。
+  - この共有範囲はPoints内とし、Accounts・MarketsとはAPIと生成クライアントを通して連携する。
+
+### テストとスクリプトの配置
+
+- 単体テストは、各領域の対象ファイルの隣へ置く。
+- 特定領域だけの結合テスト・検証用データ・テスト補助は、その領域の`test/`へ置く。
+  - API・D1の結合テストは`src/backend/test/integration/`、外部APIとの契約テストは`src/backend/test/contract/`へ置く。
+  - 領域専用の検証用データはその領域の`test/fixtures/`、テスト補助は`test/support/`へ置く。
+
+- ブラウザからAPI・DBまで確認するE2Eは、`src/shared/test/e2e/`へ置く。
+- 複数領域で使う検証用データは`src/shared/test/fixtures/`、テスト補助は`src/shared/test/support/`へ置く。
+- 補助スクリプトは、その用途が属する領域の`scripts/`へ置く。
+  - 表示用データの生成はfrontend、DB更新はbackend、全体のビルド・配信・稼働確認はsharedへ置く。
+  - テストとスクリプトは、用途に応じた実行環境で動かす。
+  - ブラウザ・Workerのビルド対象は、保存場所とは別に入口と依存関係から決める。
+
+### 開発ツールの設定と生成先
+
+- 開発ツールの設定ファイルはPointsのプロジェクト直下に置き、各領域内の入口・生成先・テストを指定する。
+- TanStack Startの画面ルート・Router・生成一覧は、`src/frontend/routes/`・`src/frontend/router.tsx`・`src/frontend/routeTree.gen.ts`を指定する。
+  - 配信入口は`src/backend/server.ts`とし、WranglerのWorker入口も一致させる。
+  - ルート生成では、画面ルートの隣に置いた単体テストを探索対象から除外する。
+
+- Drizzleのマイグレーション生成先は、`src/backend/infrastructure/db/drizzle/`とする。
+  - Wranglerの全環境のマイグレーション参照先と、テスト・補助スクリプトの読み込み先も同じ場所にする。
+  - テーブル定義は`src/backend/infrastructure/db/schema/`で管理する。
+
+- 認証スキーマ生成用の入口は`src/backend/infrastructure/auth/auth-cli.ts`とし、ライブラリの節に記載した生成コマンドの参照先と出力先をそろえる。
+- Playwrightのテスト探索先は、`src/shared/test/e2e/`を指定する。
+- 単体・結合テストの探索先は、各領域の配置に合わせて指定する。
+
+### フォルダ構成の移行時に確認すること
+
+- この構成への移行では、実ファイルの移動と、設定・コマンド内の参照先の更新を合わせて行う。
+  - 現在の`src/client/`・`src/routes/`・`src/content/`、プロジェクト直下の`worker/`・`drizzle/`・`test/`・`scripts/`から、役割に応じて移す。
+  - `package.json`・CI・補助スクリプト内のパスと、移動したファイルの相対参照も更新する。
+  - 外部アクセスの実装を`infrastructure/`へ集約し、現在のユースケースからD1操作などへの直接参照は、操作のインターフェースを使う形へそろえる。
+
+- 実装時は、ルート生成とテストの除外、画面と固定ページの静的生成、Workerの配信を確認する。
+- 認証スキーマ生成、DBマイグレーション、単体・結合・契約・E2Eのテスト探索、補助コマンドとCIの実行を確認する。
 
 ## デプロイ設定
 
@@ -3463,7 +3683,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - PointsはCloudflare WorkersとStatic Assetsで配信する。
   - TanStack Startで画面のルートを扱い、Honoで同じドメインの`/api/*`を提供する。
-  - 画面とAPIを一つのWorkerとして管理する。
+  - 画面とAPIを一つのWorkerとして管理し、配信入口を`src/backend/server.ts`とする。
   - HTML、JavaScript、CSS、フォントはStatic Assetsで配信する。
 - 本番と共有テスト環境を分ける。
   - 本番は`points.freeism.app`、Workerは`points-worker-production`とする。
@@ -3679,7 +3899,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   - キャッシュできる公開データは更新頻度に応じて保存し、リアルタイム性が必要なデータは最新値を取得する。
   - バックエンドのキャッシュはCloudflare Cacheへ保存し、DB更新後に該当するキャッシュを削除する。
   - 高頻度で更新され、キャッシュを許可する情報は、1時間ごとなどに再取得が必要な状態にする。
-  - 認証済み・非公開応答、認証関連、現在の公開パッケージAPIは、[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
+  - 認証済み・非公開応答、認証関連、公開APIは、[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
 
 ## 採用しないもの
 
@@ -3697,6 +3917,10 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## v0.2.0からv0.2.1への変更
+
+- ソース・テスト・補助スクリプトをfrontend・backend・sharedへ分類する。DB・Accounts・認証・回数制限・ログなどの外部アクセス実装をbackendの`infrastructure/`へ集約し、DBの定義・マイグレーションと認証生成用入口も配置する。ブラウザ・API・DBを通すE2Eは`src/shared/test/e2e/`へ置き、開発ツールの設定と生成先・探索先をそろえる。
+
+- API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは別サイトから取得でき、最新の公開条件で応答する。
 
 - Points–Markets連携は複数名義に対応し、Marketsが連携・トークン・競売ごとの支払名義・解除を管理する。Pointsは共通のOAuth・DPoP検証と、一つの競売の全落札者の一括引き落としを担当する。再送はClient ID・冪等性キー・要求内容で照合し、確定結果を取引記録とともに保持する。
 
@@ -3787,7 +4011,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
-- OAuthクライアント経由で、落札の一括引き落とし、出品、入札、購入の公開書き込みAPIに対応する。
+- PointsはOAuthクライアント経由の残高照会と落札の一括引き落としに対応する。出品・入札・購入と落札証明はMarketsが管理する。
 
 - 本人データと、本人が管理者として登録されている対象の設定を、最大50MiBの一つのJSONへ出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は最大5MiBの要求を確認後に一括確定する。月別評価設定に伴う付与・分配は復元先で再計算し、確定済みの取引は参照用として保持する。
 - Google・GitHubのログイン用の認証元対応は、退会後も同じPoints本人を識別できるよう非公開で保持する。
