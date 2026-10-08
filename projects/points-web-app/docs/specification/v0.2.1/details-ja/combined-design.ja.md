@@ -573,7 +573,7 @@
 
 - 初回取込で安定した`fixResultId`を発行する。
 - 訂正は同じ`fixResultId`の最新レコードを更新する。更新前の額と訂正後の額は、不変の実行記録へ保存する。
-- 実行記録は内容hash、source file hash、操作者、評価軸、request ID、idempotency keyで監査できる。
+- 実行記録は操作者・評価軸・通信ID・冪等性キーで照会でき、実行IDで差分台帳へ紐付ける。
 - 受領済みの元の付与額は、訂正後の額と更新前の額との差を対象者・評価軸ごとに計算し、差分を不変台帳へ追加して残高と`evaluationTotalScaled`へ反映する。自動分配がある場合は、全経路の新旧結果の差分も反映する。差分0の行は追加しない。取消は最新額を0へ更新する。評価月だけの訂正では元の付与額の差分は0だが、自動分配は最新条件で再計算する。最新結果の評価月を更新し、実行記録を保存する。貢献評価代用は、この最新の評価月と額を集計する。
 - 受領済みの差額は台帳へ反映する。未受領の`unclaimedFixEntry`は現在額へ更新し、訂正時に受領者が決まった場合は最新額全体を台帳へ反映する。
 - 直接評価の登録・訂正では、対象の評価軸・評価月が直接評価を採用していることを検証する。評価月を変更する場合は、移動元と移動先の両月を検証する。代用中に保持した直接入力は復元用とし、台帳や受領待ちの有効額には加えない。
@@ -1009,7 +1009,7 @@ betterAuth({
     - [Generic OAuth公式資料](https://better-auth.com/docs/plugins/generic-oauth)
   - Accountsの認証元は、ログイン済み本人への明示連携に限って使う。
   - 開始要求はJSONとし、`application/json`以外は`415 JSON_CONTENT_TYPE_REQUIRED`を返す。
-  - サーバーは、開始時のPointsユーザーID・セッションIDのSHA-256 hash・接続先IDを、標準OAuth stateのサーバー側情報へ結び付ける。
+  - サーバーは、開始時のPointsユーザーID・セッションID・接続先IDを、標準OAuth stateのサーバー側情報へ結び付ける。
   - この情報はサーバーが本人認証と接続先の検証後に設定し、ブラウザからの入力で上書きできないようにする。
   - stateはBetter Authの標準verificationレコードとしてD1へ保存し、nonceとcode verifierも標準の保存情報を使う。
   - 連携は10分以内に、開始時と同じ本人・セッションで一度だけ完了できる。
@@ -1276,7 +1276,6 @@ betterAuth({
 		"relatedUrl": ["https://example.com/package"],
 		"totalWeight": 1,
 		"packageTickScaled": 1,
-		"contentHash": "sha256:...",
 		"components": [
 			{
 				"evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
@@ -1295,8 +1294,6 @@ betterAuth({
 
 - `weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`で、固定scaleへ近似しない
 - `packageTickScaled`は、各componentへの配分額が0.0001ポイント単位の整数になる最小の正の刻みとする。scale済み整数で`LCM(totalWeight / GCD(totalWeight, weight))`を各componentについて計算し、JavaScript安全整数の範囲を検証する
-- `contentHash`は`contentHash`自身とresponse envelopeを除く`data`をRFC 8785 JSON Canonicalization SchemeでUTF-8化し、SHA-256のlowercase hexへ`sha256:`を付ける。componentsはhash前に`displayOrder`昇順、同値なら`evaluationCriterionId`昇順へ並べる
-- hash対象fieldは`pointPackageId`、`packageLifecycleStatus`、`name`、`description | null`、関連URL最大20件、`totalWeight`、`packageTickScaled`と、各componentの`evaluationCriterionId`、`name`、`displayOrder`、`weight`、`buyNowEnabled`に固定する。未知fieldを黙ってhash対象へ追加しない
 - Marketsは競売作成時に構成割合と共通の保存精度から`packageTickScaled`を再計算し、応答値との一致を検証して競売snapshotへ保存する。その後の表示と精算には、このsnapshotを使う。
 - success `200`の`data`は上記exampleの全fieldをrequiredとする。`description`はrequired nullable、`relatedUrl`は最大20件の配列、`packageLifecycleStatus`は`ACTIVE | INACTIVE`、`components`は`minItems: 1`とし、各componentの全example fieldもrequiredとする。
 
@@ -1992,7 +1989,7 @@ betterAuth({
   - ファイルを選ぶだけでは、登録・付与・確定を行わない。
 
 - 利用者が確定した場合だけ、サーバーへ確定要求を送る。
-  - `multipart/form-data`で`file`・`fileHash`・`validationHash`を送る。
+  - `multipart/form-data`で`file`・`validationHash`を送る。
   - 必要な`reason`もフォーム項目へ入れ、`Idempotency-Key`は要求ヘッダーへ送る。
   - 管理操作では、通常の管理操作と同じreasonを要求する。
   - サーバーは入力と現在の条件を再検証・再計算し、対象の設定・付与・分配・残高・累計評価額・未受領状態・差分台帳・実行記録・冪等性の結果を、一つのD1原子処理で確定する。
@@ -2470,7 +2467,7 @@ flowchart LR
 - 受領前後の二重計上防止、同一人物の複数宛先の統合、合算後の端数、受領から始める循環判定を確認する。
 - 元取引の訂正・取消による待ち額と受領後の再分配の差分、帰属の固定、退会中の蓄積と再開後の受領を確認する。
 - 一覧の取得失敗、処理件数上限、全件未反映、0件、確認後の変更、再送と並行受領での二重反映防止を確認する。
-- 現在の受領実装は、宛先をまとめてAccountsの照合APIへ送り、確認用ハッシュを要求する。対象0件はエラーとしている。
+- 現在の受領実装は、宛先をまとめてAccountsの照合APIへ送る。対象0件はエラーとしている。
   - 実装時は、本人の最新一覧との照合、確認結果そのものの比較、0件の正常完了へ揃える。
   - 分配待ち額の保存・発行額集計、未特定宛先の重み、受領後の再分配を含む訂正は、今回の仕様と実装の差を確認する。
   - 図・表の数値例と実装の受入結果は分けて確認する。
@@ -2584,7 +2581,7 @@ flowchart LR
   - 現在の退会処理は表示名を置き換えて説明を空にするが、公式パッケージの登録と自動分配設定を削除していない。本人情報と設定の削除範囲を、今回の仕様に合わせる必要がある。
   - 現在の退会・再開処理は、現在のセッションを残して他のセッションを削除する。退会時の全セッション失効と、再開時の通常セッション再発行は実装時に確認する。
   - 現在の管理権限は独自の`admin_membership`にある全体管理者だけを判定する。各対象のOrganization管理者と、最後の管理者の検証へ移す必要がある。
-  - 現在の再開POSTは`reopenSetHash`を要求し、未受領評価の受領を状態変更と同時に処理する。再開の確定と、再連携後の受領を別の操作に整理する。
+  - 現在の再開POSTは、未受領評価の受領を状態変更と同時に処理する。再開の確定と、再連携後の受領を別の操作に整理する。
   - 最後の管理者の退会拒否と引き継ぎ後の退会、本人情報と設定の削除、他の利用者の取引維持、他アカウントのログイン維持を確認する。
   - 負の残高での退会・再開、ログインだけでは再開しないこと、未受領分の蓄積と受領、二重受領の防止、訂正、失敗時の全件維持を確認する。
 
@@ -2757,10 +2754,12 @@ flowchart LR
 - CSVは[フォーム送信の標準（RFC 7578）](https://www.rfc-editor.org/rfc/rfc7578.html)に基づく`multipart/form-data`で送る。
   - ブラウザは`FormData`を使い、`Content-Type`の`boundary`を含む送信用の区切り情報を自動生成する。
   - 検証要求には、CSVファイルを`file`へ入れる。
-  - 確定要求には、同じ`file`、元ファイルのhashを表す`fileHash`、確認した検証結果のhashを表す`validationHash`を送る。
+  - 確定要求には、同じ`file`と、確認した検証結果のハッシュを表す`validationHash`を送る。
+  - `validationHash`の対象には、元ファイルの内容と、対象者・適用条件・金額・分配などの確認対象となる検証・計算結果を含める。
   - 操作理由が必要な確定要求では、`reason`もフォーム項目へ入れる。
   - 確定要求の`Idempotency-Key`は、要求ヘッダーへ送る。
-  - サーバーは受け取ったファイルを解析し直し、両hash・入力・権限・更新番号・宛先・計算条件を再検証する。
+  - サーバーは受け取ったファイルを解析し直し、入力・権限・更新番号・宛先・計算条件を再検証する。
+  - サーバーは確認対象の結果を再計算して`validationHash`を照合し、変わっていれば確定せず再確認を求める。
 
 - 要求の容量上限は、受け取る形式と操作ごとに定める。
   - 上限を超えた要求は`413 REQUEST_BODY_TOO_LARGE`とし、業務処理を行わない。
@@ -2983,14 +2982,14 @@ upgrade-insecure-requests
 - 静的HTML、SPAの初期HTML、画面へのフォールバック、Workerの成功・失敗応答で共通ヘッダーを確認する。
 - インラインスクリプトのハッシュ、環境別CSP・HSTS、安全なダウンロード名を確認する。
 - JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
-- CSVの検証・確定、必須のフォーム項目、両hash、理由、5MiBのファイル境界、本文全体の容量境界を確認する。
+- CSVの検証・確定、必須のフォーム項目、ファイルや確認結果の変更検出、理由、5MiBのファイル境界、本文全体の容量境界を確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
 - 実装との差は、実装時の確認事項として扱う。
   - 現在の静的ヘッダー生成は5個のHTMLを列挙し、Worker側には独自のヘッダー設定処理がある。配信する全HTMLとWorkerの応答へ、同じ設定を適用する構成を確認する。
-  - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`fileHash`・`validationHash`の再検証へそろえる。
+  - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`validationHash`による確認結果の照合へそろえる。
   - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
   - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
   - 現在の応答には`meta.requestId`がない経路があり、入力ヘッダー・エラー本文・拒否ログのIDも一致していない経路がある。今回の通信IDへ統一する。
@@ -3217,15 +3216,12 @@ upgrade-insecure-requests
 - 本文に`components`を必須とし、1件以上の`{evaluationCriterionId, requiredAmountScaled}`を指定する。
   - 評価軸IDの重複を拒否する。
   - `requiredAmountScaled`は非負のASCII整数文字列とし、JavaScript安全整数範囲を必須とする。共通の保存精度10,000を使う。
-  - `data`には`vectorHash`、`components`、`checkedAt`を必須とする。
+  - `data`には`components`、`checkedAt`を必須とする。
   - 応答の各要素は`evaluationCriterionId`、`requiredAmountScaled`、`availableBalanceScaled`、`sufficient`とし、評価軸ID昇順で返す。
   - 残高は符号付き整数文字列とし、必要額を満たさなくても200と`sufficient: false`を返す。
   - 認証不成立は401、scope不足は403、入力値の誤りは422、存在しない評価軸は404とする。
 
-- `vectorHash`は、要求した評価軸と必要額の組を照合する値とする。
-  - 対象は`{ "components": [{ "evaluationCriterionId": "...", "requiredAmountScaled": "..." }] }`とし、残高・充足結果・本人ID・確認日時を含めない。
-  - 軸ID昇順へ並べ、金額を先頭の不要な0がない非負整数文字列へそろえる。0は`"0"`とする。
-  - RFC 8785でJSONを正規化してUTF-8化し、SHA-256の小文字16進表記へ`sha256:`を付ける。[RFC 8785](https://www.rfc-editor.org/rfc/rfc8785)
+- 応答の必要額は、先頭の不要な0がない非負整数文字列へそろえる。0は`"0"`とする。
 
 ## Points–Markets連携契約
 
@@ -3337,7 +3333,7 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 
 各接続先のissuerは登録したoriginと一致させる（Freeism Pointsでは`https://points.freeism.app`）。MarketsはOIDC、OAuth Authorization Server、Protected Resourceのdiscoveryを行い、authorization／token／JWKS endpointが同じoriginに属することを確認する。OAuth処理にはdiscoveryで検証したendpointを使う。Task 6Aのlive feasibility gateで標準実装との一致を検証する。
 
-1. Marketsがstate、nonce、PKCE verifier／challengeを生成する。stateを現在のMarkets SessionとMarkets user、固定`/settings/points-connection`のhash、PKCE challenge、nonce、期限へserver-sideで束縛する。
+1. Marketsがstate、nonce、PKCE verifier／challengeを生成する。stateを現在のMarkets SessionとMarkets user、固定の戻り先`/settings/points-connection`、PKCE challenge、nonce、期限へserver-sideで束縛する。
 2. ブラウザでPointsの認可画面を開く。利用者用クライアントID、redirect URI、scope、PKCE challenge、stateを渡す。requestの任意の利用者IDやrequest bodyの`marketsUserId`を信用しない。
 3. Pointsで利用者がscopeを承認する。
 4. PointsはBetter Auth標準の本人認証と同意の結果から、対象クライアントへ操作を許可する。
@@ -3451,14 +3447,11 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   - 両方いる場合も、拒否された人を一人ずつ`reason`で分ける。
   - 追加項目`rejectedWinners`は、要求に含まれた`marketsUserId`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`marketsUserId`昇順で返す。
   - 空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
-- 成功時の`data`には、`debitReceiptId`、`settlementId`、`auctionId`、`status`、`winners`、`debitedAt`、`contentHash`を必須とする。
+- 成功時の`data`には、`debitReceiptId`、`settlementId`、`auctionId`、`status`、`winners`、`debitedAt`を必須とする。
   - `status`は`DEBITED`とする。
-  - `winners`の各要素は`marketsUserId`、`vectorHash`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
-
-- 各落札者の`vectorHash`は、本人の残高照会APIと同じ要求金額の構成から算出する。
-- 精算の`contentHash`は、`contentHash`自身を除いた結果の`data`全体を対象とする。
-  - `winners`を`marketsUserId`昇順へ並べ、RFC 8785でJSONを正規化してUTF-8化する。
-  - SHA-256の小文字16進表記へ`sha256:`を付ける。`meta`と通信ごとの`requestId`は含めない。
+  - `winners`の各要素は`marketsUserId`、`components`、`status: DEBITED`とし、`marketsUserId`昇順で返す。
+  - `components`には、確定した引き落としの評価軸IDと金額を`{evaluationCriterionId, requiredAmountScaled}`で返す。評価軸ID昇順とし、残高照会と同じ金額表記を使う。
+  - Marketsは精算ID・競売ID・落札者・評価軸ID・金額を要求内容と照合する。
 
 拒否の応答例
 
@@ -3481,8 +3474,8 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 ### 連携APIの確認例と実装との差
 
 - 本人認可による残高取得では、公開設定に関係なく認可された本人の値を返すことを確認する。
-  - 要求金額の軸順・先頭の0を変えても、同じ`vectorHash`になることを確認する。
-  - 精算の確定済み再送では、業務結果と`contentHash`を維持し、通信IDだけを新しくする。
+  - 要求金額の軸順・先頭の0を変えても、応答の評価軸順と金額表記がそろうことを確認する。
+  - 精算結果の評価軸ID・金額が要求と一致し、確定済み再送では業務結果を維持して通信IDだけを新しくすることを確認する。
   - 本文上限、認可不成立、同一本人の複数名義の合算、全落札者の一括確定・取消も確認する。
 
 - 現在の実装には、ポイント予約・capture・パッケージ改訂参照を使うAPIがある。
@@ -3917,6 +3910,8 @@ points-web-app/
 - v0.1データは移行しない。v0.1文書は実装履歴であり、v0.2の互換要件ではない。
 
 ## v0.2.0からv0.2.1への変更
+
+- パッケージ取得・残高照会・精算結果は実際の項目と金額で照合する。API応答・追加監査・OAuth連携の独自ハッシュと、CSVの独立したファイルハッシュ送信を整理する。CSVの確認結果の変更検出、二重処理防止、標準の認証・セキュリティ処理は維持する。
 
 - ソース・テスト・補助スクリプトをfrontend・backend・sharedへ分類する。DB・Accounts・認証・回数制限・ログなどの外部アクセス実装をbackendの`infrastructure/`へ集約し、DBの定義・マイグレーションと認証生成用入口も配置する。ブラウザ・API・DBを通すE2Eは`src/shared/test/e2e/`へ置き、開発ツールの設定と生成先・探索先をそろえる。
 
