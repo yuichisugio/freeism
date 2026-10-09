@@ -12,6 +12,7 @@ const origin = "https://markets.example.test";
 const csv = "clientRowId,title\nrow-1,title";
 
 const preview: AuctionImportPreview = {
+  providerId: "provider-test",
   auctionCommandHash: `sha256:${"a".repeat(64)}`,
   auctionCommandId: "acmd_preview",
   fileHash: `sha256:${"b".repeat(64)}`,
@@ -53,6 +54,7 @@ function request(options: { body?: string; contentType?: string; contentLength?:
     headers: {
       "Content-Type": options.contentType ?? "text/csv; charset=utf-8",
       "Idempotency-Key": "preview-key-1",
+      "X-Points-Provider-Id": "provider-test",
       Origin: origin,
       ...(options.contentLength ? { "Content-Length": options.contentLength } : {}),
     },
@@ -72,6 +74,7 @@ describe("Auction import preview route", () => {
     expect(validate).toHaveBeenCalledWith({
       bytes: expect.any(Uint8Array),
       idempotencyKey: "preview-key-1",
+      providerId: "provider-test",
     });
   });
 
@@ -122,6 +125,24 @@ describe("Auction import preview route", () => {
       code: "VALIDATION_FAILED",
       errors: [{ code: "AUCTION_FIELD_REQUIRED", field: "pointPackageId", row: 2 }],
     });
+  });
+
+  it("requires a provider before validation", async () => {
+    const candidate = app();
+    const response = await candidate.hono.fetch(
+      new Request(`${origin}/api/auctions/import/validate`, {
+        body: csv,
+        headers: {
+          "Content-Type": "text/csv",
+          "Idempotency-Key": "provider-required",
+          Origin: origin,
+        },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(response.status).toBe(400);
+    expect(candidate.validate).not.toHaveBeenCalled();
   });
 
   it("returns a Points idempotency-key reuse as a 409 Problem Details response", async () => {

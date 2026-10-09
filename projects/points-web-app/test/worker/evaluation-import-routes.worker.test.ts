@@ -1,5 +1,7 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+afterEach(() => vi.restoreAllMocks());
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
@@ -62,6 +64,7 @@ async function requestCsv(
 
 describe("evaluation criteria and Point Package CSV routes", () => {
   it("validates and idempotently commits criteria and packages through the domain imports", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const { authUserId, suffix } = await createAdmin();
     const app = appFor(authUserId);
     const criterionId = `criterion_${suffix}`;
@@ -102,12 +105,11 @@ describe("evaluation criteria and Point Package CSV routes", () => {
     );
     expect(criterionReplay.status).toBe(201);
     expect(await criterionReplay.json()).toEqual(criterionBody);
-    const criterionAudit = await env
-      .DB!.prepare(
-        "SELECT reason, result FROM audit_event WHERE action = 'EVALUATION_CRITERION_CSV_COMMIT' AND target = 'evaluation-criteria' ORDER BY created_at DESC LIMIT 1",
-      )
-      .first<{ reason: string; result: string }>();
-    expect(criterionAudit).toEqual({ reason: "create criterion", result: "SUCCESS" });
+    const auditLogs = log.mock.calls
+      .map(([entry]) => entry)
+      .filter((entry) => entry.operation === "EVALUATION_CRITERION_CSV_COMMIT");
+    expect(auditLogs).toEqual([expect.objectContaining({ outcome: "SUCCESS" })]);
+    expect(JSON.stringify(auditLogs)).not.toContain("create criterion");
 
     const packageId = `package_${suffix}`;
     const packageCsv = `${PACKAGE_HEADER}\n${packageId},,ACTIVE,Package ${suffix.slice(0, 8)},Description,https://example.test/package,${criterionId},2,0\n`;

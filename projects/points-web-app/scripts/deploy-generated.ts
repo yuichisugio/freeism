@@ -3,7 +3,7 @@ import { access, readFile, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import { findGeneratedWorkerConfig } from "./assert-worker-build";
+import { findGeneratedWorkerConfig } from "./generated-worker-config";
 import { releaseEnvironment, type ReleaseEnvironment } from "./migrate-d1";
 
 const REQUIRED_COMPATIBILITY_FLAGS = [
@@ -42,8 +42,8 @@ export function assertGeneratedConfig(
   if (config.name !== expectedWorkerName(environment)) {
     throw new Error(`unexpected Worker name: ${String(config.name)}`);
   }
-  if (config.workers_dev !== false || config.preview_urls !== false) {
-    throw new Error("workers.dev and preview URLs must remain disabled");
+  if (config.workers_dev !== false || config.preview_urls !== (environment === "staging")) {
+    throw new Error("generated Worker URL settings do not match the release environment");
   }
   if (
     config.assets?.not_found_handling !== "none" ||

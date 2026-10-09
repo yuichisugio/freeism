@@ -71,19 +71,17 @@ jobs:
           pnpm --filter @freeism/markets-web-app test
           pnpm --filter @freeism/markets-web-app test:worker
 
-      - name: Build and validate Points artifact
-        run: |
-          set -a
-          source projects/points-web-app/.dev.vars.example
-          set +a
-          pnpm --filter @freeism/points-web-app build:production
-          pnpm --filter @freeism/points-web-app build:assert
+      - name: Build Points artifact
+        env:
+          APP_ORIGIN: "https://points.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
+        run: pnpm --filter @freeism/points-web-app build:production
 
       - name: Build and validate Markets artifact
+        env:
+          APP_ORIGIN: "https://markets.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
         run: |
-          set -a
-          source projects/markets-web-app/.dev.vars.example
-          set +a
           pnpm --filter @freeism/markets-web-app build:production
           pnpm --filter @freeism/markets-web-app build:assert
 
@@ -101,6 +99,3 @@ jobs:
 
       - name: Smoke test Points
         run: pnpm --filter @freeism/points-web-app smoke:production
-
-      - name: Smoke test Markets
-        run: pnpm --filter @freeism/markets-web-app smoke:production

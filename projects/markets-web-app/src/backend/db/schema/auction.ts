@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 import { marketsUsers } from "./markets-user";
+import { pointsProviders } from "./points-provider";
 
 const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 const safeInteger = sql.raw("9007199254740991");
@@ -13,6 +14,9 @@ export const auctions = sqliteTable(
     sellerMarketsUserId: text("seller_markets_user_id")
       .notNull()
       .references(() => marketsUsers.id),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => pointsProviders.id),
     currentRevisionId: text("current_revision_id"),
     status: text("status", {
       enum: [
@@ -49,12 +53,18 @@ export const pointPackageSnapshots = sqliteTable(
     id: text("id").primaryKey(),
     pointPackageId: text("point_package_id").notNull(),
     pointPackageRevisionId: text("point_package_revision_id").notNull(),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => pointsProviders.id),
     name: text("name").notNull(),
     totalWeight: integer("total_weight").notNull(),
     createdAt: text("created_at").default(now).notNull(),
   },
   (table) => [
-    uniqueIndex("point_package_snapshots_revision_uidx").on(table.pointPackageRevisionId),
+    uniqueIndex("point_package_snapshots_revision_uidx").on(
+      table.providerId,
+      table.pointPackageRevisionId,
+    ),
     check(
       "point_package_snapshots_total_weight_check",
       sql`${table.totalWeight} between 1 and ${safeInteger}`,
@@ -344,21 +354,5 @@ export const websocketSlotLeases = sqliteTable(
     ),
     check("websocket_slot_leases_user_slot_check", sql`${table.userSlot} between 1 and 20`),
     check("websocket_slot_leases_auction_slot_check", sql`${table.auctionSlot} between 1 and 3`),
-  ],
-);
-
-export const turnstileTokenReplays = sqliteTable(
-  "turnstile_token_replays",
-  {
-    tokenHash: text("token_hash").primaryKey(),
-    operation: text("operation").notNull(),
-    hostname: text("hostname").notNull(),
-    action: text("action").notNull(),
-    expiresAt: text("expires_at").notNull(),
-    usedAt: text("used_at").default(now).notNull(),
-  },
-  (table) => [
-    index("turnstile_token_replays_expiry_idx").on(table.expiresAt),
-    check("turnstile_token_replays_hash_check", sql`length(${table.tokenHash}) = 64`),
   ],
 );

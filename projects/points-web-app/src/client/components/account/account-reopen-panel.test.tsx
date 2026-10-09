@@ -26,6 +26,15 @@ describe("AccountReopenPanel", () => {
     expect(html).toContain("負 1件");
     expect(html).not.toContain('type="checkbox"');
     expect(html).toContain("Googleで再認証");
-    expect(html).toContain("正負すべてを一括受領して再開");
+    expect(html).toContain("アカウントを再開");
+  });
+
+  it("未受領FIXが無い場合は、再開後にAccountsと連携して受領する手順を示す", () => {
+    const html = renderToStaticMarkup(
+      <AccountReopenPanel preview={{ axes: [], reopenSetHash: "hash" }} />,
+    );
+
+    expect(html).toContain("再開後に設定画面でAccountsと連携してから受領できます。");
+    expect(html).toContain("アカウントを再開");
   });
 });

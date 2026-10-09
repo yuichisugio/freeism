@@ -1,11 +1,10 @@
 import { env } from "cloudflare:test";
-import { beforeEach, describe, expect, it } from "vite-plus/test";
+import type { BetterAuthOptions } from "better-auth";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { createPointsAuth } from "../../src/backend/auth/create-auth";
-import type { Bindings } from "../../src/backend/http/context";
 import { adminMembershipRoutePolicies } from "../../src/backend/http/routes/admin-routes";
-import { bootstrapInitialAdmin } from "../../src/backend/usecases/bootstrap-admin";
 import { changeAdminMembership } from "../../src/backend/usecases/change-admin-membership";
 import { provisionPointsUser } from "../../src/backend/usecases/provision-points-user";
 
@@ -49,13 +48,14 @@ function authenticatedApp(authUserId: string, createdAt = new Date()) {
 }
 
 describe("Points user and global ADMIN", () => {
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(async () => {
     await db.batch([
       db.prepare("DROP TRIGGER IF EXISTS permanent_oauth_subject_no_update"),
       db.prepare("DROP TRIGGER IF EXISTS permanent_oauth_subject_no_delete"),
     ]);
     await db.exec(
-      "DELETE FROM audit_event; DELETE FROM admin_membership; DELETE FROM permanent_oauth_subject; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
+      "DELETE FROM admin_membership; DELETE FROM permanent_oauth_subject; DELETE FROM points_user; DELETE FROM account; DELETE FROM session; DELETE FROM user;",
     );
     await db.batch([
       db.prepare(
@@ -69,6 +69,16 @@ describe("Points user and global ADMIN", () => {
          BEGIN SELECT RAISE(ABORT, 'IMMUTABLE_PERMANENT_OAUTH_SUBJECT'); END`,
       ),
     ]);
+  });
+
+  it.each([
+    ["GET", "/api/reconciliation"],
+    ["POST", "/api/reconciliation/run"],
+  ])("returns 404 for the removed %s %s route", async (method, path) => {
+    const app = createPointsBackendApp({ getSession: async () => null });
+    const response = await app.fetch(new Request(`https://points.test${path}`, { method }), env);
+
+    expect(response.status).toBe(404);
   });
 
   it("returns a problem+json 401 when the Better Auth session is missing", async () => {
@@ -272,35 +282,11 @@ describe("Points user and global ADMIN", () => {
     expect(second.id).toBe("pusr_first");
   });
 
-  it("bootstraps only the configured Google account", async () => {
-    await seedAuthUser("owner", "google-owner");
-    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
-
-    expect(
-      await bootstrapInitialAdmin(db, {
-        authUserId: "owner",
-        initialGoogleAccountId: "google-owner",
-        membershipId: "adm_owner",
-        pointsUserId: owner.id,
-      }),
-    ).toBe(true);
-    expect(
-      await bootstrapInitialAdmin(db, {
-        authUserId: "owner",
-        initialGoogleAccountId: "google-owner",
-        membershipId: "adm_duplicate",
-        pointsUserId: owner.id,
-      }),
-    ).toBe(false);
-  });
-
-  it("provisions and bootstraps from the Better Auth session create hook", async () => {
+  it("provisions from the Better Auth session create hook", async () => {
     await seedAuthUser("hook-owner", "google-hook-owner");
-    const auth = createPointsAuth({
-      ...(env as Bindings),
-      INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: "google-hook-owner",
-    });
-    const hook = (await auth.$context).options.databaseHooks?.session?.create?.after;
+    const auth = createPointsAuth(env);
+    const hook = ((await auth.$context).options as BetterAuthOptions).databaseHooks?.session?.create
+      ?.after;
 
     expect(hook).toBeTypeOf("function");
     await hook?.(
@@ -318,51 +304,58 @@ describe("Points user and global ADMIN", () => {
     const pointsUser = await db
       .prepare("SELECT id FROM points_user WHERE auth_user_id = 'hook-owner'")
       .first<{ id: string }>();
+    expect(pointsUser?.id).toMatch(/^pusr_/);
     const admin = await db
       .prepare("SELECT points_user_id AS pointsUserId FROM admin_membership")
       .first<{ pointsUserId: string }>();
-    expect(pointsUser?.id).toMatch(/^pusr_/);
-    expect(admin?.pointsUserId).toBe(pointsUser?.id);
+    expect(admin).toBeNull();
   });
 
   it("refuses to delete the final ADMIN", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     await seedAuthUser("owner", "google-owner");
     const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "owner",
-      initialGoogleAccountId: "google-owner",
-      membershipId: "adm_owner",
-      pointsUserId: owner.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
 
     await expect(
       changeAdminMembership(db, {
         action: "DELETE",
         actorPointsUserId: owner.id,
-        auditEventId: "audit-delete",
         reason: "must keep one admin",
         requestId: "req-delete",
         targetPointsUserId: owner.id,
       }),
     ).rejects.toThrow("LAST_ADMIN_REQUIRED");
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "ADMIN_MEMBERSHIP_DELETE",
+        outcome: "REJECTED",
+        code: "LAST_ADMIN_REQUIRED",
+      }),
+    );
   });
 
-  it("adds and removes an ADMIN with a reason and audit event", async () => {
+  it("adds and removes an ADMIN with structured audit logs", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     await seedAuthUser("owner", "google-owner");
     await seedAuthUser("second");
     const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
     const second = await provisionPointsUser(db, "second", () => "pusr_second");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "owner",
-      initialGoogleAccountId: "google-owner",
-      membershipId: "adm_owner",
-      pointsUserId: owner.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
 
     await changeAdminMembership(db, {
       action: "ADD",
       actorPointsUserId: owner.id,
-      auditEventId: "audit-add",
       membershipId: "adm_second",
       reason: "share administration",
       requestId: "req-add",
@@ -371,7 +364,6 @@ describe("Points user and global ADMIN", () => {
     await changeAdminMembership(db, {
       action: "DELETE",
       actorPointsUserId: owner.id,
-      auditEventId: "audit-remove",
       reason: "handover complete",
       requestId: "req-remove",
       targetPointsUserId: owner.id,
@@ -380,14 +372,55 @@ describe("Points user and global ADMIN", () => {
     const memberships = await db
       .prepare("SELECT points_user_id AS pointsUserId FROM admin_membership")
       .all<{ pointsUserId: string }>();
-    const audits = await db
-      .prepare("SELECT action FROM audit_event ORDER BY created_at, id")
-      .all<{ action: string }>();
     expect(memberships.results).toEqual([{ pointsUserId: second.id }]);
-    expect(audits.results.map(({ action }) => action)).toEqual([
-      "ADMIN_MEMBERSHIP_ADD",
-      "ADMIN_MEMBERSHIP_DELETE",
+    const auditLogs = logs.mock.calls.map(([log]) => log);
+    expect(auditLogs).toEqual([
+      expect.objectContaining({
+        operation: "ADMIN_MEMBERSHIP_ADD",
+        outcome: "SUCCESS",
+        requestId: "req-add",
+      }),
+      expect.objectContaining({
+        operation: "ADMIN_MEMBERSHIP_DELETE",
+        outcome: "SUCCESS",
+        requestId: "req-remove",
+      }),
     ]);
+    expect(JSON.stringify(auditLogs)).not.toContain("share administration");
+    expect(JSON.stringify(auditLogs)).not.toContain(owner.id);
+  });
+
+  it("preserves a committed ADMIN change when audit logging fails", async () => {
+    await seedAuthUser("owner", "google-owner");
+    await seedAuthUser("second");
+    const owner = await provisionPointsUser(db, "owner", () => "pusr_owner");
+    const second = await provisionPointsUser(db, "second", () => "pusr_second");
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_owner', ?, 'ADMIN')",
+      )
+      .bind(owner.id)
+      .run();
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {
+      throw new Error("LOG_SINK_UNAVAILABLE");
+    });
+    await expect(
+      changeAdminMembership(db, {
+        action: "ADD",
+        actorPointsUserId: owner.id,
+        membershipId: "adm_second",
+        reason: "delegate",
+        requestId: "req-log-failure",
+        targetPointsUserId: second.id,
+      }),
+    ).resolves.toBeUndefined();
+    expect(logs).toHaveBeenCalledTimes(1);
+    expect(
+      await db
+        .prepare("SELECT count(*) AS count FROM admin_membership WHERE points_user_id = ?")
+        .bind(second.id)
+        .first(),
+    ).toEqual({ count: 1 });
   });
 
   it("keeps one ADMIN when two ADMINs concurrently delete each other", async () => {
@@ -395,16 +428,15 @@ describe("Points user and global ADMIN", () => {
     await seedAuthUser("second");
     const first = await provisionPointsUser(db, "first", () => "pusr_first");
     const second = await provisionPointsUser(db, "second", () => "pusr_second");
-    await bootstrapInitialAdmin(db, {
-      authUserId: "first",
-      initialGoogleAccountId: "google-first",
-      membershipId: "adm_first",
-      pointsUserId: first.id,
-    });
+    await db
+      .prepare(
+        "INSERT INTO admin_membership (id, points_user_id, role) VALUES ('adm_first', ?, 'ADMIN')",
+      )
+      .bind(first.id)
+      .run();
     await changeAdminMembership(db, {
       action: "ADD",
       actorPointsUserId: first.id,
-      auditEventId: "audit-add-second",
       membershipId: "adm_second",
       reason: "add second admin",
       requestId: "req-add-second",
@@ -415,7 +447,6 @@ describe("Points user and global ADMIN", () => {
       changeAdminMembership(db, {
         action: "DELETE",
         actorPointsUserId: first.id,
-        auditEventId: "audit-first-deletes-second",
         reason: "concurrent deletion",
         requestId: "req-first-deletes-second",
         targetPointsUserId: second.id,
@@ -423,7 +454,6 @@ describe("Points user and global ADMIN", () => {
       changeAdminMembership(db, {
         action: "DELETE",
         actorPointsUserId: second.id,
-        auditEventId: "audit-second-deletes-first",
         reason: "concurrent deletion",
         requestId: "req-second-deletes-first",
         targetPointsUserId: first.id,

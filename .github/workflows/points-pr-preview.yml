@@ -1,0 +1,99 @@
+name: Points PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: points-pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: web-app-staging
+    env:
+      CI: "true"
+      WRANGLER_SEND_METRICS: "false"
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          version: 10.33.3
+          run_install: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Test Points
+        run: |
+          pnpm --filter @freeism/points-web-app exec vp check --no-fmt
+          pnpm --filter @freeism/points-web-app exec vp fmt src scripts test vite.config.ts wrangler.jsonc --check
+          pnpm --filter @freeism/points-web-app test
+          pnpm --filter @freeism/points-web-app test:worker
+
+      - name: Build Points staging version
+        env:
+          CLOUDFLARE_ENV: staging
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
+          BASIC_AUTH_USERNAME: "build-only"
+          BASIC_AUTH_PASSWORD: "build-only"
+        run: pnpm --filter @freeism/points-web-app exec vp build
+
+      - name: Set the fixed Version URL and Preview CSP
+        working-directory: projects/points-web-app
+        shell: bash
+        run: |
+          preview_subdomain="$(jq -er '.vars.PREVIEW_WORKERS_SUBDOMAIN' dist/server/wrangler.json)"
+          pnpm exec tsx scripts/preview-generated.ts "$preview_subdomain"
+          preview_host="points-pr-${PR_NUMBER}-points-worker-staging.${preview_subdomain}.workers.dev"
+          preview_origin="https://${preview_host}"
+          APP_HOST="$preview_host" APP_ORIGIN="$preview_origin" pnpm exec tsx scripts/generate-static-security-headers.ts . preview "$preview_host"
+          echo "PREVIEW_SUBDOMAIN=$preview_subdomain" >> "$GITHUB_ENV"
+          echo "APP_HOST=$preview_host" >> "$GITHUB_ENV"
+          echo "APP_ORIGIN=$preview_origin" >> "$GITHUB_ENV"
+
+      - name: Upload Points version with the PR alias
+        working-directory: projects/points-web-app
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          pnpm exec wrangler versions upload \
+            --config dist/server/wrangler.json \
+            --preview-alias "points-pr-${PR_NUMBER}" \
+            --var "APP_HOST:${APP_HOST}" \
+            --var "APP_ORIGIN:${APP_ORIGIN}"
+
+      - name: Smoke test Points Version URL
+        run: pnpm --filter @freeism/points-web-app smoke:preview "$PR_NUMBER" "$PREVIEW_SUBDOMAIN"
+
+      - name: Show Preview URL on the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          body="Points Preview: ${APP_ORIGIN}"
+          echo "$body" >> "$GITHUB_STEP_SUMMARY"
+          endpoint="repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments"
+          comment_id="$(gh api "$endpoint" --paginate --jq '.[] | select(.user.type == "Bot" and (.body | startswith("Points Preview: "))) | .id' | head -1)"
+          if [[ -n "$comment_id" ]]; then
+            jq -n --arg body "$body" '{body: $body}' | gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" --input - > /dev/null
+          else
+            jq -n --arg body "$body" '{body: $body}' | gh api --method POST "$endpoint" --input - > /dev/null
+          fi

@@ -11,7 +11,6 @@ describe("ProfileSettingsForm", () => {
           description: "",
           displayName: "Test",
           evaluationVisibilities: [],
-          externalUrls: [],
           pointPackages: [
             { displayOrder: 0, pointPackageId: "package-1" },
             { displayOrder: 1, pointPackageId: "package-2" },

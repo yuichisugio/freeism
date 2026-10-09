@@ -58,7 +58,7 @@ export function AuctionListPage({ client = marketsClient }: Readonly<{ client?: 
             <option value="">すべて</option>
             <option value="SCHEDULED">開始前</option>
             <option value="OPEN">開催中</option>
-            <option value="CLOSED">終了</option>
+            <option value="CLOSING">終了処理中</option>
             <option value="SETTLING">精算中</option>
             <option value="SETTLED">精算済み</option>
           </select>

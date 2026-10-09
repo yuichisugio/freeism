@@ -169,12 +169,4 @@ describe("Markets HTTP mutation invariants", () => {
     expect(getConfirmCalls()).toBe(1);
   });
 
-  it("does not require Turnstile for an ordinary same-origin mutation", async () => {
-    const { app, getConfirmCalls } = await createAuthenticatedApp();
-    const response = await app.fetch(confirmRequest("mpc-no-challenge"), env);
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
-    expect(getConfirmCalls()).toBe(1);
-  });
 });

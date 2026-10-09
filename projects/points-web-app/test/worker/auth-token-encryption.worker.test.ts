@@ -18,7 +18,10 @@ function withSecrets(secrets: string): Parameters<typeof createPointsAuth>[0] {
 }
 
 async function authContext(secrets: string) {
-  return createPointsAuth(withSecrets(secrets)).$context;
+  // Better Auth の具体的な設定型と OAuth helper の共通 Context 型は実体が同じ。
+  return (await createPointsAuth(withSecrets(secrets)).$context) as unknown as Parameters<
+    typeof decryptOAuthToken
+  >[1];
 }
 
 async function encryptToken(token: string, context: Awaited<ReturnType<typeof authContext>>) {

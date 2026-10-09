@@ -1,24 +1,13 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
-import { fixedPages } from "virtual:fixed-pages";
+import { fixedPages, type FixedPageData } from "./fixed-page-sources";
 
 import {
   FIXED_PAGE_LANGUAGE_STORAGE_KEY,
   type FixedPageLanguage,
   resolveFixedPageLanguage,
 } from "./fixed-page-language";
-
-export interface FixedPageSource {
-  markdown: string;
-  sourceSha256: string;
-}
-
-export interface FixedPageData {
-  en: FixedPageSource;
-  ja: FixedPageSource;
-  route: "terms" | "privacy" | "help" | "docs";
-}
 
 function browserLanguages(): readonly string[] {
   return typeof navigator === "undefined" ? [] : navigator.languages;
@@ -87,7 +76,6 @@ export function FixedPageView({ page }: { page: FixedPageData }) {
             aria-hidden={hiddenFromAccessibility}
             className="fixed-page-language"
             data-language={locale}
-            data-source-sha256={source.sourceSha256}
             key={locale}
             lang={locale}
           >

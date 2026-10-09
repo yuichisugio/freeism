@@ -102,7 +102,7 @@ export function registerAdminRoutes(app: Hono<BackendContext>, getSession: GetSe
       await changeAdminMembership(requireBindings(context.env).DB, {
         action: "ADD",
         actorPointsUserId: context.get("pointsUser").id,
-        auditEventId: `audit_${crypto.randomUUID()}`,
+        environment: requireBindings(context.env).APP_ENV,
         membershipId: `adm_${crypto.randomUUID()}`,
         reason: body.reason as string,
         requestId,
@@ -136,7 +136,7 @@ export function registerAdminRoutes(app: Hono<BackendContext>, getSession: GetSe
       await changeAdminMembership(requireBindings(context.env).DB, {
         action: "DELETE",
         actorPointsUserId: context.get("pointsUser").id,
-        auditEventId: `audit_${crypto.randomUUID()}`,
+        environment: requireBindings(context.env).APP_ENV,
         reason: body.reason as string,
         requestId: `req_${crypto.randomUUID()}`,
         targetPointsUserId: context.req.param("pointsUserId")!,

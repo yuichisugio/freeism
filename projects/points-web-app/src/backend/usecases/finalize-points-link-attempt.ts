@@ -17,7 +17,10 @@ interface AttemptRow {
   finalizeIdempotencyKey: string | null;
   marketsPointsConnectionId: string | null;
   m2mClientId: string;
+  marketsUserId: string;
   payloadHash: string;
+  pointsUserId: string | null;
+  requestedScopes: string;
   status: "PENDING_MARKETS_CONFIRMATION" | "CONFIRMED" | "CANCELLED";
   userClientId: string;
 }
@@ -32,6 +35,7 @@ interface ConnectionRow {
   m2mClientId: string;
   pointsConnectionId: string;
   pointsSubject: string;
+  pointsUserId: string;
   status: "ACTIVE" | "REAUTH_REQUIRED" | "UNLINKED";
   userClientId: string;
 }
@@ -52,17 +56,19 @@ function connectionResult(row: ConnectionRow) {
   };
 }
 
-async function findConnection(db: D1Database, linkAttemptId: string) {
+async function findConnection(db: D1Database, linkAttemptId: string, marketsConnectionId: string) {
   const row = await db
     .prepare(
       `SELECT id AS pointsConnectionId, markets_points_connection_id AS marketsPointsConnectionId,
               user_client_id AS userClientId, m2m_client_id AS m2mClientId,
-              markets_user_id AS marketsUserId, issuer, points_subject AS pointsSubject,
+              markets_user_id AS marketsUserId, points_user_id AS pointsUserId,
+              issuer, points_subject AS pointsSubject,
               granted_scopes AS grantedScopes, status, grant_version AS grantVersion,
               linked_at AS linkedAt
-       FROM points_oauth_connection WHERE link_attempt_id = ?`,
+       FROM points_oauth_connection
+       WHERE link_attempt_id = ? OR markets_points_connection_id = ?`,
     )
-    .bind(linkAttemptId)
+    .bind(linkAttemptId, marketsConnectionId)
     .first<ConnectionRow>();
   return row ? connectionResult(row) : null;
 }
@@ -85,7 +91,9 @@ export async function finalizePointsLinkAttempt(
   const attempt = await db
     .prepare(
       `SELECT payload_hash AS payloadHash, user_client_id AS userClientId,
-              m2m_client_id AS m2mClientId, status,
+              m2m_client_id AS m2mClientId, markets_user_id AS marketsUserId,
+              points_user_id AS pointsUserId, requested_scopes AS requestedScopes,
+              status,
               expires_at AS expiresAt, finalized_at AS finalizedAt,
               markets_points_connection_id AS marketsPointsConnectionId,
               finalize_idempotency_key AS finalizeIdempotencyKey
@@ -104,7 +112,7 @@ export async function finalizePointsLinkAttempt(
     if (attempt.finalizeIdempotencyKey !== input.idempotencyKey || input.outcome !== "CONFIRM") {
       throw new Error("LINK_ATTEMPT_ALREADY_FINALIZED");
     }
-    const replay = await findConnection(db, input.linkAttemptId);
+    const replay = await findConnection(db, input.linkAttemptId, input.marketsPointsConnectionId);
     if (!replay) throw new Error("LINK_ATTEMPT_FINALIZATION_INCOMPLETE");
     if (
       replay.marketsPointsConnectionId !== input.marketsPointsConnectionId ||
@@ -177,6 +185,81 @@ export async function finalizePointsLinkAttempt(
   }
   if (attempt.userClientId !== input.userClientId) throw new Error("LINK_ATTEMPT_MISMATCH");
 
+  const existing = await db
+    .prepare(
+      `SELECT id AS pointsConnectionId, user_client_id AS userClientId,
+              m2m_client_id AS m2mClientId, markets_user_id AS marketsUserId,
+              points_user_id AS pointsUserId, issuer, points_subject AS pointsSubject,
+              status
+       FROM points_oauth_connection WHERE markets_points_connection_id = ?`,
+    )
+    .bind(input.marketsPointsConnectionId)
+    .first<
+      Pick<
+        ConnectionRow,
+        | "pointsConnectionId"
+        | "userClientId"
+        | "m2mClientId"
+        | "marketsUserId"
+        | "pointsUserId"
+        | "issuer"
+        | "pointsSubject"
+        | "status"
+      >
+    >();
+  if (existing) {
+    if (
+      existing.userClientId !== input.userClientId ||
+      existing.m2mClientId !== input.m2mClientId ||
+      existing.marketsUserId !== attempt.marketsUserId ||
+      existing.pointsUserId !== attempt.pointsUserId ||
+      existing.issuer !== input.issuer ||
+      existing.pointsSubject !== input.pointsSubject ||
+      (existing.status !== "ACTIVE" && existing.status !== "REAUTH_REQUIRED")
+    ) {
+      throw new Error("LINK_ATTEMPT_MISMATCH");
+    }
+    await db.batch([
+      db
+        .prepare(
+          `UPDATE points_oauth_connection
+           SET link_attempt_id = ?, granted_scopes = ?, status = 'ACTIVE',
+               grant_version = grant_version + 1, linked_at = ?, updated_at = ?
+           WHERE id = ?`,
+        )
+        .bind(
+          input.linkAttemptId,
+          attempt.requestedScopes,
+          now.getTime(),
+          now.getTime(),
+          existing.pointsConnectionId,
+        ),
+      db
+        .prepare(
+          `UPDATE points_oauth_link_attempt
+           SET status = 'CONFIRMED', issuer = ?, points_subject = ?,
+               markets_points_connection_id = ?, finalize_idempotency_key = ?, finalized_at = ?
+           WHERE id = ? AND status = 'PENDING_MARKETS_CONFIRMATION' AND expires_at > ?`,
+        )
+        .bind(
+          input.issuer,
+          input.pointsSubject,
+          input.marketsPointsConnectionId,
+          input.idempotencyKey,
+          now.getTime(),
+          input.linkAttemptId,
+          now.getTime(),
+        ),
+    ]);
+    const reauthorized = await findConnection(
+      db,
+      input.linkAttemptId,
+      input.marketsPointsConnectionId,
+    );
+    if (!reauthorized) throw new Error("LINK_ATTEMPT_FINALIZATION_INCOMPLETE");
+    return reauthorized;
+  }
+
   const pointsConnectionId = `pcn_${crypto.randomUUID()}`;
   await db.batch([
     db
@@ -217,7 +300,7 @@ export async function finalizePointsLinkAttempt(
         now.getTime(),
       ),
   ]);
-  const connection = await findConnection(db, input.linkAttemptId);
+  const connection = await findConnection(db, input.linkAttemptId, input.marketsPointsConnectionId);
   if (!connection) throw new Error("LINK_ATTEMPT_FINALIZATION_INCOMPLETE");
   return connection;
 }

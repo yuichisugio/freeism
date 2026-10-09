@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as DocsRouteImport } from './routes/docs'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as SettingsExportsRouteImport } from './routes/settings.exports'
@@ -25,12 +26,12 @@ import { Route as PointsTransfersRouteImport } from './routes/points.transfers'
 import { Route as PointsExchangesRouteImport } from './routes/points.exchanges'
 import { Route as OauthConsentRouteImport } from './routes/oauth.consent'
 import { Route as AdminSubstitutionsRouteImport } from './routes/admin.substitutions'
-import { Route as AdminReconciliationRouteImport } from './routes/admin.reconciliation'
 import { Route as AdminPointPackagesRouteImport } from './routes/admin.point-packages'
 import { Route as AdminMembersRouteImport } from './routes/admin.members'
 import { Route as AdminFixesRouteImport } from './routes/admin.fixes'
 import { Route as AdminExchangeRatesRouteImport } from './routes/admin.exchange-rates'
 import { Route as AdminEvaluationCriteriaRouteImport } from './routes/admin.evaluation-criteria'
+import { Route as AdminAccountsConnectionsRouteImport } from './routes/admin.accounts-connections'
 import { Route as AccountReopenRouteImport } from './routes/account.reopen'
 
 const TermsRoute = TermsRouteImport.update({
@@ -61,6 +62,11 @@ const HelpRoute = HelpRouteImport.update({
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -114,11 +120,6 @@ const AdminSubstitutionsRoute = AdminSubstitutionsRouteImport.update({
   path: '/admin/substitutions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminReconciliationRoute = AdminReconciliationRouteImport.update({
-  id: '/admin/reconciliation',
-  path: '/admin/reconciliation',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminPointPackagesRoute = AdminPointPackagesRouteImport.update({
   id: '/admin/point-packages',
   path: '/admin/point-packages',
@@ -144,6 +145,12 @@ const AdminEvaluationCriteriaRoute = AdminEvaluationCriteriaRouteImport.update({
   path: '/admin/evaluation-criteria',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAccountsConnectionsRoute =
+  AdminAccountsConnectionsRouteImport.update({
+    id: '/admin/accounts-connections',
+    path: '/admin/accounts-connections',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AccountReopenRoute = AccountReopenRouteImport.update({
   id: '/account/reopen',
   path: '/account/reopen',
@@ -152,6 +159,7 @@ const AccountReopenRoute = AccountReopenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -159,12 +167,12 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -177,6 +185,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -184,12 +193,12 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -203,6 +212,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/developer': typeof DeveloperRoute
   '/docs': typeof DocsRoute
   '/help': typeof HelpRoute
   '/login': typeof LoginRoute
@@ -210,12 +220,12 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/terms': typeof TermsRoute
   '/account/reopen': typeof AccountReopenRoute
+  '/admin/accounts-connections': typeof AdminAccountsConnectionsRoute
   '/admin/evaluation-criteria': typeof AdminEvaluationCriteriaRoute
   '/admin/exchange-rates': typeof AdminExchangeRatesRoute
   '/admin/fixes': typeof AdminFixesRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/point-packages': typeof AdminPointPackagesRoute
-  '/admin/reconciliation': typeof AdminReconciliationRoute
   '/admin/substitutions': typeof AdminSubstitutionsRoute
   '/oauth/consent': typeof OauthConsentRoute
   '/points/exchanges': typeof PointsExchangesRoute
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -237,12 +248,12 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -262,12 +274,12 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -280,6 +292,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/developer'
     | '/docs'
     | '/help'
     | '/login'
@@ -287,12 +300,12 @@ export interface FileRouteTypes {
     | '/search'
     | '/terms'
     | '/account/reopen'
+    | '/admin/accounts-connections'
     | '/admin/evaluation-criteria'
     | '/admin/exchange-rates'
     | '/admin/fixes'
     | '/admin/members'
     | '/admin/point-packages'
-    | '/admin/reconciliation'
     | '/admin/substitutions'
     | '/oauth/consent'
     | '/points/exchanges'
@@ -306,6 +319,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DeveloperRoute: typeof DeveloperRoute
   DocsRoute: typeof DocsRoute
   HelpRoute: typeof HelpRoute
   LoginRoute: typeof LoginRoute
@@ -313,12 +327,12 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   TermsRoute: typeof TermsRoute
   AccountReopenRoute: typeof AccountReopenRoute
+  AdminAccountsConnectionsRoute: typeof AdminAccountsConnectionsRoute
   AdminEvaluationCriteriaRoute: typeof AdminEvaluationCriteriaRoute
   AdminExchangeRatesRoute: typeof AdminExchangeRatesRoute
   AdminFixesRoute: typeof AdminFixesRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminPointPackagesRoute: typeof AdminPointPackagesRoute
-  AdminReconciliationRoute: typeof AdminReconciliationRoute
   AdminSubstitutionsRoute: typeof AdminSubstitutionsRoute
   OauthConsentRoute: typeof OauthConsentRoute
   PointsExchangesRoute: typeof PointsExchangesRoute
@@ -372,6 +386,13 @@ declare module '@tanstack/react-router' {
       path: '/docs'
       fullPath: '/docs'
       preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -444,13 +465,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubstitutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/reconciliation': {
-      id: '/admin/reconciliation'
-      path: '/admin/reconciliation'
-      fullPath: '/admin/reconciliation'
-      preLoaderRoute: typeof AdminReconciliationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/point-packages': {
       id: '/admin/point-packages'
       path: '/admin/point-packages'
@@ -486,6 +500,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEvaluationCriteriaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/accounts-connections': {
+      id: '/admin/accounts-connections'
+      path: '/admin/accounts-connections'
+      fullPath: '/admin/accounts-connections'
+      preLoaderRoute: typeof AdminAccountsConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/reopen': {
       id: '/account/reopen'
       path: '/account/reopen'
@@ -498,6 +519,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DeveloperRoute: DeveloperRoute,
   DocsRoute: DocsRoute,
   HelpRoute: HelpRoute,
   LoginRoute: LoginRoute,
@@ -505,12 +527,12 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   TermsRoute: TermsRoute,
   AccountReopenRoute: AccountReopenRoute,
+  AdminAccountsConnectionsRoute: AdminAccountsConnectionsRoute,
   AdminEvaluationCriteriaRoute: AdminEvaluationCriteriaRoute,
   AdminExchangeRatesRoute: AdminExchangeRatesRoute,
   AdminFixesRoute: AdminFixesRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminPointPackagesRoute: AdminPointPackagesRoute,
-  AdminReconciliationRoute: AdminReconciliationRoute,
   AdminSubstitutionsRoute: AdminSubstitutionsRoute,
   OauthConsentRoute: OauthConsentRoute,
   PointsExchangesRoute: PointsExchangesRoute,

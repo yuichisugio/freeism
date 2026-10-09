@@ -64,6 +64,10 @@ describe("Markets greenfield domain schema", () => {
       "0010_watchlist.sql",
       "0011_ops-alert-maintenance.sql",
       "0012_sha256-plan-hash.sql",
+      "0013_remove-turnstile.sql",
+      "0014_settlement-retry-user-token.sql",
+      "0015_markets-admin-role.sql",
+      "0016_multi-points-providers.sql",
     ]);
   });
 
@@ -81,20 +85,27 @@ describe("Markets greenfield domain schema", () => {
     expect(index).toMatch(/markets_user_id[^)]*created_at[^)]*auction_id/i);
   });
 
-  it("keeps settlement retry state target-bound, rate-limited, and append-only", async () => {
-    await expect(uniqueIndexColumns("settlement_retry_authorizations")).resolves.toEqual(
-      expect.arrayContaining([["state_hash"], ["assertion_jti"]]),
-    );
-    await expect(uniqueIndexColumns("settlement_retry_assertion_jtis")).resolves.toContainEqual([
-      "authorization_id",
-    ]);
+  it("keeps settlement retry events idempotent, rate-limited, and append-only", async () => {
+    await expect(tableColumns("settlement_retry_authorizations")).resolves.toEqual([]);
+    await expect(tableColumns("settlement_retry_assertion_jtis")).resolves.toEqual([]);
     await expect(uniqueIndexColumns("settlement_retry_rate_events")).resolves.toContainEqual([
-      "jti",
+      "markets_user_id",
+      "idempotency_key",
     ]);
+    await expect(tableColumns("settlement_retry_rate_events")).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "settlement_id" }),
+        expect.objectContaining({ name: "reason_hash" }),
+        expect.objectContaining({ name: "outbox_id" }),
+        expect.objectContaining({ name: "workflow_attempt" }),
+      ]),
+    );
     const rateSql = await schemaObjectSql("settlement_retry_rate_events");
     expect(rateSql).toMatch(/before update/i);
     expect(rateSql).toMatch(/before delete/i);
     expect(rateSql).toMatch(/SETTLEMENT_RETRY_RATE_LIMITED/);
+    expect(rateSql).toMatch(/markets_user_id = NEW.markets_user_id/i);
+    expect(rateSql).toMatch(/auction_id = NEW.auction_id/i);
   });
 
   it("keeps capture receipts, allocations, proofs, and finalize receipts append-only", async () => {
@@ -145,7 +156,6 @@ describe("Markets greenfield domain schema", () => {
         "idempotency_results",
         "audit_events",
         "websocket_slot_leases",
-        "turnstile_token_replays",
         "ops_alerts",
       ]),
     );
@@ -190,7 +200,7 @@ describe("Markets greenfield domain schema", () => {
     expect(revisionSql).not.toMatch(/\bREAL\b/i);
   });
 
-  it("declares command, event, active-position, slot, and Turnstile uniqueness", async () => {
+  it("declares command, event, active-position, slot, uniqueness", async () => {
     await expect(uniqueIndexColumns("auction_commands")).resolves.toContainEqual([
       "auction_id",
       "command_id",
@@ -210,13 +220,6 @@ describe("Markets greenfield domain schema", () => {
     const slotSql = await schemaObjectSql("websocket_slot_leases");
     expect(slotSql).toMatch(/user_slot[^\n]+between 1 and 20/i);
     expect(slotSql).toMatch(/auction_slot[^\n]+between 1 and 3/i);
-
-    const turnstileColumns = await tableColumns("turnstile_token_replays");
-    const tokenHash = turnstileColumns.find((column) => column.name === "token_hash");
-    const turnstileIndexes = await uniqueIndexColumns("turnstile_token_replays");
-    expect(
-      tokenHash?.pk === 1 || turnstileIndexes.some((columns) => columns.join() === "token_hash"),
-    ).toBe(true);
   });
 
   it("keeps audit and bid events append-only and prevents cascading domain deletion", async () => {

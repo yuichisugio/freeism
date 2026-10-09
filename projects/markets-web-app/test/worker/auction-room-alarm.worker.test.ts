@@ -1,11 +1,13 @@
 import { env, runDurableObjectAlarm, runInDurableObject } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 
 const marketsUserId = "musr_auction_alarm";
 
 async function seedScheduled(auctionId: string, startsAt: string, endsAt: string) {
   const revisionId = `rev-${auctionId}`;
   const packageId = `pps-${auctionId}`;
+  await seedPointsProvider(env.DB);
   await env.DB.batch([
     env.DB.prepare(
       "INSERT OR IGNORE INTO user (id, name, email) VALUES ('auth-alarm', 'Alarm', 'alarm@example.test')",
@@ -14,11 +16,11 @@ async function seedScheduled(auctionId: string, startsAt: string, endsAt: string
       "INSERT OR IGNORE INTO markets_user (id, auth_user_id) VALUES (?, 'auth-alarm')",
     ).bind(marketsUserId),
     env.DB.prepare(
-      "INSERT OR IGNORE INTO point_package_snapshots (id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, 'Alarm package', 1)",
-    ).bind(packageId, `pp-${auctionId}`, `ppr-${auctionId}`),
+      "INSERT OR IGNORE INTO point_package_snapshots (id, provider_id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, ?, 'Alarm package', 1)",
+    ).bind(packageId, testPointsProviderId, `pp-${auctionId}`, `ppr-${auctionId}`),
     env.DB.prepare(
-      "INSERT OR IGNORE INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'SCHEDULED', 1)",
-    ).bind(auctionId, marketsUserId),
+      "INSERT OR IGNORE INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'SCHEDULED', 1)",
+    ).bind(auctionId, testPointsProviderId, marketsUserId),
     env.DB.prepare(
       "INSERT OR IGNORE INTO auction_revisions (id, auction_id, revision_number, title, description, external_url, seller_identity_snapshot, points_issuer, point_package_snapshot_id, quantity, starts_at, ends_at, package_tick, eligibility_receipt_id, auction_command_id, auction_command_hash, package_eligibility_version, eligibility_checked_at, eligibility_valid_until, commit_started_at) VALUES (?, ?, 1, 'Alarm', '', 'https://example.test/item', '{}', 'https://points.example.test', ?, 1, ?, ?, 1, ?, ?, 'hash-alarm', 1, ?, ?, ?)",
     ).bind(

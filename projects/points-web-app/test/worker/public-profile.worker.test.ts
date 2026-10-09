@@ -40,8 +40,8 @@ async function seedPointsUser(options: {
     await db
       .prepare(
         `INSERT INTO profiles
-           (points_user_id, display_name, description, external_urls, visibility, created_at, updated_at)
-         VALUES (?, ?, 'Public description', '["https://example.test/profile"]', ?, ?, ?)`,
+           (points_user_id, display_name, description, visibility, created_at, updated_at)
+         VALUES (?, ?, 'Public description', ?, ?, ?)`,
       )
       .bind(pointsUserId, displayName, options.profileVisibility ?? "PUBLIC", now, now)
       .run();
@@ -69,7 +69,7 @@ describe("public Points profile and search API", () => {
         description: "",
         displayName: "Initial Public User",
         evaluationAccounts: [],
-        externalIdentities: [],
+        accountsLinks: [],
         pointPackages: [],
         pointsUserId: user.pointsUserId,
       },
@@ -89,87 +89,68 @@ describe("public Points profile and search API", () => {
     }
   });
 
-  it("returns only ACTIVE identities whose current ownership epoch still belongs to the user", async () => {
-    const user = await seedPointsUser({ displayName: "Identity Public User" });
+  it("publishes only Accounts links whose saved snapshot is provided", async () => {
+    const user = await seedPointsUser({ displayName: "Accounts Public User" });
     const now = Date.now();
-    const activeOwnershipId = `own_active_${crypto.randomUUID()}`;
-    const activeEpochId = `epoch_active_${crypto.randomUUID()}`;
-    const inactiveOwnershipId = `own_inactive_${crypto.randomUUID()}`;
-    const inactiveEpochId = `epoch_inactive_${crypto.randomUUID()}`;
+    const suffix = crypto.randomUUID();
+    const connectionId = `acon_${suffix}`;
+    const accountsOrigin = `https://accounts-${suffix.slice(0, 8)}.test`;
+    const externalAccounts = [
+      {
+        displayName: "alice",
+        identifiers: [{ type: "url", url: "https://github.com/alice" }],
+        service: "github",
+      },
+    ];
     await db.batch([
       db
         .prepare(
-          `INSERT INTO identity_ownership
-             (id, identity_type, normalized_identity_key, points_user_id, status,
-              current_ownership_epoch_id, verified_at, permanent_correspondence)
-           VALUES (?, 'WEB_URL', ?, ?, 'ACTIVE', ?, ?, 0)`,
+          `INSERT INTO accounts_connections
+             (id, accounts_origin, display_name, client_id, status, client_key_id,
+              client_public_jwk, client_private_jwk_ciphertext, dpop_private_jwk_ciphertext,
+              created_by_points_user_id, created_at, activated_at)
+           VALUES (?, ?, 'Accounts', 'client', 'ACTIVE', 'kid', '{}', 'v1.a.b', 'v1.c.d', ?, ?, ?)`,
+        )
+        .bind(connectionId, accountsOrigin, user.pointsUserId, now, now),
+      db
+        .prepare(
+          `INSERT INTO accounts_links
+             (id, points_user_id, accounts_connection_id, accounts_origin, accounts_user_id,
+              linked_at, provision_status, external_accounts_json, external_accounts_fetched_at)
+           VALUES (?, ?, ?, ?, 'ausr_provided', ?, 'PROVIDED', ?, ?)`,
         )
         .bind(
-          activeOwnershipId,
-          `https://example.test/${user.pointsUserId}`,
+          `alnk_provided_${suffix}`,
           user.pointsUserId,
-          activeEpochId,
+          connectionId,
+          accountsOrigin,
+          now,
+          JSON.stringify(externalAccounts),
           now,
         ),
       db
         .prepare(
-          `INSERT INTO ownership_epoch
-             (id, identity_ownership_id, owner_points_user_id, effective_at, ended_at,
-              verification_method, evidence_hash, success_count, request_id, created_at)
-           VALUES (?, ?, ?, ?, NULL, 'REL_ME', ?, 1, ?, ?)`,
+          `INSERT INTO accounts_links
+             (id, points_user_id, accounts_connection_id, accounts_origin, accounts_user_id,
+              linked_at, provision_status)
+           VALUES (?, ?, ?, ?, 'ausr_stopped', ?, 'NOT_PROVIDED')`,
         )
-        .bind(
-          activeEpochId,
-          activeOwnershipId,
-          user.pointsUserId,
-          now,
-          "a".repeat(64),
-          `req_${crypto.randomUUID()}`,
-          now,
-        ),
-      db
-        .prepare(
-          `INSERT INTO identity_ownership
-             (id, identity_type, normalized_identity_key, points_user_id, status,
-              current_ownership_epoch_id, verified_at, permanent_correspondence)
-           VALUES (?, 'GITHUB_OAUTH', ?, ?, 'INACTIVE', ?, ?, 1)`,
-        )
-        .bind(
-          inactiveOwnershipId,
-          `github:${crypto.randomUUID()}`,
-          user.pointsUserId,
-          inactiveEpochId,
-          now,
-        ),
-      db
-        .prepare(
-          `INSERT INTO ownership_epoch
-             (id, identity_ownership_id, owner_points_user_id, effective_at, ended_at,
-              verification_method, evidence_hash, success_count, request_id, created_at)
-           VALUES (?, ?, ?, ?, NULL, 'GITHUB_OAUTH', ?, 1, ?, ?)`,
-        )
-        .bind(
-          inactiveEpochId,
-          inactiveOwnershipId,
-          user.pointsUserId,
-          now,
-          "b".repeat(64),
-          `req_${crypto.randomUUID()}`,
-          now,
-        ),
+        .bind(`alnk_stopped_${suffix}`, user.pointsUserId, connectionId, accountsOrigin, now),
     ]);
 
     const response = await get(`/api/v1/profiles/${user.pointsUserId}`);
 
     const body = await response.json();
-    expect(JSON.stringify(body)).not.toContain("https://example.test/profile");
+    expect(JSON.stringify(body)).not.toContain("ausr_stopped");
     expect(body).toMatchObject({
       data: {
-        externalIdentities: [
+        accountsLinks: [
           {
-            identityType: "WEB_URL",
-            profileUrl: `https://example.test/${user.pointsUserId}`,
-            verifiedAt: new Date(now).toISOString(),
+            accountsOrigin,
+            accountsProfileUrl: `${accountsOrigin}/profiles/ausr_provided`,
+            accountsUserId: "ausr_provided",
+            externalAccounts,
+            fetchedAt: new Date(now).toISOString(),
           },
         ],
       },

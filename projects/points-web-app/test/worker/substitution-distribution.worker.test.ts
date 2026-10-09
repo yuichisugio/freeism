@@ -275,7 +275,6 @@ describe("substitution and automatic distribution", () => {
       .first<{ revisionId: string }>();
     await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-sub-source-${suffix}`,
       fileHash: "6".repeat(64),
       idempotencyKey: `fix-sub-source-${suffix}`,
       now: new Date(),
@@ -283,6 +282,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-sub-source-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "9",
           amountScaled: 90_000,
           evaluationAt: "2099-01",
@@ -293,11 +293,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/${admin.pointsUser.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/${admin.pointsUser.id}`,
           recipientPointsUserId: admin.pointsUser.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/${admin.pointsUser.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "7".repeat(64),
@@ -431,7 +432,6 @@ describe("substitution and automatic distribution", () => {
 
     const beforeSetting = await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-before-setting-${suffix}`,
       fileHash: "a".repeat(64),
       idempotencyKey: `fix-before-setting-${suffix}`,
       now: new Date(),
@@ -439,6 +439,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-before-setting-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "10",
           amountScaled: 100_000,
           evaluationAt: "2098-12",
@@ -449,11 +450,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "before-setting",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/before-${source.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/before-${source.id}`,
           recipientPointsUserId: source.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/before-${source.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "b".repeat(64),
@@ -494,7 +496,6 @@ describe("substitution and automatic distribution", () => {
 
     await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-before-setting-correction-${suffix}`,
       fileHash: "c".repeat(64),
       idempotencyKey: `fix-before-setting-correction-${suffix}`,
       now: new Date(Date.now() + 1),
@@ -502,6 +503,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-before-setting-correction-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "20",
           amountScaled: 200_000,
           evaluationAt: "2098-12",
@@ -512,11 +514,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "before-setting",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/before-${source.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/before-${source.id}`,
           recipientPointsUserId: source.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/before-${source.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "d".repeat(64),
@@ -548,7 +551,6 @@ describe("substitution and automatic distribution", () => {
 
     const initialFix = await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-dist-${suffix}`,
       fileHash: "4".repeat(64),
       idempotencyKey: `fix-dist-${suffix}`,
       now: new Date(),
@@ -556,6 +558,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-dist-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "10",
           amountScaled: 100_000,
           evaluationAt: "2099-01",
@@ -566,11 +569,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/${source.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/${source.id}`,
           recipientPointsUserId: source.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/${source.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "5".repeat(64),
@@ -634,7 +638,6 @@ describe("substitution and automatic distribution", () => {
       .run();
     await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-dist-correction-${suffix}`,
       fileHash: "8".repeat(64),
       idempotencyKey: `fix-dist-correction-${suffix}`,
       now: new Date(Date.now() + 1),
@@ -642,6 +645,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-dist-correction-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "0",
           amountScaled: 0,
           evaluationAt: "2099-01",
@@ -652,11 +656,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/${source.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/${source.id}`,
           recipientPointsUserId: source.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/${source.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "9".repeat(64),
@@ -684,7 +689,6 @@ describe("substitution and automatic distribution", () => {
     await updateProfilePointPackages(env.DB!, { pointPackageIds: [], pointsUserId: source.id });
     await commitFixRows(env.DB!, {
       actorPointsUserId: admin.pointsUser.id,
-      auditEventId: `audit-unregistered-package-${suffix}`,
       fileHash: "e".repeat(64),
       idempotencyKey: `fix-unregistered-package-${suffix}`,
       now: new Date(Date.now() + 2),
@@ -692,6 +696,7 @@ describe("substitution and automatic distribution", () => {
       requestId: `req-unregistered-package-${suffix}`,
       rows: [
         {
+          accountsOrigin: "https://accounts.test",
           amount: "5",
           amountScaled: 50_000,
           evaluationAt: "2099-02",
@@ -702,11 +707,12 @@ describe("substitution and automatic distribution", () => {
           managementId: "unregistered-package",
           memo: "",
           minimumUnitScaled: 10_000,
-          normalizedRecipientProfileUrl: `https://example.com/unregistered-${source.id}`,
-          recipientAccountId: null,
+          recipientIdentifierType: "url",
+          recipientIdentifierValue: `https://example.com/unregistered-${source.id}`,
           recipientPointsUserId: source.id,
+          recipientAccountsUserId: "",
           recipientProfileUrl: `https://example.com/unregistered-${source.id}`,
-          recipientProviderId: null,
+          resolvedAccountsUserId: null,
         },
       ],
       validationHash: "f".repeat(64),

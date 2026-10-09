@@ -20,4 +20,9 @@ export const FREEISM_SITES = [
     label: "Markets",
     responsibility: "商材情報を含むAuction。",
   },
+  {
+    url: "https://accounts.freeism.app/",
+    label: "Accounts",
+    responsibility: "外部アカウントの統合、所有権証明、公開先ごとの情報提供。",
+  },
 ] as const satisfies readonly FreeismSite[];

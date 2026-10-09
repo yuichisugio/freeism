@@ -3,6 +3,8 @@ export type StructuredLogLevel = "debug" | "error" | "info" | "warn";
 export interface StructuredLogInput {
   app: "markets" | "points";
   attempt?: number;
+  affectedCount?: number;
+  claimedCount?: number;
   code: string;
   correlationId?: string;
   durationMs?: number;
@@ -12,8 +14,11 @@ export interface StructuredLogInput {
   operation: string;
   outcome: string;
   requestId?: string;
-  resourceIdHash?: string;
+  releasedLinkCount?: number;
   resourceType?: string;
+  previousState?: string;
+  nextState?: string;
+  timestamp?: string;
 }
 
 const OPTIONAL_FIELDS = [
@@ -21,8 +26,13 @@ const OPTIONAL_FIELDS = [
   "correlationId",
   "durationMs",
   "requestId",
-  "resourceIdHash",
   "resourceType",
+  "timestamp",
+  "affectedCount",
+  "claimedCount",
+  "releasedLinkCount",
+  "previousState",
+  "nextState",
 ] as const;
 
 export function createStructuredLog(
