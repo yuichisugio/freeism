@@ -237,7 +237,6 @@
     - [staging/smoke](#stagingsmoke)
   - [20. production release gate](#20-production-release-gate)
   - [21. 受入後の撤去](#21-受入後の撤去)
-  - [参照](#参照)
 
 ## 言語
 
@@ -3717,22 +3716,3 @@ production smokeとruntime参照0を確認した後だけ実施する。
 - 旧Vercel/Supabase/Upstash GitHub Secrets
 
 撤去は実装deployと同じtransactionでは行わず、inventory、承認済み対象、削除証跡を残す別checkpointとする。
-
-## 参照
-
-- [Better Auth Security](https://better-auth.com/docs/reference/security)
-- [Better Auth User & Accounts](https://better-auth.com/docs/concepts/users-accounts)
-- [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)
-- [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
-- [Cloudflare Workers compatibility flags](https://developers.cloudflare.com/workers/configuration/compatibility-flags/)
-- [Cloudflare Workers Static Assets HTML handling](https://developers.cloudflare.com/workers/static-assets/routing/advanced/html-handling/)
-- [Cloudflare Durable Objects WebSockets](https://developers.cloudflare.com/durable-objects/best-practices/websockets/)
-- [Cloudflare Workers Vitest Integration](https://developers.cloudflare.com/workers/testing/vitest-integration/)
-- [Cloudflare D1 Database `batch()`](https://developers.cloudflare.com/d1/worker-api/d1-database/)
-- [Cloudflare D1 limits](https://developers.cloudflare.com/d1/platform/limits/)
-- [Cloudflare D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)
-- [Cloudflare Workers Logs](https://developers.cloudflare.com/workers/observability/logs/workers-logs/)
-- [Cloudflare Workers Analytics Engine](https://developers.cloudflare.com/analytics/analytics-engine/)
-- [Cloudflare Analytics Engine limits](https://developers.cloudflare.com/analytics/analytics-engine/limits/)
-- [Cloudflare Email bindings](https://developers.cloudflare.com/workers/wrangler/configuration/#email-bindings)
-- [GitHub protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
