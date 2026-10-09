@@ -9,7 +9,7 @@ import {
 /**
  * 連携アカウント一覧（`QUERY /api/v1/external-accounts`）を取得し、公開表示用のsnapshotとして保存する。
  * 取得の失敗は記録するだけで、前回のsnapshotを維持する。
- * @see ../../../docs/specification/v0.2.1/details-ja/combined-design.ja.md
+ * @see ../../../docs/specification/v0.2.1/details/all.ja.md
  * @see ../../../test/worker/accounts-snapshot-refresh.worker.test.ts
  */
 
