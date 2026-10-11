@@ -1302,19 +1302,19 @@
   - ログイン用OAuthアカウントとPoints本人の対応は永久に保持する。
     - Pointsが管理するテーブルへ、`(providerId, accountId) -> Points userId`の対応を保存する。
     - `(providerId, accountId)`の複合一意制約で、同じOAuthアカウントの対応先を一人に限定する。
-    - Better Auth標準のAccountによる再利用の検査に加え、この永久対応と一意制約を本番公開前に必ず実装する。
     - 成立した対応は別のPointsユーザーへ移さない。
     - 受領済みの評価結果、累計評価額、ポイント増減履歴、訂正先も別のPointsユーザーへ移さない。
-
   - Google・GitHubを同じ認証元一覧に含め、通常ログインとログイン手段の追加で共通に使う。
 
 - 認証情報の取得と保存
   - Google・GitHubから認証時に取得する情報と、Pointsが保存する情報を区別する。
-  - Better Auth標準の`mapProfileToUser`で、実メールの代わりに代用メールを設定する。
-  - 代用メールは、認証元の種類と不変のアカウントIDから決定的に生成し、`.invalid`ドメインを使う。
+  - 代用メールはについて
+    - Better Auth標準の`mapProfileToUser`で、実メールの代わりに代用メールを設定する。
+    - 個人情報をできる限り保持したくないため、無意味な代用メールを登録しておく。
+    - 代用メールは、認証元の種類と不変のアカウントIDから決定的に生成し、`.invalid`ドメインを使う。
+    - 代用メールはBetter Authの必須属性を満たすための値とする。
+    - 本人識別と通知には使わない。
   - 同じ認証元アカウントでは同じ値とし、異なる認証元アカウントでは区別する。
-  - 代用メールはBetter Authの必須属性を満たすための値とする。
-  - 本人識別と通知には使わない。
   - 認証内部の`name`は「仮ユーザー」、`image`は空（`null`）、`emailVerified`は`false`とする。
   - 認証元の実メール・名前・姓名・画像・画像URL・メール確認状態は、保存属性へ引き継がない。
   - 同じ実メールを返すGoogle・GitHubでも、既存の本人対応がなければ別々のPoints本人として登録する。
@@ -1372,7 +1372,6 @@
     - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`とする。
   - OAuth Proxyは既存の認証鍵を使う。
     - 参加するローカル・staging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。
-    - Better Authの更新時も、Proxyに参加する環境を同じバージョンへそろえる。
     - 更新前から進行中のログイン・連携は、更新後にやり直す。
     - 認証鍵とProxyの更新条件は[Better Auth公式資料](https://better-auth.com/docs/plugins/oauth-proxy)を参照する。
   - GoogleとGitHubで別々のPointsユーザーを作成済みの場合は、それぞれ独立した本人対応を保持する。
