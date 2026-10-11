@@ -1449,7 +1449,8 @@ betterAuth({
 - 「情報を更新」は、本人認証を要求する`POST /api/accounts-links/refresh`で実行する。情報更新だけでは未受領評価を受領しない。
 - 取得成功時は、連携ごとの最新一覧・状態・取得日時を更新する。Accounts側の情報や提供許可の変更は、次の取得時に反映する。
 - 通信失敗・制限超過・不正な応答では前回の情報と公開表示を維持する。本人には更新失敗と前回取得した情報であることを表示し、初回取得の失敗は「未取得」とする。
-- Accountsの応答で提供情報がないことを確認した場合は、取得済み一覧を消して公開表示を止める。Accountsユーザーの退会も同じ扱いとし、連携対応と確定済みポイントは保持する。
+- Accounts APIの応答で提供情報が取り消されたことを確認した場合は、取得済み一覧を消して「未取得」にする。
+  - Accountsユーザーの退会も同じ扱いとし、連携対応と確定済みポイントは保持する。
 - 公開プロフィールには保存済み情報を使い、公開画面の閲覧ではAccountsへ問い合わせない。
 
 ### 連携後の自動受領
@@ -1462,15 +1463,19 @@ betterAuth({
 
 ### 連携解除
 
-- `DELETE /api/accounts-links/{accountsLinkId}`で、本人の連携だけを削除する。本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。
+- `DELETE /api/accounts-links/{accountsLinkId}`で、本人の連携だけを削除する。
+  - 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。
 - 解除した連携の一覧と公開表示を終了する。Accountsが人物を返しても、Points内に現在の連携対応がある場合だけ、そのPoints本人へ対応付ける。
 - Accounts側の提供設定は維持する。提供を止めたい本人には、AccountsでPointsへの公開選択をすべて外す操作を案内する。
 - 解除後も確定済みの評価・ポイント・取引記録は保持する。未受領分は残し、再連携後に現在の受領資格で処理する。
 
 ### 接続先Accountsの管理
 
-- 接続先の登録・有効化・取り下げは`appAdmin`が行う。利用者の選択肢は`QUERY /api/accounts-connections`が返す`ACTIVE`の接続先ID・表示名・originとする。
-- 管理画面は`/admin/accounts-connections`とする。作成・有効化・取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。有効化・取り下げの対象がない場合は`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。
+- 接続先の登録・有効化・取り下げは`appAdmin`が行う。
+  - 利用者の選択肢は`QUERY /api/accounts-connections`が返す`ACTIVE`の接続先ID・表示名・originとする。
+- 管理画面は`/admin/accounts-connections`とする。
+  - 作成・有効化・取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。
+  - 有効化・取り下げの対象がない場合は`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。
 - 作成時はoriginと、前後の空白を除いて1〜100文字の表示名を入力する。originはHTTPSとし、path・query・fragment・userinfoを含めない。`APP_ENV=local`ではloopbackのHTTPも受け付ける。
 - 接続先のメタデータを取得し、`issuer`がoriginと一致すること、`private_key_jwt`・EdDSA・DPoP・PKCE S256・`openid`・`identities:read`・認可応答の`iss`への対応を検証する。
 - 表示名の違反は`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originの違反は`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、取得したメタデータの条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
