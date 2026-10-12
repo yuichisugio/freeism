@@ -966,7 +966,7 @@
 - 削除する本人情報と設定
   - 本人が登録した表示名・説明と、取得済みの外部アカウント情報など、本人のプロフィール情報を保存先から削除する。
   - 公開設定、公式パッケージの登録と順序、自動分配設定も削除する。
-  - 本人に連携しているすべてのAccountsユーザーとの対応を削除する。
+  - 本人のAccounts用の標準Account行と、その拡張項目を削除する。
   - アカウントを退会済みの`CLOSED`にし、公開プロフィールとその公開応答を停止する。検索結果にも含めない。
   - 本人の全セッションと外部アプリへの認可を失効させてログアウトする。他のPointsアカウントのログイン状態は維持する。
   - Accounts側のそのPointsへの情報提供設定は維持する。情報提供も停止したい本人は、AccountsでPointsへの公開のチェックを外す。
@@ -976,7 +976,7 @@
   - 残高、負の残高、累計評価額、評価入力、受領済み記録、取引記録、未受領中を含むポイント増減履歴、落札の引き落としを保持する。
   - 確定済みの再開待ち分配と、取り分方式で確保した額も保持する。本人の設定削除では割当を取り消さない。
   - 負の残高でも退会できる。再開時には同じ残高を引き継ぐため、退会によって帳消しにはならない。
-  - Google・GitHubの認証元IDと同じPoints本人を識別する対応は、非公開で保持する。
+  - Google・GitHubの標準Account行、対応する標準User行、同じPoints本人との対応は、非公開で保持する。保存先と削除の制限は[OAuthログイン](#oauthログイン)に従う。
   - 認証内部の代用メールと固定名・空画像は、本人識別に必要な認証対応とともに保持する。
   - 管理者が登録した評価の宛先URL・メモ・管理IDは、登録・訂正に必要な記録として、管理権限の範囲で保持する。
     - そのため、認証対応を扱う運営者や、評価入力の閲覧権限を持つ管理者には、退会後も本人を特定できる場合がある。
@@ -1256,6 +1256,13 @@
   - 項目名・案内・入力エラー・確認結果の説明を、選んだ言語へ切り替える。
   - ページ再読み込みや画面移動後も、保存した言語を適用する。
 
+- 認証エラーの翻訳
+  - Better Authが返すエラーメッセージには、公式の[`@better-auth/i18n`](https://better-auth.com/docs/plugins/i18n)と同梱の日英辞書を使う。
+  - Points画面からBetter Authへ送る要求には、選択中の`ja`または`en`を`Accept-Language`へ設定し、標準のヘッダー判定で翻訳する。言語の保存先は上記の`localStorage`とする。
+  - エラーコードと標準の応答形式を保持し、翻訳がない認証エラーは標準の英語メッセージを表示する。
+  - OAuthの画面遷移後に戻るエラーは、Points画面がエラーコードから選択中の言語へ翻訳する。
+  - 表示中の認証エラーもコードを保持し、言語切替時に翻訳し直す。画面の項目名・案内と、Points独自の業務エラーはPointsの翻訳辞書で管理する。
+
 ## 複数のPointsアカウントの切り替え
 
 - アカウントと追加
@@ -1300,11 +1307,18 @@
   - Google・GitHubのOAuth認証を提供し、Points独自のログイン状態をBetter Authで管理する。
   - 認証元の種類と不変のアカウントIDで本人を識別する。Googleは`sub`、GitHubは数値のアカウントIDを使う。
   - ログイン用OAuthアカウントとPoints本人の対応は永久に保持する。
-    - Pointsが管理するテーブルへ、`(providerId, accountId) -> Points userId`の対応を保存する。
-    - `(providerId, accountId)`の複合一意制約で、同じOAuthアカウントの対応先を一人に限定する。
-    - 成立した対応は別のPointsユーザーへ移さない。
+    - Better Auth標準Accountの`providerId`・`accountId`で認証元アカウントを特定し、`userId`から標準Userへ対応づける。
+    - Pointsの本人テーブルの`auth_user_id`から、標準UserとPointsユーザーIDを一対一に対応づける。
+    - 標準Accountテーブルに`(providerId, accountId)`の複合一意制約を定義し、同じOAuthアカウントの対応先を一人に限定する。
+    - 標準Accountの`userId`とPointsの`auth_user_id`は、成立した本人対応から変更しない。
     - 受領済みの評価結果、累計評価額、ポイント増減履歴、訂正先も別のPointsユーザーへ移さない。
   - Google・GitHubを同じ認証元一覧に含め、通常ログインとログイン手段の追加で共通に使う。
+
+- 本人対応の保持と削除の制限
+  - 退会後も標準UserとGoogle・GitHubの標準Accountを保持し、同じ認証元でのログインを元のPoints本人の再開へつなぐ。
+  - 本人による標準Userの物理削除は`user.deleteUser.enabled: false`で無効にし、Adminプラグインのロールにもユーザー削除権限を付けない。
+  - Adminの権限は`appAdmin`ロールで管理し、ロールの判定を迂回する`adminUserIds`は空にする。
+  - 標準の`databaseHooks.account.delete.before`でGoogle・GitHubのAccount削除をエラーとして拒否する。Accounts連携の解除は、対象のAccounts用Account行だけを削除する。
 
 - 認証情報の取得と保存
   - Google・GitHubから認証時に取得する情報と、Pointsが保存する情報を区別する。
@@ -1378,19 +1392,24 @@
     - 同じPoints本人として使う場合は、第二の認証元で新規登録する前に、既存の本人へログインして設定画面から追加する。
 
 - 公式資料
+  - 本人対応は[標準のAccountモデル](https://better-auth.com/docs/concepts/database#account)、削除の制限は[ユーザー削除](https://better-auth.com/docs/concepts/users-accounts#delete-user)と[Adminのアクセス制御](https://better-auth.com/docs/plugins/admin#access-control)を参照する。
   - 属性の変換と代用メールは[Better AuthのOAuth設定](https://better-auth.com/docs/concepts/oauth#mapprofiletouser)と[メールを提供しない認証元への対応](https://better-auth.com/docs/concepts/oauth#handling-providers-without-email)を参照する。
   - 明示連携は[Better Authのユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts)、有効期間と延長は[セッション管理](https://better-auth.com/docs/concepts/session-management)を参照する。
   - アカウント選択は[GoogleのOpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)と[GitHubのOAuth認可](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)を参照する。
 
+- 実装との差と確認事項
+  - 現在の`permanent_oauth_subject`による本人対応を、標準Account・UserとPoints本人テーブルの対応へ移す。既存のPointsユーザーIDと経済履歴の帰属を維持する。
+  - 同じ認証元での再ログイン、明示連携、別本人への重複連携の拒否、退会・再開、標準API経由の削除拒否、Accounts連携だけの解除を確認する。
+
 ### Better Auth共通設定
 
 - OAuthアカウントの連携と保存の設定は、`account`と`account.accountLinking`の配下へ置く。
-- Google・GitHubのアクセストークン・リフレッシュトークンを保存する場合は、`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。
+- 標準Accountへアクセストークン・リフレッシュトークンを保存する場合は、`account.encryptOAuthTokens: true`で暗号化してD1へ保存する。
   - 暗号化にはBetter Auth標準のバージョン付き認証鍵を使う。
   - 暗号化形式とアルゴリズムはBetter Authの標準仕様に従う。
 - Workers Secretsから認証鍵の一覧を組み立てる。
   - 先頭の鍵を現在の暗号化に使い、残りの鍵は復号だけに使う。
-- IDトークンの非保存は、Accountの作成・更新前の[標準フック](https://better-auth.com/docs/concepts/database#database-hooks)で保存対象から本体を除く処理として実装する。
+- Google・GitHub・AccountsのIDトークンは検証に使い、Accountの作成・更新前の[標準フック](https://better-auth.com/docs/concepts/database#database-hooks)で保存対象から本体を除く。
 - 以下の例は、保存するトークンの暗号化と明示連携の設定を示す。認証属性の変換とIDトークンの非保存も、上記の保存方針に合わせる。
 
 ```ts
@@ -1443,13 +1462,13 @@ betterAuth({
 
 - 一覧にはAccountsサービスの表示名・origin、AccountsユーザーID、状態、最後に取得した外部アカウント一覧と取得日時を表示する。
 - 各連携にAccountsの管理画面`{origin}/account-links`とプロフィール`{origin}/profiles/{accountsUserId}`へのリンク、再連携、解除を表示する。
-- 状態は、情報を提供している`PROVIDED`を「提供中」、提供情報がない`NOT_PROVIDED`を「情報提供なし」、一度も取得に成功していない場合を「未取得」と表示する。
+- 状態は、取得に成功して提供情報がある場合を「提供中」、取得に成功して提供情報がない場合を「情報提供なし」、一度も取得に成功していない場合を「未取得」と表示する。
 - 情報は連携・再連携直後と、本人が「情報を更新」を押したときに取得する。更新ボタンは、有効な接続先の本人の全連携をまとめて取得する。
 - `QUERY /api/accounts-links`は保存済み情報を返す。設定画面の表示・再読み込みではAccountsへ問い合わせない。
 - 「情報を更新」は、本人認証を要求する`POST /api/accounts-links/refresh`で実行する。情報更新だけでは未受領評価を受領しない。
 - 取得成功時は、連携ごとの最新一覧・状態・取得日時を更新する。Accounts側の情報や提供許可の変更は、次の取得時に反映する。
 - 通信失敗・制限超過・不正な応答では前回の情報と公開表示を維持する。本人には更新失敗と前回取得した情報であることを表示し、初回取得の失敗は「未取得」とする。
-- Accounts APIの応答で提供情報が取り消されたことを確認した場合は、取得済み一覧を消して「未取得」にする。
+- Accounts APIの応答で提供情報が取り消されたことを確認した場合は、取得済み一覧を消して「情報提供なし」にする。
   - Accountsユーザーの退会も同じ扱いとし、連携対応と確定済みポイントは保持する。
 - 公開プロフィールには保存済み情報を使い、公開画面の閲覧ではAccountsへ問い合わせない。
 
@@ -1465,45 +1484,201 @@ betterAuth({
 
 - `DELETE /api/accounts-links/{accountsLinkId}`で、本人の連携だけを削除する。
   - 本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。
+- Pointsの解除処理は、対象が本人所有のAccounts用Account行であることを検証し、標準の`unlinkAccount`でその一件を削除する。
+  - `account.id`で対象を指定し、同じ接続先の他の連携を維持する。
+  - 標準解除APIから呼び出した場合も、Google・GitHubのログイン手段は解除できないようにする。
+
 - 解除した連携の一覧と公開表示を終了する。Accountsが人物を返しても、Points内に現在の連携対応がある場合だけ、そのPoints本人へ対応付ける。
 - Accounts側の提供設定は維持する。提供を止めたい本人には、AccountsでPointsへの公開選択をすべて外す操作を案内する。
 - 解除後も確定済みの評価・ポイント・取引記録は保持する。未受領分は残し、再連携後に現在の受領資格で処理する。
 
 ### 接続先Accountsの管理
 
-- 接続先の登録・有効化・取り下げは`appAdmin`が行う。
+- 管理者は、一般ユーザーが連携先として選べるAccountsサービスを登録する。
+  - 登録・有効化・取り下げ・再有効化の準備は、Pointsのアプリ全体管理者`appAdmin`が`/admin/accounts-connections`で行う。
+  - 接続先を有効にした後、各ユーザーがそのAccountsで本人認証と情報提供への同意を行い、自分のPointsアカウントへ連携する。
   - 利用者の選択肢は`QUERY /api/accounts-connections`が返す`ACTIVE`の接続先ID・表示名・originとする。
-- 管理画面は`/admin/accounts-connections`とする。
-  - 作成・有効化・取り下げは理由と`Idempotency-Key`を要求し、同じキーの再送には保存した応答を返す。
-  - 有効化・取り下げの対象がない場合は`404 ACCOUNTS_CONNECTION_NOT_FOUND`とする。
-- 作成時はoriginと、前後の空白を除いて1〜100文字の表示名を入力する。originはHTTPSとし、path・query・fragment・userinfoを含めない。`APP_ENV=local`ではloopbackのHTTPも受け付ける。
-- 接続先のメタデータを取得し、`issuer`がoriginと一致すること、`private_key_jwt`・EdDSA・DPoP・PKCE S256・`openid`・`identities:read`・認可応答の`iss`への対応を検証する。
-- 表示名の違反は`422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID`、originの違反は`422 ACCOUNTS_CONNECTION_ORIGIN_INVALID`、取得したメタデータの条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
-- 同じoriginで`WITHDRAWN`以外の接続先は1件だけとする。重複は`409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED`とする。
-- 別のURLへ変更する場合は新しい接続先を追加し、利用者が新しい接続先で認証と同意をして連携する。旧接続先の連携は、その接続先を取り下げるまで維持する。
-- 接続先の作成時に、Pointsは`private_key_jwt`の署名用とDPoP用にEd25519鍵を一組ずつ生成し、状態を`PENDING_CLIENT_REGISTRATION`とする。
-- 秘密鍵とAccess Tokenは、Worker secretの`ACCOUNTS_KEY_ENCRYPTION_KEY`を使い、AES-256-GCMで暗号化してD1へ保存する。暗号化鍵はbase64の32バイト、AADは接続先IDと用途を含む値とする。
-- 共有テストD1を使うstaging・プレビュー共通設定・作成済みPR・ローカルでは、保存済みの鍵とTokenを復号できるよう、同じ`ACCOUNTS_KEY_ENCRYPTION_KEY`を使う。
-- 管理画面には、Accountsへ登録する推奨アプリ名`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、署名用の公開JWK Setを表示する。DPoP用の鍵はPointsが保管し、要求ごとのDPoP proofに使う。
-- 連携完了URLは、ローカル・staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`、本番では本番originの同じpathとする。
-- 管理者は表示されたアプリ情報・URL・署名用公開鍵をAccountsへ登録し、取得したClient IDをPointsへ入力する。
-- PointsはClient IDと保存済みの鍵で、Client Credentialsの`identities:read` Access Tokenを取得する。取得できた場合だけ接続先を`ACTIVE`にする。
-- Client IDや登録鍵の条件によるToken取得の拒否は`422 ACCOUNTS_CLIENT_VERIFICATION_FAILED`、取得したメタデータの条件違反は`422 ACCOUNTS_DISCOVERY_INVALID`とする。
-- 外部サービスの通信失敗・一時的な利用不能は`503 DEPENDENCY_UNAVAILABLE`、不正な外部応答は`502 DEPENDENCY_UNAVAILABLE`、応答待ちのタイムアウトは`504 DEPENDENCY_UNAVAILABLE`とする。待ち時間が分かる場合は`Retry-After`を返す。
-- 有効化の検証に失敗した場合は、接続先を`PENDING_CLIENT_REGISTRATION`に保つ。
-- Client IDは前後の空白を除いて1〜255文字とする。違反は`422 ACCOUNTS_CLIENT_ID_INVALID`、登録待ち以外の接続先への入力は`409 ACCOUNTS_CONNECTION_NOT_PENDING`とする。
-- 取り下げは終端状態`WITHDRAWN`への変更とする。
-- 同じD1 batchで、その接続先のユーザー連携、Accounts連携用の標準OAuth state、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。
-- 取り下げ後もAccounts側の提供設定、Pointsの確定済み評価・ポイント、評価結果と受領記録のoriginを保持する。同じoriginを新しい接続先として登録できる。
-- 取り下げ済みの接続先への再取り下げは`409 ACCOUNTS_CONNECTION_WITHDRAWN`とする。
+  - 作成・有効化・取り下げ・再有効化の準備には、操作理由と`Idempotency-Key`を要求する。
+  - 理由は操作の記録に使い、同じキーの再送には保存済みの応答を返して二重処理を防ぐ。
+
+- 登録から利用開始まで
+  - 例えば`https://accounts.example.com`を追加する場合、管理者とPointsは次の順序で処理する。
+
+  | 順番 | 操作する人・システム | 処理 |
+  | --- | --- | --- |
+  | 1 | Points管理者 | Accountsのoriginと表示名を入力する |
+  | 2 | Points | 接続先の対応機能を確認し、署名用とDPoP用の鍵を生成して登録待ちにする |
+  | 3 | Points管理者 | Pointsに表示されたアプリ情報・連携完了URL・署名用公開鍵をAccountsへ登録する |
+  | 4 | Accounts | 登録したPointsアプリへClient IDを発行する |
+  | 5 | Points管理者 | Client IDをPointsへ入力する |
+  | 6 | Points | AccountsからAPI用のAccess Tokenを取得できることを確認し、接続先を有効にする |
+
+  ```mermaid
+  flowchart LR
+      P["登録待ち<br/>PENDING_CLIENT_REGISTRATION"] -->|"登録内容の検証に成功"| A["利用可能<br/>ACTIVE"]
+      P -->|"取り下げ"| W["取り下げ済み<br/>WITHDRAWN"]
+      A -->|"取り下げ"| W
+      W -->|"同じ接続先IDで鍵を再生成"| P
+  ```
+
+- 接続先のURLと入力条件
+  - originは接続先サービスの起点を表し、scheme・host・必要なportからなる値とする。
+  - HTTPSを使い、path・query・fragment・userinfoを含めない。
+  - `APP_ENV=local`ではloopbackのHTTPも受け付ける。
+  - 表示名はユーザーが接続先を選ぶときの名前とし、前後の空白を除いて1〜100文字とする。
+  - Client IDはAccountsに登録したPointsアプリの識別子とし、前後の空白を除いて1〜255文字とする。
+  - 同じoriginで`WITHDRAWN`以外の接続先は1件だけとする。
+  - 別のoriginへ移す場合は新しい接続先を追加し、ユーザーが新しい接続先で認証・同意する。
+  - 旧接続先の連携は、その接続先を取り下げるまで維持する。
+
+  | originの入力例 | 扱い |
+  | --- | --- |
+  | `https://accounts.example.com` | 接続先として指定できる |
+  | `https://accounts.example.com/settings` | pathを含むため受け付けない |
+  | `https://accounts.example.com?user=123` | queryを含むため受け付けない |
+  | `http://localhost:3000` | `APP_ENV=local`の場合に受け付ける |
+
+- 接続先の対応機能と有効化の検証
+  - メタデータは、Accountsが公開する認証方式やAPIの機能を説明した情報とする。
+  - Pointsはメタデータを取得し、`issuer`がoriginと一致することと、次の機能への対応を検証する。
+
+  | 機能 | この連携での役割 |
+  | --- | --- |
+  | `private_key_jwt` | 秘密鍵の署名で、登録済みのPointsアプリであることを証明する |
+  | EdDSA・Ed25519 | 署名方式と、その署名に使う鍵の種類 |
+  | DPoP | Tokenに対応する鍵を持つPointsからの要求であることを検証する |
+  | PKCE S256 | ユーザー連携の認可コードを、連携開始時の処理へ結び付ける |
+  | `openid` | 認証したAccountsユーザーを確認する |
+  | `identities:read` | 外部アカウント一覧の取得と識別子の照合を許可する |
+  | 認可応答の`iss` | 想定したAccountsからの認可応答であることを確認する |
+
+  - PointsはClient IDと保存済みの鍵で、Client Credentialsの`identities:read` Access Tokenを取得する。
+  - 取得できた場合だけ接続先を`ACTIVE`にし、失敗した場合は`PENDING_CLIENT_REGISTRATION`に保つ。
+  - この検証はPointsアプリの接続試験とし、一般ユーザーとしてのログインや本人連携とは分ける。
+  - APIで取得できる情報は、Accountsが各ユーザーの現在の情報提供許可から判定する。
+
+- 鍵の生成とAccountsへのアプリ登録
+  - 接続先の作成時に、Pointsは`private_key_jwt`署名用とDPoP用のEd25519鍵ペアを別々に生成する。
+  - 管理画面に、推奨アプリ名`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、署名用の公開JWK Setを表示する。
+  - 管理者は表示された情報をAccountsへ登録し、発行されたClient IDをPointsへ入力する。
+  - 署名用の秘密鍵とDPoP用の鍵はPointsが保管し、DPoP用の鍵は要求ごとのproofに使う。
+  - 連携完了URLは、ローカル・staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とする。
+  - 本番では本番originの同じpathとする。
+
+  | 情報 | 用途・保管場所 |
+  | --- | --- |
+  | Client ID | Accountsに登録したPointsアプリを識別する |
+  | 署名用の公開鍵 | Accountsへ登録し、Pointsからの署名を検証するために使う |
+  | 署名用の秘密鍵 | Pointsが保管し、アプリ認証の署名に使う |
+  | DPoP用の鍵 | Pointsが保管し、要求での鍵の所持証明に使う |
+  | Access Token | Accountsの情報取得APIを呼び出すための期限付き認証情報 |
+  | `ACCOUNTS_KEY_ENCRYPTION_KEY` | D1へ保存する秘密鍵とAccess Tokenの暗号化・復号に使う |
+
+- 秘密鍵とTokenの保存
+  - 秘密鍵とAccess Tokenは、Worker secretの`ACCOUNTS_KEY_ENCRYPTION_KEY`を使い、AES-256-GCMで暗号化してD1へ保存する。
+  - 暗号化鍵は32バイトの値をbase64で表したものとする。
+  - AADは、暗号化するデータがどの接続先の何の用途に属するかを検証する追加情報とし、接続先IDと用途を含める。
+  - AAD自体は暗号化せず、暗号文と一緒に改変の有無を検証する。
+  - 復号時はサーバーが対象の接続先IDと用途から同じAADを組み立て、一致しなければ復号を失敗させる。[Web Cryptoの説明](https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams#additionaldata)
+  - 例えば「接続先A・署名用秘密鍵」の暗号文を、接続先Bの秘密鍵や接続先AのAccess Tokenとして読み出そうとしても、AADが異なるため復号に失敗する。
+  - AADは追加の秘密鍵ではなく、接続先や用途の取り違えを検出するための情報とする。
+  - 共有テストD1を使うstaging・プレビュー共通設定・作成済みPR・ローカルでは、同じ`ACCOUNTS_KEY_ENCRYPTION_KEY`を使う。
+  - 例えばstagingが暗号化して保存した秘密鍵をPRプレビューが使う場合も、同じ暗号化鍵で復号する。
+
+- 取り下げと同じ接続先の再有効化
+  - 取り下げは、そのAccountsサービスとの接続を終了する操作とし、状態を`WITHDRAWN`へ変更する。
+  - 同じD1 batchで、その接続先の`providerId`を持つ標準Account行と拡張項目、Accounts連携用の標準OAuth state、Access Tokenのキャッシュ、暗号化した秘密鍵を削除する。
+  - 鍵やユーザー連携を削除するため、状態を`ACTIVE`へ戻すだけでは接続を再開できない。
+  - 再利用する場合は、管理者が「再有効化の準備」を実行し、同じ接続先ID・origin・表示名で登録待ちへ戻す。
+  - そのoriginに別の取り下げていない接続先がある場合は、重複として準備を拒否する。
+  - Pointsは署名用とDPoP用の鍵を新しく生成し、保存済みClient IDを空にして、状態を`PENDING_CLIENT_REGISTRATION`にする。
+  - 管理者は新しい公開鍵をAccounts側のアプリへ登録し、Client IDをPointsへ入力する。
+  - Accounts側で既存のアプリを使える場合はその登録を更新し、新しくアプリを登録した場合は新しいClient IDを入力する。
+  - Pointsは最新メタデータとToken取得を検証し、成功した場合だけ`ACTIVE`にする。
+  - 削除済みの鍵・Token・ユーザー連携は復元せず、ユーザーが本人認証と情報提供への同意から連携し直す。
+  - 例えば接続先IDが`connectionA`なら、取り下げ前後でそのIDを維持し、新しい鍵と検証結果で接続を再開する。
+
+  | 削除する情報 | 保持する情報 |
+  | --- | --- |
+  | その接続先のユーザー連携 | Pointsの確定済み評価・ポイント |
+  | 進行中の連携用OAuth state | 評価結果・受領記録に残る接続元origin |
+  | Access Tokenのキャッシュ | Accounts側の情報提供設定 |
+  | 暗号化した秘密鍵 | `WITHDRAWN`の接続先レコード |
+
+- 入力・状態・通信のエラー
+  - 次のエラーは、失敗した入力や処理を管理画面で確認できるようにする。
+  - 外部サービスから再試行までの待ち時間が分かる場合は、`Retry-After`を返す。
+
+  | 条件 | HTTP状態とコード |
+  | --- | --- |
+  | 有効化・取り下げ・再有効化の準備の対象が存在しない | `404 ACCOUNTS_CONNECTION_NOT_FOUND` |
+  | 表示名が条件を満たさない | `422 ACCOUNTS_CONNECTION_DISPLAY_NAME_INVALID` |
+  | originが条件を満たさない | `422 ACCOUNTS_CONNECTION_ORIGIN_INVALID` |
+  | 作成・再有効化の準備で、同じoriginの取り下げていない接続先がある | `409 ACCOUNTS_CONNECTION_ORIGIN_DUPLICATED` |
+  | 取得したメタデータが条件を満たさない | `422 ACCOUNTS_DISCOVERY_INVALID` |
+  | Client IDが条件を満たさない | `422 ACCOUNTS_CLIENT_ID_INVALID` |
+  | 登録待ち以外の接続先へClient IDを入力した | `409 ACCOUNTS_CONNECTION_NOT_PENDING` |
+  | Client IDや登録鍵の条件によりToken取得を拒否された | `422 ACCOUNTS_CLIENT_VERIFICATION_FAILED` |
+  | 取り下げ済みの接続先を再度取り下げた | `409 ACCOUNTS_CONNECTION_WITHDRAWN` |
+  | 取り下げ済み以外の接続先で再有効化の準備を実行した | `409 ACCOUNTS_CONNECTION_NOT_WITHDRAWN` |
+  | 外部サービスとの通信失敗・一時的な利用不能 | `503 DEPENDENCY_UNAVAILABLE` |
+  | 外部サービスから不正な応答が返った | `502 DEPENDENCY_UNAVAILABLE` |
+  | 外部サービスの応答待ちが時間切れになった | `504 DEPENDENCY_UNAVAILABLE` |
+
+- 再有効化の準備API
+  - `POST /api/admin/accounts-connections/{accountsConnectionId}/reactivation`で、取り下げ済みの接続先を登録待ちへ戻す。
+  - 本文は操作理由`reason`とし、`appAdmin`の認証と`Idempotency-Key`を要求する。
+  - originの重複がないことを検証し、鍵の再生成、Client IDの初期化、状態の変更、実行記録を一括確定する。
+  - 成功時は200とし、接続先ID・状態・Accountsへ登録する公開鍵と連携完了URLを返す。
+  - 同じキーの再送は保存済みの応答を返し、鍵を再生成しない。
+  - 再有効化の準備中に鍵生成や保存が失敗した場合は全件未反映とし、その接続先を`WITHDRAWN`に保つ。
+
+- 接続先管理の確認例
+  - 作成・有効化・取り下げ・同じIDでの再有効化、再検証失敗、同一originの重複、状態違反、再送を確認する。
+  - 再有効化後も過去の評価・受領記録を保持し、削除済みのユーザー連携は本人の再連携まで復元されないことを確認する。
+  - 現在の実装では取り下げ済みからの再有効化を扱っていないため、同じ接続先IDでの鍵再生成・登録待ちへの遷移を実装時に確認する。
+
 - Accountsが提供する認証・外部アカウント情報・照合APIの条件は、[Accounts v0.1仕様](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md)に記載する。
 
 ### Accounts認証・APIの処理
+
+- 連携を保存する標準Accountと拡張項目
+  - Accounts連携は、Better Auth標準の`account`テーブルへ保存する。
+  - 一つのAccountsユーザーとの連携を一行で表し、同じサービスの別ユーザーは別の行へ保存する。
+  - 本人と外部ユーザーの対応には標準列を使い、連携に必要な追加情報は`account.additionalFields`で定義する。
+
+  | 情報 | 保存先・取得方法 |
+  | --- | --- |
+  | 連携ID | 標準の`account.id`を、APIの`accountsLinkId`として使う |
+  | Points本人 | 標準の`account.userId`と`points_user.auth_user_id`を対応付けて特定する |
+  | Accounts接続先 | 標準の`providerId`を`accounts-{connectionId}`とし、接続先を特定する |
+  | AccountsユーザーID | 標準の`account.accountId`へ、検証済みの`sub`を保存する |
+  | origin・サービス表示名 | 接続先レコードから取得する |
+  | 初回連携日時 | 標準の`createdAt`を使う |
+  | 再連携日時 | 拡張項目`relinkedAt`へ保存する。初回は`null`とする |
+  | 情報提供状態 | 拡張項目`provisionStatus`へ、`PROVIDED`・`NOT_PROVIDED`・未取得の`null`を保存する |
+  | 取得済みの外部アカウント一覧 | 拡張項目`externalAccountsJson`へ最新の一覧を保存する。未取得は`null`とする |
+  | 一覧の取得日時 | 拡張項目`externalAccountsFetchedAt`へ保存する。未取得は`null`とする |
+
+  - `account.userId`はBetter Authの認証ユーザーIDであり、PointsユーザーIDへの対応は`points_user`から取得する。
+  - 拡張項目はサーバーで更新し、`input: false`・`returned: false`とする。
+  - 本人用一覧と公開プロフィールへ返す情報は、Pointsの業務APIで公開設定と閲覧権限を検証して選ぶ。
+  - 本人用一覧は、標準Accountの一覧からAccounts用の行を選び、接続先情報と拡張項目を加えて返す。
+  - 再連携日時は、本人が認証と同意を完了したときだけ更新する。
+  - 外部情報の更新でも変わる標準の`updatedAt`と、再連携日時・一覧の取得日時を区別する。
+  - `(providerId, accountId)`を複合一意とし、同じAccountsユーザーの連携先を一人に限定する。
+  - 同じoriginの取り下げていない接続先を一件に限定し、取り下げ時はその接続先の連携行を削除することで、originと`sub`による本人識別を保つ。
+  - Points本人・残高・評価・受領記録は、それぞれの業務レコードに保持する。
+  - 例えばGoogleでログインした本人がAccountsユーザーB・Cを連携した場合、Googleの行に加え、B・CのAccount行を一行ずつ保持する。
+  - Bへ再連携するとBの行を更新し、Bだけを解除するとGoogleとCの行は残る。
+  - 標準Accountの識別方法と管理操作は[ユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts#accounts)、保存前の処理は[DBフック](https://better-auth.com/docs/concepts/database#database-hooks)を参照する。
 
 - 連携の開始と認証情報の管理
   - 連携開始は本人認証を要求する`POST /api/accounts-links/attempts`とし、Better Authの標準`linkSocial`とGeneric OAuthを使う。
     - [Generic OAuth公式資料](https://better-auth.com/docs/plugins/generic-oauth)
   - Accountsの認証元は、ログイン済み本人への明示連携に限って使う。
+  - 標準の`user.validateUserInfo`とフックで、Accountsの通常ログインと新規登録を拒否し、開始情報を検証できる連携だけを許可する。[検証フックの公式資料](https://better-auth.com/docs/concepts/users-accounts#callbacks)
+  - `disableSignUp: true`、`accountLinking.disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`を使い、対象のAccounts認証元を`trustedProviders`へ含める。
   - 開始要求はJSONとし、`application/json`以外は`415 JSON_CONTENT_TYPE_REQUIRED`を返す。
   - サーバーは、開始時のPointsユーザーID・セッションID・接続先IDを、標準OAuth stateのサーバー側情報へ結び付ける。
   - 再連携では、更新対象の連携IDも結び付ける。
@@ -1520,17 +1695,19 @@ betterAuth({
   - ID Tokenは、AccountsのJWKSによる署名と`iss`・`aud`・`exp`・`iat`・`nonce`を検証する。
   - Accountsユーザーは、接続先originと検証済みの`sub`で識別する。
   - 開始元Pointsのコールバックで、標準stateの有効性、開始時と現在のPoints本人・セッションの一致、接続先と認証元の対応、接続先が有効であることを確認する。
-  - すべての検証に成功したら、コールバック内で`accounts_links`を保存する。
-  - 再連携では、認証結果のoriginと`sub`が更新対象の連携と一致することを検証し、その連携の再連携日時を更新する。
+  - 再連携では、対象Account行が開始時の本人に属し、認証結果のoriginと`sub`がその行と一致することも検証する。
   - 一致しなければ連携を変更せず、別ユーザーの追加には新規連携を案内する。別のPoints本人に連携済みのAccountsユーザーも保存しない。
+  - これらの検証は標準Accountの作成・更新前に行い、失敗した場合は連携行と拡張項目を変更しない。
+  - すべての検証に成功したら、標準`linkSocial`のコールバック処理でAccount行を作成または更新し、その行を連携として保持する。
+  - 同じ本人へ連携済みなら既存の連携ID・初回日時・取得済み一覧を保ち、再連携日時を更新する。
   - Better Auth内部のメール属性は、originと`sub`から決定的に生成する。
-  - コールバック処理で今回作成したAccounts用の一時的な標準Account行は、連携保存の成否にかかわらず処理の終了時にその行だけ削除する。
   - stateの消費は標準処理に従い、重複した応答による連携の再保存を防ぐ。
   - 本人が連携を中止するときは、本人・開始セッションに対応するAccounts連携用の標準stateをサーバーで無効化する。
   - アカウント切替時の中止も、[複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)に従う。
 
 - 完了後の画面とエラー
   - 連携保存後は、標準のリダイレクトで`/settings/connections?accountsLinkResult=LINKED&accountsLinkId={accountsLinkId}`へ直接戻す。
+  - 新規連携・再連携のどちらも、保存したAccount行を対象に外部アカウント情報を取得する。
   - 設定画面は保存した連携を対象に、自動受領POSTを送る。
   - コールバックの応答は`Cache-Control: no-store`とする。
   - 失敗時は`accountsLinkError={code}`を付けて設定画面へ戻す。
@@ -1544,13 +1721,24 @@ betterAuth({
   - 一覧は接続先のClient CredentialsのAccess Tokenで、`QUERY {origin}/api/v1/external-accounts`から取得する。
   - Access TokenはDPoPへ結び付け、失効の60秒前まで暗号化して再利用する。
   - `401`ではTokenを取り直して一回再送し、再度`401`なら`ACCOUNTS_CLIENT_UNAUTHORIZED`として記録する。
-  - `200`では最新一覧と`PROVIDED`、`404`では空の一覧と`NOT_PROVIDED`を保存する。
-  - 取得成功の日時も更新する。
+  - `200`で一覧が一件以上ある場合は、最新一覧と`PROVIDED`をAccountの拡張項目へ保存する。
+  - `200`で一覧が空、または提供情報がないことを示す`404`の場合は、空の一覧と`NOT_PROVIDED`を保存する。
+  - どちらも情報取得の正常完了とし、取得日時を更新する。
+  - 通信失敗では、提供状態・一覧・取得日時の保存値を維持する。
   - 更新失敗は、識別子・Tokenを含めずに構造化ログとメトリクスへ記録する。
   - 連携単位の`INVALID_RESPONSE`は、次の連携へ進む。
   - それ以外の失敗は接続先単位で一回記録し、同じ接続先の残りの取得を終了する。
   - 連携・再連携直後の情報取得に失敗しても、連携自体は成立とする。
   - 受領処理では、認証済みAccountsユーザーIDを指定して最新の一覧を取得し、Points内の宛先と照合する。失敗時は全件未反映として再実行を案内する。
+
+- 実装時の確認
+  - 現在の実装との差は、Accounts連携の保存先、独自の連携試行・完了処理、受領時の参照先、一覧表示時の情報取得にある。
+  - 標準Accountの拡張項目と標準stateを使い、検証済みのコールバック内で初回連携・再連携を完了できることを確認する。
+  - 同じサービスの複数ユーザー、別本人への重複連携拒否、再連携時の同意・対象一致・一覧維持を確認する。
+  - AccountsでPointsへログインできず、中止・期限切れ・本人切替・保存前の検証失敗で連携が変更されないことを確認する。
+  - 解除・退会・接続先取り下げは、対象のAccounts行と拡張項目だけを削除し、Google・GitHubの認証元対応、Points本人、評価・ポイントを保持することを確認する。
+  - 受領・CSV照合・公開プロフィールは標準Accountから本人を特定し、解除後も確定済み記録を保持することを確認する。
+  - 情報提供あり・空の一覧・提供取消・初回取得失敗・再取得失敗を区別し、新規連携・再連携の両方で情報取得と自動受領へ進むことを確認する。
 
 ## 評価軸のプロフィール画面
 
@@ -1569,7 +1757,7 @@ betterAuth({
   - 名前・ID・説明・関連URLを表示する。同名の評価軸はIDで区別する。
   - 利用状態を「有効」「停止中」と表示し、譲渡・交換・即決価格の許可、自動分配方式を表示する。
   - 自動分配方式は「本人の取り分から配る方式」または「追加発行して配る方式」と表示する。
-  - 最小単位は「分配用最小単位」と表示する。自動分配の丸めと再分配の終了判定に使うことを説明する。
+  - 最小単位は「最小単位」と表示する。自動分配の丸めと再分配の終了判定に使うことを説明する。
   - 作成日時・更新日時・現在の更新番号を表示する。更新番号は、現在レコードの競合検査用の`version`とする。
   - 日時にはUTCを明記する。
 
@@ -1653,6 +1841,7 @@ betterAuth({
   - 非公開要素は「匿名Aの評価軸」「匿名Bのパッケージ」などの匿名名と割合を表示する。実名・実ID・リンク・非公開の子構成は、公開画面とAPIの表示用区画に含めない。
   - 匿名名は全構成の表示順に基づいて応答時に生成し、ページ移動でも同じ構成順の名前を使う。永続的な匿名IDは保存しない。
   - 全要素が非公開でも、構成区画に匿名名と割合を一覧表示する。
+  - 最終的に構成する評価軸の割合も計算して表示する
 
 - 用途と現在状態
   - 自動分配の利用可否と、外部サービスへ提供するパッケージ・構成軸の現在状態を表示する。
@@ -2006,7 +2195,7 @@ betterAuth({
   - 認証用Cookieは、ログイン状態の管理に使う。
   - 表示言語は、同じブラウザの`localStorage`の`freeism-language`へ保存する。
   - 認証と表示設定の保存を、広告目的の追跡と区別して説明する。
-  - HTTPSによる通信保護、本人認証、管理権限と公開範囲の検証、保存するアクセストークン・リフレッシュトークンの暗号化を行う。
+  - HTTPSによる通信保護、本人認証、管理権限と公開範囲の検証、外部サービスから取得し、再利用するアクセストークン・リフレッシュトークンの暗号化を行う。
   - 運用ログにはトークン・Cookie・メール・宛先URL・プロフィール本文を出力せず、処理名・結果・コード・件数などを記録する。
 
 - 保持と退会後の扱い
@@ -2039,7 +2228,7 @@ betterAuth({
   - 現在のGoogle・GitHub認証には、今回定めた`mapProfileToUser`による保存属性の変換と、IDトークン本体を保存対象から除く処理がない。実装時に追加し、保存結果を確認する。
   - 同じ認証元での再ログイン、同じ実メールを持つ別認証元の登録、本人による明示連携、別本人への重複連携拒否を確認する。
   - 初期名と編集済みプロフィールの維持、認証元の画像非保存、IDトークンの検証と非保存を確認する。
-  - 保存するアクセストークン・リフレッシュトークンの暗号化と、認証元ID・IPアドレス・User-Agent・評価入力・取引記録の保持を確認する。
+  - 外部サービスから取得し、再利用するアクセストークン・リフレッシュトークンの暗号化と、認証元ID・IPアドレス・User-Agent・評価入力・取引記録の保持を確認する。
   - 現在の固定ページは言語保存に`freeism.fixed-page-language.v1`を使うため、共通言語選択の`freeism-language`との差がある。
   - 現在の公開プロフィール処理は、設定がない場合に公開扱いとし、認証元の名前を表示する。
   - 仕様で定めた初期非公開と、本人が選んだ各区画の公開範囲に合わせる必要がある。
@@ -2192,6 +2381,7 @@ betterAuth({
   - [公式の`better-auth/minimal`](https://better-auth.com/docs/installation)を使い、adapterをDrizzleに絞って未使用のKysely adapterを除いたWorkerのバンドルを構成する。
   - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
   - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
+  - 公式の`@better-auth/i18n`は導入予定とし、認証エラーの翻訳を[多言語の共通仕様](#多言語に対応)に従って扱う。
   - 外部OAuthの処理・検証には、導入済みのoauth4webapiも使う。
   - CLIで認証スキーマを生成するため、`src/backend/infrastructure/auth/auth-cli.ts`で認証インスタンスをエクスポートする。
     - 実行時と同じ認証インスタンス生成処理と共通設定を使う。
@@ -2321,7 +2511,7 @@ betterAuth({
   - 管理者であることだけを根拠に、管理する軸の全員分の評価入力・付与結果を出力対象へ加えない。
   - 未受領評価は出力対象から外す。
   - セッション、アクセストークン、リフレッシュトークン、秘密鍵などの認証資格情報は出力対象から外す。
-  - 連携情報には保存済みの情報を使う。
+  - Accountsの連携情報には、標準Account行と拡張項目の保存済み情報を使う。
   - 出力操作では受領・分配やAccountsへの情報更新・宛先照合を実行しない。
 
 - JSONの形式
@@ -2761,7 +2951,7 @@ betterAuth({
   - 更新・確認・確定などの操作は、各機能に定めた経路を使う。
 
 - 共用する取得APIは、サーバーがCookieセッションまたはOAuth認証から操作者を決め、現在の閲覧権限で返す項目を選ぶ。
-  - OAuthでは`points` scopeとPoints API audience、DPoP、本人・クライアントの現在状態を検証する。有効な本人認証がない場合は公開情報だけを返す。
+  - OAuthでは`points` scopeとPoints API audience、DPoP、本人の現在状態を検証する。有効な本人認証がない場合は公開情報だけを返す。
   - 本人の設定と非公開情報は本人に、対象の管理用設定はその対象を管理できる操作者に返す。
   - 指定した非公開の対象を閲覧できない場合は、存在しない場合と同じ`404 RESOURCE_NOT_FOUND`を返す。検索・一覧では閲覧できる対象へ絞り込む。
   - 取得はQUERYとJSON本文を使い、成功時は200とする。冪等性キーは要求せず、入力値の誤りは422とする。
@@ -3005,10 +3195,12 @@ flowchart LR
   - 本人認証を要求し、現在の経済データと必要な宛先照合の結果から、受領対象ID・現在額・元評価か分配かの区分・再分配結果・反映後残高を返す。
   - `accountsLinkId`を省略した場合は、帰属が認証本人へ固定済みの受領待ちだけを対象とし、Accountsへ問い合わせない。
   - `accountsLinkId`を指定した場合は、その連携で照合した宛先の対象と、本人へ固定済みの受領待ちを重複なく対象とする。
+  - 指定された連携IDは標準Accountの`id`として照合し、Accounts用の行であること、認証本人の所有であること、接続先が有効であることを検証する。
   - 確認だけではポイントを変更しない。
 
 - 確定は`POST /api/unclaimed-fixes/claims`とする。
   - 本人認証と`Idempotency-Key`を要求し、受領者は認証本人から決める。連携IDの指定・省略による対象範囲は受領確認と同じとする。
+  - 確定時も、指定された標準Account行の所有者・用途と接続先の有効性を再検証する。
   - 手動受領では表示した確認結果そのものも送る。サーバーが再計算した結果と比較し、変わった場合は`409 CLAIM_SET_CHANGED`で再確認を求める。
   - 自動受領では連携IDを送り、サーバーが最新の対象を計算する。
   - JSON本文は確認結果を含めて最大5MiBとし、超過した場合は解析前に`413 REQUEST_BODY_TOO_LARGE`で拒否する。
@@ -3161,7 +3353,7 @@ flowchart LR
   - 本番の対象ホストは、Pointsが`points.freeism.app`、Marketsが`markets.freeism.app`とする。
   - 属性は`HttpOnly; SameSite=Lax; Path=/`とし、HTTPS環境では`Secure`を付ける。
   - ローカルのHTTP環境では、標準の環境設定に従ってCookieを扱う。[Cookieの公式資料](https://better-auth.com/docs/concepts/cookies)
-  - 必要なアクセストークン・リフレッシュトークンはサーバー側で暗号化して保存し、ブラウザには標準の認証Cookieだけを渡す。
+  - 外部サービスから取得し、再利用するアクセストークン・リフレッシュトークンはサーバー側で暗号化して保存し、ブラウザには標準の認証Cookieだけを渡す。
   - セッション・アカウントと、保存するトークンの秘密情報は、Better Authのサーバー側保存と標準Cookieで管理する。
   - 表示言語の`localStorage`保存は、[多言語に対応](#多言語に対応)に従う。
 
@@ -3212,6 +3404,7 @@ flowchart LR
   - 追加先は、Pointsの状態が`ACTIVE`でログイン停止中ではない利用者に限る。保存時にも現在の状態を検証する。
   - 全体管理者の追加・解除は`appAdmin`が行う。対象の管理者の追加・解除は、その対象の管理者または`appAdmin`が行う。
   - アプリ全体管理者は最大20人とする。評価軸・パッケージ・OAuthクライアントも、それぞれ1件につき管理者は最大20人とする。
+  - 対象ごとのOrganizationには管理者だけを所属させ、標準の`membershipLimit: 20`を設定する。[公式資料](https://better-auth.com/docs/plugins/organization#options)
   - 利用者1人が管理者として登録できるOAuthクライアントは最大5件とする。作成時の登録と、後からの管理者追加を合わせて数える。
   - 例えばAさんがX・Yの管理者なら、Aさんの管理件数は2件となる。XをA・B・Cさんで管理する場合、Xの管理者人数は3人となる。
   - `appAdmin`は、各対象の管理者に登録されていなくても管理できる。この全体権限は、各対象の20人と本人のOAuthクライアント5件の上限へ含めない。
@@ -3244,7 +3437,9 @@ flowchart LR
   - 管理者所属は、標準モデルの`userId`・`organizationId`・`role`で表す。`userId`にはBetter AuthのユーザーIDを使う。
   - 操作で指定するPointsユーザーIDは、サーバーが本人テーブルの`auth_user_id`から認証ユーザーIDへ対応づける。経済履歴はPointsユーザーIDで保持する。
   - サーバーは認証本人、対象IDとOrganizationの対応、現在の権限、人数・件数、操作できる管理者が残ることを検証する。画面の表示も同じ権限に合わせる。
-  - 標準APIだけでは制約を満たせない所属の追加・解除などは、標準モデルを使うPointsの保存処理で補う。所属の検証と変更は同じD1原子処理で確定する。
+  - 管理者の直接追加には、サーバー専用の標準`auth.api.addMember`を基本とする。このAPIの呼出元で、操作者の権限、追加先の状態、人数・件数の条件を検証する。[公式資料](https://better-auth.com/docs/plugins/organization#add-member)
+  - 所属の検証と変更は同じD1原子処理で確定する。標準APIとフックだけでこの条件を満たせない追加・解除・作成時の所属登録は、標準モデルを使うPointsの保存処理で行う。
+  - Pointsの保存処理でも、対象ごとの20人、本人のOAuthクライアント5件、最後の管理者の条件を検証する。
   - 標準APIを直接呼ぶ場合にも、人数上限と最後の管理者の条件を適用する。`appAdmin`の対象管理に、対象への管理者登録を必要としない。
   - 管理者の変更など、必要な操作では操作理由の入力と既存の再送制御を適用する。
 
@@ -3255,7 +3450,7 @@ flowchart LR
   - 登録前にOrganizationのIDを発行し、標準の`clientReference`からそのIDを返す。後段の保存でも同じIDを使う。
   - OAuthクライアントの後段保存が失敗した場合は、作成済みクライアントを標準削除APIで削除する。
   - 失敗時の削除は、登録を開始した本人と対象クライアントの対応をサーバーで確認して行う。未完成のクライアントの整理は、`appAdmin`にも許可する。
-  - 削除できなかった未完成クライアントは、認可・トークン発行・API利用を拒否する。`appAdmin`が管理画面で残存分を確認して削除する。
+  - 削除できなかった未完成クライアントは、認可・トークン発行を拒否する。`appAdmin`が管理画面で残存分を確認して削除する。
   - 登録完了の判定では、対応するOrganizationと、その対象の管理者所属の存在を確認する。作成者を解除した後も、残る管理者がいるクライアントは利用できる。
   - JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が別途確認して保存する。その他の設定のJSON復元は一括確定する。
 
@@ -3266,6 +3461,7 @@ flowchart LR
 - 実装との差と確認事項
   - 現在の認証設定にはAdmin・Organizationプラグインがなく、全体管理者を独自の`admin_membership`で判定している。4種類の権限と標準モデルへの対応を実装時に確認する。
   - 現在の全体管理者の人数上限は50人で、最後の管理者の検査も全体管理者だけを対象としている。各20人、OAuthの本人5件、操作できる管理者の条件へそろえる。
+  - `membershipLimit`と`addMember`を採用し、標準API・フックと採用中のD1 adapterで検証と保存を同じ原子処理にできるか確認する。一括確定が必要な操作では、上記のPointsの保存処理を使う。
   - 現在のOAuthクライアント管理は登録者の認証ユーザーIDで対象を限定している。Organizationによる共同管理と、未完成クライアントの利用拒否を実装時に確認する。
   - 現在のResource APIの利用者状態検証に、ログイン停止の検証を加える。ログイン停止・再開とトークン更新の連動も実装時に確認する。
   - 停止中の受取りと外部操作の拒否、再開後の認可利用、OAuth登録の途中失敗と残存分の削除、再送時の二重処理防止を確認する。
@@ -3274,7 +3470,7 @@ flowchart LR
 
 - `QUERY /api/v1/me/admin-membership`で、認可された本人が`appAdmin`かを照会する。
   - `operationId`は`getPointsAdminMembership`とする。
-  - 外部アプリには`points` scope、Points API audience、DPoP認証を要求し、現在の本人・クライアント・権限を検証する。Points画面ではCookieセッションを使える。
+  - 外部アプリには`points` scope、Points API audience、DPoP認証を要求し、トークン・署名と現在の本人・権限を検証する。Points画面ではCookieセッションを使える。
   - JSON本文は`{}`とし、冪等性キーは要求しない。成功時は200とする。
   - 応答は`{ "data": { "isAdmin": boolean }, "meta": { "requestId": string } }`とする。
   - 本人が管理者でなければ、200と`isAdmin: false`を返す。
@@ -3295,7 +3491,7 @@ flowchart LR
 | 再開待ち分配の再実行                       | 評価軸の管理画面                                                                                                    | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、軸が有効、reason、冪等性キー                                           |
 | 公式パッケージの作成                       | パッケージのフォーム・CSV                                                                                           | ログインしたPoints利用者、reason、冪等性キー                                                                                   |
 | 公式パッケージの更新・停止・再開・完全削除 | パッケージのフォーム・CSV                                                                                           | そのパッケージの`packageAdmin`または`appAdmin`、reason、冪等性キー                                                             |
-| OAuthクライアントの更新・削除              | Better Auth OAuth Providerの標準管理API                                                                             | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                                             |
+| OAuthクライアントの更新・一時停止・再開・削除 | Better Auth OAuth Providerの標準管理API                                                                             | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                                             |
 | 管理者の追加・解除・退出                   | 管理者設定画面                                                                                                      | 全体管理者の変更は`appAdmin`、対象の変更は対象管理者または`appAdmin`、本人の退出、人数・件数・最後の管理者、reason、冪等性キー |
 | 利用者のログイン停止・再開                 | 管理者設定画面                                                                                                      | `appAdmin`、最後の管理者、reason、冪等性キー                                                                                   |
 | 直接評価の登録・訂正の確定                 | 直接評価のフォーム・CSV                                                                                             | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、reason、冪等性キー                                                     |
@@ -3306,7 +3502,7 @@ flowchart LR
 | 利用者CSV確定                              | `/api/{transfers,exchanges}/csv/commit`                                                                             | 本人、冪等性キー                                                                                                               |
 | 自動分配設定の保存                         | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、既存の冪等性                                                                                         |
 | JSON設定復元の確認・確定                   | `/api/settings/restore/{validate,commit}`                                                                           | 本人、各設定の管理権限・通常操作のreason、確定時の冪等性キー                                                                   |
-| 接続先Accountsの作成／有効化／取り下げ     | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、reason、冪等性キー                                                                                                 |
+| 接続先Accountsの作成／有効化／取り下げ／再有効化の準備 | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal,reactivation}` | `appAdmin`、reason、冪等性キー                                                                                                 |
 
 ## HTTPリクエスト・HTTPレスポンス
 
@@ -3361,7 +3557,7 @@ flowchart LR
 - 本人と操作権限は、サーバーで検証する。
   - Cookie認証では、Better Authのセッションと標準の要求元検査を適用する。
   - 利用者の認可による外部APIでは、`Authorization: DPoP {token}`と`DPoP: {proof}`を送る。
-  - 外部からのPoints独自業務APIには`points` scopeを要求し、クライアントと本人の状態、対象の権限を検証する。
+  - 外部からのPoints独自業務APIには`points` scopeを要求し、トークン・DPoP、本人の現在状態、対象の権限を検証する。
   - CookieのOrigin・CSRF検証とOAuthのDPoP検証は、それぞれの認証方式へ適用する。DPoPの`htm`は実際のHTTPメソッドと照合し、QUERYでは`QUERY`を検証する。
   - 精算など、別途クライアント認証を定めた操作は、その条件も検証する。
   - 本文に書かれた本人ID・ロールだけを、認証や権限の根拠にしない。
@@ -3429,7 +3625,7 @@ flowchart LR
   - 状況の説明を表す`detail`と、個々の問題の発生を識別する`instance`は任意とする。
   - 各操作で必要な補足情報は、Problem Detailsの拡張項目として返す。
 
-- APIの説明文は英語とし、画面は`code`に対応する日英文を表示する。
+- Points独自の業務APIの説明文は英語とし、画面は`code`に対応する日英文を表示する。Better Authの認証エラーは[多言語の共通仕様](#多言語に対応)に従う。
   - 入力エラーの説明も、エラーコードと項目名から表示する。
   - 秘密情報、トークン、SQL、スタック情報、内部のbinding名を応答へ含めない。
   - 説明文には個人情報・入力された秘密値を含めない。
@@ -3853,7 +4049,7 @@ upgrade-insecure-requests
 - `POST /api/v1/me/balance-checks`で、認可された本人の残高と必要額の充足を確認する。
   - `operationId`は`checkPointBalance`、成功は200、本文上限は65,536バイトとする。
   - Points画面ではCookieセッション、外部アプリでは`points` scopeの利用者アクセストークン、Points API audience、DPoP認証を要求する。
-  - Pointsは本人・クライアント・権限を検証する。本人が退会・ログイン停止中なら照会を拒否する。
+  - Pointsはトークン・DPoPと、本人・権限を検証する。本人が退会・ログイン停止中なら照会を拒否する。
   - 公開設定にかかわらず、認可された本人の残高を返す。照会ではポイントを確保せず、冪等性キーは要求しない。
 
 - 本文に`components`を必須とし、1件以上の`{evaluationCriterionId, requiredAmountScaled}`を指定する。
@@ -3893,7 +4089,7 @@ upgrade-insecure-requests
 
 ### 開発者向けOAuthクライアント管理
 
-Pointsへログインした利用者は、「開発者向け」画面でアプリをOAuthクライアントとして登録できます。登録後の一覧・詳細・更新・削除は、そのクライアントの`oauthClientAdmin`または`appAdmin`が行います。Marketsの`appAdmin`は、提供先ごとにこの画面から登録します。入力項目の参考は、[Accounts v0.1のOAuthクライアント管理](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)です。Pointsの管理権限は、本節の管理者所属で判定します。v0.1以降、外部サービスの開発者はAccountsの画面でも自分のアプリを登録できます。OAuthクライアント側では、接続設定した複数のPoints互換サービスから選べるよう、OAuth Providerとして連携します。
+Pointsへログインした利用者は、「開発者向け」画面でアプリをOAuthクライアントとして登録できます。登録後の一覧・詳細・更新・一時停止・再開・削除は、そのクライアントの`oauthClientAdmin`または`appAdmin`が行います。Marketsの`appAdmin`は、提供先ごとにこの画面から登録します。入力項目の参考は、[Accounts v0.1のOAuthクライアント管理](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)です。Pointsの管理権限は、本節の管理者所属で判定します。v0.1以降、外部サービスの開発者はAccountsの画面でも自分のアプリを登録できます。OAuthクライアント側では、接続設定した複数のPoints互換サービスから選べるよう、OAuth Providerとして連携します。
 
 必須は、アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開鍵です。公開鍵はインラインJWKSの`{"keys":[...]}`で登録します。紹介URLはHTTPSの任意項目で、説明文も任意です。未入力でも、ほかの登録条件を満たせば登録できます。説明文は標準の列が無いため、`oauthClient.metadata.description`へ保存します。Client IDはPointsが発行し、対応する秘密鍵は利用側サービスのバックエンドだけが保管します。項目の整理は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にします。アプリ名、紹介URL、説明文をアプリ情報とし、リダイレクトURL、Client ID、公開鍵を接続情報とします。入力項目と提供機能は、本仕様で定めた内容です。
 
@@ -3912,7 +4108,7 @@ Pointsへログインした利用者は、「開発者向け」画面でアプ�
 - 登録と更新の検証
   - 登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共通のschemaで検査します。
   - リダイレクトURLはBetter Auth標準の登録規則で検証します。Marketsも、接続先ごとに同じ画面から登録します。
-  - 一覧・詳細・更新・削除では、対象クライアントのOrganizationと管理者所属をサーバーで確認します。
+  - 一覧・詳細・更新・一時停止・再開・削除では、対象クライアントのOrganizationと管理者所属をサーバーで確認します。
   - 「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
 
 JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が内容を確認して別途保存します。保存時は、対象の管理権限、管理者20人・本人5件の上限、URLと公開鍵の条件を検証します。別サービス・別本人へのコピーは、通常の新規登録として新しいClient IDとOrganizationを作り、登録する本人を管理者にします。
@@ -3924,7 +4120,35 @@ JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が�
 
 登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。標準の更新APIは公開鍵を受け付けず、紹介URLを削除できません。公開鍵の更新と紹介URLの削除（`NULL`への更新）は、提供・技術要件の手続きで承認した独自拡張とし、`oauthClient`の`jwks`と`uri`をPointsの保存処理で更新します。更新する鍵の検査は、`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`と同等です。この関数は公開APIの互換性保証の対象外です。保存形式は、標準の登録と同じくJWK SetのJSON文字列です。次のクライアント認証から、新しい鍵で検証します。鍵を切り替えるときは、JWK Setに新旧の`kid`を併存させてから、旧鍵を外します。
 
-発行済みJWTの有効期間は、クライアント認証と権限の定めに従います。鍵の更新とトークンの有効期限は、それぞれ管理します。認可と保存トークンの失効には、Better Auth標準の操作を使います。署名付きJWTのAccess Tokenは失効できず、鍵の更新後も期限（最長15分）まで有効です。即時に止める場合は、クライアントを削除します。削除後は、Resource APIがClientの有効状態を見て、発行済みTokenを拒否します。利用者のログイン停止中も、Resource APIとトークン更新で現在の停止状態を検証し、発行済みTokenによる操作を拒否します。
+- クライアントの一時停止・再開
+  - 対象の`oauthClientAdmin`または`appAdmin`が「開発者向け」画面で操作します。
+  - サーバーで管理権限を確認し、Better Auth標準の`adminUpdateOAuthClient`へ`disabled: true`を渡して一時停止します。
+  - 停止中は新しいTokenの発行・更新を拒否します。
+  - Client IDと登録内容を保持し、`disabled: false`で再開します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
+  - 停止・削除の前に発行したJWT Access Tokenは、署名・期限・scope・DPoPと本人の権限が有効なら、最長15分の期限まで利用できます。
+  - Resource APIは、標準の`verifyAccessTokenRequest`でJWKSによるJWT検証とDPoP検証を行います。
+  - JWKSの取得先を`jwksUrl`へ指定し、`remoteVerify`は省略します。
+  - 利用者本人の退会・ログイン停止は別に判定し、現在の本人状態に応じて業務操作とトークン更新を拒否します。
+
+- ProviderのTokenと署名鍵の保存
+  - Pointsが発行するRefresh Tokenと、不透明なAccess Tokenを使う場合の保存値は、Better Auth標準の`storeTokens: "hashed"`とします。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#storage)
+  - Pointsが発行するJWT Access Tokenの本体は、ProviderのTokenレコードへ保存しません。
+  - JWT署名秘密鍵は、Better Auth JWTプラグインの標準暗号化を有効にしたまま、D1の標準`jwks`モデルへ保存します。
+  - 暗号化に使うBetter Authの認証鍵はWorker Secretで管理します。
+  - 外部のGoogle・GitHubから取得するTokenの暗号化とは、保存対象を分けます。
+  - JWT署名鍵の更新間隔は`jwks.rotationInterval: 2592000`（30日）とし、旧鍵の検証猶予`gracePeriod`は標準の30日を使います。[公式資料](https://better-auth.com/docs/plugins/jwt#key-rotation)
+  - 新しいTokenは更新後の鍵で署名し、発行済みTokenは旧鍵で期限まで検証できるようにします。
+  - 署名鍵の更新、Refresh Tokenのローテーション・再利用検知、保存Tokenの失効は、それぞれBetter Auth標準の処理を使います。
+
+- 標準機能への移行時の確認
+  - 2026-10-12時点の最新公開版`@better-auth/oauth-provider` 1.7.7の[配布情報](https://registry.npmjs.org/@better-auth%2Foauth-provider/1.7.7)と配布物で、`verifyOAuthQueryParams`の公開export、`getOAuthClientPublic`、`oauth2.consent`を確認した。同意画面は[同意と連携の開始](#同意と連携の開始)に従い、実装時も採用する最新公開版の型と動作を確認する。
+  - 同意画面の改変・期限切れクエリの拒否、ログイン前の遷移、公開アプリ情報、要求scope・claimsの表示、承認・拒否と再送時の動作を確認する。
+  - 現在のResource APIはクライアントの現在状態も照会しているため、停止・削除後の発行済みJWTを期限まで扱う仕様との差を確認します。
+  - 導入済みのBetter Auth 1.7.6と確認した1.7.7では、標準の管理更新APIが`disabled`を入力として受け付けません。
+  - 最新公式資料が案内する`disabled`更新に対応した公開版を採用し、標準APIで停止・再開できることを実装前に確認します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
+  - JWTの有効期間はProviderの`accessTokenExpiresIn: 900`で最長15分に設定します。
+  - 停止中の新規発行・更新拒否と再開、発行済みJWTの期限、Tokenのハッシュ保存、署名鍵の暗号化保存と更新を確認します。
+  - 更新期限を持たない既存の署名鍵への設定適用は、採用中のBetter Authで確認します。
 
 Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライアントをPointsの画面から登録します。`authorization_code`と`refresh_token`、利用者scope、Points API resource、連携用のredirect URIを設定します。callbackは`/api/points-connection/callback`です。scopeとresourceの検査は、Token発行時とResource API利用時に行います。クライアント資格情報グラントは使いません。Marketsは、提供先ごとのClient IDと、`POINTS_KEY_ENCRYPTION_KEY`で暗号化したEd25519鍵をD1に保持します。公開JWKSだけをPointsに登録します。
 
@@ -3943,11 +4167,11 @@ Marketsの`appAdmin`は、提供先ごとに、利用者認可に使うクライ
 
 `private_key_jwt`は、`iss=sub=clientId`です。`aud`は、認証を受け付けるPointsのOAuthエンドポイントまたは精算APIの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
 
-Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、JWTの署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送を検査します。利用者とクライアントの現在の利用可否も確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、引き落としAPIに記載します。
+Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのoriginで、audienceは`{origin}/api/v1`です。有効期間は最長15分です。利用者委任の`sub`は、Pointsのauth user IDです。認可サーバーと資源APIのメタデータは、`{origin}/.well-known/openid-configuration`、`{origin}/.well-known/oauth-authorization-server`、`{origin}/.well-known/oauth-protected-resource/api/v1`で公開します。Resource APIは、JWTの署名、issuer、audience、期限、client、scope、DPoP proofの鍵結合と再送を検査します。利用者本人の現在の利用可否と、対象操作の権限も確認します。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、引き落としAPIに記載します。
 
 一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
 
-- OAuthクライアントの秘密鍵は、提供先ごとのD1に、`POINTS_KEY_ENCRYPTION_KEY`で暗号化して置く。それ以外の秘密鍵は、Worker Secretに置く。公開JWKSだけをPointsに登録する。
+- Marketsなど利用側のOAuthクライアント秘密鍵は、接続先ごとのD1へ`POINTS_KEY_ENCRYPTION_KEY`で暗号化して保存する。公開JWKSだけをPointsに登録する。
 
 ### 認可された本人の確認
 
@@ -3982,6 +4206,9 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 ### 同意と連携の開始
 
 - 初回と認可するscopeの追加時には、Points側で明示的な同意画面を表示する。`points`について、非公開を含む本人用情報の取得、設定変更、譲渡・交換・精算・退会、本人が管理できる対象への操作を委任することを説明する。`profile`による表示名の提供と、`offline_access`によるオフライン利用も別に説明する。
+- 同意画面の表示前に、Pointsサーバーが標準の`verifyOAuthQueryParams`と`auth.$context`の`secret`で署名付きクエリを検証する。改変・期限切れの場合は画面を表示せず、連携を最初からやり直すよう案内する。
+- 検証済みのクエリから要求されたscope・claimsを表示し、アプリ名などの公開情報は標準の`auth.api.getOAuthClientPublic`で取得する。表示前にはログインと本人の利用可否も検証する。
+- 承認・拒否は標準の`authClient.oauth2.consent`で確定する。署名の検証だけで認可を許可せず、クライアント・scopeなどの検証と同意の保存には標準の認可処理を使う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#consent-screen)
 - 連携開始は、利用者のブラウザによる認可コードの流れだけで行う。
 - 連携・再連携後は、固定の`/settings/points-connection`へ戻す。
   - 任意の戻り先は受け付けず、callbackのqueryを遷移先へ使わない。
@@ -4004,10 +4231,10 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 
 Points互換提供先は標準JWT Access Tokenを発行する。利用者委任Tokenの`sub`は提供先のauth user IDとし、有効期間は最長15分とする。
 
-Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、必要なscope、OAuthクライアントの有効状態を確認する。利用者Tokenには有効なPoints本人と利用者用scopeを要求し、退会・ログイン停止中の本人による新規利用を拒否する。別resourceのTokenや未定義scopeを拒否する。`points`と認可済みの標準scopeは併用できる。
+Points Resource APIはBetter Auth標準JWKSでJWT署名を検証し、issuer、Points API audience、期限、Client ID、必要なscopeとDPoPを検証する。利用者Tokenには有効なPoints本人と利用者用scopeを要求し、退会・ログイン停止中の本人による新規利用を拒否する。別resourceのTokenや未定義scopeを拒否する。`points`と認可済みの標準scopeは併用できる。
 
 - トークンの見た目やメールを認可の根拠にしない。
-- 対応するOrganizationまたは管理者がない未完成クライアントは、認可・トークン発行・API利用を拒否する。
+- 対応するOrganizationまたは管理者がない未完成クライアントは、認可・トークン発行を拒否する。
 
 MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応する秘密鍵で署名した`private_key_jwt`とDPoPを使う。Marketsの各OAuth callbackはflowごとのresource、scope、Refresh Token有無を確認する。
 
@@ -4021,7 +4248,12 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 - Marketsでの解除と、Points側のOAuth認可の失効を区別する。
   - Marketsでトークンを削除しても、Points側の同意情報や発行済みJWTの有効期限は変わらない。
-  - Points側の認可・トークン管理にはBetter Auth標準の機能を使い、JWTアクセストークンは最長15分の期限で扱う。
+  - Points上での同意取消は、本人認証を要求する標準の`deleteOAuthConsent`で、本人の同意レコードを削除する。
+  - 同意取消は次回の認可で同意を求め直す操作とする。
+  - 既存のRefresh Tokenと発行済みJWTの失効は、別に扱う。
+  - Refresh Tokenの失効には、そのTokenを保持するクライアントからBetter Auth標準の`/oauth2/revoke`を使う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#revoke-endpoint)
+  - Refresh Tokenを失効した後は、そのTokenで更新できない。
+  - 発行済みJWT Access Tokenは最長15分の期限まで扱う。
   - Marketsはトークン更新やAPIで認可の無効を確認した場合、その連携を再認可が必要な状態にする。
 
 ### 再認可
@@ -4081,7 +4313,7 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
   2. 同じClient IDと`Idempotency-Key`の実行記録を探し、精算ID・競売ID・落札者・支払名義・評価軸ごとの必要額を照合する。
   3. 確定済みで内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じなら、保存済み結果の支払名義ごとに共通の要求回数制限を確認してから、その結果を返す。この再送では、落札者の現在の認可・残高・評価軸の現在状態を再検査しない。
   4. 未確定なら、各落札者のトークンとDPoP署名、支払名義の一致を検証し、確認できた支払名義ごとに共通の要求回数制限を確認する。
-  5. 本人とクライアントの現在の利用可否、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、金額と残高を検証する。評価軸の公開範囲は精算の許可条件に含めない。
+  5. 本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、金額と残高を検証する。評価軸の公開範囲は精算の許可条件に含めない。
   6. 全件が条件を満たせば、引き落とし・ポイント増減履歴・二重処理防止の実行記録を一括確定する。
 
 - 二重処理防止には、確定済み精算の実行記録を使う。
@@ -4539,7 +4771,7 @@ points-web-app/
 ### 監査ログ
 
 - Pointsバックエンドは、既存の構造化ロガーで監査記録をWorkers Logsへ出力する。
-  - 管理者の変更、退会・再開、Accounts接続先の作成・有効化・取り下げ、Accounts連携・解除を対象とする。
+  - 管理者の変更、退会・再開、Accounts接続先の作成・有効化・取り下げ・再有効化の準備、Accounts連携・解除を対象とする。
   - 評価軸、パッケージ、交換倍率、自動分配設定、貢献評価代用、JSON設定復元の確定を対象とする。
   - 直接評価の登録・訂正、未受領評価の受領、譲渡、交換、消費、落札の引き落としを対象とする。
 
@@ -4656,7 +4888,7 @@ points-web-app/
 
 - ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。単体・結合テストは`vp test`へ統一し、Worker・D1はWranglerの`createTestHarness()`で検証する。
 
-- プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報と設定を削除し、経済履歴と非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
+- プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報と設定を削除し、経済履歴とGoogle・GitHubの非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
 
 - 利用規約をPoints専用とし、初回登録ボタン付近の同意案内、日英の公開ページ、変更の事前掲載を定める。変更後も操作を継続できる。規約違反に対するポイント没収は方針を定め、実行・表示の設計と実装時期は別途決める。
 
@@ -4674,11 +4906,17 @@ points-web-app/
 
 - 再連携では元のAccountsユーザーと認証結果の一致を検証し、別ユーザーなら既存連携を維持して拒否する。Accounts連携・再連携後に、正・負を含む最新の未受領評価を自動受領する。失敗時は連携を保持して受領と分配を全件未反映とし、再実行できるようにする。連携情報は本人の更新操作で全連携をまとめて取得し、一覧表示と公開プロフィールには保存済み情報を使う。
 
+- Accounts接続先は、管理者が登録・接続検証して有効化する。取り下げでは鍵とユーザー連携を削除し、再利用は同じ接続先IDで鍵を再生成して登録待ちへ戻す。接続検証と本人の再連携を経て利用を再開する。
+
 - Cookie・CSRF・OriginはBetter Authの標準対策を基準とし、認証APIと独自更新APIへの適用範囲を明確にする。
 
-- Accounts連携は標準OAuth stateで管理し、検証済みコールバックで保存する。ticket・独自の連携完了処理・試行テーブルを廃止し、設定画面へ戻ってからポイントを自動受領する。
+- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。標準OAuth stateで開始情報を管理し、検証済みコールバックで連携・再連携を保存する。設定画面へ戻ってからポイントを自動受領する。
+
+- Accountsの情報取得は、成功して提供情報がない場合を「情報提供なし」、一度も成功していない場合を「未取得」に統一する。再取得に失敗した場合は前回の情報と取得日時を保持する。
 
 - OAuthログインは公開画面を背景とするモーダルから開始し、毎回認証元のアカウント選択を要求する。通常ログイン後は開始した画面へ戻り、認証開始後の入力は復元しない。ログイン手段は設定画面で明示追加し、セッションは有効7日・更新間隔1日とする。
+
+- Google・GitHubとPoints本人の対応は、標準Account・Userと既存の本人テーブルで管理する。退会後も保持し、同じPoints本人の再開へつなぐ。
 
 - 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、別タブの未確定操作と中止した外部連携は切替後に反映しない。
 
@@ -4687,6 +4925,8 @@ points-web-app/
 - 全画面でJavaScriptを必須とし、無効時は有効化と再読み込みの案内だけを日英併記する。
 
 - 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。言語切替時も入力と確認結果を維持し、日時・数値は日英共通、規約・プライバシーポリシーは日本語を正本とする。
+
+- Better Authの認証エラーは、公式の`@better-auth/i18n`で日英へ翻訳する。画面の言語選択を要求へ反映し、言語切替時も表示中のエラーを翻訳し直す。
 
 - ポイント譲渡をフォーム・CSVに対応させ、有効な他のPoints利用者へ送れるようにする。譲渡自体は累計評価額を変えず、受取人の設定で自動分配する。全再分配を一括確定し、分配の記録にはUTCの譲渡確定月を使い、全再分配先の累計評価額は変更しない。
 
@@ -4718,11 +4958,11 @@ points-web-app/
 
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
 
-- 退会時は本人情報と設定を削除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。経済履歴と非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。全体・評価軸・パッケージ・OAuthクライアントのいずれかで最後の管理者なら退会を拒否する。
+- 退会時は本人情報と設定を削除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。全体・評価軸・パッケージ・OAuthクライアントのいずれかで最後の管理者なら退会を拒否する。
 
 - OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。
 
-- 全体管理者と各対象の管理者はそれぞれ最大20人とし、解除・退出・退会・ログイン停止で操作できる管理者がいなくなる変更を拒否する。
+- 全体管理者と各対象の管理者はそれぞれ最大20人とし、各対象の管理者所属にはOrganizationの`membershipLimit`とサーバー専用の`addMember`を採用する。所属の検証と変更を一括確定し、解除・退出・退会・ログイン停止で操作できる管理者がいなくなる変更を拒否する。
 
 - 全体管理者が利用者のログインを無期限で停止・再開できる。停止中は本人用API・外部操作・トークン更新を拒否し、所属・公開設定・認可・取引記録と受取りは維持する。競売の新しい引き落としも停止中は拒否する。
 
@@ -4734,15 +4974,15 @@ points-web-app/
 
 - Marketsの競売管理ではAuction単位のDurable ObjectとWebSocket Hibernationを採用する。PointsはTask、PWA、画像、メール通知とPUSH通知を実装せず、利用者ごとのアプリ内お知らせ一覧を置く。
 
-- OAuthクライアントの秘密鍵は、提供先ごとのD1に置く。それ以外の秘密鍵は、Worker Secretに置く。
+- Points OAuth Providerは標準のTokenハッシュ保存とJWT署名鍵の暗号化保存・30日間隔の更新を使う。クライアントの一時停止・再開は標準の`disabled`で扱い、発行済みJWTは最長15分の期限まで利用できる。同意取消とRefresh Token失効を分けて扱う。
+
+- OAuth同意画面は標準の`verifyOAuthQueryParams`で表示前に署名と期限を検証し、`getOAuthClientPublic`でアプリ情報を取得し、`oauth2.consent`で承認・拒否を確定する。
 
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
 
 - PointsはOAuthクライアント経由の残高照会と落札の一括引き落としに対応する。出品・入札・購入と落札証明はMarketsが管理する。
 
 - 本人データと、本人が管理者として登録されている対象の設定を、最大50MiBの一つのJSONへ出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は最大5MiBの要求を確認後に一括確定する。月別評価設定に伴う付与・分配は復元先で再計算し、確定済みの取引は参照用として保持する。
-
-- Google・GitHubのログイン用の認証元対応は、退会後も同じPoints本人を識別できるよう非公開で保持する。
 
 - 評価軸、Package、評価結果、交換比率、貢献評価代用のmethod／result、自動分配設定の履歴revisionを廃止し、同じIDの最新レコードを更新する。実行記録、冪等性、追記専用のポイント増減履歴を保持し、評価結果の訂正と代用の再計算は旧額との差分を反映する。
 
