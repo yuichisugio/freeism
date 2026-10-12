@@ -2013,16 +2013,75 @@ betterAuth({
 
 ### 競売の金額計算と精算
 
-- Marketsは競売作成時に保存した条件を使い、`priceScaled = priceTickCount * packageTickScaled`で整数価格を求める。`priceTickCount`は入札刻みの個数、`packageTickScaled`は10,000倍した価格刻みとする。評価軸別に`requiredAmountScaled = priceScaled * quantity * weight / totalWeight`を整数で計算し、`components[{evaluationCriterionId, requiredAmountScaled}]`としてPointsへ送る。
-- Pointsは精算要求の全評価軸IDの存在と現在状態を検証する。必要額0の行も含め、一つでも停止中なら全件を引き落とさない。評価軸の公開範囲は精算の許可条件に含めない。
-- 利用者・クライアントの認証と権限、各対象の存在、非負の安全整数金額、軸の重複、共通の保存精度、残高も検証する。存在しない評価軸による新しい精算は拒否する。
-- component amountと合計はJavaScript安全整数範囲内で検証する。乗除算の途中値はBigIntで保持し、整数として確定した結果を保存・返却前に検証する。
+- Marketsは精算時に、落札者が支払うポイントの種類と、それぞれの必要額を計算してPointsへ送る。
+  - 計算には、競売作成時に保存した評価軸ごとの割合と価格刻みを使う。
+  - 金額は、小数の計算誤差を避けるため、ポイント数を10,000倍した整数で扱う。
+  - 変数名の`Scaled`は、この10,000倍した金額を表す。
+
+- 計算に使う変数は、次の意味を持つ。
+
+  | 変数 | 意味 | 具体例の値 |
+  |---|---|---|
+  | `priceTickCount` | 精算に使う商品1個の確定価格が、価格刻み何個分に当たるか | 20,000個分 |
+  | `packageTickScaled` | 価格刻みを10,000倍した値 | 5（0.0005ポイント刻み） |
+  | `priceScaled` | 商品1個の価格を10,000倍した値 | 100,000（10ポイント） |
+  | `quantity` | 落札した商品の数量 | 2個 |
+  | `weight` | 各評価軸の支払い割合を表す整数の重み | Xは3、Yは2 |
+  | `totalWeight` | 支払いに使う全評価軸の重みの合計 | 3＋2＝5 |
+  | `requiredAmountScaled` | その評価軸で引き落とす必要額を10,000倍した値 | Xは120,000、Yは80,000 |
+  | `evaluationCriterionId` | 引き落とすポイントの種類を識別する評価軸ID | Xの評価軸ID、Yの評価軸ID |
+
+- 商品1個10ポイントを2個落札し、X・Yポイントを3対2で支払う場合、必要額はX12ポイント・Y8ポイントとなる。
+  - 支払い総額は、10ポイント×2個＝20ポイントとなる。
+  - Xの割合は3÷5＝60％、Yの割合は2÷5＝40％となる。
+  - この割合では、価格を0.0005ポイント刻みにすると、Xへ0.0003ポイント、Yへ0.0002ポイントと分けられる。
+  - 各軸の必要額が保存精度の0.0001ポイント単位に収まるように、この価格刻みを使う。
+
+- Marketsは、商品1個の価格を求めてから、数量と評価軸ごとの割合を掛けて必要額を計算する。
+  - 1個の価格は、`priceScaled = priceTickCount * packageTickScaled`で求める。
+  - この例では、`20,000 * 5 = 100,000`となり、実際の価格は10ポイントとなる。
+  - 各軸の必要額は、`requiredAmountScaled = priceScaled * quantity * weight / totalWeight`で求める。
+  - Xは`100,000 * 2 * 3 / 5 = 120,000`となり、実際の必要額は12ポイントとなる。
+  - Yは`100,000 * 2 * 2 / 5 = 80,000`となり、実際の必要額は8ポイントとなる。
+  - 価格刻みに合わせた価格を使うため、各軸の必要額も整数で求められる。
+
+- Pointsへは、評価軸IDと必要額の組を`components`配列に入れて送る。
+  - この例は、「落札者からXポイントを12、Yポイントを8引き落としてほしい」という要求となる。
+  - 10,000倍した必要額は、整数を表す文字列で送る。
+  - 次のJSONは、精算要求の落札者一覧`winners`の1人分から、`components`だけを抜き出した例とする。
+  - 評価軸IDには説明用の仮の値を記載する。
+
+  ```json
+  {
+    "components": [
+      {
+        "evaluationCriterionId": "Xの評価軸ID",
+        "requiredAmountScaled": "120000"
+      },
+      {
+        "evaluationCriterionId": "Yの評価軸ID",
+        "requiredAmountScaled": "80000"
+      }
+    ]
+  }
+  ```
+
+- Pointsは精算要求の全評価軸IDの存在と現在状態を検証する。
+  - 必要額0の行も含め、一つでも停止中なら全件を引き落とさない。
+  - 評価軸の公開範囲は精算の許可条件に含めない。
+
+- 利用者・クライアントの認証と権限、各対象の存在、非負の安全整数金額、軸の重複、共通の保存精度、残高も検証する。
+  - 存在しない評価軸による新しい精算は拒否する。
+
+- component amountと合計はJavaScript安全整数範囲内で検証する。
+  - 乗除算の途中値はBigIntで保持し、整数として確定した結果を保存・返却前に検証する。
 
 ### 出品用の評価軸・パッケージ情報
 
 - Marketsは検索で候補を取得し、選択した種類とIDから対象別の詳細を取得する。
-  - 一覧の例は`QUERY /api/v1/search`へ`{ "types": ["POINT_PACKAGE", "EVALUATION_CRITERION"], "page": 1, "pageSize": 20 }`を送る。
-  - パッケージは`QUERY /api/v1/point-packages/{pointPackageId}`、評価軸単体は`QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}`へJSON本文`{}`を送る。
+  - 一覧は`QUERY /api/v1/search`へ`{ "types": ["POINT_PACKAGE", "EVALUATION_CRITERION"], "page": 1, "pageSize": 20 }`を送る。
+  - パッケージは`QUERY /api/v1/point-packages/{pointPackageId}`へJSON本文`{}`を送る。
+  - 評価軸単体は`QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}`へJSON本文`{}`を送る。
   - 認証なしでは公開対象、有効なCookieセッションまたは`points` scopeのOAuth認証がある場合は、本人が管理できる非公開対象も取得できる。
   - 公開範囲は問い合わせ時点の値を検証する。非公開で閲覧できない対象と不存在は、同じ`404 RESOURCE_NOT_FOUND`を返す。
   - 対象・構成軸の停止は200応答の状態として返す。この取得は出品の許可や精算成功を保証するものではない。
