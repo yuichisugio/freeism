@@ -2330,8 +2330,15 @@ betterAuth({
 
 - TanStack QueryでAPIから取得したデータと、更新後の再取得を管理する。
   - 依存は導入済みとし、画面への適用は導入予定とする。
-  - アカウント切替時は、切替前の本人用データを除去し、切替先の残高・権限・設定を取得し直す。
-  - 取得と更新の管理には、[公式のReact向け機能](https://tanstack.com/query/latest/docs/framework/react/overview)を使う。
+  - 検索条件・ページなど、取得結果を変える条件を`queryKey`へ含める。[公式資料](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
+  - 閲覧者によって結果が変わる取得では、`queryKey`に現在のPointsユーザーIDも含める。
+  - 取得処理の`queryFn`から渡される`signal`を`fetch()`へ渡し、検索条件の変更などで不要になった通信を中止できるようにする。[公式資料](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)
+  - アカウント切替時は、`cancelQueries()`で切替前の本人用の取得を中止し、`removeQueries()`でその本人用データを除去する。[QueryClientの公式資料](https://tanstack.com/query/latest/docs/framework/react/reference/classes/QueryClient)
+  - その後、切替先の残高・権限・設定を取得し直す。
+  - 画面からの更新・確定処理は`retry: false`とし、本人の再試行操作で送る。
+  - 取得の中止と、確定済みの業務処理の取消を区別する。
+  - 画面内の取得データはメモリ上で管理し、HTTP応答の保存条件とは区別する。
+  - 別タブの切替検知とサーバーでの本人・権限の再検証も行う。
 
 ### 入力フォーム・表示補助
 
@@ -2339,7 +2346,20 @@ betterAuth({
   - React Hook Formと[公式のValibot resolver](https://github.com/react-hook-form/resolvers#valibot)は導入予定、Valibotは導入済みである。
   - Valibotは、バンドルの小ささを重視して採用する。
   - HeroUIで入力欄とエラーを表示し、React Hook FormからValibotの検証を呼び出す。
-  - サーバーでも入力値・認証・権限・業務条件を検証する。
+  - 通常の入力欄は`defaultValues`を設定し、`formState.isDirty`で未保存の変更を判定する。[公式資料](https://react-hook-form.com/docs/useform/formstate)
+  - ファイルの選択状態と、未確定の確認結果は別に管理する。
+
+- 入力の破棄確認が必要なRouter内の画面遷移は、TanStack Router標準の`useBlocker`で扱う。[公式資料](https://tanstack.com/router/latest/docs/guide/navigation-blocking)
+  - アカウント切替や外部認証の開始では、本人や入力状態を変える前に、操作開始時の破棄確認を行う。
+
+- フォーム・CSV・JSON復元・APIで、同じ意味の入力項目には共通のValibot検証定義を使う。
+  - 入力形式ごとの解析を終えてから、項目の型・必須条件・文字数・バイト数などを検証する。
+  - 検証には[`safeParse()`](https://valibot.dev/api/safeParse/)、UTF-8のバイト数には[`maxBytes()`](https://valibot.dev/api/maxBytes/)、Unicodeコードポイント数には[`maxCodePoints()`](https://valibot.dev/api/maxCodePoints/)を使い、各項目で定めた上限を適用する。
+  - 金額の小数文字列、固定小数点への変換、端数処理は金額の共通仕様で扱う。
+  - ファイル全体・要求本文の容量も、それぞれの上限で検査する。
+  - サーバーでも入力値を検証し、認証・権限・残高・version・参照先・循環などの業務条件を確認する。
+  - 検証で見つかった問題は、共通の入力エラー形式へ変換する。
+  - CSVでは行番号と列名も付ける。
 
 - Markdownの表示には、導入済みのreact-markdownを使う。
   - ホームや固定ページの本文を、Reactの画面と静的HTMLへ描画する。
@@ -2410,7 +2430,7 @@ betterAuth({
 - 未使用のexport・ファイル・依存の検出にはKnipを導入する。
 
 - 単体テストと結合テストの実行は、Vite+標準の`vp test`へ統一する。
-  - 計算ロジックは単体テスト、画面はTesting Library、ブラウザ操作はPlaywrightで検証する。
+  - 計算ロジックは単体テスト、画面はTesting Library、ブラウザ操作と配信後のHTTP疎通はPlaywrightで検証する。
   - Testing Libraryは導入予定、Playwrightは導入済みである。PlaywrightのE2Eテストは専用コマンドで実行する。
   - E2Eの実行系は、APIの安定性を重視してPlaywrightを採用する。
   - VitestはVite+に同梱されたものを使い、テストAPIは`vite-plus/test`から読み込む。[公式資料](https://viteplus.dev/guide/test)を参照する。
@@ -3541,12 +3561,17 @@ flowchart LR
   - `Content-Type: application/json`を必須とする。欠落やJSON構文の誤りは400、未対応の形式は415、入力値の誤りは422とする。
   - サーバーは`Accept-Query: application/json`で対応する問い合わせ形式を示す。
   - ブラウザは`fetch()`でQUERYを送る。JSONエクスポートも全受信の成功後にファイルを保存する。
-  - 検索条件を画面のURLへ保存する場合は、`URL`・`URLSearchParams`を使い、APIへの送信時にJSON本文へ変換する。
+  - Routerで画面のURLへ保存した検索条件も、APIへの送信時はJSON本文へ入れる。
   - OAuthコールバックのクエリと保存手順は、認証プロトコルの標準形式で扱う。
 
 - 通常の要求本文は、UTF-8の`application/json`で送る。
   - 各操作で定めた入力項目を、JSON本文へ直接記載する。
   - 金額の文字列表現と保存精度は、金額の共通仕様を適用する。
+
+- JSON本文は、Hono標準の`validator('json', ...)`で解析し、共通のValibot検証定義で値を検証する。[公式資料](https://hono.dev/docs/guides/validation)
+  - QUERYでも検証対象はJSON本文とし、URLのクエリパラメーターを検証する`validator('query', ...)`とは区別する。
+  - `validator`を呼ぶ前に`Content-Type`の欠落・非対応を判定し、JSON構文の誤りと入力値の誤りも区別する。
+  - 検証済みの値を`c.req.valid('json')`から業務処理へ渡す。
 
 - `Content-Type`は送信内容の形式、`Accept`は受け取れる形式を示す。
   - 通常のJSON APIでは、`Accept: application/json, application/problem+json`で成功と失敗の形式を指定できる。
@@ -3616,6 +3641,9 @@ flowchart LR
   - 通信IDは`X-Request-Id`応答ヘッダーへ返す。
 
 ### 失敗時の応答
+
+- 業務APIの例外は、Hono標準の`app.onError()`で共通に捕捉し、Problem Detailsへ変換する。[公式資料](https://hono.dev/docs/api/exception)
+  - Pointsで定めたHTTP状態コード、業務エラーコード、公開可能な補足情報を使う。
 
 - 失敗本文は`application/problem+json`で返す。
   - `type`・`title`・`status`・`code`・`requestId`を必須とする。
@@ -3699,8 +3727,10 @@ flowchart LR
 <a id="5-idempotency"></a>
 
 - Pointsは通信ごとに、`req_`付きUUIDの`requestId`を発行する。
-  - 成功時の`meta.requestId`、失敗時の`requestId`、`X-Request-Id`応答ヘッダー、その処理の運用ログに同じ値を使う。
+  - Hono標準の`requestId()`で、`headerName: ''`と`generator: () => 'req_' + crypto.randomUUID()`を設定する。[公式資料](https://hono.dev/docs/middleware/builtin/request-id)
   - 呼び出し元が送ったIDとは別に、Pointsが発行したIDを使う。
+  - `c.get('requestId')`から取得した値を、成功時の`meta.requestId`、失敗時の`requestId`、その処理の運用ログに使う。
+  - `headerName: ''`では応答ヘッダーも自動設定されないため、共通の応答処理で同じ値を`X-Request-Id`へ設定する。
   - 同じ業務要求の再送でも、今回の通信IDを発行する。
 
 - 重要な変更操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
@@ -3735,6 +3765,10 @@ flowchart LR
 - 公開プロフィール・一覧・検索・ポイント・バッジ・交換倍率・競売用パッケージの公開取得は、成功・失敗とも`Cache-Control: no-store`で返す。
 
 ### 公開APIの別サイトからの取得
+
+- CORSの応答ヘッダーとOPTIONSの事前確認は、Hono標準の`cors()`で扱う。[公式資料](https://hono.dev/docs/middleware/builtin/cors)
+  - 経路と認証方式に応じて、下記の許可元・メソッド・要求ヘッダー・公開する応答ヘッダーを明示する。
+  - 同じ取得APIでも、公開取得・Cookieセッション・OAuthで応答条件を分ける。
 
 - 認証情報なしの公開取得は、別サイトの画面とサーバーから利用できるようにする。
   - `Access-Control-Allow-Origin: *`を成功・失敗の応答に付ける。
@@ -4631,6 +4665,8 @@ points-web-app/
 
 - ビルド時に`CLOUDFLARE_ENV=staging|production`で配信先の環境を選ぶ。
   - Cloudflare Vite pluginが生成した、その環境用のWrangler設定と成果物を配信する。
+  - その環境のビルドが成功してから、Pointsのプロジェクトディレクトリで`wrangler deploy`を実行する。
+  - Wranglerは、Cloudflare Vite pluginが生成する`.wrangler/deploy/config.json`を通じて、そのビルドの設定を取得する。[生成設定の公式資料](https://developers.cloudflare.com/workers/wrangler/configuration/#generated-wrangler-configuration)
   - 配信前にWorker名、ドメイン、環境変数、D1接続先が対象環境と一致することを確認する。
   - 環境の選択時点は[Cloudflareの公式資料](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/)を参照する。
 
@@ -4801,11 +4837,17 @@ points-web-app/
   - Analytics EngineのSQL APIで、件数・所要時間・結果を確認する。
   - 機密情報がログへ混入しないこと、再送で成功監査が重複しないこと、ログの出力失敗で業務処理を再実行しないことを確認する。
 
-- 配信後の疎通を自動で確認する。
-  - HTML・JavaScript・CSSの取得と、画面からのAPI呼び出しを確認する。
-  - SPAの画面と静的生成ページで、JavaScript無効時の案内表示と、有効化・再読み込み後の通常表示を確認する。
-  - BASIC認証付きの環境では、未認証のHTML・静的ファイルへのアクセスが401となり、認証後に取得できることを確認する。
+- 配信後のHTTP疎通は、Playwrightの`APIRequestContext`で自動確認する。[公式資料](https://playwright.dev/docs/api/class-apirequestcontext)
+  - ブラウザを起動せず、HTML・JavaScript・CSSとAPIの応答を取得する。
+  - SPA画面をHTTPで確認するときは、HTML画面への移動と同じ要求ヘッダーを指定する。
+  - `maxRedirects: 0`を設定し、転送先を自動取得せず、最初の応答の状態コード・ヘッダー・本文を確認する。
+  - BASIC認証付きの環境では、未認証のHTML・静的ファイルが401と認証要求ヘッダーを返し、認証後に取得できることを確認する。
   - 公開JSON APIの200と、認証必須APIの401・403を確認する。
+  - 期待値の検査と結果の報告には、Playwright標準の`expect`とレポーターを使う。
+
+- 配信後の画面は、Playwrightのブラウザ操作で確認する。
+  - HTML・JavaScript・CSSの読み込みと、画面からのAPI呼び出しを確認する。
+  - SPAの画面と静的生成ページで、JavaScript無効時の案内表示と、有効化・再読み込み後の通常表示を確認する。
 
 - 初回と認証に関する変更時は、実際のログイン・連携を確認する。
   - Cookie、Google・GitHubのログインと明示連携を確認する。
@@ -4820,6 +4862,8 @@ points-web-app/
 
 - 文書の検査と、実機での受入結果を区別する。
   - 文書では環境・認証・DB・手順の整合性と、参照リンクを確認する。
+  - 実装移行時は、生成設定を探索する配信スクリプトと、HTTP疎通確認スクリプトを上記の標準機能へ移す。
+  - 移行後は、現在のAPI経路・メソッドと配信条件で検証する。
   - 2026-10-01にsubdomain `kyogoku`を読み取り確認した記録は保持する。
   - 今回の仕様更新では、Worker Previewsの実配信、DB更新、GitHub Actions実行、外部OAuth、実URLへのアクセスは実施していない。
   - 実機での受入は、上記の操作を確認してから完了とする。
@@ -4827,14 +4871,15 @@ points-web-app/
 ### 配信・取得の効率
 
 - 表示を速くするため、バンドルサイズを可能な限り小さくする。
-  - 未使用コードを除き、HTTPキャッシュ、ETag、長期キャッシュ、ファイル名のhashで、変更されていないscriptの再転送を減らす。
+  - 未使用コードを除く。
   - 大きいSVGは`<img>`として読み込む。
   - 参考記事は[catnose99の記事](https://zenn.dev/catnose99/articles/nani-translate)とする。
 
+- HTML・JavaScript・CSSなどの静的ファイルは、Static Assets標準のキャッシュとETagで配信する。[公式資料](https://developers.cloudflare.com/workers/static-assets/)
+  - ファイル名にhashがある成果物は、配信ヘッダーに応じてブラウザでも再利用する。
+
 - サーバー負荷と取得回数を減らすため、画面の状態を保持し、登録に必要な要求は最終確認の時点で送る。
-  - キャッシュできる公開データは更新頻度に応じて保存し、リアルタイム性が必要なデータは最新値を取得する。
-  - バックエンドのキャッシュはCloudflare Cacheへ保存し、DB更新後に該当するキャッシュを削除する。
-  - 高頻度で更新され、キャッシュを許可する情報は、1時間ごとなどに再取得が必要な状態にする。
+  - TanStack Queryが画面内で管理する取得データと、静的ファイル・APIのHTTPキャッシュを区別する。
   - 認証済み・非公開応答、認証関連、公開APIは、[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
 
 ## 採用しないもの
@@ -4887,6 +4932,12 @@ points-web-app/
 - CSVの列・入力条件・処理順を一か所へまとめ、全操作を検証・計算後の確認と明示確定に統一する。列順は自由、複数URLはセル内カンマ区切りとし、同内容の新規行は独立して処理する。評価軸CSVは1行1軸で作成・更新・削除に対応し、更新の空欄は維持、関連URLの`[]`は全削除とする。条件変更時は最新結果を再確認し、通信失敗の再送と新しい操作を区別する。
 
 - ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。単体・結合テストは`vp test`へ統一し、Worker・D1はWranglerの`createTestHarness()`で検証する。
+
+- フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、破棄確認が必要な画面遷移はTanStack Router、取得の中止とアカウント切替時のデータ除去はTanStack Queryの標準機能で扱う。
+
+- JSON本文の解析・通信ID・CORS・例外の捕捉をHono標準機能へまとめる。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
+
+- 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
 - プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報と設定を削除し、経済履歴とGoogle・GitHubの非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
 
