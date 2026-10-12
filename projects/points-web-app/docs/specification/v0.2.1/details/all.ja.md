@@ -2086,24 +2086,24 @@ betterAuth({
   - 公開範囲は問い合わせ時点の値を検証する。非公開で閲覧できない対象と不存在は、同じ`404 RESOURCE_NOT_FOUND`を返す。
   - 対象・構成軸の停止は200応答の状態として返す。この取得は出品の許可や精算成功を保証するものではない。
 
-- 対象別の詳細は、単一オブジェクトの`data`に表示・管理情報と計算情報を返す。
-  - `type`、`id`、`name`、`visibility`、`status`、`editable`を返す。
-  - パッケージは`description`と`relatedUrl`も返す。説明はnullを許可し、関連URLは最大20件とする。
-  - パッケージの`status`は保存している`ACTIVE | INACTIVE`を返す。
-
-- `data.calculation`に`components`・`totalWeight`・`packageTickScaled`を常に返す。
-  - 計算情報の取得を切り替える入力項目は設けない。
-  - `calculation.components`は、子パッケージまで展開して同じ軸を合算した1件以上の配列とし、評価軸ID昇順で全件返す。
-  - 直接構成と月別設定のページ分割は、計算情報の対象範囲へ影響させない。
-  - 各要素の`evaluationCriterionId`・`weight`・`status`を必須とする。展開途中の非公開子パッケージのID・名前・構造は返さない。
-  - 公開軸には名前・即決価格の許可などの公開情報も返す。非公開軸では原則としてID・割合・状態だけを返す。
-  - その非公開軸も管理できる本人への認証済み応答では、名前などの詳細を返せる。親パッケージの管理権限だけでは、その軸の詳細取得を許可しない。
-  - 評価軸単体の`calculation`は、対象軸だけの`components`1件、`weight: 1`、`totalWeight: 1`、`packageTickScaled: 1`を返す。
-
-- 応答例は、Pの直接構成をX軸1・非公開の子Q3、Qの構成をX軸1・Y軸1とした場合を示す。
-  - 展開結果はX対Y＝5対3となる。
-  - Y軸も非公開・停止中とし、問い合わせた本人にはQとY軸の管理権限がないものとする。
-  - 直接構成ではQを匿名表示し、計算情報ではY軸のID・割合・状態を返す。
+- 詳細取得APIの返答例
+  - 対象別の詳細は、単一オブジェクトの`data`に表示・管理情報と計算情報を返す。
+    - `type`、`id`、`name`、`visibility`、`status`、`editable`、`description`、`relatedUrl`を返す。説明はnullを許可し、関連URLは最大20件とする。
+    - パッケージの`status`は保存している`ACTIVE | INACTIVE`を返す。
+  - `data.calculation`に`components`・`totalWeight`・`packageTickScaled`を常に返す。
+    - 計算情報の取得を切り替える入力項目は設けない。
+    - `calculation.components`は、子パッケージまで展開して同じ軸を合算した1件以上の配列とし、評価軸ID昇順で全件返す。
+    - 直接構成と月別設定のページ分割は、計算情報の対象範囲へ影響させない。
+    - 各要素の`evaluationCriterionId`・`weight`・`status`を必須とする。
+    - 展開途中の非公開子パッケージのID・名前・構造は返さない。
+    - 公開軸には名前・説明などの公開情報も返す。
+    - 非公開軸では原則としてID・割合・状態・即決価格の許可など競売で必須の情報だけを返す。
+    - その非公開軸も管理できる本人への認証済み応答では、名前などの詳細を返せる。親パッケージの管理権限だけでは、その軸の詳細取得を許可しない。
+    - 評価軸単体の`calculation`は、対象軸だけの`components`1件、`weight: 1`、`totalWeight: 1`、`packageTickScaled: 1`を返す。
+  - 応答例は、Pの直接構成をX軸1・非公開の子Q3、Qの構成をX軸1・Y軸1とした場合を示す。
+    - 展開結果はX対Y＝5対3となる。
+    - Y軸も非公開・停止中とし、問い合わせた本人にはQとY軸の管理権限がないものとする。
+    - 直接構成ではQを匿名表示し、計算情報ではY軸のID・割合・状態を返す。
 
 ```json
 {
