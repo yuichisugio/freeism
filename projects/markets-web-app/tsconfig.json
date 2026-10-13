@@ -16,7 +16,6 @@
     "types": ["vite/client", "@cloudflare/vitest-pool-workers/types", "./worker-configuration.d.ts"]
   },
   "include": [
-    "build/**/*.ts",
     "playwright.config.ts",
     "src/**/*.d.ts",
     "src/**/*.ts",

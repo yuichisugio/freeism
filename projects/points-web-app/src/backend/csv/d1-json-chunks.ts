@@ -71,7 +71,7 @@ interface CsvAtomicBatchParts {
   idempotencyResult?: readonly D1PreparedStatement[];
   domainWrites?: readonly D1PreparedStatement[];
   ledger?: readonly D1PreparedStatement[];
-  audit?: readonly D1PreparedStatement[];
+  finalizeWrites?: readonly D1PreparedStatement[];
 }
 
 export function composeCsvAtomicBatch(parts: CsvAtomicBatchParts): D1PreparedStatement[] {
@@ -81,7 +81,7 @@ export function composeCsvAtomicBatch(parts: CsvAtomicBatchParts): D1PreparedSta
     ...(parts.idempotencyResult ?? []),
     ...(parts.domainWrites ?? []),
     ...(parts.ledger ?? []),
-    ...(parts.audit ?? []),
+    ...(parts.finalizeWrites ?? []),
   ];
   assertStatementCount(statements);
   return statements;

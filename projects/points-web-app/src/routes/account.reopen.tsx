@@ -8,7 +8,7 @@ export const Route = createFileRoute("/account/reopen")({ component: AccountReop
 export function AccountReopenPage() {
   return (
     <OperationPage
-      description="閉鎖中に永久OAuth主体へ届いた正負すべてのFIXを確認し、一括受領して再開します。"
+      description="アカウントを再開します。未受領FIXは、再開後に設定画面でAccountsと連携してから受領できます。"
       eyebrow="Account"
       title="アカウントを再開"
     >

@@ -79,6 +79,7 @@ function normalizeRepositoryError(error: unknown): never {
     "AUCTION_NOT_OPEN",
     "SELLER_CANNOT_BID",
     "POINTS_LINK_REQUIRED",
+    "POINTS_PROVIDER_INACTIVE",
     "BUY_NOW_QUANTITY_UNAVAILABLE",
     "IDEMPOTENCY_KEY_REUSED",
   ];
@@ -134,8 +135,15 @@ export async function executeAuctionCommand(
   if (aggregate.sellerMarketsUserId === input.actor.marketsUserId) {
     throw new AuctionCommandError("SELLER_CANNOT_BID");
   }
-  if (!(await repository.hasActivePointsConnection(input.actor.marketsUserId))) {
-    throw new AuctionCommandError("POINTS_LINK_REQUIRED");
+  if (input.command.kind !== "CANCEL_AUTO_BID") {
+    if (!(await repository.hasActiveProvider(aggregate.providerId))) {
+      throw new AuctionCommandError("POINTS_PROVIDER_INACTIVE");
+    }
+    if (
+      !(await repository.hasActivePointsConnection(input.actor.marketsUserId, aggregate.providerId))
+    ) {
+      throw new AuctionCommandError("POINTS_LINK_REQUIRED");
+    }
   }
   if (input.command.kind === "PLACE_BID" && input.command.quantity > aggregate.availableQuantity) {
     throw new AuctionCommandError("INVALID_QUANTITY");

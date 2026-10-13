@@ -118,6 +118,7 @@ export function registerTransactionRoutes(app: Hono<BackendContext>, getSession:
           new Uint8Array(await context.req.arrayBuffer()),
           {
             actorPointsUserId: context.get("pointsUser").id,
+            environment: requireBindings(context.env).APP_ENV,
             expectedValidationHash,
             idempotencyKey: context.req.header("Idempotency-Key")!,
             reason,
@@ -167,6 +168,7 @@ export function registerTransactionRoutes(app: Hono<BackendContext>, getSession:
           const bytes = new Uint8Array(await context.req.arrayBuffer());
           const input = {
             actorPointsUserId: context.get("pointsUser").id,
+            environment: requireBindings(context.env).APP_ENV,
             expectedValidationHash,
             idempotencyKey: context.req.header("Idempotency-Key")!,
           };

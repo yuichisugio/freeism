@@ -155,11 +155,6 @@ textarea {
   padding-left: 0.75rem;
 }
 
-.turnstile-placeholder {
-  border: 1px dashed #7d641b;
-  padding: 1rem;
-}
-
 .eyebrow {
   color: #7d641b;
   font-weight: 700;

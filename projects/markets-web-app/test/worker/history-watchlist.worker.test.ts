@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vite-plus/test";
 
@@ -23,6 +24,7 @@ async function seedUserAndAuction(
   const endsAt = options.endsAt ?? "2026-07-16T00:00:00.000Z";
   const pointPackageId = `package_${suffix}`;
   const pointPackageRevisionId = `package_revision_${suffix}`;
+  await seedPointsProvider(env.DB);
   await env.DB.batch([
     env.DB.prepare("INSERT INTO user (id, name, email) VALUES (?, ?, ?)").bind(
       authUserId,
@@ -38,13 +40,19 @@ async function seedUserAndAuction(
     ),
     env.DB.prepare(
       `INSERT INTO point_package_snapshots
-       (id, point_package_id, point_package_revision_id, name, total_weight)
-       VALUES (?, ?, ?, ?, 1)`,
-    ).bind(packageSnapshotId, pointPackageId, pointPackageRevisionId, `${label} package`),
+       (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+    ).bind(
+      packageSnapshotId,
+      testPointsProviderId,
+      pointPackageId,
+      pointPackageRevisionId,
+      `${label} package`,
+    ),
     env.DB.prepare(
-      `INSERT INTO auctions (id, seller_markets_user_id, status, version)
-       VALUES (?, ?, ?, 1)`,
-    ).bind(auctionId, marketsUserId, options.status ?? "SCHEDULED"),
+      `INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version)
+       VALUES (?, ?, ?, ?, 1)`,
+    ).bind(auctionId, testPointsProviderId, marketsUserId, options.status ?? "SCHEDULED"),
     env.DB.prepare(
       `INSERT INTO auction_revisions
        (id, auction_id, revision_number, title, description, external_url,
@@ -423,7 +431,14 @@ describe("user auction history", () => {
          (id, settlement_id, round_ordinal, plan_hash, cutoff_hash, state,
           first_attempt_at, retry_deadline_at)
          VALUES (?, ?, 1, ?, ?, 'RESERVED', ?, ?)`,
-      ).bind(roundId, settlementId, `sha256:${"b".repeat(64)}`, "c".repeat(64), settledAt, settledAt),
+      ).bind(
+        roundId,
+        settlementId,
+        `sha256:${"b".repeat(64)}`,
+        "c".repeat(64),
+        settledAt,
+        settledAt,
+      ),
       env.DB.prepare(
         `INSERT INTO settlement_allocations
          (id, settlement_id, settlement_round_id, allocation_ordinal, auction_id,

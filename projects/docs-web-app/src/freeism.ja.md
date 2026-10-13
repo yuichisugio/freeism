@@ -10656,15 +10656,34 @@ style P2-3 fill:#e0f7fa,stroke:#00838f,stroke-width:3px,color:#000
    - `freeism`リポジトリの`projects/find-contrib`
    - 貢献の発見
    - `貢献検知の仕組み`のプロトタイプ
-3. `points-web-app`
-   - `freeism`リポジトリの`projects/points-web-app`
-   - ポイント付与・評価軸・残高管理を行う`points.freeism.app`
-4. `markets-web-app`
-   - `freeism`リポジトリの`projects/markets-web-app`
-   - 得たポイントを使用して商材の出品・獲得を行う`markets.freeism.app`
-5. `accounts-web-app`
-   - `freeism`リポジトリの`projects/accounts-web-app`
-   - あらゆるアカウントの ID を統合して管理する
-6. `web-app`（旧実装）
+4. トップページ
+  - ドメイン
+    - [https://freeism.app](https://freeism.app)
+  - 説明
+    - 無料主義の関連プロジェクトを紹介する
+5. 無料主義のドキュメント
+  - ドメイン
+    - [https://docs.freeism.app/](https://docs.freeism.app/)
+  - 説明
+    - 無料主義のドキュメント
+6. 無料主義のポイント管理
+  - ドメイン
+    - [https://points.freeism.app/](https://points.freeism.app/)
+  - 説明
+     - 無料主義のポイント管理
+     - ポイント付与・評価軸・残高管理を行う
+7.  無料主義の EC マーケットプレイス
+  - ドメイン
+    - [https://markets.freeism.app/](https://markets.freeism.app/)
+  - 説明
+    - 完全に`points.freeism.app`とは疎結合で、外部 EC と同じ扱いにしたい
+    - ポイントの使い道の例を示す
+    - 得たポイントを使用して商材の出品・獲得を行う
+8.  外部アカウントの統合サービス
+  - ドメイン
+    - [https://accounts.freeism.app/](https://accounts.freeism.app/)
+  - 説明
+    - 無料主義の外部アカウント統合サービス
+9. `web-app`（旧実装）
    - `freeism`リポジトリの`projects/web-app`
    - v0.2 切替まで保持する旧モノリスのプロトタイプ

@@ -121,20 +121,11 @@ export function releaseTargetFromConfig(config, environment) {
     const expectedDomain =
       name === "production" ? "markets.freeism.app" : "staging.markets.freeism.app";
     const expectedOrigin = `https://${expectedDomain}`;
-    const expectedIssuer =
-      name === "production"
-        ? "https://points.freeism.app/api/auth"
-        : "https://staging.points.freeism.app/api/auth";
     const expectedTraceSamplingRate = name === "production" ? 0.05 : 1;
     const workflow = oneBinding(
       source.workflows,
       (item) => item.binding === "AUCTION_SETTLEMENT",
       `${name} AUCTION_SETTLEMENT binding`,
-    );
-    const service = oneBinding(
-      source.services,
-      (item) => item.binding === "POINTS_SERVICE",
-      `${name} POINTS_SERVICE binding`,
     );
     const analytics = oneBinding(
       source.analytics_engine_datasets,
@@ -149,11 +140,10 @@ export function releaseTargetFromConfig(config, environment) {
     if (
       source.name !== `auction-worker-${name}` ||
       workflow.name !== `auction-settlement-${name}` ||
-      service.service !== `points-worker-${name}` ||
       analytics.dataset !== `markets_ops_${name}` ||
       source.vars?.APP_HOST !== expectedDomain ||
       source.vars?.APP_ORIGIN !== expectedOrigin ||
-      source.vars?.POINTS_ISSUER !== expectedIssuer ||
+      !source.secrets?.required?.includes("POINTS_KEY_ENCRYPTION_KEY") ||
       route.pattern !== expectedDomain ||
       source.observability?.logs?.head_sampling_rate !== 1 ||
       source.observability?.traces?.head_sampling_rate !== expectedTraceSamplingRate
@@ -174,11 +164,6 @@ export function releaseTargetFromConfig(config, environment) {
     (item) => item.binding === "AUCTION_SETTLEMENT" && Boolean(item.name),
     `${environment} AUCTION_SETTLEMENT binding`,
   );
-  const service = oneBinding(
-    source.services,
-    (item) => item.binding === "POINTS_SERVICE" && Boolean(item.service),
-    `${environment} POINTS_SERVICE binding`,
-  );
   const analytics = oneBinding(
     source.analytics_engine_datasets,
     (item) => item.binding === "OPS_METRICS" && Boolean(item.dataset),
@@ -194,7 +179,7 @@ export function releaseTargetFromConfig(config, environment) {
     (item) => item.custom_domain === true && Boolean(item.pattern),
     `${environment} custom domain route`,
   );
-  if (source.vars?.APP_ENV !== environment || !source.vars.POINTS_ISSUER) {
+  if (source.vars?.APP_ENV !== environment) {
     throw new Error(`source wrangler ${environment} vars do not match the environment`);
   }
   if (!source.triggers?.crons?.includes("*/5 * * * *")) {
@@ -219,11 +204,9 @@ export function releaseTargetFromConfig(config, environment) {
     },
     durableObject,
     workflow,
-    service,
     analytics,
     email,
     host: source.vars.APP_HOST,
-    issuer: source.vars.POINTS_ISSUER,
     origin: source.vars.APP_ORIGIN,
     route,
     observability: source.observability,

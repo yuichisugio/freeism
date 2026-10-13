@@ -1,5 +1,13 @@
 import { sql } from "drizzle-orm";
-import { check, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+  check,
+  foreignKey,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 import { auctionRevisions, auctions } from "./auction";
 import { marketsUsers } from "./markets-user";
@@ -11,7 +19,7 @@ const safeInteger = sql.raw("9007199254740991");
 export const settlementCaptureReceipts = sqliteTable(
   "settlement_capture_receipts",
   {
-    captureReceiptId: text("capture_receipt_id").primaryKey(),
+    captureReceiptId: text("capture_receipt_id").notNull(),
     settlementId: text("settlement_id")
       .notNull()
       .references(() => settlements.id),
@@ -28,6 +36,7 @@ export const settlementCaptureReceipts = sqliteTable(
     createdAt: text("created_at").default(now).notNull(),
   },
   (table) => [
+    primaryKey({ columns: [table.settlementId, table.captureReceiptId] }),
     uniqueIndex("settlement_capture_receipts_settlement_uidx").on(table.settlementId),
     check(
       "settlement_capture_receipts_plan_hash_check",
@@ -78,7 +87,6 @@ export const settlementAllocations = sqliteTable(
       table.settlementId,
       table.buyerMarketsUserId,
     ),
-    uniqueIndex("settlement_allocations_reservation_uidx").on(table.pointReservationId),
     check(
       "settlement_allocations_ordinal_check",
       sql`${table.allocationOrdinal} between 1 and ${safeInteger}`,
@@ -160,9 +168,7 @@ export const settlementFinalizeReceipts = sqliteTable(
     settlementId: text("settlement_id")
       .notNull()
       .references(() => settlements.id),
-    captureReceiptId: text("capture_receipt_id")
-      .notNull()
-      .references(() => settlementCaptureReceipts.captureReceiptId),
+    captureReceiptId: text("capture_receipt_id").notNull(),
     planHash: text("plan_hash").notNull(),
     proofIdsJson: text("proof_ids_json").notNull(),
     proofSetHash: text("proof_set_hash").notNull(),
@@ -171,7 +177,13 @@ export const settlementFinalizeReceipts = sqliteTable(
   },
   (table) => [
     uniqueIndex("settlement_finalize_receipts_settlement_uidx").on(table.settlementId),
-    uniqueIndex("settlement_finalize_receipts_capture_uidx").on(table.captureReceiptId),
+    foreignKey({
+      columns: [table.settlementId, table.captureReceiptId],
+      foreignColumns: [
+        settlementCaptureReceipts.settlementId,
+        settlementCaptureReceipts.captureReceiptId,
+      ],
+    }),
     check(
       "settlement_finalize_receipts_plan_hash_check",
       sql`length(${table.planHash}) = 71 and substr(${table.planHash}, 1, 7) = 'sha256:' and substr(${table.planHash}, 8) not glob '*[^0-9a-f]*'`,

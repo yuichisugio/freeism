@@ -1,3 +1,5 @@
+import * as v from "valibot";
+
 import type { PointsApiClient } from "../../points/points-api-client";
 import {
   publicPointPackageRevisionResponseSchema,
@@ -43,12 +45,12 @@ export function createPackageRevisionReader(client: PublicRevisionClient): Packa
       } catch {
         throw new PackageRevisionReaderError("POINTS_DEPENDENCY_UNAVAILABLE");
       }
-      const parsed = publicPointPackageRevisionResponseSchema.safeParse(body);
+      const parsed = v.safeParse(publicPointPackageRevisionResponseSchema, body);
       if (!parsed.success) {
         throw new PackageRevisionReaderError("POINTS_DEPENDENCY_UNAVAILABLE");
       }
       return {
-        body: parsed.data,
+        body: parsed.output,
         cacheControl: response.headers.get("Cache-Control"),
         etag: response.headers.get("ETag"),
       };

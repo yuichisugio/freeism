@@ -1,17 +1,28 @@
-import { z } from "zod";
+import * as v from "valibot";
 
 const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER;
 
-const opaqueIdSchema = z.string().min(1).max(255);
-const reservationKeySchema = z.string().min(1).max(512);
-const sha256HashSchema = z.string().regex(/^sha256:[0-9a-f]{64}$/);
-const utcInstantSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/);
-const priceTicksSchema = z.number().int().min(0).max(MAX_SAFE_INTEGER);
-const positiveSafeIntegerSchema = z.number().int().min(1).max(MAX_SAFE_INTEGER);
+const opaqueIdSchema = v.pipe(v.string(), v.minLength(1), v.maxLength(255));
+const reservationKeySchema = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
+const sha256HashSchema = v.pipe(v.string(), v.regex(/^sha256:[0-9a-f]{64}$/));
+const utcInstantSchema = v.pipe(
+  v.string(),
+  v.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/),
+);
+const priceTicksSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(0),
+  v.maxValue(MAX_SAFE_INTEGER),
+);
+const positiveSafeIntegerSchema = v.pipe(
+  v.number(),
+  v.integer(),
+  v.minValue(1),
+  v.maxValue(MAX_SAFE_INTEGER),
+);
 
-const userScopeSchema = z.enum([
+const userScopeSchema = v.picklist([
   "openid",
   "profile",
   "offline_access",
@@ -20,128 +31,108 @@ const userScopeSchema = z.enum([
   "points.reservations.create",
 ]);
 
-function uniqueItems<T extends z.ZodTypeAny>(schema: z.ZodArray<T>) {
-  return schema.refine((items) => new Set(items).size === items.length);
+function uniqueItems<TSchema extends v.GenericSchema>(schema: TSchema) {
+  return v.pipe(
+    v.array(schema),
+    v.minLength(1),
+    v.check((items) => new Set(items).size === items.length),
+  );
 }
 
-export const createLinkAttemptRequestSchema = z
-  .object({
-    marketsUserId: opaqueIdSchema,
-    stateHash: sha256HashSchema,
-    pkceChallenge: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
-    redirectUri: z.string().url(),
-    requestedScopes: uniqueItems(z.array(userScopeSchema).min(1)),
-    expiresAt: utcInstantSchema,
-    returnUrlHash: sha256HashSchema,
-  })
-  .strict();
+export const createLinkAttemptRequestSchema = v.strictObject({
+  marketsUserId: opaqueIdSchema,
+  stateHash: sha256HashSchema,
+  pkceChallenge: v.pipe(v.string(), v.regex(/^[A-Za-z0-9_-]{43}$/)),
+  redirectUri: v.pipe(v.string(), v.url()),
+  requestedScopes: uniqueItems(userScopeSchema),
+  expiresAt: utcInstantSchema,
+  returnUrlHash: sha256HashSchema,
+});
 
-export const finalizeLinkAttemptRequestSchema = z.discriminatedUnion("outcome", [
-  z
-    .object({
-      outcome: z.literal("CONFIRM"),
-      marketsPointsConnectionId: opaqueIdSchema,
-      attemptPayloadHash: sha256HashSchema,
-      pointsIssuer: z.string().url(),
-      pointsSubject: opaqueIdSchema,
-      userClientId: opaqueIdSchema,
-    })
-    .strict(),
-  z
-    .object({
-      outcome: z.literal("CANCEL"),
-      marketsPointsConnectionId: opaqueIdSchema,
-      attemptPayloadHash: sha256HashSchema,
-    })
-    .strict(),
+export const finalizeLinkAttemptRequestSchema = v.variant("outcome", [
+  v.strictObject({
+    outcome: v.literal("CONFIRM"),
+    marketsPointsConnectionId: opaqueIdSchema,
+    attemptPayloadHash: sha256HashSchema,
+    pointsIssuer: v.pipe(v.string(), v.url()),
+    pointsSubject: opaqueIdSchema,
+    userClientId: opaqueIdSchema,
+  }),
+  v.strictObject({
+    outcome: v.literal("CANCEL"),
+    marketsPointsConnectionId: opaqueIdSchema,
+    attemptPayloadHash: sha256HashSchema,
+  }),
 ]);
 
-export const auctionEligibilityRequestSchema = z
-  .object({
-    auctionCommandId: opaqueIdSchema,
-    auctionCommandHash: sha256HashSchema,
-    items: z
-      .array(
-        z
-          .object({
-            auctionItemId: opaqueIdSchema,
-            pointPackageId: opaqueIdSchema,
-            pointPackageRevisionId: opaqueIdSchema,
-            contentHash: sha256HashSchema,
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(1000),
-  })
-  .strict();
+export const auctionEligibilityRequestSchema = v.strictObject({
+  auctionCommandId: opaqueIdSchema,
+  auctionCommandHash: sha256HashSchema,
+  items: v.pipe(
+    v.array(
+      v.strictObject({
+        auctionItemId: opaqueIdSchema,
+        pointPackageId: opaqueIdSchema,
+        pointPackageRevisionId: opaqueIdSchema,
+        contentHash: sha256HashSchema,
+      }),
+    ),
+    v.minLength(1),
+    v.maxLength(1000),
+  ),
+});
 
-export const balanceCheckRequestSchema = z
-  .object({
-    pointPackageRevisionId: opaqueIdSchema,
-    priceTicks: priceTicksSchema,
-    quantity: positiveSafeIntegerSchema,
-  })
-  .strict();
+export const balanceCheckRequestSchema = v.strictObject({
+  pointPackageRevisionId: opaqueIdSchema,
+  priceTicks: priceTicksSchema,
+  quantity: positiveSafeIntegerSchema,
+});
 
-export const createReservationRequestSchema = z
-  .object({
-    reservationKey: reservationKeySchema,
-    marketsUserId: opaqueIdSchema,
-    auctionId: opaqueIdSchema,
-    settlementId: opaqueIdSchema,
-    planHash: sha256HashSchema,
-    pointPackageRevisionId: opaqueIdSchema,
-    priceTicks: priceTicksSchema,
-    quantity: positiveSafeIntegerSchema,
-    leaseSeconds: z.literal(900),
-  })
-  .strict();
+export const createReservationRequestSchema = v.strictObject({
+  reservationKey: reservationKeySchema,
+  marketsUserId: opaqueIdSchema,
+  auctionId: opaqueIdSchema,
+  settlementId: opaqueIdSchema,
+  planHash: sha256HashSchema,
+  pointPackageRevisionId: opaqueIdSchema,
+  priceTicks: priceTicksSchema,
+  quantity: positiveSafeIntegerSchema,
+  leaseSeconds: v.literal(900),
+});
 
-export const reservationStatusRequestSchema = z.discriminatedUnion("lookupBy", [
-  z
-    .object({
-      lookupBy: z.literal("POINT_RESERVATION_ID"),
-      pointReservationIds: uniqueItems(z.array(opaqueIdSchema).min(1)),
-    })
-    .strict(),
-  z
-    .object({
-      lookupBy: z.literal("RESERVATION_KEY"),
-      reservationKeys: uniqueItems(z.array(reservationKeySchema).min(1)),
-    })
-    .strict(),
+export const reservationStatusRequestSchema = v.variant("lookupBy", [
+  v.strictObject({
+    lookupBy: v.literal("POINT_RESERVATION_ID"),
+    pointReservationIds: uniqueItems(opaqueIdSchema),
+  }),
+  v.strictObject({
+    lookupBy: v.literal("RESERVATION_KEY"),
+    reservationKeys: uniqueItems(reservationKeySchema),
+  }),
 ]);
 
-export const captureSettlementRequestSchema = z
-  .object({
-    auctionId: opaqueIdSchema,
-    planHash: sha256HashSchema,
-    reservations: z
-      .array(
-        z
-          .object({
-            pointReservationId: opaqueIdSchema,
-            expectedVectorHash: sha256HashSchema,
-          })
-          .strict(),
-      )
-      .min(1),
-  })
-  .strict();
+export const captureSettlementRequestSchema = v.strictObject({
+  auctionId: opaqueIdSchema,
+  planHash: sha256HashSchema,
+  reservations: v.pipe(
+    v.array(
+      v.strictObject({
+        pointReservationId: opaqueIdSchema,
+        expectedVectorHash: sha256HashSchema,
+      }),
+    ),
+    v.minLength(1),
+  ),
+});
 
-export const releaseReservationRequestSchema = z
-  .object({
-    pointReservationId: opaqueIdSchema,
-    reason: z.string().min(1).max(1000),
-    planHash: sha256HashSchema,
-  })
-  .strict();
+export const releaseReservationRequestSchema = v.strictObject({
+  pointReservationId: opaqueIdSchema,
+  reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+  planHash: sha256HashSchema,
+});
 
-export const deactivateConnectionRequestSchema = z
-  .object({
-    pointsConnectionId: opaqueIdSchema,
-    reason: z.string().min(1).max(1000),
-    deactivationKey: opaqueIdSchema,
-  })
-  .strict();
+export const deactivateConnectionRequestSchema = v.strictObject({
+  pointsConnectionId: opaqueIdSchema,
+  reason: v.pipe(v.string(), v.minLength(1), v.maxLength(1000)),
+  deactivationKey: opaqueIdSchema,
+});

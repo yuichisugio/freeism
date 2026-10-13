@@ -8,17 +8,7 @@ export interface OpsMetricInput {
   event: string;
   lagSeconds: number;
   outcome: string;
-  resourceIdHash: string;
   resourceState: string;
-}
-
-export async function hashOpsResourceId(resourceId: string, salt: string): Promise<string> {
-  if (salt.length === 0) throw new Error("Ops resource hash salt is required");
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(`${salt}:${resourceId}`),
-  );
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function emitOpsMetric(dataset: AnalyticsEngineDataset, input: OpsMetricInput): boolean {
@@ -33,7 +23,7 @@ export function emitOpsMetric(dataset: AnalyticsEngineDataset, input: OpsMetricI
         input.resourceState,
       ],
       doubles: [input.count, input.durationMs, input.lagSeconds, input.attempt],
-      indexes: [input.resourceIdHash],
+      indexes: [input.event],
     });
     return true;
   } catch {

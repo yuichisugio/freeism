@@ -21,7 +21,7 @@ export function PointsConnectionPage({
       <section aria-labelledby="points-heading" className="ledger-panel">
         <p className="eyebrow">Account connection</p>
         <h1 id="points-heading">Points連携</h1>
-        <p>MarketsとPointsは、明示的な確認後に1対1で連携します。</p>
+        <p>利用するポイントサービスごとに連携します。</p>
         {resource.loading ? <p aria-live="polite">読み込み中…</p> : null}
         {resource.error ? (
           <>
@@ -31,13 +31,15 @@ export function PointsConnectionPage({
             </button>
           </>
         ) : null}
-        {resource.data ? (
+        {resource.data?.length === 0 ? <p>利用できるポイントサービスはありません。</p> : null}
+        {resource.data?.map((state) => (
           <PointsConnectionPanel
             client={client}
+            key={state.providerId}
             onChanged={resource.reload}
-            state={resource.data}
+            state={state}
           />
-        ) : null}
+        ))}
       </section>
     </main>
   );
