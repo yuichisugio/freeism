@@ -771,12 +771,12 @@
 - 宛先は、次の4種類から一つを選び、フォーム・CSVで指定する。
   - 本人から共有された情報など、対象者との対応を確認できる識別子を使う。
 
-  | 宛先の種類 | 指定する列 | 入力例 |
-  | --- | --- | --- |
-  | 外部プロフィールURLの候補 | `recipientProfileUrl` | `https://github.com/alice` |
-  | AccountsユーザーID | `recipientAccountsOrigin`と`recipientAccountsUserId` | `https://accounts.example.com`と`user123` |
-  | Provider内の固有ID | `recipientProvider`と`recipientProviderAccountId` | `github`と`12345` |
-  | Provider内のユーザー名 | `recipientProvider`と`recipientProviderUsername` | `github`と`alice` |
+  | 宛先の種類                | 指定する列                                           | 入力例                                    |
+  | ------------------------- | ---------------------------------------------------- | ----------------------------------------- |
+  | 外部プロフィールURLの候補 | `recipientProfileUrl`                                | `https://github.com/alice`                |
+  | AccountsユーザーID        | `recipientAccountsOrigin`と`recipientAccountsUserId` | `https://accounts.example.com`と`user123` |
+  | Provider内の固有ID        | `recipientProvider`と`recipientProviderAccountId`    | `github`と`12345`                         |
+  | Provider内のユーザー名    | `recipientProvider`と`recipientProviderUsername`     | `github`と`alice`                         |
 
 - URL候補は最大5件、各512文字以下とする。
   - フォームでは候補を追加する。
@@ -839,13 +839,12 @@
   - ポイントの付与は、回答を受けたPointsが行う。
   - 要求本文の`identifiers`配列には、次の形式で入れる。
 
-  | 宛先の種類 | Accountsへ送る識別子 |
-  | --- | --- |
-  | URL候補 | `{ type: "url", url }` |
-  | AccountsユーザーID | `{ type: "accounts_user", accountsUserId }` |
-  | Provider固有ID | `{ type: "provider_account", provider, accountId }` |
+  | 宛先の種類         | Accountsへ送る識別子                                |
+  | ------------------ | --------------------------------------------------- |
+  | URL候補            | `{ type: "url", url }`                              |
+  | AccountsユーザーID | `{ type: "accounts_user", accountsUserId }`         |
+  | Provider固有ID     | `{ type: "provider_account", provider, accountId }` |
   | Providerユーザー名 | `{ type: "provider_username", provider, username }` |
-
   - Accounts originは接続先の選択に使う。
 
 - 問い合わせのまとめ方と件数
@@ -861,14 +860,14 @@
   - 一つの行の候補が複数の要求に分かれた場合も、そのサービスへの全要求の回答をまとめてから、その行の付与先や次のサービスへの照合を決める。
   - URL・Provider指定で付与先が見つからなかった行は、次の有効なAccounts系サービスへ同じ方法で問い合わせる。
 
-  | 同じAccounts系サービスへ照合する入力          | CSV行数 | 重複を除いた識別子数 | 要求回数と各要求の件数 |
-  | --------------------------------------------- | ------: | -------------------: | ---------------------- |
-  | 1行に5URL、別の995行に各1URL、すべて異なるURL |     996 |                1,000 | 1回、1,000件           |
-  | 201行に各5URL、すべて異なるURL                |     201 |                1,005 | 2回、1,000件と5件      |
-  | 1,000行に各5URL、すべて異なるURL              |   1,000 |                5,000 | 5回、各1,000件         |
-  | 1,000行すべてに、同じ5個のURL                 |   1,000 |                    5 | 1回、5件               |
+  | 同じAccounts系サービスへ照合する入力            | CSV行数 | 重複を除いた識別子数 | 要求回数と各要求の件数 |
+  | ----------------------------------------------- | ------: | -------------------: | ---------------------- |
+  | 1行に5URL、別の995行に各1URL、すべて異なるURL   |     996 |                1,000 | 1回、1,000件           |
+  | 201行に各5URL、すべて異なるURL                  |     201 |                1,005 | 2回、1,000件と5件      |
+  | 1,000行に各5URL、すべて異なるURL                |   1,000 |                5,000 | 5回、各1,000件         |
+  | 1,000行すべてに、同じ5個のURL                   |   1,000 |                    5 | 1回、5件               |
   | 1,000行すべてに、同じoriginとAccountsユーザーID |   1,000 |                    1 | 1回、1件               |
-  | 1,000行すべてに、同じProviderと固有ID         |   1,000 |                    1 | 1回、1件               |
+  | 1,000行すべてに、同じProviderと固有ID           |   1,000 |                    1 | 1回、1件               |
 
 - Accountsの回答と登録する内容
   - 人物を特定できた回答が`matched`である。
@@ -1412,20 +1411,20 @@
 
 ```ts
 betterAuth({
-	secrets: versionedBetterAuthSecrets,
-	account: {
-		encryptOAuthTokens: true,
-		storeStateStrategy: 'database',
-		storeAccountCookie: false,
-		accountLinking: {
-			enabled: true,
-			disableImplicitLinking: true,
-			trustedProviders: ['google', 'github'],
-			allowDifferentEmails: true,
-			updateUserInfoOnLink: false,
-			allowUnlinkingAll: false
-		}
-	}
+  secrets: versionedBetterAuthSecrets,
+  account: {
+    encryptOAuthTokens: true,
+    storeStateStrategy: "database",
+    storeAccountCookie: false,
+    accountLinking: {
+      enabled: true,
+      disableImplicitLinking: true,
+      trustedProviders: ["google", "github"],
+      allowDifferentEmails: true,
+      updateUserInfoOnLink: false,
+      allowUnlinkingAll: false,
+    },
+  },
 });
 ```
 
@@ -2056,16 +2055,16 @@ betterAuth({
 
   ```json
   {
-  	"components": [
-  		{
-  			"evaluationCriterionId": "Xの評価軸ID",
-  			"requiredAmountScaled": "120000"
-  		},
-  		{
-  			"evaluationCriterionId": "Yの評価軸ID",
-  			"requiredAmountScaled": "80000"
-  		}
-  	]
+    "components": [
+      {
+        "evaluationCriterionId": "Xの評価軸ID",
+        "requiredAmountScaled": "120000"
+      },
+      {
+        "evaluationCriterionId": "Yの評価軸ID",
+        "requiredAmountScaled": "80000"
+      }
+    ]
   }
   ```
 
@@ -2110,56 +2109,56 @@ betterAuth({
 
 ```json
 {
-	"data": {
-		"type": "POINT_PACKAGE",
-		"id": "V1StGXR8_Z5jdHi6B-myT",
-		"name": "研究への貢献",
-		"description": null,
-		"relatedUrl": ["https://example.com/package"],
-		"visibility": "PUBLIC",
-		"status": "ACTIVE",
-		"editable": false,
-		"totalWeight": 4,
-		"components": [
-			{
-				"type": "AXIS",
-				"evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
-				"name": "X軸",
-				"weight": 1,
-				"status": "ACTIVE"
-			},
-			{
-				"type": "PACKAGE",
-				"name": "匿名Bのパッケージ",
-				"weight": 3
-			}
-		],
-		"calculation": {
-			"totalWeight": 8,
-			"packageTickScaled": 8,
-			"components": [
-				{
-					"evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
-					"weight": 5,
-					"status": "ACTIVE",
-					"name": "X軸",
-					"buyNowEnabled": true
-				},
-				{
-					"evaluationCriterionId": "Z7wYdE5vT9mQx3nKp2aBc",
-					"weight": 3,
-					"status": "INACTIVE"
-				}
-			]
-		}
-	},
-	"meta": {
-		"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
-		"page": 1,
-		"pageSize": 20,
-		"hasPrevious": false,
-		"hasNext": false
-	}
+  "data": {
+    "type": "POINT_PACKAGE",
+    "id": "V1StGXR8_Z5jdHi6B-myT",
+    "name": "研究への貢献",
+    "description": null,
+    "relatedUrl": ["https://example.com/package"],
+    "visibility": "PUBLIC",
+    "status": "ACTIVE",
+    "editable": false,
+    "totalWeight": 4,
+    "components": [
+      {
+        "type": "AXIS",
+        "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
+        "name": "X軸",
+        "weight": 1,
+        "status": "ACTIVE"
+      },
+      {
+        "type": "PACKAGE",
+        "name": "匿名Bのパッケージ",
+        "weight": 3
+      }
+    ],
+    "calculation": {
+      "totalWeight": 8,
+      "packageTickScaled": 8,
+      "components": [
+        {
+          "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
+          "weight": 5,
+          "status": "ACTIVE",
+          "name": "X軸",
+          "buyNowEnabled": true
+        },
+        {
+          "evaluationCriterionId": "Z7wYdE5vT9mQx3nKp2aBc",
+          "weight": 3,
+          "status": "INACTIVE"
+        }
+      ]
+    }
+  },
+  "meta": {
+    "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
+    "page": 1,
+    "pageSize": 20,
+    "hasPrevious": false,
+    "hasNext": false
+  }
 }
 ```
 
@@ -2313,12 +2312,12 @@ betterAuth({
   - 共同管理者向け・関係ユーザー向け・両方から送信範囲を選ぶ。
   - アプリ全体管理者は各対象の管理に加え、利用中の全ユーザー向けに送信できる。
 
-| 管理対象 | 共同管理者 | 関係ユーザー |
-| --- | --- | --- |
-| アプリ全体 | アプリ全体管理者 | 利用中の全ユーザー |
-| 評価軸 | その軸の管理者 | その軸の受領済み評価・分配・譲渡・交換・精算などの記録がある人。現在の残高が0・負でも含む |
-| パッケージ | そのパッケージの管理者 | 現在の公式パッケージ登録者と、直接・間接にそのパッケージを含む親パッケージの管理者 |
-| OAuthクライアント | そのクライアントの管理者 | Points側にそのクライアントへの同意が残っている人。トークンの期限切れは問わない |
+| 管理対象          | 共同管理者               | 関係ユーザー                                                                              |
+| ----------------- | ------------------------ | ----------------------------------------------------------------------------------------- |
+| アプリ全体        | アプリ全体管理者         | 利用中の全ユーザー                                                                        |
+| 評価軸            | その軸の管理者           | その軸の受領済み評価・分配・譲渡・交換・精算などの記録がある人。現在の残高が0・負でも含む |
+| パッケージ        | そのパッケージの管理者   | 現在の公式パッケージ登録者と、直接・間接にそのパッケージを含む親パッケージの管理者        |
+| OAuthクライアント | そのクライアントの管理者 | Points側にそのクライアントへの同意が残っている人。トークンの期限切れは問わない            |
 
 - 送信先は確定時点の関係で決め、その後は固定する。
   - 同じ人が複数の条件に該当しても、一つのお知らせを一度だけ届ける。
@@ -2331,12 +2330,12 @@ betterAuth({
 
 - 自動通知は、次の出来事を対象とする。
 
-| 出来事 | 通知先・内容 |
-| --- | --- |
-| 付与・訂正・受領・分配・譲渡・交換・精算の確定 | 影響を受けた本人へ、一回の確定処理による本人分の結果をまとめて通知する |
-| 管理者の追加・解除 | 変更された本人へ、対象と権限の変更を通知する |
-| 評価軸・パッケージ・OAuthクライアントの停止・再開・削除 | その対象の共同管理者と関係ユーザーへ、状態の変更を通知する |
-| 未受領評価・分配の受領失敗 | 受領する本人へ、原因と受領の再実行画面を案内する |
+| 出来事                                                  | 通知先・内容                                                           |
+| ------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 付与・訂正・受領・分配・譲渡・交換・精算の確定          | 影響を受けた本人へ、一回の確定処理による本人分の結果をまとめて通知する |
+| 管理者の追加・解除                                      | 変更された本人へ、対象と権限の変更を通知する                           |
+| 評価軸・パッケージ・OAuthクライアントの停止・再開・削除 | その対象の共同管理者と関係ユーザーへ、状態の変更を通知する             |
+| 未受領評価・分配の受領失敗                              | 受領する本人へ、原因と受領の再実行画面を案内する                       |
 
 - 対象を完全削除するときは、対象と管理者所属を削除する直前の関係から通知先を決める。
 
@@ -2398,16 +2397,16 @@ betterAuth({
 
 ### 通知APIと確定処理
 
-| 用途 | メソッド・経路 | 入力 | 応答・処理 |
-| --- | --- | --- | --- |
-| 本人の通知一覧・未読件数 | `QUERY /api/v1/me/notifications` | ページ、すべて・未読・既読の絞り込み | 本人の通知配列、ページ情報、未読件数 |
-| 本人の通知詳細 | `QUERY /api/v1/me/notifications/{notificationId}` | 通知ID | 本人が受信した通知の単一オブジェクト |
-| 一件の既読化 | `POST /api/v1/me/notifications/{notificationId}/read` | 通知ID | 本人の通知を既読にする |
-| 全件の既読化 | `POST /api/v1/me/notifications/read-all` | `{}` | 本人の通知をまとめて既読にする |
-| 本人の受信通知の削除 | `DELETE /api/v1/me/notifications/{notificationId}` | 通知ID | 本人の受信通知と既読情報を削除する |
-| 管理対象の送信済み一覧 | `QUERY /api/v1/announcements` | 管理対象の種類・ID、ページ | 管理権限のある対象の送信済みお知らせ配列とページ情報 |
-| 送信の確認 | `POST /api/v1/announcements/preview` | 管理対象の種類・ID、送信範囲、日英タイトル・本文、訂正時は元のお知らせID | 対象範囲・人数・内容の確認結果 |
-| 送信の確定 | `POST /api/v1/announcements` | 送信内容と確認結果、冪等性キー | 保存したお知らせと送信結果 |
+| 用途                     | メソッド・経路                                        | 入力                                                                     | 応答・処理                                           |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------- |
+| 本人の通知一覧・未読件数 | `QUERY /api/v1/me/notifications`                      | ページ、すべて・未読・既読の絞り込み                                     | 本人の通知配列、ページ情報、未読件数                 |
+| 本人の通知詳細           | `QUERY /api/v1/me/notifications/{notificationId}`     | 通知ID                                                                   | 本人が受信した通知の単一オブジェクト                 |
+| 一件の既読化             | `POST /api/v1/me/notifications/{notificationId}/read` | 通知ID                                                                   | 本人の通知を既読にする                               |
+| 全件の既読化             | `POST /api/v1/me/notifications/read-all`              | `{}`                                                                     | 本人の通知をまとめて既読にする                       |
+| 本人の受信通知の削除     | `DELETE /api/v1/me/notifications/{notificationId}`    | 通知ID                                                                   | 本人の受信通知と既読情報を削除する                   |
+| 管理対象の送信済み一覧   | `QUERY /api/v1/announcements`                         | 管理対象の種類・ID、ページ                                               | 管理権限のある対象の送信済みお知らせ配列とページ情報 |
+| 送信の確認               | `POST /api/v1/announcements/preview`                  | 管理対象の種類・ID、送信範囲、日英タイトル・本文、訂正時は元のお知らせID | 対象範囲・人数・内容の確認結果                       |
+| 送信の確定               | `POST /api/v1/announcements`                          | 送信内容と確認結果、冪等性キー                                           | 保存したお知らせと送信結果                           |
 
 - 送信の確定では、冪等性キーを`Idempotency-Key`ヘッダーへ指定する。
 
@@ -2434,13 +2433,13 @@ betterAuth({
 
 ### 通知の具体例と確認事項
 
-| 場面 | 通知と記録の扱い |
-| --- | --- |
-| Aさんへの評価100を50へ訂正し、その分配も変わった | Aさんと分配先それぞれに、今回の本人分の訂正結果を一件ずつ通知する。ポイント増減履歴は別に保持する |
-| 子パッケージPを停止した | Pの共同管理者・現在の公式登録者・直接または間接の親パッケージ管理者へ知らせる。同じ人が複数に該当しても一件とする |
-| BさんのAccounts連携後の受領が失敗した | Bさんへ原因と受領再実行の導線を示す。連携を保持し、受領と分配は全件未反映のままとする |
-| 非公開の子パッケージQについて親の管理者へ通知した | Qの名前の閲覧権限がなければ匿名で示す。送信時に閲覧できた名前は、その後非公開になっても通知に残す |
-| お知らせ送信後にCさんが登録解除し、Dさんが新しく登録した | 元のお知らせはCさんに残り、Dさんには配信しない。後日の訂正は、その時点の関係で対象を決める |
+| 場面                                                     | 通知と記録の扱い                                                                                                  |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Aさんへの評価100を50へ訂正し、その分配も変わった         | Aさんと分配先それぞれに、今回の本人分の訂正結果を一件ずつ通知する。ポイント増減履歴は別に保持する                 |
+| 子パッケージPを停止した                                  | Pの共同管理者・現在の公式登録者・直接または間接の親パッケージ管理者へ知らせる。同じ人が複数に該当しても一件とする |
+| BさんのAccounts連携後の受領が失敗した                    | Bさんへ原因と受領再実行の導線を示す。連携を保持し、受領と分配は全件未反映のままとする                             |
+| 非公開の子パッケージQについて親の管理者へ通知した        | Qの名前の閲覧権限がなければ匿名で示す。送信時に閲覧できた名前は、その後非公開になっても通知に残す                 |
+| お知らせ送信後にCさんが登録解除し、Dさんが新しく登録した | 元のお知らせはCさんに残り、Dさんには配信しない。後日の訂正は、その時点の関係で対象を決める                        |
 
 - 管理者の種類ごとの送信権限と、共同管理者・関係ユーザー・両方の範囲を確認する。
 - 対象者の重複、残高0・負、親パッケージの参照、同意取消しとトークン期限切れ、退会・ログイン停止を確認する。
@@ -3859,26 +3858,26 @@ flowchart LR
   - Better Auth標準のログイン・セッション・認証手段・OAuthクライアント管理・管理者所属は、標準の認証フローで扱う。
   - 一覧に登録されていない重要な変更操作は、起動時に拒否する。
 
-| 操作                                                   | 経路・操作方法                                                                                                                   | 追加条件                                                                                                                       |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| 未受領評価・分配の受領                                 | `QUERY /api/unclaimed-fixes/claim-preview`、`POST /api/unclaimed-fixes/claims`                                                   | 本人認証、固定済みの帰属または本人の連携IDと最新一覧による宛先照合、確定時の確認結果の比較・冪等性キー                         |
+| 操作                                                   | 経路・操作方法                                                                                                                   | 追加条件                                                                                                               |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 未受領評価・分配の受領                                 | `QUERY /api/unclaimed-fixes/claim-preview`、`POST /api/unclaimed-fixes/claims`                                                   | 本人認証、固定済みの帰属または本人の連携IDと最新一覧による宛先照合、確定時の確認結果の比較・冪等性キー                 |
 | 評価軸の作成                                           | 評価軸のフォームまたはCSV                                                                                                        | ログインしたPoints利用者、冪等性キー                                                                                   |
 | 評価軸の更新・停止・再開・完全削除                     | 評価軸のフォームまたはCSV                                                                                                        | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                                     |
-| 評価軸の未受領分の再配布                               | `POST /api/v1/evaluation-criteria/{evaluationCriterionId}/pending-claims`                                                          | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、有効な軸、冪等性キー                                           |
+| 評価軸の未受領分の再配布                               | `POST /api/v1/evaluation-criteria/{evaluationCriterionId}/pending-claims`                                                        | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、有効な軸、冪等性キー                                           |
 | 公式パッケージの作成                                   | パッケージのフォーム・CSV                                                                                                        | ログインしたPoints利用者、冪等性キー                                                                                   |
 | 公式パッケージの更新・停止・再開・完全削除             | パッケージのフォーム・CSV                                                                                                        | そのパッケージの`packageAdmin`または`appAdmin`、冪等性キー                                                             |
-| OAuthクライアントの更新・一時停止・再開・削除          | Better Auth OAuth Providerの標準管理API                                                                                          | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                                             |
+| OAuthクライアントの更新・一時停止・再開・削除          | Better Auth OAuth Providerの標準管理API                                                                                          | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                                     |
 | 管理者の追加・解除・退出                               | 管理者設定画面                                                                                                                   | 全体管理者の変更は`appAdmin`、対象の変更は対象管理者または`appAdmin`、本人の退出、人数・件数・最後の管理者、冪等性キー |
 | 利用者のログイン停止・再開                             | 管理者設定画面                                                                                                                   | `appAdmin`、最後の管理者、冪等性キー                                                                                   |
 | 直接評価の登録・訂正の確定                             | 直接評価のフォーム・CSV                                                                                                          | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                                     |
 | 交換倍率の保存・削除                                   | 交換倍率のフォーム・CSV                                                                                                          | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                                   |
 | 貢献評価代用の確定                                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                                  | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                                   |
-| ポイント交換のフォーム確定                             | ポイント交換フォーム                                                                                                             | 本人認証、交換条件・金額・残高の検証、冪等性キー                                                                               |
-| 譲渡フォームの確定                                     | 譲渡フォームの確認・確定                                                                                                         | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                                                                             |
-| 利用者CSV確定                                          | `/api/{transfers,exchanges}/csv/commit`                                                                                          | 本人、冪等性キー                                                                                                               |
-| 自動分配設定の保存                                     | 自動分配設定フォーム                                                                                                             | 本人認証、サーバー側検証、既存の冪等性                                                                                         |
-| JSON設定復元の確認・確定                               | `/api/settings/restore/{validate,commit}`                                                                                        | 本人、各設定の管理権限、確定時の冪等性キー                                                                   |
-| 管理者のお知らせの確認・送信                           | `/api/v1/announcements/preview`、`/api/v1/announcements`                                                                          | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                                             |
+| ポイント交換のフォーム確定                             | ポイント交換フォーム                                                                                                             | 本人認証、交換条件・金額・残高の検証、冪等性キー                                                                       |
+| 譲渡フォームの確定                                     | 譲渡フォームの確認・確定                                                                                                         | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                                                                     |
+| 利用者CSV確定                                          | `/api/{transfers,exchanges}/csv/commit`                                                                                          | 本人、冪等性キー                                                                                                       |
+| 自動分配設定の保存                                     | 自動分配設定フォーム                                                                                                             | 本人認証、サーバー側検証、既存の冪等性                                                                                 |
+| JSON設定復元の確認・確定                               | `/api/settings/restore/{validate,commit}`                                                                                        | 本人、各設定の管理権限、確定時の冪等性キー                                                                             |
+| 管理者のお知らせの確認・送信                           | `/api/v1/announcements/preview`、`/api/v1/announcements`                                                                         | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                                       |
 | 接続先Accountsの作成／有効化／取り下げ／再有効化の準備 | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal,reactivation}` | `appAdmin`、冪等性キー                                                                                                 |
 
 ## HTTPリクエスト・HTTPレスポンス
@@ -3979,10 +3978,10 @@ flowchart LR
 
 ```json
 {
-	"data": {},
-	"meta": {
-		"requestId": "req_550e8400-e29b-41d4-a716-446655440000"
-	}
+  "data": {},
+  "meta": {
+    "requestId": "req_550e8400-e29b-41d4-a716-446655440000"
+  }
 }
 ```
 
@@ -4025,19 +4024,19 @@ flowchart LR
 
 ```json
 {
-	"type": "https://points.freeism.app/problems/validation-failed",
-	"title": "Validation failed",
-	"status": 422,
-	"code": "VALIDATION_FAILED",
-	"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
-	"errors": [
-		{
-			"row": 2,
-			"field": "amount",
-			"code": "INVALID_AMOUNT",
-			"message": "Enter an amount with up to four decimal places."
-		}
-	]
+  "type": "https://points.freeism.app/problems/validation-failed",
+  "title": "Validation failed",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
+  "errors": [
+    {
+      "row": 2,
+      "field": "amount",
+      "code": "INVALID_AMOUNT",
+      "message": "Enter an amount with up to four decimal places."
+    }
+  ]
 }
 ```
 
@@ -4770,17 +4769,17 @@ MarketsのToken取得・introspection・revokeは登録済み公開JWKSに対応
 
 ```json
 {
-	"type": "https://points.freeism.app/problems/authorization-unavailable",
-	"title": "Point authorization unavailable",
-	"status": 409,
-	"code": "AUTHORIZATION_UNAVAILABLE",
-	"requestId": "req_550e8400-e29b-41d4-a716-446655440000",
-	"rejectedWinners": [
-		{
-			"marketsUserId": "musr_01...",
-			"reason": "AUTHORIZATION_UNAVAILABLE"
-		}
-	]
+  "type": "https://points.freeism.app/problems/authorization-unavailable",
+  "title": "Point authorization unavailable",
+  "status": 409,
+  "code": "AUTHORIZATION_UNAVAILABLE",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
+  "rejectedWinners": [
+    {
+      "marketsUserId": "musr_01...",
+      "reason": "AUTHORIZATION_UNAVAILABLE"
+    }
+  ]
 }
 ```
 
