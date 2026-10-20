@@ -1,10 +1,6 @@
-# Markets Web App v0.3 候補
+# Freeism Markets Web App v0.3 仕様
 
-## 位置付け
-
-この文書は、v0.2で明示的に対象外または未確定としたMarketsの候補を情報として保持する。v0.3の実装承認ではない。
-
-## 候補
+## 新しい機能
 
 ### 入札・価格方式
 
@@ -22,33 +18,35 @@ v0.2はmulti-unit uniform-priceだけを実装する。
 - sellerへのpoint譲渡
 - 取引単位で方式を選ぶrule
 
-v0.2はcaptureによる消費だけを実装し、capture後refundを持たない。
+### 画像添付
 
-### 外部取引
+- 説明
+  - 画像の添付を実装する
 
-- 外部EC用random claim token
-- token hash保存、期限、revoke、seller検証、受渡完了POST
-- 匿名配送、外部EC、対面受渡し、QR/対面決済
-- 外部からの出品、bid、購入を行うpublic write API
+### ポイント方式
 
-公開・永続の落札proofはv0.2で実装するが、上記の外部EC claim tokenとは別機能である。
+- 説明
+  - 組み合わせ入札で、評価軸ごとに、一定期間預けて還元、消費なし、ポイント譲渡を実装する
 
-### 公開範囲と補償
+### 入札方式
 
-- seller/buyer限定の落札proof
-- 条件付き代理購入
-- 借入・返済台帳
-- capture後の補償transaction
+- 説明
+  - Pay as Bid、VCG、逆競売、市場型の報酬を実装する
 
-v0.2では限定proof、借入、refundを実装しない。将来補償が必要な場合も、既存captureの削除ではなく新しい正の台帳として設計する。
+### その他
 
-### 分散
-
-- 1 Auctionで複数Points serviceを跨ぐ決済
-- 独立`accounts.freeism.app`
-
-v0.2は複数のPoints提供先からAuctionごとに1つを選び、全winner・全評価軸をそのPoints D1でcaptureする。
-
-## 承認条件
-
-候補をv0.3へ昇格する前に、責務owner、データ正本、認証scope、経済不変条件、失敗回復、公開範囲、abuse対策、移行・テストを個別に設計し、decision registerへ新しいDEC-IDを追加する。
+1. ユーザーの認証＆認可付きMCPサーバーに対応
+   - PointsのOAuth Providerで認可する
+2. Web MCPに対応
+   - https://zenn.dev/chot/articles/268804cd6694ab
+   - 普通のMCPはサーバー側でAPIが返したデータを扱う。バックエンドのデータを直接操作する
+   - Web MCPは、フロントエンドが側でAIが扱える仕組みを提供する。フロントエンドをComputer Useを使わず操作する
+   - 普通のバックエンドのMCPの方が優先度が高い
+3. 指定個数ごと入札額を決められる機能 - 現在は、1ユーザーごとに複数商品でもすべて同じ単価にする必要がある
+4. 指定個数が落札できない場合は、落札しない機能
+   - 現在は、落札がギリギリで指定個数を落札できない場合は指定個数より少ない個数だけ受け取る場合がある
+5. ZodからValibotへ移行するを使用するか決める
+   - 軽くしたい
+   - https://ashunar0.dev/posts/valibot-vs-zod/
+   - ブラウザで使用するなら、移行する意味があるらしい
+6. スナイピング対策をするか指定する機能
