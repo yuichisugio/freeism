@@ -3104,6 +3104,7 @@ flowchart TD
 
 - 管理画面で、対象・送信範囲・タイトル・本文を入力する。
   - 送信前に、対象人数と内容を確認する。
+  - サーバーは確認段階では確認結果だけを返し、お知らせの保存・送信を行わない。
   - 受信者の個人情報一覧は表示しない。
   - 確定時に管理権限・対象範囲・人数・本文を再検証し、確認内容が変わった場合は再確認を求める。
 
@@ -3121,9 +3122,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["管理者：新規のお知らせ<br/>または元に紐づく訂正を入力"] --> B["サーバー：送信範囲・人数・内容を確認用に返す"]
+  A["管理者：新規のお知らせ<br/>または元に紐づく訂正を入力"] -->|QUERYで確認| B["サーバー：送信範囲・人数・内容を確認用に返す<br/>お知らせの保存・送信は行わない"]
   B --> C["管理者：対象人数と内容を確認して確定"]
-  C --> D["サーバー：管理権限・対象範囲・人数・本文を再検証"]
+  C -->|POSTで送信確定| D["サーバー：管理権限・対象範囲・人数・本文を再検証"]
   D --> E{"確認した内容のまま<br/>送信できる？"}
   E -- 内容変更 --> B
   E -- 権限不足など --> F["送信せず理由を表示"]
@@ -3186,7 +3187,7 @@ flowchart TD
 | 全件の既読化             | `POST /api/v1/me/notifications/read-all`              | `{}`                                                                     | 本人の通知をまとめて既読にする                       |
 | 本人の受信通知の削除     | `DELETE /api/v1/me/notifications/{notificationId}`    | 通知ID                                                                   | 本人の受信通知と既読情報を削除する                   |
 | 管理対象の送信済み一覧   | `QUERY /api/v1/announcements`                         | 管理対象の種類・ID、ページ                                               | 管理権限のある対象の送信済みお知らせ配列とページ情報 |
-| 送信の確認               | `POST /api/v1/announcements/preview`                  | 管理対象の種類・ID、送信範囲、日英タイトル・本文、訂正時は元のお知らせID | 対象範囲・人数・内容の確認結果                       |
+| 送信の確認               | `QUERY /api/v1/announcements/preview`                 | 管理対象の種類・ID、送信範囲、日英タイトル・本文、訂正時は元のお知らせID | 対象範囲・人数・内容の確認結果                       |
 | 送信の確定               | `POST /api/v1/announcements`                          | 送信内容と確認結果、冪等性キー                                           | 保存したお知らせと送信結果                           |
 
 - 送信の確定では、冪等性キーを`Idempotency-Key`ヘッダーへ指定する。
@@ -3706,7 +3707,7 @@ flowchart TD
   - 本人の設定画面に「JSONを出力」と「設定を復元」を設ける。
   - `QUERY /api/data-export`は、Cookieセッションまたは`points` scopeのOAuth認証から本人を検証し、JSON本文`{}`で全対象データを返す。
   - 応答は`application/json`、`Cache-Control: private, no-store`とし、ダウンロード用のファイル名を付ける。
-  - `POST /api/settings/restore/validate`は、設定を検証し、元IDと新IDの対応、処理順序、作成・更新対象と更新対象の現在version、復元後の参照・割合、付与・分配の増減を返す。
+  - `QUERY /api/settings/restore/validate`は、設定を検証し、元IDと新IDの対応、処理順序、作成・更新対象と更新対象の現在version、復元後の参照・割合、付与・分配の増減を返す。
   - ブラウザは、この応答のうち新IDの対応と処理順序、更新対象の現在version、確認画面に表示した重要な対象・条件・金額を確認結果として保持する。
   - OAuth設定は、通常の登録・更新画面で別途保存する項目として表示する。復元APIの一括保存対象は、それ以外の設定とする。
   - 検証エラーは対象項目と理由をまとめて返し、確認だけでは保存しない。
@@ -3717,7 +3718,7 @@ flowchart TD
   - 例えば前述の80×0.5＝40を確認した後、A軸の代用評価が再計算で80から100へ変われば、付与額50を再確認してから確定する。
   - 新IDが既存対象と衝突した場合も、既存対象を上書きせず、新IDを割り当て直した確認結果で再確認を求める。
   - 管理権限を失った場合など、操作を続けられない場合は、その理由を表示する。
-  - 両POSTでCookieまたはOAuthの本人認証と対象の管理権限を検証する。
+  - 確認のQUERYと確定のPOSTの両方で、CookieまたはOAuthの本人認証と対象の管理権限を検証する。
   - Cookieの場合はOrigin・CSRFも検証する。
   - 確定要求には`Idempotency-Key`を必須とする。
   - 設定、作成した対象と管理者所属、後続処理の実行記録、冪等性の結果を同じ原子処理で確定する。
@@ -3736,10 +3737,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["ブラウザ：JSONから設定を読み込み<br/>validateへ送信"] --> B["サーバー：権限・参照先などを検証して計算<br/>設定や計算結果は保存せず確認結果を返す"]
+  A["ブラウザ：JSONから設定を読み込み<br/>QUERYでvalidateへ送信"] --> B["サーバー：権限・参照先などを検証して計算<br/>設定や計算結果は保存せず確認結果を返す"]
   B --> C["ブラウザ：新ID対応・処理順・現在versionと<br/>重要な対象・条件・金額を保持して表示"]
   C --> D["利用者：復元内容を確認して確定"]
-  D --> E["ブラウザ：同じ設定と保持した確認結果をcommitへ送信<br/>確認情報込みで5MiB以内・Idempotency-Key必須"]
+  D --> E["ブラウザ：同じ設定と保持した確認結果をPOSTでcommitへ送信<br/>確認情報込みで5MiB以内・Idempotency-Key必須"]
   E --> F["サーバー：現在の権限・version・参照先・新IDなどを再検証<br/>復元後の月別評価設定と当時の分配条件で再計算<br/>確認結果と照合"]
   F --> G{"権限の喪失などで<br/>操作を続けられない？"}
   G -- はい --> H["復元本体は未反映<br/>続けられない理由を表示"]
@@ -3883,6 +3884,7 @@ flowchart TD
 ### 検証・確認・確定
 
 - 全操作を、サーバーでの検証・計算、利用者による確認、明示的な確定の順に進める。
+  - ブラウザは、CSVの検証要求をQUERYで送る。
   - サーバーはファイルを解析し直し、列・値・参照先・権限・更新番号・宛先の照合・金額と分配を検証する。
   - 構文が壊れているファイルは、解析エラーとして受け付けない。
   - 解析できた場合は全行の入力を検査し、エラーを`row`で表す行番号、`field`で表す列名、安定した`code`、修正可能な説明付きでまとめて返す。
@@ -3895,7 +3897,7 @@ flowchart TD
   - パッケージは、各パッケージの内容を確認できるモーダルを表示する。
   - ファイルを選ぶだけでは、登録・付与・確定を行わない。
 
-- 利用者が確定した場合だけ、[CSVの要求形式](#csvの要求形式と容量上限)でサーバーへ確定要求を送る。
+- 利用者が確定した場合だけ、[CSVの要求形式](#csvの要求形式と容量上限)でサーバーへPOSTの確定要求を送る。
   - サーバーは全行の入力と現在の条件を再検証・再計算し、受付・操作計画・実行記録・冪等性の結果を一つのD1原子処理で保存する。設定を変更するCSVでは、全行の設定変更もここで保存する。
   - 受付前に入力・権限・計算した残高・保存条件を一件でも満たさなければ、全行を未受付とする。
   - 付与・譲渡などの経済処理は行順に進め、各行の一次増減・履歴と分配の実行記録を一括確定する。後続処理は、[分配・再分配・訂正の共通ルール](#分配再分配訂正の共通ルール)で定める単位で確定する。
@@ -3903,8 +3905,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[CSVを検証・照合して全行を計算] --> B[利用者が対象・条件・金額を確認]
-  B --> C[確定要求で入力と現在条件を再検証]
+  S["ブラウザ：QUERYでCSVの検証を要求"] --> A["サーバー：CSVを検証・照合して全行を計算<br/>確認段階では保存しない"]
+  A --> B[利用者が対象・条件・金額を確認]
+  B --> C[POSTの確定要求で入力と現在条件を再検証]
   C --> D{全行の受付条件を満たす?}
   D -- いいえ --> E[CSV本体を全行未反映]
   D -- はい --> F["受付・操作計画・実行記録・冪等性結果と<br/>該当する全行の設定変更を一括確定"]
@@ -3947,7 +3950,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["新しいCSVの確定要求を<br/>現在の条件で再検証・再計算"] --> B{"明示したversionが<br/>現在の値と競合する？"}
+  A["新しいCSVのPOST確定要求を<br/>現在の条件で再検証・再計算"] --> B{"明示したversionが<br/>現在の値と競合する？"}
   B -- はい --> C["409 VERSION_CONFLICT<br/>最新の内容を確認してファイルを修正"]
   B -- いいえ --> D{"権限・残高など<br/>実行条件を満たす？"}
   D -- いいえ --> E["全件を反映せず理由を表示"]
@@ -4109,7 +4112,7 @@ flowchart TD
   - DBの`balance_scaled`に対応する項目名は、APIでは`balanceScaled`とする。
 
 - 他サービスとの契約には、OpenAPIから生成したクライアントの型を使う。
-  - QUERYは[OpenAPI 3.2](https://spec.openapis.org/oas/v3.2.0.html#path-item-object)の`query`操作とJSONの`requestBody`で定義する。
+  - QUERYは[OpenAPI 3.2](https://spec.openapis.org/oas/v3.2.0.html#path-item-object)の`query`操作で定義し、`requestBody`には各APIが受け付ける本文形式を指定する。
   - PointsとMarketsのバックエンドの型は、それぞれのサービス内で管理する。
 
 ### バックエンドのファイルと型
@@ -4725,10 +4728,10 @@ flowchart TD
 | 貢献評価代用の確定                                     | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                                  | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                                   |
 | ポイント交換のフォーム確定                             | ポイント交換フォーム                                                                                                             | 本人認証、交換条件・金額・残高の検証、冪等性キー                                                                       |
 | 譲渡フォームの確定                                     | 譲渡フォームの確認・確定                                                                                                         | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                                                                     |
-| 利用者CSV確定                                          | `/api/{transfers,exchanges}/csv/commit`                                                                                          | 本人、冪等性キー                                                                                                       |
+| 利用者CSV確定                                          | `POST /api/{transfers,exchanges}/csv/commit`                                                                                     | 本人、冪等性キー                                                                                                       |
 | 自動分配設定の保存                                     | 自動分配設定フォーム                                                                                                             | 本人認証、サーバー側検証、既存の冪等性                                                                                 |
-| JSON設定復元の確認・確定                               | `/api/settings/restore/{validate,commit}`                                                                                        | 本人、各設定の管理権限、確定時の冪等性キー                                                                             |
-| 管理者のお知らせの確認・送信                           | `/api/v1/announcements/preview`、`/api/v1/announcements`                                                                         | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                                       |
+| JSON設定復元の確認・確定                               | `QUERY /api/settings/restore/validate`、`POST /api/settings/restore/commit`                                                       | 本人、各設定の管理権限、確定時の冪等性キー                                                                             |
+| 管理者のお知らせの確認・送信                           | `QUERY /api/v1/announcements/preview`、`POST /api/v1/announcements`                                                               | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                                       |
 | 接続先Accountsの作成／有効化／取り下げ／再有効化の準備 | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal,reactivation}` | `appAdmin`、冪等性キー                                                                                                 |
 
 ## HTTPリクエスト・HTTPレスポンス
@@ -4756,17 +4759,18 @@ flowchart TD
 
 - HTTPメソッドは、処理の目的に合わせて使う。
   - Points独自の取得APIは`QUERY`とする。検索・プロフィール・履歴・設定一覧・受領確認・JSONエクスポートも対象とする。
+  - Points独自APIで業務状態を変更しない確認・検証・試算も`QUERY`とする。
   - `QUERY`は安全かつ冪等な問い合わせとし、登録・受領・精算などの業務変更を確定しない。[HTTP QUERY標準（RFC 10008）](https://www.rfc-editor.org/rfc/rfc10008.html)
   - OAuth・Better Auth標準API、公開メタデータ・JWKS・UserInfo、HTML・静的ファイル・Shields.ioバッジの配信は、それぞれの標準のGET・HEADなどを使う。
-  - `POST`は新規作成・検証・確定など、その操作で定めた処理とする。
+  - `POST`は新規作成・確定など、その操作で定めた処理とする。
   - `PUT`は指定した内容全体への置換、`DELETE`は対象の削除とする。
-  - 更新操作と既存のPOST確認・確定は、各操作の経路・メソッドを維持する。
-  - 残高確認は、検査する金額を本文へ送る既存の`POST`を使う。
+  - 更新・確定操作は、各操作で定めた経路・メソッドを使う。
 
-- QUERYの取得条件は、UTF-8のJSON本文へ入れる。
+- QUERYの本文は、UTF-8のJSONを基本とする。
   - 検索語・複数の種類・フィルター・並び順・ページなど、各操作で定めた項目を直接記載する。条件がない場合も`{}`を送る。
-  - `Content-Type: application/json`を必須とする。欠落やJSON構文の誤りは400、未対応の形式は415、入力値の誤りは422とする。
-  - サーバーは`Accept-Query: application/json`で対応する問い合わせ形式を示す。
+  - JSON本文では`Content-Type: application/json`を必須とする。欠落やJSON構文の誤りは400、未対応の形式は415、入力値の誤りは422とする。
+  - JSON本文のAPIでは、サーバーは`Accept-Query: application/json`で対応する問い合わせ形式を示す。
+  - CSV検証のQUERYでは`multipart/form-data`を使い、サーバーは`Accept-Query: multipart/form-data`を返す。
   - ブラウザは`fetch()`でQUERYを送る。JSONエクスポートも全受信の成功後にファイルを保存する。
   - Routerで画面のURLへ保存した検索条件も、APIへの送信時はJSON本文へ入れる。
   - OAuthコールバックのクエリと保存手順は、認証プロトコルの標準形式で扱う。
@@ -4776,7 +4780,7 @@ flowchart TD
   - 金額の文字列表現と保存精度は、金額の共通仕様を適用する。
 
 - JSON本文は、Hono標準の`validator('json', ...)`で解析し、共通のValibot検証定義で値を検証する。[公式資料](https://hono.dev/docs/guides/validation)
-  - QUERYでも検証対象はJSON本文とし、URLのクエリパラメーターを検証する`validator('query', ...)`とは区別する。
+  - JSON本文のQUERYでも`validator('json', ...)`を使い、URLのクエリパラメーターを検証する`validator('query', ...)`とは区別する。
   - `validator`を呼ぶ前に`Content-Type`の欠落・非対応を判定し、JSON構文の誤りと入力値の誤りも区別する。
   - 検証済みの値を`c.req.valid('json')`から業務処理へ渡す。
 
@@ -4813,8 +4817,8 @@ flowchart TD
 
 - CSVは[フォーム送信の標準（RFC 7578）](https://www.rfc-editor.org/rfc/rfc7578.html)に基づく`multipart/form-data`で送る。
   - ブラウザは`FormData`を使い、`Content-Type`の`boundary`を含む送信用の区切り情報を自動生成する。
-  - 検証要求には、CSVファイルを`file`へ入れる。
-  - 確定要求には、同じ`file`と、利用者が確認した重要な確認項目のハッシュを表す`validationHash`を送る。
+  - QUERYの検証要求には、CSVファイルを`file`へ入れる。
+  - POSTの確定要求には、同じ`file`と、利用者が確認した重要な確認項目のハッシュを表す`validationHash`を送る。
   - `validationHash`の照合対象は、確認画面に表示した重要な対象・条件・金額だけとし、その値を正規化してハッシュを求める。
   - 交換では、交換元・交換先の評価軸、消費額・実際の受取額・適用倍率を含める。
   - 確定要求の`Idempotency-Key`は、要求ヘッダーへ送る。
@@ -4955,7 +4959,7 @@ flowchart TD
 - 重要な変更操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
   - 必須となる操作と本人・対象の条件は、各操作の契約に記載する。
   - 必須の操作でヘッダーが欠落した場合は、`422 IDEMPOTENCY_KEY_REQUIRED`を返し、業務処理を実行しない。
-  - QUERY、標準のGET・HEADと残高確認では要求しない。
+  - QUERYと標準のGET・HEADでは要求しない。
   - 内部の項目名は`idempotencyKey`とする。
   - HTTPメソッドの冪等性と、Pointsが業務結果を保存して返す処理を区別する。
   - `Idempotency-Key`はPointsの補足ルールとする。[IETF文書](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/)は2026-10-07時点で期限切れの草案として掲載されている。
@@ -5117,10 +5121,11 @@ upgrade-insecure-requests
 - SPAの初期HTMLを含む全HTMLの最終内容と、CSPハッシュが一致することを確認する。
 - 環境別CSP・HSTS、安全なダウンロード名を確認する。
 - JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
-- CSVの検証・確定、必須のフォーム項目、入力ファイルの再検証と重要な確認項目の変更検出、5MiBのファイル境界、本文全体の容量境界を確認する。
+- CSV検証のQUERYと確定のPOST、両方のmultipart本文と必須フォーム項目、入力ファイルの再検証と重要な確認項目の変更検出、5MiBのファイル境界、本文全体の容量境界を確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
+- フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
 - CORSのOPTIONS・QUERY・必要ヘッダー、DPoPの`htm=QUERY`、公開表示での本人認証の省略を確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
@@ -5420,7 +5425,7 @@ flowchart TD
 
 ### 本人の残高照会API
 
-- `POST /api/v1/me/balance-checks`で、認可された本人の残高と必要額の充足を確認する。
+- `QUERY /api/v1/me/balance-checks`で、認可された本人の残高と必要額の充足を確認する。
   - `operationId`は`checkPointBalance`、成功は200、本文上限は65,536バイトとする。
   - Points画面ではCookieセッション、外部アプリでは`points` scopeの利用者アクセストークン、Points API audience、DPoP認証を要求する。
   - Pointsはトークン・DPoPと、本人・権限を検証する。本人が退会・ログイン停止中なら照会を拒否する。
@@ -5438,7 +5443,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["本人の残高と必要額の充足を照会"] --> B["本人・認可・入力・評価軸を検証<br/>重複軸や範囲外の必要額を拒否"]
+  A["QUERYで本人の残高と必要額の充足を照会"] --> B["本人・認可・入力・評価軸を検証<br/>重複軸や範囲外の必要額を拒否"]
   B --> C["軸ごとの現在残高と必要額を比較"]
   C --> D{"必要額を満たす？"}
   D -- はい --> E["200・sufficient: true"]
@@ -6658,7 +6663,7 @@ flowchart TD
 
 - 一括精算の要求回数は、重複を除いた支払名義とClient IDの組ごとに数える。一人でも上限超過なら全件を反映せず、確定済み再送も保存済みの名義で数える。
 
-- 公開画面・設定画面・外部アプリで業務APIを共用する。Points独自のGET取得をQUERYとJSON本文へ統一し、CookieまたはOAuthの本人と権限で応答を決める。標準認証・メタデータ・HTML・静的ファイル・バッジは標準メソッドを維持し、公開表示の確認では本人認証を送らない。
+- 公開画面・設定画面・外部アプリで業務APIを共用する。Points独自の取得と、業務状態を変更しない確認・検証・試算をQUERYへ統一し、CookieまたはOAuthの本人と権限で応答を決める。本文はJSONを基本とし、CSV検証ではmultipart形式を使う。送信・CSV・復元の確定はPOSTとする。標準認証・メタデータ・HTML・静的ファイル・バッジは標準メソッドを維持し、公開表示の確認では本人認証を送らない。
 
 - Points独自の業務scopeを`points`一つへ統一し、本人用情報の取得と、本人の権限で実行できる業務操作全体を委任する。標準scopeとBetter Auth標準の認証・管理フローは、それぞれの用途を維持する。
 
