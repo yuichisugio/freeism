@@ -4868,7 +4868,7 @@ flowchart TD
 ### 失敗時の応答
 
 - 業務APIの例外は、Hono標準の`app.onError()`で共通に捕捉し、Problem Detailsへ変換する。[公式資料](https://hono.dev/docs/api/exception)
-  - Pointsで定めたHTTP状態コード、業務エラーコード、公開可能な補足情報を使う。
+  - HTTP標準の意味に合う状態コードと、Pointsの業務エラーコード、公開可能な補足情報を使う。
 
 - 失敗本文は`application/problem+json`で返す。
   - `type`・`title`・`status`・`code`・`requestId`を必須とする。
@@ -4876,7 +4876,7 @@ flowchart TD
   - `title`は問題の種類ごとの短い固定文言、`status`は実際のHTTP状態コードとする。
   - `code`は安定した`SCREAMING_SNAKE_CASE`とする。
   - 状況の説明を表す`detail`と、個々の問題の発生を識別する`instance`は任意とする。
-  - 各操作で必要な補足情報は、Problem Detailsの拡張項目として返す。
+  - `code`・`requestId`・`errors`と各操作で必要な補足情報は、RFC 9457が認めるProblem Detailsの拡張項目として返す。
 
 - Points独自の業務APIの説明文は英語とし、画面は`code`に対応する日英文を表示する。Better Authの認証エラーは[多言語の共通仕様](#多言語に対応)に従う。
   - 入力エラーの説明も、エラーコードと項目名から表示する。
@@ -4919,12 +4919,12 @@ flowchart TD
 
 | 状態コード | 用途                                                                     |
 | ---------- | ------------------------------------------------------------------------ |
-| `200`      | 情報の取得、または各操作で200と定めた処理の成功                          |
+| `200`      | 要求された処理が成功し、取得した情報または処理結果を返す場合             |
 | `201`      | 新しい対象の作成                                                         |
-| `202`      | 非同期処理の受付                                                         |
+| `202`      | 処理を受け付けたが、まだ完了していない場合                               |
 | `204`      | 本文なしの成功                                                           |
 | `304`      | 条件付き取得で、保存済みの応答を利用できる場合                           |
-| `400`      | JSON・CSV・フォームなど、要求の構文を解析できない場合                    |
+| `400`      | 要求の構文を解析できない、または必須の`Idempotency-Key`が欠落した場合    |
 | `401`      | 必要な認証がない、または無効な場合                                       |
 | `403`      | 認証済みだが、操作権限・scopeが不足する場合                              |
 | `404`      | 対象が存在しない、または開示できない場合                                 |
@@ -4932,17 +4932,18 @@ flowchart TD
 | `409`      | 更新番号、保存済みの冪等性キー、利用状態、残高などが要求と両立しない場合 |
 | `413`      | 要求本文・ファイルの容量上限を超えた場合                                 |
 | `415`      | その操作で受け付ける本文形式と異なる場合                                 |
-| `422`      | 解析後の必須項目・型・入力値・登録条件が不正な場合                       |
+| `422`      | 解析済みの本文で、必須項目・型・入力値・登録条件が不正な場合             |
 | `429`      | 要求回数の制限を超えた場合                                               |
 | `500`      | 想定外の内部障害                                                         |
-| `502`      | 外部サービスから必要な正常応答を得られない場合                           |
+| `502`      | 外部サービスから不正な応答を受けた場合                                   |
 | `503`      | 一時的にサービスや外部依存を利用できない場合                             |
 | `504`      | 外部サービスの応答待ちがタイムアウトした場合                             |
 
 - 状態コードと、具体的な理由を表す`code`を組み合わせる。
   - 残高不足は`409 INSUFFICIENT_BALANCE`とする。
   - `405`では、利用できるメソッドを`Allow`応答ヘッダーへ返す。
-  - 外部認可APIの認証チャレンジなど、認証方式で必要な応答ヘッダーも維持する。
+  - `401`では、要求先で利用できる認証方式のチャレンジを`WWW-Authenticate`応答ヘッダーへ返す。
+  - DPoPで保護するAPIではDPoPチャレンジを返し、Better Auth標準APIは標準の応答形式と認証ヘッダーを維持する。
   - 外部障害で待ち時間が分かる場合も、`Retry-After`で案内する。
   - `Retry-After`はHTTP標準の秒数またはHTTP日時で扱う。
   - 外部サービスの制限を`503`として返す操作では、取得した待ち時間も引き継ぐ。
@@ -4954,11 +4955,12 @@ flowchart TD
   - 呼び出し元が送ったIDとは別に、Pointsが発行したIDを使う。
   - `c.get('requestId')`から取得した値を、成功時の`meta.requestId`、失敗時の`requestId`、その処理の運用ログに使う。
   - `headerName: ''`では応答ヘッダーも自動設定されないため、共通の応答処理で同じ値を`X-Request-Id`へ設定する。
+  - `X-Request-Id`は、Pointsが通信IDを返す独自の応答ヘッダーとする。
   - 同じ業務要求の再送でも、今回の通信IDを発行する。
 
 - 重要な変更操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
   - 必須となる操作と本人・対象の条件は、各操作の契約に記載する。
-  - 必須の操作でヘッダーが欠落した場合は、`422 IDEMPOTENCY_KEY_REQUIRED`を返し、業務処理を実行しない。
+  - 必須の操作でヘッダーが欠落した場合は、`400 IDEMPOTENCY_KEY_REQUIRED`を返し、業務処理を実行しない。
   - QUERYと標準のGET・HEADでは要求しない。
   - 内部の項目名は`idempotencyKey`とする。
   - HTTPメソッドの冪等性と、Pointsが業務結果を保存して返す処理を区別する。
@@ -5006,7 +5008,7 @@ flowchart TD
 flowchart TD
   subgraph request["Idempotency-Keyが必須の操作"]
     A["操作で定めた認証・入力検証を適用"] --> B{"キーがあるか"}
-    B -->|いいえ| R["422 IDEMPOTENCY_KEY_REQUIRED"]
+    B -->|いいえ| R["400 IDEMPOTENCY_KEY_REQUIRED"]
     B -->|はい| C{"同じ識別範囲に<br/>確定から24時間未満の結果があるか"}
     C -->|ある| D{"正規化した内容が同じか"}
     D -->|同じ| E["初回の状態コード・結果ID・dataを返す<br/>今回のrequestIdを付ける"]
@@ -5027,7 +5029,8 @@ flowchart TD
   - 本人の連携情報、権限、残高、JSONエクスポートなどが対象となる。
   - 認証情報を含む失敗応答にも同じ条件を適用する。
 
-- OAuthの認可・トークン・コールバック・同意、Accounts連携、外部連携の開始・解除は、成功・失敗とも`Cache-Control: no-store`と`Pragma: no-cache`を付ける。
+- OAuthの認可・トークン・コールバック・同意、Accounts連携、外部連携の開始・解除は、成功・失敗とも`Cache-Control: no-store`を付ける。
+  - OAuthのトークンエンドポイントの成功・失敗応答や、適用するOAuth仕様が指定する応答には、`Pragma: no-cache`も付ける。[OAuth標準（RFC 6749）](https://www.rfc-editor.org/rfc/rfc6749.html#section-5.1)
 
 - 公開プロフィール・一覧・検索・ポイント・バッジ・交換倍率・競売用パッケージの公開取得は、成功・失敗とも`Cache-Control: no-store`で返す。
 
@@ -5049,8 +5052,11 @@ flowchart TD
   - 本人セッションを使った応答には、公開取得用の`Access-Control-Allow-Origin: *`を付けない。
 
 - 本人セッションを使う画面用APIと、OAuthで認可する本人用APIには、それぞれの認証・要求元検査を適用する。
-  - OAuthによる別サイトからの要求では、`Authorization`・`DPoP`と必要な本文ヘッダーを事前確認で許可し、OAuthの本人検証を行う。Cookie用のOrigin・CSRF検証でOAuth要求を拒否しない。
-  - OAuthを使う別サイトのブラウザは`credentials: "omit"`で要求する。事前確認と成功・失敗の応答に`Access-Control-Allow-Origin: *`を付け、`Access-Control-Allow-Credentials`は付けない。応答ヘッダーの公開は上記と同じとし、本人用情報の取得・操作はOAuthの認証と権限で制限する。[Fetch標準](https://fetch.spec.whatwg.org/#http-cors-protocol)
+  - OAuthによる別サイトからの要求では、`Authorization`・`DPoP`と必要な本文ヘッダーを`Access-Control-Allow-Headers`で許可する。
+  - `Idempotency-Key`が必須の操作では、その要求ヘッダーも事前確認で許可する。
+  - OAuthの本人検証を行い、Cookie用のOrigin・CSRF検証でOAuth要求を拒否しない。
+  - OAuthを使う別サイトのブラウザは`credentials: "omit"`で要求する。事前確認と成功・失敗の応答に`Access-Control-Allow-Origin: *`を付け、`Access-Control-Allow-Credentials`は付けない。本人用情報の取得・操作はOAuthの認証と権限で制限する。[Fetch標準](https://fetch.spec.whatwg.org/#http-cors-protocol)
+  - OAuthの応答では、共通の公開ヘッダーに加えて`WWW-Authenticate`を`Access-Control-Expose-Headers`へ指定する。`DPoP-Nonce`を応答する場合は、そのヘッダーも公開する。[DPoP標準（RFC 9449）](https://www.rfc-editor.org/rfc/rfc9449.html#section-7.1)
 
 ```mermaid
 flowchart TD
@@ -5061,7 +5067,8 @@ flowchart TD
   C --> F["成功・失敗とも許可元は *<br/>Cookieの許可ヘッダーは付けない"]
   D --> F
   E --> G["公開取得用の * を付けずに応答"]
-  H["OPTIONSによる事前確認"] --> I["経路と認証方式に合う<br/>メソッド・要求ヘッダーを許可"]
+  D --> J["WWW-Authenticateを公開<br/>DPoP-Nonceを返す場合はそれも公開"]
+  H["OPTIONSによる事前確認"] --> I["経路と認証方式に合う<br/>メソッド・要求ヘッダーを許可<br/>必須操作のIdempotency-Keyも許可"]
 ```
 
 ### セキュリティヘッダーとダウンロード
@@ -5127,6 +5134,8 @@ upgrade-insecure-requests
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
 - フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
 - CORSのOPTIONS・QUERY・必要ヘッダー、DPoPの`htm=QUERY`、公開表示での本人認証の省略を確認する。
+- 必須操作の`Idempotency-Key`の事前許可、`WWW-Authenticate`と応答する場合の`DPoP-Nonce`の公開、401の認証チャレンジを確認する。
+- OAuth標準が求める応答に`Pragma: no-cache`を付け、それ以外の保存制限は`Cache-Control`で指定することを確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
 - 実装との差は、実装時の確認事項として扱う。
@@ -5415,7 +5424,7 @@ flowchart TD
 - 日次Cronで期限切れ結果だけを上限件数まで削除し、残りを次回に持ち越すことを確認する。
 - Cronで未削除の期限切れ結果が残っていても、同じキーの新しい要求を処理でき、確定時にその結果を置き換えることを確認する。
 - 削除待ちの期限切れ結果が再送照合に使われず、有効な結果は削除されないことを確認する。
-- `Idempotency-Key`が必須の操作で欠落した場合に、`422 IDEMPOTENCY_KEY_REQUIRED`となり、業務データが変更されないことを確認する。
+- `Idempotency-Key`が必須の操作で欠落した場合に、`400 IDEMPOTENCY_KEY_REQUIRED`となり、業務データが変更されないことを確認する。
 - 無料環境で認証を含むD1呼び出し回数と一括処理内のSQL文数を測定し、最大入力の確定処理と日次Cronが実行上限内に収まることを確認する。
 - 現在の譲渡・交換には、業務固有の処理状態と検査用トリガーがある。
   - 操作に必要な状態・検査条件を保ち、標準の一括処理で全件確定・取消となることを実装時に確認する。
@@ -5747,7 +5756,7 @@ flowchart TD
   - JWTの署名・発行者・宛先・期限・クライアント・権限`points`と、DPoPの鍵結合・HTTPメソッド・URL・トークンとの対応・再送を検証する。
   - 呼び出し元の認証とトークン・DPoPの検証には、Better Authの公開APIを使う。
   - 複数のWorkerでDPoPの再送を検出できるよう、検証済み署名の識別子にはBetter Auth標準のDB保存機能を使う。
-  - 各人のトークンと署名を一つの本文へまとめる形式は、承認済みの独自APIとする。
+  - 各人のトークンと署名、呼び出し元の`client_assertion`を一つのJSON本文へまとめる形式は、標準のJWT・DPoP検証規則を利用する承認済みの独自APIとする。
   - トークン・署名・クライアント認証情報は検証にだけ使い、ポイント増減履歴・実行記録・ログ・応答へ保存しない。
 
 - 要求には競売・落札者・支払名義・評価軸ごとの必要額を指定する。
@@ -5840,7 +5849,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["Marketsが一つの競売の全落札者を送信"] --> B["呼び出し元と要求形式を検証<br/>停止中クライアントは再送も拒否"]
+  A["Marketsが一つの競売の全落札者と<br/>client_assertionをJSON本文で送信<br/>新規精算では各人のToken・DPoPも含める"] --> B["呼び出し元と要求形式を検証<br/>停止中クライアントは再送も拒否"]
   B --> C{"有効な冪等性結果があるか"}
   C -->|ある| D{"精算内容が同じか"}
   D -->|いいえ| R["409 IDEMPOTENCY_KEY_REUSED"]
@@ -5926,9 +5935,10 @@ flowchart TD
   - 共通枠の超過ではHTTP `429`、`RATE_LIMITED`、`Retry-After: 60`を返し、本文はPointsのProblem Details形式とする。
   - 60秒は再試行の目安であり、正確な解除時刻を表すものではない。
   - 業務データを変更せず、429を冪等性の確定結果として保存しない。
-  - Better Auth自身が返す429は、[標準の本文と`X-Retry-After`](https://better-auth.com/docs/concepts/rate-limit#handling-rate-limit-errors)を保持する。
-  - この標準応答は、Better Authの認証APIと管理・設定APIのどちらにも適用する。
-  - 画面は本文の`code`の有無にかかわらずHTTP 429を扱い、`Retry-After`または`X-Retry-After`の待機時間を表示する。
+  - Better Auth自身が返す429は、[Better Auth所定の本文と`X-Retry-After`](https://better-auth.com/docs/concepts/rate-limit#handling-rate-limit-errors)を保持する。
+  - `X-Retry-After`はBetter Auth独自のヘッダーとし、Pointsはその待機秒数をHTTP標準の`Retry-After`にも設定する。
+  - Better Authの429応答の扱いは、Better Authの認証APIと管理・設定APIのどちらにも適用する。
+  - 画面は本文の`code`の有無にかかわらずHTTP 429を扱い、`Retry-After`の待機時間を優先して表示する。`Retry-After`がない応答では、`X-Retry-After`を使う。
   - 入力内容と確認結果を維持し、確定要求は利用者の操作で再送する。
   - 再試行時に条件が変わった場合は、その操作で定めた再確認を求める。
   - 超過の状況は、既存のWorkersログとメトリクスで確認する。
@@ -5942,6 +5952,9 @@ flowchart TD
   D -->|はい| F["429 RATE_LIMITED<br/>Retry-After: 60"]
   F --> G["入力・確認結果を維持し<br/>利用者が待ってから再試行"]
   G --> A
+  H["Better Authが429を返す"] --> I["本文とX-Retry-Afterを保持<br/>同じ秒数をRetry-Afterにも設定"]
+  I --> J["画面はRetry-Afterを優先して待機時間を表示<br/>なければX-Retry-Afterを使う"]
+  J --> K["入力・確認結果を維持し<br/>待ってからBetter Authの操作を再試行"]
 ```
 
 - 回数の数え方を例で示す。
@@ -6500,13 +6513,15 @@ flowchart TD
 
 - 認証以外のAPIは、操作主体ごとに共通の60秒60回制限をCloudflare Workersの標準機能で設ける。認証はBetter Auth標準の制限を適用し、Accounts連携開始も共通枠へ統一する。429では待機時間を表示し、入力と確認結果を保って再試行できるようにする。
 
-- HTTPリクエスト・レスポンスを標準仕様に基づいて一か所へ整理し、標準とPointsの補足を区別する。CSVはフォーム送信、一覧はページ番号、入力エラーは`field`へ統一する。通信IDはPointsが毎回発行し、未確定失敗の再検証と確定済み結果の再送を区別する。
+- HTTPリクエスト・レスポンスを標準仕様に基づいて一か所へ整理し、標準とPointsの補足を区別する。CSVはフォーム送信、一覧はページ番号、入力エラーは`field`へ統一する。通信IDはPointsが毎回発行し、独自ヘッダー`X-Request-Id`で返す。未確定失敗の再検証と確定済み結果の再送を区別する。
+
+- HTTP状態コードは標準の意味に合わせて選ぶ。401の認証チャレンジとOAuth向けCORSの許可・公開ヘッダーを明示し、Better Authの429には標準の`Retry-After`も付ける。キャッシュ制限は`Cache-Control`で指定し、OAuth標準が要求する応答には`Pragma: no-cache`も付ける。
 
 - 金額の入力は半角の小数4桁まで、画面表示は日英共通の3桁区切りとする。表示は正確な小数文字列を標準の`Intl.NumberFormat`へ直接渡す。保存は0.0001ポイント単位の安全整数に統一し、分配用最小単位と区別する。入力・表示・保存の数値例と、操作ごとの端数処理、APIの文字列表現を定める。
 
 - 管理操作の操作理由入力を削除する。
 
-- 二重処理防止と再送応答の結果を`idempotency_results`へ集約し、各結果の初回確定から1日を有効期間とする。期限切れ結果は日次Cronで件数を制限して削除する。期限後は同じキーでも新しい要求として扱い、業務記録とポイント増減履歴は別に保持する。必須の`Idempotency-Key`が欠落した場合は`422 IDEMPOTENCY_KEY_REQUIRED`を返す。
+- 二重処理防止と再送応答の結果を`idempotency_results`へ集約し、各結果の初回確定から1日を有効期間とする。期限切れ結果は日次Cronで件数を制限して削除する。期限後は同じキーでも新しい要求として扱い、業務記録とポイント増減履歴は別に保持する。必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。
 
 - staging・productionをCloudflareの無料枠で運用する。D1の呼び出し・読み書き・保存量、Workerの実行回数・CPU時間、運用ログと指標の利用量を無料枠に合わせ、Workers Logsは3日保持とする。
 
