@@ -141,7 +141,7 @@
     - [HTTP状態コード](#http状態コード)
     - [通信IDと二重処理防止](#通信idと二重処理防止)
     - [応答のキャッシュ](#応答のキャッシュ)
-    - [公開APIの別サイトからの取得](#公開apiの別サイトからの取得)
+    - [APIの呼び出し経路](#apiの呼び出し経路)
     - [セキュリティヘッダーとダウンロード](#セキュリティヘッダーとダウンロード)
     - [確認例と実装との差](#確認例と実装との差)
   - [金額表現](#金額表現)
@@ -372,7 +372,7 @@
   - 軸指定あり・なしのポイント取得、0・負の金額、指定軸の不存在・非公開と本人取得の例外を確認する。
   - 履歴の種類・評価軸による絞り込み、20件の境界と次・前のページを確認する。
   - バッジの指定省略で累計評価額、`BALANCE`指定で残高を返し、指定値が非公開なら404になることを確認する。
-  - 公開画面のCookieなしの取得、本人設定からの取得、別サイトからの取得、期限切れセッション、CORSヘッダーと`no-store`を確認する。
+  - 公開画面のCookieなしの取得、本人設定からの取得、外部サービスのサーバーからの取得、Shields.ioによるバッジ取得、期限切れセッションと`no-store`を確認する。
 
 - 実装時には、本人プロフィールを取得する現在の`GET /api/profile`を含め、画面の取得先・応答項目・公開条件・ページ情報を共用APIへそろえる。
 
@@ -4548,9 +4548,8 @@ flowchart TD
   - 本番は本番Pointsのorigin、テスト環境は開始元のローカルorigin・固定staging origin・`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
   - `<subdomain>`には、staging設定の`PREVIEW_WORKERS_SUBDOMAIN`を使う。
   - subdomainを変更するときは、stagingの許可先とPR配信のURL設定を一緒に変更する。
-  - ブラウザからの業務API呼び出しは、同一originの`/api/*`を窓口にしてサーバーへ渡す。
-  - 認証Cookie付きのCORS応答では、許可するoriginを限定する。
-  - CORSとは別に、サーバーで認証・認可を検証する。
+  - Pointsの画面からの業務API呼び出しは、同一originの`/api/*`を窓口にしてサーバーへ渡す。
+  - サーバーで認証・認可を検証する。
 
 - 更新要求とOAuthコールバック
   - Points独自APIの取得はQUERYとJSON本文を使い、業務状態の変更はPOST／PUT／PATCH／DELETEで行う。標準認証・HTML・静的ファイル・バッジの配信には、それぞれの標準メソッドを適用する。
@@ -5034,41 +5033,35 @@ flowchart TD
 
 - 公開プロフィール・一覧・検索・ポイント・バッジ・交換倍率・競売用パッケージの公開取得は、成功・失敗とも`Cache-Control: no-store`で返す。
 
-### 公開APIの別サイトからの取得
+### APIの呼び出し経路
 
-- CORSの応答ヘッダーとOPTIONSの事前確認は、Hono標準の`cors()`で扱う。[公式資料](https://hono.dev/docs/middleware/builtin/cors)
-  - 経路と認証方式に応じて、下記の許可元・メソッド・要求ヘッダー・公開する応答ヘッダーを明示する。
-  - 同じ取得APIでも、公開取得・Cookieセッション・OAuthで応答条件を分ける。
+- Pointsの画面は、[Cookie、CSRF、Origin](#cookiecsrforigin)の条件に従って同一originのAPIを利用する。
 
-- 認証情報なしの公開取得は、別サイトの画面とサーバーから利用できるようにする。
-  - `Access-Control-Allow-Origin: *`を成功・失敗の応答に付ける。
-  - ブラウザからは`credentials: "omit"`で取得する。`Access-Control-Allow-Credentials`は付けない。[Fetch標準](https://fetch.spec.whatwg.org/#http-cors-protocol)
-  - `X-Request-Id`、`Retry-After`、`Accept-Query`は、`Access-Control-Expose-Headers`へ明記する。
-  - QUERYと`Content-Type: application/json`によるCORS事前確認はOPTIONSで受け付け、`Access-Control-Allow-Methods`へ`QUERY`を含め、`Content-Type`を許可する。
-  - 各経路のOPTIONSで対応するメソッドを示す。GET・HEADを使う標準・配信APIは、そのメソッドを維持する。
+- Marketsなどの外部サービスは、そのサービスのバックエンドからPoints APIを呼ぶ。
+  - 公開情報の取得には認証情報を送らず、取得時点の公開条件に従って応答する。
+  - 本人用情報の取得・操作にはOAuthとDPoPを使い、Pointsが本人と操作権限を検証する。認証方式ごとの検査は、[HTTPメソッドと入力](#httpメソッドと入力)の本人認証・権限検証に従う。
+  - 外部サービスの画面は、そのサービスのバックエンドを通じて結果を取得する。
 
-- 画面と共用する取得APIでは、認証情報なしの公開取得に上記のCORS設定を適用する。
-  - Pointsの設定・管理画面からの取得と本人用検索には、本人セッション用の認証・要求元検査を適用する。
-  - 本人セッションを使った応答には、公開取得用の`Access-Control-Allow-Origin: *`を付けない。
-
-- 本人セッションを使う画面用APIと、OAuthで認可する本人用APIには、それぞれの認証・要求元検査を適用する。
-  - OAuthによる別サイトからの要求では、`Authorization`・`DPoP`と必要な本文ヘッダーを`Access-Control-Allow-Headers`で許可する。
-  - `Idempotency-Key`が必須の操作では、その要求ヘッダーも事前確認で許可する。
-  - OAuthの本人検証を行い、Cookie用のOrigin・CSRF検証でOAuth要求を拒否しない。
-  - OAuthを使う別サイトのブラウザは`credentials: "omit"`で要求する。事前確認と成功・失敗の応答に`Access-Control-Allow-Origin: *`を付け、`Access-Control-Allow-Credentials`は付けない。本人用情報の取得・操作はOAuthの認証と権限で制限する。[Fetch標準](https://fetch.spec.whatwg.org/#http-cors-protocol)
-  - OAuthの応答では、共通の公開ヘッダーに加えて`WWW-Authenticate`を`Access-Control-Expose-Headers`へ指定する。`DPoP-Nonce`を応答する場合は、そのヘッダーも公開する。[DPoP標準（RFC 9449）](https://www.rfc-editor.org/rfc/rfc9449.html#section-7.1)
+- 外部サイトに表示するバッジは、Shields.ioのサーバーがPointsのバッジ用JSONを取得し、生成した画像をブラウザへ返す。
+  - JSONの公開条件・項目・金額の指定方法は、[利用者のプロフィール取得API](#利用者のプロフィール取得api)に従う。
 
 ```mermaid
 flowchart TD
-  A["別サイトから取得・操作"] --> B{"認証方式"}
-  B -->|認証情報なしの公開取得| C["credentialsをomit<br/>公開範囲で取得"]
-  B -->|OAuth| D["credentialsをomit<br/>Token・DPoPで本人と権限を検証"]
-  B -->|Cookieセッション| E["許可originを限定<br/>本人セッションと要求元を検証"]
-  C --> F["成功・失敗とも許可元は *<br/>Cookieの許可ヘッダーは付けない"]
-  D --> F
-  E --> G["公開取得用の * を付けずに応答"]
-  D --> J["WWW-Authenticateを公開<br/>DPoP-Nonceを返す場合はそれも公開"]
-  H["OPTIONSによる事前確認"] --> I["経路と認証方式に合う<br/>メソッド・要求ヘッダーを許可<br/>必須操作のIdempotency-Keyも許可"]
+  subgraph points["Pointsの画面とAPI"]
+    P["Pointsのブラウザ画面"] -->|同一origin| A["Points API<br/>認証方式に応じて公開条件・本人・権限を検証"]
+  end
+  subgraph external["外部サービスとの連携"]
+    M["Marketsなどのブラウザ画面"] --> B["利用側サービスのバックエンド"]
+    B -->|公開取得は認証情報なし<br/>本人用はOAuth・DPoP| A
+    A -->|取得・操作の結果| B
+    B -->|結果| M
+  end
+  subgraph badge["Shields.ioのバッジ"]
+    V["外部サイトのブラウザ"] -->|画像を要求| S["Shields.ioのサーバー"]
+    S -->|JSONを取得| J["PointsのバッジAPI<br/>現在の公開条件を検証"]
+    J -->|バッジ用JSON| S
+    S -->|生成したバッジ画像| V
+  end
 ```
 
 ### セキュリティヘッダーとダウンロード
@@ -5133,8 +5126,8 @@ upgrade-insecure-requests
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
 - フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
-- CORSのOPTIONS・QUERY・必要ヘッダー、DPoPの`htm=QUERY`、公開表示での本人認証の省略を確認する。
-- 必須操作の`Idempotency-Key`の事前許可、`WWW-Authenticate`と応答する場合の`DPoP-Nonce`の公開、401の認証チャレンジを確認する。
+- Pointsの画面からの同一originの呼び出し、外部サービスのバックエンド経由の連携、Shields.ioのサーバーによるバッジ用JSONの取得を確認する。
+- DPoPの`htm=QUERY`、公開表示での本人認証の省略、必須操作の`Idempotency-Key`と401の`WWW-Authenticate`による認証チャレンジを確認する。
 - OAuth標準が求める応答に`Pragma: no-cache`を付け、それ以外の保存制限は`Cache-Control`で指定することを確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
@@ -5145,7 +5138,7 @@ upgrade-insecure-requests
   - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
   - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
   - 現在の独自取得APIはGETを使い、OAuthの業務scopeも機能別である。QUERY・JSON本文・単一の`points` scopeと、Cookie／OAuthの共通権限検証へ移行する。
-  - Honoのルーティング、Cloudflare Workers、ブラウザの`fetch()`とCORS、OpenAPI 3.2の定義・生成クライアントによるQUERYの送受信は、実装時に実環境で確認する。標準認証・配信のGETも確認する。
+  - Honoのルーティング、Cloudflare Workers、同一originのブラウザの`fetch()`、外部サービスのバックエンドとOpenAPI 3.2の定義・生成クライアントによるQUERYの送受信は、実装時に実環境で確認する。標準認証・配信のGETも確認する。
   - 現在の応答には`meta.requestId`がない経路があり、入力ヘッダー・エラー本文・拒否ログのIDも一致していない経路がある。今回の通信IDへ統一する。
   - 現在のCSV画面は確定ごとに新しいキーを発行し、通信失敗で確認結果を消す。成否不明時の同じ要求・キーの保持へそろえる。
   - 保存する失敗結果がある操作は、未確定失敗の再検証と区別して見直す。
@@ -5887,7 +5880,7 @@ flowchart TD
   - 認証以外のAPIは、同じ操作主体の要求を60秒間に合計60回までとする。
   - 情報取得・検索・登録・確認・確定を合算し、URL・操作の種類・管理対象ごとに枠を分けない。
   - AIによるアクセスにも同じ制限を適用する。
-  - 静的ファイル、CORSの事前確認（OPTIONS）、ヘルスチェック、認証用の公開メタデータは共通枠の対象外とする。
+  - 静的ファイル、ヘルスチェック、認証用の公開メタデータは共通枠の対象外とする。
 
 - 標準機能で回数を数える。
   - 共通枠には、[Cloudflare WorkersのRate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)を使う。
@@ -6501,7 +6494,7 @@ flowchart TD
 
 - ソース・テスト・補助スクリプトをfrontend・backend・sharedへ分類する。DB・Accounts・認証・回数制限・ログなどの外部アクセス実装をbackendの`infrastructure/`へ集約し、DBの定義・マイグレーションと認証生成用入口も配置する。ブラウザ・API・DBを通すE2Eは`src/shared/test/e2e/`へ置き、開発ツールの設定と生成先・探索先をそろえる。
 
-- API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは別サイトから取得でき、最新の公開条件で応答する。
+- API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは外部サービスのサーバーから取得でき、最新の公開条件で応答する。外部サイトのバッジにはShields.ioが取得したJSONから生成する画像を使う。
 
 - Points–Markets連携は複数名義に対応し、Marketsが連携・トークン・競売ごとの支払名義・解除を管理する。Pointsは共通のOAuth・DPoP検証と、一つの競売の全落札者の一括引き落としを担当する。再送は有効な冪等性結果をClient ID・操作種別・冪等性キー・要求内容で照合し、精算の確定結果は取引記録として保持する。
 
@@ -6515,7 +6508,7 @@ flowchart TD
 
 - HTTPリクエスト・レスポンスを標準仕様に基づいて一か所へ整理し、標準とPointsの補足を区別する。CSVはフォーム送信、一覧はページ番号、入力エラーは`field`へ統一する。通信IDはPointsが毎回発行し、独自ヘッダー`X-Request-Id`で返す。未確定失敗の再検証と確定済み結果の再送を区別する。
 
-- HTTP状態コードは標準の意味に合わせて選ぶ。401の認証チャレンジとOAuth向けCORSの許可・公開ヘッダーを明示し、Better Authの429には標準の`Retry-After`も付ける。キャッシュ制限は`Cache-Control`で指定し、OAuth標準が要求する応答には`Pragma: no-cache`も付ける。
+- HTTP状態コードは標準の意味に合わせて選ぶ。401の認証チャレンジを明示し、Better Authの429には標準の`Retry-After`も付ける。キャッシュ制限は`Cache-Control`で指定し、OAuth標準が要求する応答には`Pragma: no-cache`も付ける。
 
 - 金額の入力は半角の小数4桁まで、画面表示は日英共通の3桁区切りとする。表示は正確な小数文字列を標準の`Intl.NumberFormat`へ直接渡す。保存は0.0001ポイント単位の安全整数に統一し、分配用最小単位と区別する。入力・表示・保存の数値例と、操作ごとの端数処理、APIの文字列表現を定める。
 
@@ -6535,7 +6528,7 @@ flowchart TD
 
 - フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、破棄確認が必要な画面遷移はTanStack Router、取得の中止とアカウント切替時のデータ除去はTanStack Queryの標準機能で扱う。
 
-- JSON本文の解析・通信ID・CORS・例外の捕捉をHono標準機能へまとめる。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
+- JSON本文の解析・通信ID・例外の捕捉をHono標準機能へまとめる。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
 - 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
@@ -6678,7 +6671,7 @@ flowchart TD
 
 - 一括精算の要求回数は、重複を除いた支払名義とClient IDの組ごとに数える。一人でも上限超過なら全件を反映せず、確定済み再送も保存済みの名義で数える。
 
-- 公開画面・設定画面・外部アプリで業務APIを共用する。Points独自の取得と、業務状態を変更しない確認・検証・試算をQUERYへ統一し、CookieまたはOAuthの本人と権限で応答を決める。本文はJSONを基本とし、CSV検証ではmultipart形式を使う。送信・CSV・復元の確定はPOSTとする。標準認証・メタデータ・HTML・静的ファイル・バッジは標準メソッドを維持し、公開表示の確認では本人認証を送らない。
+- Pointsの公開画面・設定画面は同一originで、外部サービスはそのバックエンド経由で業務APIを共用する。Points独自の取得と、業務状態を変更しない確認・検証・試算をQUERYへ統一し、CookieまたはOAuthの本人と権限で応答を決める。本文はJSONを基本とし、CSV検証ではmultipart形式を使う。送信・CSV・復元の確定はPOSTとする。標準認証・メタデータ・HTML・静的ファイル・バッジは標準メソッドを維持し、公開表示の確認では本人認証を送らない。
 
 - Points独自の業務scopeを`points`一つへ統一し、本人用情報の取得と、本人の権限で実行できる業務操作全体を委任する。標準scopeとBetter Auth標準の認証・管理フローは、それぞれの用途を維持する。
 
