@@ -3346,7 +3346,7 @@ flowchart TD
 
 - 実行用・開発用のライブラリとツールは相互に互換性がある最新安定版を採用する。
   - 導入予定のライブラリも同じ方針で選び、更新時に公式の変更履歴・Node.js要件・関連パッケージの依存条件を確認する。
-  - 依存パッケージの選定には、pnpmで定める公開後の待機と例外条件も適用する。
+  - 依存パッケージの選定にはpnpmで定める公開後の待機と例外条件も適用する。
   - Vite+やWranglerが内部で使うツールは、採用した本体が指定する組合せで使う。
   - 更新後は型検査・静的解析・ビルド・単体テスト・結合テスト・E2Eを行い、採用する版とロックファイルを確定する。
   - 共有のpnpm・Vite+設定やロックファイルを更新する場合は、同じ設定を参照する他のワークスペースへの影響も確認する。
@@ -3467,7 +3467,7 @@ flowchart TD
 ### 開発・品質検査・テスト
 
 - パッケージ管理には、導入済みのpnpmを使う。
-  - pnpm 12系への更新時は、依存パッケージのビルド許可を`allowBuilds`へ移し、`esbuild: true`と`workerd: true`を設定する。[公式移行手順](https://pnpm.io/migration)
+  - pnpm 12系への更新時は依存パッケージのビルド許可を`allowBuilds`へ移し、`esbuild: true`と`workerd: true`を設定する。[公式移行手順](https://pnpm.io/migration)
   - ルートの`packageManager`・`engines.pnpm`・CIの版指定をまとめて更新し、更新したロックファイルで`vp install --frozen-lockfile`が成功することを確認する。
   - `minimumReleaseAge: 4320`で、公開から4,320分経過した版を依存解決の対象にする。
   - `blockExoticSubdeps: true`で、間接依存の特殊な取得元を制限する。
@@ -3477,9 +3477,10 @@ flowchart TD
   - Vite+は導入済みとし、コミット前検査とテスト構成の整備は導入予定とする。
   - 整形はOxfmt、静的解析はOxlintをVite+から実行する。
   - コミット前検査は、Vite+標準のフック管理と`vp staged`で行う。[公式資料](https://viteplus.dev/guide/commit-hooks)を参照する。
-  - Vite+の更新時は、`vite`のaliasも同じ版の`@voidzero-dev/vite-plus-core`へそろえる。
+  - 手動で依存を書き換える前に、元のロックファイルと導入済みパッケージを残した状態で、ワークスペースルートから公式の`vp migrate`を実行する。[公式移行手順](https://viteplus.dev/guide/vitest-v5#before-you-migrate)
+  - Vite+の更新時は`vite`のaliasも同じ版の`@voidzero-dev/vite-plus-core`へそろえる。
   - pnpmの`overrides`で、`vite@*`をこのaliasへ、`vitest@*`を`vp toolchain vitest`で確認した同梱版へそろえる。
-  - 公式の`vp migrate`で必要な`overrides`と`peerDependencyRules`を確認し、共有設定への変更内容をレビューする。[依存設定の公式資料](https://viteplus.dev/guide/local-cli)
+  - 生成された`overrides`と`peerDependencyRules`を含め、共有設定への変更内容をレビューする。[依存設定の公式資料](https://viteplus.dev/guide/local-cli)
 
 - 開発時とCIの書式の検査・静的解析・型検査には、`vp check`を使う。
   - ワークスペースルートの`vite.config.ts`の`lint.options`に、`typeAware: true`と`typeCheck: true`を設定する。
@@ -3499,7 +3500,7 @@ flowchart TD
   - 設定は`vite.config.ts`の`test`へまとめ、実行環境ごとにVitest標準のプロジェクトを分ける。
   - 通常の実行とCIには`vp test`、変更の監視には`vp test watch`、カバレッジの計測には`vp test run --coverage`を使う。[Vite+公式資料](https://viteplus.dev/guide/test)
   - 実行するプロジェクトは`--project`で選び、単体テスト、ビルド、結合テストの順に進める。
-  - カバレッジの計測には、Workers内のテストに対応するIstanbulを使い、`@vitest/coverage-istanbul`を同梱Vitestと同じ版で追加する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/known-issues/#coverage)、[Vite+公式資料](https://viteplus.dev/guide/vitest-v5#entry-points-and-packages)
+  - カバレッジの計測にはWorkers内のテストに対応するIstanbulを使い、`@vitest/coverage-istanbul`を同梱Vitestと同じ版で追加する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/known-issues/#coverage)、[Vite+公式資料](https://viteplus.dev/guide/vitest-v5#entry-points-and-packages)
 
 - Workerに依存しない計算ロジックは、Node.js上の単体テストで検証する。
   - 画面の部品はTesting Libraryで検証し、テスト用のDOM環境で実行する。
@@ -3522,14 +3523,14 @@ flowchart TD
 
 - 外部通信は、Cloudflareが案内する方法でテスト用の応答へ置き換える。
   - Workers内のテストでは`@msw/cloudflare`を使う。[公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/mock-outbound-requests/)
-  - MSWと`@msw/cloudflare`は、相互の依存条件を満たす組合せで導入・更新する。
+  - MSWと`@msw/cloudflare`は相互の依存条件を満たす組合せで導入・更新する。
   - 結合テストでは、Node.js側のMSWまたは`vi.spyOn()`で通信を置き換える。
   - D1のテストデータはローカルに用意し、共有テスト環境や本番のD1から分離する。
 
 - ブラウザ操作と配信後のHTTP疎通は、Playwrightで検証する。
   - Playwrightは導入済みとし、E2Eテストは専用コマンドで実行する。
   - E2Eの実行系は、APIの安定性を重視してPlaywrightを採用する。
-  - Playwrightの更新時は、対応するブラウザもインストールする。
+  - Playwrightの更新時は対応するブラウザもインストールする。
 
 - テストデータはfisheryと`@faker-js/faker`を組み合わせて作る。両方とも導入予定とする。
 
@@ -5606,9 +5607,9 @@ flowchart TD
   - 同意画面では標準の`verifyOAuthQueryParams`・`getOAuthClientPublic`・`oauth2.consent`を使い、採用する版の公開export・型・動作を確認する。
   - 同意画面の改変・期限切れクエリの拒否、ログイン前の遷移、公開アプリ情報、要求scope・claimsの表示、承認・拒否と再送時の動作を確認する。
   - 現在のResource APIが行うクライアント状態の照会を維持し、停止中のToken利用を拒否します。新しい一括精算でも呼出元の認証時に状態を確認し、重複した照会を加えないことを確認します。
-  - クライアントの停止・再開には、標準の`adminUpdateOAuthClient`で`disabled`を更新する。2026-10-23時点では、対応するBetter Auth `1.7.12`を採用基準とする。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
+  - クライアントの停止・再開には標準の`adminUpdateOAuthClient`で`disabled`を更新する。2026-10-23時点では対応するBetter Auth `1.7.12`を採用基準とする。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
   - OAuth state・Proxyの暗号化方式が変わる版への更新では、同じProxyフローに参加する環境をそろえて更新し、更新前に開始したログイン・連携は最初からやり直す。導入済みの`1.7.6`からの更新もこの対象とする。[公式変更履歴](https://github.com/better-auth/better-auth/blob/v1.7.12/packages/better-auth/CHANGELOG.md#177)
-  - 更新後は、外部Providerへのログイン、OAuth Proxy、Accounts連携、認可コード・PKCE、JWT・DPoP、クライアント管理を確認する。
+  - 更新後は外部Providerへのログイン、OAuth Proxy、Accounts連携、認可コード・PKCE、JWT・DPoP、クライアント管理を確認する。
   - JWKSの内部検証APIに依存する既存処理は、採用する版で公開鍵の検証・保存・保存後の認証を確認する。
   - JWTの有効期間はProviderの`accessTokenExpiresIn: 900`で最長15分に設定します。
   - 停止中の認可・発行・更新・期限内JWTによるAPI利用の拒否と、再開後のToken再利用を確認します。Tokenのハッシュ保存、署名鍵の暗号化保存と更新も確認します。
