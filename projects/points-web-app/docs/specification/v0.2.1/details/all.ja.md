@@ -4799,14 +4799,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["本人認証が必要なAPIで<br/>新しい業務操作を実行"] --> B["Content-Typeと容量を確認<br/>本文を解析しschemaで値を検証"]
-  B --> C{"本人認証の方式"}
+  A["本人認証が必要なAPIで<br/>新しい業務操作を実行"] --> B["Content-Typeを確認<br/>bodyLimitで本文全体の容量を制限"]
+  B --> V["validatorのjsonまたはformで本文を解析<br/>Valibotで値・ファイル容量を検証"]
+  V --> C{"本人認証の方式"}
   C -->|Cookie| D["標準セッションと<br/>適用対象の要求元を検証"]
   C -->|OAuth| E["Token・DPoP・scope・audience<br/>クライアントの現在状態を検証"]
   D --> F["現在の本人状態と<br/>対象操作の権限をサーバーで検証"]
   E --> F
   F --> G["操作固有の業務処理へ"]
   B -. 検証失敗 .-> R["対応するエラーを返す"]
+  V -. 検証失敗 .-> R
   D -. 検証失敗 .-> R
   E -. 検証失敗 .-> R
   F -. 検証失敗 .-> R
@@ -4823,10 +4825,19 @@ flowchart TD
   - 確定要求の`Idempotency-Key`は、要求ヘッダーへ送る。
   - サーバーは受け取ったファイルを解析し直し、入力・権限・更新番号・宛先・計算条件を再検証する。
 
+- multipart本文はHono標準の`validator('form', ...)`で解析し、共通のValibot検証定義でフォーム項目を検証する。[公式資料](https://hono.dev/docs/guides/validation)
+  - QUERYの検証要求とPOSTの確定要求に適用する。
+  - `validator`を呼ぶ前に`Content-Type`の欠落・非対応を判定し、本文の構文不正とフォーム項目の入力値不正を区別する。
+  - 各要求で検証済みのフォーム項目を`c.req.valid('form')`から業務処理へ渡す。
+
 - 要求の容量上限は、受け取る形式と操作ごとに定める。
+  - JSON・multipart本文の解析前にHono標準の`bodyLimit({ maxSize, onError })`を適用する。[公式資料](https://hono.dev/docs/middleware/builtin/body-limit)
+  - `maxSize`には下表の経路ごとの本文全体の上限を設定する。
+  - `bodyLimit()`の`onError`でも、共通のProblem Details形式で容量超過を返す。
   - 上限を超えた要求は`413 REQUEST_BODY_TOO_LARGE`とし、業務処理を行わない。
   - JSON本文の上限を超えた場合は、JSONを解析する前に拒否する。
   - CSVでは、ファイル部分と、フォーム項目・各部分のヘッダー・区切り情報を含む本文全体を別々に検証する。
+  - ファイル部分の容量は、解析後の`file.size`で検証する。
   - 設定復元では、ブラウザが選ぶ最大50MiBのファイルと、設定・確認結果を含めてサーバーへ送る最大5MiBのJSON本文を区別する。
 
 | 対象                 | 容量を数える範囲                        | 上限                           |
@@ -5070,9 +5081,10 @@ flowchart TD
   - 配信する静的HTML、SPAの初期HTML、画面へのフォールバック、Workerが返すHTML・JSON・Problem Detailsを対象とする。
   - CSP、コンテンツ形式の推測防止、参照元情報の抑制、ブラウザ機能の制限、フレーム内表示の拒否、環境別HSTSの設定値をそろえる。
 
-- Workerの応答には、Hono標準の`secureHeaders()`を使って必要な値を設定する。[Hono公式資料](https://hono.dev/docs/middleware/builtin/secure-headers)
-  - CSPとPermissions Policyは、下記の値を明示して設定する。
-  - 静的配信では、ビルド時に生成する`_headers`の共通ルール`/*`へ同じ設定を記載する。
+- Workerの応答にはHono標準の`secureHeaders()`を使い、デフォルト設定を基本とする。[Hono公式資料](https://hono.dev/docs/middleware/builtin/secure-headers)
+  - CSP・Permissions Policy・`X-Frame-Options`・環境別HSTSには下記の値を明示して設定する。
+  - `X-Content-Type-Options: nosniff`と`Referrer-Policy: no-referrer`は、デフォルト設定を使う。
+  - 静的配信ではビルド時に生成する`_headers`の共通ルール`/*`へ、デフォルトを含めて同じ応答ヘッダーと値を記載する。
   - 共通ルールは、静的HTML・SPAの初期HTML・JavaScript・CSSなどの全静的ファイルへ適用する。
   - `_headers`はWorkerが生成する応答には適用されないため、Worker側にも設定する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/static-assets/headers/)
 
@@ -5103,7 +5115,7 @@ worker-src 'none';
 upgrade-insecure-requests
 ```
 
-共通の応答ヘッダーは次のとおりとする。
+デフォルト設定を含め、以下の共通応答ヘッダーの有効値をそろえる。
 
 | ヘッダー                    | staging                                                        | production                            |
 | --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
@@ -5121,7 +5133,9 @@ upgrade-insecure-requests
 - SPAの初期HTMLを含む全HTMLの最終内容と、CSPハッシュが一致することを確認する。
 - 環境別CSP・HSTS、安全なダウンロード名を確認する。
 - JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
+- JSON・multipart本文の解析前に`bodyLimit()`を適用し、容量超過を共通の413応答で返すことを確認する。
 - CSV検証のQUERYと確定のPOST、両方のmultipart本文と必須フォーム項目、入力ファイルの再検証と重要な確認項目の変更検出、5MiBのファイル境界、本文全体の容量境界を確認する。
+- multipart本文を`validator('form', ...)`で解析し、フォーム項目と`file.size`を検証することを確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
@@ -6528,11 +6542,12 @@ flowchart TD
 
 - フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、破棄確認が必要な画面遷移はTanStack Router、取得の中止とアカウント切替時のデータ除去はTanStack Queryの標準機能で扱う。
 
-- JSON本文の解析・通信ID・例外の捕捉をHono標準機能へまとめる。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
+- JSON・multipart本文の解析、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。JSONは`validator('json', ...)`、multipartは`validator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
 - 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
 - 静的配信の共通ヘッダーは、Cloudflare標準の`_headers`の`/*`へ設定する。CSPのハッシュは、TanStack Start標準の生成完了通知とSPAの初期HTMLを含む最終HTMLから生成する。
+  - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSP・Permissions Policy・フレーム内表示の拒否・環境別HSTSを明示する。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
 
 - 共有テストD1の暗号化鍵をSecrets Storeへまとめ、stagingとPRプレビューから同じ鍵を取得する。ローカルには同じ値を登録し、本番の鍵は分離する。
 
