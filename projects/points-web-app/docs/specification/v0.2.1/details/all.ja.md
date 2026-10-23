@@ -3344,6 +3344,13 @@ flowchart TD
   - 「導入予定」は、v0.2.1で導入する方針が決まったものを示す。
   - 細かな版は`package.json`とロックファイルで管理し、ここには互換性に関わる主な版だけを記載する。
 
+- 実行用・開発用のライブラリとツールは相互に互換性がある最新安定版を採用する。
+  - 導入予定のライブラリも同じ方針で選び、更新時に公式の変更履歴・Node.js要件・関連パッケージの依存条件を確認する。
+  - 依存パッケージの選定には、pnpmで定める公開後の待機と例外条件も適用する。
+  - Vite+やWranglerが内部で使うツールは、採用した本体が指定する組合せで使う。
+  - 更新後は型検査・静的解析・ビルド・単体テスト・結合テスト・E2Eを行い、採用する版とロックファイルを確定する。
+  - 共有のpnpm・Vite+設定やロックファイルを更新する場合は、同じ設定を参照する他のワークスペースへの影響も確認する。
+
 - 技術選定の参考資料
   - [Webサービスの技術構成に関する記事](https://zenn.dev/catnose99/articles/f8a90a1616dfb3)
   - [Nani Translateの技術構成に関する記事](https://zenn.dev/catnose99/articles/nani-translate)
@@ -3351,6 +3358,7 @@ flowchart TD
 ### 画面・画面遷移・取得データ
 
 - React 19以上で画面を作る。Reactは導入済みである。
+  - React・ReactDOMと各型定義は対応する版へまとめて更新する。
 
 - HeroUI v3とTailwind CSS v4を導入する。
   - HeroUIは入力欄・ボタン・一覧・モーダルなどの表示を担当する。見た目が好きなため採用する。
@@ -3358,6 +3366,7 @@ flowchart TD
   - 両方とも導入予定とする。ReactとTailwind CSSの版は、[HeroUIの公式要件](https://heroui.com/en/docs/react/getting-started/quick-start)に合わせる。
 
 - TanStack Start・TanStack Routerで、画面遷移と静的生成を扱う。両方とも導入済みである。
+  - 更新時は、Startが要求するRouter・Vite・Node.jsの版へそろえる。
   - 検索条件・ページ・タブは、[Router標準の検索パラメータ](https://tanstack.com/router/latest/docs/guide/search-params)で管理する。
   - URLから条件を復元し、共有・再読み込み・詳細画面からの復帰に対応する。
 
@@ -3433,6 +3442,8 @@ flowchart TD
   - Drizzleは、軽さ・速さと、SQLに近い書き方による学習の負荷の小ささを重視して採用する。
 
 - ログイン認証には、導入済みのBetter Authと公式のDrizzle adapterを使う。
+  - Better Auth本体・公式adapter・OAuth Provider・`auth` CLI・導入するi18nは、同じリリースへまとめて更新する。
+  - Drizzle ORMとKitも、adapterと相互に互換性がある最新安定版へそろえる。
   - [公式の`better-auth/minimal`](https://better-auth.com/docs/installation)を使い、adapterをDrizzleに絞って未使用のKysely adapterを除いたWorkerのバンドルを構成する。
   - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
   - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
@@ -3441,18 +3452,23 @@ flowchart TD
   - CLIで認証スキーマを生成するため、`src/backend/infrastructure/auth/auth-cli.ts`で認証インスタンスをエクスポートする。
     - 実行時と同じ認証インスタンス生成処理と共通設定を使う。
     - Pointsのプロジェクト直下で、`pnpm exec auth generate --config src/backend/infrastructure/auth/auth-cli.ts --adapter drizzle --dialect sqlite --output src/backend/infrastructure/db/schema/auth.ts --yes`を実行する。
+  - 更新時は一時ファイルへ認証スキーマを生成して差分を確認し、必要なD1マイグレーションへ既存のindexと独自制約を引き継ぐ。
 
 - 環境変数の検証には、`@t3-oss/env-core`を導入する。
   - サーバー用とクライアント用を分け、型と必須値を検証する。
   - 検証する値の制約はValibotで定義する。[公式資料](https://env.t3.gg/docs/core)を参照する。
 
 - 開発・ビルドとCloudflareの接続には、導入済みのCloudflare Vite pluginとWranglerを使う。
+  - 両方を、プラグインが要求する版の条件を満たす組合せで更新する。
   - Cloudflare Vite pluginは、Viteの開発・ビルドとWorker・接続先・Static Assetsを結び付ける。
   - Wranglerは環境別設定、D1の更新、配信、結合テスト用Workerの起動を担当する。
+  - Workersの`compatibility_date`はライブラリやNode.jsの更新とは別に、実行時の変更内容を確認して更新する。
 
 ### 開発・品質検査・テスト
 
 - パッケージ管理には、導入済みのpnpmを使う。
+  - pnpm 12系への更新時は、依存パッケージのビルド許可を`allowBuilds`へ移し、`esbuild: true`と`workerd: true`を設定する。[公式移行手順](https://pnpm.io/migration)
+  - ルートの`packageManager`・`engines.pnpm`・CIの版指定をまとめて更新し、更新したロックファイルで`vp install --frozen-lockfile`が成功することを確認する。
   - `minimumReleaseAge: 4320`で、公開から4,320分経過した版を依存解決の対象にする。
   - `blockExoticSubdeps: true`で、間接依存の特殊な取得元を制限する。
   - 適用する例外は、リポジトリのpnpm設定で管理する。[pnpm公式資料](https://pnpm.io/settings)
@@ -3461,12 +3477,17 @@ flowchart TD
   - Vite+は導入済みとし、コミット前検査とテスト構成の整備は導入予定とする。
   - 整形はOxfmt、静的解析はOxlintをVite+から実行する。
   - コミット前検査は、Vite+標準のフック管理と`vp staged`で行う。[公式資料](https://viteplus.dev/guide/commit-hooks)を参照する。
+  - Vite+の更新時は、`vite`のaliasも同じ版の`@voidzero-dev/vite-plus-core`へそろえる。
+  - pnpmの`overrides`で、`vite@*`をこのaliasへ、`vitest@*`を`vp toolchain vitest`で確認した同梱版へそろえる。
+  - 公式の`vp migrate`で必要な`overrides`と`peerDependencyRules`を確認し、共有設定への変更内容をレビューする。[依存設定の公式資料](https://viteplus.dev/guide/local-cli)
 
 - 開発時とCIの書式の検査・静的解析・型検査には、`vp check`を使う。
   - ワークスペースルートの`vite.config.ts`の`lint.options`に、`typeAware: true`と`typeCheck: true`を設定する。
   - `typeAware`は型情報を使う静的解析、`typeCheck`は型検査を有効にする。[Vite+公式資料](https://viteplus.dev/guide/check)
 
 - 開発端末のNode.jsとpnpmは、Vite+のグローバルCLIにある`vp env`で管理する。
+  - Node.jsは採用するツールに対応する最新LTSを使う。2026-10-23時点では`24.22.1`を採用する。[公式リリース](https://nodejs.org/en/blog/release/v24.22.1)
+  - `@types/node`は採用するNode.jsと同じメジャー内の最新版を使う。
   - Node.jsの版は`.node-version`、pnpmの版は`package.json`の`packageManager`へ記載する。
   - 開発端末とCIは、採用するVite+に対応する同じ版を使う。[環境管理の公式資料](https://viteplus.dev/guide/env)
 
@@ -3474,17 +3495,18 @@ flowchart TD
 
 - 単体テストと結合テストは、Vite+標準の`vp test`で実行する。
   - VitestはVite+に同梱されたものを使い、テストAPIは`vite-plus/test`から読み込む。
+  - Vitest本体・snapshot・utilsはVite+の内部依存として扱う。
   - 設定は`vite.config.ts`の`test`へまとめ、実行環境ごとにVitest標準のプロジェクトを分ける。
   - 通常の実行とCIには`vp test`、変更の監視には`vp test watch`、カバレッジの計測には`vp test run --coverage`を使う。[Vite+公式資料](https://viteplus.dev/guide/test)
   - 実行するプロジェクトは`--project`で選び、単体テスト、ビルド、結合テストの順に進める。
-  - カバレッジの計測には、Workers内のテストに対応するIstanbulを使う。[Cloudflare公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/known-issues/#coverage)
-  - Cloudflareのテストプラグインが参照するVitestも、Vite+に同梱された版へそろえる。[依存設定の公式資料](https://viteplus.dev/guide/local-cli)
+  - カバレッジの計測には、Workers内のテストに対応するIstanbulを使い、`@vitest/coverage-istanbul`を同梱Vitestと同じ版で追加する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/known-issues/#coverage)、[Vite+公式資料](https://viteplus.dev/guide/vitest-v5#entry-points-and-packages)
 
 - Workerに依存しない計算ロジックは、Node.js上の単体テストで検証する。
   - 画面の部品はTesting Libraryで検証し、テスト用のDOM環境で実行する。
   - Testing Libraryは導入予定とする。
 
 - Workerの関数・モジュール・接続先は、Cloudflare公式の`@cloudflare/vitest-plugin`で検証する。
+  - Vite+同梱のVitestに対応する版を使い、既存の`@cloudflare/vitest-pool-workers`から依存名・設定のimport・TypeScriptの型参照を移す。[公式移行手順](https://developers.cloudflare.com/workers/testing/vitest-integration/migration-guides/migrate-to-vitest-plugin/)
   - `cloudflareTest()`へWrangler設定を指定し、テストと対象の処理をWorkersの実行環境である`workerd`内で動かす。
   - Worker固有APIやD1などの接続先を直接使い、処理結果と保存内容を確認する。[Cloudflare公式の単体テスト手順](https://developers.cloudflare.com/workers/testing/vitest-integration/write-your-first-test/)
   - D1のマイグレーションは、Node.js側で`readD1Migrations()`により読み込み、Workers内で`applyD1Migrations()`を適用する。
@@ -3500,12 +3522,14 @@ flowchart TD
 
 - 外部通信は、Cloudflareが案内する方法でテスト用の応答へ置き換える。
   - Workers内のテストでは`@msw/cloudflare`を使う。[公式資料](https://developers.cloudflare.com/workers/testing/vitest-integration/mock-outbound-requests/)
+  - MSWと`@msw/cloudflare`は、相互の依存条件を満たす組合せで導入・更新する。
   - 結合テストでは、Node.js側のMSWまたは`vi.spyOn()`で通信を置き換える。
   - D1のテストデータはローカルに用意し、共有テスト環境や本番のD1から分離する。
 
 - ブラウザ操作と配信後のHTTP疎通は、Playwrightで検証する。
   - Playwrightは導入済みとし、E2Eテストは専用コマンドで実行する。
   - E2Eの実行系は、APIの安定性を重視してPlaywrightを採用する。
+  - Playwrightの更新時は、対応するブラウザもインストールする。
 
 - テストデータはfisheryと`@faker-js/faker`を組み合わせて作る。両方とも導入予定とする。
 
@@ -5579,11 +5603,13 @@ flowchart TD
   - 署名鍵の更新、Refresh Tokenのローテーション・再利用検知、保存Tokenの失効は、それぞれBetter Auth標準の処理を使います。
 
 - 標準機能への移行時の確認
-  - 2026-10-12時点の最新公開版`@better-auth/oauth-provider` 1.7.7の[配布情報](https://registry.npmjs.org/@better-auth%2Foauth-provider/1.7.7)と配布物で、`verifyOAuthQueryParams`の公開export、`getOAuthClientPublic`、`oauth2.consent`を確認した。同意画面は[同意と連携の開始](#同意と連携の開始)に従い、実装時も採用する最新公開版の型と動作を確認する。
+  - 同意画面では標準の`verifyOAuthQueryParams`・`getOAuthClientPublic`・`oauth2.consent`を使い、採用する版の公開export・型・動作を確認する。
   - 同意画面の改変・期限切れクエリの拒否、ログイン前の遷移、公開アプリ情報、要求scope・claimsの表示、承認・拒否と再送時の動作を確認する。
   - 現在のResource APIが行うクライアント状態の照会を維持し、停止中のToken利用を拒否します。新しい一括精算でも呼出元の認証時に状態を確認し、重複した照会を加えないことを確認します。
-  - 導入済みのBetter Auth 1.7.6と確認した1.7.7では、標準の管理更新APIが`disabled`を入力として受け付けません。
-  - 最新公式資料が案内する`disabled`更新に対応した公開版を採用し、標準APIで停止・再開できることを実装前に確認します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
+  - クライアントの停止・再開には、標準の`adminUpdateOAuthClient`で`disabled`を更新する。2026-10-23時点では、対応するBetter Auth `1.7.12`を採用基準とする。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
+  - OAuth state・Proxyの暗号化方式が変わる版への更新では、同じProxyフローに参加する環境をそろえて更新し、更新前に開始したログイン・連携は最初からやり直す。導入済みの`1.7.6`からの更新もこの対象とする。[公式変更履歴](https://github.com/better-auth/better-auth/blob/v1.7.12/packages/better-auth/CHANGELOG.md#177)
+  - 更新後は、外部Providerへのログイン、OAuth Proxy、Accounts連携、認可コード・PKCE、JWT・DPoP、クライアント管理を確認する。
+  - JWKSの内部検証APIに依存する既存処理は、採用する版で公開鍵の検証・保存・保存後の認証を確認する。
   - JWTの有効期間はProviderの`accessTokenExpiresIn: 900`で最長15分に設定します。
   - 停止中の認可・発行・更新・期限内JWTによるAPI利用の拒否と、再開後のToken再利用を確認します。Tokenのハッシュ保存、署名鍵の暗号化保存と更新も確認します。
   - DB照会数の実測とAPIの動作確認は実装時に行い、文書の検査とは区別します。
@@ -6278,6 +6304,7 @@ flowchart TD
   - `test/*`へのpushは共有テスト環境へ、`main`へのpushは本番へ、検査成功後に自動配信する。
 
 - CIのVite+環境は、公式の`voidzero-dev/setup-vp`で準備する。
+  - Actionは最新安定版の正確なtagまたはcommit SHAを指定する。[版指定の公式資料](https://viteplus.dev/guide/ci#setup-vp-versioning)
   - `node-version-file`に`.node-version`を指定し、pnpmは`package.json`の`packageManager`から、開発端末と同じ版を使う。
   - Actionの`working-directory`と後続ステップの作業ディレクトリをPointsへそろえ、環境準備、依存関係のインストール、検査・ビルドを行う。
   - 依存関係は、`setup-vp`標準の`vp install`でインストールする。
@@ -6642,7 +6669,7 @@ flowchart TD
 
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
 
-- PointsとMarketsのBetter Authは版を固定せず、最新版を使う。
+- PointsとMarketsのBetter Authは関連パッケージと互換性がある最新安定版へそろえる。
 
 - ログインのProviderは、PointsとMarketsが、どちらもGoogleとGitHubである。
 
@@ -6746,6 +6773,8 @@ flowchart TD
 
 - 新しい精算契約への移行後に、Points側の予約・予約内訳・capture・capture明細・予約イベント・予約状態と、利用可否受領証の専用冪等性結果・受領証・明細の旧APIと保存構造を削除する。
 
-- Honoは2026-10-23時点の最新安定版`4.13.13`へ更新する。[配布情報](https://registry.npmjs.org/hono/4.13.13)
-  - 更新後の`methodNotAllowed()`で405と`Allow`を扱い、`app.query()`でQUERYの経路を定義する。
-  - 通常のJSON応答への`prettyJSON({ force: true })`の適用も、更新後のHonoを前提とする。
+- 実行用・開発用のライブラリとツールは互換性がある最新安定版へ更新する。Node.jsは最新LTSを採用し、2026-10-23時点では`24.22.1`とする。関連パッケージの同時更新、pnpmの設定移行、認証フローへの影響確認を行う。
+  - Vitest本体はVite+同梱版を使い、外部プラグインの依存解決とIstanbulのカバレッジ用パッケージも同梱版へそろえる。
+  - Honoは2026-10-23時点の最新安定版`4.13.13`へ更新する。[配布情報](https://registry.npmjs.org/hono/4.13.13)
+    - 更新後の`methodNotAllowed()`で405と`Allow`を扱い、`app.query()`でQUERYの経路を定義する。
+    - 通常のJSON応答への`prettyJSON({ force: true })`の適用も、更新後のHonoを前提とする。
