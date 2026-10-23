@@ -3718,8 +3718,7 @@ flowchart TD
   - 例えば前述の80×0.5＝40を確認した後、A軸の代用評価が再計算で80から100へ変われば、付与額50を再確認してから確定する。
   - 新IDが既存対象と衝突した場合も、既存対象を上書きせず、新IDを割り当て直した確認結果で再確認を求める。
   - 管理権限を失った場合など、操作を続けられない場合は、その理由を表示する。
-  - 確認のQUERYと確定のPOSTの両方で、CookieまたはOAuthの本人認証と対象の管理権限を検証する。
-  - Cookieの場合はOrigin・CSRFも検証する。
+  - 確認のQUERYと確定のPOSTの両方で、CookieまたはOAuthによる共通の本人認証・要求元検査と、対象の管理権限を検証する。
   - 確定要求には`Idempotency-Key`を必須とする。
   - 設定、作成した対象と管理者所属、後続処理の実行記録、冪等性の結果を同じ原子処理で確定する。
   - 復元本体の入力・権限・参照先・保存に失敗した場合は、復元本体を全件未反映にする。
@@ -4527,7 +4526,9 @@ flowchart TD
   - 要求の許可・拒否は標準処理の適用条件と判定に従う。
   - `disableCSRFCheck=false`、`disableOriginCheck=false`とし、標準の検査を有効にする。
   - 認証APIでは、Better Authの標準処理を使う。
-  - Cookieで本人認証するPoints独自の更新APIにも、Better Authの標準の要求元検査を適用する。
+  - Cookieで本人認証するPoints独自APIの要求元検査には`better-auth/api`で公開される`originCheckMiddleware`を標準の適用条件で使う。
+  - Honoの要求とBetter Authの認証コンテキストを共通の接続処理から標準の要求元検査へ渡す。
+  - 本人セッションの取得と要求元検査はそれぞれ実行する。
   - サーバーは要求元の検査に加え、入力形式・現在の本人・対象操作の権限を検証する。
   - 外部アプリ向けAPIの認証・認可は、各APIに定めたAccess Token・DPoPなどの検証に従う。
 
@@ -4754,12 +4755,18 @@ flowchart TD
   - JSONエクスポートは復元用のファイル形式を返す。
   - Shields.io向けの応答は、バッジで必要となる形式を返す。
 
+- JSONエクスポートを除く通常のJSON応答はHono標準の`prettyJSON({ force: true })`で常に整形する。[公式資料](https://hono.dev/docs/middleware/builtin/pretty-json)
+  - `application/json`の成功本文と`application/problem+json`の失敗本文を対象とし、項目・値・状態コードを保持する。
+  - JSONエクスポートはファイル全体をメモリへ展開せずに順次出力する。
+  - HEAD・204・304の応答は、本文なしを維持する。
+
 ### HTTPメソッドと入力
 
 - HTTPメソッドは、処理の目的に合わせて使う。
   - Points独自の取得APIは`QUERY`とする。検索・プロフィール・履歴・設定一覧・受領確認・JSONエクスポートも対象とする。
   - Points独自APIで業務状態を変更しない確認・検証・試算も`QUERY`とする。
   - `QUERY`は安全かつ冪等な問い合わせとし、登録・受領・精算などの業務変更を確定しない。[HTTP QUERY標準（RFC 10008）](https://www.rfc-editor.org/rfc/rfc10008.html)
+  - QUERYの経路はHono標準の`app.query()`で定義する。
   - OAuth・Better Auth標準API、公開メタデータ・JWKS・UserInfo、HTML・静的ファイル・Shields.ioバッジの配信は、それぞれの標準のGET・HEADなどを使う。
   - `POST`は新規作成・確定など、その操作で定めた処理とする。
   - `PUT`は指定した内容全体への置換、`DELETE`は対象の削除とする。
@@ -4849,6 +4856,11 @@ flowchart TD
 | CSVファイル          | `file`のファイル内容                    | 5,242,880 bytes（5MiB）        |
 | CSVのフォーム送信    | 区切り情報を含む本文全体                | 5,308,416 bytes（5MiB＋64KiB） |
 
+- 取得APIで要求の待機時間を制限するときは、Hono標準の`timeout()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/timeout)
+  - 適用先は、業務変更の確定とストリーム配信を含まない処理に限定する。
+  - 外部通信の中断にはWeb標準の`AbortSignal.timeout()`を使う。
+  - 待機時間超過は共通のHTTP状態コードとProblem Detailsで返す。
+
 ### 成功時の応答
 
 - 成功本文は`application/json`で返す。
@@ -4873,12 +4885,14 @@ flowchart TD
 
 - HTTP標準で本文を返さない応答は、本文なしで返す。
   - HEADの応答、`204`、`304`が該当する。
+  - `304`は静的ファイルなど、条件付き取得で保存済みの応答を再利用する配信に適用する。
   - 通信IDは`X-Request-Id`応答ヘッダーへ返す。
 
 ### 失敗時の応答
 
-- 業務APIの例外は、Hono標準の`app.onError()`で共通に捕捉し、Problem Detailsへ変換する。[公式資料](https://hono.dev/docs/api/exception)
+- 応答開始前の業務APIの例外はHono標準の`app.onError()`で共通に捕捉し、Problem Detailsへ変換する。[公式資料](https://hono.dev/docs/api/exception)
   - HTTP標準の意味に合う状態コードと、Pointsの業務エラーコード、公開可能な補足情報を使う。
+  - JSONエクスポートの順次応答開始後の失敗は、ストリームをエラーで終了して呼び出し元へ伝える。
 
 - 失敗本文は`application/problem+json`で返す。
   - `type`・`title`・`status`・`code`・`requestId`を必須とする。
@@ -4957,6 +4971,10 @@ flowchart TD
   - 外部障害で待ち時間が分かる場合も、`Retry-After`で案内する。
   - `Retry-After`はHTTP標準の秒数またはHTTP日時で扱う。
   - 外部サービスの制限を`503`として返す操作では、取得した待ち時間も引き継ぐ。
+
+- Points独自APIの未対応メソッドはHono標準の`methodNotAllowed({ app, onMethodNotAllowed })`で判定する。[公式資料](https://hono.dev/docs/middleware/builtin/method-not-allowed)
+  - 登録済みの経路から利用可能なメソッドを求め、`onMethodNotAllowed`で共通のProblem Detailsと`Allow`ヘッダーを返す。
+  - Better Authへ委譲する標準APIは、標準のメソッド検証と応答を維持する。
 
 ### 通信IDと二重処理防止
 
@@ -5115,7 +5133,7 @@ worker-src 'none';
 upgrade-insecure-requests
 ```
 
-デフォルト設定を含め、以下の共通応答ヘッダーの有効値をそろえる。
+明示する設定と主なデフォルト値は次のとおりとする。
 
 | ヘッダー                    | staging                                                        | production                            |
 | --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
@@ -5138,6 +5156,8 @@ upgrade-insecure-requests
 - multipart本文を`validator('form', ...)`で解析し、フォーム項目と`file.size`を検証することを確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
+- 通常の成功JSONとProblem Detailsの常時整形、JSONエクスポートの順次出力と開始後のエラー終了を確認する。
+- 未対応メソッドの405・`Allow`・Problem Detailsと、未登録経路や閲覧できない対象の404を確認する。
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
 - フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
 - Pointsの画面からの同一originの呼び出し、外部サービスのバックエンド経由の連携、Shields.ioのサーバーによるバッジ用JSONの取得を確認する。
@@ -5145,13 +5165,14 @@ upgrade-insecure-requests
 - OAuth標準が求める応答に`Pragma: no-cache`を付け、それ以外の保存制限は`Cache-Control`で指定することを確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
+- 待機時間の制限は業務確定を含まない取得処理に適用し、外部通信の中断と共通エラーへの変換を確認する。
 - 実装との差は、実装時の確認事項として扱う。
   - 現在の静的ヘッダー生成は5個のHTMLを列挙し、Worker側には独自のヘッダー設定処理がある。
   - 実装時は、静的配信の共通ルール`/*`とWorkerの`secureHeaders()`へそろえ、最終HTMLからCSPのハッシュを生成する。
   - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`validationHash`による重要な確認項目の照合へそろえる。
   - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
   - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
-  - 現在の独自取得APIはGETを使い、OAuthの業務scopeも機能別である。QUERY・JSON本文・単一の`points` scopeと、Cookie／OAuthの共通権限検証へ移行する。
+  - 現在の独自取得APIはGETを使い、OAuthの業務scopeも機能別である。標準の`app.query()`によるQUERY・JSON本文・単一の`points` scopeと、Cookie／OAuthの共通権限検証へ移行する。
   - Honoのルーティング、Cloudflare Workers、同一originのブラウザの`fetch()`、外部サービスのバックエンドとOpenAPI 3.2の定義・生成クライアントによるQUERYの送受信は、実装時に実環境で確認する。標準認証・配信のGETも確認する。
   - 現在の応答には`meta.requestId`がない経路があり、入力ヘッダー・エラー本文・拒否ログのIDも一致していない経路がある。今回の通信IDへ統一する。
   - 現在のCSV画面は確定ごとに新しいキーを発行し、通信失敗で確認結果を消す。成否不明時の同じ要求・キーの保持へそろえる。
@@ -6137,9 +6158,11 @@ points-web-app/
 
 - Static Assetsの配信設定を明示する。
   - `not_found_handling: "none"`、`html_handling: "auto-trailing-slash"`とする。
+  - 静的HTMLの末尾スラッシュはStatic Assets、画面のURLはTanStack Routerの標準機能で扱う。
   - 本番では静的ファイルを先に配信し、`/api/*`と`/.well-known/*`はWorkerを先に実行する。
   - `assets_navigation_has_no_effect`を指定し、静的ファイルが見つからない画面への移動をWorkerで処理する。
   - WorkerはGET・HEADのHTML画面への移動だけに、`ASSETS`の`/`から取得した初期HTMLを返す。
+  - Workerの未登録経路はトップレベルのHono標準`app.notFound()`で処理する。
   - 存在しないAPIやJavaScript・CSSなどの静的ファイルには、404を返す。
 
 ```mermaid
@@ -6167,6 +6190,7 @@ flowchart TD
 ### テスト環境の認証とPRプレビュー
 
 - 共有テスト環境とPRプレビューの画面・静的ファイルを、同じBASIC認証で保護する。
+  - Hono標準の`basicAuth()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/basic-auth)
   - ユーザー名とパスワードはWorker Secretで設定する。
   - `run_worker_first: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
   - API、OAuth callback、認証メタデータは、それぞれに定めたSession・DPoP認証・公開範囲で扱う。
@@ -6542,7 +6566,7 @@ flowchart TD
 
 - フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、破棄確認が必要な画面遷移はTanStack Router、取得の中止とアカウント切替時のデータ除去はTanStack Queryの標準機能で扱う。
 
-- JSON・multipart本文の解析、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。JSONは`validator('json', ...)`、multipartは`validator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
+- JSON・multipart本文の解析、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。JSONは`validator('json', ...)`、multipartは`validator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。通常のJSON応答は`prettyJSON({ force: true })`で整形し、JSONエクスポートは順次出力する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
 - 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
@@ -6721,3 +6745,7 @@ flowchart TD
 - 既存の`ops_alert`は既存DBのデータと運用上の依存を確認して移行時に整理する。業務処理の進捗と経済履歴は保持する。
 
 - 新しい精算契約への移行後に、Points側の予約・予約内訳・capture・capture明細・予約イベント・予約状態と、利用可否受領証の専用冪等性結果・受領証・明細の旧APIと保存構造を削除する。
+
+- Honoは2026-10-23時点の最新安定版`4.13.13`へ更新する。[配布情報](https://registry.npmjs.org/hono/4.13.13)
+  - 更新後の`methodNotAllowed()`で405と`Allow`を扱い、`app.query()`でQUERYの経路を定義する。
+  - 通常のJSON応答への`prettyJSON({ force: true })`の適用も、更新後のHonoを前提とする。
