@@ -10,16 +10,10 @@ run "staging_edge_contract" {
   command = plan
 
   variables {
-    account_id            = "00000000000000000000000000000000"
-    zone_id               = "11111111111111111111111111111111"
-    environment           = "staging"
-    access_allowed_emails = ["operator@example.com"]
-    ops_alert_email       = "ops-staging@example.com"
-  }
-
-  assert {
-    condition     = length(cloudflare_zero_trust_access_application.staging) == 2 && length(cloudflare_zero_trust_access_policy.staging) == 2
-    error_message = "both staging hosts must have an Access application and policy"
+    account_id      = "00000000000000000000000000000000"
+    zone_id         = "11111111111111111111111111111111"
+    environment     = "staging"
+    ops_alert_email = "ops-staging@example.com"
   }
 
   assert {
@@ -33,7 +27,7 @@ run "staging_edge_contract" {
   }
 
   assert {
-    condition     = alltrue([for name in concat(values(cloudflare_zero_trust_access_application.staging)[*].name, values(cloudflare_notification_policy.edge_native)[*].name) : strcontains(name, "staging") && !strcontains(name, "production")])
+    condition     = alltrue([for name in values(cloudflare_notification_policy.edge_native)[*].name : strcontains(name, "staging") && !strcontains(name, "production")])
     error_message = "staging resource names must not contain production"
   }
 }
@@ -42,11 +36,10 @@ run "production_shared_edge_contract" {
   command = plan
 
   variables {
-    account_id            = "00000000000000000000000000000000"
-    zone_id               = "11111111111111111111111111111111"
-    environment           = "production"
-    access_allowed_emails = []
-    ops_alert_email       = "ops-production@example.com"
+    account_id      = "00000000000000000000000000000000"
+    zone_id         = "11111111111111111111111111111111"
+    environment     = "production"
+    ops_alert_email = "ops-production@example.com"
   }
 
   assert {
@@ -62,11 +55,6 @@ run "production_shared_edge_contract" {
   assert {
     condition     = cloudflare_ruleset.managed_waf[0].phase == "http_request_firewall_managed" && cloudflare_ruleset.edge_rate_limit[0].phase == "http_ratelimit" && cloudflare_ruleset.edge_rate_limit[0].rules[0].ratelimit.requests_per_period == 30
     error_message = "production must own managed WAF and the documented 30-per-minute IP WebSocket upgrade limit"
-  }
-
-  assert {
-    condition     = length(cloudflare_zero_trust_access_application.staging) == 0 && length(cloudflare_zero_trust_access_policy.staging) == 0
-    error_message = "production must not create staging Access resources"
   }
 
   assert {

@@ -928,7 +928,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - Auction終了時に、Cloudflare WorkflowsのSettlement Workflowを1件開始する。
 - Markets D1のoutboxとsaga状態を正本にし、各stepを冪等・単調状態遷移にする。
 - package vector、winner、price、quantityを同じcutoffから確定する。
-- Markets Workerが保存済み計算条件から必要額を求め、各落札者の`marketsUserId`・`pointsSubject`・利用者Token・DPoP・`components`を一括精算へ送る。`planHash`はMarkets内部に保持し、Pointsへは評価軸IDと十進数文字列の必要額を送る。
+- Markets Workerが保存済み計算条件から必要額を求め、各落札者の利用者Token・DPoP・`components`を一括精算へ送る。`planHash`はMarkets内部に保持し、Pointsへは評価軸IDと十進数文字列の必要額を送る。
 - Settlement Workflowの再送・再起動は同じidempotency keyと状態から再開する。
 
 1. `minimumReleaseAge: 4320`を使う
@@ -1170,6 +1170,8 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 
 - Marketsの提供先・複数名義・固定支払名義、OAuth開始・解除・再認可、秘密鍵とTokenの保存をMarkets側の責務としてまとめる。
 - 作成時の割合・軸単位・金額刻み・価格刻みを保存し、bignumber.jsで必要額を計算する。全落札者は利用者認可付きの一括debitで精算し、再送保証は1日とする。
+- 一括精算は`POST /api/v1/settlement-debits`へ送り、本文は呼出元の認証と、落札者ごとの利用者Token・DPoP・`components`だけとする。支払名義はTokenの`sub`で決まる。成功応答は`debitReceiptId`・`status`・`debitedAt`だけであり、拒否された落札者は`rejectedWinners`の`index`から送信した落札者へ対応付ける。
+- Pointsの二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ競売を二重精算しない管理はMarketsが行う。冪等キーの欠落は`400 IDEMPOTENCY_KEY_REQUIRED`、一括精算の要求回数は呼出元Client IDの枠で1回とする。
 - 即時購入の結果が不明な間は競売全体を待機し、元の終了時点と判明した残数量から再開する。
 
 - revision管理を廃止し、現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。
@@ -2092,7 +2094,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文、取得
 | DEC-250 | 一部上書き済み | listing／Auctionは作成者だけが開始前にversion付きPATCH／取消でき、`DRAFT`または`SCHEDULED`から`CANCELLED`への遷移を終端とする。bid、AutoBid、buy-now holdが1件でもあれば取消を原子的に拒否する。                                                                                                                                                                                                                                                                                                                                                                                                                            | 作成者・開始前・Auction version CAS・終端遷移・3種の取消blockは維持し、独立ListingのID／versionだけをDEC-262で上書き。                                                                                                                                                                                                                                                                                                                                                                              | MARKETS                          |
 | DEC-251 | 採用           | AuctionRoomはD1 current revisionを正本に1 alarmだけを持ち、`startsAt`でOPEN、`endAt`でCLOSINGへCASする。WebSocket上限はuser全体20／user＋Auction 3のD1 unique slotを同じ原子commandで確保する。                                                                                                                                                                                                                                                                                                                                                                                                                             | alarm遅延、再deploy、旧revision、異なるDO間の同時接続でも状態と上限を守る。                                                                                                                                                                                                                                                                                                                                                                                                                         | MARKETS                          |
 | DEC-252 | 採用 | 一括debitは10秒×5attempt・最大2分、Markets finalizeは10秒×3attempt・最大1分、round全体最大5分とする。 | exponential backoffと明示deadlineを使い、確定的errorを同じ要求でretryしない。 | MARKETS                          |
-| DEC-253 | 採用 | Pointsの認可無効・残高不足は要求内marketsUserIdとreasonを持つrejectedWinnersで受け取り、同cutoff再計算へ使う。 | 0額の軸も現在状態を検証し、失敗時は全件未反映とする。 | API, POINTS, MARKETS             |
+| DEC-253 | 採用 | Pointsの認可無効・残高不足は、winnersの0始まりの配列位置indexとreasonを持つrejectedWinnersで受け取る。Marketsはindexを送信した落札者へ対応付け、同cutoff再計算へ使う。 | 0額の軸も現在状態を検証し、失敗時は全件未反映とする。 | API, POINTS, MARKETS             |
 | DEC-254 | 採用           | Auctionの商材fieldはtitle 1〜120 code point／480 bytes、description 1〜4,000／16,000 bytes、canonical HTTPS外部URLちょうど1件／2,048 bytesとする。reviewはcomment 0〜2,000／8,000 bytes、completion URL 0〜1件／2,048 bytesとする。                                                                                                                                                                                                                                                                                                                                                                                         | CSV／API／UIのUnicode・D1境界を一致させる補完値。                                                                                                                                                                                                                                                                                                                                                                                                                                                   | MARKETS                          |
 | DEC-255 | 採用           | immutable proofからreviewを分離し、current reviewとappend-only revision履歴を別resourceにする。proofは1年immutable、review collectionは60秒＋`stale-while-revalidate=300`とする。                                                                                                                                                                                                                                                                                                                                                                                                                                           | review更新でproof body／hash／ETagを変えず、履歴とcurrent表示を両立する。                                                                                                                                                                                                                                                                                                                                                                                                                           | MARKETS                          |
 | DEC-256 | 採用 | 新規競売と開始前編集ではPointsの現在の詳細と計算情報を再取得し、確認済み対象・条件・金額との差を検査する。 | 確定後はsnapshotを保持し、Points障害時に古い任意構成へfallbackしない。 | API, POINTS, MARKETS             |
@@ -2104,7 +2106,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文、取得
 | DEC-262 | 採用           | v0.2では独立したListing aggregateを廃止し、商材情報とAuction条件を単一の`auction`／不変`auctionRevision`へ統合する。CSV 1行はAuction 1件だけを作り、作成・開始前編集・取消・検索・履歴・proof・Package可否receiptはAuction ID、Auction version、Auction commandだけを使用する。再出品は既存Auctionの再利用ではなく新しいAuction IDで作成する。                                                                                                                                                                                                                                                                              | DEC-028、DEC-030、DEC-129、DEC-145、DEC-250の独立Listingに関する部分だけを上書きする。Task完全廃止、Markets所有、CSV-only／最大1,000件、作成・入札・落札履歴とwatchlist／通知なし、開始前編集・取消と3種の取消blockは維持する。DEC-254の文字境界とDEC-256の30秒receiptは意味を変えずAuctionへ適用し、旧Listing名のAPI・scope・ID・互換aliasを作らない。                                                                                                                                             | MARKETS, AUCTION, API            |
 | DEC-263 | 採用 | Pointsの利用者JWTは標準user.idをsubとし、有効期間は最長15分とする。 | JWT・DPoP・issuer・audience・期限・Client ID・scope・現在の利用可否を検証する。 | AUTH, POINTS, MARKETS, API       |
 | DEC-264 | 採用 | 即時購入は要求全数量をholdし、結果不明の間は競売全体の販売と落札確定を待機する。 | 全件未反映の確定的拒否だけ全数量を復元し、成功後はproofへforward確定する。元終了時点と判明した残数で再開する。 | MARKETS, AUCTION, POINTS         |
-| DEC-265 | 採用 | Pointsの現行OpenAPIからMarkets clientを生成し、QUERY残高確認とPOST一括debitのschema・status・body上限・冪等性を照合する。 | issuerとendpointは登録originとdiscoveryを検証する。 | CONTRACT                         |
+| DEC-265 | 採用 | Pointsの現行OpenAPIからMarkets clientを生成し、`QUERY /api/v1/me/balance-checks`と`POST /api/v1/settlement-debits`のschema・status・body上限・冪等性を照合する。 | issuerとendpointは登録originとdiscoveryを検証する。 | CONTRACT                         |
 | DEC-266 | 採用 | MarketsのtrustedProvidersはGoogle・GitHubとし、暗黙Account linkingを禁止する。TokenはBetter Auth標準暗号化とversioned secretsで保存する。 | 標準の保存・更新・schema生成経路を採用版で実物検証する。 | AUTH, POINTS, MARKETS            |
 | DEC-267 | 採用 | Marketsの価格は保存したpackageTickの整数個分priceTickCountとし、bignumber.jsで金額を計算する。 | Pointsには価格刻み数・価格・数量・plan hashを送らず、軸IDと十進数文字列requiredAmountを送る。 | MARKETS, POINTS, API             |
 | DEC-268 | 採用           | `test/*` pushは共有test環境として既存Cloudflare `staging`資源だけを更新し、`main` pushはproductionだけを更新する。両workflowは相互に昇格せず、固定concurrency group、`queue: max`、`cancel-in-progress: false`で直列化する。                                                                                                                                                                                                                                                                                                                                                                                                | DEC-181の同一run内staging→production昇格を上書きする。Cloudflare資源名、domain、package scriptの`staging`内部名は維持する。                                                                                                                                                                                                                                                                                                                                                                         | ARCH                             |
@@ -2112,7 +2114,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文、取得
 | DEC-270 | 採用           | DNS／redirectの範囲ではWranglerが`freeism.app`と`docs.freeism.app`のWorker custom domainおよびapex DNSを所有する。Terraformはproxied `www.freeism.app`と`https://freeism.app/`への301、Access、WAF、rate limit、通知を所有する。                                                                                                                                                                                                                                                                                                                                                                                            | 同一DNSの二重管理を防ぐ。                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | ARCH                             |
 | DEC-271 | 採用 | MarketsのBetter Auth user.roleにadminを含む管理者が複数Points提供先とSettlement手動retryを管理する。Auctionは選んだproviderIdへ固定する。 | 提供先別鍵を暗号化保存し、issuer・discoveryを検証した外部HTTPSで接続する。停止後も既存取引に必要な鍵と連携を保持する。 | AUTH, MARKETS, AUCTION, CONTRACT |
 
-| DEC-272 | 採用 | Marketsは互換性のある最新安定版Better AuthによるGoogle・GitHubの独立認証、提供先と複数名義ごとのOAuth連携・固定支払名義を管理する。Workerのbignumber.jsで作成時の保存条件から金額を計算し、全落札者の利用者Token・DPoP・軸別必要額を`POST /api/v1/settlements/{settlementId}/debits`へ送る。冪等結果は1日、残高確認はQUERYとする。計算条件は全展開軸・割合・各軸単位・amountUnit・packageTickのsnapshotとし、Point Package Revisionや現在状態のlease receiptをPointsへ要求しない。即時購入の結果不明時は競売全体を待機し、成功receiptからMarketsをforward確定する。 | 過去の1対1、独自link-attempt／解除API、予約・capture・release／M2M、固定scale整数とPoints価格再計算、即時購入中の競売継続を、この行に記載した範囲で上書きする。競売選定・数値上限・時刻・retryの固有条件は現在の本文に保持する。 | MARKETS, CONTRACT |
+| DEC-272 | 採用 | Marketsは互換性のある最新安定版Better AuthによるGoogle・GitHubの独立認証、提供先と複数名義ごとのOAuth連携・固定支払名義を管理する。Workerのbignumber.jsで作成時の保存条件から金額を計算し、全落札者の利用者Token・DPoP・軸別必要額を`POST /api/v1/settlement-debits`へ送る。冪等結果は1日、残高確認はQUERYとする。計算条件は全展開軸・割合・各軸単位・amountUnit・packageTickのsnapshotとし、Point Package Revisionや現在状態のlease receiptをPointsへ要求しない。即時購入の結果不明時は競売全体を待機し、成功receiptからMarketsをforward確定する。 | 過去の1対1、独自link-attempt／解除API、予約・capture・release／M2M、固定scale整数とPoints価格再計算、即時購入中の競売継続を、この行に記載した範囲で上書きする。競売選定・数値上限・時刻・retryの固有条件は現在の本文に保持する。 | MARKETS, CONTRACT |
 
 ## 20. 文書適用規則
 
@@ -2458,7 +2460,7 @@ flowchart TD
 
 - close cutoff時点のbid集合を不変snapshotにする。
 - 全落札候補の必要額を一つのPoints要求で送り、全件未反映の確定的拒否を受けた場合だけ候補を変更する。
-- `rejectedWinners`の`marketsUserId`を要求内の候補へ照合し、認可無効・残高不足の人だけを除く。残高不足・負残高の人には`auctionId + marketsUserId`ごとにblacklist eventを一回だけ記録する。
+- `rejectedWinners`の`index`を、送信した`winners`の同じ位置の候補へ対応付け、認可無効・残高不足の人だけを除く。残高不足・負残高の人には`auctionId + marketsUserId`ごとにblacklist eventを一回だけ記録する。
 - network error、Points 5xx、timeout、OAuth一時障害では候補を除外せず、同じ要求・キーで結果を確認する。
 - 拒否された人を除いた同じcutoff集合から、次点の繰上げ・winner・allocation・clearing priceを再計算する。内容が変わった新roundは新しい要求・キーとする。
 - 必要数量を勝手に減らして一部成功とせず、全winner・全評価軸を一回で精算する。
@@ -2631,7 +2633,7 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 
 ## 2. 複数名義と支払名義
 
-連携の保存・解除・再認可と競売ごとの支払名義の固定は[MarketsアカウントとPoints連携](#2-marketsアカウントとpoints連携)にまとめる。APIには検証済みissuerと`sub`に対応する`pointsSubject`を指定する。同じPoints本人を複数のMarkets名義が使う場合、必要額はPoints本人・評価軸ごとに合算して残高と比較される。
+連携の保存・解除・再認可と競売ごとの支払名義の固定は[MarketsアカウントとPoints連携](#2-marketsアカウントとpoints連携)にまとめる。Pointsは各落札者の検証済みTokenの`sub`を支払名義とするため、Marketsは競売で固定した支払名義の連携のTokenを送る。同じPoints本人を複数のMarkets名義が使う場合、必要額はPoints本人・評価軸ごとに合算して残高と比較される。
 
 ## 3. OAuth ClientとResource Server
 
@@ -2649,9 +2651,9 @@ Tokenの標準暗号化保存とsingle-flight更新は認証章のToken保存と
 - 本文は`application/json`とし、残高確認は`QUERY`、確定は`POST`で行う。`QUERY`への本文には検査する必要額を送る。
 - 一括精算の本文上限は1,048,576バイト、一般のJSON要求は65,536バイトとし、超過は`413`とする。
 - 成功は`data`と`meta.requestId`、失敗はRFC 9457 Problem Detailsと機械判定用`code`を受け取る。認証済み応答は`Cache-Control: private, no-store`とする。
-- `Idempotency-Key`は精算確定に必須で、欠落は`422 IDEMPOTENCY_KEY_REQUIRED`、同じキーで内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
-- Pointsの再送結果の有効期間は確定から1日である。同じ要求・同じキーの再送は、初回のHTTP statusと業務結果へ収束する。`requestId`は要求ごとに変わってよい。
-- 再送保証の期限後は同じキーでも新規処理になり得る。Marketsは精算ID・競売・要求内容・成功receipt・送信開始時刻を保持し、別キーで同じ競売を二重精算しない。結果不明のまま期限を超えた精算は自動で新規送信せず、確認待ちを維持する。
+- `Idempotency-Key`は精算確定に必須で、欠落は`400 IDEMPOTENCY_KEY_REQUIRED`、同じキーで内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
+- Pointsの再送結果の有効期間は確定から1日である。確定した精算を同じ要求・同じキーで再送すると、初回のHTTP statusと業務結果が返る。全件未反映で終わった失敗は結果として保存されず、同じ要求・同じキーの再送時に現在の条件で再検証される。`requestId`は要求ごとに変わってよい。
+- 再送保証の期限後は同じキーでも新規処理になり得る。Pointsの二重処理防止は`Idempotency-Key`だけで行うため、Marketsは精算ID・競売・要求内容・成功receipt・送信開始時刻を保持し、別キーで同じ競売を二重精算しない。結果不明のまま期限を超えた精算は自動で新規送信せず、確認待ちを維持する。
 
 ## 6. 金額と構成情報
 
@@ -2667,7 +2669,7 @@ Tokenの標準暗号化保存とsingle-flight更新は認証章のToken保存と
 | Method／path | operationId | 成功 | 本文上限 | 冪等キー |
 | --- | --- | --- | --- | --- |
 | `QUERY /api/v1/me/balance-checks` | `checkPointBalance` | 200 | 65,536バイト | 不要 |
-| `POST /api/v1/settlements/{settlementId}/debits` | `debitPointSettlement` | 200 | 1,048,576バイト | 必須 |
+| `POST /api/v1/settlement-debits` | `debitPointSettlement` | 200 | 1,048,576バイト | 必須 |
 
 ### 7.1 残高確認
 
@@ -2677,16 +2679,38 @@ Tokenの標準暗号化保存とsingle-flight更新は認証章のToken保存と
 
 ### 7.2 一括精算
 
-- pathに`settlementId`、本文に`auctionId`・`winners`と、呼出元の`client_id`・`client_assertion_type`・`client_assertion`を送る。
-- assertion typeは`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`、assertionの`aud`は今回の精算APIの絶対URLとする。
-- `winners`の各要素に`marketsUserId`・`pointsSubject`・`components`を送る。新規引き落としには`accessToken`・`dpopProof`も必須とする。`marketsUserId`は要求内で重複させない。
-- `pointsSubject`は固定した支払名義のPoints標準`user.id`であり、検証済みTokenの`sub`と一致させる。`components`は残高確認と同じ表現とする。
-- 有効な同一冪等結果の確認では利用者Token・proofを省略できるが、client assertion・支払名義・競売・落札者・金額は照合する。Token更新や新proofだけの違いは要求内容の変更に含めない。
-- Pointsは必要額0の軸も含めた全指定軸の存在・現在状態、本人の認可、金額、合算必要額と実残高を検査し、全落札者・全軸を一回で確定する。一人でも失敗したら全件未反映となる。
-- 指定軸の停止は`409 EVALUATION_CRITERION_INACTIVE`、不存在は`404 RESOURCE_NOT_FOUND`であり、競売全体の失敗として扱う。非公開や現在のパッケージ構成との違いだけでは拒否されない。
-- 本人の認可無効は`409 AUTHORIZATION_UNAVAILABLE`、残高不足は`409 INSUFFICIENT_BALANCE`とする。`rejectedWinners`は要求内の`marketsUserId`と各人の`reason`だけを返し、空配列・残高・軸・必要額・Points本人IDは返さない。
-- 成功時は`debitReceiptId`・`settlementId`・`auctionId`・`status: DEBITED`・`winners`・`debitedAt`を受け取る。各winnerは`marketsUserId`・`components`・`status: DEBITED`を持つ。Marketsは要求のID・軸・金額と照合し、receiptを保存する。
-- 成功応答を受け取った後は、Marketsの確定失敗を理由に再引き落としや自動返金を行わず、同じreceiptからMarkets側の確定を再開する。
+- 本文には呼出元の`client_id`・`client_assertion_type`・`client_assertion`と`winners`を送る。
+  - assertion typeは`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`、assertionの`aud`は今回の精算APIの絶対URLとする。
+  - `winners`は1件以上とし、各要素に`accessToken`・`dpopProof`・`components`を送る。
+  - 支払名義は各要素の検証済みTokenの`sub`が示すPoints本人である。
+  - `components`は残高確認と同じ表現とする。
+  - 送信のたびに、各落札者のDPoP proofと呼出元のclient assertionを作り直す。
+
+- Marketsは送信前に、`winners`の並び順で各落札者と`components`を要求の記録として保存する。
+  - 要求の記録にはToken・proof・client assertionを含めない。
+
+- 結果不明の再送は同じ`Idempotency-Key`・同じ`winners`の並び順・同じ`components`で送る。
+  - Pointsは呼出元Client ID・`Idempotency-Key`と、各落札者の`components`を`winners`の配列順で照合する。
+  - Token更新や新proofだけの違いは要求内容の変更に含めない。
+  - 有効な同一冪等結果がある再送では、各要素を`components`だけにして利用者Token・proofを省略できる。
+  - 有効な結果がなく、Tokenとproofがそろわない要求は引き落とされない。
+  - 呼出元のclient assertionは再送でも送る。
+
+- Pointsは必要額0の軸も含めた全指定軸の存在・現在状態、本人の認可、金額、合算必要額と実残高を検査し、全落札者・全軸を一回で確定する。
+  - 一人でも失敗したら全件未反映となる。
+  - 指定軸の停止は`409 EVALUATION_CRITERION_INACTIVE`、不存在は`404 RESOURCE_NOT_FOUND`であり、競売全体の失敗として扱う。
+  - 非公開や現在のパッケージ構成との違いだけでは拒否されない。
+
+- 本人の認可無効は`409 AUTHORIZATION_UNAVAILABLE`、残高不足は`409 INSUFFICIENT_BALANCE`とする。
+  - `rejectedWinners`は拒否された落札者ごとの`index`と`reason`だけを`index`昇順で返す。
+  - `index`は拒否された落札者の`winners`での0始まりの配列位置である。
+  - 空配列・残高・軸・必要額・Points本人IDは返さない。
+  - Marketsは`index`を、送信した`winners`の同じ位置の落札者へ対応付ける。
+
+- 成功時の`data`は`debitReceiptId`・`status: DEBITED`・`debitedAt`だけである。
+  - 成功は要求の全落札者・全軸が`components`のとおりに引き落とされたことを示す。
+  - 成功時は、要求の記録へ`debitReceiptId`・`debitedAt`を加えてreceiptとする。
+  - 成功応答を受け取った後は、Marketsの確定失敗を理由に再引き落としや自動返金を行わず、同じreceiptからMarkets側の確定を再開する。
 
 ## 8. Settlementの責務
 
@@ -2695,6 +2719,7 @@ Marketsは元の終了cutoffと保存条件から落札者・数量・価格を�
 ## 9. Rate limitとContract test
 
 - OAuth開始・callback・Token要求はBetter Authのrate limitとWAFを併用する。Pointsの`429`と`Retry-After`を尊重し、再送保証期間とretry deadlineを超えて自動再送しない。
+- Pointsは一括精算を呼出元Client IDの枠へ1要求につき1回数える。上限は60秒間に60回で、その提供先への全競売の一括精算が同じ枠を使う。落札者の人数は回数に加えず、確定済み結果の再送も1回数える。
 - OpenAPI生成client、JWT・DPoP・PKCE・state・nonce・redirect URI・code再利用、複数名義、解除と更新の競合、Tokenの秘匿を検証する。
 - 一括精算の一人失敗で全件未反映、同じPoints本人の必要額合算、0額の停止軸拒否、現在単位と異なる既存競売、同じキーの再送・内容違い・1日期限、引き落とし成功後のMarkets forward recoveryを検証する。
 - 例えば残高100の同じPoints本人へ、二つのMarkets名義から60・50を要求すると合計110で全件拒否となる。元の単位0.01で求めた0.03・0.07は現在単位0.1でも合計0.1を実残高と照合する。
@@ -2832,16 +2857,16 @@ flowchart TD
 ## 6. Points呼出し
 
 - Auctionの提供先を登録済みoriginへ解決し、Markets Workerが外部`fetch()`でAPIを呼ぶ。ブラウザからPointsの業務APIを直接呼ばない。
-- 詳細取得の表示用区画と計算情報を区別し、作成時snapshotから必要額を計算する。Pointsへは軸ID・必要額・落札者・支払名義・認証情報を送る。
-- 利用者のToken・DPoP・client assertionを送信時に検証し、結果不明の再送では必要に応じて更新する。内容照合にToken・proof・client assertionを含めない。
+- 詳細取得の表示用区画と計算情報を区別し、作成時snapshotから必要額を計算する。Pointsへは落札者ごとに支払名義の利用者Token・DPoPと軸ID・必要額を送り、呼出元の認証情報を添える。
+- 利用者のToken・DPoP・client assertionを送信時に検証する。結果不明の再送でも、DPoP proofとclient assertionは送信ごとに作り直し、Tokenは必要に応じて更新する。内容照合にToken・proof・client assertionを含めない。
 - 提供先が停止しても既存取引に必要な鍵・連携・結果を保持する。Tokenの確定失効は再認可待ちとし、別名義へ既存入札を付け替えない。
 
 ## 7. 失敗処理
 
-- END_OF_AUCTIONの認可無効・残高不足では、Pointsが返した`rejectedWinners`を要求内のMarkets userへ照合する。拒否された入札者だけを除外し、残高不足・負残高に該当する人は既定のblacklist eventを一件記録する。
+- END_OF_AUCTIONの認可無効・残高不足では、Pointsが返した`rejectedWinners`の`index`を、送信した`winners`の同じ位置の入札者へ対応付ける。拒否された入札者だけを除外し、残高不足・負残高に該当する人は既定のblacklist eventを一件記録する。
 - BUY_NOWの確定的拒否は別buyerを選ばず、全件未反映を確認してhold全数量を戻す。結果不明では競売全体の販売と落札確定を待機する。
 - 評価軸の停止・不存在は競売全体の失敗であり、特定の入札者を除外する理由にしない。一時障害・429・5xxでも候補を変更しない。
-- `rejectedWinners`の未知ID・空配列はprotocol failureとし、候補やholdを変更しない。生の失敗応答、残高、必要額、Tokenを公開API・HTML・WebSocket・ログへ出さない。
+- `rejectedWinners`の範囲外の`index`・空配列はprotocol failureとし、候補やholdを変更しない。生の失敗応答、残高、必要額、Tokenを公開API・HTML・WebSocket・ログへ出さない。
 - Points成功後にMarkets finalizeが失敗したら、引き落としを戻さずreconcilerがforward finalizeする。経済履歴・Workflow履歴を削除しない。
 
 ### Settlement状態read
@@ -2880,9 +2905,9 @@ flowchart TD
 - Workflow各stepでのcrash/retry
 - debit／finalize各stepのtimeout・総attempt・backoff・deadline、上限時の確認待ち・audit・dedupe alert
 - 不足者除外後の同cutoff再計算
-- 利用者Token・DPoP・呼出元client assertionの不正と異なる支払名義を拒否
+- 利用者Token・DPoP・呼出元client assertionの不正を拒否し、固定した支払名義以外のTokenを送らない
 - debit成功・Markets finalize失敗から同じreceiptによるforward recovery
-- `rejectedWinners`の要求内ID照合、拒否者だけを除外した同cutoff再計算、未知IDの拒否とbrowserへの秘匿
+- `rejectedWinners`の`index`から送信した落札者への対応付け、拒否者だけを除外した同cutoff再計算、範囲外の`index`の拒否とbrowserへの秘匿
 - debit後の自動refundなし、結果不明時の競売全体待機と同じキーでの確認
 - reconciler多重起動で結果が1件に収束
 

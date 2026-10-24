@@ -1,16 +1,6 @@
 locals {
   manage_zone_shared = var.environment == "production"
 
-  hosts = var.environment == "staging" ? {
-    points  = "staging.points.freeism.app"
-    markets = "staging.markets.freeism.app"
-    } : {
-    points  = "points.freeism.app"
-    markets = "markets.freeism.app"
-  }
-
-  staging_hosts = var.environment == "staging" ? local.hosts : {}
-
   native_alerts = {
     runtime_incident = {
       alert_type = "incident_alert"
@@ -127,33 +117,6 @@ resource "cloudflare_ruleset" "edge_rate_limit" {
       requests_per_period = 30
       mitigation_timeout  = 60
     }
-  }]
-}
-
-resource "cloudflare_zero_trust_access_policy" "staging" {
-  for_each = local.staging_hosts
-
-  account_id       = var.account_id
-  name             = "freeism-${each.key}-staging-allow"
-  decision         = "allow"
-  session_duration = "8h"
-  include          = [for email in var.access_allowed_emails : { email = { email = email } }]
-}
-
-resource "cloudflare_zero_trust_access_application" "staging" {
-  for_each = local.staging_hosts
-
-  account_id                 = var.account_id
-  name                       = "freeism-${each.key}-staging"
-  type                       = "self_hosted"
-  domain                     = each.value
-  session_duration           = "8h"
-  enable_binding_cookie      = true
-  http_only_cookie_attribute = true
-  same_site_cookie_attribute = "strict"
-  policies = [{
-    id         = cloudflare_zero_trust_access_policy.staging[each.key].id
-    precedence = 1
   }]
 }
 

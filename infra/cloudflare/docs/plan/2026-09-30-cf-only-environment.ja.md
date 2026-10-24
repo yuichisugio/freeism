@@ -6,7 +6,7 @@
 
 **Architecture:** Worker はアプリごとの `cloudflare.config.ts` で表し、edge 設定は単一の desired-state モジュールと `cf` CLI を呼ぶ薄い再現スクリプトで管理する。スクリプトは現状を取得して対象リソースだけを採用・作成・更新し、D1 migration は Worker 公開より先に実行する。staging の同等性と冪等性を確認した後に production を切り替える。
 
-**Tech Stack:** `cf@1.0.0-beta.5`、Node.js 24、pnpm 10.33.3、Cloudflare Workers／D1／Rulesets／Access、Node 組み込み test runner、既存の Vitest／Vite／Astro／Blume。
+**Tech Stack:** `cf@1.0.0-beta.5`、Node.js 24、pnpm 10.33.3、Cloudflare Workers／D1／Rulesets、Node 組み込み test runner、既存の Vitest／Vite／Astro／Blume。
 
 **Spec:** [`../specification/cf-only-environment.ja.md`](../specification/cf-only-environment.ja.md)
 
@@ -15,7 +15,7 @@
 - Cloudflare API の実操作は固定バージョンの `cf` CLI に集約し、秘密値を引数・ログ・Git に残さない。
 - 初期移行対象は既存 account／`freeism.app` zone。別 account は同じ manifest を使い、zone 委任などの外部前提を満たしたうえで検証する。
 - 既存 D1 の UUID とデータ、Worker の公開 domain、zone の対象外 rules、apex の所有状態を保つ。
-- staging は Points／Markets の Access と環境別通知を所有し、production は zone 共通 DNS／Rulesets／Email Routing と環境別通知を所有する。
+- staging は環境別通知を所有し、production は zone 共通 DNS／Rulesets／Email Routing と環境別通知を所有する。
 - 対象が一意に特定できない、権限が不足する、Markets の Workflow／Durable Object や Main／Docs のビルド同等性を証明できない場合は切り替えを止める。
 - 本計画の作成時点では Cloudflare への書き込み、Terraform の削除、production の変更は実施しない。
 
@@ -67,9 +67,9 @@ pnpm exec cf migrate wrangler.jsonc --dry-run --no-install
 
 **Files:** Create: `infra/cloudflare/config/edge.mjs`, `infra/cloudflare/config/edge.test.mjs`。
 
-**Interfaces:** Produces: `desiredEdge(environment, { accountId, zoneId, accessAllowedEmails, opsAlertEmail })` → `{ dns, rulesets, accessPolicies, accessApplications, alertPolicies, emailRouting }`。Task 3 がこの結果のみを適用する。
+**Interfaces:** Produces: `desiredEdge(environment, { accountId, zoneId, opsAlertEmail })` → `{ dns, rulesets, alertPolicies, emailRouting }`。Task 3 がこの結果のみを適用する。
 
-- [ ] **Step 1: 先に失敗する契約テストを書く。** `node:test` で staging は Access policy／application が各 2、通知が 3、production だけ DNS 1・zone ruleset 3、Access 0 と確認する。301 の target と path/query 破棄、WAF ID、30/60 秒の 429、通知先 email も固定する。
+- [ ] **Step 1: 先に失敗する契約テストを書く。** `node:test` で staging は通知が 3、production だけ DNS 1・zone ruleset 3 と確認する。301 の target と path/query 破棄、WAF ID、30/60 秒の 429、通知先 email も固定する。
 
 ```js
 import assert from "node:assert/strict";
@@ -79,14 +79,11 @@ import { desiredEdge } from "./edge.mjs";
 const inputs = {
   accountId: "00000000000000000000000000000000",
   zoneId: "11111111111111111111111111111111",
-  accessAllowedEmails: ["operator@example.com"],
   opsAlertEmail: "ops@example.com",
 };
 
-test("staging owns Access but no shared zone settings", () => {
+test("staging owns notifications but no shared zone settings", () => {
   const result = desiredEdge("staging", inputs);
-  assert.equal(result.accessPolicies.length, 2);
-  assert.equal(result.accessApplications.length, 2);
   assert.equal(result.alertPolicies.length, 3);
   assert.equal(result.dns.length, 0);
   assert.equal(result.rulesets.length, 0);
@@ -94,7 +91,7 @@ test("staging owns Access but no shared zone settings", () => {
 ```
 
 - [ ] **Step 2: `node --test infra/cloudflare/config/edge.test.mjs` を実行し、`desiredEdge` 未定義で失敗することを確認する。**
-- [ ] **Step 3: 期待値を実装する。** `main.tf:1-190` の名前・scope・body を `edge.mjs` に移す。production の DNS 名は `www.freeism.app`、Managed Ruleset ID は `efb7b8c949ac4650a09736fc376e9aee`、rate-limit の path 条件は `/api/auctions/` で始まり `/events` で終わるものとする。apex は `dns` に含めない。
+- [ ] **Step 3: 期待値を実装する。** `main.tf:1-153` の名前・scope・body を `edge.mjs` に移す。production の DNS 名は `www.freeism.app`、Managed Ruleset ID は `efb7b8c949ac4650a09736fc376e9aee`、rate-limit の path 条件は `/api/auctions/` で始まり `/events` で終わるものとする。apex は `dns` に含めない。
 
 ```js
 const dns = environment === "production"
@@ -109,7 +106,7 @@ const dns = environment === "production"
 
 **Files:** Create: `infra/cloudflare/scripts/cf-client.mjs`, `infra/cloudflare/scripts/reconcile-edge.mjs`, `infra/cloudflare/scripts/reconcile-edge.test.mjs`; Modify: `package.json`。
 
-**Interfaces:** Consumes: `desiredEdge(environment, { accountId, zoneId, accessAllowedEmails, opsAlertEmail })`。Produces: `pnpm cloudflare:plan --environment staging|production`、`pnpm cloudflare:apply --environment staging|production`、`pnpm cloudflare:verify --environment staging|production`。内部の `createCfClient(execFile)` は `run(args) → JSON` を返し、`findUniqueBy(items, predicate)` は match が 0 件なら `null`、1 件ならその item、複数なら例外を返す。
+**Interfaces:** Consumes: `desiredEdge(environment, { accountId, zoneId, opsAlertEmail })`。Produces: `pnpm cloudflare:plan --environment staging|production`、`pnpm cloudflare:apply --environment staging|production`、`pnpm cloudflare:verify --environment staging|production`。内部の `createCfClient(execFile)` は `run(args) → JSON` を返し、`findUniqueBy(items, predicate)` は match が 0 件なら `null`、1 件ならその item、複数なら例外を返す。
 
 - [ ] **Step 1: 先に失敗する単体テストを書く。** 注入した偽 `cf` 実行関数で、wrong account／zone と重複 match では書き込み呼び出し 0、既存 ID は `update`、欠落時のみ `create`、二度目の `apply` は書き込み 0、ruleset の対象外 rule は残ることを確認する。
 
@@ -131,7 +128,7 @@ test("duplicate scoped names are rejected", () => {
 ```
 
 - [ ] **Step 2: `node --test infra/cloudflare/scripts/reconcile-edge.test.mjs` を実行し、未実装による失敗を確認する。**
-- [ ] **Step 3: CLI アダプターと読み取り専用 `plan` を実装する。** `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_ZONE_ID`、JSON 配列の `FREEISM_ACCESS_ALLOWED_EMAILS`、`FREEISM_OPS_ALERT_EMAIL` を入力として検証する。`cf` の JSON 出力を解析し、DNS、zone ruleset、Access policy→application、alert policy、Email Routing の list/get を実行する。既存 match は名前・account／zone・phase／host で特定し、ID を保持する。ID・作成日時など API が付加する値は比較から除き、管理対象 field だけを正規化して比較する。`cf --dry-run` を差分判定の代わりにしない。
+- [ ] **Step 3: CLI アダプターと読み取り専用 `plan` を実装する。** `CLOUDFLARE_ACCOUNT_ID`、`CLOUDFLARE_ZONE_ID`、`FREEISM_OPS_ALERT_EMAIL` を入力として検証する。`cf` の JSON 出力を解析し、DNS、zone ruleset、alert policy、Email Routing の list/get を実行する。既存 match は名前・account／zone・phase／host で特定し、ID を保持する。ID・作成日時など API が付加する値は比較から除き、管理対象 field だけを正規化して比較する。`cf --dry-run` を差分判定の代わりにしない。
 
 ```js
 import { execFileSync } from "node:child_process";
@@ -152,8 +149,8 @@ export function findUniqueBy(items, predicate) {
 }
 ```
 
-- [ ] **Step 4: `apply` と `verify` を実装する。** 作成・更新には `cf` の対象別 `create/update` と `--body @file.json` を使い、JSON ファイルは `edge.mjs` の期待値から一時 directory に生成する。zone ruleset は `--zone` を指定する。Access application へ先に確定した policy ID を渡す。Email Routing は移行前の read-back で現行状態を確定し、合意した期待値が有効の場合だけ `cf email-routing enable` を使う。通知先の verified 状態を先に確認する。書き込み後に同じ list/get を読み直し、対象外 rule は更新 body に残す。削除処理は設けない。
-- [ ] **Step 5: テストと CLI dry-run を通す。** `node --test infra/cloudflare/scripts/reconcile-edge.test.mjs` を実行し、代表的な DNS／ruleset／Access／alert body を対応する `cf` コマンドの `--dry-run` で検証する。実 account の `plan` は読み取り専用で実行し、既存 HCL と差分を照合する。
+- [ ] **Step 4: `apply` と `verify` を実装する。** 作成・更新には `cf` の対象別 `create/update` と `--body @file.json` を使い、JSON ファイルは `edge.mjs` の期待値から一時 directory に生成する。zone ruleset は `--zone` を指定する。Email Routing は移行前の read-back で現行状態を確定し、合意した期待値が有効の場合だけ `cf email-routing enable` を使う。通知先の verified 状態を先に確認する。書き込み後に同じ list/get を読み直し、対象外 rule は更新 body に残す。削除処理は設けない。
+- [ ] **Step 5: テストと CLI dry-run を通す。** `node --test infra/cloudflare/scripts/reconcile-edge.test.mjs` を実行し、代表的な DNS／ruleset／alert body を対応する `cf` コマンドの `--dry-run` で検証する。実 account の `plan` は読み取り専用で実行し、既存 HCL と差分を照合する。
 - [ ] **Step 6: コミットする。** `plan`／`apply`／`verify` とテストをコミットする。実 account への `apply` は Task 11 のゲートまで行わない。
 
 ## Task 4: D1 を migration 前に解決する
@@ -336,7 +333,7 @@ rg -n 'wrangler (deploy|d1|types)' projects/*/package.json projects/*/scripts .g
 **Interfaces:** Consumes: Task 1〜10 の成果。Produces: 環境ごとの実測証跡、二度目に変更ゼロの `plan/apply`、最終的な cf-only 運用。
 
 - [ ] **Step 1: staging 適用前の snapshot を保全する。** `cf` の list/get 出力、Worker 版、D1 UUID／bookmark、Terraform state を権限制御された保管先に置き、リポジトリには秘密値や state 本体を追加しない。
-- [ ] **Step 2: 別担当者のクリーン checkout から staging を再現する。** `pnpm install --frozen-lockfile`、`pnpm cloudflare:plan --environment staging`、承認後の `apply`、D1 migration、5 アプリの deploy、`verify`、Access 許可／拒否と smoke を実行する。二度目の `plan/apply` が変更ゼロであることを証跡に残す。
+- [ ] **Step 2: 別担当者のクリーン checkout から staging を再現する。** `pnpm install --frozen-lockfile`、`pnpm cloudflare:plan --environment staging`、承認後の `apply`、D1 migration、5 アプリの deploy、`verify`、smoke を実行する。二度目の `plan/apply` が変更ゼロであることを証跡に残す。
 
 ```bash
 pnpm install --frozen-lockfile
