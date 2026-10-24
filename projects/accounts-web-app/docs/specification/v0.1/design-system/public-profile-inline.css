@@ -1,0 +1,54 @@
+/*
+ * 公開プロフィール（JavaScript を使わない静的 HTML）のインライン CSS。
+ * `src/backend/views/public-profile-page.tsx` の `styles` を、`scaled(N)` を `calc(Npx*var(--scale))` に展開して1規則1行で写したもの（値と順序は実装と同じ）。
+ * `<style>` にそのまま入れて使う。Web フォントは読み込まず、端末にある書体を使う。
+ * テーマは閲覧者のシステムの設定だけに従う（`:root` と `@media (prefers-color-scheme: dark)` の2ブロック）。
+ * アイコンは `i-globe`・`i-chevron`・`i-check`・`i-google`・`i-github`・`i-orcid` の `<symbol>` をページ内に置き、`<use href="#i-...">` で参照する。
+ * 全体の `svg` に線の指定があるため、塗りのアイコンは図形ごとに fill と stroke を指定する（icons.svg は指定済み）。
+ * 実装の `<symbol>` は GitHub のロゴを `#24292F` で塗る。icons.svg の `i-github` は currentColor のため、使うときは `.brand-icon` の `color` を `#24292f` にする。
+ * @see ./README.ja.md
+ */
+:root{color-scheme:light dark;--scale:1.1;--background:#F2F4FA;--surface:#FFFFFF;--surface-secondary:#F5F7FC;--border:#E2E6F0;--border-strong:#C7CDDC;--foreground:#1B2033;--muted:#69708A;--accent:#3B6FF0;--accent-soft:#E8EEFE;--link:#2553C9;--favicon-plate:#FFFFFF;--favicon-fallback:#69708A;--shadow:0 1px 2px rgba(27,32,51,.04),0 6px 20px rgba(27,32,51,.05);--shadow-pop:0 4px 12px rgba(27,32,51,.08),0 18px 44px rgba(27,32,51,.16)}
+@media (prefers-color-scheme:dark){:root{--background:#10131C;--surface:#181C28;--surface-secondary:#1F2433;--border:#2A3042;--border-strong:#3C4560;--foreground:#E6E9F2;--muted:#969DB3;--accent:#7DA0FF;--accent-soft:#1E2A4A;--link:#9DB8FF;--favicon-plate:#E6E9F2;--favicon-fallback:#4A5270;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);--shadow-pop:0 4px 12px rgba(0,0,0,.4),0 18px 44px rgba(0,0,0,.5)}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--background);color:var(--foreground);font-family:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;font-size:calc(14px*var(--scale));line-height:1.7}
+h1,h2,.brand{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Noto Sans JP",sans-serif;font-weight:700}
+h1,h2{margin:0;line-height:1.35}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.profile-header{display:flex;align-items:center;justify-content:space-between;gap:calc(12px*var(--scale));padding:calc(16px*var(--scale)) calc(24px*var(--scale));border-bottom:1px solid var(--border);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:calc(8px*var(--scale));font-size:calc(16px*var(--scale));color:var(--foreground)}
+.brand:hover{text-decoration:none}
+.brand img{width:calc(28px*var(--scale));height:calc(28px*var(--scale))}
+.lang-switch{position:relative}
+.lang-switch summary{list-style:none;height:calc(40px*var(--scale));display:inline-flex;align-items:center;gap:calc(8px*var(--scale));padding:0 calc(12px*var(--scale));border:1px solid var(--border);border-radius:999px;background:var(--surface);font-size:calc(13px*var(--scale));cursor:pointer;white-space:nowrap}
+.lang-switch summary::-webkit-details-marker{display:none}
+.lang-switch summary:hover{border-color:var(--border-strong)}
+.lang-switch summary svg{width:calc(20px*var(--scale));height:calc(20px*var(--scale))}
+.lang-switch summary .caret{width:calc(16px*var(--scale));height:calc(16px*var(--scale));color:var(--muted)}
+.lang-switch[open] summary{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.lang-switch[open] .caret{transform:rotate(180deg)}
+.lang-menu{position:absolute;top:calc(100% + calc(8px*var(--scale)));right:0;z-index:5;width:calc(200px*var(--scale));margin:0;padding:calc(8px*var(--scale));list-style:none;display:flex;flex-direction:column;gap:calc(4px*var(--scale));background:var(--surface);border:1px solid var(--border);border-radius:calc(20px*var(--scale));box-shadow:var(--shadow-pop)}
+.menu-item{display:flex;align-items:center;gap:calc(12px*var(--scale));padding:calc(8px*var(--scale)) calc(12px*var(--scale));border-radius:calc(14px*var(--scale));line-height:1.35;color:var(--foreground)}
+.menu-item:hover{background:var(--surface-secondary);text-decoration:none}
+.menu-item svg{width:calc(16px*var(--scale));height:calc(16px*var(--scale));margin-left:auto;color:var(--accent);stroke-width:2.6}
+.profile-page{max-width:calc(640px*var(--scale));margin-inline:auto;padding:calc(32px*var(--scale)) calc(24px*var(--scale)) calc(40px*var(--scale));display:flex;flex-direction:column;gap:calc(24px*var(--scale))}
+.profile-hero h1{font-size:calc(26px*var(--scale));overflow-wrap:anywhere}
+.mono{font-family:"M PLUS 1 Code",ui-monospace,Menlo,monospace;font-size:calc(12px*var(--scale));color:var(--muted)}
+.profile-section{display:flex;flex-direction:column;gap:calc(12px*var(--scale))}
+.profile-section h2{font-size:calc(16px*var(--scale))}
+.proof-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(12px*var(--scale))}
+.proof-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:calc(12px*var(--scale));align-items:start;padding:calc(16px*var(--scale));background:var(--surface);border:1px solid var(--border);border-radius:calc(20px*var(--scale));box-shadow:var(--shadow)}
+.svc-badge{position:relative;display:inline-block;width:calc(36px*var(--scale));height:calc(36px*var(--scale));font-size:0;line-height:calc(34px*var(--scale));text-align:center;border:1px solid var(--border);border-radius:calc(12px*var(--scale));background:var(--favicon-plate)}
+.favicon-fallback,.brand-icon{position:absolute;inset:0;margin:auto;width:calc(20px*var(--scale));height:calc(20px*var(--scale))}
+.favicon-fallback{color:var(--favicon-fallback)}
+.favicon{position:relative;vertical-align:middle;max-width:calc(20px*var(--scale));max-height:calc(20px*var(--scale));background:var(--favicon-plate)}
+.acct-text{display:flex;flex-direction:column;gap:calc(4px*var(--scale));min-width:0;line-height:1.35;overflow-wrap:anywhere}
+.acct-name{font-weight:500}
+.other-urls{margin-left:calc(8px*var(--scale));font-size:calc(12px*var(--scale));font-weight:400}
+.other-urls a{color:var(--muted);margin-right:calc(8px*var(--scale))}
+.proof-meta{font-size:calc(12px*var(--scale));color:var(--muted)}
+.notfound{padding:calc(56px*var(--scale)) calc(24px*var(--scale));text-align:center}
+.notfound h1{font-size:calc(20px*var(--scale))}
+@media (max-width:640px){.profile-header{padding:calc(12px*var(--scale)) calc(16px*var(--scale))}.profile-page{padding:calc(24px*var(--scale)) calc(16px*var(--scale)) calc(32px*var(--scale))}}

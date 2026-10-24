@@ -28,8 +28,8 @@ run "staging_edge_contract" {
   }
 
   assert {
-    condition     = length(cloudflare_turnstile_widget.web_app) == 2 && length(cloudflare_notification_policy.edge_native) == 3 && cloudflare_email_routing_address.ops.email == "ops-staging@example.com"
-    error_message = "staging must have app-specific Turnstile widgets, native edge policies, and its verified ops destination inventory"
+    condition     = length(cloudflare_notification_policy.edge_native) == 3 && cloudflare_email_routing_address.ops.email == "ops-staging@example.com"
+    error_message = "staging must have native edge policies and its verified ops destination inventory"
   }
 
   assert {

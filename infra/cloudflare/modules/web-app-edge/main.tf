@@ -157,17 +157,6 @@ resource "cloudflare_zero_trust_access_application" "staging" {
   }]
 }
 
-resource "cloudflare_turnstile_widget" "web_app" {
-  for_each = local.hosts
-
-  account_id      = var.account_id
-  name            = "freeism-${each.key}-${var.environment}"
-  domains         = [each.value]
-  mode            = "managed"
-  clearance_level = "no_clearance"
-  region          = "world"
-}
-
 resource "cloudflare_notification_policy" "edge_native" {
   for_each = local.native_alerts
 

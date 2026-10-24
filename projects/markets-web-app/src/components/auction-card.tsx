@@ -8,16 +8,24 @@ export function AuctionCard({ auction }: Readonly<{ auction: PublicAuctionCard }
       <h2>
         <a href={`/auctions/${encodeURIComponent(auction.auctionId)}`}>{auction.title}</a>
       </h2>
-      <p>{auction.descriptionSummary}</p>
+      <p>{auction.description}</p>
+      <p>
+        ポイントサービス: {auction.providerDisplayName} ({auction.providerOrigin})
+      </p>
+      {auction.providerStatus === "STOPPED" ? (
+        <p className="status-label">このポイントサービスは現在停止中です。</p>
+      ) : null}
       <dl className="fact-list">
         <div>
           <dt>ポイントパッケージ</dt>
-          <dd>{auction.pointPackage.name}</dd>
+          <dd>{auction.pointPackageName}</dd>
         </div>
-        <div>
-          <dt>現在価格</dt>
-          <dd>{auction.publicPriceTickCount * auction.packageTick}</dd>
-        </div>
+        {auction.buyNowPriceTickCount != null ? (
+          <div>
+            <dt>即時購入価格</dt>
+            <dd>{auction.buyNowPriceTickCount * auction.packageTick}</dd>
+          </div>
+        ) : null}
         <div>
           <dt>終了</dt>
           <dd>

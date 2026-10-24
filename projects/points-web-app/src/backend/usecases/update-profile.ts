@@ -17,7 +17,6 @@ export interface ProfileDto {
   pointsUserId: string;
   displayName: string;
   description: string;
-  externalUrls: string[];
   visibility: "PUBLIC" | "PRIVATE";
   pointPackages: Array<{ pointPackageId: string; displayOrder: number }>;
   evaluationVisibilities: Array<{
@@ -33,7 +32,6 @@ export interface ProfileDto {
 export interface ProfileUpdateBody {
   displayName: string;
   description: string;
-  externalUrls: string[];
   visibility: "PUBLIC" | "PRIVATE";
 }
 
@@ -65,7 +63,6 @@ function toProfileDto(
     authDisplayName: string;
     displayName: string | null;
     description: string | null;
-    externalUrls: string[] | null;
     visibility: "PUBLIC" | "PRIVATE" | null;
   },
   settings: Pick<ProfileDto, "pointPackages" | "evaluationVisibilities">,
@@ -74,7 +71,6 @@ function toProfileDto(
     pointsUserId: row.pointsUserId,
     displayName: row.displayName ?? defaultDisplayName(row.authDisplayName, row.pointsUserId),
     description: row.description ?? "",
-    externalUrls: row.externalUrls ?? [],
     visibility: row.visibility ?? "PUBLIC",
     ...settings,
   };
@@ -91,9 +87,6 @@ export function parseProfileUpdateBody(value: unknown): ProfileUpdateBody {
     input.displayName.length > 100 ||
     typeof input.description !== "string" ||
     input.description.length > 500 ||
-    !Array.isArray(input.externalUrls) ||
-    input.externalUrls.length > 30 ||
-    !input.externalUrls.every((url) => typeof url === "string") ||
     (input.visibility !== "PUBLIC" && input.visibility !== "PRIVATE")
   ) {
     throw new InvalidProfileError();
@@ -101,7 +94,6 @@ export function parseProfileUpdateBody(value: unknown): ProfileUpdateBody {
   return {
     displayName: input.displayName,
     description: input.description,
-    externalUrls: input.externalUrls,
     visibility: input.visibility,
   };
 }
@@ -113,7 +105,6 @@ async function selectProfile(database: ReturnType<typeof createDb>, pointsUserId
       authDisplayName: user.name,
       displayName: profiles.displayName,
       description: profiles.description,
-      externalUrls: profiles.externalUrls,
       visibility: profiles.visibility,
     })
     .from(pointsUsers)
@@ -212,7 +203,6 @@ export async function updateProfile(
   const canonicalPayload = {
     description: input.body.description,
     displayName: input.body.displayName,
-    externalUrls: input.body.externalUrls,
     visibility: input.body.visibility,
   };
   const payloadHash = await hashCanonicalPayload(canonicalPayload);
@@ -242,7 +232,6 @@ export async function updateProfile(
           pointsUserId: input.actorPointsUserId,
           displayName: input.body.displayName,
           description: input.body.description,
-          externalUrls: input.body.externalUrls,
           visibility: input.body.visibility,
           updatedAt: new Date(),
         })
@@ -251,7 +240,6 @@ export async function updateProfile(
           set: {
             displayName: input.body.displayName,
             description: input.body.description,
-            externalUrls: input.body.externalUrls,
             visibility: input.body.visibility,
             updatedAt: new Date(),
           },

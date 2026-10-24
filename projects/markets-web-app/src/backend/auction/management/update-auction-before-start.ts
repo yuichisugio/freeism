@@ -35,6 +35,7 @@ export interface UpdateAuctionBeforeStartInput {
 
 export interface UpdateAuctionBeforeStartDependencies {
   repository: D1AuctionRepository;
+  pointsIssuer: string;
   now(): Date;
   refreshPackage(row: AuctionImportPreviewRow): Promise<VerifiedPackageRevision>;
   checkEligibility(
@@ -75,8 +76,11 @@ export async function updateAuctionBeforeStart(
     throw new AuctionCommitError("AUCTION_IMPORT_VALIDATION_FAILED");
   }
   const row: AuctionImportPreviewRow = { ...input.row, ...validation.rows[0]! };
+  const auction = await dependencies.repository.findForManagement(input.auctionId);
+  if (!auction) throw new AuctionCommitError("AUCTION_NOT_FOUND");
   const payloadHash = await auctionPayloadHash({
     auctionId: input.auctionId,
+    providerId: auction.providerId,
     expectedAuctionVersion: input.expectedAuctionVersion,
     row,
     sellerIdentitySnapshot: input.sellerIdentitySnapshot,
@@ -98,17 +102,13 @@ export async function updateAuctionBeforeStart(
   }
 
   const commitStartedAt = dependencies.now();
-  const auction = assertEditable(
-    await dependencies.repository.findForManagement(input.auctionId),
-    input,
-    commitStartedAt,
-  );
+  assertEditable(auction, input, commitStartedAt);
   if (Date.parse(row.startsAt) <= commitStartedAt.getTime()) {
     throw new AuctionCommitError("AUCTION_STARTS_AT_NOT_FUTURE");
   }
   assertFreshPackage(row, await dependencies.refreshPackage(row));
   const commandId = `acmd_${crypto.randomUUID()}`;
-  const commandHash = `sha256:${await auctionPayloadHash({ commandId, row })}`;
+  const commandHash = `sha256:${await auctionPayloadHash({ commandId, providerId: auction.providerId, row })}`;
   const request = eligibilityRequest(commandId, commandHash, [row]);
   const receipt = assertEligibilityReceipt(
     request,
@@ -117,6 +117,8 @@ export async function updateAuctionBeforeStart(
   );
   const revisionId = `arev_${crypto.randomUUID()}`;
   const context: WriteContext = {
+    providerId: auction.providerId,
+    pointsIssuer: dependencies.pointsIssuer,
     actorMarketsUserId: input.actor.marketsUserId,
     commandHash,
     commandId,

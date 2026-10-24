@@ -1,19 +1,20 @@
 import { env } from "cloudflare:workers";
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { Hono } from "hono";
+import { except } from "hono/combine";
 
 import { marketsBackendApp } from "./backend/app";
 import { dispatchAuctionCloseResumeOutbox } from "./backend/db/d1-settlement-repository";
 import { requireBindings } from "./backend/http/context";
+import { basicAuthMiddleware } from "./backend/http/middleware/basic-auth-middleware";
 import { cleanupResolvedOpsAlerts } from "./backend/observability/cleanup-ops-alerts";
 import { deliverOpsAlert } from "./backend/observability/deliver-ops-alert";
 import {
   inspectMarketsOpsAlerts,
   monitorMarketsOpsAlerts,
 } from "./backend/observability/ops-monitor";
-import { emitOpsMetric, hashOpsResourceId } from "./backend/observability/ops-metrics";
-import { PointsApiClient } from "./backend/points/points-api-client";
-import { PointsOAuthClient } from "./backend/points/points-oauth-client";
+import { emitOpsMetric } from "./backend/observability/ops-metrics";
+import { openSettlementProvider } from "./backend/settlement/settlement-provider";
 import { finalizeSettlement } from "./backend/settlement/finalize-settlement";
 import { dispatchPendingSettlementOutboxes } from "./backend/settlement/outbox-dispatcher";
 import { reconcilePendingSettlements } from "./backend/settlement/reconcile-settlements";
@@ -37,6 +38,9 @@ const FIXED_PAGE_PATHS = new Set([
 
 const app = new Hono<{ Bindings: Env }>();
 
+// APIと認証プロトコルは、各エンドポイントの認証条件に従う。
+app.use(except(["/api", "/api/*", "/.well-known", "/.well-known/*"], basicAuthMiddleware));
+
 app.use("/api/*", async (context, next) => {
   await next();
   context.res = withSecurityHeaders(
@@ -58,6 +62,16 @@ app.get("/api/health", (context) =>
 
 app.notFound(async (context) => {
   const request = context.req.raw;
+  const path = context.req.path;
+  const isProtocolPath = ["/api", "/.well-known"].some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+  );
+  if (!isProtocolPath && (request.method === "GET" || request.method === "HEAD")) {
+    const assetResponse = await context.env.ASSETS.fetch(request);
+    if (assetResponse.status !== 404) {
+      return withSecurityHeaders(assetResponse, context.env);
+    }
+  }
   if (isSpaNavigationRequest(request)) {
     const shellUrl = new URL("/", request.url);
     const shellResponse = await context.env.ASSETS.fetch(
@@ -176,19 +190,6 @@ async function dispatchPendingAuctionCloseResumeOutboxes(
 
 export async function runScheduledSettlementMaintenance(workerEnv: Env) {
   const bindings = requireBindings(workerEnv);
-  const oauth = new PointsOAuthClient(bindings.POINTS_SERVICE, {
-    audience: bindings.POINTS_AUDIENCE,
-    issuer: bindings.POINTS_ISSUER,
-    m2mClientId: bindings.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: bindings.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: bindings.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: bindings.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: bindings.POINTS_USER_CLIENT_ID,
-    userClientSecret: bindings.POINTS_USER_CLIENT_SECRET,
-  });
-  const points = new PointsApiClient(bindings.POINTS_SERVICE, (scopes) =>
-    oauth.getM2MAccessToken(scopes),
-  );
   await dispatchPendingAuctionCloseResumeOutboxes(bindings);
   await retryFinalizedBuyNowHolds(bindings);
   await reconcilePendingSettlements({
@@ -211,8 +212,9 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
       await settleFinalizedBuyNowHold(bindings, settlementId);
       return finalized;
     },
-    async getStatuses(reservationKeys) {
-      const response = await points.getPointReservationStatus({
+    async getStatuses(settlementId, reservationKeys) {
+      const { api } = await openSettlementProvider(bindings, settlementId);
+      const response = await api.getPointReservationStatus({
         lookupBy: "RESERVATION_KEY",
         reservationKeys: [...reservationKeys],
       });
@@ -232,6 +234,7 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
     },
     now: () => new Date(),
     async releaseBeforeCapture(settlementId, statuses) {
+      const { api } = await openSettlementProvider(bindings, settlementId);
       for (const item of statuses) {
         if (item.status !== "ACTIVE") continue;
         const stored = await bindings.DB.prepare(
@@ -248,7 +251,7 @@ export async function runScheduledSettlementMaintenance(workerEnv: Env) {
             pointReservationId: string;
           }>();
         if (!stored) throw new Error("SETTLEMENT_RESERVATION_NOT_FOUND");
-        await points.releasePointReservation(
+        await api.releasePointReservation(
           {
             planHash: stored.planHash,
             pointReservationId: stored.pointReservationId,
@@ -274,22 +277,17 @@ export async function runScheduledMarkets(controller: ScheduledController, worke
     () =>
       monitorMarketsOpsAlerts(workerEnv.DB, {
         environment: workerEnv.APP_ENV,
-        inspect: (db, now) => inspectMarketsOpsAlerts(db, now, workerEnv.OPS_RESOURCE_HASH_SALT),
+        inspect: inspectMarketsOpsAlerts,
         notify: (alert) =>
           deliverOpsAlert(workerEnv.OPS_ALERT_EMAIL, alert, {
             from: workerEnv.OPS_ALERT_FROM,
             to: workerEnv.OPS_ALERT_TO,
           }),
-        resourceHashSalt: workerEnv.OPS_RESOURCE_HASH_SALT,
       }),
     () => cleanupResolvedOpsAlerts(workerEnv.DB, new Date(), workerEnv.APP_ENV),
   ]);
   for (const [index, result] of results.entries()) {
     const succeeded = result.status === "fulfilled";
-    const resourceIdHash = await hashOpsResourceId(
-      `*/5 * * * *:${index}`,
-      workerEnv.OPS_RESOURCE_HASH_SALT,
-    );
     emitOpsMetric(workerEnv.OPS_METRICS, {
       app: "markets",
       attempt: 1,
@@ -300,7 +298,6 @@ export async function runScheduledMarkets(controller: ScheduledController, worke
       event: "cron_job",
       lagSeconds: 0,
       outcome: succeeded ? "SUCCEEDED" : "FAILED",
-      resourceIdHash,
       resourceState: `job-${index}`,
     });
     if (!succeeded) console.error("MARKETS_CRON_JOB_FAILED", { jobIndex: index });

@@ -14,6 +14,7 @@ export class PointsConnectionConflictError extends Error {
 }
 
 export interface PendingPointsConnectionInput {
+  providerId: string;
   attemptPayloadHash: string;
   authUserId: string;
   expiresAt: Date;
@@ -29,6 +30,7 @@ export interface PendingPointsConnectionInput {
 }
 
 export interface PointsConnectionRow {
+  providerId: string;
   attemptPayloadHash: string;
   authUserId: string;
   betterAuthAccountId: string | null;
@@ -46,6 +48,8 @@ export interface PointsConnectionRow {
 }
 
 export interface PointsOAuthStateRow {
+  providerId: string;
+  reauthConnectionId: string | null;
   attemptPayloadHash: string;
   authUserId: string;
   callbackUri: string;
@@ -61,6 +65,8 @@ export interface PointsOAuthStateRow {
 }
 
 export interface SavePointsOAuthStateInput {
+  providerId: string;
+  reauthConnectionId: string | null;
   attemptPayloadHash: string;
   authUserId: string;
   callbackUri: string;
@@ -83,13 +89,14 @@ export class PointsConnectionRepository {
       await this.db
         .prepare(
           `INSERT INTO points_connection
-             (id, markets_user_id, auth_user_id, status, link_attempt_id,
+             (id, provider_id, markets_user_id, auth_user_id, status, link_attempt_id,
               attempt_payload_hash, points_issuer, points_subject, user_client_id,
               m2m_client_id, granted_scopes, session_id, expires_at)
-           VALUES (?, ?, ?, 'PENDING_CONFIRMATION', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, 'PENDING_CONFIRMATION', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           input.id,
+          input.providerId,
           input.marketsUserId,
           input.authUserId,
           input.linkAttemptId,
@@ -117,13 +124,15 @@ export class PointsConnectionRepository {
     await this.db
       .prepare(
         `INSERT INTO points_oauth_state
-           (link_attempt_id, markets_user_id, auth_user_id, session_id, state_hash,
+           (link_attempt_id, provider_id, reauth_connection_id, markets_user_id, auth_user_id, session_id, state_hash,
             pkce_verifier, nonce, callback_uri, return_url_hash, requested_scopes,
             attempt_payload_hash, status, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'STARTED', ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'STARTED', ?)`,
       )
       .bind(
         input.linkAttemptId,
+        input.providerId,
+        input.reauthConnectionId,
         input.marketsUserId,
         input.authUserId,
         input.sessionId,
@@ -142,7 +151,8 @@ export class PointsConnectionRepository {
   async findOAuthState(stateHash: string) {
     return this.db
       .prepare(
-        `SELECT link_attempt_id AS linkAttemptId, markets_user_id AS marketsUserId,
+        `SELECT link_attempt_id AS linkAttemptId, provider_id AS providerId,
+                reauth_connection_id AS reauthConnectionId, markets_user_id AS marketsUserId,
                 auth_user_id AS authUserId, session_id AS sessionId,
                 state_hash AS stateHash, pkce_verifier AS pkceVerifier, nonce,
                 callback_uri AS callbackUri, requested_scopes AS requestedScopes,
@@ -201,7 +211,7 @@ export class PointsConnectionRepository {
   async findById(id: string) {
     return this.db
       .prepare(
-        `SELECT id, markets_user_id AS marketsUserId, auth_user_id AS authUserId,
+        `SELECT id, provider_id AS providerId, markets_user_id AS marketsUserId, auth_user_id AS authUserId,
                 status, link_attempt_id AS linkAttemptId,
                 attempt_payload_hash AS attemptPayloadHash, points_issuer AS pointsIssuer,
                 points_subject AS pointsSubject, user_client_id AS userClientId,
@@ -214,10 +224,10 @@ export class PointsConnectionRepository {
       .first<PointsConnectionRow>();
   }
 
-  async findLiveForMarketsUser(marketsUserId: string) {
+  async findLiveForMarketsUser(marketsUserId: string, providerId: string) {
     return this.db
       .prepare(
-        `SELECT id, markets_user_id AS marketsUserId, auth_user_id AS authUserId,
+        `SELECT id, provider_id AS providerId, markets_user_id AS marketsUserId, auth_user_id AS authUserId,
                 status, link_attempt_id AS linkAttemptId,
                 attempt_payload_hash AS attemptPayloadHash, points_issuer AS pointsIssuer,
                 points_subject AS pointsSubject, user_client_id AS userClientId,
@@ -225,10 +235,10 @@ export class PointsConnectionRepository {
                 better_auth_account_id AS betterAuthAccountId, token_version AS tokenVersion,
                 expires_at AS expiresAt
          FROM points_connection
-         WHERE markets_user_id = ? AND status IN ('PENDING_CONFIRMATION', 'ACTIVE', 'REAUTH_REQUIRED')
+         WHERE markets_user_id = ? AND provider_id = ? AND status IN ('PENDING_CONFIRMATION', 'ACTIVE', 'REAUTH_REQUIRED')
          ORDER BY created_at DESC LIMIT 1`,
       )
-      .bind(marketsUserId)
+      .bind(marketsUserId, providerId)
       .first<PointsConnectionRow>();
   }
 
@@ -243,6 +253,56 @@ export class PointsConnectionRepository {
     await this.db
       .prepare("UPDATE points_connection SET status = 'REAUTH_REQUIRED' WHERE id = ?")
       .bind(id)
+      .run();
+  }
+
+  async reauthorizePending(input: PendingPointsConnectionInput) {
+    const result = await this.db
+      .prepare(
+        `UPDATE points_connection SET status = 'PENDING_CONFIRMATION', link_attempt_id = ?,
+         attempt_payload_hash = ?, granted_scopes = ?, session_id = ?, expires_at = ?,
+         updated_at = cast(unixepoch('subsecond') * 1000 as integer)
+       WHERE id = ? AND provider_id = ? AND markets_user_id = ? AND auth_user_id = ?
+         AND points_issuer = ? AND points_subject = ? AND user_client_id = ? AND status = 'REAUTH_REQUIRED'`,
+      )
+      .bind(
+        input.linkAttemptId,
+        input.attemptPayloadHash,
+        JSON.stringify([...new Set(input.scopes)].sort()),
+        input.sessionId,
+        input.expiresAt.getTime(),
+        input.id,
+        input.providerId,
+        input.marketsUserId,
+        input.authUserId,
+        input.pointsIssuer,
+        input.pointsSubject,
+        input.userClientId,
+      )
+      .run();
+    if (result.meta.changes !== 1) throw new Error("POINTS_REAUTH_IDENTITY_MISMATCH");
+  }
+
+  async restoreReauth(id: string) {
+    await this.db
+      .prepare(
+        "UPDATE points_connection SET status = 'REAUTH_REQUIRED' WHERE id = ? AND status = 'PENDING_CONFIRMATION'",
+      )
+      .bind(id)
+      .run();
+  }
+
+  async restoreExpiredReauth(marketsUserId: string, providerId: string) {
+    await this.db
+      .prepare(
+        `UPDATE points_connection SET status = 'REAUTH_REQUIRED'
+       WHERE markets_user_id = ? AND provider_id = ? AND status = 'PENDING_CONFIRMATION'
+         AND expires_at <= ? AND EXISTS (
+           SELECT 1 FROM points_oauth_state s
+           WHERE s.link_attempt_id = points_connection.link_attempt_id
+             AND s.reauth_connection_id = points_connection.id)`,
+      )
+      .bind(marketsUserId, providerId, Date.now())
       .run();
   }
 
@@ -295,6 +355,7 @@ export interface PointsConnectionService {
 }
 
 export function createPointsConnectionService(input: {
+  providerId: string;
   api: PointsApiClient;
   callbackUri: string;
   db: D1Database;
@@ -308,7 +369,11 @@ export function createPointsConnectionService(input: {
 
   return {
     async start(actor, authUserId, sessionId) {
-      const current = await repository.findLiveForMarketsUser(actor.marketsUserId);
+      await repository.restoreExpiredReauth(actor.marketsUserId, input.providerId);
+      const current = await repository.findLiveForMarketsUser(
+        actor.marketsUserId,
+        input.providerId,
+      );
       if (current?.status === "ACTIVE" || current?.status === "PENDING_CONFIRMATION") {
         throw new PointsConnectionConflictError();
       }
@@ -331,6 +396,8 @@ export function createPointsConnectionService(input: {
         `link-start:${oauthState.stateHash}`,
       );
       await repository.saveOAuthState({
+        providerId: input.providerId,
+        reauthConnectionId: current?.status === "REAUTH_REQUIRED" ? current.id : null,
         attemptPayloadHash: hash,
         authUserId,
         callbackUri: input.callbackUri,
@@ -356,12 +423,10 @@ export function createPointsConnectionService(input: {
     },
 
     async completeCallback(actor, authUserId, sessionId, callback) {
-      if (callback.issuer && callback.issuer !== input.pointsIssuer) {
-        throw new Error("POINTS_ISSUER_MISMATCH");
-      }
       const state = await repository.findOAuthState(await sha256(callback.state));
       if (
         !state ||
+        state.providerId !== input.providerId ||
         state.status !== "STARTED" ||
         state.marketsUserId !== actor.marketsUserId ||
         state.authUserId !== authUserId ||
@@ -370,12 +435,18 @@ export function createPointsConnectionService(input: {
       ) {
         throw new Error("POINTS_OAUTH_STATE_INVALID");
       }
+      if (callback.issuer !== input.pointsIssuer) {
+        throw new Error("POINTS_ISSUER_MISMATCH");
+      }
       const scopes = JSON.parse(state.requestedScopes) as string[];
       const tokens = await input.oauth.exchangeAuthorizationCode({
         callbackUri: state.callbackUri,
         code: callback.code,
+        issuer: callback.issuer,
+        nonce: state.nonce,
         pkceVerifier: state.pkceVerifier,
         requiredScopes: scopes,
+        state: callback.state,
       });
       if (
         tokens.issuer !== input.pointsIssuer ||
@@ -384,10 +455,11 @@ export function createPointsConnectionService(input: {
       ) {
         throw new Error("POINTS_OAUTH_IDENTITY_MISMATCH");
       }
-      const pendingId = `mpc_${state.linkAttemptId}`;
-      const accountId = `${tokens.issuer}|${tokens.subject}`;
+      const pendingId = state.reauthConnectionId ?? `mpc_${state.linkAttemptId}`;
+      const accountId = `${input.providerId}|${tokens.subject}`;
       try {
-        await repository.createPending({
+        const pending = {
+          providerId: input.providerId,
           attemptPayloadHash: state.attemptPayloadHash,
           authUserId,
           expiresAt: new Date(state.expiresAt),
@@ -400,13 +472,16 @@ export function createPointsConnectionService(input: {
           scopes: tokens.scopes,
           sessionId,
           userClientId: tokens.clientId,
-        });
+        };
+        if (state.reauthConnectionId) await repository.reauthorizePending(pending);
+        else await repository.createPending(pending);
         await input.tokenStore.save({ ...tokens, accountId, authUserId });
         await repository.bindAccount(pendingId, accountId);
         await repository.completeOAuthState(state.linkAttemptId);
         return { pendingId };
       } catch (error) {
-        await repository.cancel(pendingId);
+        if (state.reauthConnectionId) await repository.restoreReauth(pendingId);
+        else await repository.cancel(pendingId);
         await repository.cancelOAuthState(state.linkAttemptId);
         await input.api
           .finalizePointsLinkAttempt(
@@ -429,6 +504,7 @@ export function createPointsConnectionService(input: {
       const connection = await repository.findById(pendingId);
       if (
         !connection ||
+        connection.providerId !== input.providerId ||
         connection.status !== "PENDING_CONFIRMATION" ||
         connection.marketsUserId !== actor.marketsUserId ||
         connection.sessionId !== sessionId ||
@@ -451,7 +527,11 @@ export function createPointsConnectionService(input: {
       if (response.data.outcome !== "CONFIRM" || response.data.grantStatus !== "ACTIVE") {
         throw new Error("POINTS_CONNECTION_CONFIRMATION_FAILED");
       }
-      await repository.activate(connection.id, response.data.linkAttemptFinalizationReceiptId, 1);
+      await repository.activate(
+        connection.id,
+        response.data.linkAttemptFinalizationReceiptId,
+        response.data.grantVersion,
+      );
       return { pointsConnectionId: connection.id, status: "ACTIVE" };
     },
   };

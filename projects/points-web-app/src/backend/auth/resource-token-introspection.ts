@@ -1,6 +1,9 @@
 import { oauthProviderResourceClient } from "@better-auth/oauth-provider/resource-client";
+import { createDpopReplayStore, parseAccessTokenAuthorization } from "better-auth/oauth2";
 
-type IntrospectionPayload = Record<string, unknown> & {
+import type { createPointsAuth } from "./create-auth";
+
+type AccessTokenPayload = Record<string, unknown> & {
   client_id?: unknown;
   iss?: unknown;
   scope?: unknown;
@@ -10,10 +13,10 @@ type IntrospectionPayload = Record<string, unknown> & {
 export interface PointsOAuthResourceConfig {
   allowedScopes: readonly string[];
   audience: string;
-  clientId: string;
-  clientSecret: string;
-  introspectionUrl: string;
+  auth?: ReturnType<typeof createPointsAuth>;
+  db: D1Database;
   issuer: string;
+  jwksUrl: string;
   kind: "USER" | "M2M";
 }
 
@@ -37,76 +40,83 @@ export type PointsOAuthPrincipal = PointsUserOAuthPrincipal | PointsM2MOAuthPrin
 type VerifyResourceRequest = (
   request: Request,
   options: {
-    remoteVerify: {
-      clientId: string;
-      clientSecret: string;
-      force: true;
-      introspectUrl: string;
-    };
-    scopes: string[];
+    jwksUrl: string;
+    requiredScopes: string[];
     verifyOptions: { audience: string; issuer: string };
+    dpop?: { replayStore: ReturnType<typeof createDpopReplayStore>; signingAlgorithms: string[] };
   },
-) => Promise<IntrospectionPayload>;
+) => Promise<AccessTokenPayload>;
 
 const standardResourceClient = oauthProviderResourceClient().getActions();
 
-function bearerToken(request: Request): string {
-  const header = request.headers.get("authorization") ?? "";
-  if (!header.startsWith("Bearer ")) throw new Error("INVALID_ACCESS_TOKEN");
-  const token = header.slice(7).trim();
-  if (token.length === 0 || token.split(".").length === 3) {
-    throw new Error("INVALID_ACCESS_TOKEN");
-  }
-  return token;
+function scopeList(payload: AccessTokenPayload): string[] {
+  if (typeof payload.scope !== "string") return [];
+  return [...new Set(payload.scope.split(/\s+/).filter(Boolean))].sort();
 }
 
-function scopeList(payload: IntrospectionPayload): string[] {
-  const raw = payload.scope;
-  if (typeof raw !== "string") return [];
-  return [...new Set(raw.split(/\s+/).filter(Boolean))].sort();
-}
-
-export async function introspectResourceRequest(
+/**
+ * Points APIのJWT Access Tokenを検証し、登録中のClientと利用者状態を確認する。
+ */
+export async function verifyPointsResourceRequest(
   request: Request,
   config: PointsOAuthResourceConfig,
   requiredScopes: readonly string[],
   verify: VerifyResourceRequest = standardResourceClient.verifyAccessTokenRequest,
 ): Promise<PointsOAuthPrincipal> {
-  bearerToken(request);
-  let payload: IntrospectionPayload;
+  const authorization = parseAccessTokenAuthorization(request.headers.get("authorization"));
+  if (authorization?.scheme !== "DPoP" || !/^\S+\.\S+\.\S+$/.test(authorization.token)) {
+    throw new Error("INVALID_ACCESS_TOKEN");
+  }
+  if (!config.auth && verify === standardResourceClient.verifyAccessTokenRequest) {
+    throw new Error("DPOP_REPLAY_STORE_REQUIRED");
+  }
+
+  let payload: AccessTokenPayload;
   try {
+    const replayStore = config.auth
+      ? createDpopReplayStore((await config.auth.$context).internalAdapter)
+      : undefined;
     payload = await verify(request, {
-      remoteVerify: {
-        clientId: config.clientId,
-        clientSecret: config.clientSecret,
-        force: true,
-        introspectUrl: config.introspectionUrl,
-      },
-      scopes: [...requiredScopes],
+      jwksUrl: config.jwksUrl,
+      requiredScopes: [...requiredScopes],
       verifyOptions: { audience: config.audience, issuer: config.issuer },
+      ...(replayStore ? { dpop: { replayStore, signingAlgorithms: ["EdDSA"] } } : {}),
     });
   } catch {
     throw new Error("INVALID_ACCESS_TOKEN");
   }
 
   const clientId = payload.client_id;
-  const issuer = payload.iss;
+  const subject = payload.sub;
   const scopes = scopeList(payload);
   if (
-    clientId !== config.clientId ||
-    issuer !== config.issuer ||
+    typeof clientId !== "string" ||
+    clientId.length === 0 ||
+    payload.iss !== config.issuer ||
+    typeof subject !== "string" ||
+    subject.length === 0 ||
     scopes.some((scope) => !config.allowedScopes.includes(scope)) ||
     requiredScopes.some((scope) => !scopes.includes(scope))
   ) {
     throw new Error("INVALID_ACCESS_TOKEN");
   }
 
-  if (config.kind === "USER") {
-    if (typeof payload.sub !== "string" || payload.sub.length === 0) {
-      throw new Error("INVALID_ACCESS_TOKEN");
-    }
-    return { clientId, issuer, kind: "USER", scopes, subject: payload.sub };
+  const client = await config.db
+    .prepare("SELECT 1 FROM oauth_client WHERE client_id = ? AND coalesce(disabled, 0) = 0")
+    .bind(clientId)
+    .first();
+  if (!client) throw new Error("INVALID_ACCESS_TOKEN");
+
+  if (config.kind === "M2M") {
+    if (subject !== clientId) throw new Error("INVALID_ACCESS_TOKEN");
+    return { clientId, issuer: config.issuer, kind: "M2M", scopes };
   }
-  if (payload.sub !== undefined) throw new Error("INVALID_ACCESS_TOKEN");
-  return { clientId, issuer, kind: "M2M", scopes };
+
+  if (subject === clientId) throw new Error("INVALID_ACCESS_TOKEN");
+  const user = await config.db
+    .prepare("SELECT 1 FROM points_user WHERE auth_user_id = ? AND account_status = 'ACTIVE'")
+    .bind(subject)
+    .first();
+  if (!user) throw new Error("INVALID_ACCESS_TOKEN");
+  return { clientId, issuer: config.issuer, kind: "USER", scopes, subject };
 }

@@ -1,3 +1,4 @@
+import { writeAuditLog } from "../../observability/audit-logger";
 import type { Context, Hono } from "hono";
 
 import { parseAndValidateCsv } from "../../csv/csv-input";
@@ -388,13 +389,13 @@ async function saveReplay(
   db: D1Database,
   input: {
     action: string;
+    environment?: string;
     actorPointsUserId: string;
     body: object;
     idempotencyKey: string;
     operation: string;
     payloadHash: string;
     requestId: string;
-    reason: string;
     status: number;
     target: string;
   },
@@ -418,22 +419,13 @@ async function saveReplay(
         canonicalJson(input.body),
         now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, 'SUCCESS', ?)`,
-      )
-      .bind(
-        `audit_${crypto.randomUUID()}`,
-        input.actorPointsUserId,
-        input.action,
-        input.target,
-        input.reason,
-        input.requestId,
-        now,
-      ),
   ]);
+  writeAuditLog({
+    action: input.action,
+    environment: input.environment,
+    requestId: input.requestId,
+    resourceType: input.target,
+  });
 }
 
 function mapCommitError(context: Context<BackendContext>, error: unknown): Response {
@@ -539,13 +531,13 @@ export function registerEvaluationImportRoutes(app: Hono<BackendContext>, getSes
             meta: { requestId },
           };
           await saveReplay(db, {
+            environment: requireBindings(context.env).APP_ENV,
             action: operation,
             actorPointsUserId,
             body,
             idempotencyKey,
             operation,
             payloadHash,
-            reason,
             requestId,
             status: 201,
             target: resource,

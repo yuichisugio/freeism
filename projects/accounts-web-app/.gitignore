@@ -2,3 +2,6 @@
 !.env.example
 node_modules/
 dist/
+.wrangler/
+.tanstack/
+worker-configuration.d.ts
