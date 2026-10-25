@@ -5536,13 +5536,33 @@ flowchart TD
 
 ### 開発者向けOAuthクライアント管理
 
-Pointsへログインした利用者は、「開発者向け」画面でアプリをOAuthクライアントとして登録できます。登録後の一覧・詳細・更新・一時停止・再開・削除は、そのクライアントの`oauthClientAdmin`または`appAdmin`が行います。Pointsの管理権限は、[権限](#権限)に従って判定します。
+- Pointsへログインした利用者は、「開発者向け」画面でアプリをOAuthクライアントとして登録できます。
+  - 登録後の一覧・詳細・更新・一時停止・再開・削除は、そのクライアントの`oauthClientAdmin`または`appAdmin`が行います。
+  - Pointsの管理権限は、[権限](#権限)に従って判定します。
 
-入力項目の参考として、[Accounts v0.1のOAuthクライアント管理](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を示します。Accountsではv0.1以降、外部サービスの開発者がAccountsの画面でアプリを登録できます。これはAccounts向けの登録であり、Points向けの登録は本節の手順で行います。
+- 入力項目の参考として、[Accounts v0.1のOAuthクライアント管理](../../../../../accounts-web-app/docs/specification/v0.1/main.ja.md#oauthクライアント管理)を示します。
+  - Accountsではv0.1以降、外部サービスの開発者がAccountsの画面でアプリを登録できます。
+  - これはAccounts向けの登録であり、Points向けの登録は本節の手順で行います。
 
-必須は、アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開鍵です。公開鍵はインラインJWKSの`{"keys":[...]}`で登録します。紹介URLはHTTPSの任意項目で、説明文も任意です。未入力でも、ほかの登録条件を満たせば登録できます。説明文は標準の列が無いため、`oauthClient.metadata.description`へ保存します。Client IDはPointsが発行し、対応する秘密鍵は利用側サービスのバックエンドだけが保管します。項目の整理は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にします。アプリ名、紹介URL、説明文をアプリ情報とし、リダイレクトURL、Client ID、公開鍵を接続情報とします。入力項目と提供機能は、本仕様で定めた内容です。
+- 必須は、アプリ名、1件以上のリダイレクトURL、`private_key_jwt`用の公開鍵です。
+  - 公開鍵はインラインJWKSの`{"keys":[...]}`で登録します。
+  - 紹介URLはHTTPSの任意項目で、説明文も任意です。未入力でも、ほかの登録条件を満たせば登録できます。
+  - 説明文は標準の列が無いため、`oauthClient.metadata.description`へ保存します。
+  - Client IDはPointsが発行し、対応する秘密鍵は利用側サービスのバックエンドだけが保管します。
+  - 項目の整理は、[GoogleのWebアプリ向けOAuth設定](https://developers.google.com/identity/protocols/oauth2/web-server#creatingcred)と[同意画面の設定](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid#configure_your_oauth_consent_screen)を参考にします。
+  - アプリ名、紹介URL、説明文をアプリ情報とし、リダイレクトURL、Client ID、公開鍵を接続情報とします。
+  - 入力項目と提供機能は、本仕様で定めた内容です。
 
-リダイレクトURLは、認証と同意のあとで利用者を戻す先です。1つのクライアントへ1件以上を登録でき、認可要求ごとに`redirect_uri`を1つ指定します。バックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認します。URLはHTTPSとします。HTTPSのホストには、loopback（`localhost`、`127.0.0.0/8`、`[::1]`）を使えません。ローカル開発用には、ホストが`localhost`、`127.0.0.1`、`[::1]`のいずれかのURLをHTTPで登録できます。一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。`private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
+- リダイレクトURLは、認証と同意のあとで利用者を戻す先です。
+  - 1つのクライアントへ1件以上を登録でき、認可要求ごとに`redirect_uri`を1つ指定します。
+  - バックエンドは、その値が登録済みURLのいずれかと文字列で完全一致することを確認します。
+  - URLはHTTPSとします。
+  - HTTPSのホストには、loopback（`localhost`、`127.0.0.0/8`、`[::1]`）を使えません。
+  - ローカル開発用には、ホストが`localhost`、`127.0.0.1`、`[::1]`のいずれかのURLをHTTPで登録できます。
+  - 一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。
+  - 1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。
+  - ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。
+  - `private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
 
 - 管理者と管理一覧
   - 管理者の所属・人数と件数の上限・最後の管理者・退会・ログイン停止の扱いは、[権限](#権限)に従います。
@@ -5556,7 +5576,9 @@ Pointsへログインした利用者は、「開発者向け」画面でアプ�
   - 一覧・詳細・更新・一時停止・再開・削除では、対象クライアントのOrganizationと管理者所属をサーバーで確認します。
   - 「その他」の「開発者向け」で、登録時に公開鍵を登録できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
 
-JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が内容を確認して別途保存します。保存時は、[権限](#権限)の管理権限と人数・件数の上限に加え、本節のURLと公開鍵の条件を検証します。別サービス・別本人へのコピーは、通常の新規登録として新しいClient IDとOrganizationを作り、登録する本人を管理者にします。
+- JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が内容を確認して別途保存します。
+  - 保存時は、[権限](#権限)の管理権限と人数・件数の上限に加え、本節のURLと公開鍵の条件を検証します。
+  - 別サービス・別本人へのコピーは、通常の新規登録として新しいClient IDとOrganizationを作り、登録する本人を管理者にします。
 
 - 実装時の確認
   - 現在のクライアント管理は、登録者の`userId`で対象を限定します。Organizationへの紐づけと`oauthClientAdmin`の検証は実装されていません。
