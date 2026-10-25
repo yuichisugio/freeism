@@ -101,9 +101,9 @@
     - [validation](#validation)
     - [ordering](#ordering)
   - [7. AutoBid](#7-autobid)
-  - [8. winnerとuniform clearing price](#8-winnerとuniform-clearing-price)
+  - [8. winnerと落札価格](#8-winnerと落札価格)
     - [allocation](#allocation)
-    - [clearing price](#clearing-price)
+    - [落札価格](#落札価格)
   - [9. 即決](#9-即決)
   - [10. 終了時の不足者除外](#10-終了時の不足者除外)
   - [11. 履歴とwatchlist](#11-履歴とwatchlist)
@@ -115,7 +115,7 @@
   - [2. repository・service・domain](#2-repositoryservicedomain)
   - [3. ID](#3-id)
   - [4. 金額と時刻](#4-金額と時刻)
-  - [5. revisionとstate](#5-revisionとstate)
+  - [5. versionとstate](#5-versionとstate)
   - [6. HTTP/OpenAPI](#6-httpopenapi)
   - [7. Hono](#7-hono)
   - [8. Drizzle/D1](#8-drizzled1)
@@ -311,10 +311,14 @@
           - つまり、枠より多いときに入札があった場合は、一番安い入札額の最後尾の入札者から落選させる
       4.  **落札価格の条件**
           - 要件
-            - 落札できなかった入札者達の中で、一番高い入札額の人を、「ギリギリ落選者」と呼ぶ
-            - 「ギリギリ落選者」より「入札日時が前の人」は、「ギリギリ落選者」と同じ額
-            - 「ギリギリ落選者」より「入札日時が後の人」は、「ギリギリ落選者」の入札額に1単位だけ加算した額
-            - 落札者は一律で、上記の額・条件で支払う
+            - 落札できなかった数量の中で、一番高い入札額の人を「ギリギリ落選者」と呼ぶ
+              - 同じ額が複数あれば、その額へ先に到達した人とする
+              - 一部だけ割り当てられた落札者が残した希望数量も含める
+            - 「ギリギリ落選者」がいなければ、落札者全員が0を支払う
+            - 「ギリギリ落選者」より先にその入札額へ到達した落札者は、「ギリギリ落選者」と同じ額を支払う
+              - 一部だけ割り当てられて「ギリギリ落選者」になった落札者自身も、同じ額を支払う
+            - 「ギリギリ落選者」より後にその入札額へ到達した落札者は、「ギリギリ落選者」の入札額に1単位だけ加算した額を支払う
+            - 支払額は1個当たりの額であり、落札者自身の入札額を超えない
           - ポイント
             1.  「落札者を選ぶ条件」に沿って、入札日時が前なら同じ額でも落札できるのであれば、同じ額で支払ってもらう条件にしている。
           - 注意
@@ -326,7 +330,7 @@
       6.  **一人につき複数個を購入する場合**
           1. 優先度が高い人から順に購入枠を占めて、希望数だけ得られる
           2. 希望数が残っていない場合は、最後尾の人は希望数が残っている分だけ配布
-      7.  **複数人への出品は、シングルプライスとする。全落札者が同じ1個当たりの清算価格を支払う。**
+      7.  **複数人への出品では、落札者ごとに「落札価格の条件」で1個当たりの支払額を決める。**
       8.  **即決価格**
           - 説明
             1.  出品者が設定した「即決価格」ですぐ落札できるようにする機能
@@ -358,10 +362,10 @@
 
       16. **できる限りの、サーバー負荷・データベースやストレージの保存容量の削減**
       17. **入札タイプ（同額入札）の対応**
-          - race conditionの同じ入札額のユーザーが複数いた場合は、入札日時が早い人が落札する先着順で決める
+          - race conditionの同じ入札額のユーザーが複数いた場合は、その価格へ先に到達した順（`reachedSequence`）で決める
       18. **自動入札機能**
           - ユーザーが事前に上限額を設定し、システムが自動で入札を行う仕組み。
-          - できる限り State で管理し、画面から離れるときに DB に保存するなどの工夫を行う。
+          - 上限はbid APIと同じcommandでserverへ送り、AuctionRoomが直列化してMarkets D1へ保存する。
           - **流れ**
             1.  まず現状の価格（初めは0ポイント）で入札する
             2.  0ポイントで購入できる権利が枠いっぱいになった場合は、ポイントを一単位増やして入札することで、先着順の並びで最後尾の人の商材購入の権利を奪える
@@ -386,7 +390,7 @@
       2.  落札情報URLを、自身が購入した事を示したいサイトにコピペすれば完了にしたい
     - 表示する項目
       1.  落札商材の内容
-      2.  非公開設定を実装する
+      2.  全員が閲覧できる公開・永続のproofとする
       3.  複数人・複数個向けの出品（マルチユニット）の場合の画面表示にも対応する必要がある
           - 現状の実装は、**1人分・1個分の落札**を想定した表示に留まり、**複数人・複数個**の出し分けには未対応である
 
@@ -437,11 +441,11 @@
          - 標準Nano ID
        - 説明
          - 入札した利用者のID
-    2. `amount`（入札額）
+    2. `priceTickCount`
        - 型
-         - 数値
+         - 十進数文字列（`packageTick`の個数）
        - 説明
-         - 入札額
+         - 入札価格の刻み数
     3. `bidAt`（入札日時）
        - 型
          - DateTime
@@ -472,15 +476,14 @@
          - 設定した利用者のID
     2. `auctionId`
        - 型
-         - UUID
-         - 文字列
+         - 標準Nano ID
        - 説明
          - 対象オークション（`Auction.id`）の`id`
-    3. `autobidPoint`
+    3. `autoBidMaxTickCount`
        - 型
-         - 数値
+         - 十進数文字列（`packageTick`の個数）
        - 説明
-         - 自動入札の上限額等（仕様に合わせて定義）
+         - 自動入札の上限
     4. その他
        - 説明
          - 有効フラグ、更新日時など推奨項目を追加
@@ -491,12 +494,12 @@
   - カラム
     1. `id`
        - 型
-         - UUID（PK）
+         - 標準Nano ID（PK）
        - 説明
          - テーブルのID
     2. `auctionId`
        - 型
-         - UUID（FK to Auction）
+         - 標準Nano ID（FK to Auction）
        - 説明
          - 対象オークションの`id`
     3. `reviewerId`
@@ -535,7 +538,7 @@
        - 説明
          - 作成日時
   - ユニーク制約
-    - `(auctionId, reviewerId, revieweeId)` — 1つのオークションにつき1回のみ評価可能
+    - `(auctionId, reviewerId, revieweeId)`：1つのオークションにつき方向ごとに1件。編集は同じレコードを更新する
 
 - `Auction`
   - 説明
@@ -543,46 +546,40 @@
   - カラム
     1. `id`
        - 型
-         - UUID
-         - 文字列
+         - 標準Nano ID
        - 説明
          - テーブルのID
-    2. `startTime`
+    2. `startsAt`
        - 型
          - DateTime
        - 説明
          - 開始日時
-    3. `endTime`
+    3. `endAt`
        - 型
          - DateTime
        - 説明
          - 終了日時
     4. `currentHighestBid`
        - 型
-         - 整数
+         - 十進数文字列（`packageTick`の個数）
        - 説明
-         - 現在の最高入札額
+         - 現在の最高入札価格の刻み数
     5. `currentHighestBidderId`
        - 型
          - 標準Nano ID
        - 説明
          - 現在の最高入札者の利用者ID。`BidHistory.userId`と同じ標準Nano IDである
-    6. `winnerIds`
-       - 型
-         - Cloudflare D1に保存する文字列の配列
-       - 説明
-         - 落札が確定した利用者のIDを、配分の順に並べた一覧。1人の落札でも配列にする。金額と数量の内訳は`BidHistory`の確定記録を正とし、この配列は一覧の参照である。
-    7. `status`
+    6. `status`
        - 型
          - Enum（`DRAFT`, `SCHEDULED`, `OPEN`, `CLOSING`, `CANCELLED`）
        - 説明
-         - オークションの状態。開始前は`DRAFT`。開始は`OPEN`。終了処理は`CLOSING`。開始前の取消は`DRAFT`または`SCHEDULED`から`CANCELLED`へ進める
-    8. `createdAt`
+         - オークションの状態。作成中は`DRAFT`、作成確定で`SCHEDULED`、開始は`OPEN`、終了処理は`CLOSING`。精算の進行はSettlementの状態で表す。開始前の取消は`DRAFT`または`SCHEDULED`から`CANCELLED`へ進める
+    7. `createdAt`
        - 型
          - DateTime
        - 説明
          - 作成日時
-    9. `updatedAt`
+    8. `updatedAt`
        - 型
          - DateTime
        - 説明
@@ -590,14 +587,13 @@
   - リレーション
     1. `bids`
        - 説明
-         - `BidHistory`（1:N）。落札内容の詳細・数量はこちらを正とする。落札終了後、`winnerIds`
-           と整合するよう落札確定状態の行を更新する。
+         - `BidHistory`（1:N）。不変のbid eventであり、落札後も更新しない。
     2. `currentHighestBidder`
        - 説明
          - 入札進行中の最高入札者（`User`）。単一参照。
-    3. （任意）落札者ユーザーへの参照
+    3. `allocations`
        - 説明
-         - `winnerIds` は、Cloudflare D1に保存した利用者IDの配列である。別テーブルは作らない。金額と数量の内訳は `BidHistory` を正とする。
+         - `allocation`（1:N）。落札者ごとの数量と価格を保存する。
 
 ## 意思決定
 
@@ -608,7 +604,7 @@
 - AuctionRoomは初回閲覧・接続・入札時にlazy初期化し、未利用Auctionを大量作成しない。
 - 順位は価格降順、同額はその価格へ到達したsequence昇順、最後のwinnerだけ残数による部分落札を許可する。
 
-- 枠外最高単位がなければ0 tick、同額なら同額、異なるなら枠外最高額＋1 tickをclearing priceとする。
+- 枠外最高単位（ギリギリ落選者）がなければ全員0 tickとする。あれば、その価格へ先に到達したwinnerは枠外最高額、後に到達したwinnerは枠外最高額＋1 tickを1個当たり支払う。
 
 - 全需要が販売数量以内なら正の入札があっても0 tickで落札する。
 
@@ -620,15 +616,15 @@
 - seller本人のbid、終了後bid、価格引下げ、bid撤回を拒否する。
   - Status: 採用
   - 上書き・撤回関係: 旧自由変更案を不採用。
-- 入札後にseller、数量、評価軸、比率、入札額の刻み、価格式、Points serviceを変更できない。
+- 入札後にseller、数量、評価軸、比率、各軸の最小単位、入札額の刻み、価格式、Points serviceを変更できない。
   - Status: 採用
   - 上書き・撤回関係: live Auctionの条件変更を禁止。
 - Auction history、winning history、watchlistをMarketsへ残す。
-- Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの落札時snapshotを表示する。
+- Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの精算確定時snapshotを表示する。
 
 - Reviewはseller→buyer、buyer→seller、1〜5、comment、任意URL、方向ごと1件とし、編集は同じReviewレコードを更新し、変更内容を監査記録に残す。
 
-- 1つの競売は1つの`pointsServiceId`に固定する。落札者も評価軸も、同じPointsのデータベースで精算する。
+- 1つの競売は1つの`providerId`に固定する。落札者も評価軸も、同じPointsのデータベースで精算する。
 
 - WebSocketは購読専用とし、bid mutationは認証済みHTTPからHono→AuctionRoom commandで行う。
 
@@ -642,12 +638,12 @@
 
 - 対面決済、QR決済、店舗履歴は、Marketsに導入する。
 
-- 外部EC用random claim Token、再発行、seller検証、受渡完了POST。
+- 外部EC用random claim Tokenを実装する。発行直後だけ表示する検証URL、再発行、seller検証、受け渡し完了POSTを提供する。
 
 - 引き落としが成功したあとに、その分を取り消して返す機能は作らない。ポイントを借りて、あとから返すための帳簿は持たない。誰かが条件を満たしたときだけ、別の人の代わりに購入する機能は作らない。必要なら、このアプリの外で扱う。
 
 - 商材と競売条件は、一つの`auction`に置く。
-  - 開始前の編集と取消は、Auction IDだけを使う。作成者だけが、`DRAFT`または`SCHEDULED`から`CANCELLED`へ終了できる。bid、AutoBid、成立した即時購入が1件でもあれば取消を拒否する。
+  - 開始前の編集と取消は、Auction IDだけを使う。作成者だけが、`DRAFT`または`SCHEDULED`から`CANCELLED`へ終了できる。bid、AutoBid、buy-now holdが1件でもあれば取消を拒否する。
 
 - AuctionRoomはD1の現在のAuctionレコードを正本に1 alarmだけを持ち、`startsAt`でOPEN、`endAt`でCLOSINGへCASする。WebSocket上限はuser全体20／user＋Auction 3のD1 unique slotを同じ原子commandで確保する。
 
@@ -671,7 +667,7 @@ Marketsは、終了時点の入札、または即時購入の要求から、不�
 
 ポイントの仮押さえはしない。利用者のいないサービス権限では精算しない。入札とAutoBidの設定時は、有効なPoints連携を必要とする。その時点では残高照会と仮押さえは行わない。
 
-認可がない入札者は落札者にしない。ブラックリストは記録しない。残高が足りない入札者は、その競売と利用者のブラックリストを1件記録してから落札者にしない。同じ終了時点の入札から落札者、数量、清算価格を計算し直す。順位が次の入札者が繰り上がる。同じ競売と利用者の組のブラックリストは1件だけである。通信失敗、429、5xxでは記録せず、同じ計画を再送する。
+認可がない入札者は落札者にしない。ブラックリストは記録しない。残高が足りない入札者は、その競売と利用者のブラックリストを1件記録してから落札者にしない。同じ終了時点の入札から落札者、数量、落札価格を計算し直す。順位が次の入札者が繰り上がる。同じ競売と利用者の組のブラックリストは1件だけである。通信失敗、429、5xxでは記録せず、同じ計画を再送する。
 
 引き落としはその時点の落札者全員を利用者認可で1回の要求とする。一人でも拒否されれば全員分が反映されず、受領証も発行されない。認可が無効なら必要額0でも拒否される。成功した引き落としは戻さない。同じ計画の再送は同じ受領証を返す。
 
@@ -705,9 +701,8 @@ Marketsは保存した作成時の構成・割合・各軸の最小単位・金�
   - 説明
     - オンラインのオークションで落札して、対面で受け渡しする際に、落札者である事を証明できるようにしたい
   - 設計
-    - 出品者と落札者しか見えない画面を見せる事で対応する
-    - 画面にも、出品者と落札者しか見えない旨を表示しておく
-    - 対面の受け渡し時は、その画面を見せて受け渡しする
+    - 落札者が公開の落札証明（proof）を提示する
+    - 出品者はproofのseller/buyer snapshotと照合して受け渡す
   - 使用場面
     1. 家具の予約
     2. 車のオークション
@@ -744,10 +739,10 @@ Marketsは保存した作成時の構成・割合・各軸の最小単位・金�
 
 たとえばこうです。このURLにアクセスすると、自社サイト側で `token` を読み取り、DB上の落札証明トークンと照合します。
 
-`https://markets.freeism.app/claims/verify?token=ea6a8133-6bd1-3796-c1cb-176f774d2dc1`
+`https://markets.freeism.app/admin/claims/verify?token=clm_8fJ29xLmQp7vR4sAzK6TnY`
 
 ここで大事なのは、**URLにアクセスしただけでは受け渡し完了にしない**ことです。
-URLアクセスはあくまで「検証結果の表示」までにして、`used` や `completed` にする処理は管理画面上のボタン操作、つまり `POST` 処理で行うのが安全です。
+URLアクセスはあくまで「検証結果の表示」までにして、`used` にする処理は管理画面上のボタン操作、つまり `POST` 処理で行うのが安全です。
 
 落札者へ見せる文は「外部ECサイトの注文メモに、以下のURLを貼り付けてください」です。メモが短いときは、URLではなく証明コードだけでもよいです。例は「落札証明コード: clm_8fJ29xLmQp7vR4sAzK6TnY」です。コードを貼る入力欄が販売者の管理画面にあると、親切に使えます。ログイン後は、元の検証用URLへ戻してクエリの `token` で検証します。管理画面は `GET /admin/claims/verify?token=...` を受けます。
 
@@ -755,13 +750,13 @@ URLアクセスはあくまで「検証結果の表示」までにして、`used
 
 平文トークンをDBへ残すことはありません。発行時にサーバーで平文を作り、その場でハッシュ化します。保存するのは `token_hash` だけです。計算は `sha256(token + server_secret)` です。可能なら、単純なハッシュではなく、サーバーの秘密値を加えたHMACかpepper付きハッシュにします。検証に使う値は、URLの平文を同じ方法でハッシュ化した結果です。一致したときの取得対象は、その落札証明です。不一致のときは「無効な落札証明URL」と表示します。
 
-記録に残す識別子は、落札IDと商品IDです。落札者IDと販売者IDも残します。トークンハッシュと有効期限と使用状態も残します。失効状態と検証回数も、記録の対象です。作成日時と更新日時も残します。テーブル `auction_claim_tokens` では、`id` と `auction_id` を必須のBIGINTにします。`winner_user_id` と `seller_user_id` も、必須のBIGINTです。`token_hash` は必須かつ一意のVARCHAR(255)です。`status` は必須のVARCHAR(32)にします。`expires_at` と `created_at` と `updated_at` は、必須のDATETIMEです。`verified_at` と `used_at` と `revoked_at` は、空を許すDATETIMEにします。`verified_count` は既定0のINTです。`external_order_id` は空を許すVARCHAR(255)にします。`external_platform` は空を許すVARCHAR(64)です。`status` の例は、`unused`（未確認・未使用）と `verified`（確認済み）と `used`（受け渡し完了）です。あわせて `expired`（期限切れ）と `revoked`（無効化済み）も含めます。`expired` はDBへ保存せず、`expires_at` が今より前かで都度判定してもよいです。
+記録に残す識別子は、落札IDと商品IDです。落札者IDと販売者IDも残します。トークンハッシュと有効期限と使用状態も残します。失効状態と検証回数も、記録の対象です。作成日時と更新日時も残します。テーブル `auction_claim_tokens` では、`id`、`auction_id`、`winner_user_id`、`seller_user_id` を必須の標準Nano ID（TEXT）にします。`token_hash` は必須かつ一意のTEXT、`status` は必須のTEXTです。`expires_at`、`created_at`、`updated_at` は必須、`verified_at`、`used_at`、`revoked_at` は空を許すUTC時刻です。`verified_count` は既定0のINTEGERです。`external_order_id` と `external_platform` は空を許すTEXTです。`status` の例は、`unused`（未確認・未使用）と `verified`（確認済み）と `used`（受け渡し完了）です。あわせて `expired`（期限切れ）と `revoked`（無効化済み）も含めます。`expired` はDBへ保存せず、`expires_at` が今より前かで都度判定してもよいです。
 
 同じURLを再表示することはありません。紛失したときや、コピーし忘れたときは、新しいトークンを再発行します。再発行に伴い、古いトークンは無効になります。確認の1文目は「以前のURLは使えなくなります」です。2文目は「すでに外部ECサイトに貼り付けた場合は、新しいURLに差し替えてください」です。新しいURLも、発行直後に一度だけ表示します。古いURLを開いたときの文言は「この落札証明URLは再発行により無効化されています」です。貼り済みのURLが無効になり得るので、再発行では落札者へ注意を出します。
 
 検証の順は、次のとおりです。最初に、管理者または販売者としてログインしていることを確認します。次にtokenがあることを確認します。その次に、`token_hash` が一致する記録があることです。続けて、期限切れでないことを確認します。失効していないことも確認します。使用済みでないことです。ログイン中の販売者が `seller_user_id` と一致することも確認します。そのあと、商品とオークションの情報を表示します。期限内で未完了なら、検証自体は何度でもよいです。受け渡し完了は一度だけに限ります。
 
-URLアクセス時にできるのは、検証結果の表示と `verified_count` の増加です。あわせて `verified_at` の更新と、アクセスログの保存を行います。受け渡し完了や、トークンの使用済み化は行いません。注文の確定や発送済みや返金不可も、同じように行いません。実行先は `POST /admin/claims/:claimId/complete` です。画面のボタン名は「受け渡し完了にする」とします。押したあとの確認は、出してもよいです。確認の1文目は「この落札証明を受け渡し完了にします」とします。2文目は「完了後、この証明コードは再利用できません」です。完了後の状態は `used` または `completed` にします。同じトークンでの再度の受け渡しはできません。
+URLアクセス時にできるのは、検証結果の表示と `verified_count` の増加です。あわせて `verified_at` の更新と、アクセスログの保存を行います。受け渡し完了や、トークンの使用済み化は行いません。注文の確定や発送済みや返金不可も、同じように行いません。実行先は `POST /admin/claims/:claimId/complete` です。画面のボタン名は「受け渡し完了にする」とします。押したあとの確認は、出してもよいです。確認の1文目は「この落札証明を受け渡し完了にします」とします。2文目は「完了後、この証明コードは再利用できません」です。完了後の状態は `used` にします。同じトークンでの再度の受け渡しはできません。
 
 検証後は、可能ならtoken付きURLのまま表示を続けません。移る先は、tokenのない詳細です。流れでは `GET /admin/claims/verify?token=xxxxx` のtokenを検証し、claimIdを特定します。権限を確認したあと、`302` で `/admin/claims/{claimId}` へ移し、詳細を表示します。`/admin/claims/{claimId}` でも、ログインユーザーの権限確認は必須です。
 
@@ -853,7 +848,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - 商材情報とAuction設定を統合した現在のAuctionレコード、競売作成時のパッケージ情報と公開snapshot
 - bid command、bid sequence、AutoBid状態、watchlist
 - AuctionRoom Durable Objectの接続状態と配信用状態
-- Auctionの終了判定、winner計算、clearing price
+- Auctionの終了判定、winner計算、落札価格
 - Settlement Workflow、outbox、精算saga状態
 - 落札証明、取引完了証明、seller/buyer相互評価
 
@@ -864,13 +859,13 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - Auction cardと詳細には、競売作成時に保存した公開表示名・評価軸ID・構成比率を表示する。非公開軸の名前は公開表示へ保存せず、IDを表示する。
 - Auctionは販売数量を持つmulti-unit方式とする。
 - 入札は価格の高い順、同額は`reachedSequence`が早い順に順位付けする。
-- 最後のwinnerだけ部分割当を許可し、全winnerは同じuniform clearing priceを支払う。
-- clearing priceが0 tickとなる成立条件を仕様として許可し、`minimumPriceTick`の倍数だけを受け付ける。
+- 最後のwinnerだけ部分割当を許可する。落札価格はwinnerごとに、ギリギリ落選者より先にその価格へ到達したかで決める。
+- 落札価格が0 tickとなる成立条件を仕様として許可し、保存した`packageTick`の倍数だけを受け付ける。
 - 即決価格、非公開のAutoBid上限、終了間際の延長をサポートする。
 - AutoBidを取り消しても、すでに到達・確定した入札額は巻き戻さない。
 - sellerの自己入札、終了後の入札、価格tick不一致、数量不正を拒否する。
 - server時刻を正とし、clientでは利用者local timeへ変換して表示する。
-- 最初の有効bid以後、価格・数量など結果に影響するAuction項目を変更できない。パッケージの構成・割合・入札額の刻み・表示名は競売作成時に固定する。
+- 最初の有効bid以後、価格・数量など結果に影響するAuction項目を変更できない。パッケージの構成・割合・入札額の刻み・表示名は競売作成時または開始前編集時に固定する。
 
 ### 5.2 入札時のPoints扱い
 
@@ -880,9 +875,9 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 
 - bid、作成したAuction、落札履歴とwatchlistを提供するが、通知は送らない。
 - 落札証明は公開read APIで永続的に検証できる。
-- 証明にはAuction ID、競売作成時のパッケージ情報、seller/buyer identity snapshot、winner、数量、clearing price、完了状態を含める。
+- 証明にはAuction ID、競売作成時のパッケージ情報、seller/buyer identity snapshot、winner、数量、落札価格、完了状態を含める。
 - sellerとbuyerは相互に1〜5の評価、comment、`completionProofUrl`を記録できる。
-- 外部EC claim token、匿名配送の詳細はv0.2の実装確定事項ではなく将来候補として保持する。
+- 匿名配送の詳細はv0.2の実装確定事項ではなく将来候補として保持する。
 
 ### 7.1 AuctionRoom Durable Object
 
@@ -938,7 +933,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
 - Workers Static Assetsはasset-first、`not_found_handling="none"`、`html_handling="auto-trailing-slash"`とする。`assets_navigation_has_no_effect` compatibility flagでasset missしたnavigationをWorkerへ到達させ、WorkerはGET/HEADのHTML navigationだけAsset Bindingのcanonical `/`からshellを取得して返す。存在しないAPI
 - browserから別subdomainのAPIを直接呼ばない。Marketsの同一origin BFFを通す。
 - server stateはTanStack Queryのmemory cacheを使う。IndexedDB永続cache、Service Worker cache、Next.js cacheを持ち込まない。
-- 静的assetはcontent hash付き長期cache、HTMLと認証済みAPIは適切な`no-store`または短い明示cacheとする。
+- 静的assetはcontent hash付き長期cache、HTMLは`no-store`または短い明示cache、認証済みAPIは`Cache-Control: private, no-store`とする。
 - バックエンドORMはDrizzleを使用する
 - WCAG 2.1 AA、keyboard操作、screen reader対応
 
@@ -984,7 +979,7 @@ MVPは、次の設計にします。表示するのは、発行直後の検証UR
       2.  Json形式で返す
           - Shields.io を使ってバッジを表示できるJSON
       3.  **GitHub 上での明示向け**の場合の補足
-          - GitHub Issueでの落札証明は、利用側サービスの検討事項とする。必要な識別情報、取得方法、公開条件を利用側の接続設計で定める。
+          - GitHub Issueでの落札証明は、Markets側の検討事項とする。必要な識別情報、取得方法、公開条件をMarketsの接続設計で定める。
           - 落札者であることを Issue 上で示す用に、**落札商材名**等に**リポジトリ名・Issue
             ID**の記載を求める使い方に対応しうる形にする
           - 例：APIの戻りをshields.io形式のバッジとしてIssueに貼り、出品者が応答のGitHubユーザー名とIssueコメント者を照合し、商材名・リポジトリ名・Issue IDから対象の落札証明を確認する。
@@ -1050,7 +1045,7 @@ MarketsはPoints利用者のAccess TokenとRefresh Tokenを、Markets専用D1の
 
 MarketsのブラウザにはMarkets Session Cookieだけを保存する。Points TokenはMarketsのCookie、ブラウザJavaScript、`localStorage`、session payload、Problem Details、ログ、監査へ出さない。Cookie、Authorization Code、OAuth Clientの秘密鍵もログへ出さない。
 
-MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで更新し、新しいAccess TokenとRefresh Tokenへ暗号化して置き換える。Refresh Token rotationは`pointsConnectionId`単位のD1 lease/CASでsingle-flightにし、同じRefresh Tokenを並列使用しない。lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshではwinnerの結果を読み直す。APIが`401`を返したときの明示refreshと同じAPI要求の再試行は、それぞれ1回だけとする。`Idempotency-Key`が必須の操作では同じキーを使い、read-only操作へキーを追加しない。`401`に対するrefreshと再試行に失敗したときは、再連携を要求する。`invalid_grant`の場合は連携を`REAUTH_REQUIRED`へ進め、無限に再試行しない。
+MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで更新し、新しいAccess TokenとRefresh Tokenへ暗号化して置き換える。Refresh Token rotationは`pointsConnectionId`単位のD1 lease/CASでsingle-flightにし、同じRefresh Tokenを並列使用しない。lease owner、lease expiry、account token versionを条件付きUPDATEし、同時refreshではwinnerの結果を読み直す。APIが`401`を返したときの明示refreshと同じAPI要求の再試行は、それぞれ1回だけとする。`Idempotency-Key`が必須の操作では同じキーを使い、read-only操作へキーを追加しない。`401`に対するrefreshと再試行の後に認可の確定失効（`invalid_grant`等）が判明したときだけ、連携を`REAUTH_REQUIRED`へ進めて再連携を要求する。無限に再試行しない。
 
 | 操作              | key            | limit   |
 | ----------------- | -------------- | ------- |
@@ -1069,7 +1064,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 | ------- | ---------------------------- | ----------------------------------------------------------------- | ------------------------------------- |
 | Markets | Auction transition delay     | `startsAt`／`endAt`から2分超、期待stateへ未遷移                   | 対応stateのCAS確定                    |
 | Markets | WebSocket lease／gap anomaly | expiryから2分超のlease、または5分窓のgap resync率5%超かつ20件以上 | stale lease 0、直近5分がthreshold未満 |
-| Markets | Workflow／outbox／saga stuck | 進捗なし5分超                                                     | terminal                              |
+| Markets | Workflow／outbox／saga stuck | 進捗なし5分超、または仕様のretry上限到達                          | terminal                              |
 | Markets | reconciliation mismatch      | plan、引き落とし受領証、proofが1件でも不一致                      | full reconciliation一致               |
 
 - 終了時点で利用者認可が有効な入札者だけを落札者にする。認可がない人は次の入札者にする。残高が足りない人は、その競売と利用者のブラックリストを1件記録してから、次の入札者にする。
@@ -1081,7 +1076,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 
 - 商材と競売条件は、一つの`auction`に置く。開始前の編集と取消は、Auction IDだけを使う。
 
-- 1つの競売は1つの`pointsServiceId`に固定し、落札者も評価軸も同じPointsのデータベースで精算する。
+- 1つの競売は1つの`providerId`に固定し、落札者も評価軸も同じPointsのデータベースで精算する。
 
 - 落札者のIDは、Cloudflare D1に保存する。
 
@@ -1099,7 +1094,7 @@ MarketsはAccess Tokenの期限が切れたとき、保存済みRefresh Tokenで
 
 - Marketsは選んだ連携を利用対象から外し、同じ組のTokenを削除した結果を`UNLINKED`として保存する。
 
-Marketsは配列の全IDが、今回送った落札候補であることを確認する。空、未知、request外のIDは手順の失敗とし、候補を除外しない。
+Marketsは`rejectedWinners`の全`index`が、今回送った`winners`の範囲内であることを確認する。空配列や範囲外の`index`は手順の失敗とし、候補を除外しない。
 
 ## 9. セキュリティ、品質、release gate
 
@@ -1142,9 +1137,10 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 - 仕様書はMarketsの責務だけを記載し、Pointsの内部仕様と、それだけを決めた設計決定を除く。Freeism Pointsの金額の小数部は4桁とする。
 - 即時購入の結果が不明な間は競売全体を待機し、元の終了時点と判明した残数量から再開する。
 
-- revision管理を廃止し、Auctionも`auctionRevision`を持たずに現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。
+- revision管理を廃止し、Auction（`auctionRevision`なし）とReviewは現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。
+- 落札価格は、ギリギリ落選者より先にその額へ到達した落札者は同じ額、後に到達した落札者は＋1単位とする。
 - Auctionは出品フォームとCSVで作成する。対面決済、QR決済、店舗履歴をMarketsに導入する。MarketsのIDは標準Nano IDとする。
-- 競売作成時にパッケージの構成・割合・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず同じ条件で開始・精算する。
+- 競売作成時と開始前編集時にパッケージの構成・割合・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず保存した条件で開始・精算する。
 - 評価軸の`minimumUnit`は作成後も変更でき、既存競売の計算には保存した作成時の単位を使う。
 - 金額は十進数文字列としてbignumber.jsで計算し、価格刻み・割合・最小単位・共通精度を作成時に保存する。Freeism Pointsとの連携では整数部は最大30桁、小数部は4桁とし、`amountUnit`は作成時にPointsから取得した値を保存する。PointsへはMarketsが計算した各軸の必要額を送る。
 - Marketsが評価軸別の引き落とし額を計算し、Pointsが認証・権限・評価軸の存在と現在状態・金額・残高を検証して確定する。
@@ -1195,11 +1191,9 @@ DEC-262により、出品は独立Listingの作成ではなく、商材情報を
 - `pointPackageId`または`evaluationCriterionId`（選択した対象のどちらか一方）
 - `quantity`
 - `startsAt`
-- `endsAt`
+- `endAt`
 - `buyNowPrice`: 任意
-- `extensionThresholdSeconds`: 任意
-- `extensionDurationSeconds`: 任意
-- `maxExtensions`: 任意
+- `extensionThresholdSeconds`／`extensionDurationSeconds`／`maxExtensions`: 任意。延長する場合は3列すべて必須
 - `clientRowId`: file内一意
 
 CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのcode point、UTF-8 byte、HTTPS正規化境界はMarketsドメイン3.3と同じshared validatorを使う。server validation後のpreviewには、Pointsから取得したpackage component vector、計算済みpackage tick、時刻、即決、延長ruleを表示する。1件でも不正なら全件を確定しない。
@@ -1222,7 +1216,7 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 - Auctionの商材情報、seller、package snapshot、提供先の表示名とorigin
 - server基準の状態と残り時間
 - 販売数量、provisional ranking/allocation
-- uniform priceの説明と現在の参考値
+- 落札価格の決まり方の説明と、自分の現在の参考値
 - 自分のmanual bid、希望quantity、AutoBid上限の本人専用表示
 - bid履歴。AutoBid上限は非表示
 - watchlist button
@@ -1245,9 +1239,10 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 
 `POST /api/auctions/{auctionId}/bids`
 
+`Idempotency-Key` headerを必須とし、その値を`commandId`として保存して`(auctionId, commandId)`で一意にする。
+
 ```json
 {
-	"commandId": "cmd_01...",
 	"expectedAuctionVersion": 42,
 	"quantity": 2,
 	"priceTickCount": "15",
@@ -1264,11 +1259,14 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 ```json
 {
 	"data": {
-		"commandId": "cmd_01...",
+		"commandId": "Uakgb_J5m9g-0JDMbcJqL",
 		"auctionVersion": 43,
 		"bidSeq": 108,
 		"acceptedPriceTickCount": "16",
 		"quantity": 2
+	},
+	"meta": {
+		"requestId": "req_V1StGXR8_Z5jdHi6B-myT"
 	}
 }
 ```
@@ -1305,12 +1303,12 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 > reviewの文字／URL境界はDEC-254で確定している。
 
 - 未ログインでも閲覧できる。
-- proof ID、Auction ID、保存した計算条件、seller/buyer snapshot、数量、uniform price、component vector、settledAt、statusを表示する。
+- proof ID、Auction ID、保存した計算条件、seller/buyer snapshot、数量、1個当たりの落札価格、component vector、settledAt、statusを表示する。
 - seller/buyerの外部アカウントは、[落札証明仕様](markets-domain.md#12-落札証明と相互評価)に従ってAccounts由来の情報を表示する。GitHub Issueでの利用はMarkets側の検討事項とし、必要な識別情報と取得方法をMarketsの接続設計で定める。
 - secret tokenをURLへ含めず、`Cache-Control`と検索index方針を公開proof仕様に合わせる。
 - seller/buyer本人だけに相互評価入力を表示する。
 - proof本体とreview APIを別々に取得する。review作成・更新後もproof本体のcontent hash、ETag、immutable cacheを変更しない。
-- current reviewは方向ごとに表示し、revision履歴はcursor paginationで別表示する。reviewの短期cacheを再検証してもproof本体を再生成しない。
+- reviewは方向ごとに表示する。reviewの短期cacheを再検証してもproof本体を再生成しない。
 
 ## 9. accessibilityと時刻
 
@@ -1332,7 +1330,7 @@ CSVはUTF-8、最大5MiB、1,000非空行。title／description／外部URLのco
 - AutoBid上限のAPI/HTML/WebSocket/log漏えい防止
 - public proofと本人だけの相互評価
 - review comment 0／2,000／2,001 code pointと8,000 byte、emoji／結合文字、completionProofUrl空／HTTPS／2,048 byte／userinfo／fragmentのAPI／UI境界
-- proof hash／immutable cacheがreview revision追加後も不変で、current review／revision履歴だけが更新される
+- proof hash／immutable cacheがreview更新後も不変で、reviewだけが更新される
 - 選んだ組の解除、更新中Tokenの保存防止、他の連携維持、同じ名義の再認可と別名義追加、結果不明精算の同一要求による確認
 
 # v0.2 認証・外部ID・サービス間認可仕様
@@ -1420,7 +1418,7 @@ PKCE S256、state、nonce、一回限りのcode、登録済みredirect URI、iss
 
 Marketsの管理者は提供先のPointsでクライアントを登録し、Points側の`oauthClientAdmin`または`appAdmin`が管理する。アプリ名、1件以上のredirect URI、公開JWKSを登録し、任意のHTTPS紹介URL・説明文と、Pointsの登録・管理権限と登録上限を守る。更新時は新旧`kid`を併存させ、Marketsの秘密鍵切替後に旧公開鍵を削除する。登録済みredirect URIとは完全一致させ、許可されたローカルHTTPのloopback URLではポートだけを比較から除く。
 
-Settlement手動再試行ではMarketsのBetter Auth sessionに`admin` roleを含むことを確認する。Marketsはseller、対象Settlementの状態、理由、1時間5回の上限と冪等性を確認する。同じMarkets SessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`がoutboxを確定し、commit後にdispatcherがWorkflowを起動する。
+Settlement手動再試行ではMarketsのBetter Auth sessionに`admin` roleを含むことを確認する。Marketsは対象Settlementの状態、理由、1時間5回の上限と冪等性を確認する。同じMarkets SessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`がoutboxを確定し、commit後にdispatcherがWorkflowを起動する。
 
 ### 4.4 Token保存とRefresh
 
@@ -1592,7 +1590,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-090 | 採用 | 利用者TokenはAuthorization Code＋PKCE／Refresh Tokenで取得し、標準scopeとpoints権限で残高確認・精算を行う。 | 各要求で現在の本人・対象の権限を確認する。 | AUTH      |
 | DEC-093 | 一部上書き済み | Access／Refresh TokenはMarkets D1へ暗号化保存し、OAuth Client秘密JWKはMarkets Worker Secretへ保存する。                                                                             | DEC-271で秘密JWKの保存先を提供先別のMarkets D1暗号化列に変更する。Tokenの暗号化保存とbrowserへの秘匿は維持する。                               | AUTH      |
 | DEC-094 | 採用 | Refresh Token Rotationを連携（`pointsConnectionId`）単位のD1 lease／CASでsingle-flight化する。 | process内だけの重複抑止を強化。 | AUTH |
-| DEC-095 | 採用           | 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。                                                                                                                 | 無限再試行を禁止。                                                                                                                             | AUTH      |
+| DEC-095 | 採用 | 401後の明示Refreshと再試行は1回だけとし、確定失効のときだけ再連携を要求する。 | 無限再試行を禁止。 | AUTH |
 | DEC-097 | 採用 | Marketsの解除は選んだ名義と提供先の組を利用対象から外し、その組のTokenを削除する。 | 他の連携・確定済み取引を保持し、送信済み結果不明の精算は保証期間内に同じ要求で確認する。 | AUTH      |
 
 ## 9. 金額・CSV
@@ -1617,21 +1615,19 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-130 | 採用           | AuctionRoomは初回閲覧・接続・入札時にlazy初期化し、未利用Auctionを大量作成しない。                                   | 全件事前DO生成を不採用。                                                                                 | AUCTION   |
 | DEC-132 | 採用           | 1ユーザー1Auctionにつき有効bid position 1件とし、再入札はposition更新＋不変bid event追加とする。                     | 可変履歴のみの方式を不採用。                                                                             | AUCTION   |
 | DEC-133 | 採用           | 順位は価格降順、同額はその価格へ到達したsequence昇順、最後のwinnerだけ残数による部分落札を許可する。                 | client timestamp順を禁止。                                                                               | AUCTION   |
-| DEC-134 | 採用           | v0.2はMulti-unit uniform-priceのみとし、全winnerが同じ1個当たりclearing priceを支払う。                              | Pay-as-bid、VCGを対象外。                                                                                | AUCTION   |
-| DEC-135 | 採用           | 枠外最高単位がなければ0 tick、同額なら同額、異なるなら枠外最高額＋1 tickをclearing priceとする。                     | 旧曖昧なギリギリ落選者式を確定。                                                                         | AUCTION   |
 | DEC-136 | 採用           | 全需要が販売数量以内なら正の入札があっても0 tickで落札する。                                                         | 常に最低1 tick案を不採用。                                                                               | AUCTION   |
 | DEC-137 | 採用           | AutoBidは非公開上限、必要最小tickへ直接進め、上限引上げとrule取消を許可する。取消前に到達した有効入札は残す。        | 1 tickごとの大量eventを不採用。                                                                          | AUCTION   |
 | DEC-138 | 採用           | Buy nowは全構成軸が許可する場合だけ設定し、指定数量の全量成功または失敗とする。                                      | NG軸だけ除外して比率を壊す案を不採用。                                                                   | AUCTION   |
 | DEC-139 | 採用           | 受理済みbid／AutoBid／buy-now holdが一度でもあればseller取消を禁止する。                                             | 入札後任意取消を不採用。                                                                                 | AUCTION   |
-| DEC-140 | 採用           | 終了間際延長は任意設定、受理された価格更新だけをtriggerとし、回数上限を持つ。                                        | 閲覧・拒否bidによる延長を禁止。                                                                          | AUCTION   |
+| DEC-140 | 採用 | 終了間際延長は任意設定、受理され公開価格を更新したbidだけをtriggerとし、回数上限を持つ。 | 閲覧・拒否bidによる延長を禁止。 | AUCTION |
 | DEC-141 | 採用           | 入札、AutoBid設定時に残高参照・予約・減算を行わない。ただし有効なPoints連携は要求する。                              | 入札時reservationを不採用。                                                                              | AUCTION   |
 | DEC-142 | 採用           | seller本人のbid、終了後bid、価格引下げ、bid撤回を拒否する。                                                          | 旧自由変更案を不採用。                                                                                   | AUCTION   |
-| DEC-143 | 採用           | 入札後にseller、数量、評価軸、比率、minimum unit、価格式、Points serviceを変更できない。                             | live Auctionの条件変更を禁止。                                                                           | AUCTION   |
+| DEC-143 | 採用 | 入札後にseller、数量、評価軸、比率、各軸の最小単位、入札額の刻み、価格式、Points serviceを変更できない。 | live Auctionの条件変更を禁止。 | AUCTION |
 | DEC-144 | 採用           | 残高不足・負残高で落札候補から除外された場合だけ、`auctionId + userId`につきblacklist行為を最大1回記録する。         | Token失効、429、5xx等のpenaltyを禁止。                                                                   | AUCTION   |
 | DEC-145 | 一部上書き済み | Auction history、winning history、listing history、watchlistをMarketsへ残すが通知は作らない。                        | Auction作成・入札・落札履歴、watchlist、通知なしは維持し、独立listing historyだけをDEC-262で上書き。     | MARKETS   |
-| DEC-146 | 採用           | Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの落札時snapshotを表示する。 | 現在の可変profileだけを表示する案を不採用。                                                              | MARKETS   |
-| DEC-147 | 採用           | Reviewはseller→buyer、buyer→seller、1〜5、comment、任意URL、方向ごと1件とし、編集は不変Revisionを残す。              | 上書きだけのReviewを不採用。                                                                             | MARKETS   |
-| DEC-148 | 一部上書き済み | v0.2の1 Auctionは1つの`pointsServiceId`に固定し、全winner・全axisを同じPoints D1で決済する。                         | DEC-271で選択値を`providerId`とする。1 Auction内の全winner・全axisが同じ提供先で決済する制約は維持する。 | AUCTION   |
+| DEC-146 | 採用           | Allocationごとに公開・永続proofを作り、商材、数量、価格vector、buyer／seller公開identityの精算確定時snapshotを表示する。 | 現在の可変profileだけを表示する案を不採用。                                                              | MARKETS   |
+| DEC-147 | 採用 | Reviewはseller→buyer、buyer→seller、1〜5、comment、任意URL、方向ごと1件とする。 | 編集方式はDEC-279に従う。 | MARKETS |
+| DEC-148 | 採用 | v0.2の1 Auctionは1つの`providerId`に固定し、全winner・全axisを同じ提供先で決済する。 | 選択値はDEC-271の提供先とする。 | AUCTION |
 
 ## 11. WebSocket・Frontend・API
 
@@ -1641,12 +1637,12 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-150 | 採用           | WebSocketはMarkets SessionとOriginをhandshakeで検証し、URL queryへTokenを入れない。                                                            | query Token認証を禁止。                                                                         | AUTH, AUCTION   |
 | DEC-151 | 採用           | WebSocket message上限は4 KiB、user×Auction 3接続、user全体20接続、heartbeatなしとする。                                                        | Section 5の16 KiB案をSection 9で上書き。                                                        | AUCTION         |
 | DEC-152 | 採用           | Eventに`auctionVersion`と`bidSeq`を持たせ、gap時はsnapshot再取得、重複seqは無視する。                                                          | event全再送・client time順を不採用。                                                            | AUCTION         |
-| DEC-153 | 採用           | Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。                                                                 | 全request Worker-firstを不採用。                                                                | ARCH            |
+| DEC-153 | 採用 | Static Assetsはasset-first、`/api/*`と`/.well-known/*`だけWorker-firstとする。stagingだけはBasic認証のため`run_worker_first=true`とする。 | 全request Worker-firstを不採用。 | ARCH |
 | DEC-154 | 採用           | SPA shellは`/index.html`へ出力し、asset miss後のfallbackはGET／HEADのHTML navigationだけに返す。存在しないAPI・JS・CSS・画像へHTMLを返さない。 | TanStack Startの現行shell出力と安全な明示fallbackを両立し、Cloudflare汎用SPA fallbackを不採用。 | ARCH            |
 | DEC-155 | 一部上書き済み | SSGは固定top／規約／privacy／help、公開動的profile・Auction・proofと認証後画面はSPAとする。                                                    | top SSGだけDEC-235で上書き。動的routeをSPAとする判断は維持する。                                | ARCH            |
 | DEC-156 | 採用           | 動的公開ページのv0.2 OGPは汎用とし、個別SEOが必要な将来に限定SSRを再設計する。                                                                 | 今回のSSR追加を対象外。                                                                         | ARCH            |
 | DEC-157 | 採用           | API namespaceをauth、app、public、resource、internal、oauth、well-knownへ分離する。                                                            | Server Action／Route Handler混在を廃止。                                                        | API             |
-| DEC-158 | 採用           | 通常成功は`{data}`、一覧は`{data, meta}`、失敗はRFC 9457 `application/problem+json`とする。                                                    | `PromiseResult`等の後方互換を廃止。                                                             | API             |
+| DEC-158 | 採用 | 成功は`{data, meta}`（`meta.requestId`必須、一覧は`meta.cursor`・`meta.hasMore`を追加）、失敗はRFC 9457 `application/problem+json`とする。 | `PromiseResult`等の後方互換を廃止。 | API |
 | DEC-159 | 採用           | Server stateはTanStack Query memory cache、URL stateはtyped search params、一時UIはReact stateとする。                                         | IndexedDBへの全Query永続化を廃止。                                                              | ARCH            |
 | DEC-160 | 採用           | TanStack DB、OPFS、Service Workerをv0.2で使用しない。                                                                                          | `other.md`の候補を確定仕様にしない。                                                            | ARCH            |
 | DEC-161 | 採用           | 旧`/dashboard` prefixとredirectを廃止し、各subdomain直下に不変ID URLを置く。                                                                   | 旧「dashboardを残す」仕様を上書き。                                                             | ARCH            |
@@ -1663,7 +1659,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-167 | 採用 | Marketsは作成時snapshotの価格刻み・数量・割合から必要額を計算し、Pointsへ軸IDと必要額を送る。 | Pointsは認可・軸の存在と現在状態・金額・実残高を検証する。 | CONTRACT |
 | DEC-168 | 採用 | Pointsの冪等結果は1日保持し、結果不明はその期間内に同じ要求・キーで確認する。 | 保証期間後に結果不明の引き落としを新規実行しない。 | AUCTION, CONTRACT |
 | DEC-169 | 採用 | 確定的に拒否された入札者だけを除外し、同じclose cutoffからwinner・数量・価格を再計算する。 | 変更内容には新しい要求・キーを使い、一時障害で候補を変えない。 | AUCTION         |
-| DEC-170 | 採用   | 一時障害では候補を除外せず同じround／keyでretryし、残高不足者だけを除外する。                                               | network障害を落選扱いしない。                          | AUCTION         |
+| DEC-170 | 採用 | 一時障害では候補を除外せず同じround／keyでretryし、認可無効・残高不足の確定的拒否を受けた人だけを除外する。 | network障害を落選扱いしない。 | AUCTION |
 | DEC-172 | 採用   | Workflow stateは正本にせず、deterministic Workflow IDとMarkets D1 outbox／reconcilerで重複起動・retention切れから回復する。 | Workflowだけを正本にしない。                           | AUCTION         |
 | DEC-173 | 採用 | Points成功後にMarkets確定が失敗しても返金せず、保存したdebit receiptからMarkets確定を再開する。 | 同じ成功結果へforwardで収束させる。 | AUCTION         |
 | DEC-174 | 採用 | 成功した引き落としに対する自動refundを行わない。 | Marketsの確定・証明作成を同じreceiptから再試行する。 | AUCTION |
@@ -1674,7 +1670,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | ------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------- |
 | DEC-175 | 採用           | 各appの`wrangler.jsonc` named environmentでlocal、staging、productionを分離する。                                                                   | 環境別設定fileとCloudflare account分離を不採用。        | ARCH       |
 | DEC-176 | 採用           | staging／productionでWorker、D1、DO、Workflow、OAuth App／Client、Secret、Cookieを共有しない。                                                      | 共通credentialを禁止。                                  | ARCH, AUTH |
-| DEC-177 | 採用 | stagingは`staging.markets.freeism.app`をAccess保護し、productionは`markets.freeism.app`とする。 | `workers.dev`公開を不採用。 | ARCH |
+| DEC-177 | 採用 | stagingは`staging.markets.freeism.app`をWorker内のBasic認証で保護し、productionは`markets.freeism.app`とする。 | `workers.dev`公開を不採用。 | ARCH |
 | DEC-178 | 採用           | TerraformはWorker到達前のDNS、redirect、Access、WAF、Rate Limitを管理し、WranglerはWorker／binding／domain／DO／Workflowを管理する。                | 「Terraformを使わない」旧index記述を上書き。            | ARCH       |
 | DEC-179 | 採用           | PRごとの公開Full-stack previewを作らず、local Workers runtimeでD1／DO／Workflow／OAuth mockを検証する。                                             | 公開Preview URL案を不採用。                             | ARCH       |
 | DEC-182 | 一部上書き済み | productionに`workflow_dispatch`と手動approvalを置かず、失敗時はproduction昇格を停止する。                                                           | 手動gateなしは維持し、昇格方式だけDEC-268が上書き。     | ARCH       |
@@ -1737,7 +1733,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-252 | 採用 | 一括debitは10秒×5attempt・最大2分、Markets finalizeは10秒×3attempt・最大1分、round全体最大5分とする。 | exponential backoffと明示deadlineを使い、確定的errorを同じ要求でretryしない。 | MARKETS                          |
 | DEC-253 | 採用 | Pointsの認可無効・残高不足は、winnersの0始まりの配列位置indexとreasonを持つrejectedWinnersで受け取る。Marketsはindexを送信した落札者へ対応付け、同cutoff再計算へ使う。 | 0額の軸も現在状態を検証し、失敗時は全件未反映とする。 | API, CONTRACT, MARKETS |
 | DEC-254 | 採用           | Auctionの商材fieldはtitle 1〜120 code point／480 bytes、description 1〜4,000／16,000 bytes、canonical HTTPS外部URLちょうど1件／2,048 bytesとする。reviewはcomment 0〜2,000／8,000 bytes、completion URL 0〜1件／2,048 bytesとする。                                                                                                                                                                                                                                                                                                                                                                                         | CSV／API／UIのUnicode・D1境界を一致させる補完値。                                                                                                                                                                                                                                                                                                                                                                                                                                                   | MARKETS                          |
-| DEC-255 | 採用           | immutable proofからreviewを分離し、current reviewとappend-only revision履歴を別resourceにする。proofは1年immutable、review collectionは60秒＋`stale-while-revalidate=300`とする。                                                                                                                                                                                                                                                                                                                                                                                                                                           | review更新でproof body／hash／ETagを変えず、履歴とcurrent表示を両立する。                                                                                                                                                                                                                                                                                                                                                                                                                           | MARKETS                          |
+| DEC-255 | 採用           | immutable proofからreviewを分離し、reviewを別resourceにする。proofは1年immutable、review collectionは60秒＋`stale-while-revalidate=300`とする。                                                                                                                                                                                                                                                                                                                                                                                                                                           | review更新でproof body／hash／ETagを変えず、履歴とcurrent表示を両立する。                                                                                                                                                                                                                                                                                                                                                                                                                           | MARKETS                          |
 | DEC-256 | 採用 | 新規競売と開始前編集ではPointsの現在の詳細と計算情報を再取得し、確認済み対象・条件・金額との差を検査する。 | 確定後はsnapshotを保持し、Points障害時に古い任意構成へfallbackしない。 | API, CONTRACT, MARKETS |
 | DEC-257 | 採用 | Pointsの詳細取得応答から表示用区画と全展開軸の計算情報を区別して取得する。 | 閲覧可能な表示情報と計算に必要な全軸を混同しない。 | CONTRACT, API |
 | DEC-258 | 採用 | CSV exportは物理化snapshotを最大50,000行／50MiB、1行8KiB、1page最大1,000行／8MiBとし、作成者とexport IDをD1で照合する。cursorは数値ordinalとし、snapshotの30分期限をD1で検査する。 | source更新のpage混在、期限超過、Workers memory過大使用を防ぐ。 | MARKETS |
@@ -1755,6 +1751,11 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-275 | 採用 | 対面決済、QR決済、店舗履歴をMarketsに導入する。 | 詳細仕様は別途決める。 | MARKETS |
 | DEC-276 | 採用 | MarketsのIDは標準Nano IDとし、domain prefixを付けない。 | 命名規則の接頭辞付きIDを上書きする。 | MARKETS |
 | DEC-277 | 採用 | 一括精算の要求本文は各落札者の利用者Token・DPoP proof・componentsだけとし、再送でもTokenとproofを送る。Pointsは全Tokenの`client_id`から呼出元を決める。 | private_key_jwtはToken取得・introspection・revokeだけで使う。 | AUTH, CONTRACT |
+| DEC-278 | 採用 | 外部EC用random claim Tokenを実装し、発行直後だけ表示する検証URL、再発行、seller検証、受け渡し完了POSTを提供する。 | 匿名配送は将来候補のままとする。 | MARKETS |
+| DEC-279 | 採用 | Reviewは方向ごと1件の現在のレコードを条件付きUPDATEで更新し、変更内容を監査記録に残す。revision履歴を公開しない。 | DEC-147とDEC-255の不変revisionに関する部分を上書きする。 | MARKETS |
+| DEC-280 | 採用 | Auctionの状態は`DRAFT`、`SCHEDULED`、`OPEN`、`CLOSING`、`CANCELLED`とし、精算の進行と失敗はSettlementの状態で表す。 | `SETTLING`・`SETTLED`をAuctionの状態に持たない。 | MARKETS, AUCTION |
+| DEC-281 | 採用 | 対面での受け渡しは、落札者が公開proofを提示し、出品者がseller/buyer snapshotと照合して行う。 | 当事者限定のproof・非公開設定は作らない。 | MARKETS |
+| DEC-282 | 採用 | Multi-unit auctionの落札価格はwinnerごとに決める。ギリギリ落選者（部分割当の残り数量を含むlosing demandの先頭）がなければ0 tick、あればその価格へ先に到達したwinnerは同額、後に到達したwinnerは＋1 package tickを1個当たり支払う。 | 全winner同額のuniform priceを採用しない。Pay-as-bid、VCGを対象外とする。 | AUCTION |
 
 ## 17. 文書適用規則
 
@@ -1902,7 +1903,6 @@ DEC-262により独立Listingを廃止し、以下の商材fieldとAuction条件
 - 作成時の全展開軸ID・割合・各軸の最小単位・`amountUnit`・`packageTick`・取得時刻のsnapshot
 - 販売数量: 1〜1,000の安全整数
 - Auction開始・終了時刻
-- 最小package price tick
 - 即決価格: 任意。ただし作成時に取得した全構成軸が即決を許可する場合だけ設定できる
 - 終了延長rule: 任意。threshold、extension duration、最大延長回数を開始前に固定する
 
@@ -1951,7 +1951,7 @@ v0.2は画像を保存・表示しない。Auctionの商材詳細はtextと安�
   - 本人が管理する非公開軸の名前は本人の選択画面だけに表示し、競売の公開表示へ実名を保存せず評価軸IDを表示する。
   - 出品ごとの追加同意は設けず、本人認可による取得条件と情報利用条件を守る。
 
-- bid・AutoBid上限・即決・clearing priceは、保存した`packageTick`の整数個分とする。
+- bid・AutoBid上限・即決・落札価格は、保存した`packageTick`の整数個分とする。
   - 個数`priceTickCount`もbignumber.jsの整数値で扱い、金額・途中値・金額刻みを`Number`へ変換しない。D1とAPIでは十進数文字列として保持する。
   - 販売数量は1〜1,000の安全整数とする。金額の範囲は接続先の精度・桁数上限を検証し、固定のscale10000やJavaScript安全整数へ制限しない。
 
@@ -2003,12 +2003,12 @@ flowchart TD
 ### 状態
 
 ```text
-DRAFT -> SCHEDULED -> OPEN -> CLOSING -> SETTLING -> SETTLED
+DRAFT -> SCHEDULED -> OPEN -> CLOSING
 DRAFT -> CANCELLED
 SCHEDULED -> CANCELLED
 ```
 
-`CANCELLED`は精算を開始しない終端状態である。失敗は`SETTLEMENT_RETRYABLE`または`SETTLEMENT_MANUAL_ACTION_REQUIRED`へ単調遷移し、過去状態へ戻さない。取消は上記3.2のguardを満たす`DRAFT/SCHEDULED`だけで許可する。
+`CANCELLED`は精算を開始しない終端状態である。`CLOSING`後の精算の進行と失敗はSettlementの状態で表し、Auctionの状態を過去へ戻さない。取消は上記3.2のguardを満たす`DRAFT/SCHEDULED`だけで許可する。
 
 ### 時刻
 
@@ -2057,7 +2057,7 @@ SCHEDULED -> CANCELLED
 - AutoBid取消後は将来の自動増額だけを停止し、すでに到達した有効bidを巻き戻さない。
 - 同時AutoBidはAuctionRoomで決定論的に処理し、同じcommand集合から同じevent列を生成する。
 
-## 8. winnerとuniform clearing price
+## 8. winnerと落札価格
 
 ### allocation
 
@@ -2066,12 +2066,13 @@ SCHEDULED -> CANCELLED
 3. 残数量より希望quantityが多い最後のwinnerだけ部分割当する。
 4. 残量が0になった後のunit demandをlosing demandとする。
 
-### clearing price
+### 落札価格
 
-- losing demandがない場合、uniform clearing priceは0 tickとする。
-- highest losing unit priceとlowest winning unit priceが同じ場合、tieは先着順で解決済みなので、その同じpriceをclearing priceとする。
-- lowest winning unit priceがhighest losing unit priceより高い場合、clearing priceは`highest losing unit price + 1 package tick`とする。ただしlowest winning priceを超えないことを検証する。
-- すべてのwinnerが同じclearing priceを支払う。pay-as-bid、VCG、multi-priceは使わない。
+- losing demandがない場合、全winnerの落札価格は0 tickとする。
+- losing demandの先頭unit（最高単価で、同単価なら`reachedSequence`が最小）を「ギリギリ落選者」とし、その単価を基準価格、`reachedSequence`を基準順とする。部分割当winnerの残り数量もlosing demandに含める。
+- `reachedSequence`が基準順以下のwinnerは基準価格を、基準順より大きいwinnerは`基準価格 + 1 package tick`を1個当たり支払う。
+- 基準順より後に到達したwinnerの単価は基準価格より高いため、落札価格はwinner自身の単価を超えない。Workerはこの条件を検証する。
+- 部分割当のwinnerも同じ規則で1個当たりの落札価格を決める。pay-as-bid、VCGは使わない。
 
 このruleにより、需要が供給以下で0入札だけの場合は0のまま成立し、機械的に1 tickを課さない。
 
@@ -2100,7 +2101,7 @@ flowchart TD
 - 全落札候補の必要額を一つのPoints要求で送り、全件未反映の確定的拒否を受けた場合だけ候補を変更する。
 - `rejectedWinners`の`index`を、送信した`winners`の同じ位置の候補へ対応付け、認可無効・残高不足の人だけを除く。残高不足・負残高の人には`auctionId + marketsUserId`ごとにblacklist eventを一回だけ記録する。
 - network error、Points 5xx、timeout、OAuth一時障害では候補を除外せず、同じ要求・キーで結果を確認する。
-- 拒否された人を除いた同じcutoff集合から、次点の繰上げ・winner・allocation・clearing priceを再計算する。内容が変わった新roundは新しい要求・キーとする。
+- 拒否された人を除いた同じcutoff集合から、次点の繰上げ・winner・allocation・落札価格を再計算する。内容が変わった新roundは新しい要求・キーとする。
 - 必要数量を勝手に減らして一部成功とせず、全winner・全評価軸を一回で精算する。
 
 ## 11. 履歴とwatchlist
@@ -2118,20 +2119,20 @@ flowchart TD
   - AccountsからPointsへの情報提供同意は、貢献者の照合、Pointsの公開プロフィール・公開API、Marketsが提供する落札証明への表示を含む。Marketsはこの許可範囲で提供された情報を表示する。
   - Accounts自身の一般公開設定とは別の許可として扱い、新しい同意画面や追加の許可は設けない。
 
-- proofはAuction ID・保存した計算条件、精算確定時のAuctionから固定した商材snapshot、seller/buyer identity snapshot、allocation quantity、uniform price、component vector、`SETTLED` completion status、settlement timestamp、plan hashを持つ。
+- proofはAuction ID・保存した計算条件、精算確定時のAuctionから固定した商材snapshot、seller/buyer identity snapshot、allocation quantity、1個当たりの落札価格、component vector、`SETTLED` completion status、settlement timestamp、plan hashを持つ。
 - seller/buyerの外部identityはsettle時snapshotを表示し、後の名前変更で証明内容を改変しない。
 - seller/buyerの外部アカウント情報は、Accountsが証明・管理し、Pointsへの情報提供を許可された範囲から表示する。表示項目は、許可されたサービス名、ユーザー名・表示名、固有ID・プロフィールURLのうち、[Accountsの提供項目](../../../../../accounts-web-app/docs/specification/v0.1/main.md#管理画面と監査)に限る。具体的な取得経路と許可取消後の公開条件は、この同意範囲を維持してMarketsの接続設計で確定する。
 - 通常proofは全員が閲覧できる。seller/buyer限定proofはv0.2で実装しない。
 - immutable proof本体とmutable reviewを別resourceにする。`GET /api/v1/proofs/{proofId}`のcontent hash、ETag、`Cache-Control: public, max-age=31536000, immutable`はreviewを含めず、review作成・更新で変化させない。
-- sellerとbuyerは相互に1〜5、任意comment、任意`completionProofUrl`を記録できる。commentはNFC／LF正規化後0〜2,000 Unicode code pointかつUTF-8最大8,000 bytes、LFとtab以外のcontrol文字を拒否する。`completionProofUrl`は0件または1件、最大2,048 UTF-8 bytesのcanonical HTTPS URLとし、userinfo／fragment／control文字を拒否する。空文字は`null`へ正規化する。本人の取引だけに方向ごと1件のcurrent reviewを持ち、更新はappend-only revisionを追加してcurrent pointerを進める。proof rowを更新しない。
-- `GET /api/v1/proofs/{proofId}/reviews`は方向ごとのcurrent review、current revision ID、updatedAtを返し、review内容から生成したETagと`Cache-Control: public, max-age=60, stale-while-revalidate=300`を使う。`GET /api/v1/proofs/{proofId}/review-revisions?cursor=...`はrevision ID、方向、rating、comment、`completionProofUrl`、createdAtをcursor順で返し、collectionは同じ短期cacheとする。revision ID単体の不変responseを提供する場合だけ1年immutable cacheを使用する。
+- sellerとbuyerは相互に1〜5、任意comment、任意`completionProofUrl`を記録できる。commentはNFC／LF正規化後0〜2,000 Unicode code pointかつUTF-8最大8,000 bytes、LFとtab以外のcontrol文字を拒否する。`completionProofUrl`は0件または1件、最大2,048 UTF-8 bytesのcanonical HTTPS URLとし、userinfo／fragment／control文字を拒否する。空文字は`null`へ正規化する。本人の取引だけに方向ごと1件のreviewを持ち、更新は同じレコードを条件付きUPDATEし、変更内容を監査記録に残す。proof rowを更新しない。
+- `GET /api/v1/proofs/{proofId}/reviews`は方向ごとのreviewとupdatedAtを返し、review内容から生成したETagと`Cache-Control: public, max-age=60, stale-while-revalidate=300`を使う。
 - review responseへMarkets内部user ID、email、Points情報、token、非公開failure detailを含めない。
 
 ## 13. Public read API
 
 - Auction一覧と詳細
-- 公開event・allocation・settlement状態
-- immutable公開落札証明`GET /api/v1/proofs/{proofId}`、mutable current review`GET /api/v1/proofs/{proofId}/reviews`、append-only review履歴`GET /api/v1/proofs/{proofId}/review-revisions`
+- 公開event・allocation
+- immutable公開落札証明`GET /api/v1/proofs/{proofId}`、mutable review`GET /api/v1/proofs/{proofId}/reviews`
 - Marketsユーザーの公開出品・落札履歴
 
 外部からAuction作成、bid、購入、通知を行うpublic write APIはv0.2で提供しない。
@@ -2144,7 +2145,7 @@ flowchart TD
 - 一定期間預ける、消費なし、sellerへのポイント譲渡
 - reverse auction、Pay-as-bid、VCG、COST、借入・返済
 - 複数Points serviceを同じAuctionで選択・混在する機能
-- 外部EC claim token、匿名配送の確定実装
+- 匿名配送の確定実装
 
 # Webアプリ v0.2 命名規則
 
@@ -2188,10 +2189,9 @@ flowchart TD
 - timestamp property: `createdAt`、`effectiveAt`、`expiresAt`。UTC RFC 3339。
 - duration: unitをsuffixに含める。例: `leaseSeconds`、`freshAgeSeconds`。
 
-## 5. revisionとstate
+## 5. versionとstate
 
-- 不変entityの版: `revision`、IDは`{domain}RevisionId`。
-- concurrency check: `expectedRevision`または`expectedAuctionVersion`。
+- concurrency check: `expectedAuctionVersion`。
 - Auction event sequence: `bidSeq`、同額到達順は`reachedSequence`。
 - state/status enumはdomainごとに1語へ統一し、booleanの組合せで状態機械を表さない。
 - terminal stateから戻す`reset*`/`undo*`を経済domainへ作らない。
@@ -2422,7 +2422,7 @@ Browser
 ```
 
 - eventは公開可能な差分だけを持つ。
-- clientは`auctionVersion`または`bidSeq`のgap、逆行、未知eventを検出したら接続を信用せず、HTTP snapshotを再取得する。
+- clientは`auctionVersion`または`bidSeq`のgap、受信済みを除く逆行、未知eventを検出したら接続を信用せず、HTTP snapshotを再取得する。受信済みの`bidSeq`は無視する。
 - reconnect時はlast versionを送れるが、DOが完全replayを保証しない場合はsnapshotへfallbackする。
 
 ## 4. start／close coordination
@@ -2444,12 +2444,12 @@ Browser
 
 `PLANNED -> DEBITING -> DEBITED -> FINALIZING -> SETTLED`
 
-失敗はretryable、`SETTLEMENT_MANUAL_ACTION_REQUIRED`、BUY_NOW専用`FAILED_RESTORED`として保持する。Pointsの引き落とし成功後は同じreceiptからforwardに進める。
+失敗は`SETTLEMENT_RETRYABLE`、`SETTLEMENT_MANUAL_ACTION_REQUIRED`、BUY_NOW専用`FAILED_RESTORED`として保持する。Pointsの引き落とし成功後は同じreceiptからforwardに進める。
 
 ### step
 
 1. `END_OF_AUCTION | BUY_NOW`、Auction version、cutoff、保存した計算条件、plan hashを検証する。BUY_NOWは要求全数量と固定即決価格・hold IDも照合する。
-2. 元のcutoff集合から落札者・数量・clearing priceを決め、Markets Workerが軸別の必要額を計算する。
+2. 元のcutoff集合から落札者・数量・落札価格を決め、Markets Workerが軸別の必要額を計算する。
 3. 各人の固定した支払名義と有効な利用者Tokenを確認し、全落札者の一括debitを一つの要求でPointsへ送る。
 4. END_OF_AUCTIONで認可無効・残高不足の確定的拒否を受けたら、要求内の拒否された人だけを除外し、同じcutoffから数量・価格を再計算する。変更後の内容には新しい要求・キーを使う。BUY_NOWは別の購入者へ振り替えず全数量を失敗とする。
 5. 一括debit成功のreceiptをMarkets D1へ保存し、allocation・商材snapshot・落札証明・精算結果を確定する。BUY_NOWではproof確定後に内部CASでholdを`SETTLED`へ進める。
@@ -2471,7 +2471,7 @@ flowchart TD
 
 ### Paid plan上限と1,000 winner処理
 
-- Settlement Workflowのproduction運用はWorkers Paidを前提とし、Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。Free planのlocal／stagingは非対応のWorker-level CPU／subrequest limitを設定せず、`limits.steps=25000`とアプリ内上限を維持する。
+- Settlement Workflowのproduction運用はWorkers Paidを前提とし、Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。stagingもWorkers Paid上でproductionと同じ`limits`を明示する。localは非対応のWorker-level CPU／subrequest limitを設定せず、`limits.steps=25000`とアプリ内上限を維持する。
 - 一つの計算roundは最大1,000 winnerとし、全員分を一つのPoints要求にまとめる。補助的な外向き接続は最大6件のpoolとし、response bodyを読取またはcancelする。
 - Workflow resultへToken・proof・全応答を保存せず、Markets D1のreceipt ID・status・request ID・hashだけを返して1MiB上限内とする。
 - 開始前にcandidate数・round数・retry総attemptからstep／subrequest上限とdeadlineを検証する。上限内で完了できない入力は副作用を始めず、終了時精算はmanual action、BUY_NOWは外部作用0を確認して全数量を復元する。
@@ -2490,7 +2490,7 @@ flowchart TD
 | Markets D1 forward finalize | 10秒 | 3 | 1秒／exponential | 1分 | `MARKETS_FINALIZE_RETRY_EXHAUSTED` |
 
 - `step.do`とHTTP callのtimeout・attempt・deadlineを明示し、D1の開始時刻とdeadlineをretryでresetしない。round全体の最大経過は5分とする。
-- timeout・network error・429・502／503／504だけを再試行し、`Retry-After`がdeadlineを超える場合は再実行しない。validation・権限・要求hash不一致・冪等conflict・確定的な不足は同じ要求でretryしない。
+- timeout・network error・429・5xxだけを再試行し、`Retry-After`がdeadlineを超える場合は再実行しない。validation・権限・要求hash不一致・冪等conflict・確定的な不足は同じ要求でretryしない。
 - 結果不明は保証期間内に同じ要求・キーで確認する。最大attemptまたはdeadline到達時は確認待ちと運用alertを保持し、自動retry loopを止める。BUY_NOWは結果不明の数量を復元しない。
 - Points成功が確認できればforward finalizeへ進む。未送信または全件未反映の確定的拒否が確認できたBUY_NOWだけ、全数量を一度だけ`FAILED_RESTORED`へ戻す。
 
@@ -2514,20 +2514,20 @@ flowchart TD
 
 - ブラウザは`GET /api/settlements/{settlementId}`で進行状態をpollする。Markets sessionと対象への閲覧権限を再確認し、任意のuser IDを信用しない。
 - settlement kind・一般化したstate・progress・manual action可否・updatedAt・request IDだけを返す。Token・残高・軸別不足額・内部Points本人ID・raw failure・除外候補は返さない。
-- sellerと当該buyerだけが閲覧でき、ADMINは対象外Settlementへの閲覧権限を追加しない。hold作成だけを購入完了と表示せず、proof確定後だけ成功とする。
+- sellerと当該buyer、および手動retryを行うADMINだけが閲覧できる。hold作成だけを購入完了と表示せず、proof確定後だけ成功とする。
 
 ## 8. outboxとreconciler
 
-- Auction closeとoutbox insertを同じMarkets D1 transactionで確定する。
+- Auction closeとoutbox insertは同じMarkets D1 transactionで確定する。未終端BUY_NOW holdがある場合は、全hold終端時にplanとoutboxを同じtransactionで作る。
 - scheduler/reconcilerは未開始outbox・停滞saga・保存receiptとMarkets確定状態の不一致を走査する。
 - 同じAuctionのWorkflowはsingle-flightにする。手動retryではMarketsのBetter Auth sessionの`user.role`に`admin`を含むか確認する。
 - `BUY_NOW`の手動retryは結果不明でholdを維持している`SETTLEMENT_MANUAL_ACTION_REQUIRED`だけを対象にし、同じ要求・キーによる結果確認から再開する。`FAILED_RESTORED`、`DEBITED`以降、反対outcomeを要求するretryを拒否する。
-- MarketsはADMIN、seller、理由、対象状態、1時間5回の上限、single-flightを検証する。同じSessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`で冪等keyを受け取り、`workflowAttempt`を増分したretry outboxを確定する。commit後にdispatcherがWorkflowを起動する。
+- MarketsはADMIN、理由、対象状態、1時間5回の上限、single-flightを検証する。同じSessionのCSRF保護付き`POST /api/settlements/{settlementId}/retry`で冪等keyを受け取り、`workflowAttempt`を増分したretry outboxを確定する。commit後にdispatcherがWorkflowを起動する。
 - reconciliationはMarketsのplan hash・精算state・保存したPoints debit receipt・proofを比較し、修復はforward actionだけを行う。
 
 ## 9. observability
 
-- Cloudflare Workers Logs／Tracesをrequest単位の診断正本、Analytics Engine `OPS_METRICS`を時系列集計、Markets D1 `ops_alerts`をalert dedupe／delivery状態の正本とする。5分Cronが[横断セキュリティ・配信仕様](../../../../../../docs/web-app/v0.2/security-and-delivery.md)のthresholdを評価し、Email Routingで運用alertを送る。
+- Cloudflare Workers Logs／Tracesをrequest単位の診断正本、Analytics Engine `OPS_METRICS`を時系列集計、Markets D1 `ops_alerts`をalert dedupe／delivery状態の正本とする。5分Cronが[Observabilityと運用alert](#81-observabilityと運用alert)のthresholdを評価し、Email Routingで運用alertを送る。
 - correlation ID: Auction ID、settlement ID、Workflow instance ID、plan hash、Points request ID。
 - logへOAuth token、AutoBid上限、Cookie、CSV本文、個人情報bodyを出さない。
 - metric／alert対象はAuction open／close遅延、stale WebSocket lease／gap resync、Workflow／outbox／stuck saga、manual retry、reconciliation mismatchとする。
@@ -2573,7 +2573,7 @@ MarketsのHono REST APIとbrowser BFFへ適用する。WebSocket eventとOAuth�
 - 単一resource、配列、command resultはすべて`data`へ入れる。
 - success envelopeは`data`と`meta`を必須にし、`meta.requestId`も必須にする。
 - paginationは`meta.cursor`、`meta.hasMore`を使う。
-- mutationは作成/更新されたresource ID、revision/version、idempotency resultを返す。
+- mutationは作成/更新されたresource ID、version、idempotency resultを返す。
 - `204`を使うendpointはbodyを返さない。成功messageだけの独自形を混在させない。
 
 ## 3. 失敗
@@ -2611,7 +2611,7 @@ RFC 9457 Problem Detailsを使う。
 - `401`: session/bearerなし・無効
 - `403`: 認証済みだが権限/scope不足
 - `404`: resourceを開示できない場合を含むnot found
-- `409`: revision/version/idempotency/state/残高競合
+- `409`: version/idempotency/state/残高競合
 - `413`: body/file上限
 - `415`: Content-Type/MIME不正
 - `422`: field/domain validation
@@ -2632,7 +2632,7 @@ RFC 9457 Problem Detailsを使う。
 
 - session/private API: `Cache-Control: private, no-store`
 - OAuth/token/callback: `Cache-Control: no-store`
-- immutable public revision/proof: content hash付きの明示public cache
+- immutable public proof: content hash付きの明示public cache
 - mutable Auction snapshot: 短いcacheまたは`no-store`、ETag/versionを使用
 - error responseは認証内容を共有cacheしない
 
@@ -2713,7 +2713,7 @@ Better Authの詳細は[認証仕様](./authentication.md)を正本とする。
 - Origin、`Sec-Fetch-Site`等のFetch Metadata、session、authorizationを検査する。
 - important mutationは`Idempotency-Key`必須。
 - 同じkey・同じpayloadは同じ結果、異なるpayloadは409。
-- successは`{data, meta?}`、errorはRFC 9457 Problem Detailsに統一する。
+- successは`{data, meta}`（`meta.requestId`必須）、errorはRFC 9457 Problem Detailsに統一する。
 - errorへstack、SQL、token、secret、内部binding名を出さない。
 
 ### 3.1 HTTP security header
@@ -2781,7 +2781,7 @@ localhost／test runtimeではHSTSと`upgrade-insecure-requests`を付けない�
 | WebSocket接続         | user + Auction                        | 同時3                                      |
 | WebSocket接続         | user                                  | 同時20                                     |
 | Auction CSV           | Markets user + operation              | 1分2回、1時間10回                          |
-| settlement手動retry   | Markets ADMIN + Markets user + Auction | 1時間5回、single-flight、冪等性 |
+| settlement手動retry   | Markets ADMIN + Auction | 1時間5回、single-flight、冪等性 |
 
 idempotent retryは保存済み結果を先に返し、同じ副作用へrate limitを重ねない。
 
@@ -2837,7 +2837,7 @@ append-only audit eventへ次を記録する。
 正確性の根拠はD1／DOの不変条件とし、logやAnalytics Engine metricをtransaction成功の根拠にしない。Markets Workerはenvironment別に次を持つ。
 
 - Workers Observabilityを有効化する。stagingはlogs／tracesともhead sampling `1`、productionはlogs `1`、traces `0.05`を初期値とする。productionはWorkers PaidのWorkers Logs 7日保持、stagingもPaid環境として7日保持をrelease条件にする。
-- structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeを記録する。個別のresource IDは記録しない。OAuth token、Cookie、Secret、email、外部URL／HTML、CSV cell、AutoBid上限、profile本文も記録しない。
+- structured logは`level`、`event`、`app`、`environment`、`requestId`／`correlationId`、`operation`、`outcome`、stable `code`、`durationMs`、attempt、resource typeを記録する。個別のresource IDはcorrelation IDとして使うAuction ID・settlement ID・Workflow instance IDのほかは記録しない。OAuth token、Cookie、Secret、email、外部URL／HTML、CSV cell、AutoBid上限、profile本文も記録しない。
 - `OPS_METRICS` Analytics Engine bindingをapp／environment別datasetへ接続する。data pointはevent type、app、environment、outcome／code、resource stateをblob、count／duration／lag seconds／attemptをdouble、固定されたevent名をindexに使う。個別のresource IDは含めない。書込みは非同期であり失敗してもdomain transactionを再実行しない。保持は現行上限の3か月とし、SQL API/Grafana queryの正本をrunbookへ保存する。
 - app D1の運用alertには、type／signalとサーバー生成の内部resource IDを結合した`alertKey`、`OPEN|RESOLVED`、first／last observed、last notified、repeat count、safe detail codeを保存する。同じ`alertKey`で重複判定し、通知本文にもこのキーを含める。`OPEN`は期間で削除せず、`RESOLVED`だけを`resolvedAt`から180日保持する。5分monitor内の1日1回leaseで期限到来行を削除し、cutoff、削除件数、実行結果をappend-only auditへ残す。179日23:59:59は保持し、180日ちょうどを削除対象とする。
 - Markets Workerの5分Cron monitorがD1の正本状態を照会し、同じ`alertKey`へ冪等upsertする。`OPEN`遷移時、継続1時間ごと、`RESOLVED`遷移時だけ固定destinationの`OPS_ALERT_EMAIL` Email Routing bindingへ通知する。宛先はverified destinationとしてWrangler/IaCで固定し、request入力から選ばない。送信失敗はalert rowを未通知のまま保持し次回再送する。
@@ -2849,7 +2849,7 @@ append-only audit eventへ次を記録する。
 | ------- | -------------------------------- | ----------------------------------------------------------------- | --------------------------------------------- |
 | Markets | Auction transition delay         | `startsAt`／`endAt`から2分超、期待stateへ未遷移                   | 対応stateのCAS確定                            |
 | Markets | WebSocket lease／gap anomaly     | expiryから2分超のlease、または5分窓のgap resync率5%超かつ20件以上 | stale lease 0、直近5分がthreshold未満         |
-| Markets | Workflow／outbox／saga stuck     | 進捗なし5分超、または仕様のretry上限到達                          | terminalまたは明示manual action state         |
+| Markets | Workflow／outbox／saga stuck     | 進捗なし5分超、または仕様のretry上限到達                          | terminal                                      |
 | Markets | reconciliation mismatch          | plan、debit receipt、proofが1件でも不一致                  | full reconciliation一致                       |
 | Markets | alert delivery failure           | Email binding送信失敗                                             | 保留通知の送信receipt確定                     |
 
@@ -2871,7 +2871,7 @@ staging acceptanceでは各alertをfixtureで1件ずつOPEN→dedupe→RESOLVED�
 - Wrangler `4.108.0`
 - `@cloudflare/vite-plugin` `1.43.2`
 - `@cloudflare/vitest-pool-workers` `0.18.2`
-- Better Auth一式 `1.7.0-rc.1`は開発/stagingだけ
+- Better Auth一式 `1.7.0-rc.1`（調査時点の版。採用版は下記の方針で決める）
 
 Marketsは互換性のある最新安定版を採用し、Better Authと関連パッケージをまとめて更新する。旧版の調査値は上表のbaselineとして扱い、更新時に必要な設定・生成schemaの移行と認証回帰を確認する。
 
@@ -2896,7 +2896,7 @@ Marketsは互換性のある最新安定版を採用し、Better Authと関連�
 - Actionsはfull commit SHAへ固定し、permissionsはjob最小にする。
 - fork/PR由来cache、artifact、environment値をproduction deployへ流用しない。
 - production secretsはmain push workflowのproduction jobだけが参照する。
-- `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare tokenとaccount IDを分離する。
+- `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、Cloudflare API tokenを環境別に分離する。
 - prerender buildはWorker Secretを読み込まない。deployは別stepで実行し、Secretはデプロイ先の登録値を使う。
 - Marketsの共有test環境（`APP_ENV=staging`）では、画面と静的ファイルをBasic認証で保護する。資格情報はMarkets staging専用のWorkers Secrets `BASIC_AUTH_USERNAME`と`BASIC_AUTH_PASSWORD`へ登録し、`secrets.required`でデプロイ時に登録を検証する。
 - stagingは`assets.run_worker_first=true`で認証後にStatic Assetsを配信する。`/api`と`/.well-known`配下は既存のセッション・OAuth等の認証条件に従い、Basic認証の対象から外す。localとproductionはSecretが存在してもBasic認証を適用しない。
@@ -2971,7 +2971,7 @@ Marketsは互換性のある最新安定版を採用し、Better Authと関連�
 ### unit/property
 
 - 十進数文字列の正確な金額計算、Freeism Pointsの整数部30桁と31桁の境界、小数4桁と上限超過の5桁、集計による桁あふれ、保存した最小単位、数量・versionの整数境界
-- Auction ranking、tie、partial allocation、clearing
+- Auction ranking、tie、partial allocation、到達順による落札価格（基準価格と＋1 tick）
 - state machine、idempotency key、plan hash
 
 ### Workers integration
