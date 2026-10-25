@@ -1909,9 +1909,11 @@ flowchart TD
   - `index`は拒否された落札者の`winners`での0始まりの配列位置である。
   - 空配列・残高・軸・必要額・Points本人IDは返さない。
 
-- 成功時の`data`は`debitReceiptId`・`status: DEBITED`・`debitedAt`だけである。
+- 成功時の`data`は`status: DEBITED`・`debitedAt`だけである。
+  - 同じキー・同じ内容の再送には初回と同じ`data`が返り、`meta.requestId`だけが新しくなる。
   - 成功は要求の全落札者・全軸が`components`のとおりに引き落とされたことを示す。
-  - 成功時は、要求の記録へ`debitReceiptId`・`debitedAt`を加えてreceiptとする。
+  - Pointsの200応答を受けた時点で、Marketsがreceipt IDを発行し、要求の記録・`debitedAt`と一緒に保存してreceiptとする。
+  - receiptは精算要求ごとに1件とし、結果不明の後の再送で成功を受けた場合も1件だけ発行する。
 
 ### Marketsの責務
 
@@ -1951,9 +1953,9 @@ flowchart TD
 
 - 引き落としはその時点の落札者全員を利用者認可で1回の要求とする。
   - 各落札者の全評価軸を`components`へまとめ、全落札者分を一つのPoints要求で送る。
-  - 一人でも拒否されれば全員分が反映されず、受領証も発行されない。
+  - 一人でも拒否されれば全員分が反映されず、Marketsはreceiptを発行しない。
   - 認可が無効なら、必要額0でも拒否される。
-  - 同じ計画の再送は同じ受領証を返す。
+  - 同じ計画の再送には、Pointsが初回と同じ成功の`data`を返す。
 
 - 精算の確定点はPointsの一括引き落としである。
   - Markets D1に不変の計画を保存し、Pointsの一括引き落とし成功後にMarketsを確定する単調なsagaとする。
@@ -1978,7 +1980,7 @@ flowchart TD
   2. 元のcutoffの集合から落札者・数量・落札価格を決め、Markets Workerが軸別の必要額を計算する。
   3. 各人の固定した支払名義と有効な利用者Tokenを確認し、全落札者の一括引き落としを一つの要求でPointsへ送る。
   4. `END_OF_AUCTION`で認可無効・残高不足の確定的拒否を受けたら、要求内の拒否された人だけを除外し、同じcutoffから数量・価格を再計算する。変更後の内容には新しい要求・キーを使う。`BUY_NOW`は別の購入者へ振り替えず、全数量を失敗とする。
-  5. 一括引き落とし成功のreceiptをMarkets D1へ保存し、配分・商材snapshot・落札証明・精算結果を確定する。`BUY_NOW`ではproofの確定後に内部CASでholdを`SETTLED`へ進める。
+  5. 一括引き落としの成功を受けたらreceiptを発行してMarkets D1へ保存し、配分・商材snapshot・落札証明・精算結果を確定する。`BUY_NOW`ではproofの確定後に内部CASでholdを`SETTLED`へ進める。
   6. outboxを完了にする。Points成功後のMarkets障害は、同じreceiptから確定を再開する。
 
 ```mermaid
@@ -2094,7 +2096,7 @@ flowchart TD
 
 - 同じ競売のWorkflowはsingle-flightにする。
 
-- reconciliationはMarketsのplan hash・精算の状態・保存したPointsの引き落としreceipt・proofを比較する。
+- reconciliationはMarketsのplan hash・精算の状態・保存した引き落としのreceipt・proofを比較する。
   - 修復はforwardの操作だけで行う。
 
 ### 確認すること
@@ -3138,9 +3140,10 @@ PRとmerge queueでは次を実行する。
 
 - Marketsの提供先・複数名義・固定支払名義、OAuth開始・解除・再認可、秘密鍵とTokenの保存をMarkets側の責務としてまとめる。
 - 作成時の割合・軸単位・金額刻み・価格刻みを保存し、bignumber.jsで必要額を計算する。全落札者は利用者認可付きの一括debitで精算し、再送保証は1日とする。
-- 一括精算は`POST /api/v1/settlement-debits`へ送り、本文は落札者ごとの利用者Token・DPoP・`components`だけとし、再送でもTokenとDPoPを送る。呼出元はTokenの`client_id`、支払名義はTokenの`sub`で決まる。成功応答は`debitReceiptId`・`status`・`debitedAt`だけであり、拒否された落札者は`rejectedWinners`の`index`から送信した落札者へ対応付ける。
+- 一括精算は`POST /api/v1/settlement-debits`へ送り、本文は落札者ごとの利用者Token・DPoP・`components`だけとし、再送でもTokenとDPoPを送る。呼出元はTokenの`client_id`、支払名義はTokenの`sub`で決まる。成功応答は`status`・`debitedAt`だけであり、拒否された落札者は`rejectedWinners`の`index`から送信した落札者へ対応付ける。
 - Pointsの二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ競売を二重精算しない管理はMarketsが行う。冪等キーの欠落は`400 IDEMPOTENCY_KEY_REQUIRED`、一括精算の要求回数は呼出元Client IDの枠で1回とする。
 - 仕様書はMarketsの責務だけを記載し、Pointsの内部仕様と、それだけを決めた設計決定を除く。Freeism Pointsの金額の小数部は4桁とする。
+- 引き落としのreceiptは、Pointsの成功応答を受けたMarketsが発行する。
 - 即時購入の結果が不明な間は競売全体を待機し、元の終了時点と判明した残数量から再開する。
 - 画面の残高の参考表示にはPointsの残高一覧API`GET /api/v1/me/point-balances`を使い、評価軸別の不足額はMarkets側で計算する。
 - revision管理を廃止し、Auction（`auctionRevision`なし）とReviewは現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。

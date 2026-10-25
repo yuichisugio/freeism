@@ -5791,7 +5791,8 @@ sequenceDiagram
   - `winners`は要求の配列順のまま比べる。
   - トークンとDPoP署名は内容照合の対象から外す。
   - 同じキーの要求が同時に届いても、確定する引き落としは一回とする。
-  - 精算の確定結果は、呼び出し元Client ID・`debitReceiptId`と各落札者のポイント増減履歴として保持する。
+  - 精算の確定結果は、呼び出し元Client IDと各落札者のポイント増減履歴として保持する。
+  - 受領証の番号はPointsで発行せず、成功応答を受けたMarketsが発行する。
   - 再送応答とキーの対応は、共通の有効期間だけ保持する。
 
 - Pointsの二重処理防止は`Idempotency-Key`だけで行う。
@@ -5821,10 +5822,77 @@ sequenceDiagram
   - `index`は拒否された落札者の`winners`での0始まりの配列位置とする。
   - 空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 
-- 成功時の`data`は`debitReceiptId`、`status`、`debitedAt`だけとする。
-  - `status`は`DEBITED`とする。
+- 成功時の`data`は`status`と`debitedAt`だけとする。
+  - `status`は`DEBITED`、`debitedAt`は引き落としを確定した日時とする。
 
-拒否の応答例
+- 要求と応答の例
+  - トークン・DPoP署名・ID・`title`の文言は説明用の値とする。
+  - 応答には共通の`X-Request-Id`と`Cache-Control: private, no-store`を付ける。
+
+  | 場面                                   | 状態コード・`code`                     | 補足                                         |
+  | -------------------------------------- | -------------------------------------- | -------------------------------------------- |
+  | 全員の引き落としを確定した             | `200`                                  | `data.status`・`data.debitedAt`              |
+  | 確定済みの要求を同じキー・内容で再送した | `200`                                  | 初回と同じ`data`、新しい`requestId`          |
+  | 検証できない落札者がいる               | `409 AUTHORIZATION_UNAVAILABLE`        | `rejectedWinners`                            |
+  | 残高が足りない落札者がいる             | `409 INSUFFICIENT_BALANCE`             | `rejectedWinners`                            |
+  | 指定した評価軸が停止中                 | `409 EVALUATION_CRITERION_INACTIVE`    | 要求全体の失敗                               |
+  | 指定した評価軸が存在しない             | `404 RESOURCE_NOT_FOUND`               | 要求全体の失敗                               |
+  | トークンの`client_id`が混在している    | `403 ACCESS_TOKEN_CLIENT_MISMATCH`     | 要求全体の失敗                               |
+  | 同じキーで内容が違う                   | `409 IDEMPOTENCY_KEY_REUSED`           | 業務処理をしない                             |
+  | `Idempotency-Key`がない                | `400 IDEMPOTENCY_KEY_REQUIRED`         | 業務処理をしない                             |
+  | 必要額の書式・範囲・重複軸が不正       | `422 VALIDATION_FAILED`                | `errors[].field`に項目のパス                 |
+  | 呼び出し元Client IDの回数制限を超えた  | `429 RATE_LIMITED`                     | `Retry-After`                                |
+
+要求
+
+```http
+POST /api/v1/settlement-debits HTTP/1.1
+Host: points.freeism.app
+Content-Type: application/json
+Idempotency-Key: 6f1c2e8a-3b4d-4c5e-9f60-7a8b9c0d1e2f
+```
+
+```json
+{
+  "winners": [
+    {
+      "accessToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCJ9.tanaka...",
+      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2In0.tanaka...",
+      "components": [
+        { "evaluationCriterionId": "V1StGXR8_Z5jdHi6B-myT", "requiredAmount": "60" }
+      ]
+    },
+    {
+      "accessToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCJ9.sato...",
+      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2In0.sato...",
+      "components": [
+        { "evaluationCriterionId": "V1StGXR8_Z5jdHi6B-myT", "requiredAmount": "20" },
+        { "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL", "requiredAmount": "10" }
+      ]
+    }
+  ]
+}
+```
+
+- 各`dpopProof`は、`htm`を`POST`、`htu`を`https://points.freeism.app/api/v1/settlement-debits`、`ath`をその落札者の`accessToken`のハッシュとし、要求ごとに新しい`jti`で作る。
+
+成功
+
+```json
+{
+  "data": {
+    "status": "DEBITED",
+    "debitedAt": "2026-10-25T03:00:00.000Z"
+  },
+  "meta": {
+    "requestId": "req_550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+- 同じキー・同じ内容の再送では、初回と同じ`data`を返し、`meta.requestId`だけを今回の通信IDにする。
+
+検証できない落札者がいる
 
 ```json
 {
@@ -5832,13 +5900,122 @@ sequenceDiagram
   "title": "Point authorization unavailable",
   "status": 409,
   "code": "AUTHORIZATION_UNAVAILABLE",
-  "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440001",
   "rejectedWinners": [
+    { "index": 1, "reason": "AUTHORIZATION_UNAVAILABLE" }
+  ]
+}
+```
+
+残高が足りない落札者がいる
+
+```json
+{
+  "type": "https://points.freeism.app/problems/insufficient-balance",
+  "title": "Insufficient point balance",
+  "status": 409,
+  "code": "INSUFFICIENT_BALANCE",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440002",
+  "rejectedWinners": [
+    { "index": 0, "reason": "INSUFFICIENT_BALANCE" }
+  ]
+}
+```
+
+指定した評価軸が停止中
+
+```json
+{
+  "type": "https://points.freeism.app/problems/evaluation-criterion-inactive",
+  "title": "Evaluation criterion inactive",
+  "status": 409,
+  "code": "EVALUATION_CRITERION_INACTIVE",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440003"
+}
+```
+
+指定した評価軸が存在しない
+
+```json
+{
+  "type": "https://points.freeism.app/problems/resource-not-found",
+  "title": "Resource not found",
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440004"
+}
+```
+
+トークンの`client_id`が混在している
+
+```json
+{
+  "type": "https://points.freeism.app/problems/access-token-client-mismatch",
+  "title": "Access token client mismatch",
+  "status": 403,
+  "code": "ACCESS_TOKEN_CLIENT_MISMATCH",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440005"
+}
+```
+
+同じキーで内容が違う
+
+```json
+{
+  "type": "https://points.freeism.app/problems/idempotency-key-reused",
+  "title": "Idempotency key reused",
+  "status": 409,
+  "code": "IDEMPOTENCY_KEY_REUSED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440006"
+}
+```
+
+`Idempotency-Key`がない
+
+```json
+{
+  "type": "https://points.freeism.app/problems/idempotency-key-required",
+  "title": "Idempotency key required",
+  "status": 400,
+  "code": "IDEMPOTENCY_KEY_REQUIRED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440007"
+}
+```
+
+必要額が不正
+
+```json
+{
+  "type": "https://points.freeism.app/problems/validation-failed",
+  "title": "Validation failed",
+  "status": 422,
+  "code": "VALIDATION_FAILED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440008",
+  "errors": [
     {
-      "index": 1,
-      "reason": "AUTHORIZATION_UNAVAILABLE"
+      "field": "winners.1.components.0.requiredAmount",
+      "code": "INVALID_AMOUNT",
+      "message": "Enter a non-negative amount within the configured digit limits."
     }
   ]
+}
+```
+
+回数制限を超えた
+
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/problem+json
+Retry-After: 60
+```
+
+```json
+{
+  "type": "https://points.freeism.app/problems/rate-limited",
+  "title": "Too many requests",
+  "status": 429,
+  "code": "RATE_LIMITED",
+  "requestId": "req_550e8400-e29b-41d4-a716-446655440009"
 }
 ```
 
@@ -5874,12 +6051,12 @@ flowchart TD
   - 軸の最小単位を変更しても、要求の必要額を丸め直さず精算で受け付け、実残高で判断することを確認する。
   - 残高一覧が、非公開・停止中の軸と0・負の残高を含めて評価軸ID昇順で返り、金額表記がそろうことを確認する。
   - 精算で引き落とした評価軸ID・金額が要求と一致することを、ポイント増減履歴で確認する。
-  - 確定済み再送では、初回と同じ`debitReceiptId`・`debitedAt`を返し、通信IDだけを新しくすることを確認する。
+  - 確定済み再送では、初回と同じ`status`・`debitedAt`を返し、通信IDだけを新しくすることを確認する。
   - 本文上限、認可不成立、トークンの`client_id`の不一致、`rejectedWinners`の`index`、同一本人の複数名義の合算、全落札者の一括確定・取消も確認する。
 
 - 現在の実装には、ポイント予約・capture・パッケージ改訂参照を使うAPIがある。
   - 最新仕様の現在パッケージ取得、本人の残高一覧、全落札者の一括引き落としとの差を実装時に確認する。
-  - 現在の予約・captureの保存構造は、`debitReceiptId`と各落札者のポイント増減履歴、共通の`idempotency_results`へ置き換える。
+  - 現在の予約・captureの保存構造は、呼び出し元Client IDを持つ各落札者のポイント増減履歴と、共通の`idempotency_results`へ置き換える。
   - パッケージIDを含まない精算の入出力・保存・再送照合と、全指定軸の現在状態検証、非公開構成要素の応答項目、作成初期値は実装時に確認する。現在の実装のパッケージ改訂参照や状態定義から、今回の契約へ移行する必要がある。
   - hono-openapiによるOpenAPIの生成と、生成した型の更新・動作検証は、実装時に行う。
 
@@ -6517,7 +6694,7 @@ flowchart TD
   - 要求から`settlementId`・`auctionId`・`pointsSubject`・`marketsUserId`を除き、支払名義はトークンの`sub`で決める。
   - 呼び出し元はトークンの`client_id`で決め、要求には`client_assertion`を含めない。全トークンの`client_id`がそろわなければ`403 ACCESS_TOKEN_CLIENT_MISMATCH`とする。
   - 再送でもトークンと署名を送る。
-  - 成功応答は`debitReceiptId`・`status`・`debitedAt`だけとし、拒否は`winners`の配列位置`index`と`reason`で返す。
+  - 成功応答は`status`・`debitedAt`だけとし、受領証の番号はMarketsが発行する。拒否は`winners`の配列位置`index`と`reason`で返す。
   - 再送は有効な冪等性結果をClient ID・操作種別・冪等性キー・各落札者の`components`で照合し、精算の確定結果は取引記録として保持する。
 
 - セキュリティ・保存・運用の仕様を、HTTP、OAuth、ポイント増減履歴、精算、ライブラリ、デプロイの関連節へ統合する。D1はサービス上限と最大入力での検証結果に基づいて保存方式を選び、標準の一括処理と必要な業務条件で全件確定・取消を行う。mainはPR・必須検査・最新ブランチとの一致で保護する。精算の二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ精算を二重に送らない管理はMarketsが行う。
