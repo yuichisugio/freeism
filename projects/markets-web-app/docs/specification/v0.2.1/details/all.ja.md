@@ -1137,7 +1137,7 @@ Marketsは配列の全IDが、今回送った落札候補であることを確�
 
 - Marketsの提供先・複数名義・固定支払名義、OAuth開始・解除・再認可、秘密鍵とTokenの保存をMarkets側の責務としてまとめる。
 - 作成時の割合・軸単位・金額刻み・価格刻みを保存し、bignumber.jsで必要額を計算する。全落札者は利用者認可付きの一括debitで精算し、再送保証は1日とする。
-- 一括精算は`POST /api/v1/settlement-debits`へ送り、本文は呼出元の認証と、落札者ごとの利用者Token・DPoP・`components`だけとする。支払名義はTokenの`sub`で決まる。成功応答は`debitReceiptId`・`status`・`debitedAt`だけであり、拒否された落札者は`rejectedWinners`の`index`から送信した落札者へ対応付ける。
+- 一括精算は`POST /api/v1/settlement-debits`へ送り、本文は落札者ごとの利用者Token・DPoP・`components`だけとし、再送でもTokenとDPoPを送る。呼出元はTokenの`client_id`、支払名義はTokenの`sub`で決まる。成功応答は`debitReceiptId`・`status`・`debitedAt`だけであり、拒否された落札者は`rejectedWinners`の`index`から送信した落札者へ対応付ける。
 - Pointsの二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ競売を二重精算しない管理はMarketsが行う。冪等キーの欠落は`400 IDEMPOTENCY_KEY_REQUIRED`、一括精算の要求回数は呼出元Client IDの枠で1回とする。
 - 仕様書はMarketsの責務だけを記載し、Pointsの内部仕様と、それだけを決めた設計決定を除く。Freeism Pointsの金額の小数部は4桁とする。
 - 即時購入の結果が不明な間は競売全体を待機し、元の終了時点と判明した残数量から再開する。
@@ -1590,7 +1590,6 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-088 | 採用 | Markets本人・登録提供先・検証済みPoints subの組で連携を区別し、両方向で複数名義を許可する。 | issuerは登録済みoriginと一致させ、メールや表示名で対応付けない。 | AUTH      |
 | DEC-089 | 採用 | Marketsの管理者は提供先ごとにPointsのOAuth Clientを登録し、Client IDと暗号化した秘密鍵をMarkets D1へ保持する。提供先には公開JWKSだけを登録する。 | 秘密鍵を提供先・ブラウザへ渡さない。 | AUTH, CONTRACT |
 | DEC-090 | 採用 | 利用者TokenはAuthorization Code＋PKCE／Refresh Tokenで取得し、標準scopeとpoints権限で残高確認・精算を行う。 | 各要求で現在の本人・対象の権限を確認する。 | AUTH      |
-| DEC-091 | 採用 | 一括精算の呼出元はprivate_key_jwtで認証し、各落札者の利用者TokenとDPoPを別に検証する。 | サービス認証と利用者認可を分離する。 | AUTH      |
 | DEC-093 | 一部上書き済み | Access／Refresh TokenはMarkets D1へ暗号化保存し、OAuth Client秘密JWKはMarkets Worker Secretへ保存する。                                                                             | DEC-271で秘密JWKの保存先を提供先別のMarkets D1暗号化列に変更する。Tokenの暗号化保存とbrowserへの秘匿は維持する。                               | AUTH      |
 | DEC-094 | 採用 | Refresh Token Rotationを連携（`pointsConnectionId`）単位のD1 lease／CASでsingle-flight化する。 | process内だけの重複抑止を強化。 | AUTH |
 | DEC-095 | 採用           | 401後の明示Refreshと再試行は1回だけとし、失敗時は再連携を要求する。                                                                                                                 | 無限再試行を禁止。                                                                                                                             | AUTH      |
@@ -1755,6 +1754,7 @@ Token、Cookie、Authorization Code、OAuth Client秘密鍵、CSV本文は監査
 | DEC-274 | 採用 | Auctionは`auctionRevision`を持たず、現在のレコードを`auctionVersion`の条件付きUPDATEで更新する。実行済みの取引・証明・監査記録は保持する。 | DEC-251とDEC-262の不変revisionに関する部分を上書きする。 | MARKETS, AUCTION |
 | DEC-275 | 採用 | 対面決済、QR決済、店舗履歴をMarketsに導入する。 | 詳細仕様は別途決める。 | MARKETS |
 | DEC-276 | 採用 | MarketsのIDは標準Nano IDとし、domain prefixを付けない。 | 命名規則の接頭辞付きIDを上書きする。 | MARKETS |
+| DEC-277 | 採用 | 一括精算の要求本文は各落札者の利用者Token・DPoP proof・componentsだけとし、再送でもTokenとproofを送る。Pointsは全Tokenの`client_id`から呼出元を決める。 | private_key_jwtはToken取得・introspection・revokeだけで使う。 | AUTH, CONTRACT |
 
 ## 17. 文書適用規則
 
@@ -2276,9 +2276,9 @@ PointsはOAuth Authorization Server兼Resource Server、MarketsはOAuth Client�
 ## 3. OAuth ClientとResource Server
 
 - 利用者のAuthorization Code＋PKCE／Refresh Tokenと、scope `openid profile offline_access points`、Points API resourceを使う。
-- 資源APIには`Authorization: DPoP {accessToken}`と`DPoP`ヘッダーを送り、取得・refresh・資源API要求で同じDPoP鍵を使う。一括精算だけは各人のToken・proofとclient assertionをJSON本文へまとめる。
+- 資源APIには`Authorization: DPoP {accessToken}`と`DPoP`ヘッダーを送り、取得・refresh・資源API要求で同じDPoP鍵を使う。一括精算だけは各人のToken・proofをJSON本文へまとめる。
 - JWTの署名、issuer、audience、期限、Client ID、scope、DPoPの鍵結合・HTTPメソッド・URL・Tokenとの対応・再送を検証する。利用者の`sub`はPoints標準`user.id`であり、JWTは最長15分とする。
-- クライアントの停止中は、Token発行・更新と一括精算（保存済み結果の再送を含む）が拒否される。発行済みJWTは停止中も最長15分の期限まで有効である。
+- クライアントの停止中は、Token発行・更新が拒否される。発行済みJWTは停止中も最長15分の期限まで有効である。
 - 本人の退会・ログイン停止と対象の権限不足は、新規利用を拒否する。
 
 ## 4. Token保存とrefresh
@@ -2318,22 +2318,23 @@ Tokenの標準暗号化保存とsingle-flight更新は認証章のToken保存と
 
 ### 7.2 一括精算
 
-- 本文には呼出元の`client_id`・`client_assertion_type`・`client_assertion`と`winners`を送る。
-  - assertion typeは`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`、assertionの`aud`は今回の精算APIの絶対URLとする。
+- 本文は`winners`だけとする。
   - `winners`は1件以上とし、各要素に`accessToken`・`dpopProof`・`components`を送る。
+  - Pointsは全Tokenの`client_id`から呼出元のClient IDを決める。
+  - 全Tokenの`client_id`がそろわなければ、`403 ACCESS_TOKEN_CLIENT_MISMATCH`で全件拒否される。
   - 支払名義は各要素の検証済みTokenの`sub`が示すPoints本人である。
   - `components`は残高確認と同じ表現とする。
-  - 送信のたびに、各落札者のDPoP proofと呼出元のclient assertionを作り直す。
+  - DPoP proofのHTTPメソッドは`POST`、URLは精算APIの絶対URLとし、送信のたびに作り直す。
 
 - Marketsは送信前に、`winners`の並び順で各落札者と`components`を要求の記録として保存する。
-  - 要求の記録にはToken・proof・client assertionを含めない。
+  - 要求の記録にはTokenとproofを含めない。
 
 - 結果不明の再送は同じ`Idempotency-Key`・同じ`winners`の並び順・同じ`components`で送る。
+  - 再送でも全要素にTokenとDPoP proofを付ける。期限切れのTokenは更新して送る。
   - Pointsは呼出元Client ID・`Idempotency-Key`と、各落札者の`components`を`winners`の配列順で照合する。
   - Token更新や新proofだけの違いは要求内容の変更に含めない。
-  - 有効な同一冪等結果がある再送では、各要素を`components`だけにして利用者Token・proofを省略できる。
-  - 有効な結果がなく、Tokenとproofがそろわない要求は引き落とされない。
-  - 呼出元のclient assertionは再送でも送る。
+  - PointsはTokenとDPoP proofを冪等性の照合より前に検証する。
+  - そのため、再送で受けた`409 AUTHORIZATION_UNAVAILABLE`は、精算が確定済みかどうかを示さない。
 
 - Pointsは必要額0の軸も含めた全指定軸の存在・現在状態、本人の認可、金額、合算必要額と実残高を検査し、全落札者・全軸を一回で確定する。
   - 一人でも失敗したら全件未反映となる。
@@ -2496,8 +2497,8 @@ flowchart TD
 ## 6. Points呼出し
 
 - Auctionの提供先を登録済みoriginへ解決し、Markets Workerが外部`fetch()`でAPIを呼ぶ。ブラウザからPointsの業務APIを直接呼ばない。
-- 詳細取得の表示用区画と計算情報を区別し、作成時snapshotから必要額を計算する。Pointsへは落札者ごとに支払名義の利用者Token・DPoPと軸ID・必要額を送り、呼出元の認証情報を添える。
-- 利用者のToken・DPoP・client assertionを送信時に検証する。結果不明の再送でも、DPoP proofとclient assertionは送信ごとに作り直し、Tokenは必要に応じて更新する。内容照合にToken・proof・client assertionを含めない。
+- 詳細取得の表示用区画と計算情報を区別し、作成時snapshotから必要額を計算する。Pointsへは落札者ごとに支払名義の利用者Token・DPoPと軸ID・必要額を送る。
+- 利用者のTokenとDPoPを送信時に検証する。結果不明の再送でもTokenとDPoP proofを付け、proofは送信ごとに作り直し、期限切れのTokenは更新する。内容照合にTokenとproofを含めない。
 - 提供先が停止しても既存取引に必要な鍵・連携・結果を保持する。Tokenの確定失効は再認可待ちとし、別名義へ既存入札を付け替えない。
 
 ## 7. 失敗処理
@@ -2505,7 +2506,8 @@ flowchart TD
 - END_OF_AUCTIONの認可無効・残高不足では、Pointsが返した`rejectedWinners`の`index`を、送信した`winners`の同じ位置の入札者へ対応付ける。拒否された入札者だけを除外し、残高不足・負残高に該当する人は既定のblacklist eventを一件記録する。
 - BUY_NOWの確定的拒否は別buyerを選ばず、全件未反映を確認してhold全数量を戻す。結果不明では競売全体の販売と落札確定を待機する。
 - 評価軸の停止・不存在は競売全体の失敗であり、特定の入札者を除外する理由にしない。一時障害・429・5xxでも候補を変更しない。
-- `rejectedWinners`の範囲外の`index`・空配列はprotocol failureとし、候補やholdを変更しない。生の失敗応答、残高、必要額、Tokenを公開API・HTML・WebSocket・ログへ出さない。
+- 同じキーの以前の送信が結果不明のときに受けた`409 AUTHORIZATION_UNAVAILABLE`は、確定的拒否として扱わない。結果不明のまま候補やholdを変えず、Tokenの更新または再認可の後に、保証期間内に同じ要求・キーで確認する。
+- `rejectedWinners`の範囲外の`index`・空配列と`403 ACCESS_TOKEN_CLIENT_MISMATCH`はprotocol failureとし、候補やholdを変更しない。生の失敗応答、残高、必要額、Tokenを公開API・HTML・WebSocket・ログへ出さない。
 - Points成功後にMarkets finalizeが失敗したら、引き落としを戻さずreconcilerがforward finalizeする。経済履歴・Workflow履歴を削除しない。
 
 ### Settlement状態read
@@ -2544,7 +2546,8 @@ flowchart TD
 - Workflow各stepでのcrash/retry
 - debit／finalize各stepのtimeout・総attempt・backoff・deadline、上限時の確認待ち・audit・dedupe alert
 - 不足者除外後の同cutoff再計算
-- 利用者Token・DPoP・呼出元client assertionの不正を拒否し、固定した支払名義以外のTokenを送らない
+- 利用者Token・DPoPの不正と`client_id`の異なるTokenの混在を拒否し、固定した支払名義以外のTokenを送らない
+- 結果不明の後の再送で受けた`AUTHORIZATION_UNAVAILABLE`で候補を変えず、同じキーで確認する
 - debit成功・Markets finalize失敗から同じreceiptによるforward recovery
 - `rejectedWinners`の`index`から送信した落札者への対応付け、拒否者だけを除外した同cutoff再計算、範囲外の`index`の拒否とbrowserへの秘匿
 - debit後の自動refundなし、結果不明時の競売全体待機と同じキーでの確認

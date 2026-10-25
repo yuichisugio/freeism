@@ -140,7 +140,7 @@
     - [通信IDと二重処理防止](#通信idと二重処理防止)
     - [応答のキャッシュ](#応答のキャッシュ)
     - [APIの呼び出し経路](#apiの呼び出し経路)
-    - [セキュリティヘッダーとダウンロード](#セキュリティヘッダーとダウンロード)
+    - [セキュリティヘッダー](#セキュリティヘッダー)
     - [確認例と実装との差](#確認例と実装との差)
   - [金額表現](#金額表現)
   - [ポイント増減履歴、残高、累計評価額](#ポイント増減履歴残高累計評価額)
@@ -1179,20 +1179,23 @@ flowchart TD
 ```
 
 - 同じアカウントの再開
-  - 同じGoogle・GitHubで再びログインしたときは、元のユーザーIDに操作を制限した`CLOSED`セッションを結び、`/account/reopen`へ案内する。
+  - 同じGoogle・GitHubで再びログインしたときは、元のユーザーIDの通常のセッションを発行し、`/account/reopen`へ案内する。
+  - 業務APIと、Better Authの`hooks.before`で`pointsStatus`を確認し、`CLOSED`の本人には再開に必要な操作だけを許す。
+    - `hooks.before`の確認には標準の`/link-social`・`/unlink-account`・`/oauth2/authorize`なども含める。
   - 認証コールバックのGETでは再開しない。再開画面には、引き継ぐ残高と評価、プロフィールと設定の再登録、未受領分の受領手順を表示する。
   - 再開後は、設定画面の「未受領ポイントを受け取る」から受領できることを案内する。
   - 受取人が本人と確定している未処理分は本人認証だけで受領でき、外部宛先の受取人が未確定の分はAccountsへの再連携と照合で本人のものと確認する。
-  - 本人の明示的な`POST /api/account/reopen`で、制限付きセッションの本人を検証する。
-  - `user.pointsStatus`の`ACTIVE`への変更、固定情報の初期化、通常セッションの再発行を一括確定し、同じID・残高・累計評価額・取引記録を引き継ぐ。
+  - 本人の明示的な`POST /api/account/reopen`で、セッションの本人が`CLOSED`であることを検証する。
+  - `user.pointsStatus`の`ACTIVE`への変更と固定情報の初期化を一括確定し、同じID・残高・累計評価額・取引記録を引き継ぐ。
+  - 再開後もログイン中のセッションをそのまま使う。
   - 再開後の表示名は「仮ユーザー」、説明は空、プロフィール全体と各区画は非公開、自動分配は無効の初期状態とする。削除したプロフィールと設定は、本人が登録し直す。
   - 管理者所属は通常の追加操作で取得し直す。外部サービスとの連携と認可は、通常の認証・同意で取得し直す。
 
 ```mermaid
 flowchart TD
   A["本人が再開画面で引き継ぐ残高・評価を確認"] --> B["本人が再開のPOSTを送る"]
-  B --> C["制限付きセッションの本人を検証"]
-  C --> D["user.pointsStatusのACTIVE化・固定情報の初期化と<br/>通常セッションの再発行を一括確定"]
+  B --> C["セッションの本人がCLOSEDであることを検証"]
+  C --> D["user.pointsStatusのACTIVE化と固定情報の初期化を一括確定<br/>ログイン中のセッションはそのまま使う"]
   D --> E["同じID・残高・累計評価額・取引記録を引き継ぐ"]
   E --> F["表示名は仮名・説明は空・プロフィールは非公開<br/>自動分配は無効の初期状態"]
   F --> G["本人がプロフィール・設定を登録し直す<br/>連携・認可・管理者所属も通常の操作で取得"]
@@ -1205,7 +1208,7 @@ flowchart TD
   - 本人への帰属が未確定の評価と分配額は、宛先の受領待ちとして保持する。
   - 退会中に本人へ反映した正負の増減も残高・累計評価額・履歴へ保持し、再開時に引き継ぐ。
   - 退会で削除した自動分配の現在設定は復元せず、退会後の新しい元取引では自動分配無効として扱う。
-  - `CLOSED`セッションでは、本人によるAccounts連携や受領操作を行えない。
+  - `CLOSED`の本人はAccounts連携や受領操作を行えない。
     - 未特定宛先の分は、再開後にAccountsへ再連携して照合し、受領する。
   - 受領済みの帰属は本人に固定し、同じ評価を二重に付与しない。
   - 元取引の訂正では、保持している受領済み記録とポイント増減履歴を使って、本人と分配先へ差額を反映する。
@@ -1832,13 +1835,18 @@ flowchart TD
   - 選択した言語は、同じブラウザの同じオリジンにあるPoints全画面へ適用する。`localStorage`の`freeism-language`へ`ja`または`en`を保存する。
   - 初期言語は、保存済みの有効な選択、`navigator.languages`で最初に現れる日本語・英語、英語の順で決める。`ja-JP`・`en-US`なども対応する言語として扱う。
   - 保存値が不正、または保存領域を利用できない場合は、ブラウザの優先言語から決める。保存できない場合も画面内では切り替えられる。
+  - 選んだ言語はHeroUIの`I18nProvider`の`locale`へ渡し、`<html lang>`もそろえる。
+  - 静的生成のページは生成時の言語で最初に描画し、hydrationの後に初期言語へ切り替える。
+  - `<html lang>`は、hydrationの前に実行するスクリプトで初期言語へ更新し、`<html>`に`suppressHydrationWarning`を付ける。
 
 - 翻訳する内容
   - 利用者が登録した名前・説明・メモ・URL・IDは、入力された内容を表示する。
-  - 日時・数値の表示形式は日英共通とする。日時にはUTCを明記し、評価対象月もUTC基準とする。
+  - 日時・数値の表示形式は日英共通とし、`Intl`へ渡すロケールを表示言語によらず固定する。
+  - 日時にはUTCを明記し、評価対象月もUTC基準とする。
   - 金額の入力、CSV・APIの列名、値、計算方法は、表示言語にかかわらず既存の共通形式を使う。
   - 利用規約・プライバシーポリシーは、日本語を正本、英語を参照翻訳と明記する。
-  - 選択した言語の翻訳が欠けた文言は、もう一方の言語で表示する。翻訳の欠落は静的検査で検出する。
+  - 日英の辞書には同じ型を`satisfies`で付け、キーの不足や余分を`vp check`の型検査で検出する。
+  - 空文字の翻訳は型では検出できないため、テストで確認する。
 
 - 切替時の動作
   - 言語を切り替えても、入力内容・検索条件・ページ・確認中の結果を維持する。切替操作では登録や確定を実行しない。
@@ -1879,23 +1887,21 @@ flowchart TD
 - 一覧と切替
   - 一覧には表示名・ユーザーID・現在選択中の印を表示する。非公開プロフィールも、ログイン済み本人の切替一覧には表示する。
   - 名前順、同名ならユーザーID順に並べる。
-  - 切替後は、切替先のホームを表示する。未保存の入力や未確定の確認結果がある場合は、破棄を確認してから切り替える。
+  - 切替後は画面全体を読み込み直し、切替先のホームを表示する。未保存の入力や未確定の確認結果がある場合は、破棄を確認してから切り替える。
   - 追加ログインでも切り替わるため、未保存の入力や未確定の確認結果があれば、追加を開始する前に破棄を確認する。認証開始後は中止・失敗した場合も入力を復元しない。
-  - 切替先の残高・権限・設定を取得し直し、切替前の本人用情報を画面から消す。ブラウザに保存した表示言語は維持する。
+  - 切替前の本人用情報は読み込み直しで画面から消える。
+  - ブラウザに保存した表示言語は維持する。
   - 切替先のログインが期限切れ・失効していた場合は、一覧から外して再ログインを案内する。現在のアカウントは維持する。
-  - 外部連携の途中で切り替える場合は、連携の中止を確認する。
-  - 切替前にサーバーで、元の本人・開始セッションに属するAccounts連携用の標準OAuth stateを無効化し、成功してから切り替える。
-  - 認証コールバックでstateの有効性を検証する。
-  - 中止後に戻った応答では連携を保存せず、元の名義へ戻った場合も同じ扱いとする。
   - 退会済みアカウントへのログインは、既存の再開手順へ案内する。
 
 - 別タブとログアウト
-  - 別タブで切り替えた場合、他のタブは表示を維持する。次の操作時に変更を案内し、未確定の内容を反映せず、切替先のホームへ移動する。
+  - 別タブで切り替えた場合、他のタブは表示を維持する。次の操作時に変更を案内し、未確定の内容を反映せず、画面全体を読み込み直して切替先のホームを表示する。
   - 登録・確定要求には、入力・確認時のユーザーIDを含める。
   - サーバーは現在の認証本人のIDと照合し、不一致なら書込み前に拒否する。一致した場合も現在の権限を検証する。
   - 「このアカウントをログアウト」と「このブラウザの全アカウントをログアウト」を用意する。
   - 個別ログアウトでは他のログインを保持する。現在のアカウントをログアウトした場合は、残ったアカウントの選択画面を表示する。
   - 選択画面から未ログインの公開画面へ進める。ログインが残っていない場合も公開画面へ移動する。
+  - ログアウト後も移動先の画面全体を読み込み直す。
   - ログアウトでは、ポイントやアカウントの登録情報を保持する。
 
 ```mermaid
@@ -1912,18 +1918,18 @@ flowchart TD
 
 - 保持する情報
   - ログイン状態はBetter Authの複数セッションで管理し、一覧の表示には既存のPointsユーザー情報を使う。
-  - 一覧取得は`multiSession.listDeviceSessions`、切替は`multiSession.setActive`、個別ログアウトは`multiSession.revoke`、全件ログアウトは`signOut`を使う。
+  - 一覧取得は`multiSession.listDeviceSessions`、切替は`multiSession.setActive({ sessionToken })`、個別ログアウトは`multiSession.revoke`、全件ログアウトは`signOut`を使う。
+  - 切替・ログアウトでは、`setActive`・`revoke`・`signOut`を呼ぶ前に、`useBlocker`と同じ未保存の判定で破棄を確認する。
+  - 切替が成功したら、TanStack Routerの`router.navigate({ to: "/", reloadDocument: true, replace: true, ignoreBlocker: true })`で画面全体を読み込み直す。
+    - 破棄は確認済みなので、この遷移では`ignoreBlocker: true`で`useBlocker`の確認を省く。
   - 個別ログアウト後に標準機能が残ったセッションを選んだ場合も、本人用画面へ進まず選択画面を表示する。利用者が選んだアカウントを有効にしてからホームを表示する。
 
 ```mermaid
 flowchart TD
     A["切替・アカウント追加を選ぶ"] --> B["未保存入力・確認結果の破棄を確認"]
-    B -->|続行| C{"Accounts連携の途中か"}
-    C -->|はい| D["中止を確認し<br/>サーバーで開始時のstateを無効化"]
-    C -->|いいえ| E{"既存アカウントへ切り替えるか"}
-    D -->|無効化成功| E
+    B -->|続行| E{"既存アカウントへ切り替えるか"}
     E -->|はい| F{"切替先のログインが有効か"}
-    F -->|はい| G["切替先を有効化し本人情報を再取得<br/>ホームを表示"]
+    F -->|はい| G["切替先を有効化し<br/>画面全体を読み込み直してホームを表示"]
     F -->|いいえ| H["一覧から外して再ログインを案内<br/>現在のアカウントを維持"]
     E -->|追加| I["最大10件の上限を確認して追加ログイン"]
     I -->|成功| G
@@ -2116,12 +2122,14 @@ betterAuth({
 - アプリ全体管理者が有効化したAccountsサービスから選び、「Accountsと連携する」を押す。
 - 連携開始前に、連携後は正・負を含む未受領評価を自動で受け取り、負の評価も残高へ反映することを案内する。
 - Accountsで本人認証と情報提供への同意を行う。未登録の場合はAccountsで登録し、貢献の識別に使う外部アカウントの所有確認と提供設定を行う。
-- Pointsの認証コールバックで、サーバーが認証応答と開始時のPoints本人・セッションを検証して連携を保存する。
-- 中止済みの認証や、切替後の別の本人には連携を保存しない。
+- Pointsの認証コールバックで、Better Auth標準の処理が認証応答を検証し、開始した本人へ連携を保存する。
+  - 連携の途中でアカウントを切り替えてから認証を完了した場合も、連携は開始した本人へ保存する。
 - 提供できる外部アカウントが0件でも連携を保持する。同意拒否・認証失敗の場合は既存の連携を維持し、再試行を案内する。
 - 有効な接続先の連携には「再連携」を表示する。
-  - 再連携でも本人認証と同意を行い、同じAccountsユーザーの連携を更新する。
-  - 別のAccountsユーザーで認証した場合は再連携を拒否し、既存の連携を維持する。別ユーザーの追加は新規連携から行う。
+  - 再連携は同じ接続先で連携し直す操作とし、本人認証と同意を行う。
+  - 同じAccountsユーザーで認証した場合は、その連携を更新する。
+    - 連携ID（`account.id`）は変わらない。
+  - 別のAccountsユーザーを選んだ場合は、新しい連携として追加し、既存の連携も維持する。
 - 既に別のPoints本人へ連携済みのAccountsユーザーは追加できない。変更する場合は、元のPoints本人が解除したあと、移動先の本人が認証と同意をして連携する。
 - 連携前からPointsに登録されていた外部アカウントも、Accountsで所有確認と提供設定を行う。Pointsに保存済みの貢献とポイントは保持する。
 
@@ -2157,7 +2165,8 @@ flowchart TD
 
 ### 連携・情報更新後の自動受領
 
-- 新規連携・再連携の成功後と、「情報を更新」で情報を取得できた連携では、設定画面から受領POSTを送る。
+- 新規連携・再連携の成功後は、設定画面が「情報を更新」を実行する。
+- 「情報を更新」で情報を取得できた連携では、設定画面から受領POSTを送る。
   - 元評価と分配待ち額を対象とする。
   - 正負合計が0でも受領と帰属を確定し、未受領中の履歴を本人へ紐づける。
 
@@ -2210,7 +2219,7 @@ flowchart TD
   flowchart LR
       P["登録待ち<br/>PENDING_CLIENT_REGISTRATION"] -->|"登録内容とToken取得の検証に成功"| A["利用可能<br/>ACTIVE"]
       P -->|"検証失敗なら登録待ちを維持"| P
-      P -->|"取り下げ"| W["取り下げ済み<br/>WITHDRAWN<br/>連携・state・鍵を削除"]
+      P -->|"取り下げ"| W["取り下げ済み<br/>WITHDRAWN<br/>連携・鍵を削除"]
       A -->|"取り下げ"| W
   ```
 
@@ -2233,7 +2242,7 @@ flowchart TD
 
 - 接続先の対応機能と有効化の検証
   - メタデータは、Accountsが公開する認証方式やAPIの機能を説明した情報とする。
-  - Pointsはメタデータを取得し、`issuer`がoriginと一致することと、次の機能への対応を検証する。
+  - Pointsはメタデータを取得し、`issuer`がoriginと一致すること、`jwks_uri`があること、次の機能への対応を検証する。
 
   | 機能              | この連携での役割                                            |
   | ----------------- | ----------------------------------------------------------- |
@@ -2277,16 +2286,17 @@ flowchart TD
 
 - 取り下げ
   - 取り下げは、そのAccountsサービスとの接続を終了する操作とし、状態を`WITHDRAWN`へ変更する。
-  - 同じD1 batchで、その接続先の`providerId`を持つ標準Account行と拡張項目、Accounts連携用の標準OAuth stateを削除し、接続先レコードの秘密鍵の保存列を空にする。
+  - 同じD1 batchで、その接続先の`providerId`を持つ標準Account行と拡張項目を削除し、接続先レコードの秘密鍵の保存列を空にする。
+  - 取り下げた接続先はGeneric OAuthのproviderとして登録しないため、進行中の連携のコールバックは標準のエラーで失敗する。
   - `WITHDRAWN`は終端の状態とし、再利用するときは同じoriginで新しい接続先を作る。
     - ユーザーは新しい接続先で、本人認証と情報提供への同意から連携し直す。
 
-  | 削除する情報              | 保持する情報                       |
-  | ------------------------- | ---------------------------------- |
-  | その接続先のユーザー連携  | Pointsの確定済み評価・ポイント     |
-  | 進行中の連携用OAuth state | 評価と受領の履歴に残る接続元origin |
-  | 暗号化した秘密鍵          | Accounts側の情報提供設定           |
-  |                           | `WITHDRAWN`の接続先レコード        |
+  | 削除する情報             | 保持する情報                       |
+  | ------------------------ | ---------------------------------- |
+  | その接続先のユーザー連携 | Pointsの確定済み評価・ポイント     |
+  | 暗号化した秘密鍵         | 評価と受領の履歴に残る接続元origin |
+  |                          | Accounts側の情報提供設定           |
+  |                          | `WITHDRAWN`の接続先レコード        |
 
 - 入力・状態・通信のエラー
   - 次のエラーは、失敗した入力や処理を管理画面で確認できるようにする。
@@ -2346,59 +2356,67 @@ flowchart TD
   - Bへ再連携するとBの行を更新し、Bだけを解除するとGoogleとCの行は残る。
   - 標準Accountの識別方法と管理操作は[ユーザー・アカウント管理](https://better-auth.com/docs/concepts/users-accounts#accounts)、保存前の処理は[DBフック](https://better-auth.com/docs/concepts/database#database-hooks)を参照する。
 
-- 連携の開始と認証情報の管理
-  - 連携開始は本人認証を要求する`POST /api/accounts-links/attempts`とし、Better Authの標準`linkSocial`とGeneric OAuthを使う。
-    - [Generic OAuth公式資料](https://better-auth.com/docs/plugins/generic-oauth)
+- 連携の開始とstate
+  - 画面はBetter Auth標準の`authClient.linkSocial({ provider: "accounts-{connectionId}", callbackURL, errorCallbackURL })`を直接呼んで、連携を始める。
+    - 標準の`/link-social`は、ログイン済みの本人だけが呼べる。[Generic OAuth公式資料](https://better-auth.com/docs/plugins/generic-oauth)
   - Accountsの認証元は、ログイン済み本人への明示連携に限って使う。
-  - 標準の`user.validateUserInfo`とフックで、Accountsの通常ログインと新規登録を拒否し、開始情報を検証できる連携だけを許可する。[検証フックの公式資料](https://better-auth.com/docs/concepts/users-accounts#callbacks)
+  - 標準の`user.validateUserInfo`とフックで、Accountsの通常ログインと新規登録を拒否する。[検証フックの公式資料](https://better-auth.com/docs/concepts/users-accounts#callbacks)
   - `disableSignUp: true`、`accountLinking.disableImplicitLinking: true`、`allowDifferentEmails: true`、`updateUserInfoOnLink: false`を使い、対象のAccounts認証元を`trustedProviders`へ含める。
-  - 開始要求はJSONとし、`application/json`以外は`415 JSON_CONTENT_TYPE_REQUIRED`を返す。
-  - サーバーは、開始時のユーザーID・セッションID・接続先IDを、標準OAuth stateのサーバー側情報へ結び付ける。
-  - 再連携では、更新対象の連携IDも結び付ける。
-  - この情報はサーバーが本人認証と接続先の検証後に設定し、ブラウザからの入力で上書きできないようにする。
-  - stateはBetter Authの標準verificationレコードとしてD1へ保存し、nonceとcode verifierも標準の保存情報を使う。
-  - 連携は10分以内に、開始時と同じ本人・セッションで一度だけ完了できる。
+  - stateには、連携を開始した本人（`link.userId`）を標準の`linkSocial`が固定する。
+    - コールバックではstateに固定した本人へ連携を保存する。
+    - stateはBetter Authの標準verificationレコードとしてD1へ保存し、nonceとcode verifierも標準の保存情報を使う。
+    - stateは一回限りで、標準の期限で失効する。
+    - 重複した応答では連携を再保存しない。
   - 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。
   - 再連携でもAccountsの同意画面を表示する。
   - Accountsは登録済みの固定コールバックへ戻し、テスト環境ではOAuth Proxyを経由して開始元のPointsへ復帰する。
 
 - 認証結果の検証と連携の保存
-  - Generic OAuthの認可コード交換では、標準stateのcode verifier・nonce・接続先を照合し、`private_key_jwt`とDPoP proofを付ける。
-  - DPoP nonceを要求された場合は、そのnonceを付けて再試行する。
-  - ID Tokenは、AccountsのJWKSによる署名と`iss`・`aud`・`exp`・`iat`・`nonce`を検証する。
+  - Generic OAuthの`discoveryUrl`には接続先のメタデータのURLを指定し、`requireIdTokenVerification: true`とする。
+  - 認可コード交換とID Tokenの検証はGeneric OAuthの標準処理に任せる。
+    - PKCE（S256）は既定で有効とする。
+    - nonceの照合はJWKSのある接続先で既定で有効になる。
+    - ID Tokenの署名・`iss`・`aud`・`exp`・`iat`は、標準処理が検証する。
+    - コールバックの`iss`がメタデータの`issuer`と一致しない場合は、標準のエラー`issuer_mismatch`で失敗する。
+  - トークン要求には`tokenEndpointAuth: { method: "custom", customizeRequest }`を使い、次の値を付ける。
+    - custom方式では`client_id`が自動で付かないため、`client_id`を付ける。
+    - `better-auth/oauth2`の`signPrivateKeyJwtClientAssertion`で、署名用の鍵から`client_assertion`を作って付ける。
+      - EdDSAで署名し、`expiresIn: 60`で有効期間を約60秒にする。
+      - `client_assertion_type`には標準の`CLIENT_ASSERTION_TYPE`を付ける。`client_assertion`だけを付けると、Better Authがトークン要求の前に例外を投げる。
+    - DPoP用の鍵でDPoP proofを作り、`DPoP`ヘッダーに付ける。
+      - proofはjoseなどで作る。
+  - `getUserInfo`は、標準処理が先に検証したID Tokenから`sub`などを返す。
+    - 標準のuserinfo取得はBearerで送るため、DPoPに結び付いたトークンでは使えない。
+    - `accountSubject`は`sub`とする。
   - Accountsユーザーは、接続先originと検証済みの`sub`で識別する。
-  - 開始元Pointsのコールバックで、標準stateの有効性、開始時と現在のPoints本人・セッションの一致、接続先と認証元の対応、接続先が有効であることを確認する。
-  - 再連携では、対象Account行が開始時の本人に属し、認証結果のoriginと`sub`がその行と一致することも検証する。
-  - 一致しなければ連携を変更せず、別ユーザーの追加には新規連携を案内する。別のPoints本人に連携済みのAccountsユーザーも保存しない。
-  - これらの検証は標準Accountの作成・更新前に行い、失敗した場合は連携行と拡張項目を変更しない。
-  - すべての検証に成功したら、標準`linkSocial`のコールバック処理でAccount行を作成または更新し、その行を連携として保持する。
-  - 同じ本人へ連携済みなら既存の連携ID・初回日時・取得済み一覧を保つ。
   - Better Auth内部のメール属性は、originと`sub`から決定的に生成する。
-  - stateの消費は標準処理に従い、重複した応答による連携の再保存を防ぐ。
-  - 本人が連携を中止するときは、本人・開始セッションに対応するAccounts連携用の標準stateをサーバーで無効化する。
-  - アカウント切替時の中止も、[複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)に従う。
+  - 検証に成功したら、標準`linkSocial`のコールバック処理が、開始した本人のAccount行を作成または更新する。
+    - 同じAccountsユーザーの行があれば更新し、連携ID・初回日時・取得済み一覧を保つ。
+    - 別のPoints本人に連携済みのAccountsユーザーで認証した場合は、標準のエラー`account_already_linked_to_different_user`で失敗する。
+    - 標準の連携処理がAccount行へトークンを保存しようとするため、[Better Auth共通設定](#better-auth共通設定)の保存前の標準フックでトークンを保存対象から除く。
+  - 検証に失敗した場合は、連携行と拡張項目を変更しない。
 
 - 完了後の画面とエラー
-  - 連携保存後は、標準のリダイレクトで`/settings/connections?accountsLinkResult=LINKED&id={id}`へ直接戻す。`id`には保存した標準Account行の`account.id`を使う。
-  - 新規連携・再連携のどちらも、保存したAccount行を対象に外部アカウント情報を取得する。
-  - 設定画面は保存した連携を対象に、自動受領POSTを送る。
-  - コールバックの応答は`Cache-Control: no-store`とする。
-  - 失敗時は`accountsLinkError={code}`を付けて設定画面へ戻す。
-  - stateの不一致・中止・期限切れ・再使用、開始時の本人・セッションとの不一致、再連携対象と認証結果の不一致は、`ACCOUNTS_LINK_ATTEMPT_INVALID`とする。
-  - 別のPoints本人への連携済みは、`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`とする。
-  - OAuth Proxyでの認可・検証失敗のうち、上記の個別エラーに該当しないものは`ACCOUNTS_UNAVAILABLE`として表示する。
-  - `error=access_denied`が同時に返る場合は、同意拒否として表示する。
-  - 開始時または保存時の接続先無効は、`ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。
+  - 連携保存後は標準のリダイレクトで`callbackURL`の`/settings/connections?accountsLinkResult=LINKED`へ戻る。
+  - 戻った設定画面は[連携・情報更新後の自動受領](#連携情報更新後の自動受領)へ進む。
+  - 失敗時は、標準の処理が`errorCallbackURL`の設定画面へ、クエリ`error=`を付けて戻す。
+    - 再使用・重複した応答のようにstateを特定できない失敗は、Better Authの`onAPIError.errorURL`に指定した設定画面へ戻す。
+    - `linkSocial`の開始要求そのものが失敗した場合は、その応答のエラーを設定画面に表示する。
+  - 画面は`error`の値で表示を分ける。
+    - `state_mismatch`などのstateのエラーは`ACCOUNTS_LINK_ATTEMPT_INVALID`として表示する。
+    - `account_already_linked_to_different_user`は`ACCOUNTS_USER_LINKED_TO_OTHER_POINTS_USER`として表示する。
+    - `access_denied`は同意拒否として表示する。
+    - それ以外は`ACCOUNTS_UNAVAILABLE`として表示する。
 
 ```mermaid
 flowchart TD
-    A["有効な接続先で連携・再連携を開始"] --> B["Points本人・セッション・接続先を<br/>標準stateへ結び付ける"]
+    A["画面が標準のlinkSocialで<br/>連携・再連携を開始"] --> B["開始した本人を固定した標準stateを保存"]
     B --> C["Accountsで本人認証と情報提供へ同意"]
-    C --> D["認証応答とstateを検証<br/>10分以内・同じ本人とセッションか確認"]
-    D --> E{"接続先・標準Userの本人・再連携対象も有効か"}
-    E -->|いいえ| F["連携を変更せず失敗を案内"]
-    E -->|はい| G["標準accountへ連携を保存<br/>idは連携行・userIdは本人のuser.id<br/>同じ連携のidと初回日時を保持"]
-    G --> H["設定画面へ戻り外部情報を取得"]
+    C --> D["Generic OAuthの標準処理で<br/>state・iss・PKCE・nonce・ID Tokenを検証"]
+    D --> E{"検証に成功し<br/>別のPoints本人へ連携済みでないか"}
+    E -->|いいえ| F["連携を変更せず<br/>標準のerrorを付けて設定画面へ戻る"]
+    E -->|はい| G["開始した本人の標準accountへ連携を保存<br/>idは連携行・userIdは本人のuser.id<br/>同じAccountsユーザーならidと初回日時を保持"]
+    G --> H["設定画面へ戻り「情報を更新」を実行"]
     H --> I["取得成功した連携の自動受領へ進む<br/>取得失敗でも連携は保持"]
 ```
 
@@ -2418,8 +2436,10 @@ flowchart TD
 - 実装時の確認
   - 現在の実装との差は、Accounts連携の保存先、独自の連携試行・完了処理、受領時の参照先、一覧表示時の情報取得にある。
   - 標準Accountの拡張項目と標準stateを使い、検証済みのコールバック内で初回連携・再連携を完了できることを確認する。
-  - 同じサービスの複数ユーザー、別本人への重複連携拒否、再連携時の同意・対象一致・一覧維持を確認する。
-  - AccountsでPointsへログインできず、中止・期限切れ・本人切替・保存前の検証失敗で連携が変更されないことを確認する。
+  - customのトークン要求でAccountsが認可コードを交換でき、`getUserInfo`が検証済みのID Tokenから`sub`を返すことを確認する。
+  - 同じサービスの複数ユーザー、別本人への重複連携拒否、再連携時の同意と一覧維持、再連携で別のAccountsユーザーを選んだ場合の新しい連携を確認する。
+  - AccountsでPointsへログインできず、期限切れ・再使用のstateや保存前の検証失敗で連携が変更されないことを確認する。
+  - 連携の途中で本人を切り替えた場合も、開始した本人へ連携が保存されることを確認する。
   - 解除・退会・接続先取り下げは、対象のAccounts行と拡張項目だけを削除し、Google・GitHubの認証元対応、Points本人、評価・ポイントを保持することを確認する。
   - 受領・CSV照合・公開プロフィールは標準Accountから本人を特定し、解除後も確定済み記録を保持することを確認する。
   - 情報提供あり・空の一覧・提供取消・初回取得失敗・再取得失敗を区別し、新規連携・再連携の両方で情報取得と自動受領へ進むことを確認する。
@@ -2521,7 +2541,8 @@ flowchart TD
   - 直接登録した構成要素を登録順に並べ、1ページ20件表示する。次・前のページへ移動できるようにする。
   - 公開要素には種類・名前・ID・プロフィールへのリンク・利用状態・割合を表示する。停止中の公開要素も表示する。
   - 割合は全構成に対する分数と百分率を併記し、非公開要素を除いて計算し直さない。
-  - 百分率は小数4桁まで四捨五入する。丸めた場合は「約」を付け、例えば「1/3・約33.3333％」と表示する。
+  - 百分率は`Intl.NumberFormat`の`style: "percent"`で表示し、`maximumFractionDigits: 4`を明示して小数4桁まで四捨五入する。
+  - 丸めた場合は「約」を付け、例えば「1/3・約33.3333%」と表示する。
   - 非公開要素は「匿名Aの評価軸」「匿名Bのパッケージ」などの匿名名と割合を表示する。実名・実ID・リンク・非公開の子構成は、公開画面とAPIの表示用区画に含めない。
   - 匿名名は全構成の表示順に基づいて応答時に生成し、ページ移動でも同じ構成順の名前を使う。永続的な匿名IDは保存しない。
   - 全要素が非公開でも、構成区画に匿名名と割合を一覧表示する。
@@ -2768,7 +2789,7 @@ flowchart TD
   - 必要額0の行も含め、一つでも停止中なら全件を引き落とさない。
   - 評価軸の公開範囲は精算の許可条件に含めない。
 
-- 利用者・クライアントの認証と権限、各対象の存在、非負の金額、軸の重複、金額精度、残高も検証する。
+- 各落札者のトークン・DPoP署名と権限、各対象の存在、非負の金額、軸の重複、金額精度、残高も検証する。
   - 存在しない評価軸による新しい精算は拒否する。
   - Workerが受け取った必要額を検査し、同じ本人・評価軸ごとの合計と引き落とし後の残高を正確に計算する。共通の原子処理で引き落とす。
 
@@ -3242,7 +3263,7 @@ flowchart TD
   - 本人データのJSON出力、設定の復元・コピーと、参照用の取引記録の扱いを説明する。
 
 - `/docs/api`は外部連携用APIを説明する。
-  - 説明と例は、Pointsが管理するOpenAPIと、提供中の認証・権限仕様に合わせる。
+  - 説明と例は、Pointsが生成するOpenAPIと、提供中の認証・権限仕様に合わせる。
   - OAuth、必要な権限、入力・応答・エラー、要求・応答例を掲載する。
   - 公開情報の取得と、利用者の認可が必要な操作を区別する。
   - 利用者認可付きAPIには、既存仕様のDPoP認証と一致する説明・例を掲載する。
@@ -3261,16 +3282,19 @@ flowchart TD
 - ドキュメント画面の検索欄で、選択中の言語の見出し・本文を全文検索できる。
 - 検索対象は、目次・理念・操作説明・API説明の4ページとする。
 - 結果にはページ名・章名・本文の抜粋を表示し、選択すると該当する章へ移動する。
-- 検索索引はビルド時に生成し、ブラウザで検索する。
+  - 章へ移動するための見出しのidは、react-markdownの`components`で`h2`・`h3`に付ける。
+- 検索を始めたときに本文を遅延読み込みし、ブラウザで検索する。
+  - 読み込みにはViteの`import.meta.glob()`へ`{ query: '?raw', import: 'default' }`を指定する。[Vite公式資料](https://vite.dev/guide/features#glob-import)
 - 結果0件と検索データの取得失敗を区別して表示する。
+  - 本文の遅延読み込みに失敗した場合を、検索データの取得失敗とする。
 
 ```mermaid
 flowchart TD
   A["利用者：ドキュメントのページ・章を開く"] --> B["選択言語で表示<br/>未ログインでも閲覧できる"]
   B -- 言語切替 --> C["同じページ・章の別言語を表示"]
   C --> B
-  B -- 全文検索 --> D["選択言語の検索索引を取得"]
-  D --> E{"取得に成功した？"}
+  B -- 全文検索 --> D["選択言語の本文を遅延読み込み"]
+  D --> E{"読み込みに成功した？"}
   E -- いいえ --> F["検索データの取得失敗を表示"]
   E -- はい --> G["ブラウザで見出し・本文を検索"]
   G --> H{"該当する章がある？"}
@@ -3312,10 +3336,10 @@ flowchart TD
 ```mermaid
 flowchart TD
   A["リポジトリの日英Markdownと依存情報"] --> B["ビルド"]
-  B --> C["文書4ページを静的生成<br/>検索索引を生成"]
+  B --> C["文書4ページを静的生成"]
   B --> D["Viteのbuild.licenseで依存ライセンスJSONを生成"]
   D --> E["ライセンス本文を取得できた依存から<br/>一覧と原文を含む静的HTMLを生成"]
-  C --> F["配信して文書・検索索引・ライセンス画面を更新"]
+  C --> F["配信して文書・ライセンス画面を更新"]
   E --> F
   F --> G["文書はUTCの最終更新日を表示<br/>ライセンス原文はdetailsで開閉"]
 ```
@@ -3350,16 +3374,14 @@ flowchart TD
 
 - TanStack Start・TanStack Routerで、画面遷移と静的生成を扱う。両方とも導入済みである。
   - 更新時は、Startが要求するRouter・Vite・Node.jsの版へそろえる。
+  - `navigate({ reloadDocument: true })`の遷移で離脱確認が二重にならない版（`@tanstack/router-core` 1.171.32以上）を使う。
   - 検索条件・ページ・タブは、[Router標準の検索パラメータ](https://tanstack.com/router/latest/docs/guide/search-params)で管理する。
   - URLから条件を復元し、共有・再読み込み・詳細画面からの復帰に対応する。
 
 - TanStack QueryでAPIから取得したデータと、更新後の再取得を管理する。
   - 依存は導入済みとし、画面への適用は導入予定とする。
   - 検索条件・ページなど、取得結果を変える条件を`queryKey`へ含める。[公式資料](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)
-  - 閲覧者によって結果が変わる取得では、`queryKey`に現在のユーザーIDも含める。
   - 取得処理の`queryFn`から渡される`signal`を`fetch()`へ渡し、検索条件の変更などで不要になった通信を中止できるようにする。[公式資料](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)
-  - アカウント切替時は、`cancelQueries()`で切替前の本人用の取得を中止し、`removeQueries()`でその本人用データを除去する。[QueryClientの公式資料](https://tanstack.com/query/latest/docs/framework/react/reference/classes/QueryClient)
-  - その後、切替先の残高・権限・設定を取得し直す。
   - 画面からの更新・確定処理は`retry: false`とし、本人の再試行操作で送る。
   - 取得の中止と、確定済みの業務処理の取消を区別する。
   - 画面内の取得データはメモリ上で管理し、HTTP応答の保存条件とは区別する。
@@ -3374,8 +3396,11 @@ flowchart TD
   - 通常の入力欄は`defaultValues`を設定し、`formState.isDirty`で未保存の変更を判定する。[公式資料](https://react-hook-form.com/docs/useform/formstate)
   - ファイルの選択状態と、未確定の確認結果は別に管理する。
 
-- 入力の破棄確認が必要なRouter内の画面遷移は、TanStack Router標準の`useBlocker`で扱う。[公式資料](https://tanstack.com/router/latest/docs/guide/navigation-blocking)
-  - アカウント切替や外部認証の開始では、本人や入力状態を変える前に、操作開始時の破棄確認を行う。
+- 入力の破棄確認はTanStack Router標準の`useBlocker`にまとめる。[公式資料](https://tanstack.com/router/latest/docs/guide/navigation-blocking)
+  - `enableBeforeUnload: () => isDirty`で、未保存の入力があるときだけ、再読み込みやタブを閉じる操作にブラウザ標準の離脱確認を出す。
+  - アカウント切替・ログアウトでは、本人を変える前に、`useBlocker`と同じ未保存の判定で破棄を確認する。
+  - 外部認証の開始ではBetter Authのクライアントが画面を移動するため、破棄の確認はブラウザ標準の離脱確認で行う。
+  - `reloadDocument`の遷移は、ブラウザ標準の離脱確認と二重にならない。
 
 - フォーム・CSV・JSON復元・APIで、同じ意味の入力項目には共通のValibot検証定義を使う。
   - 入力形式ごとの解析を終えてから、項目の型・必須条件・文字数・バイト数などを検証する。
@@ -3386,7 +3411,7 @@ flowchart TD
   - 検証で見つかった問題は、共通の入力エラー形式へ変換する。
   - CSVでは行番号と列名も付ける。
 
-- 金額の検証後の計算・集計・表示には、導入予定の`bignumber.js`を使う。
+- 金額の検証後の計算・集計には導入予定の`bignumber.js`、画面の表示には標準の`Intl.NumberFormat`を使う。
   - 金額の共通処理で十進数文字列を受け渡し、業務上の丸めと表示を分ける。[公式API](https://mikemcl.github.io/bignumber.js/)
 
 - Markdownの表示には、導入済みのreact-markdownを使う。
@@ -3400,14 +3425,18 @@ flowchart TD
 
 ### CSV・ファイル・日時
 
-- CSVの構文解析にはPapa Parseを導入する。
+- サーバーでのCSVの構文解析にはPapa Parseを導入する。
 
 - ファイル選択と保存には、導入済みのブラウザ標準機能を使う。
   - 選択はボタンと`<input type="file">`で行う。
   - サーバーからのJSONダウンロードと、ブラウザ内の`Blob`・オブジェクトURL・ダウンロードリンクを使う。
 
-- 日付の比較・加算・表示には、導入済みの標準`Date`のUTC機能を使う。
+- 日付の比較・加算には導入済みの標準`Date`のUTC機能を使う。
   - 評価対象月や日時の表示・入力は、UTCを基準とする共通仕様に合わせる。
+
+- 日時の表示には標準の`Intl.DateTimeFormat`を使う。[MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+  - `timeZone: "UTC"`、`timeZoneName: "short"`、`hourCycle: "h23"`を指定し、年・月・日・時・分を表示する。
+  - `dateStyle`は`timeZoneName`と同時に指定できないため、年・月・日・時・分は項目ごとに指定する。
 
 ### バックエンド・認証・配信
 
@@ -3415,10 +3444,15 @@ flowchart TD
   - 型で値の扱いを確認し、読める人が多い言語で実装するため採用する。
 
 - バックエンドのHTTP処理には、導入済みのHonoを使う。
+  - `app.query()`と`methodNotAllowed()`に対応するHono 4.13以上を使う。
   - 軽さ・速さと、HTTP処理の読みやすさを重視して採用する。
   - HTTP処理を読みやすくまとめ、外部から呼ぶAPIもHTTPのエンドポイントとして提供する。
   - APIはREST形式とし、HTTPのメソッドとURLでリソースの取得・更新を扱う。
   - GraphQLとの比較では、実装の単純さを重視してRESTを採用する。
+
+- OpenAPIの生成には導入予定のhono-openapiを使う。[公式資料](https://github.com/rhinobase/hono-openapi)
+  - Valibotの定義は`@valibot/to-json-schema`でJSON Schemaへ変換する。
+  - 要求の検証には`@hono/standard-validator`の`sValidator()`を使う。
 
 - 配信と保存には、導入済みのCloudflare Workers・Static Assets・D1を使う。
   - Workersは画面の配信処理とAPI、Static AssetsはHTML・JavaScript・CSSなど、D1はデータベースを担当する。
@@ -3430,17 +3464,24 @@ flowchart TD
   - Drizzle ORMとKitも、adapterと相互に互換性がある最新安定版へそろえる。
   - [公式の`better-auth/minimal`](https://better-auth.com/docs/installation)を使い、adapterをDrizzleに絞って未使用のKysely adapterを除いたWorkerのバンドルを構成する。
   - OAuth Provider・JWT・OAuth Proxy・Accounts向けGeneric OAuthは導入済みである。
+    - Accounts向けGeneric OAuthには、OAuth Proxy経由のコールバックでも標準と同じ`iss`・nonceの検査を行うBetter Auth 1.7.12以上を使う。
   - Admin・Organization・Multi Sessionは導入予定とし、管理権限と複数アカウントの切替を標準プラグインで扱う。
   - 公式の`@better-auth/i18n`は導入予定とし、認証エラーの翻訳を[多言語の共通仕様](#多言語に対応)に従って扱う。
-  - 外部OAuthの処理・検証には、導入済みのoauth4webapiも使う。
+  - AccountsのClient CredentialsによるAccess Tokenの取得には、導入済みのoauth4webapiを使う。
   - CLIで認証スキーマを生成するため、`src/backend/infrastructure/auth/auth-cli.ts`で認証インスタンスをエクスポートする。
     - 実行時と同じ認証インスタンス生成処理と共通設定を使う。
     - Pointsのプロジェクト直下で、`pnpm exec auth generate --config src/backend/infrastructure/auth/auth-cli.ts --adapter drizzle --dialect sqlite --output src/backend/infrastructure/db/schema/auth.ts --yes`を実行する。
   - 更新時は一時ファイルへ認証スキーマを生成して差分を確認し、必要なD1マイグレーションへ既存のindexと独自制約を引き継ぐ。
 
-- 環境変数の検証には、`@t3-oss/env-core`を導入する。
-  - サーバー用とクライアント用を分け、型と必須値を検証する。
-  - 検証する値の制約はValibotで定義する。[公式資料](https://env.t3.gg/docs/core)を参照する。
+- 必須のsecretと`Env`の型はWranglerの標準機能で管理する。
+  - 必須のsecretはWrangler設定の`secrets.required`へ環境ごとに列挙する。[公式資料](https://developers.cloudflare.com/workers/configuration/secrets/)
+    - `secrets.required`を宣言すると、ローカル開発では列挙したキーだけを読み込む。
+  - `wrangler deploy`と`wrangler versions upload`は、必須のsecretがなければ失敗する。
+  - ローカル開発では、Cloudflare Vite pluginを使う場合も、不足は警告だけになる。
+  - PRプレビューの`wrangler preview`は`secrets.required`を検証しない。
+  - `Env`の型は`wrangler types`で生成し、CIでは`wrangler types --check`で古い型を検出する。[公式資料](https://developers.cloudflare.com/workers/languages/typescript/)
+  - 値の形式は必要な項目だけアプリ側で検証する。
+    - `BETTER_AUTH_SECRETS`のバージョン付きの鍵の一覧や、`ACCOUNTS_KEY_ENCRYPTION_KEY`の32バイトの値などを検証する。
 
 - 開発・ビルドとCloudflareの接続には、導入済みのCloudflare Vite pluginとWranglerを使う。
   - 両方を、プラグインが要求する版の条件を満たす組合せで更新する。
@@ -3537,7 +3578,8 @@ flowchart TD
 
 - file-saverとreact-dropzoneの役割は、ブラウザ標準のファイル選択・保存へまとめる。
 - ts-pruneの未使用export検査は、ファイル・依存も検出するKnipへまとめる。
-- Day.jsの日付処理は、標準`Date`のUTC機能へまとめる。
+- Day.jsの日付処理は標準`Date`のUTC機能と`Intl.DateTimeFormat`へまとめる。
+- t3-envの役割はWranglerの`secrets.required`と`wrangler types`へまとめる。
 
 ### v0.2.1の対象外・今後の検討
 
@@ -3623,6 +3665,7 @@ flowchart TD
   - 出力日時は取得の開始日時とし、全データがその時点に揃っていることを示す値にはしない。
   - 上限超過・取得失敗・通信失敗では出力全体を失敗とする。上限を超える場合は、JSONを出力せずエラーを返す。
   - ブラウザは受信が成功した場合だけ、一つのJSONファイルを保存する。
+    - `fetch()`の応答では`Content-Disposition`が使われないため、受信した本文を`Blob`と`URL.createObjectURL()`で保存し、保存名は`<a download>`の値で指定する。
   - 取得中・完了・失敗を区別して表示する。
 
 ```mermaid
@@ -3664,6 +3707,7 @@ flowchart TD
   - JSONに含まれるOAuth設定は、通常の登録・更新画面へ読み込む。その他の設定を復元する一括確定とは別に、本人が確認して保存する。
   - 別途OAuth設定の保存に失敗した場合も、確定済みの設定復元の結果は保持する。
   - 同じサービスの既存クライアントを更新する場合、その対象の`oauthClientAdmin`または`appAdmin`の権限を確認する。
+    - 既存クライアントの更新では、JSONの公開鍵を反映せず、紹介URLも削除しない。公開鍵の更新は標準の`rotate-keys`で行う。
   - 存在しないクライアントや別サービスへの移行では、新規登録画面へ読み込む。別本人によるコピーでも、元の管理権限を引き継がず、新しいクライアントとして登録する。
   - 新規登録後は新しいClient IDを表示し、外部アプリ側の接続設定の更新を案内する。
   - 保存時は通常の登録・更新条件と、一つのクライアントの管理者20人、本人が管理者として登録できるクライアント5件の上限を検証する。
@@ -3672,7 +3716,7 @@ flowchart TD
 - 確認・API・確定
   - 本人の設定画面に「JSONを出力」と「設定を復元」を設ける。
   - `QUERY /api/data-export`は、Cookieセッションまたは`points` scopeのOAuth認証から本人を検証し、JSON本文`{}`で全対象データを返す。
-  - 応答は`application/json`、`Cache-Control: private, no-store`とし、ダウンロード用のファイル名を付ける。
+  - 応答は`application/json`とする。
   - `QUERY /api/settings/restore/validate`は、設定を検証し、元IDと新IDの対応、処理順序、作成・更新対象と更新対象の現在version、復元後の参照・割合を返す。
   - ブラウザは、この応答のうち新IDの対応と処理順序、更新対象の現在version、確認画面に表示した重要な対象・条件を確認結果として保持する。
   - OAuth設定は、通常の登録・更新画面で別途保存する項目として表示する。復元APIの一括保存対象は、それ以外の設定とする。
@@ -3719,7 +3763,7 @@ flowchart TD
 - 各操作の画面から、一つのCSVファイルを選ぶ。
   - 評価軸・パッケージの作成・更新・停止・再開・完全削除、直接評価の登録、月別評価方式の設定・再計算、交換倍率の設定・削除、ポイント譲渡・交換を対象とする。
   - 操作ごとにテンプレート、入力例、各列の説明を用意する。
-  - ファイル選択後のブラウザ内の確認表示は入力の補助とし、サーバーが受け取ったファイルを検証して判断する。
+  - ファイルを選んだ後は、サーバーの検証（QUERY）の結果を表示する。
 
 - 入力エラーは、利用者がファイルを修正して選び直す。
   - 画面には、該当する行・列・理由と修正方法をまとめて表示する。
@@ -3755,7 +3799,7 @@ flowchart TD
   - 列名の重複・不足・未定義の列と、見出しと異なる列数のデータ行を拒否する。
   - 列名と状態などの入力値は、表示言語によらず定義した表記を使う。
 
-- 解析には、ブラウザとサーバーでPapa Parseを使う。
+- 解析にはサーバーでPapa Parseを使う。
   - `delimiter`をカンマ、`header`と`dynamicTyping`を`false`にし、行とセルの配列として読み取る。
   - 見出しはPoints側で検証して列名から対応付ける。
   - 空行の判定は解析後に行い、元の行番号を維持する。
@@ -3843,7 +3887,7 @@ flowchart TD
 
 - 全操作を、サーバーでの検証・計算、利用者による確認、明示的な確定の順に進める。
   - ブラウザは、CSVの検証要求をQUERYで送る。
-  - サーバーはファイルを解析し直し、列・値・参照先・権限・更新番号・宛先の照合・金額と分配を検証する。
+  - サーバーはファイルを解析し、列・値・参照先・権限・更新番号・宛先の照合・金額と分配を検証する。
   - 構文が壊れているファイルは、解析エラーとして受け付けない。
   - 解析できた場合は全行の入力を検査し、エラーを`row`で表す行番号、`field`で表す列名、安定した`code`、修正可能な説明付きでまとめて返す。
   - 行番号は見出しを1行目とするCSV解析後の行番号とし、途中の空行を無視しても番号を詰めない。
@@ -4089,7 +4133,11 @@ flowchart TD
   - DBの`evaluation_total`に対応する項目名は、APIでは`evaluationTotal`とする。
 
 - 他サービスとの契約には、OpenAPIから生成したクライアントの型を使う。
+  - OpenAPIはhono-openapiの`describeRoute()`・`validator()`・`generateSpecs()`で、Honoの経路とValibotの定義から生成する。
+  - hono-openapiの`validator()`は内部で`sValidator()`を使うため、[HTTPメソッドと入力](#httpメソッドと入力)の入力検証と同じ処理になる。
   - QUERYは[OpenAPI 3.2](https://spec.openapis.org/oas/v3.2.0.html#path-item-object)の`query`操作で定義し、`requestBody`には各APIが受け付ける本文形式を指定する。
+  - `defaultValidationErrorResponse: false`とし、400・422の応答は`describeRoute()`の`responses`に書く。
+  - multipartのファイル項目はValibotの変換で出力に残らないため、`describeRoute()`の`requestBody`に書く。
   - PointsとMarketsのバックエンドの型は、それぞれのサービス内で管理する。
 
 ### バックエンドのファイルと型
@@ -4137,7 +4185,7 @@ flowchart TD
 
 - OAuthの項目名・値、JWTのclaim、RFCで定めるヘッダー、Better Authの生成スキーマは標準の名前を維持する。
 - Cloudflareのバインディングと設定項目は、公式スキーマの名前を維持する。
-- 生成したOpenAPIクライアントは、元の定義から再生成して更新する。
+- 生成したOpenAPIクライアントは、Honoの経路から生成したOpenAPIをもとに再生成して更新する。
 - ライブラリが発行するIDは、そのライブラリの規則に従う。
 - 例外を加える場合は、理由と根拠を近くのコメントか仕様へ記録する。
 
@@ -4425,10 +4473,18 @@ flowchart TD
 - 標準対策と適用範囲
   - Cookie・セッション・CSRF・Origin・Fetch Metadata・OAuth state・PKCEの対策は、[Better Authの公式セキュリティ仕様](https://better-auth.com/docs/reference/security)を基準とする。
   - 要求の許可・拒否は標準処理の適用条件と判定に従う。
-  - `disableCSRFCheck=false`、`disableOriginCheck=false`とし、標準の検査を有効にする。
-  - 認証APIでは、Better Authの標準処理を使う。
-  - Cookieで本人認証するPoints独自APIの要求元検査には`better-auth/api`で公開される`originCheckMiddleware`を標準の適用条件で使う。
-  - Honoの要求とBetter Authの認証コンテキストを共通の接続処理から標準の要求元検査へ渡す。
+  - 認証API（`/api/auth/*`）ではBetter Authの標準処理を使う。
+    - `disableCSRFCheck=false`、`disableOriginCheck=false`とし、標準の検査を有効にする。
+  - Points独自API（`/api/auth/*`を除く`/api/*`）の要求元検査には、Hono標準の`csrf()`（`hono/csrf`）を使う。[公式資料](https://hono.dev/docs/middleware/builtin/csrf)
+    - `GET`・`HEAD`・`OPTIONS`以外（QUERYを含む）で、`Content-Type`が`application/x-www-form-urlencoded`・`multipart/form-data`・`text/plain`の要求を検査する。
+    - `Content-Type`がない要求も`text/plain`として検査する。
+    - `Sec-Fetch-Site: same-origin`か、`Origin`が要求URLのoriginと一致すれば通し、それ以外は403で拒否する。
+    - 拒否で投げられる`HTTPException(403)`は、`app.onError()`で`403 REQUEST_ORIGIN_REJECTED`のProblem Detailsへ変換する。
+    - 認証・権限のミドルウェアは、応答のコードを持たせた`HTTPException`を投げ、`csrf()`の403と区別する。
+    - DPoPで認証する要求（`Authorization: DPoP ...`）は、`hono/combine`の`except()`で`csrf()`の対象から外す。
+      - 除外の条件はasync関数にすると常に除外されるため、同期関数にする。
+    - JSONの要求は`csrf()`の対象外だが、PointsはCORSを設定せず`application/json`以外の本文を415で拒否するため、他サイトからのJSON要求はブラウザの事前確認（CORS preflight）で止まる。
+    - Cookieで認証する経路には、要求の`Origin`をそのまま許可するCORS設定を付けない。
   - 本人セッションの取得と要求元検査はそれぞれ実行する。
   - サーバーは要求元の検査に加え、入力形式・現在の本人・対象操作の権限を検証する。
   - 外部アプリ向けAPIの認証・認可は、各APIに定めたAccess Token・DPoPなどの検証に従う。
@@ -4444,7 +4500,7 @@ flowchart TD
   - 表示言語の`localStorage`保存は、[多言語に対応](#多言語に対応)に従う。
 
 - 環境ごとの許可先
-  - `trustedOrigins`には、環境ごとに必要なPointsのoriginを設定する。
+  - Better Authの`trustedOrigins`には環境ごとに必要なPointsのoriginを設定する。
   - originは、方式・ホスト・ポートの組み合わせとする。
   - 本番は本番Pointsのorigin、テスト環境は開始元のローカルorigin・固定staging origin・`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
   - `<subdomain>`には、staging設定の`PREVIEW_WORKERS_SUBDOMAIN`を使う。
@@ -4468,13 +4524,10 @@ flowchart TD
 
 - 実装との差と確認事項
   - 現在のAccounts連携実装には、ticket・独自の`accounts_link_attempts`テーブル・`GET /api/accounts-links/finish`による保存処理がある。
-  - 実装時は、開始時の本人・セッション・接続先を標準stateのサーバー側情報へ集約し、連携保存を検証済みコールバックへ移す。
-  - 通常のコールバックでは復元した標準state、OAuth Proxyの認可コード交換では未消費の標準verificationから、対応するnonceとcode verifierを取得する。
-  - Proxyから開始元へ戻るコールバックでも、標準stateの有効性と開始時の本人・セッションを検証する。
-  - 中止時は、その本人・開始セッションに属するAccounts連携用の標準stateをサーバーで無効化する。
-  - 現在の独自更新APIには、上記の標準の要求元検査を適用する共通処理がない。
-  - `getSession()`による本人確認とは別に、更新要求の検査が実行されるよう標準処理へ接続する。
-  - 通常・Proxy経由の連携、再連携、中止後の応答、本人切替、期限切れ、重複応答、受領失敗を確認する。
+  - 実装時は連携の開始を画面からの標準`linkSocial`へ移し、stateの管理と連携の保存をGeneric OAuthの標準処理に任せる。
+  - 現在の独自更新APIには要求元検査を適用する共通処理がない。
+  - `getSession()`による本人確認とは別に、Points独自APIへ`csrf()`を掛ける。
+  - 通常・Proxy経由の連携、再連携、連携途中の本人切替、期限切れ、重複応答、受領失敗を確認する。
 
 ## 権限
 
@@ -4588,13 +4641,20 @@ flowchart TD
 
 ### 管理操作の認証・権限
 
-- Points Workerは、経路ごとの認証・認可条件を操作の一覧で管理する。
-  - Points独自業務APIの本人認証は、Cookieセッションまたは`points` scopeのOAuth認証で行う。
-  - 各管理者権限と冪等性キーの要否を一覧から適用する。
+- Points Workerは経路ごとに認証・権限・冪等性キーのミドルウェアを付ける。
+  - 各ミドルウェアはHono標準の`createMiddleware()`（`hono/factory`）で作る。[公式資料](https://hono.dev/docs/helpers/factory)
+  - ミドルウェアの合成には`hono/combine`の`some()`・`every()`・`except()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/combine)
+  - Points独自業務APIの本人認証は、Cookieセッションと`points` scopeのOAuth認証を`some()`で合成し、どちらかで行う。
+  - Points独自API（`/api/auth/*`を除く`/api/*`）には`except([公開の経路, 精算の経路], 本人認証)`を掛け、既定で本人認証を要求する。
+    - 精算は、本文で受け取る各落札者のトークンとDPoP署名で認証する。
+    - 公開の経路には、認証情報があれば本人を確かめる任意の本人認証を掛ける。
+    - `except()`の文字列の条件は経路だけで判定し、HTTPメソッドを見ない。同じ経路に公開の取得と本人用の更新を並べない。
+  - `every()`の中で`false`を返すと500になるため、認証・権限が足りない要求には`HTTPException(401)`・`HTTPException(403)`を投げる。
   - Better Auth標準のログイン・セッション・認証手段・OAuthクライアント管理・管理者所属は、標準の認証フローで扱う。
-  - 一覧に登録されていない重要な変更操作は、起動時に拒否する。
+  - ミドルウェアの付け忘れは`hono/dev`の`inspectRoutes()`を使うテストで確認する。[公式資料](https://hono.dev/docs/helpers/dev)
+    - `inspectRoutes()`は関数名でミドルウェアを示すため、ミドルウェアは名前付きの関数で作る。
 
-以下の表は、主要操作の認証・権限をまとめたものとする。サーバーが管理する操作の一覧には、退会・再開や本人のAccounts連携なども含め、各機能で定める認証・権限と冪等性キーの要否を登録する。
+以下の表は、主要操作の認証・権限をまとめたものとする。退会・再開や本人のAccounts連携など、表にない操作の認証・権限と冪等性キーの要否は各機能で定める。
 
 | 操作                                          | 経路・操作方法                                                                                                      | 追加条件                                                                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -4667,10 +4727,14 @@ flowchart TD
   - 各操作で定めた入力項目を、JSON本文へ直接記載する。
   - 金額の文字列表現と桁数は、金額の共通仕様を適用する。
 
-- JSON本文は、Hono標準の`validator('json', ...)`で解析し、共通のValibot検証定義で値を検証する。[公式資料](https://hono.dev/docs/guides/validation)
-  - JSON本文のQUERYでも`validator('json', ...)`を使い、URLのクエリパラメーターを検証する`validator('query', ...)`とは区別する。
-  - `validator`を呼ぶ前に`Content-Type`の欠落・非対応を判定し、JSON構文の誤りと入力値の誤りも区別する。
-  - 検証済みの値を`c.req.valid('json')`から業務処理へ渡す。
+- JSON本文とmultipart本文は`@hono/standard-validator`の`sValidator(target, schema, hook)`で解析し、共通のValibot検証定義で値を検証する。[公式資料](https://github.com/honojs/middleware/tree/main/packages/standard-validator)
+  - JSON本文には`sValidator('json', ...)`、multipart本文には`sValidator('form', ...)`を使う。
+  - JSON本文のQUERYでも`sValidator('json', ...)`を使い、URLのクエリパラメーターを検証する`sValidator('query', ...)`とは区別する。
+  - `Content-Type`が合わない要求でも`sValidator`が`{}`を検証にかけるため、`sValidator`を呼ぶ前に`Content-Type`の欠落・非対応を判定する。
+  - 検証の失敗は全経路で共有する`hook`で422のProblem Detailsへ変換する。
+  - 本文の構文の誤りで投げられる`HTTPException(400)`は、`app.onError()`で400のProblem Detailsへ変換する。
+  - 検証済みの値を`c.req.valid('json')`・`c.req.valid('form')`から業務処理へ渡す。
+  - OpenAPIへ要求の定義を出すため、経路ではhono-openapiの`validator()`を使う。この`validator()`は内部で`sValidator()`を使う。
 
 - `Content-Type`は送信内容の形式、`Accept`は受け取れる形式を示す。
   - 通常のJSON APIでは、`Accept: application/json, application/problem+json`で成功と失敗の形式を指定できる。
@@ -4679,19 +4743,19 @@ flowchart TD
   - ヘッダー名はHTTP標準どおり、大文字・小文字を区別せずに扱う。
 
 - 本人と操作権限は、サーバーで検証する。
-  - Cookie認証では、Better Authのセッションと標準の要求元検査を適用する。
+  - Cookie認証ではBetter Authのセッションと`csrf()`による要求元検査を適用する。
   - 利用者の認可による外部APIでは、`Authorization: DPoP {token}`と`DPoP: {proof}`を送る。
   - 外部からのPoints独自業務APIには`points` scopeを要求し、トークン・DPoP、本人の現在状態、対象の権限を検証する。
   - CookieのOrigin・CSRF検証とOAuthのDPoP検証は、それぞれの認証方式へ適用する。DPoPの`htm`は実際のHTTPメソッドと照合し、QUERYでは`QUERY`を検証する。
-  - 精算など、別途クライアント認証を定めた操作は、その条件も検証する。
+  - 精算では本文で受け取る各落札者のトークンとDPoP署名を検証する。
   - 本文に書かれた本人ID・ロールだけを、認証や権限の根拠にしない。
 
 ```mermaid
 flowchart TD
   A["本人認証が必要なAPIで<br/>新しい業務操作を実行"] --> B["Content-Typeを確認<br/>bodyLimitで本文全体の容量を制限"]
-  B --> V["validatorのjsonまたはformで本文を解析<br/>Valibotで値・ファイル容量を検証"]
+  B --> V["sValidatorのjsonまたはformで本文を解析<br/>Valibotで値・ファイルの容量と形式を検証"]
   V --> C{"本人認証の方式"}
-  C -->|Cookie| D["標準セッションと<br/>適用対象の要求元を検証"]
+  C -->|Cookie| D["標準セッションを検証<br/>csrf()で適用対象の要求元を検査"]
   C -->|OAuth| E["Token・DPoP・scope・audienceを検証"]
   D --> F["現在の本人状態と<br/>対象操作の権限をサーバーで検証"]
   E --> F
@@ -4714,10 +4778,7 @@ flowchart TD
   - 確定要求の`Idempotency-Key`は、要求ヘッダーへ送る。
   - サーバーは受け取ったファイルを解析し直し、入力・権限・更新番号・宛先・計算条件を再検証する。
 
-- multipart本文はHono標準の`validator('form', ...)`で解析し、共通のValibot検証定義でフォーム項目を検証する。[公式資料](https://hono.dev/docs/guides/validation)
-  - QUERYの検証要求とPOSTの確定要求に適用する。
-  - `validator`を呼ぶ前に`Content-Type`の欠落・非対応を判定し、本文の構文不正とフォーム項目の入力値不正を区別する。
-  - 各要求で検証済みのフォーム項目を`c.req.valid('form')`から業務処理へ渡す。
+- CSVのmultipart本文の解析と検証は、QUERYの検証要求とPOSTの確定要求に適用する。
 
 - 要求の容量上限は、受け取る形式と操作ごとに定める。
   - JSON・multipart本文の解析前にHono標準の`bodyLimit({ maxSize, onError })`を適用する。[公式資料](https://hono.dev/docs/middleware/builtin/body-limit)
@@ -4726,7 +4787,8 @@ flowchart TD
   - 上限を超えた要求は`413 REQUEST_BODY_TOO_LARGE`とし、業務処理を行わない。
   - JSON本文の上限を超えた場合は、JSONを解析する前に拒否する。
   - CSVでは、ファイル部分と、フォーム項目・各部分のヘッダー・区切り情報を含む本文全体を別々に検証する。
-  - ファイル部分の容量は、解析後の`file.size`で検証する。
+  - ファイル部分の容量はValibotの`v.pipe(v.file(), v.maxSize(...))`で検証する。
+    - ファイルの中身は、サーバーのPapa ParseとUTF-8の検証で判定する。
   - 設定復元では、ブラウザが選ぶファイルと、設定・確認結果を含めてサーバーへ送るJSON本文を区別し、どちらも最大5MiBとする。
 
 | 対象                 | 容量を数える範囲                        | 上限                           |
@@ -4792,6 +4854,7 @@ flowchart TD
 - 入力エラーは`errors`配列へまとめる。
   - 各要素の`code`と、修正の説明を表す英語の`message`を必須とする。
   - 項目に対応するエラーは`field`へ項目名を入れる。
+  - 入れ子の項目はValibotの[`getDotPath()`](https://valibot.dev/api/getDotPath/)で求めたパスを`field`へ入れる。
   - CSVの行別エラーは、`row`と、列に対応する場合の`field`も返す。
   - CSVの`row`は解析後の行番号とし、見出しを1行目、最初のデータを2行目とする。
   - CSVの途中の行で確定に失敗した場合は、確定済みの最後の行番号を`lastCompletedRow`として返す。確定済みの行がなければ返さない。
@@ -4817,7 +4880,7 @@ flowchart TD
 ```
 
 - 共通のエラーコードを定める。
-  - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
+  - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`REQUEST_ORIGIN_REJECTED`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
   - 操作固有のコードには、`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`EVALUATION_CRITERION_INACTIVE`など、各操作で定めた値を使う。
   - 精算の`rejectedWinners`など、操作固有の拡張項目と返却範囲は各操作の契約で定める。
 
@@ -4832,7 +4895,7 @@ flowchart TD
 | `304`      | 条件付き取得で、保存済みの応答を利用できる場合                           |
 | `400`      | 要求の構文を解析できない、または必須の`Idempotency-Key`が欠落した場合    |
 | `401`      | 必要な認証がない、または無効な場合                                       |
-| `403`      | 認証済みだが、操作権限・scopeが不足する場合                              |
+| `403`      | 認証済みだが操作権限・scopeが不足する場合、または要求元を拒否した場合    |
 | `404`      | 対象が存在しない、または開示できない場合                                 |
 | `405`      | 経路は存在するが、そのHTTPメソッドを受け付けない場合                     |
 | `409`      | 更新番号、保存済みの冪等性キー、利用状態、残高などが要求と両立しない場合 |
@@ -4855,6 +4918,7 @@ flowchart TD
   - 外部サービスの制限を`503`として返す操作では、取得した待ち時間も引き継ぐ。
 
 - Points独自APIの未対応メソッドはHono標準の`methodNotAllowed({ app, onMethodNotAllowed })`で判定する。[公式資料](https://hono.dev/docs/middleware/builtin/method-not-allowed)
+  - アプリ全体に掛けるとBetter Authが返した404も405になるため、Points独自APIのサブアプリに掛ける。
   - 登録済みの経路から利用可能なメソッドを求め、`onMethodNotAllowed`で共通のProblem Detailsと`Allow`ヘッダーを返す。
   - Better Authへ委譲する標準APIは、標準のメソッド検証と応答を維持する。
 
@@ -4945,14 +5009,10 @@ flowchart TD
 
 ### 応答のキャッシュ
 
-- 認証済み・非公開のAPI応答は`Cache-Control: private, no-store`とする。
-  - 本人の連携情報、権限、残高、JSONエクスポートなどが対象となる。
-  - 認証情報を含む失敗応答にも同じ条件を適用する。
-
-- OAuthの認可・トークン・コールバック・同意、Accounts連携、外部連携の開始・解除は、成功・失敗とも`Cache-Control: no-store`を付ける。
-  - OAuthのトークンエンドポイントの成功・失敗応答や、適用するOAuth仕様が指定する応答には、`Pragma: no-cache`も付ける。[OAuth標準（RFC 6749）](https://www.rfc-editor.org/rfc/rfc6749.html#section-5.1)
-
-- 公開プロフィール・一覧・検索・ポイント・バッジ・交換倍率・競売用パッケージの公開取得は、成功・失敗とも`Cache-Control: no-store`で返す。
+- `/api/*`の応答には共通のミドルウェアで`Cache-Control: no-store`を付ける。
+  - 成功・失敗の応答と、Better Authが返す応答を対象とする。
+  - OAuthのトークン応答の`Pragma: no-cache`はBetter Auth標準の`noStore`に任せる。[OAuth標準（RFC 6749）](https://www.rfc-editor.org/rfc/rfc6749.html#section-5.1)
+    - `noStore`はトークンエンドポイントなどの応答に`Cache-Control: no-store`と`Pragma: no-cache`を付ける。
 
 ### APIの呼び出し経路
 
@@ -4985,17 +5045,19 @@ flowchart TD
   end
 ```
 
-### セキュリティヘッダーとダウンロード
+### セキュリティヘッダー
 
 - 静的配信とWorkerの応答へ、共通のセキュリティヘッダーを付ける。
   - 配信する静的HTML、SPAの初期HTML、画面へのフォールバック、Workerが返すHTML・JSON・Problem Detailsを対象とする。
-  - CSP、コンテンツ形式の推測防止、参照元情報の抑制、ブラウザ機能の制限、フレーム内表示の拒否、環境別HSTSの設定値をそろえる。
+  - CSP、コンテンツ形式の推測防止、参照元情報の抑制、ブラウザ機能の制限、フレーム内表示の拒否、HSTSの設定値をそろえる。
 
 - Workerの応答にはHono標準の`secureHeaders()`を使い、デフォルト設定を基本とする。[Hono公式資料](https://hono.dev/docs/middleware/builtin/secure-headers)
-  - CSP・Permissions Policy・`X-Frame-Options`・環境別HSTSには下記の値を明示して設定する。
-  - `X-Content-Type-Options: nosniff`と`Referrer-Policy: no-referrer`は、デフォルト設定を使う。
+  - CSPとPermissions Policyだけを下記の値で明示して設定する。
+  - HSTS・`X-Frame-Options`・`X-Content-Type-Options`・`Referrer-Policy`は、デフォルト設定を使う。
   - 静的配信ではビルド時に生成する`_headers`の共通ルール`/*`へ、デフォルトを含めて同じ応答ヘッダーと値を記載する。
   - 共通ルールは、静的HTML・SPAの初期HTML・JavaScript・CSSなどの全静的ファイルへ適用する。
+  - 画面へのフォールバックとして返す`index.html`にも、`/*`の規則が適用される。
+  - パス別の規則は`index.html`のパスではなく元の要求URLで照合される。
   - `_headers`はWorkerが生成する応答には適用されないため、Worker側にも設定する。[Cloudflare公式資料](https://developers.cloudflare.com/workers/static-assets/headers/)
 
 - CSPでは、配信する最終HTML内のインラインスクリプトについて、ハッシュが一致するものだけを許可する。
@@ -5005,7 +5067,6 @@ flowchart TD
   - `{artifactInlineScriptHashes}`は、この集約したハッシュを表す。
   - `{appHost}`は、対象アプリのstagingまたはproductionのホストを表す。
 
-- ファイルのダウンロード応答には、内容に合った`Content-Disposition`と、安全なファイル名を設定する。
 - トークンや認証の証明を含む可能性がある画面にも、共通の`Referrer-Policy: no-referrer`を適用する。
 
 ```text
@@ -5027,25 +5088,25 @@ upgrade-insecure-requests
 
 明示する設定と主なデフォルト値は次のとおりとする。
 
-| ヘッダー                    | staging                                                        | production                            |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------------- |
-| `Content-Security-Policy`   | 上記CSPへstagingのホストを指定                                 | 上記CSPへproductionのホストを指定     |
-| `X-Content-Type-Options`    | `nosniff`                                                      | `nosniff`                             |
-| `Referrer-Policy`           | `no-referrer`                                                  | `no-referrer`                         |
-| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` | 同左                                  |
-| `X-Frame-Options`           | `DENY`                                                         | `DENY`                                |
-| `Strict-Transport-Security` | `max-age=86400`                                                | `max-age=31536000; includeSubDomains` |
+| ヘッダー                    | 値                                                             |
+| --------------------------- | -------------------------------------------------------------- |
+| `Content-Security-Policy`   | 上記CSPへ対象環境のホストを指定                                |
+| `Permissions-Policy`        | `camera=(), microphone=(), geolocation=(), payment=(), usb=()` |
+| `Strict-Transport-Security` | `max-age=15552000; includeSubDomains`                          |
+| `X-Frame-Options`           | `SAMEORIGIN`                                                   |
+| `X-Content-Type-Options`    | `nosniff`                                                      |
+| `Referrer-Policy`           | `no-referrer`                                                  |
 
 ### 確認例と実装との差
 
 - 静的HTML、SPAの初期HTML、画面へのフォールバック、Workerの成功・失敗応答で共通ヘッダーを確認する。
 - ページの追加・出力先の変更後も、`_headers`の共通ルール`/*`が静的ファイルへ適用されることを確認する。
 - SPAの初期HTMLを含む全HTMLの最終内容と、CSPハッシュが一致することを確認する。
-- 環境別CSP・HSTS、安全なダウンロード名を確認する。
+- 環境ごとのCSP、デフォルト値のHSTS・`X-Frame-Options`、JSONエクスポートの保存名を確認する。
 - JSONの通常入力、UTF-8、メディアタイプのパラメーター、構文不正と入力値不正を確認する。
 - JSON・multipart本文の解析前に`bodyLimit()`を適用し、容量超過を共通の413応答で返すことを確認する。
 - CSV検証のQUERYと確定のPOST、両方のmultipart本文と必須フォーム項目、入力ファイルの再検証と重要な確認項目の変更検出、5MiBのファイル境界、本文全体の容量境界を確認する。
-- multipart本文を`validator('form', ...)`で解析し、フォーム項目と`file.size`を検証することを確認する。
+- multipart本文を`sValidator('form', ...)`で解析し、フォーム項目とファイルの容量・形式を検証することを確認する。
 - CSVの見出し・空行・セル内改行と行番号、全行の入力エラー、`field`による列名の返却を確認する。
 - ページ番号・表示件数・前後の移動・空の一覧、HEAD・204・304の本文なし応答を確認する。
 - 通常の成功JSON・Problem Details・JSONエクスポートの常時整形と、JSONエクスポートが5MiBを超えた場合のエラーを確認する。
@@ -5054,7 +5115,7 @@ upgrade-insecure-requests
 - フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
 - Pointsの画面からの同一originの呼び出し、外部サービスのバックエンド経由の連携、Shields.ioのサーバーによるバッジ用JSONの取得を確認する。
 - DPoPの`htm=QUERY`、公開表示での本人認証の省略、必須操作の`Idempotency-Key`と401の`WWW-Authenticate`による認証チャレンジを確認する。
-- OAuth標準が求める応答に`Pragma: no-cache`を付け、それ以外の保存制限は`Cache-Control`で指定することを確認する。
+- `/api/*`の成功・失敗とBetter Authの応答に`Cache-Control: no-store`が付き、OAuthのトークン応答に`Pragma: no-cache`も付くことを確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
 - 未確定失敗後の再検証、入力変更後の新しいキー、同じ内容で区切り情報が変わるCSV再送、待ち時間の案内を確認する。
 - 待機時間の制限は業務確定を含まない取得処理に適用し、外部通信の中断と共通エラーへの変換を確認する。
@@ -5096,6 +5157,12 @@ upgrade-insecure-requests
 - 保存と送受信
   - 残高・累計評価額・ポイント増減履歴・受領待ち額・価格・必要額・最小単位・倍率・係数は、正規化した十進数文字列で保存・送受信する。
   - D1の保存型は`TEXT`とする。[D1の型変換](https://developers.cloudflare.com/d1/worker-api/#type-conversion)
+  - TEXTの金額列はDrizzleの`customType<{ data: BigNumber; driverData: string }>`で定義し、`dataType()`を`"text"`とする。[Drizzle公式資料](https://orm.drizzle.team/docs/custom-types)
+  - `toDriver`は、桁数を指定しない`toFixed()`でbignumber.jsの値を十進数文字列にする。
+  - `fromDriver`は十進数文字列からbignumber.jsの値を作る。
+  - この変換は`db.batch()`でまとめた処理にも適用される。
+  - 生の`sql`テンプレートに直接書いた値と集計結果は、変換されない。
+    - 値は列と比べる形で渡す。
   - 出力は指数表記を使わず、小数末尾の不要な0を除く。負のゼロも含め、0は`"0"`へそろえる。
   - 金額をJSONの数値型で受け付けず、API応答でも文字列を返す。
   - 例えば1.25ポイントは、入力・保存・API応答のいずれも`"1.25"`とする。
@@ -5104,7 +5171,6 @@ upgrade-insecure-requests
 - 計算と上限
   - Workerが検証済みの文字列から`bignumber.js`の値を作り、加減乗算・比較・合計を計算する。[公式API](https://mikemcl.github.io/bignumber.js/)
   - 入力から保存・応答まで十進数の精度を保ち、金額をJavaScriptの`Number`へ変換しない。
-  - 保存する文字列は、桁数を指定しない`toFixed()`で生成する。
   - D1はWorkerが計算した文字列を保存し、金額の算術・大小比較・集計はWorkerが行う。
   - 有限十進数の加減乗算と、有限桁で表せない除算の端数は分けて扱う。
   - 比率は分子・分母を保持し、必要な単位の個数について`dividedToIntegerBy()`と剰余で丸めを確定する。異なる分母の剰余は交差積で比較し、途中で丸めた小数を使って配分順位を決めない。
@@ -5149,9 +5215,11 @@ upgrade-insecure-requests
   - パッケージの構成割合など、金額以外の計算・表示は各機能の仕様で定める。
 
 - 画面に表示する金額
-  - 正規化した金額を、bignumber.jsの`toFormat()`へ小数桁数を指定せず渡して表示する。`groupSize: 3`、`groupSeparator: ","`、`decimalSeparator: "."`を指定し、表示のために丸めたり桁を省略したりしない。
+  - 正規化した金額の十進数文字列を、そのまま`Intl.NumberFormat`へ渡して表示する。[MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format)
+  - 文字列は桁を失わずに整形されるため、表示処理も十進数の全桁を保持する。
+  - `maximumFractionDigits`は既定が3のため`4`を明示し、表示のために丸めたり桁を省略したりしない。
+  - `signDisplay: "negative"`を指定し、負のゼロは`0`と表示する。
   - 日本語・英語とも、整数部を3桁ごとのカンマで区切り、小数末尾の不要な0を除く。
-  - 表示処理も十進数の全桁を保持し、負のゼロは`0`と表示する。
   - 本人向けの画面では、全桁を保持した残高と、現在の最小単位・支出可能額を区別して表示する。
 
 | 入力するポイント額  | 保存する十進数文字列  |             画面表示 | JSON・APIの金額       |
@@ -5466,7 +5534,7 @@ flowchart TD
   - Pointsの認証、D1、利用者ID、セッション、Secret、業務モデル、実行時の型は、外部サービスから独立して管理する。
   - 各サービスは、他のサービスのD1を直接参照しない。
   - Marketsは、登録したPoints互換サービスのoriginへ`fetch()`でAPIを呼び出す。
-  - Pointsが管理するOpenAPIからMarkets用のクライアントを生成する。
+  - PointsがHonoの経路から生成するOpenAPIをもとに、Markets用のクライアントを生成する。
   - バックエンドのソースとHono RPC型は各サービス内に限定し、サービス間の呼び出しには生成したクライアントを使う。
 
 - Marketsは連携と競売の進行、落札証明を管理し、精算時に評価軸ID別の必要額をPointsへ送る。
@@ -5498,7 +5566,7 @@ Pointsへログインした利用者は、「開発者向け」画面でアプ�
   - 登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共通のschemaで検査します。
   - リダイレクトURLはBetter Auth標準の登録規則で検証します。
   - 一覧・詳細・更新・一時停止・再開・削除では、対象クライアントのOrganizationと管理者所属をサーバーで確認します。
-  - 「その他」の「開発者向け」で、公開鍵を登録・更新できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
+  - 「その他」の「開発者向け」で、登録時に公開鍵を登録できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
 
 JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が内容を確認して別途保存します。保存時は、[権限](#権限)の管理権限と人数・件数の上限に加え、本節のURLと公開鍵の条件を検証します。別サービス・別本人へのコピーは、通常の新規登録として新しいClient IDとOrganizationを作り、登録する本人を管理者にします。
 
@@ -5507,7 +5575,9 @@ JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が�
   - 対象ごとの管理権限、複数人の管理、新規作成・管理者追加での本人5件と管理者20人の上限を確認します。
   - 管理者の退会後も、残った管理者または`appAdmin`がアプリを管理でき、他の利用者の認可が維持されることを確認します。
 
-登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。標準の更新APIは公開鍵を受け付けず、紹介URLを削除できません。公開鍵の更新と紹介URLの削除（`NULL`への更新）は、提供・技術要件の手続きで承認した独自拡張とし、`oauthClient`の`jwks`と`uri`をPointsの保存処理で更新します。更新する鍵の検査は、`@better-auth/oauth-provider/internal`の`validatePublicClientJwks`と同等です。この関数は公開APIの互換性保証の対象外です。保存形式は、標準の登録と同じくJWK SetのJSON文字列です。次のクライアント認証から、新しい鍵で検証します。鍵を切り替えるときは、JWK Setに新旧の`kid`を併存させてから、旧鍵を外します。
+登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。管理画面からのこの更新では公開鍵を変更しません。紹介URL（`client_uri`）は変更だけを受け付け、削除（`NULL`への更新）はしません。
+
+公開鍵は、クライアント自身が標準の`POST /api/auth/oauth2/client/rotate-keys`で更新します。Pointsは`oauthProvider({ allowClientKeyRotation: true })`で、このエンドポイントを有効にします（Better Auth 1.7.10以上）。クライアントは現在の鍵で署名した`client_assertion`（`aud`はこのエンドポイントのURL）と、新しい`jwks`（鍵の全体）を送ります。送らなかった鍵はすぐ無効になるため、新旧の鍵を併記して送ってから、新しい鍵だけを送る2段階で切り替えます。秘密鍵を失った場合や漏れた場合は、クライアントを登録し直し、利用者は同意し直します。
 
 - クライアントの一時停止・再開
   - 対象の`oauthClientAdmin`または`appAdmin`が「開発者向け」画面で操作します。
@@ -5544,7 +5614,7 @@ flowchart TD
   - クライアントの停止・再開には標準の`adminUpdateOAuthClient`で`disabled`を更新する。2026-10-23時点では対応するBetter Auth `1.7.12`を採用基準とする。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
   - OAuth state・Proxyの暗号化方式が変わる版への更新では、同じProxyフローに参加する環境をそろえて更新し、更新前に開始したログイン・連携は最初からやり直す。導入済みの`1.7.6`からの更新もこの対象とする。[公式変更履歴](https://github.com/better-auth/better-auth/blob/v1.7.12/packages/better-auth/CHANGELOG.md#177)
   - 更新後は外部Providerへのログイン、OAuth Proxy、Accounts連携、認可コード・PKCE、JWT・DPoP、クライアント管理を確認する。
-  - JWKSの内部検証APIに依存する既存処理は、採用する版で公開鍵の検証・保存・保存後の認証を確認する。
+  - 公開鍵の更新では標準の`rotate-keys`で新旧の鍵を併記した送信、新しい鍵だけへの切替、切替後のクライアント認証を確認する。
   - JWTの有効期間はProviderの`accessTokenExpiresIn: 900`で最長15分に設定します。
   - 停止中の認可・発行・更新の拒否と、再開後のToken再利用を確認します。Tokenのハッシュ保存、署名鍵の暗号化保存と更新も確認します。
   - DB照会数の実測とAPIの動作確認は実装時に行い、文書の検査とは区別します。
@@ -5565,7 +5635,7 @@ flowchart TD
 
 落札の引き落としは、この利用者認可の`points`だけで行います。OAuthクライアントも、受け取ったresourceとscopeが認可要求に対応することを確認します。
 
-`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、認証を受け付けるPointsのOAuthエンドポイントまたは精算APIの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
+`private_key_jwt`は、`iss=sub=clientId`です。`aud`は、認証を受け付けるPointsのOAuthエンドポイントの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
 
 ### Access TokenとResource APIの検証
 
@@ -5680,40 +5750,36 @@ sequenceDiagram
   - 別の競売や別のMarketsサービスの落札者は、それぞれの精算要求へ分ける。
   - ポイントは消費として引き落とし、出品者の残高と落札者の累計評価額を増減しない。
 
-- 呼び出し元と各落札者の認可を、それぞれ確認する。
-  - 呼び出し元のMarketsサービスは、登録済みの機密クライアントとして`private_key_jwt`で認証する。
+- 各落札者のトークンとDPoP署名で認可を確かめ、呼び出し元もトークンから決める。
   - Marketsは、各落札者の利用者アクセストークンと、そのトークンに対応する今回の要求のDPoP署名を送る。
-  - JWTの署名・発行者・宛先・期限・クライアント・権限`points`と、DPoPの鍵結合・HTTPメソッド・URL・トークンとの対応・再送を検証する。
-  - 呼び出し元の認証とトークン・DPoPの検証には、Better Authの公開APIを使う。
-  - 複数のWorkerでDPoPの再送を検出できるよう、検証済み署名の識別子にはBetter Auth標準のDB保存機能を使う。
-  - 各人のトークンと署名、呼び出し元の`client_assertion`を一つのJSON本文へまとめる形式は、標準のJWT・DPoP検証規則を利用する承認済みの独自APIとする。
-  - トークン・署名・クライアント認証情報は検証にだけ使い、ポイント増減履歴・ログ・応答へ保存しない。
+  - 各トークンとDPoP署名はBetter Authの公開API`verifyAccessTokenRequest`で検証する。
+  - JWTの署名・発行者・宛先・期限・クライアント・権限`points`と、DPoPの鍵結合・HTTPメソッド`POST`・URL・トークンとの対応・再送を検証する。
+  - 複数のWorkerでDPoPの再送を検出できるよう、`dpop.replayStore`にはBetter Auth標準のDB保存を使う。
+  - 各人のトークンと署名を一つのJSON本文へまとめる形式は、標準のJWT・DPoP検証規則を利用する承認済みの独自APIとする。
+  - トークンと署名は検証にだけ使い、ポイント増減履歴・ログ・応答へ保存しない。
 
 - 要求には落札者ごとに評価軸IDと必要額を指定する。
-  - 本文には呼び出し元の認証情報と`winners`、ヘッダーには`Idempotency-Key`を必須とする。
-  - 呼び出し元の認証情報は`client_id`、`client_assertion_type`、`client_assertion`とする。
-  - `client_assertion_type`は`urn:ietf:params:oauth:client-assertion-type:jwt-bearer`とし、署名付きJWTの`aud`は今回の精算APIの絶対URLに一致させる。
+  - 本文には`winners`、ヘッダーには`Idempotency-Key`を必須とする。
   - `winners`は1件以上とし、各要素には`accessToken`、`dpopProof`、`components`を必須とする。
+  - 再送でも新規の精算と同じく全要素にトークンと署名を付ける。
+    - DPoP署名は再送のたびに作り直し、期限切れのトークンは更新して送る。
   - 支払名義は検証済みトークンの`sub`が示すPoints本人とする。
-  - 有効な冪等性結果を返す再送では、利用者のトークンと署名を省略できる。
-  - 省略した場合の各要素は`components`だけとする。
-  - 有効な結果がなく、トークンと署名がそろわない場合は引き落としを行わない。
   - `components`は1件以上の`{evaluationCriterionId, requiredAmount}`とし、残高確認と同じ金額表現・桁数・重複軸の検証を行う。
   - 必要額が0の行も含め、要求に指定した全評価軸の存在と現在状態を検証する。
 
 - Pointsは、次の順で処理する。
-  1. 呼び出し元を認証し、クライアントが有効であることと要求の形式を検証する。
-  2. 呼び出し元Client IDの枠で、共通の要求回数制限を1回確認する。
-  3. `idempotency_results`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の評価軸ごとの必要額を照合する。
-  4. 有効な結果と内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じならその結果を返し、落札者の現在の認可・残高・評価軸の現在状態・最小単位を再検査しない。
-  5. 有効な結果がなければ、各落札者のトークンとDPoP署名を検証する。
-  6. 本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
+  1. 要求の形式を検証し、各落札者のトークンとDPoP署名を検証する。検証できない落札者がいれば、その落札者の拒否理由を`AUTHORIZATION_UNAVAILABLE`とし、要求全体を拒否する。
+  2. 全トークンの`client_id`が同じであることを確かめ、その値を呼び出し元のClient IDとする。違えば`403 ACCESS_TOKEN_CLIENT_MISMATCH`で要求全体を拒否する。
+  3. 呼び出し元Client IDの枠で、共通の要求回数制限を1回確認する。
+  4. `idempotency_results`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の評価軸ごとの必要額を照合する。
+  5. 有効な結果と内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じならその結果を返し、本人の現在の利用可否・残高・評価軸の現在状態・最小単位を再検査しない。
+  6. 有効な結果がなければ、本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
   7. 全件が条件を満たせば、引き落とし・ポイント増減履歴・`idempotency_results`の結果を一括確定する。
 
 - 精算の再送照合は、共通の`idempotency_results`で行う。
   - 正規化では各落札者の`components`を評価軸ID順へそろえ、金額の表記を統一する。
   - `winners`は要求の配列順のまま比べる。
-  - トークン、DPoP署名、クライアント認証情報は内容照合の対象から外す。
+  - トークンとDPoP署名は内容照合の対象から外す。
   - 同じキーの要求が同時に届いても、確定する引き落としは一回とする。
   - 精算の確定結果は、呼び出し元Client ID・`debitReceiptId`と各落札者のポイント増減履歴として保持する。
   - 再送応答とキーの対応は、共通の有効期間だけ保持する。
@@ -5736,7 +5802,8 @@ sequenceDiagram
   - 存在しない評価軸は`404 RESOURCE_NOT_FOUND`とする。
   - これらは要求全体の精算失敗として返し、特定の落札者だけのエラーにはしない。
 
-- 精算結果が不明な場合は、再送保証の有効期間内に同じ要求・同じ冪等性キーで結果を確認する。
+- 精算結果が不明な場合は、再送保証の有効期間内に、同じ`winners`の`components`と同じ冪等性キーで結果を確認する。
+  - トークンとDPoP署名の検証での拒否は、精算が確定済みかどうかを示さない。
 
 - 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。
   - 両方いる場合も、拒否された落札者ごとに`reason`で分ける。
@@ -5767,14 +5834,16 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-  A["Marketsが一つの競売の全落札者と<br/>client_assertionをJSON本文で送信<br/>新規精算では各人のToken・DPoPも含める"] --> B["呼び出し元と要求形式を検証"]
-  B --> L["呼び出し元Client IDの枠で<br/>回数制限を1回確認"]
+  A["Marketsが一つの競売の全落札者を<br/>各人のToken・DPoPとともにJSON本文で送信<br/>再送でもToken・DPoPを含める"] --> B["要求形式と全員のToken・DPoPを検証<br/>subから支払名義を決める"]
+  B -->|検証できない落札者がいる| T["409 AUTHORIZATION_UNAVAILABLE<br/>確定済みかどうかは示さない"]
+  B --> M{"全Tokenのclient_idが同じか"}
+  M -->|いいえ| X["403 ACCESS_TOKEN_CLIENT_MISMATCH<br/>全件未反映"]
+  M -->|はい| L["client_idを呼び出し元Client IDとし<br/>その枠で回数制限を1回確認"]
   L --> C{"有効な冪等性結果があるか"}
   C -->|ある| D{"各落札者のcomponentsが<br/>配列順で同じか"}
   D -->|いいえ| R["409 IDEMPOTENCY_KEY_REUSED"]
-  D -->|はい| E["現在残高・本人認可・軸・単位を<br/>再検査せず結果を返す"]
-  C -->|ない| F["全員のToken・DPoPを検証し<br/>subから支払名義を決める<br/>認可失敗の理由を保持"]
-  F --> U["各落札者・各軸の必要額の書式・非負・範囲を検証<br/>現在の単位と異なるだけでは拒否しない"]
+  D -->|はい| E["本人の利用可否・現在残高・軸・単位を<br/>再検査せず結果を返す"]
+  C -->|ない| U["各落札者・各軸の必要額の書式・非負・範囲を検証<br/>現在の単位と異なるだけでは拒否しない"]
   U -->|適合| G["本人の必要額を評価軸別に合算<br/>全指定軸・その本人の現在状態と実残高を検証"]
   U -->|不適合| Q["422・共通の入力検証エラーを返す<br/>全件未反映"]
   G --> H{"全落札者・全指定軸が条件を満たすか"}
@@ -5796,13 +5865,13 @@ flowchart TD
   - 要求金額の軸順や、許可桁数内の小数末尾の0が異なっても、応答の評価軸順と金額表記がそろうことを確認する。
   - 精算で引き落とした評価軸ID・金額が要求と一致することを、ポイント増減履歴で確認する。
   - 確定済み再送では、初回と同じ`debitReceiptId`・`debitedAt`を返し、通信IDだけを新しくすることを確認する。
-  - 本文上限、認可不成立、`rejectedWinners`の`index`、同一本人の複数名義の合算、全落札者の一括確定・取消も確認する。
+  - 本文上限、認可不成立、トークンの`client_id`の不一致、`rejectedWinners`の`index`、同一本人の複数名義の合算、全落札者の一括確定・取消も確認する。
 
 - 現在の実装には、ポイント予約・capture・パッケージ改訂参照を使うAPIがある。
   - 最新仕様の現在パッケージ取得、必要額による残高照会、全落札者の一括引き落としとの差を実装時に確認する。
   - 現在の予約・captureの保存構造は、`debitReceiptId`と各落札者のポイント増減履歴、共通の`idempotency_results`へ置き換える。
   - パッケージIDを含まない精算の入出力・保存・再送照合と、全指定軸の現在状態検証、非公開構成要素の応答項目、作成初期値は実装時に確認する。現在の実装のパッケージ改訂参照や状態定義から、今回の契約へ移行する必要がある。
-  - OpenAPIの定義と生成クライアントの更新・動作検証は、実装時に行う。
+  - hono-openapiによるOpenAPIの生成と、生成クライアントの更新・動作検証は、実装時に行う。
 
 ## Rate limit
 
@@ -5834,15 +5903,14 @@ flowchart TD
 | 利用者を伴わない外部アプリ   | 検証済みClient ID                   |
 | 未ログインの公開API          | Cloudflareが確認した接続元IP        |
 
-- 一括精算は呼び出し元Client IDの枠へ1回数える。
+- 一括精算は、トークンの検証後に分かる呼び出し元Client IDの枠へ1回数える。
   - 表の「利用者を伴わない外部アプリ」の枠を使い、落札者の人数は要求回数へ加えない。
 
 - HTTP要求の入口で、業務処理の前に制限を確認する。
   - 操作主体の認証・識別を済ませてから、本人用の業務レコードの作成、外部の業務処理、冪等性結果の照合・保存へ進む前に判定する。
   - CSVの行数・分配人数・内部関数の呼び出し回数は、要求回数へ加えない。
   - 再送も1回数え、制限を通過した後に保存済みの冪等な結果を返す。
-  - Accounts連携の専用開始APIと、Better Authの`/api/auth/link-social`によるAccounts連携開始は、同じ本人枠で数える。
-  - 専用開始APIから内部の`auth.api.linkSocialAccount`を呼ぶ場合、HTTP要求の1回だけを数える。
+  - Better Authの`/api/auth/link-social`によるAccounts連携開始は、本人の枠で数える。
 
 - Pointsの実行環境ごとに枠を分ける。
   - 本番用と共有テスト用の`namespace_id`を分け、ステージング・PRプレビューは同じ共有テスト用の枠を使う。
@@ -5887,10 +5955,10 @@ flowchart TD
   - この独自カウンターと保存構造はv0.2.1で削除する。
   - API共通の制限とWranglerのRate Limiting bindingは未導入である。
   - 現在の429の待機時間ヘッダーと画面の扱いを、共通枠とBetter Authの429の両方で`Retry-After`へそろえる。
-  - 本人別・Client別・未ログインIP別の枠、管理APIとAccounts開始の両経路、内部呼び出しの二重計数防止を確認する。
+  - 本人別・Client別・未ログインIP別の枠、管理APIと、`link-social`によるAccounts連携開始の計数を確認する。
   - 本番と共有テスト環境の分離、ステージング・PR間の共有、ローカル枠の独立を確認する。
   - 再送・待機後の再試行、条件変更時の再確認を確認する。
-  - 一括精算と、利用者トークンを省略した確定済み再送を、呼び出し元Client IDの枠へ1回数えることを確認する。
+  - 一括精算と確定済み再送をトークンから決めた呼び出し元Client IDの枠へ1回数えることを確認する。
   - 対象外の要求、超過時の業務データ未変更と冪等性結果の未保存、共通枠とBetter Authの429の待機時間表示を確認する。
   - 実Cloudflare環境で、拠点ごとの制限と非同期の計数を検証する。
 
@@ -6045,26 +6113,29 @@ points-web-app/
 - 静的HTMLの生成情報は、TanStack Start標準の`prerender.onSuccess({ page, html })`で収集する。[公式資料](https://tanstack.com/start/latest/docs/framework/react/guide/static-prerendering)
   - 各ページの生成完了時に、ページ情報と生成したHTMLを受け取る。
   - 収集した情報は、最終成果物の全HTMLを確認してCSPのハッシュを生成するために使う。
-  - SPAの初期HTMLも含め、ハッシュ生成とヘッダー設定は[セキュリティヘッダーとダウンロード](#セキュリティヘッダーとダウンロード)に従う。
+  - SPAの初期HTMLも含め、ハッシュ生成とヘッダー設定は[セキュリティヘッダー](#セキュリティヘッダー)に従う。
 
 - Static Assetsの配信設定を明示する。
-  - `not_found_handling: "none"`、`html_handling: "auto-trailing-slash"`とする。
+  - `not_found_handling: "single-page-application"`、`html_handling: "auto-trailing-slash"`とする。[公式資料](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
   - 静的HTMLの末尾スラッシュはStatic Assets、画面のURLはTanStack Routerの標準機能で扱う。
-  - 本番では静的ファイルを先に配信し、`/api/*`と`/.well-known/*`はWorkerを先に実行する。
-  - `assets_navigation_has_no_effect`を指定し、静的ファイルが見つからない画面への移動をWorkerで処理する。
-  - WorkerはGET・HEADのHTML画面への移動だけに、`ASSETS`の`/`から取得した初期HTMLを返す。
+
+- 本番とローカルでは静的ファイルを先に配信する。
+  - `run_worker_first: ["/api/*", "/.well-known/*"]`とし、APIと認証メタデータの要求はWorkerを先に実行する。
+  - 末尾にスラッシュのない`/api`と`/.well-known`は、この配列に一致しない。
+  - 静的ファイルが見つからない要求には、Workerを起動せずに`index.html`を返し、ブラウザがSPAを描画する。
+  - 存在しないJavaScript・CSSなどの静的ファイルの要求にも、404ではなく`index.html`を200で返す。
+    - 配列形式の`run_worker_first`では画面への移動かどうかを判定しないためである。
   - Workerの未登録経路はトップレベルのHono標準`app.notFound()`で処理する。
-  - 存在しないAPIやJavaScript・CSSなどの静的ファイルには、404を返す。
+
+- 更新前のHTMLから、新しい配信で消えたチャンクを読み込んだ場合は、Viteの`vite:preloadError`で画面を再読み込みする。[Vite公式資料](https://vite.dev/guide/build#load-error-handling)
 
 ```mermaid
 flowchart TD
-  A["本番へのHTTP要求"] --> B{"API・認証メタデータか"}
+  A["本番・ローカルへのHTTP要求"] --> B{"API・認証メタデータか"}
   B -->|はい| C["Workerで処理する<br/>存在しないAPIは404"]
   B -->|いいえ| D{"静的ファイルがあるか"}
   D -->|はい| E["Static Assetsから配信"]
-  D -->|いいえ| F{"GET・HEADによる<br/>HTML画面への移動か"}
-  F -->|はい| G["Workerが初期HTMLを返す<br/>ブラウザがSPAを描画"]
-  F -->|いいえ| H["404を返す"]
+  D -->|いいえ| F["Workerを起動せずindex.htmlを返す<br/>ブラウザがSPAを描画"]
 ```
 
 - Vite+で開発サーバーとビルドを実行する。
@@ -6073,7 +6144,7 @@ flowchart TD
 
 - ビルド時に`CLOUDFLARE_ENV=staging|production`で配信先の環境を選ぶ。
   - Cloudflare Vite pluginが生成した、その環境用のWrangler設定と成果物を配信する。
-  - その環境のビルドが成功してから、Pointsのプロジェクトディレクトリで`wrangler deploy`を実行する。
+  - その環境のビルドが成功してから、Pointsのプロジェクトディレクトリで、stagingは`wrangler deploy`、本番は`wrangler versions upload`を実行する。
   - Wranglerは、Cloudflare Vite pluginが生成する`.wrangler/deploy/config.json`を通じて、そのビルドの設定を取得する。[生成設定の公式資料](https://developers.cloudflare.com/workers/wrangler/configuration/#generated-wrangler-configuration)
   - 配信前にWorker名、ドメイン、環境変数、D1接続先が対象環境と一致することを確認する。
   - 環境の選択時点は[Cloudflareの公式資料](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/)を参照する。
@@ -6084,6 +6155,8 @@ flowchart TD
   - Hono標準の`basicAuth()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/basic-auth)
   - ユーザー名とパスワードはWorker Secretで設定する。
   - `run_worker_first: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
+  - 認証を通過した画面・静的ファイルの要求は、`env.ASSETS.fetch(request)`へ渡す。
+    - `env.ASSETS.fetch()`を経由した要求にも`not_found_handling`が適用され、静的ファイルが見つからない要求には本番と同じく`index.html`を返す。
   - API、OAuth callback、認証メタデータは、それぞれに定めたSession・DPoP認証・公開範囲で扱う。
   - 本番の画面・静的ファイルは、アプリの公開範囲と通常の認証で扱う。
   - 配信順序は[Static Assetsの公式資料](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)を参照する。
@@ -6180,20 +6253,42 @@ flowchart TD
   - ブラウザ操作と認証は、[実環境での確認](#実環境での確認)に従って確認する。
   - 初回本番配信では、ブランチ保護、Cloudflareの認証・利用プラン、依存関係、必要なDB構造、接続先、復旧手順も確認する。
 
-- 配信は「静的検査・単体テスト→ビルド→結合テスト→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
+- `test/*`による共有テスト環境の配信は、「静的検査・単体テスト→ビルド→結合テスト→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
+
+- 本番の配信は結合テストまで同じ順に進め、新しい版を確認してから利用者への配信をその版へ切り替える。[段階的な配信の公式資料](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/gradual-deployments/)
+  - `wrangler versions upload`で新しい版を登録してから、DBを更新する。
+    - D1はWorkerの版に含まれないため、新しい版が0%の間も、稼働中の版は更新後のスキーマで動く。[版と配信の公式資料](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/)
+    - DB更新は稼働中の版でも動く後方互換の変更とし、旧構造の削除は後日の配信で行う。
+  - `wrangler versions deploy`で、新しい版を0%、稼働中の版を100%として配信する。
+  - Playwrightの`extraHTTPHeaders`で`Cloudflare-Workers-Version-Overrides`ヘッダーを付け、新しい版の画面・APIを確認する。
+  - 確認に成功したら、新しい版を100%にする。
+  - `wrangler versions upload`はroutes・カスタムドメイン・cronを反映しない。
+    - これらを変える場合は、`wrangler triggers deploy`を使う。
+  - `Cloudflare-Workers-Version-Overrides`が静的ファイルの要求にも効くかは、実環境で確認する。
 
 ```mermaid
 flowchart TD
   A["test/*またはmainへのpush<br/>対象環境と配信設定を確認"] --> B["静的検査・単体テスト"]
   B -->|成功| C["対象環境用にビルド"]
   C -->|成功| D["結合テスト"]
-  D -->|成功| E["DBを更新"]
+  D -->|test/*で成功| E["DBを更新"]
   E -->|成功| F["Workerを配信"]
   F -->|成功| G["画面・APIの疎通を確認"]
   G -->|成功| H["配信完了"]
+  D -->|mainで成功| P["新しい版を登録"]
+  P -->|成功| Q["後方互換のDB更新"]
+  Q -->|成功| R["新しい版0%・稼働中の版100%で配信"]
+  R -->|成功| S["版を指定して画面・APIを確認"]
+  S -->|成功| T["新しい版を100%にする"]
+  T -->|成功| H
   E -->|失敗| I["後続処理を止め<br/>運営者が修正・復旧を判断"]
   F -->|失敗| I
   G -->|失敗| I
+  P -->|失敗| I
+  Q -->|失敗| I
+  R -->|失敗| I
+  S -->|失敗| I
+  T -->|失敗| I
 ```
 
 - GitHub Environmentで配信用の資格情報を管理する。
@@ -6214,7 +6309,7 @@ flowchart TD
   - 共有テストD1の更新は、`test/*`の配信で一元的に行う。
   - DB構造を変更するPRは、必要な変更を共有テスト環境へ反映してからプレビューを配信する。
 
-- 本番・共有テストとも、DBの構造変更で稼働中のコードが動かなくなる場合は、運営者が影響する機能・環境を一時停止する。
+- 本番・共有テストとも、後方互換にできないDBの構造変更で稼働中のコードが動かなくなる場合は、運営者が影響する機能・環境を一時停止する。
   - 運営者は変更前に影響範囲を確認する。共有テストD1ではstaging・既存PRプレビュー・ローカルを含める。
   - 停止後にDBとコードを更新し、画面・APIの疎通を確認してから再開する。
   - 更新・配信・疎通確認に失敗した場合は停止を維持し、運営者が修正または復旧を完了してから再開する。
@@ -6222,6 +6317,7 @@ flowchart TD
 - DB更新後に配信や疎通確認が失敗した場合は、処理を止める。
   - 運営者がDBの更新状況、稼働中のコード、失敗した処理を確認し、修正・再配信・復旧を判断する。
   - Workerの切り戻しとDBの復旧は、別々に判断する。
+    - Workerの版を切り戻しても、D1は戻らない。
   - DBの復旧手段は[D1 Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)を参照する。
 
 ```mermaid
@@ -6304,7 +6400,6 @@ flowchart TD
 
 - 配信後のHTTP疎通は、Playwrightの`APIRequestContext`で自動確認する。[公式資料](https://playwright.dev/docs/api/class-apirequestcontext)
   - ブラウザを起動せず、HTML・JavaScript・CSSとAPIの応答を取得する。
-  - SPA画面をHTTPで確認するときは、HTML画面への移動と同じ要求ヘッダーを指定する。
   - `maxRedirects: 0`を設定し、転送先を自動取得せず、最初の応答の状態コード・ヘッダー・本文を確認する。
   - BASIC認証付きの環境では、未認証のHTML・静的ファイルが401と認証要求ヘッダーを返し、認証後に取得できることを確認する。
   - 公開JSON APIの200と、認証必須APIの401・403を確認する。
@@ -6345,7 +6440,7 @@ flowchart TD
 
 - サーバー負荷と取得回数を減らすため、画面の状態を保持し、登録に必要な要求は最終確認の時点で送る。
   - TanStack Queryが画面内で管理する取得データと、静的ファイル・APIのHTTPキャッシュを区別する。
-  - 認証済み・非公開応答、認証関連、公開APIは、[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
+  - `/api/*`の応答には[応答のキャッシュ](#応答のキャッシュ)で定めた条件を適用する。
 
 ## テーブル・データ構造
 
@@ -6408,8 +6503,10 @@ flowchart TD
 - API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは外部サービスのサーバーから取得でき、最新の公開条件で応答する。外部サイトのバッジにはShields.ioが取得したJSONから生成する画像を使う。
 
 - Points–Markets連携は複数名義に対応し、Pointsは共通のOAuth・DPoP検証と、一つの競売の全落札者の一括引き落としを担当する。
-  - 精算は`POST /api/v1/settlement-debits`とし、要求を呼び出し元の認証と、落札者ごとのトークン・署名・評価軸IDと必要額に絞る。
+  - 精算は`POST /api/v1/settlement-debits`とし、要求を落札者ごとのトークン・署名・評価軸IDと必要額に絞る。
   - 要求から`settlementId`・`auctionId`・`pointsSubject`・`marketsUserId`を除き、支払名義はトークンの`sub`で決める。
+  - 呼び出し元はトークンの`client_id`で決め、要求には`client_assertion`を含めない。全トークンの`client_id`がそろわなければ`403 ACCESS_TOKEN_CLIENT_MISMATCH`とする。
+  - 再送でもトークンと署名を送る。
   - 成功応答は`debitReceiptId`・`status`・`debitedAt`だけとし、拒否は`winners`の配列位置`index`と`reason`で返す。
   - 再送は有効な冪等性結果をClient ID・操作種別・冪等性キー・各落札者の`components`で照合し、精算の確定結果は取引記録として保持する。
 
@@ -6423,9 +6520,9 @@ flowchart TD
 
 - HTTPリクエスト・レスポンスを標準仕様に基づいて一か所へ整理し、標準とPointsの補足を区別する。CSVはフォーム送信、一覧はページ番号、入力エラーは`field`へ統一する。通信IDはPointsが毎回発行し、独自ヘッダー`X-Request-Id`で返す。未確定失敗の再検証と確定済み結果の再送を区別する。
 
-- HTTP状態コードは標準の意味に合わせて選ぶ。401の認証チャレンジを明示し、Better Authの429にも標準の`Retry-After`を付けて、429の待機時間を`Retry-After`へ一本化する。キャッシュ制限は`Cache-Control`で指定し、OAuth標準が要求する応答には`Pragma: no-cache`も付ける。
+- HTTP状態コードは標準の意味に合わせて選ぶ。401の認証チャレンジを明示し、Better Authの429にも標準の`Retry-After`を付けて、429の待機時間を`Retry-After`へ一本化する。`/api/*`の応答には共通のミドルウェアで`Cache-Control: no-store`を付け、OAuthのトークン応答の`Pragma: no-cache`はBetter Auth標準の`noStore`に任せる。
 
-- 金額は正規化した十進数文字列としてAPI・JSONで送受信し、D1のTEXTへ保存する。Workerのbignumber.jsで計算・集計・表示し、システムの小数桁数と評価軸の最小単位を区別する。整数部は最大30桁、小数部は4桁の定数とする。画面の日英共通の3桁区切り、操作ごとの端数処理、入力・表示・保存の数値例を維持する。履歴・残高・受領情報・冪等結果は共通保存処理から同じD1 batchで確定し、計算前提のversion照合と一意制約で競合・二重反映を防ぐ。
+- 金額は正規化した十進数文字列としてAPI・JSONで送受信し、D1のTEXTへ保存する。TEXTの金額列はDrizzleの`customType`でbignumber.jsの値と相互に変換する。Workerのbignumber.jsで計算・集計し、システムの小数桁数と評価軸の最小単位を区別する。整数部は最大30桁、小数部は4桁の定数とする。画面の金額は`Intl.NumberFormat`で日英共通の3桁区切りにする。操作ごとの端数処理と、入力・表示・保存の数値例を維持する。履歴・残高・受領情報・冪等結果は共通保存処理から同じD1 batchで確定し、計算前提のversion照合と一意制約で競合・二重反映を防ぐ。
 
 - 管理操作の操作理由入力を削除する。
 
@@ -6436,20 +6533,20 @@ flowchart TD
 - CSVの列・入力条件・処理順を一か所へまとめ、全操作を検証・計算後の確認と明示確定に統一する。列順は自由、複数URLはセル内カンマ区切りとし、同内容の新規行は独立して処理する。評価軸CSVは1行1軸で作成・更新・削除に対応し、更新の空欄は維持、関連URLの`[]`は全削除とする。`validationHash`は利用者が確認した重要な対象・条件・金額だけを照合し、変わった場合は最新結果を再確認する。通信失敗の再送と新しい操作を区別する。
 - 評価軸・パッケージ・交換倍率のCSVは全行を一つのD1原子処理で確定し、ポイント増減履歴へ保存しない。ポイントの増減を伴うCSVは、各行の入力をその行の一次増減と同時に保存する。途中の行で失敗したら確定済みの行を保持して`lastCompletedRow`を返し、同じ要求の再送で続きを処理する。月別設定の変更は設定の版へ保存し、代用評価を再計算した履歴から版を参照する。
 
-- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。
+- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。必須のsecretはWranglerの`secrets.required`、`Env`の型は`wrangler types`で管理する。OpenAPIはhono-openapiでHonoの経路とValibotの定義から生成する。
 
 - 書式の検査・静的解析・型検査を`vp check`で実行する。開発端末の環境管理には`vp env`、CIの環境準備と依存インストールには公式の`setup-vp`を使う。
 
 - 単体・結合テストはVite+標準の`vp test`で実行する。Workers内の単体テストは`@cloudflare/vitest-plugin`、本番用ビルドの結合テストはWrangler標準の`createTestHarness()`を採用し、D1の準備と状態リセットも標準機能で行う。
 
-- フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、破棄確認が必要な画面遷移はTanStack Router、取得の中止とアカウント切替時のデータ除去はTanStack Queryの標準機能で扱う。
+- フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、入力の破棄確認はTanStack Routerの`useBlocker`、取得の中止はTanStack Queryの標準機能で扱う。
 
-- JSON・multipart本文の解析、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。JSONは`validator('json', ...)`、multipartは`validator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。通常のJSON応答とJSONエクスポートは`prettyJSON({ force: true })`で整形する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
+- 経路ごとの認証・権限・冪等性キーの検査、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。認証・権限・冪等性キーは`createMiddleware()`のミドルウェアを`hono/combine`で合成して経路ごとに付け、付け忘れを`inspectRoutes()`のテストで確認する。JSONは`@hono/standard-validator`の`sValidator('json', ...)`、multipartは`sValidator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。検証の失敗は全経路で共有する`hook`で422へ変換する。通常のJSON応答とJSONエクスポートは`prettyJSON({ force: true })`で整形する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
-- 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
+- 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルが見つからない要求には、Static AssetsのSPAモードで`index.html`を返す。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
 - 静的配信の共通ヘッダーは、Cloudflare標準の`_headers`の`/*`へ設定する。CSPのハッシュは、TanStack Start標準の生成完了通知とSPAの初期HTMLを含む最終HTMLから生成する。
-  - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSP・Permissions Policy・フレーム内表示の拒否・環境別HSTSを明示する。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
+  - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSPとPermissions Policyだけを明示する。HSTSと`X-Frame-Options`もデフォルト値を使い、HSTSはstaging・productionとも`max-age=15552000; includeSubDomains`とする。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
 
 - 共有テストD1の暗号化鍵`ACCOUNTS_KEY_ENCRYPTION_KEY`は`BETTER_AUTH_SECRETS`と同じWorkerのsecretとし、staging・PRプレビュー・ローカルに同じ値を登録する。本番の鍵は分離する。
 
@@ -6469,13 +6566,13 @@ flowchart TD
 
 - 評価軸は初期非公開とし、公開プロフィールには表示可能な全設定を表示し、月別評価方式は20件ずつ表示する。非公開の人物・代用元を隠し、利用・管理操作への導線と利用できない理由を表示する。
 
-- 再連携では元のAccountsユーザーと認証結果の一致を検証し、別ユーザーなら既存連携を維持して拒否する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。更新操作の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は本人の更新操作で全連携をまとめて取得し、一覧表示と公開プロフィールには保存済み情報を使う。
+- 再連携で同じAccountsユーザーを選ぶと既存の連携を更新し、別のAccountsユーザーを選ぶと新しい連携として追加する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。更新操作の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は本人の更新操作で全連携をまとめて取得し、一覧表示と公開プロフィールには保存済み情報を使う。
 
 - Accounts接続先は、管理者が登録・接続検証して有効化する。作成の重複は取り下げていない接続先のoriginの一意制約、有効化・取り下げの二重処理は`version`の競合検査で防ぐ。取り下げでは鍵とユーザー連携を削除して終端の状態とし、再利用するときは同じoriginで新しい接続先を作る。
 
-- Cookie・CSRF・OriginはBetter Authの標準対策を基準とし、認証APIと独自更新APIへの適用範囲を明確にする。
+- Cookie・CSRF・OriginはBetter Authの標準対策を基準とする。要求元の検査は、認証APIではBetter Authの標準検査、Points独自APIではHono標準の`csrf()`で行い、DPoPで認証する要求は`csrf()`から除外する。
 
-- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。標準OAuth stateで開始情報を管理し、検証済みコールバックで連携・再連携を保存する。設定画面へ戻ってからポイントを自動受領する。
+- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。連携は画面から標準の`linkSocial`で開始し、state・認可コード交換・ID Tokenの検証はGeneric OAuthの標準処理に任せて、開始した本人へ連携・再連携を保存する。トークン要求には`client_id`・`client_assertion`・DPoP proofを付ける。設定画面へ戻ってから「情報を更新」を実行し、ポイントを自動受領する。
 
 - Accountsの情報取得は、成功して提供情報がない場合を「情報提供なし」、一度も成功していない場合を「未取得」に統一する。再取得に失敗した場合は前回の情報と取得日時を保持する。
 
@@ -6483,13 +6580,13 @@ flowchart TD
 
 - Google・GitHubとPoints本人の対応は標準Account・Userで管理する。退会後も認証対応とUserの`pointsStatus`を保持し、同じPoints本人の再開へつなぐ。
 
-- 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、別タブの未確定操作と中止した外部連携は切替後に反映しない。
+- 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、切替・ログアウト後は画面全体を読み込み直す。別タブの未確定操作は切替後に反映しない。Accounts連携の途中で切り替えた場合は、開始した本人へ連携を保存する。
 
-- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。ローカル・staging・PRはテスト用D1を共有し、本番を分離する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
+- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。ローカル・staging・PRはテスト用D1を共有し、本番を分離する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は新しい版を0%で配信し、版を指定して確認してから100%へ切り替える。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
 
 - 全画面でJavaScriptを必須とし、無効時は有効化と再読み込みの案内だけを日英併記する。
 
-- 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。言語切替時も入力と確認結果を維持し、日時・数値は日英共通、規約・プライバシーポリシーは日本語を正本とする。
+- 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。選んだ言語はHeroUIの`I18nProvider`と`<html lang>`へ反映し、日英の辞書のキーに不足・余分があれば型検査で検出する。言語切替時も入力と確認結果を維持し、日時・数値はロケールを固定した`Intl`で日英共通に表示する。規約・プライバシーポリシーは日本語を正本とする。
 
 - Better Authの認証エラーは、公式の`@better-auth/i18n`で日英へ翻訳する。画面の言語選択を要求へ反映し、言語切替時も表示中のエラーを翻訳し直す。
 
@@ -6524,9 +6621,9 @@ flowchart TD
 
 - PointsのログインProviderはGoogleとGitHubである。
 
-- 退会時は本人情報と現在設定を削除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
+- 退会時は本人情報と現在設定を削除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。退会済みの本人も通常のセッションでログインし、`CLOSED`の間は再開に必要な操作だけを行える。再開後もそのセッションを使う。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
 
-- OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。
+- OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。紹介URLは変更だけを受け付ける。
 
 - 全体管理者と各対象の管理者はそれぞれ最大20人とする。各対象の管理者所属は標準のOrganization APIで追加・解除し、`membershipLimit`と`organizationHooks`で人数・件数と追加先を検証する。解除・退出・退会・ログイン停止で操作できる`appAdmin`がいなくなる変更を拒否する。
 
@@ -6553,6 +6650,7 @@ flowchart TD
 - 本人データと、本人が管理者として登録されている対象の設定を、最大5MiBの一つのJSONとして一括で応答する。上限を超える場合は出力せずエラーを返し、計算項目は再計算せず保存済みの事実を出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は確認結果を含む最大5MiBの要求で一括確定する。確認結果はブラウザで保持して確定時に返し、重要な確認項目が変わった場合は再確認する。
   - 設定復元は経済処理のない設定だけの操作とし、月別評価設定は復元対象に含めずフォーム・CSVで入れ直す。確定済みの取引は参照用として保持する。
   - ファイル内のIDの対象が存在し、復元する本人がその対象の管理者なら更新し、それ以外は新しいIDで作成する。公式パッケージの登録と自動分配設定は、ファイルの内容で全置換する。
+  - 出力するJSONファイルの保存名は、ブラウザが`<a download>`の値で指定する。
 
 - 評価軸、Package、交換比率、貢献評価代用の設定、自動分配設定は、同じIDの業務レコードで管理する。分配の計算条件は不変の版に保存し、対象ごとに適用開始時刻が最新の版を現在の設定とする。計算に影響する変更時は新しい版を一括確定する。直接評価は独立した初回履歴として保持し、代用評価の結果と分配もポイント増減履歴へ集約する。再計算は旧額との差分を反映する。
 
@@ -6598,7 +6696,7 @@ flowchart TD
   - 現在の退会処理は表示名を置き換えて説明を空にするが、公式パッケージの登録と自動分配設定を削除していない。
     - 本人情報と設定の削除範囲を、今回の仕様に合わせる必要がある。
   - 現在の退会・再開処理は、現在のセッションを残して他のセッションを削除する。
-    - 退会時の全セッション失効と、再開時の通常セッション再発行は実装時に確認する。
+    - 退会時の全セッション失効と、`CLOSED`の本人に業務API・`hooks.before`で再開に必要な操作だけを許すことは、実装時に確認する。
   - 現在の管理権限は独自の`admin_membership`にある全体管理者だけを判定する。
     - 退会時に、最後の`appAdmin`の検証と、各対象のOrganization管理者所属の解除を加える必要がある。
   - 現在の再開POSTは、未受領評価の受領を状態変更と同時に処理する。
