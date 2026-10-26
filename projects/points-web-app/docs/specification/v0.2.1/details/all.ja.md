@@ -6177,6 +6177,9 @@ points-web-app/
 │  │  ├─ server.ts            Workerの配信入口
 │  │  ├─ app.ts               APIと依存する実装の組み立て
 │  │  ├─ http/                API受付・認証確認・静的配信・入出力の変換
+│  │  │  ├─ routes/           経路と処理の入口
+│  │  │  ├─ middleware/       全APIに共通する前後処理
+│  │  │  ├─ auth/             操作主体の確認
 │  │  │  └─ csv/              CSVの解析・検証
 │  │  ├─ usecases/            付与・訂正などの処理手順
 │  │  │  └─ ports/            DB・認証基盤・外部サービス・ログの操作の型
@@ -6209,29 +6212,186 @@ points-web-app/
 
 ### 各領域の役割と依存関係
 
-- frontendは画面とブラウザ側の処理を担当し、API経由でbackendを呼ぶ。
+- 依存の向き
+  - 説明
+    - 内側の`domain/`・`usecases/`は、外側の`http/`・`infrastructure/`を知らない。
+    - 外側をつなぐのは`backend/app.ts`だけとする。
 
-- backendはAPI受付・認証・業務処理・DB操作を担当する。
-  - `http/`で要求を受け付け、`usecases/`で付与・訂正などの処理手順を組み立てる。
-  - ユースケースは`domain/`の計算ルールと、`usecases/ports/`のインターフェースを使う。
-    - DB、認証基盤（管理者所属の変更など）、外部サービス、ログ・監査の出力は、ポートを通して使う。
-    - ユースケースはBetter Auth・Drizzle・D1・外部APIを直接読み込まない。
-  - 外部サービス・保存先・実行基盤へアクセスする実装は、`infrastructure/`へまとめ、ポートを実装する。
-  - D1操作は`infrastructure/db/repositories/`、Accounts通信は`infrastructure/accounts/`、認証基盤との接続は`infrastructure/auth/`へ置く。
-  - Rate Limiting bindingの呼び出しは`infrastructure/ratelimit/`、保存する秘密情報の暗号化は`infrastructure/crypto/`、ログ・監査の出力は`infrastructure/observability/`へ置く。
-  - `app.ts`で各実装を組み立て、ユースケースやHTTP処理へ接続する。
-  - `http/`はAPI受付と認証・回数制限の適用、`infrastructure/`はその検証や計数に必要な外部アクセスを担当する。
-  - `http/`は、APIの入出力の型とユースケースの入出力を相互に変換する。
-    - CSVの解析・検証は入力の変換として`http/csv/`へ置く。
-    - `shared/contracts/`のAPIの型は`http/`とfrontendで使い、`usecases/`と`domain/`からは読み込まない。
-  - 金額計算や配分ルールはDB・HTTPから独立させる。
-  - 付与・残高・分配・ポイント増減履歴の確定と受領情報の更新は、操作本体または一回の分割処理ごとに一括確定できる保存操作として提供する。処理進捗は保存済み入力と確定履歴から取得する。
+  - 依存してよい先
+    - `http/`は、`usecases/`・`shared/contracts/`・`shared/schemas/`と、認証の確認・回数の計数のための`infrastructure/auth/`・`infrastructure/ratelimit/`を読み込む。
+    - `usecases/`は、`domain/`・`usecases/ports/`・`shared/utils/`を読み込む。
+    - `domain/`は、`shared/utils/`だけを読み込む。
+    - `infrastructure/`は、実装する`usecases/ports/`と、変換に使う`domain/`の型を読み込む。
+    - `frontend/`は`shared/`だけを読み込み、`backend/`は読み込まない。
 
-- sharedには、frontendとbackendの両方で使う内容や、両方を操作する処理を置く。
-  - APIの入出力の型は`contracts/`、入力形式と値の検証は`schemas/`、共通の計算・変換処理は`utils/`へ置く。
-  - 共通の型・入力形式・計算処理は、ブラウザ・Workerなどの実行環境から独立させる。
-  - ブラウザから読み込む共通処理に、秘密鍵・トークンの保管やDB接続などのサーバー専用処理を含めない。
-  - この共有範囲はPoints内とし、Accounts・MarketsとはAPIを通して連携する。
+  - 依存してはいけない先
+    - `domain/`・`usecases/`から、`http/`・`infrastructure/`・Better Auth・Drizzle・D1・Hono・外部APIを読み込まない。
+    - `usecases/`・`domain/`から、`shared/contracts/`のAPIの型を読み込まない。
+    - `shared/`から、`frontend/`・`backend/`を読み込まない。
+
+- `frontend/`
+  - 説明
+    - 画面とブラウザ側の処理を担当し、API経由で`backend/`を呼ぶ。
+    - 業務ルールの正本は`backend/`に置き、画面では表示と入力の補助だけを行う。
+  - 入れる内容
+    - `router.tsx`・`routeTree.gen.ts`
+      - 説明
+        - TanStack Routerの設定と、生成した画面ルートの一覧を置く。
+        - `routeTree.gen.ts`は生成物とし、手で編集しない。
+    - `routes/`
+      - 説明
+        - URLと画面を接続する。
+        - 画面ごとのルート、検索パラメータの定義、読み込み前の確認。
+    - `components/`
+      - 説明
+        - 画面部品とフォームを作る。
+        - HeroUIを使った部品、React Hook Formのフォーム、確認画面・一覧・モーダル。
+    - `api/`
+      - 説明
+        - 同一originの`fetch()`でAPIを呼ぶ処理をまとめる。
+        - 要求の組み立て、`shared/contracts/`の型による応答の受け取り、Problem Detailsの読み取り、`X-Request-Id`の取得。
+    - `query/`
+      - 説明
+        - TanStack Queryの取得データとキャッシュをまとめる。
+        - `queryKey`の定義、取得と更新後の再取得、アカウント切替時の取得の中止とデータの除去。
+    - `auth/`
+      - 説明
+        - ブラウザ側の認証操作をまとめる。
+        - Better Authのクライアント、ログイン・ログアウト・アカウント切替、Accounts連携の開始と解除。
+    - `i18n/`
+      - 説明
+        - 表示言語の判定と、日英の翻訳をまとめる。
+    - `styles/`
+      - 説明
+        - Tailwind CSSの設定と、画面全体のスタイルをまとめる。
+    - `content/`
+      - 説明
+        - 日英のドキュメント・規約本文をまとめる。
+    - `scripts/`
+      - 説明
+        - ビルド前に表示用データなどを生成する処理をまとめる。
+    - `test/`
+      - 説明
+        - 画面の結合テストと、その検証用データをまとめる。
+
+- `backend/`
+  - 説明
+    - API受付・認証・業務処理・DB操作を担当する。
+    - 業務の手順は`usecases/`、計算ルールは`domain/`、外部アクセスは`infrastructure/`へ分ける。
+
+  - 入れる内容
+    - `server.ts`
+      - 説明
+        - Workerの配信入口とする。
+        - 静的配信とAPIの振り分け、Cron Triggersの`scheduled()`を置く。
+    - `app.ts`
+      - 説明
+        - 各実装を組み立て、ユースケースやHTTP処理へ接続する。
+        - `infrastructure/`の実装を作り、`usecases/ports/`の型として`usecases/`と`http/`へ渡す。
+    - `http/`
+      - 説明
+        - 外から届くHTTP要求の入口とする。
+        - ユースケースへの要求と応答を担当し、ユースケースがHTTPの知識を持たずに、データを受け取って処理して返すことに専念できるようにする。
+        - 業務の手順と計算ルールは持たない。
+      - 入れる内容
+        - `routes/`
+          - 説明
+            - Honoの経路と、各APIの処理の入口を置く。
+            - hono-openapiの`describeRoute()`・`validator()`による要求の検証、APIの入出力の型とユースケースの入出力の変換、成功応答`{ data, meta }`の組み立て。
+        - `middleware/`
+          - 説明
+            - 全APIに共通する前後処理を置く。
+            - 通信ID、セキュリティヘッダー、本文の上限、Origin検査、回数制限の適用、BASIC認証、`app.onError()`によるProblem Detailsへのエラー変換。
+        - `auth/`
+          - 説明
+            - 認証済み本人のID・Client ID・IPなど、操作主体を確認する。
+            - Cookieセッションと`points` scopeのOAuth認証の合成、DPoP付きトークンの検証の呼び出し、権限の確認。
+        - `csv/`
+          - 説明
+            - CSVを入力の変換として解析・検証する。
+            - Papa Parseによる解析、列と行番号付きの入力エラー、ユースケースの入力への変換。
+    - `usecases/`
+      - 説明
+        - 付与・訂正などの処理手順を組み立てる。
+        - 1つの操作を1つのファイルにまとめ、付与・分配・受領・譲渡・交換・精算・CSV確定・設定復元などの機能で分ける。
+        - 一括確定の範囲（どこまでを1回の原子処理にするか）は、ユースケースで決める。
+      - 入れる内容
+        - `ports/`
+          - 説明
+            - ユースケースが外へ求める操作の型（インターフェース）を置く。
+            - 型の形はユースケースが必要とする業務の言葉で決め、D1やBetter Authの都合に合わせない。
+          - 入れるもの
+            - ポイント増減履歴・残高・設定の版などの保存先の操作。付与・残高・分配・ポイント増減履歴の確定と受領情報の更新は、操作本体または一回の分割処理ごとに一括確定できる保存操作とする。
+            - 認証基盤の操作（管理者所属の変更など）、Accountsとの通信、ログ・監査の出力。
+    - `domain/`
+      - 説明
+        - 金額計算・分配などのルールを置く。
+        - DB・HTTP・実行環境から独立させ、入力から結果を求める処理だけにする。
+      - 入れるもの
+        - 金額の検証と端数処理、配分の重みと最大剰余法、再分配と循環の判定、代用評価の計算、交換の組の計算、訂正の差額の計算。
+    - `infrastructure/`
+      - 説明
+        - 外部サービス・保存先・実行基盤へのアクセスをまとめ、`usecases/ports/`を実装する。
+      - 入れる内容
+        - `db/`
+          - 説明
+            - D1とDrizzleを扱う。
+          - 入れる内容
+            - `schema/`
+              - 説明
+                - テーブル定義を置く。Better Authの生成スキーマもここへ出力する。
+            - `drizzle/`
+              - 説明
+                - マイグレーションと生成メタデータを置く。
+            - `repositories/`
+              - 説明
+                - D1の読み書きを行い、保存先のポートを実装する。一括確定は`batch()`で行う。
+        - `auth/`
+          - 説明
+            - Better Authの認証設定・認証処理と、スキーマ生成用の入口`auth-cli.ts`を置く。
+            - 標準フック・Organizationのフック・OAuth Providerの設定もここへ置く。
+        - `accounts/`
+          - 説明
+            - Accountsとの通信を行う。Client Credentialsのトークン取得とDPoP署名も含める。
+        - `ratelimit/`
+          - 説明
+            - Rate Limiting bindingの呼び出しを行う。
+        - `crypto/`
+          - 説明
+            - D1へ保存する秘密情報の暗号化・復号を行う。
+        - `observability/`
+          - 説明
+            - 構造化ログと監査ログを出力し、ログのポートを実装する。
+    - `scripts/`
+      - 説明
+        - DB更新などの補助処理を置く。
+    - `test/`
+      - 説明
+        - `integration/`にAPI・D1の結合テスト、`contract/`に外部APIとの契約テストを置く。
+
+- `shared/`
+  - 説明
+    - `frontend/`と`backend/`の両方で使う内容や、両方を操作する処理を置く。
+    - ブラウザ・Workerなどの実行環境から独立させる。
+    - ブラウザから読み込むので、秘密鍵・トークンの保管やDB接続などのサーバー専用処理を含めない。
+    - この共有範囲はPoints内とし、Accounts・MarketsとはAPIを通して連携する。
+
+  - 入れる内容
+    - `contracts/`
+      - 説明
+        - APIの入出力の型を置く。`http/`と`frontend/`で使う。
+    - `schemas/`
+      - 説明
+        - フォーム・CSV・JSON復元・APIで共通の、入力形式と値のValibot定義を置く。
+    - `utils/`
+      - 説明
+        - 金額の十進数文字列の扱いやUTCの日時など、共通の計算・変換処理を置く。
+    - `scripts/`
+      - 説明
+        - 全体のビルド・配信・稼働確認を置く。
+    - `test/`
+      - 説明
+        - `e2e/`にブラウザ・API・DBを通した検証、`fixtures/`に複数領域で使う検証用データ、`support/`に複数領域で使うテスト補助を置く。
 
 ### テストとスクリプトの配置
 
