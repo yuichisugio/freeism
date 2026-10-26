@@ -498,11 +498,12 @@ OAuthの固有IDと、URLから抽出したユーザー名は、それぞれ別�
 | 必要なscopeの不足 | 403 | `INSUFFICIENT_SCOPE` |
 | 一覧取得の対象ユーザーが存在しない、または問い合わせ元へ提供中でない | 404 | `NOT_FOUND` |
 | 一括照合の要求bodyが5MiBを超過 | 413 | `REQUEST_TOO_LARGE` |
+| 問い合わせ元の要求回数が上限を超過 | 429 | `RATE_LIMITED` |
 | サーバー内部の処理失敗 | 500 | `INTERNAL_ERROR` |
 
 401・403の応答では、Better Auth標準の`createResourceServerChallenge`で作る`WWW-Authenticate`ヘッダーを付け、bodyは本表の形式とする。`WWW-Authenticate`には`DPoP`と`Bearer`の両方のchallengeが含まれうるため、利用側はHTTPステータスとbodyの`code`で失敗を判定する。削除したクライアント、無効にしたクライアント（登録者のban中を含む）のトークンによる要求は401とする。
 
-一覧取得・照合の資源APIにも、CloudflareのWAFのRate Limitingを適用する。上限を超えた要求にはWAFがHTTP 429を返し、この応答は本表の形式に従わない。利用側はHTTPステータスで判定する。
+一覧取得・照合の資源APIは、Workers Rate Limiting bindingで、認証済みの問い合わせ元のClient IDごとに60秒60回までとする。上限を超えた要求には、本表の`RATE_LIMITED`と、待機の目安として`Retry-After: 60`を返す。回数はCloudflareの拠点ごとに非同期で反映されるため、厳密な上限にはならない。[Rate Limiting bindingの公式資料](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)
 
 例えば、公開ページを持つ連携先はURLを、固有IDを共有する連携先は`provider_account`を渡せる。アップロード側は本人から共有された情報など、対象者との対応を確認できる識別子を指定する。PointsのCSV列・入力画面からこのAPIへ渡す具体的な形式は、Points側の契約で定める。
 
@@ -1017,7 +1018,7 @@ URL検証の対応サービス・URL種別・証明の適用範囲は[URL登録�
 ## 提供・技術要件
 
 - 提供ドメインは[`accounts.freeism.app`](https://accounts.freeism.app/)とし、OSSとして公開する。基本機能を中心とした簡潔なUIとする
-- Cloudflare WorkersはWorkers Paidプランを前提とする
+- Cloudflare WorkersはWorkers Freeプランを前提とし、全Worker合計で1日10万要求・1回のCPU時間10msの上限内で動かす。[Workersの上限](https://developers.cloudflare.com/workers/platform/limits/)
 - バックエンドはHono・Drizzle・Cloudflare D1、フロントエンドはTanStack Start・React・HeroUI v3・Tailwind・Vite Plusを使用する。Valibotのschemaを両側で共有する
 - フロントエンドの各機能の取得・状態・イベント・検証ロジックをfeatureごとのフックへ分け、ビューはpropsとイベントから描画する。認可と保存時の検証はバックエンドが担当する
 - アプリの処理、ドメインの規則、DB・外部サービスへの接続を分けた実用的なクリーンアーキテクチャとする。必要な責務に対応する層・インターフェースを用意する

@@ -124,7 +124,7 @@
   - [精算](#精算)
     - [落札者と精算の原則](#落札者と精算の原則)
     - [Settlement Workflow](#settlement-workflow)
-    - [Paid planの上限と1,000人の落札者](#paid-planの上限と1000人の落札者)
+    - [Workflowの上限と1,000人の落札者](#workflowの上限と1000人の落札者)
     - [Workflow instanceと手動retry](#workflow-instanceと手動retry)
     - [retry budget](#retry-budget)
     - [失敗の扱い](#失敗の扱い)
@@ -485,7 +485,7 @@
 ### CSVのD1一括書き込み
 
 - 1,000行の確定では、値を並べた巨大なmulti-value SQLや1行1queryを使わない。
-  - 現行D1の上限（1 query 100 bound parameters、SQL 100KB、string／BLOB 2MB、Paidで1 invocation 1,000 queries、batch全体30秒）をすべて満たす。
+  - 現行D1の上限（1 query 100 bound parameters、SQL 100KB、string／BLOB 2MB、Workers Freeで1 invocation 50 queries（`batch()`は1 queryと数える）、batch全体30秒）をすべて満たす。
   - この制約はSettlementで複数winnerを書き込む場合にも適用する。
 
 - validation済みのrowをcanonical JSON arrayへ変換し、UTF-8で1 chunk 1,500,000 bytes以下に分ける。
@@ -497,7 +497,7 @@
 
 - 全Auction、snapshot、command guard、idempotency result、auditのstatementを一つのD1 `batch()`へ入れる。
   - 1 statementでも失敗すれば全件rollbackし、複数の独立した`batch()`へ分けない。
-  - 1 commitのstatement数は100以下とし、query上限1,000に余裕を持たせる。
+  - 1 commitのstatement数は100以下とし、query上限50に余裕を持たせる。
   - 100を超えるschema設計になる場合は、行数を黙って削らず、実装を止めて計画を見直す。
 
 ### CSV export
@@ -1997,11 +1997,11 @@ flowchart TD
   D --> I["Markets確定失敗時も同じreceiptで再開"]
 ```
 
-### Paid planの上限と1,000人の落札者
+### Workflowの上限と1,000人の落札者
 
-- Settlement Workflowのproduction運用はWorkers Paidを前提とする。
+- Settlement Workflowのproduction運用はWorkers Freeを前提とする。
   - Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。
-  - stagingもWorkers Paid上で、productionと同じ`limits`を明示する。
+  - stagingもWorkers Free上で、productionと同じ`limits`を明示する。
   - localでは対応しないWorker単位のCPU・subrequestの上限を設定せず、`limits.steps=25000`とアプリ内の上限を維持する。
 
 - 一つの計算roundは最大1,000人の落札者とし、全員分を一つのPoints要求にまとめる。
@@ -2529,7 +2529,7 @@ upgrade-insecure-requests
 - Markets WorkerはWorkers Observabilityを環境別に有効化する。
   - stagingはlogsとtracesともhead sampling `1`とする。
   - productionはlogs `1`、traces `0.05`を初期値とする。
-  - productionはWorkers PaidのWorkers Logs 7日保持とし、stagingもPaid環境として7日保持とすることをrelease条件にする。
+  - productionとstagingはWorkers FreeのWorkers Logs 3日保持とすることをrelease条件にする。
 
 - structured logの項目を決める。
   - `level`、`event`、`app`、`environment`、`requestId`または`correlationId`、`operation`、`outcome`、安定した`code`、`durationMs`、attempt、resource typeを記録する。
@@ -2938,7 +2938,7 @@ upgrade-insecure-requests
 - PRごとの公開されたFull-stack previewは作らない。
   - D1、DO、Workflow、OAuth mockは、localのWorkers runtimeで確かめる。
 
-- productionはWorkers Paidと、D1 Time Travel 30日をrelease条件とする。
+- productionはWorkers Freeと、D1 Time Travel 7日をrelease条件とする。
 
 ### stagingのBasic認証
 
@@ -3081,7 +3081,7 @@ PRとmerge queueでは次を実行する。
 
 - Cloudflare APIの認証errorが解消されている。
 
-- Workers Paid planが有効である。
+- Workers Free planで動作している。
 
 - MarketsのBetter Authと関連パッケージを互換性のある最新安定版へ更新し、回帰testを完了している。
   - Google・GitHubのlogin、明示link、Tokenの暗号化を確かめる。
@@ -3144,6 +3144,7 @@ PRとmerge queueでは次を実行する。
 - Pointsの二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ競売を二重精算しない管理はMarketsが行う。冪等キーの欠落は`400 IDEMPOTENCY_KEY_REQUIRED`、一括精算の要求回数は呼出元Client IDの枠で1回とする。
 - 仕様書はMarketsの責務だけを記載し、Pointsの内部仕様と、それだけを決めた設計決定を除く。Freeism Pointsの金額の小数部は4桁とする。
 - 引き落としのreceiptは、Pointsの成功応答を受けたMarketsが発行する。
+- Workers は Free を前提にする。
 - 即時購入の結果が不明な間は競売全体を待機し、元の終了時点と判明した残数量から再開する。
 - 画面の残高の参考表示にはPointsの残高一覧API`GET /api/v1/me/point-balances`を使い、評価軸別の不足額はMarkets側で計算する。
 - revision管理を廃止し、Auction（`auctionRevision`なし）とReviewは現在のレコードを更新する。実行済みの取引・証明・監査記録は保持する。

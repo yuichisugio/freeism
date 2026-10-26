@@ -3355,9 +3355,10 @@ flowchart TD
   - 細かな版は`package.json`とロックファイルで管理し、ここには互換性に関わる主な版だけを記載する。
 
 - 実行用・開発用のライブラリとツールは相互に互換性がある最新安定版を採用する。
+  - `cf`とCloudflare Vite plugin v2は安定版がないため、ベータ版を固定して使う。
   - 導入予定のライブラリも同じ方針で選び、更新時に公式の変更履歴・Node.js要件・関連パッケージの依存条件を確認する。
   - 依存パッケージの選定にはpnpmで定める公開後の待機と例外条件も適用する。
-  - Vite+やWranglerが内部で使うツールは、採用した本体が指定する組合せで使う。
+  - Vite+や`cf`、Cloudflare Vite pluginが内部で使うツールは、採用した本体が指定する組合せで使う。
   - 更新後は型検査・静的解析・ビルド・単体テスト・結合テスト・E2Eを行い、採用する版とロックファイルを確定する。
   - 共有のpnpm・Vite+設定やロックファイルを更新する場合は、同じ設定を参照する他のワークスペースへの影響も確認する。
 
@@ -3476,21 +3477,27 @@ flowchart TD
     - Pointsのプロジェクト直下で、`pnpm exec auth generate --config src/backend/infrastructure/auth/auth-cli.ts --adapter drizzle --dialect sqlite --output src/backend/infrastructure/db/schema/auth.ts --yes`を実行する。
   - 更新時は一時ファイルへ認証スキーマを生成して差分を確認し、必要なD1マイグレーションへ既存のindexと独自制約を引き継ぐ。
 
-- 必須のsecretと`Env`の型はWranglerの標準機能で管理する。
-  - 必須のsecretはWrangler設定の`secrets.required`へ環境ごとに列挙する。[公式資料](https://developers.cloudflare.com/workers/configuration/secrets/)
-    - `secrets.required`を宣言すると、ローカル開発では列挙したキーだけを読み込む。
-  - `wrangler deploy`と`wrangler versions upload`は、必須のsecretがなければ失敗する。
-  - ローカル開発では、Cloudflare Vite pluginを使う場合も、不足は警告だけになる。
-  - PRプレビューの`wrangler preview`は`secrets.required`を検証しない。
-  - `Env`の型は`wrangler types`で生成し、CIでは`wrangler types --check`で古い型を検出する。[公式資料](https://developers.cloudflare.com/workers/languages/typescript/)
+- secretと`Env`の型は`cf`の標準機能で管理する。
+  - secretは`cloudflare.config.ts`で`bindings.secret()`として宣言する。
+  - 値は環境ごとに一度だけ`cf workers secrets bulk`で登録する。
+    - `cf deploy`は登録済みのsecretを保持するため、配信のたびには渡さない。
+  - PRプレビューのsecretは[テスト環境の認証とPRプレビュー](#テスト環境の認証とprプレビュー)に書いたPreviews共通の設定へ登録する。
+  - `Env`の型は、型検査の前に`cf workers types`で生成する。[公式資料](https://developers.cloudflare.com/cf/projects/#generate-types)
+    - このコマンドは`mode`を渡さないため、設定の関数は`mode`が未指定のとき`development`として扱う。
   - 値の形式は必要な項目だけアプリ側で検証する。
     - `BETTER_AUTH_SECRETS`のバージョン付きの鍵の一覧や、`ACCOUNTS_KEY_ENCRYPTION_KEY`の32バイトの値などを検証する。
 
-- 開発・ビルドとCloudflareの接続には、導入済みのCloudflare Vite pluginとWranglerを使う。
-  - 両方を、プラグインが要求する版の条件を満たす組合せで更新する。
+- 開発・ビルドとCloudflareの接続には、導入済みのCloudflare Vite pluginと、導入予定の`cf`を使う。
+  - `cf`は`cf@1.0.0-beta.21`をdevDependencyで固定する。
+    - ベータの版の間でも互換性を壊す変更があるため、版の更新はstagingで確かめてから行う。
+  - Cloudflare Vite pluginはv2 beta（`@cloudflare/vite-plugin@beta`）を使う。
+    - `cf`はv1を受け付けない。
   - Cloudflare Vite pluginは、Viteの開発・ビルドとWorker・接続先・Static Assetsを結び付ける。
-  - Wranglerは環境別設定、D1の更新、配信、結合テスト用Workerの起動を担当する。
-  - Workersの`compatibility_date`はライブラリやNode.jsの更新とは別に、実行時の変更内容を確認して更新する。
+  - `cf`は、`cloudflare.config.ts`による環境別の設定、ビルド、D1の更新、配信、PRプレビュー、secretの登録を担当する。
+  - WranglerはPreviews共通のsecretの登録、`wrangler tail`によるログの確認、テスト基盤（`@cloudflare/vitest-plugin`・`createTestHarness()`）に使う。
+    - Wranglerとテスト基盤はWranglerの設定ファイルを読み、`cloudflare.config.ts`を読まない。[公式資料](https://developers.cloudflare.com/cf/wrangler/reference/)
+    - テスト基盤が`cloudflare.config.ts`を読めない間は、テスト用の`wrangler.jsonc`を残し、`cloudflare.config.ts`と同じ値にそろえる。
+  - Workersの`compatibilityDate`はライブラリやNode.jsの更新とは別に、実行時の変更内容を確認して更新する。
 
 ### 開発・品質検査・テスト
 
@@ -3536,13 +3543,13 @@ flowchart TD
 
 - Workerの関数・モジュール・接続先は、Cloudflare公式の`@cloudflare/vitest-plugin`で検証する。
   - Vite+同梱のVitestに対応する版を使い、既存の`@cloudflare/vitest-pool-workers`から依存名・設定のimport・TypeScriptの型参照を移す。[公式移行手順](https://developers.cloudflare.com/workers/testing/vitest-integration/migration-guides/migrate-to-vitest-plugin/)
-  - `cloudflareTest()`へWrangler設定を指定し、テストと対象の処理をWorkersの実行環境である`workerd`内で動かす。
+  - `cloudflareTest()`へWorkerの設定を指定し、テストと対象の処理をWorkersの実行環境である`workerd`内で動かす。
   - Worker固有APIやD1などの接続先を直接使い、処理結果と保存内容を確認する。[Cloudflare公式の単体テスト手順](https://developers.cloudflare.com/workers/testing/vitest-integration/write-your-first-test/)
   - D1のマイグレーションは、Node.js側で`readD1Migrations()`により読み込み、Workers内で`applyD1Migrations()`を適用する。
   - ストレージはテストファイルごとに分離されるため、同じファイル内の各テストに必要な初期状態を用意する。[分離の仕様](https://developers.cloudflare.com/workers/testing/vitest-integration/isolation-and-concurrency/)
 
 - アプリ全体は、Wrangler標準の`createTestHarness()`による結合テストで検証する。
-  - `vp build`で生成した本番用WorkerとWrangler設定を使う。
+  - `createTestHarness()`には、テスト用の`wrangler.jsonc`を指定する。`cf build`の成果物を読めるかは、実装時に確認する。
   - テストコードはNode.js上の`vp test`で実行し、Worker本体は`workerd`内で動かす。
   - `server.listen()`で起動し、`server.fetch()`でHTTP要求を送り、終了時に`server.close()`で閉じる。[Cloudflare公式の結合テスト手順](https://developers.cloudflare.com/workers/testing/test-harness/get-started/)
   - APIの応答とD1への保存結果から、認証・権限・原子的な確定・失敗時の全件未反映を確認する。
@@ -3582,7 +3589,7 @@ flowchart TD
 - file-saverとreact-dropzoneの役割は、ブラウザ標準のファイル選択・保存へまとめる。
 - ts-pruneの未使用export検査は、ファイル・依存も検出するKnipへまとめる。
 - Day.jsの日付処理は標準`Date`のUTC機能と`Intl.DateTimeFormat`へまとめる。
-- t3-envの役割はWranglerの`secrets.required`と`wrangler types`へまとめる。
+- t3-envの役割は`cloudflare.config.ts`の`bindings.secret()`と`cf workers types`へまとめる。
 
 ### v0.2.1の対象外・今後の検討
 
@@ -4632,7 +4639,8 @@ flowchart TD
 ```
 
 - 初期管理者
-  - 初期の`appAdmin`は、wrangler cliで手動で登録する。Secretsの指定は不要
+  - 初期の`appAdmin`は、運営者が`cf`のD1のコマンドで手動で登録する。
+  - Secretsでの指定は不要とする。
 
 - 実装との差と確認事項
   - 現在の認証設定にはAdmin・Organizationプラグインがなく、全体管理者を独自の`admin_membership`で判定している。4種類の権限を標準モデルで判定できることを実装時に確認する。
@@ -4961,7 +4969,7 @@ flowchart TD
   - この有効期間は、CSV・通知・設定復元・精算を含む、`Idempotency-Key`を要求する全操作に適用する。
 
 - 期限切れの結果は、[Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/)で1日1回起動するWorkerの`scheduled()`で一定件数ずつ削除する。
-  - UTC基準の日次スケジュールをWrangler設定で管理する。
+  - UTC基準の日次スケジュールを`cloudflare.config.ts`の`triggers.scheduled()`で管理する。
   - `expiresAt`にインデックスを設け、処理時点で期限切れの結果を有効期限の古い順に削除する。
   - 1回のCron実行で削除する件数の上限は、サーバー側の定数で管理する。
   - 上限を超えた残りの期限切れ結果は、次回の日次実行で削除する。
@@ -5058,6 +5066,7 @@ flowchart TD
   - CSPとPermissions Policyだけを下記の値で明示して設定する。
   - HSTS・`X-Frame-Options`・`X-Content-Type-Options`・`Referrer-Policy`は、デフォルト設定を使う。
   - 静的配信ではビルド時に生成する`_headers`の共通ルール`/*`へ、デフォルトを含めて同じ応答ヘッダーと値を記載する。
+    - `_headers`は`vite.config.ts`のプラグインでビルドの最後に出力し、`cf build`だけで成果物に入るようにする。
   - 共通ルールは、静的HTML・SPAの初期HTML・JavaScript・CSSなどの全静的ファイルへ適用する。
   - 画面へのフォールバックとして返す`index.html`にも、`/*`の規則が適用される。
   - パス別の規則は`index.html`のパスではなく元の要求URLで照合される。
@@ -6073,11 +6082,10 @@ flowchart TD
 
 - 標準機能で回数を数える。
   - 共通枠には、[Cloudflare WorkersのRate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)を使う。
-  - Wranglerで`limit: 60`・`period: 60`を設定し、対象のHTTP要求では、その枠の`limit({ key })`を1回呼ぶ。
+  - `cloudflare.config.ts`の`rateLimit`で60秒60回の枠を設定し、対象のHTTP要求では、その枠の`limit({ key })`を1回呼ぶ。
   - 回数はCloudflareの拠点ごとに非同期で反映されるため、全拠点を通じた厳密な上限にはならない。
   - ログイン・セッション取得・OAuthの認証開始・コールバック・トークン発行などには、[Better Auth標準の制限](https://better-auth.com/docs/concepts/rate-limit)を適用する。
   - Better Authの保存先は標準のD1モデルとし、開発環境でも制限を有効にする。
-  - 認証処理には、Cloudflare WAFによる共通の対策も適用する。
   - Better Auth配下の管理・設定操作も共通枠へ含め、認証処理か管理操作かで判定する。
   - Better Auth自身の標準制限は、共通枠の対象となる管理・設定APIにも適用する。
 
@@ -6103,10 +6111,10 @@ flowchart TD
   - Better Authの`/api/auth/link-social`によるAccounts連携開始は、本人の枠で数える。
 
 - Pointsの実行環境ごとに枠を分ける。
-  - 本番用と共有テスト用の`namespace_id`を分け、ステージング・PRプレビューは同じ共有テスト用の枠を使う。
+  - 本番用と共有テスト用のnamespaceを分け、ステージング・PRプレビューは同じ共有テスト用の枠を使う。
   - ローカルは、手元で実行する独立した60秒60回の枠とする。
   - [Cloudflareの対応表](https://developers.cloudflare.com/workers/local-development/bindings-per-env/#local-development)では、Rate Limiting bindingはローカルの模擬動作に対応し、リモート接続には対応していない。
-  - 同じ`namespace_id`とキーは別Workerでも共有されるため、Worker名やbinding名だけで分離した扱いにしない。
+  - 同じnamespaceとキーは別Workerでも共有されるため、Worker名やbinding名だけで分離した扱いにしない。
   - 接続先のAccounts・Marketsとは別の枠とする。
 
 - 制限を超えた場合は、待ってから利用者が再試行する。
@@ -6143,7 +6151,7 @@ flowchart TD
 - 実装時に、仕様との差異と動作を確認する。
   - 現在のAccounts連携開始には、独自のD1カウンター（`app_rate_limit_window`）による本人ごとの1時間10回制限がある。
   - この独自カウンターと保存構造はv0.2.1で削除する。
-  - API共通の制限とWranglerのRate Limiting bindingは未導入である。
+  - API共通の制限とRate Limiting bindingは未導入である。
   - 現在の429の待機時間ヘッダーと画面の扱いを、共通枠とBetter Authの429の両方で`Retry-After`へそろえる。
   - 本人別・Client別・未ログインIP別の枠、管理APIと、`link-social`によるAccounts連携開始の計数を確認する。
   - 本番と共有テスト環境の分離、ステージング・PR間の共有、ローカル枠の独立を確認する。
@@ -6414,11 +6422,11 @@ points-web-app/
 
 - 開発ツールの設定ファイルはPointsのプロジェクト直下に置き、各領域内の入口・生成先・テストを指定する。
 - TanStack Startの画面ルート・Router・生成一覧は、`src/frontend/routes/`・`src/frontend/router.tsx`・`src/frontend/routeTree.gen.ts`を指定する。
-  - 配信入口は`src/backend/server.ts`とし、WranglerのWorker入口も一致させる。
+  - 配信入口は`src/backend/server.ts`とし、`cloudflare.config.ts`のWorker入口も一致させる。
   - ルート生成では、画面ルートの隣に置いた単体テストを探索対象から除外する。
 
 - Drizzleのマイグレーション生成先は、`src/backend/infrastructure/db/drizzle/`とする。
-  - Wranglerの全環境のマイグレーション参照先と、テスト・補助スクリプトの読み込み先も同じ場所にする。
+  - `cf d1 migrations apply`の`--dir`と、テスト・補助スクリプトの読み込み先も同じ場所にする。
   - テーブル定義は`src/backend/infrastructure/db/schema/`で管理する。
 
 - 認証スキーマ生成用の入口は`src/backend/infrastructure/auth/auth-cli.ts`とし、ライブラリの節に記載した生成コマンドの参照先と出力先をそろえる。
@@ -6448,15 +6456,24 @@ points-web-app/
 - 本番と共有テスト環境を分ける。
   - 本番は`points.freeism.app`、Workerは`points-worker-production`とする。
   - 共有テスト環境は`staging.points.freeism.app`、Workerは`points-worker-staging`とする。
-  - `staging`と`production`の環境別設定に、`custom_domain: true`のドメインを定義する。
+  - `staging`と`production`の`mode`ごとに、`domains`へカスタムドメインを定義する。
   - ドメインはCloudflare Registrarで取得する。
+
+- Cloudflareの構成は`cf`の設定ファイルであるPointsの`cloudflare.config.ts`で宣言する。
+  - `defineConfig()`に関数を渡し、`mode`（`development`・`staging`・`production`）ごとに、Worker名・カスタムドメイン・D1のID・変数・バインディングを返す。
+  - アカウントIDは`accountId`に書く。
+  - 設定ファイルで書けない一度だけの操作（通知の作成など）は、運用の文書に書いた`cf`のコマンドで行う。
+  - 他サービスの配信・基盤設定は、そのサービスで管理する。
+  - [設定ファイルの公式資料](https://developers.cloudflare.com/cf/projects/cloudflare-config/)を参照する。
 
 - 共有テスト環境とPRプレビューは、同じテスト用D1を使う。
   - 本番のD1、認証鍵、外部サービスの認証情報はテスト環境と分離する。
 
 - ローカルは、手元のD1を使う。
   - `DB`の接続設定に`remote`を指定せず、ローカルのD1へ接続する。ローカルのデータは開発サーバーの再起動後も残る。[公式資料](https://developers.cloudflare.com/d1/best-practices/local-development/)
-  - マイグレーションは`wrangler d1 migrations apply DB --local`で適用する。初期データは`wrangler d1 execute DB --local --file <SQLファイル>`で投入する。[コマンドの公式資料](https://developers.cloudflare.com/workers/wrangler/commands/d1/)
+  - 開発サーバーのD1は、Cloudflare Vite pluginがプロジェクトの`.cloudflare/state/`に保存する。
+    - `cf`のコマンドの`--local`は別の保存先を使い、開発サーバーのD1には書き込まない。[公式資料](https://developers.cloudflare.com/cf/projects/#local-resource-data)
+    - 開発サーバーのD1へマイグレーションと初期データを入れる方法は、実装時に確認する。
   - ローカルの認証鍵・暗号化鍵・Accounts接続先は、テスト環境と別に用意する。
   - Pointsと他サービスのDBは、サービスごとに管理する。
   - 接続方式は[Cloudflareの対応表](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)を参照する。
@@ -6475,15 +6492,15 @@ points-web-app/
   - SPAの初期HTMLも含め、ハッシュ生成とヘッダー設定は[セキュリティヘッダー](#セキュリティヘッダー)に従う。
 
 - Static Assetsの配信設定を明示する。
-  - `not_found_handling: "single-page-application"`、`html_handling: "auto-trailing-slash"`とする。[公式資料](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
+  - `cloudflare.config.ts`の`assets`で、`notFoundHandling: "single-page-application"`、`htmlHandling: "auto-trailing-slash"`とする。[公式資料](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/)
   - 静的HTMLの末尾スラッシュはStatic Assets、画面のURLはTanStack Routerの標準機能で扱う。
 
 - 本番とローカルでは静的ファイルを先に配信する。
-  - `run_worker_first: ["/api/*", "/.well-known/*"]`とし、APIと認証メタデータの要求はWorkerを先に実行する。
+  - `assets.runWorkerFirst: ["/api/*", "/.well-known/*"]`とし、APIと認証メタデータの要求はWorkerを先に実行する。
   - 末尾にスラッシュのない`/api`と`/.well-known`は、この配列に一致しない。
   - 静的ファイルが見つからない要求には、Workerを起動せずに`index.html`を返し、ブラウザがSPAを描画する。
   - 存在しないJavaScript・CSSなどの静的ファイルの要求にも、404ではなく`index.html`を200で返す。
-    - 配列形式の`run_worker_first`では画面への移動かどうかを判定しないためである。
+    - 配列形式の`assets.runWorkerFirst`では画面への移動かどうかを判定しないためである。
   - Workerの未登録経路はトップレベルのHono標準`app.notFound()`で処理する。
 
 - 更新前のHTMLから、新しい配信で消えたチャンクを読み込んだ場合は、Viteの`vite:preloadError`で画面を再読み込みする。[Vite公式資料](https://vite.dev/guide/build#load-error-handling)
@@ -6497,25 +6514,25 @@ flowchart TD
   D -->|いいえ| F["Workerを起動せずindex.htmlを返す<br/>ブラウザがSPAを描画"]
 ```
 
-- Vite+で開発サーバーとビルドを実行する。
+- Vite+で開発サーバーとテスト用のビルドを実行する。配信用のビルドは、内部でViteを使う`cf build`で行う。
   - タスクの実行・キャッシュ・依存関係は[vite-task](https://viteplus.dev/guide/run)で管理する。
   - 開発時の高速化には、[Vite 8.1の実験的なフルバンドルモード](https://vite.dev/blog/announcing-vite8-1)の`experimental.bundledDev`を検討する。
 
-- ビルド時に`CLOUDFLARE_ENV=staging|production`で配信先の環境を選ぶ。
-  - Cloudflare Vite pluginが生成した、その環境用のWrangler設定と成果物を配信する。
-  - その環境のビルドが成功してから、Pointsのプロジェクトディレクトリで、stagingは`wrangler deploy`、本番は`wrangler versions upload`を実行する。
-  - Wranglerは、Cloudflare Vite pluginが生成する`.wrangler/deploy/config.json`を通じて、そのビルドの設定を取得する。[生成設定の公式資料](https://developers.cloudflare.com/workers/wrangler/configuration/#generated-wrangler-configuration)
+- `cf build --mode <staging|production>`で、配信先の環境用にビルドする。
+  - 成果物は`.cloudflare/output/v0/`へ出力される。
+  - ビルドが成功してから、Pointsのプロジェクトディレクトリで`cf deploy --prebuilt --mode <staging|production> --no-provision`を実行し、その成果物を配信する。
+    - `--no-provision`で、D1を新しく作らせず、`cloudflare.config.ts`に書いた今のD1のIDを使う。このフラグの有無は実装時に`cf deploy --help`で確認する。
   - 配信前にWorker名、ドメイン、環境変数、D1接続先が対象環境と一致することを確認する。
-  - 環境の選択時点は[Cloudflareの公式資料](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/)を参照する。
+  - `mode`の選択とビルド済みの成果物の配信は、[`cf`の公式資料](https://developers.cloudflare.com/cf/projects/)を参照する。
 
 ### テスト環境の認証とPRプレビュー
 
 - 共有テスト環境とPRプレビューの画面・静的ファイルを、同じBASIC認証で保護する。
   - Hono標準の`basicAuth()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/basic-auth)
   - ユーザー名とパスワードはWorker Secretで設定する。
-  - `run_worker_first: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
+  - `assets.runWorkerFirst: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
   - 認証を通過した画面・静的ファイルの要求は、`env.ASSETS.fetch(request)`へ渡す。
-    - `env.ASSETS.fetch()`を経由した要求にも`not_found_handling`が適用され、静的ファイルが見つからない要求には本番と同じく`index.html`を返す。
+    - `env.ASSETS.fetch()`を経由した要求にも`assets.notFoundHandling`が適用され、静的ファイルが見つからない要求には本番と同じく`index.html`を返す。
   - API、OAuth callback、認証メタデータは、それぞれに定めたSession・DPoP認証・公開範囲で扱う。
   - 本番の画面・静的ファイルは、アプリの公開範囲と通常の認証で扱う。
   - 配信順序は[Static Assetsの公式資料](https://developers.cloudflare.com/workers/static-assets/routing/worker-script/)を参照する。
@@ -6529,19 +6546,15 @@ flowchart TD
 
 - 配信前に、公式のURL形式からアプリのURLと許可先を設定する。
   - `APP_ORIGIN`・`APP_HOST`とCSPを、同じプレビューURLにそろえる。
-  - 配信後はWranglerが返した安定したURLと一致することを確認する。
-  - 一致しない場合は処理を止め、URLと設定を修正して配信し直す。
-  - 確認後に、PRコメントとGitHub Actionsの実行結果へURLを表示する。
+  - `APP_ORIGIN`・`APP_HOST`は、`cloudflare.config.ts`の関数でビルド時の環境変数`PR_NUMBER`から組み立てる。
+  - 配信後に、PRコメントとGitHub Actionsの実行結果へURLを表示する。
 
-- Worker Previews用の設定を明示する。
-  - 元のWrangler設定では`env.staging.previews`へ、テスト用の変数と共有D1の`DB`接続先を指定する。
-  - 静的ファイルの設定と互換性設定は、staging用のWorker設定へ置く。
-  - Cloudflare Vite pluginの生成設定にも、staging配下のプレビューに必要な変数・接続先・静的配信設定を保持する。
+- Worker Previews用の設定は、`cloudflare.config.ts`の`staging`の`mode`に置く。
+  - プレビューにはテスト用の変数と共有D1の`DB`接続先を指定する。
+    - プレビュー用の値は、設定の関数が受け取る`isPreview`で分けて返す。
+  - 静的ファイルの設定と互換性設定は、staging用のWorker設定と同じにする。
   - プレビューの作成・更新・削除とWorkerのsecretの操作は、同じstagingのWorkerを対象にする。
-  - 元の環境別設定を使う操作では`--env staging`を指定する。
-  - 環境を選択済みの生成設定では、Worker名と接続先がstagingであることを確認する。
-  - stagingでは`preview_urls: true`を明示する。
-  - Worker PreviewsにはWrangler 4.135.0以降を使う。
+  - stagingでは`previewUrls: true`を明示する。
 
 - 運営者は、プレビュー配信に必要なstagingを先に用意する。
   - 必要なDB変更を`test/*`の配信で反映する。
@@ -6551,6 +6564,8 @@ flowchart TD
 
 - 運営者が、staging用のプレビュー共通設定へ秘密情報を登録・更新する。
   - `BETTER_AUTH_SECRETS`、`ACCOUNTS_KEY_ENCRYPTION_KEY`、Google・GitHubの認証情報、BASIC認証のユーザー名とパスワードは、Workerのsecretとして設定する。
+  - プレビューはstagingのWorker本体の設定を引き継がないため、Previews共通のsecretを別に登録する。
+    - 登録は`wrangler preview base-config secret put`かダッシュボードで一度だけ行う。
   - 新しいプレビューは、作成時点の共通の秘密情報を受け取る。
   - 共通の秘密情報を変更した場合は、staging・プレビュー共通設定・作成済みプレビューの共有値をそろえる。
   - 本番の`ACCOUNTS_KEY_ENCRYPTION_KEY`は本番Workerのsecretへ別の値を登録する。
@@ -6559,12 +6574,13 @@ flowchart TD
 
 - GitHub Actionsは、PRの作成・更新・再開時に検査と配信を行う。
   - Pointsに影響する変更を対象とし、`web-app-staging`の配信用資格情報を使う。
-  - [配信前の共通検査](#自動配信と設定の管理)を行い、プレビューURL用にビルドする。
-  - `CLOUDFLARE_ENV=staging`でビルドし、生成設定のWorker・変数・D1・Static Assetsを確認する。
-  - `pnpm exec wrangler preview`で同じプレビュー名へ配信し、staging本体の稼働コードは維持する。
+  - [配信前の共通検査](#自動配信と設定の管理)を行う。
+  - 環境変数`PR_NUMBER`を渡して`cf previews deploy points-pr-<PR番号> --mode staging`を実行し、同じプレビュー名へ配信する。
+    - staging本体の稼働コードは維持する。
 
 - GitHub Actionsは、PR終了時にプレビューを削除する。
-  - マージ済み・未マージの両方で、`pnpm exec wrangler preview delete`を同じ環境・プレビュー名へ実行する。
+  - マージ済み・未マージの両方で、`cf previews delete points-pr-<PR番号> --worker points-worker-staging`を実行する。
+    - 非対話の実行で確認を求めて中断しないことを、実装時に確かめる。[CIの公式資料](https://developers.cloudflare.com/cf/ci/)
   - 対象プレビューだけを削除し、共有D1のデータとstaging本体を保持する。
   - 再開したPRは、同じ名前で再作成する。
 
@@ -6574,12 +6590,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["同一リポジトリのPRを<br/>作成・更新・再開"] --> B["プレビューURLを設定し<br/>共通検査・staging用ビルド"]
-  B --> C["生成設定を確認し<br/>同じプレビュー名へ配信"]
-  C --> D{"返された安定URLと<br/>アプリ設定のURLが一致するか"}
-  D -->|はい| E["PRコメントとActionsの結果に<br/>URLを表示"]
-  D -->|いいえ| F["処理を止めてURL・設定を修正"]
-  F --> B
+  A["同一リポジトリのPRを<br/>作成・更新・再開"] --> B["共通検査"]
+  B --> C["PR番号からプレビューURLを設定し<br/>同じプレビュー名へ配信"]
+  C --> E["PRコメントとActionsの結果に<br/>URLを表示"]
   G["PR終了<br/>マージ済み・未マージ共通"] --> H["対象プレビューを削除<br/>共有D1・staging本体を保持"]
 ```
 
@@ -6607,60 +6620,40 @@ flowchart TD
 
 - 配信前の検査を毎回実行する。
   - `vp check`で書式の検査・静的解析・型検査を実行する。
-  - 環境・生成設定と、計算・画面・Workers内の単体テストを確認する。
+  - `mode`ごとの`cloudflare.config.ts`の設定と、計算・画面・Workers内の単体テストを確認する。
   - ビルド後に、アプリ全体の結合テストを実行する。
   - ブラウザ操作と認証は、[実環境での確認](#実環境での確認)に従って確認する。
   - 初回本番配信では、ブランチ保護、Cloudflareの認証・利用プラン、依存関係、必要なDB構造、接続先、復旧手順も確認する。
 
-- `test/*`による共有テスト環境の配信は、「静的検査・単体テスト→ビルド→結合テスト→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
-
-- 本番の配信は結合テストまで同じ順に進め、新しい版を確認してから利用者への配信をその版へ切り替える。[段階的な配信の公式資料](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/gradual-deployments/)
-  - `wrangler versions upload`で新しい版を登録してから、DBを更新する。
-    - D1はWorkerの版に含まれないため、新しい版が0%の間も、稼働中の版は更新後のスキーマで動く。[版と配信の公式資料](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/)
+- 共有テスト環境と本番の配信は、「静的検査・単体テスト→ビルド→結合テスト→DB更新→Worker配信→画面・APIの疎通確認」の順に行う。
+  - DB更新は`cf d1 migrations apply <DATABASE_ID> --dir src/backend/infrastructure/db/drizzle`で行う。
+    - 既定でリモートのD1へ適用し、D1はIDで指定する。
     - DB更新は稼働中の版でも動く後方互換の変更とし、旧構造の削除は後日の配信で行う。
-  - `wrangler versions deploy`で、新しい版を0%、稼働中の版を100%として配信する。
-  - Playwrightの`extraHTTPHeaders`で`Cloudflare-Workers-Version-Overrides`ヘッダーを付け、新しい版の画面・APIを確認する。
-  - 確認に成功したら、新しい版を100%にする。
-  - `wrangler versions upload`はroutes・カスタムドメイン・cronを反映しない。
-    - これらを変える場合は、`wrangler triggers deploy`を使う。
-  - `Cloudflare-Workers-Version-Overrides`が静的ファイルの要求にも効くかは、実環境で確認する。
+  - 本番もstagingと同じく、`cf deploy`で一度に配信する。
+  - 本番で配信後の疎通確認に問題があれば、`cf workers deployments create`で前の版を100%に戻す。[版と配信の公式資料](https://developers.cloudflare.com/workers/configuration/versions-and-deployments/)
 
 ```mermaid
 flowchart TD
   A["test/*またはmainへのpush<br/>対象環境と配信設定を確認"] --> B["静的検査・単体テスト"]
   B -->|成功| C["対象環境用にビルド"]
   C -->|成功| D["結合テスト"]
-  D -->|test/*で成功| E["DBを更新"]
+  D -->|成功| E["後方互換のDB更新"]
   E -->|成功| F["Workerを配信"]
   F -->|成功| G["画面・APIの疎通を確認"]
   G -->|成功| H["配信完了"]
-  D -->|mainで成功| P["新しい版を登録"]
-  P -->|成功| Q["後方互換のDB更新"]
-  Q -->|成功| R["新しい版0%・稼働中の版100%で配信"]
-  R -->|成功| S["版を指定して画面・APIを確認"]
-  S -->|成功| T["新しい版を100%にする"]
-  T -->|成功| H
   E -->|失敗| I["後続処理を止め<br/>運営者が修正・復旧を判断"]
   F -->|失敗| I
-  G -->|失敗| I
-  P -->|失敗| I
-  Q -->|失敗| I
-  R -->|失敗| I
-  S -->|失敗| I
-  T -->|失敗| I
+  G -->|test/*で失敗| I
+  G -->|mainで失敗| R["前の版を100%に戻す"]
+  R --> I
 ```
 
 - GitHub Environmentで配信用の資格情報を管理する。
   - テスト用は`web-app-staging`、本番用は`web-app-production`とする。
-  - `CLOUDFLARE_ACCOUNT_ID`と`CLOUDFLARE_API_TOKEN`は対象環境ごとに管理する。
+  - 配信に渡す秘密は`CLOUDFLARE_API_TOKEN`だけとし、対象環境ごとに管理する。
   - API Tokenの権限は、対象Workerと配信・DB更新に必要な資源へ限定する。
   - PRの配信資格情報は同一リポジトリのPRにだけ渡す。
-  - 認証方法は[GitHub Actions向けの公式資料](https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/)を参照する。
-
-- WranglerとTerraformの管理範囲を分ける。
-  - WranglerはWorker、Static Assets、カスタムドメインと接続先の設定・配信を管理する。
-  - TerraformはDNS、WAF、レート制限などの基盤設定を管理する。
-  - 各資源の管理元を一つに定め、他サービスの配信・基盤設定はそのサービスで管理する。
+  - 認証方法は[CIで`cf`を使う公式資料](https://developers.cloudflare.com/cf/ci/)を参照する。
 
 ### DB更新と失敗時の対応
 
@@ -6700,7 +6693,9 @@ flowchart TD
   - D1は1日500万行の読み取り・10万行の書き込み、1DBあたり500MB・アカウント全体5GBの範囲に収める。[料金](https://developers.cloudflare.com/d1/platform/pricing/)、[上限](https://developers.cloudflare.com/d1/platform/limits/)
   - D1の削除とインデックス更新も書き込み量に含め、通常操作・分配と連鎖訂正・日次Cronの利用量を合わせて管理する。
 
-- CloudflareのDDoS対策、WAF、レート制限、TLSを使い、WorkerとD1で必要な業務条件を検証する。
+- CloudflareのDDoS対策、WAF、回数制限、TLSを使い、WorkerとD1で必要な業務条件を検証する。
+  - WAFはzoneのFreeプランで既定のFree Managed Rulesetだけを使う。
+  - 回数制限はWorkersの[Rate Limiting binding](#rate-limit)とBetter Auth標準の制限で行う。
   - Workerでは本人認証、OAuth、権限、Origin・CSRF、入力・容量、二重処理防止を検査する。
   - D1では一意制約・値の制約、versionなどの更新条件、追記型のポイント増減履歴、操作ごとの状態遷移を検証する。
 
@@ -6774,14 +6769,14 @@ flowchart TD
   - 固定callbackから開始元の画面へ、同じPoints利用者として戻ることを確認する。
 
 - PRプレビューの作成・更新・終了を確認する。
-  - 配信結果とアプリ設定のURLが一致することを確認する。
+  - プレビューのURLと、`PR_NUMBER`から組み立てた`APP_ORIGIN`・`APP_HOST`が一致することを確認する。
   - 更新後もURLが同じで、最新コードを確認できることを確認する。
   - PR終了後に対象プレビューが削除されることを確認する。
   - 本番DBの分離、共有DBのデータ保持、秘密情報の更新、DB更新、配信失敗時の手順を確認する。
 
 - 文書の検査と、実機での受入結果を区別する。
   - 文書では環境・認証・DB・手順の整合性と、参照リンクを確認する。
-  - 実装移行時は、生成設定を探索する配信スクリプトと、HTTP疎通確認スクリプトを上記の標準機能へ移す。
+  - 実装移行時は、Cloudflareを操作する配信・D1更新・プレビューのスクリプトを`cf`のコマンドへ、HTTP疎通確認スクリプトを上記の標準機能へ移す。
   - 移行後は、現在のAPI経路・メソッドと配信条件で検証する。
   - 2026-10-01にsubdomain `kyogoku`を読み取り確認した記録は保持する。
   - 今回の仕様更新では、Worker Previewsの実配信、DB更新、GitHub Actions実行、外部OAuth、実URLへのアクセスは実施していない。
@@ -6892,7 +6887,7 @@ flowchart TD
 - CSVの列・入力条件・処理順を一か所へまとめ、全操作を検証・計算後の確認と明示確定に統一する。列順は自由、複数URLはセル内カンマ区切りとし、同内容の新規行は独立して処理する。評価軸CSVは1行1軸で作成・更新・削除に対応し、更新の空欄は維持、関連URLの`[]`は全削除とする。`validationHash`は利用者が確認した重要な対象・条件・金額だけを照合し、変わった場合は最新結果を再確認する。通信失敗の再送と新しい操作を区別する。
 - 評価軸・パッケージ・交換倍率のCSVは全行を一つのD1原子処理で確定し、ポイント増減履歴へ保存しない。ポイントの増減を伴うCSVは、各行の入力をその行の一次増減と同時に保存する。途中の行で失敗したら確定済みの行を保持して`lastCompletedRow`を返し、同じ要求の再送で続きを処理する。月別設定の変更は設定の版へ保存し、代用評価を再計算した履歴から版を参照する。
 
-- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。必須のsecretはWranglerの`secrets.required`、`Env`の型は`wrangler types`で管理する。OpenAPIはhono-openapiでHonoの経路とValibotの定義から生成する。
+- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。secretは`cloudflare.config.ts`の`bindings.secret()`で宣言し、`Env`の型は`cf workers types`で生成する。OpenAPIはhono-openapiでHonoの経路とValibotの定義から生成する。
 
 - 書式の検査・静的解析・型検査を`vp check`で実行する。開発端末の環境管理には`vp env`、CIの環境準備と依存インストールには公式の`setup-vp`を使う。
 
@@ -6902,7 +6897,7 @@ flowchart TD
 
 - 経路ごとの認証・権限・冪等性キーの検査、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。認証・権限・冪等性キーは`createMiddleware()`のミドルウェアを`hono/combine`で合成して経路ごとに付け、付け忘れを`inspectRoutes()`のテストで確認する。JSONは`@hono/standard-validator`の`sValidator('json', ...)`、multipartは`sValidator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。検証の失敗は全経路で共有する`hook`で422へ変換する。通常のJSON応答とJSONエクスポートは`prettyJSON({ force: true })`で整形する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
-- 配信にはWrangler標準の生成設定の取得を使い、配信後のHTTP疎通はPlaywrightで確認する。静的ファイルが見つからない要求には、Static AssetsのSPAモードで`index.html`を返す。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
+- Cloudflareの構成はPointsの`cloudflare.config.ts`で`mode`ごとに宣言し、ビルド・配信・D1の更新・PRプレビュー・secretの登録（Previews共通のsecretを除く）は`cf`で行う。CIの配信に渡す秘密は`CLOUDFLARE_API_TOKEN`だけとし、WAFはzoneで既定のFree Managed Rulesetだけを使う。配信後のHTTP疎通はPlaywrightで確認する。静的ファイルが見つからない要求には、Static AssetsのSPAモードで`index.html`を返す。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
 - 静的配信の共通ヘッダーは、Cloudflare標準の`_headers`の`/*`へ設定する。CSPのハッシュは、TanStack Start標準の生成完了通知とSPAの初期HTMLを含む最終HTMLから生成する。
   - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSPとPermissions Policyだけを明示する。HSTSと`X-Frame-Options`もデフォルト値を使い、HSTSはstaging・productionとも`max-age=15552000; includeSubDomains`とする。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
@@ -6941,7 +6936,7 @@ flowchart TD
 
 - 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、切替・ログアウト後は画面全体を読み込み直す。別タブの未確定操作は切替後に反映しない。Accounts連携の途中で切り替えた場合は、開始した本人へ連携を保存する。
 
-- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。staging・PRはテスト用D1を共有し、ローカルは手元のD1を使い、本番を分離する。ローカルはOAuth Proxyを使わず、Google・GitHub・Accountsへ`http://localhost:3000`のcallbackを登録する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は新しい版を0%で配信し、版を指定して確認してから100%へ切り替える。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
+- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。staging・PRはテスト用D1を共有し、ローカルは手元のD1を使い、本番を分離する。ローカルはOAuth Proxyを使わず、Google・GitHub・Accountsへ`http://localhost:3000`のcallbackを登録する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は`cf deploy`で一度に配信し、配信後の疎通確認で問題があれば前の版へ戻す。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
 
 - 全画面でJavaScriptを必須とし、無効時は有効化と再読み込みの案内だけを日英併記する。
 
