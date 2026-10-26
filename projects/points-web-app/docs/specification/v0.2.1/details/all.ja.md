@@ -6798,10 +6798,21 @@ flowchart TD
 
 ## テーブル・データ構造
 
-- `idempotency_results`テーブル
-  - 識別範囲・保存項目・有効期限・期限切れ削除は、[通信IDと二重処理防止](#通信idと二重処理防止)で定める。
-  - `idempotency_key`は、その識別範囲を構成するキーとして保存する。
-  - 共通節の要求hash・HTTP状態コード・応答結果・確定日時・有効期限は、それぞれ`request_hash`・`result_status`・`result_body`・`created_at`・`expires_at`へ保存する。
+- `idempotency_results`
+  - 説明
+    - 識別範囲・保存項目・有効期限・期限切れ削除は、[通信IDと二重処理防止](#通信idと二重処理防止)で定める。
+    - `idempotency_key`は、その識別範囲を構成するキーとして保存する。
+  - カラム
+    - `request_hash`
+      - 共通節の要求hash
+    - `result_status`
+      - HTTP状態コード
+    - `result_body`
+      - 応答結果
+    - `created_at`
+      - 確定日時
+    - `expires_at`
+      - 有効期限
 
 ## 採用しないもの
 
