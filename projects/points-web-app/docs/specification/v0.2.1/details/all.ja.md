@@ -6176,9 +6176,10 @@ points-web-app/
 │  ├─ backend/
 │  │  ├─ server.ts            Workerの配信入口
 │  │  ├─ app.ts               APIと依存する実装の組み立て
-│  │  ├─ http/                API受付・認証確認・静的配信
+│  │  ├─ http/                API受付・認証確認・静的配信・入出力の変換
+│  │  │  └─ csv/              CSVの解析・検証
 │  │  ├─ usecases/            付与・訂正などの処理手順
-│  │  │  └─ ports/            DB・外部サービス操作の型
+│  │  │  └─ ports/            DB・認証基盤・外部サービス・ログの操作の型
 │  │  ├─ domain/              金額計算・分配などのルール
 │  │  ├─ infrastructure/     外部サービス・保存先・実行基盤へのアクセス
 │  │  │  ├─ db/
@@ -6188,9 +6189,8 @@ points-web-app/
 │  │  │  ├─ auth/             認証設定・認証処理・生成用入口
 │  │  │  ├─ accounts/         Accountsとの通信
 │  │  │  ├─ ratelimit/        Rate Limiting bindingの呼び出し
+│  │  │  ├─ crypto/           保存する秘密情報の暗号化
 │  │  │  └─ observability/    ログ・監査の出力
-│  │  ├─ csv/                 CSVの解析・検証
-│  │  ├─ security/            暗号化などの処理
 │  │  ├─ scripts/             DB更新などの補助処理
 │  │  └─ test/
 │  │     ├─ integration/      API・D1の結合テスト
@@ -6213,18 +6213,22 @@ points-web-app/
 
 - backendはAPI受付・認証・業務処理・DB操作を担当する。
   - `http/`で要求を受け付け、`usecases/`で付与・訂正などの処理手順を組み立てる。
-  - ユースケースは`domain/`の計算ルールと、`usecases/ports/`のDB・外部サービス操作のインターフェースを使う。
-  - 外部サービス・保存先・実行基盤へアクセスする実装は、`infrastructure/`へまとめる。
+  - ユースケースは`domain/`の計算ルールと、`usecases/ports/`のインターフェースを使う。
+    - DB、認証基盤（管理者所属の変更など）、外部サービス、ログ・監査の出力は、ポートを通して使う。
+    - ユースケースはBetter Auth・Drizzle・D1・外部APIを直接読み込まない。
+  - 外部サービス・保存先・実行基盤へアクセスする実装は、`infrastructure/`へまとめ、ポートを実装する。
   - D1操作は`infrastructure/db/repositories/`、Accounts通信は`infrastructure/accounts/`、認証基盤との接続は`infrastructure/auth/`へ置く。
-  - Rate Limiting bindingの呼び出しは`infrastructure/ratelimit/`、ログ・監査の出力は`infrastructure/observability/`へ置く。
+  - Rate Limiting bindingの呼び出しは`infrastructure/ratelimit/`、保存する秘密情報の暗号化は`infrastructure/crypto/`、ログ・監査の出力は`infrastructure/observability/`へ置く。
   - `app.ts`で各実装を組み立て、ユースケースやHTTP処理へ接続する。
   - `http/`はAPI受付と認証・回数制限の適用、`infrastructure/`はその検証や計数に必要な外部アクセスを担当する。
-  - 外部アクセスを伴わないCSV解析や暗号計算は、それぞれ`csv/`・`security/`へ置く。
+  - `http/`は、APIの入出力の型とユースケースの入出力を相互に変換する。
+    - CSVの解析・検証は入力の変換として`http/csv/`へ置く。
+    - `shared/contracts/`のAPIの型は`http/`とfrontendで使い、`usecases/`と`domain/`からは読み込まない。
   - 金額計算や配分ルールはDB・HTTPから独立させる。
   - 付与・残高・分配・ポイント増減履歴の確定と受領情報の更新は、操作本体または一回の分割処理ごとに一括確定できる保存操作として提供する。処理進捗は保存済み入力と確定履歴から取得する。
 
 - sharedには、frontendとbackendの両方で使う内容や、両方を操作する処理を置く。
-  - 共通の入出力の型は`contracts/`、入力形式と値の検証は`schemas/`、共通の計算・変換処理は`utils/`へ置く。
+  - APIの入出力の型は`contracts/`、入力形式と値の検証は`schemas/`、共通の計算・変換処理は`utils/`へ置く。
   - 共通の型・入力形式・計算処理は、ブラウザ・Workerなどの実行環境から独立させる。
   - ブラウザから読み込む共通処理に、秘密鍵・トークンの保管やDB接続などのサーバー専用処理を含めない。
   - この共有範囲はPoints内とし、Accounts・MarketsとはAPIを通して連携する。
@@ -6264,6 +6268,7 @@ points-web-app/
   - 現在の`src/client/`・`src/routes/`・`src/content/`、プロジェクト直下の`worker/`・`drizzle/`・`test/`・`scripts/`から、役割に応じて移す。
   - `package.json`・CI・補助スクリプト内のパスと、移動したファイルの相対参照も更新する。
   - 外部アクセスの実装を`infrastructure/`へ集約し、現在のユースケースからD1操作などへの直接参照は、操作のインターフェースを使う形へそろえる。
+  - 現在の`src/backend/csv/`は`http/csv/`へ、`src/backend/security/`は`infrastructure/crypto/`へ移す。ユースケースから認証基盤・ログを直接呼ぶ処理は、ポートを通す形へそろえる。
 
 - 実装時は、ルート生成とテストの除外、画面と固定ページの静的生成、Workerの配信を確認する。
 - 認証スキーマ生成、DBマイグレーション、単体・結合・契約・E2Eのテスト探索、補助コマンドとCIの実行を確認する。
