@@ -2033,15 +2033,17 @@ flowchart TD
   - 一人のPointsユーザーが複数のGitHub Accountを明示linkすることは許可するが、各GitHub Accountの永久対応先は同じPointsユーザーに固定する。
 
 - PointsのGoogle・GitHubログインと明示連携
-  - ローカル・staging・PRプレビューは、OAuth Proxyで固定したstaging callbackを共有する。
+  - staging・PRプレビューは、OAuth Proxyで固定したstaging callbackを共有する。
     - `OAUTH_PROXY_PRODUCTION_URL`は`https://staging.points.freeism.app`とする。
-    - 認証後は、開始元のローカル・PR画面へ戻す。
+    - staging callbackはコードの交換と本人情報の取得だけを行い、暗号化した本人情報を開始元のPR画面へ渡す。本人とセッションは開始元の環境のD1へ保存する。[公式資料](https://better-auth.com/docs/plugins/oauth-proxy)
     - 本番は本番自身のURLとcallbackを使う。
+  - ローカルはOAuth Proxyを使わず、ローカル自身のcallbackで直接受ける。
+    - ローカルのoriginは`http://localhost:3000`とする。
   - 運営者は、Google・GitHubのOAuthアプリへcallbackを登録する。
-    - Googleは`https://staging.points.freeism.app/api/auth/callback/google`とする。
-    - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`とする。
+    - Googleは`https://staging.points.freeism.app/api/auth/callback/google`と`http://localhost:3000/api/auth/callback/google`とする。Googleは`localhost`に限ってHTTPを認め、登録したURLとの完全一致を求める。[公式資料](https://developers.google.com/identity/protocols/oauth2/web-server)
+    - GitHubは`https://staging.points.freeism.app/api/auth/callback/github`と`http://localhost:3000/api/auth/callback/github`とする。GitHubのOAuthアプリは複数のcallbackを登録でき、ワイルドカード照合を無効にしたcallbackは完全一致で照合する。[公式資料](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#redirect-urls)
   - OAuth Proxyは既存の認証鍵を使う。
-    - 参加するローカル・staging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。
+    - 参加するstaging・PRでは、`BETTER_AUTH_SECRETS`をそろえる。ローカルは独自の値でよい。
     - 更新前から進行中のログイン・連携は、更新後にやり直す。
     - 認証鍵とProxyの更新条件は[Better Auth公式資料](https://better-auth.com/docs/plugins/oauth-proxy)を参照する。
   - GoogleとGitHubで別々のPointsユーザーを作成済みの場合は、それぞれ独立した本人対応を保持する。
@@ -2238,7 +2240,7 @@ flowchart TD
   | `https://accounts.example.com`          | 接続先として指定できる            |
   | `https://accounts.example.com/settings` | pathを含むため受け付けない        |
   | `https://accounts.example.com?user=123` | queryを含むため受け付けない       |
-  | `http://localhost:3000`                 | `APP_ENV=local`の場合に受け付ける |
+  | `http://localhost:5173`                 | `APP_ENV=local`の場合に受け付ける |
 
 - 接続先の対応機能と有効化の検証
   - メタデータは、Accountsが公開する認証方式やAPIの機能を説明した情報とする。
@@ -2263,7 +2265,8 @@ flowchart TD
   - 管理画面に、推奨アプリ名`Freeism Points`、紹介URL `{APP_ORIGIN}`、接続先ごとの`registration.redirectUri`、署名用の公開JWK Setを表示する。
   - 管理者は表示された情報をAccountsへ登録し、発行されたClient IDをPointsへ入力する。
   - 署名用の秘密鍵とDPoP用の鍵はPointsが保管し、DPoP用の鍵は要求ごとのproofに使う。
-  - 連携完了URLは、ローカル・staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とする。
+  - 連携完了URLは、staging・PRプレビューでは`https://staging.points.freeism.app/api/auth/callback/accounts-{connectionId}`とする。
+  - ローカルでは`http://localhost:3000/api/auth/callback/accounts-{connectionId}`とし、ローカルのD1に作った接続先を、別のClient IDとしてAccountsへ登録する。Accountsはローカル開発用のHTTPのloopback URLを登録でき、ポートだけを除いて照合する。
   - 本番では本番originの同じpathとする。
 
   | 情報                          | 用途・保管場所                                                         |
@@ -2281,7 +2284,7 @@ flowchart TD
   - 秘密鍵は暗号化鍵`ACCOUNTS_KEY_ENCRYPTION_KEY`を使い、AES-256-GCMで暗号化してD1へ保存する。
   - 暗号化鍵は32バイトの値をbase64で表したものとする。
   - AADには接続先IDと用途を含め、別の接続先・用途の暗号文として復号できないようにする。[Web Cryptoの説明](https://developer.mozilla.org/en-US/docs/Web/API/AesGcmParams#additionaldata)
-  - 共有テストD1を使うstaging・PRプレビュー・ローカルでは、同じ`ACCOUNTS_KEY_ENCRYPTION_KEY`を使う。
+  - 共有テストD1を使うstaging・PRプレビューでは、同じ`ACCOUNTS_KEY_ENCRYPTION_KEY`を使う。ローカルは、ローカルのD1に合わせた独自の値を使う。
   - 暗号化鍵の登録先は[テスト環境の認証とPRプレビュー](#テスト環境の認証とprプレビュー)にまとめる。
 
 - 取り下げ
@@ -2369,7 +2372,7 @@ flowchart TD
     - 重複した応答では連携を再保存しない。
   - 認可要求には`scope=openid`、`state`、`nonce`、PKCE S256、`prompt=consent`を付ける。
   - 再連携でもAccountsの同意画面を表示する。
-  - Accountsは登録済みの固定コールバックへ戻し、テスト環境ではOAuth Proxyを経由して開始元のPointsへ復帰する。
+  - Accountsは登録済みのコールバックへ戻す。staging・PRプレビューではOAuth Proxyを経由して開始元のPointsへ復帰し、ローカルはローカルのコールバックで直接受ける。
 
 - 認証結果の検証と連携の保存
   - Generic OAuthの`discoveryUrl`には接続先のメタデータのURLを指定し、`requireIdTokenVerification: true`とする。
@@ -4502,7 +4505,7 @@ flowchart TD
 - 環境ごとの許可先
   - Better Authの`trustedOrigins`には環境ごとに必要なPointsのoriginを設定する。
   - originは、方式・ホスト・ポートの組み合わせとする。
-  - 本番は本番Pointsのorigin、テスト環境は開始元のローカルorigin・固定staging origin・`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
+  - 本番は本番Pointsのorigin、ローカルは`http://localhost:3000`、共有テスト環境は固定staging origin・`https://points-pr-*-points-worker-staging.<subdomain>.workers.dev`を登録する。
   - `<subdomain>`には、staging設定の`PREVIEW_WORKERS_SUBDOMAIN`を使う。
   - subdomainを変更するときは、stagingの許可先とPR配信のURL設定を一緒に変更する。
   - Pointsの画面からの業務API呼び出しは、同一originの`/api/*`を窓口にしてサーバーへ渡す。
@@ -6448,9 +6451,13 @@ points-web-app/
   - `staging`と`production`の環境別設定に、`custom_domain: true`のドメインを定義する。
   - ドメインはCloudflare Registrarで取得する。
 
-- ローカル・共有テスト環境・PRプレビューは、同じテスト用D1を使う。
-  - ローカルではコードを手元で実行し、`DB`の接続設定に`remote: true`を指定してテスト用D1へ接続する。
+- 共有テスト環境とPRプレビューは、同じテスト用D1を使う。
   - 本番のD1、認証鍵、外部サービスの認証情報はテスト環境と分離する。
+
+- ローカルは、手元のD1を使う。
+  - `DB`の接続設定に`remote`を指定せず、ローカルのD1へ接続する。ローカルのデータは開発サーバーの再起動後も残る。[公式資料](https://developers.cloudflare.com/d1/best-practices/local-development/)
+  - マイグレーションは`wrangler d1 migrations apply DB --local`で適用する。初期データは`wrangler d1 execute DB --local --file <SQLファイル>`で投入する。[コマンドの公式資料](https://developers.cloudflare.com/workers/wrangler/commands/d1/)
+  - ローカルの認証鍵・暗号化鍵・Accounts接続先は、テスト環境と別に用意する。
   - Pointsと他サービスのDBは、サービスごとに管理する。
   - 接続方式は[Cloudflareの対応表](https://developers.cloudflare.com/workers/local-development/bindings-per-env/)を参照する。
 
@@ -6545,7 +6552,7 @@ flowchart TD
 - 運営者が、staging用のプレビュー共通設定へ秘密情報を登録・更新する。
   - `BETTER_AUTH_SECRETS`、`ACCOUNTS_KEY_ENCRYPTION_KEY`、Google・GitHubの認証情報、BASIC認証のユーザー名とパスワードは、Workerのsecretとして設定する。
   - 新しいプレビューは、作成時点の共通の秘密情報を受け取る。
-  - 共通の秘密情報を変更した場合は、staging・プレビュー共通設定・作成済みプレビュー・ローカルの共有値をそろえる。
+  - 共通の秘密情報を変更した場合は、staging・プレビュー共通設定・作成済みプレビューの共有値をそろえる。
   - 本番の`ACCOUNTS_KEY_ENCRYPTION_KEY`は本番Workerのsecretへ別の値を登録する。
 
 - 秘密情報の値は、保存先にかかわらずリポジトリ・仕様書・ログへ書かない。
@@ -6662,7 +6669,7 @@ flowchart TD
   - DB構造を変更するPRは、必要な変更を共有テスト環境へ反映してからプレビューを配信する。
 
 - 本番・共有テストとも、後方互換にできないDBの構造変更で稼働中のコードが動かなくなる場合は、運営者が影響する機能・環境を一時停止する。
-  - 運営者は変更前に影響範囲を確認する。共有テストD1ではstaging・既存PRプレビュー・ローカルを含める。
+  - 運営者は変更前に影響範囲を確認する。共有テストD1ではstaging・既存PRプレビューを含める。
   - 停止後にDBとコードを更新し、画面・APIの疎通を確認してから再開する。
   - 更新・配信・疎通確認に失敗した場合は停止を維持し、運営者が修正または復旧を完了してから再開する。
 
@@ -6674,7 +6681,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["運営者がDB変更の影響を確認<br/>共有D1では既存プレビュー・ローカルも対象"] --> B{"稼働中のコードが<br/>動かなくなる変更か"}
+  A["運営者がDB変更の影響を確認<br/>共有D1では既存プレビューも対象"] --> B{"稼働中のコードが<br/>動かなくなる変更か"}
   B -->|はい| C["影響する機能・環境を一時停止"]
   B -->|いいえ| D["DBとコードを更新"]
   C --> D
@@ -6900,7 +6907,7 @@ flowchart TD
 - 静的配信の共通ヘッダーは、Cloudflare標準の`_headers`の`/*`へ設定する。CSPのハッシュは、TanStack Start標準の生成完了通知とSPAの初期HTMLを含む最終HTMLから生成する。
   - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSPとPermissions Policyだけを明示する。HSTSと`X-Frame-Options`もデフォルト値を使い、HSTSはstaging・productionとも`max-age=15552000; includeSubDomains`とする。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
 
-- 共有テストD1の暗号化鍵`ACCOUNTS_KEY_ENCRYPTION_KEY`は`BETTER_AUTH_SECRETS`と同じWorkerのsecretとし、staging・PRプレビュー・ローカルに同じ値を登録する。本番の鍵は分離する。
+- 共有テストD1の暗号化鍵`ACCOUNTS_KEY_ENCRYPTION_KEY`は`BETTER_AUTH_SECRETS`と同じWorkerのsecretとし、staging・PRプレビューに同じ値を登録する。ローカルと本番の鍵は分離する。
 
 - プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報と現在設定を削除し、過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
 
@@ -6934,7 +6941,7 @@ flowchart TD
 
 - 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、切替・ログアウト後は画面全体を読み込み直す。別タブの未確定操作は切替後に反映しない。Accounts連携の途中で切り替えた場合は、開始した本人へ連携を保存する。
 
-- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。ローカル・staging・PRはテスト用D1を共有し、本番を分離する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は新しい版を0%で配信し、版を指定して確認してから100%へ切り替える。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
+- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。staging・PRはテスト用D1を共有し、ローカルは手元のD1を使い、本番を分離する。ローカルはOAuth Proxyを使わず、Google・GitHub・Accountsへ`http://localhost:3000`のcallbackを登録する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は新しい版を0%で配信し、版を指定して確認してから100%へ切り替える。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
 
 - 全画面でJavaScriptを必須とし、無効時は有効化と再読み込みの案内だけを日英併記する。
 
