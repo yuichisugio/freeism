@@ -257,7 +257,8 @@
   - 停止中の軸には停止状態を表示する。
   - 評価軸の名前・IDからそのプロフィールへ移動できる。
 
-- 公式パッケージは、本人が公開を選んだ公開パッケージを設定した順に表示する。
+- 公式パッケージは、本人が登録した公開パッケージを設定した順に表示する。
+  - 表示するかは公式パッケージ区画の公開設定とパッケージ自体の公開範囲で決める。
   - 複数ある場合も一覧で表示し、パッケージ名・IDと、直接の構成要素（評価軸・パッケージ）・その割合を示す。
 
 - 公開パッケージは、直接登録した評価軸・子パッケージと、その割合を表示する。
@@ -564,10 +565,10 @@ flowchart TD
   - versionは更新・停止・再開・完全削除の競合検査に使い、競合時は`409`とする。同じ確定要求の再送も、この検査で二重に反映しない。
 
 - 未使用の軸の完全削除
-  - Points内の付与、未受領の評価、経済処理の入力と確定履歴、残高、パッケージ、交換設定、代用設定、過去の本人・パッケージの計算設定の版などから参照されていない軸だけ、データを完全削除できる。外部サービスの競売レコードは参照検査に含めない。
-  - その軸自身の作成・設定変更だけを記録した入力と確定結果は、完全削除を妨げる参照に含めず、削除後も保持する。金額0の経済計算で参照した軸は、参照済みとして扱う。
+  - Points内の付与、未受領の評価、経済処理の入力と確定履歴、残高、パッケージ、交換設定、代用設定、月別設定、過去の本人・パッケージの計算設定の版などから参照されていない軸だけ、データを完全削除できる。外部サービスの競売レコードは参照検査に含めない。
+  - 金額0の経済計算で参照した軸は、参照済みとして扱う。
   - 削除の確定時に参照を再検査する。参照済みなら完全削除せず、利用停止を案内する。
-  - 完全削除では、作成に付随する管理者所属や、その軸自身の計算設定の版も削除する。既存のポイント増減履歴は保持し、削除した評価軸IDを再利用しない。
+  - 完全削除では、その軸自身の計算設定の版と、対応するOrganization・管理者所属も削除する。既存のポイント増減履歴は保持し、削除した評価軸IDを再利用しない。
 
 - 利用停止と再開
   - 利用停止は`ACTIVE`から`INACTIVE`への変更とする。
@@ -627,7 +628,7 @@ flowchart TD
   C -->|再開| F["同じID・設定・残高で決済利用を再開<br/>新規分配の計算元として再び使う"]
   C -->|完全削除| H{"確定時に参照がある？"}
   H -->|はい| I["完全削除せず利用停止を案内"]
-  H -->|いいえ| J["評価軸と付随する管理者所属を削除<br/>ポイント増減履歴を保持し、IDは再利用しない"]
+  H -->|いいえ| J["評価軸・計算設定の版・Organization・管理者所属を削除<br/>ポイント増減履歴を保持し、IDは再利用しない"]
 ```
 
 #### 「貢献評価を代用する仕組み」の設定
@@ -747,7 +748,7 @@ flowchart TD
 flowchart TD
   A["管理者が月別設定・再計算を確認"] --> B{"設定と計算の実行条件を満たす？"}
   B -->|いいえ| C["設定と既存結果を保持"]
-  B -->|はい| D["月別設定と今回の方式・代用元・係数の<br/>入力を持つ履歴行を一括保存"]
+  B -->|はい| D["今回の方式・代用元・係数を月別設定の版へ保存<br/>履歴行はその版を参照"]
   D --> E{"採用する評価方式は？"}
   E -->|直接評価| F["採用中の直接入力を計算元にする<br/>代用評価から戻した月は0から開始"]
   E -->|代用評価| G["代用元の採用評価を計算元にする<br/>未受領・分配受取額も含める"]
@@ -981,7 +982,7 @@ flowchart TD
   - 別の月に差額を追加する場合も、登録する各月を検証する。
   - 代用評価へ切り替えた月の切替前の直接入力は、採用中の評価・残高・受領待ちの有効額に加えない。
 
-- ポイント増減履歴の確定済みの入力・金額・必要な参照は不変とし、同じ評価処理による同じ結果を重複して保存しない。帰属と受領は初回履歴行で管理する。
+- ポイント増減履歴の確定済みの入力・金額・必要な参照は不変とし、同じ評価処理による同じ結果を重複して保存しない。受領は初回履歴行で管理し、帰属した本人は対象の全行の`user_id`へ同じ一括処理で反映する。
 
 - 各評価の登録時の入力・照合情報は、初回履歴行から取得する。
   - 監査ログには、[監査ログ](#監査ログ)で定める項目を記録する。
@@ -989,7 +990,7 @@ flowchart TD
 - フォームの送信または確認済みCSVの確定要求を受け、入力の検証と照合・計算がすべて成功した後、各評価の操作本体を確定する。CSVは行順に進める。各操作本体では次を一つのD1原子処理で確定する。
   1. 初回履歴行の入力・照合情報・登録額・確定日時と、後続分配を導くための元取引への参照。CSVでは`Idempotency-Key`と元の行番号も保存する。
   2. 未受領なら受領日時を未確定のまま保持し、即時受領なら帰属先本人・受領日時・照合根拠
-  3. Workerが計算し、共通保存処理で代入する`point_accounts.balance`と`evaluation_total`
+  3. Workerが計算し、共通保存処理で代入する`point_account.balance`と`evaluation_total`
   4. 冪等性の結果
 
 - サーバーはフォーム・CSVの両方で管理権限、宛先、金額、評価対象月の直接評価選択を検証する。
@@ -1143,8 +1144,9 @@ flowchart TD
 
 - 削除する本人情報と設定
   - 本人が登録した表示名を削除し、標準`user.name`を「仮ユーザー」へ戻す。
-  - 説明と取得済みの外部アカウント情報など、本人のプロフィール情報を保存先から削除する。
-  - 公開設定、公式パッケージの現在の登録と順序、自動分配の現在設定も削除する。
+  - 説明を空文字列へ戻し、取得済みの外部アカウント情報など、本人のプロフィール情報を保存先から削除する。
+  - プロフィール全体と各区画の公開設定を初期値の`PRIVATE`へ戻し、評価軸ごとの金額の公開設定を削除する。
+  - 公式パッケージの登録と自動分配は、パッケージ0件で自動分配を無効にした版を追加して解除する。
   - 本人の受信通知と既読情報を削除する。
   - 本人のAccounts用の標準Account行と、その拡張項目を削除する。
   - `user.pointsStatus`を退会済みの`CLOSED`にし、公開プロフィールとその公開応答を停止する。検索結果にも含めない。
@@ -1207,7 +1209,7 @@ flowchart TD
 - 退会中の評価と未受領分
   - 本人への帰属が未確定の評価と分配額は、宛先の受領待ちとして保持する。
   - 退会中に本人へ反映した正負の増減も残高・累計評価額・履歴へ保持し、再開時に引き継ぐ。
-  - 退会で削除した自動分配の現在設定は復元せず、退会後の新しい元取引では自動分配無効として扱う。
+  - 退会で解除した自動分配の設定は復元せず、退会後の新しい元取引では自動分配無効として扱う。
   - `CLOSED`の本人はAccounts連携や受領操作を行えない。
     - 未特定宛先の分は、再開後にAccountsへ再連携して照合し、受領する。
   - 受領済みの帰属は本人に固定し、同じ評価を二重に付与しない。
@@ -1218,7 +1220,8 @@ flowchart TD
 ### 公式パッケージの設定・自動分配
 
 - パッケージ登録・並べ替えは、`PUT /api/profile/point-packages`へ順序付きの`pointPackageIds`配列全体を送る。
-  - 本人の現在の登録を、同じD1原子処理で置き換える。
+  - 登録の変更では、本人設定の新しい版と登録行を同じD1原子処理で追加する。
+  - 並べ替えだけなら、最新版の表示順を書き換える。
   - 存在しないID、重複ID、本人以外を対象にした要求を拒否する。
   - 新しく登録する非公開パッケージは、本人の編集権限を検証する。
   - 公開時から登録済みのパッケージは、非公開になっても保持できる。
@@ -1226,12 +1229,12 @@ flowchart TD
 
 - 設定
   - 利用者は画面のフォームで、公式パッケージ、自動分配の有効・無効、分配する割合または固定額を設定する。
-  - 保存時は本人の認証とサーバー側の検証を行い、計算に影響する変更では新しい版の追加も一括確定する。
+  - 保存時は本人の認証とサーバー側の検証を行い、並べ替えだけの変更を除いて本人設定の新しい版を一括確定する。
   - 自分や他の利用者が作成したパッケージを、重複なく最大100件登録できる。登録した各パッケージへの配分割合を設定する。
   - 非公開パッケージも自動分配に使える。新規登録は、そのパッケージの編集権限がある本人に限る。公開時からの登録は、非公開への変更後も維持する。
   - 登録と構成割合は項目の利用状態にかかわらず保存できる。公開範囲の変更だけでは、登録済みの配分割合や自動分配を変更しない。
   - 公式パッケージの設定自体は任意。
-  - 登録したパッケージの表示順を指定できる。公開プロフィールには、本人が公開を選んだ公開パッケージをその順に表示する。
+  - 登録したパッケージの表示順を指定できる。公式パッケージ区画を公開した場合は、登録した公開パッケージをその順に公開プロフィールへ表示する。
   - 分配する割合は0％〜100％とする。固定額は0以上とする。
   - 初期状態は無効とする。パッケージを1件以上登録すると有効にでき、有効時は「自動分配を設定中」と表示する。
   - パッケージを登録解除すると、その配分割合も削除し、残った比率を合計100％へ正規化する。最後の1件を解除すると自動分配を無効にする。
@@ -1243,7 +1246,7 @@ flowchart TD
 flowchart TD
   A["本人が登録順序・配分割合・自動分配設定を変更"] --> B["本人・ID・件数・重複と<br/>新規非公開パッケージの編集権限を検証"]
   B --> C{"登録を解除する？"}
-  C -->|いいえ| D["現在の登録順序と分配設定を保存<br/>計算に影響する変更は新しい版も一括保存"]
+  C -->|いいえ| D["本人設定の新しい版と登録行を一括追加<br/>並べ替えだけなら最新版の表示順を書き換え"]
   C -->|はい| E["解除するパッケージの配分割合を削除"]
   E --> F{"残る登録は0件？"}
   F -->|はい| G["自動分配を無効にする"]
@@ -1348,11 +1351,15 @@ flowchart TD
 ### 設定履歴と子パッケージの版管理
 
 - 計算設定は、初期版と、分配額・分配先に影響する変更時の版を不変の履歴として保存する。
-  - 本人設定、各パッケージの直接構成、配るポイントと計算元の評価軸の計算条件を、それぞれ版管理する。
+  - 本人設定、各パッケージの直接構成、配るポイントと計算元の評価軸の計算条件を、対象ごとの版テーブルで版管理する。
+  - 版テーブルは[テーブル・データ構造](#テーブルデータ構造)で定める。
   - 現在の計算条件は対象ごとに適用開始時刻が最新の版から取得し、過去分の計算条件は基準時刻から版を選ぶ。
-  - 名前・説明・公開範囲・表示順など、計算条件以外の情報は業務テーブルに保存する。
-  - 退会や全登録解除で現在設定を削除・無効化するときも、その時点からの自動分配無効を表す版を一括保存する。
-  - 同じ計算設定の再保存と、名前・説明・公開範囲・表示順だけの変更では、計算設定の版を追加しない。
+  - 名前・説明・公開範囲など、計算条件以外の情報は業務テーブルに保存する。
+  - 構成要素の表示順と登録パッケージの表示順は、版の子の行に保存する。
+  - 退会や全登録解除で現在設定を無効化するときは、その時点からの自動分配無効とパッケージ0件を表す版を一括保存する。
+  - 同じ計算設定の再保存と、名前・説明・公開範囲だけの変更では、計算設定の版を追加しない。
+  - 表示順だけの変更でも版を追加せず、最新版の表示順を書き換える。
+    - 表示順は計算に使わない。
 
 | 設定の単位         | 版へ保存する計算条件                                                         |
 | ------------------ | ---------------------------------------------------------------------------- |
@@ -1406,7 +1413,7 @@ flowchart TD
 9月1日分では、適用開始時刻1788253200000の版が基準時刻1788253200125以下の最新となる。9月10日の版は基準時刻より後なので含めず、帰属統合後もX50％・Y50％で計算する。
 
 - 過去分の訂正に必要な版は経済記録として保持し、退会や現在設定の登録解除でも保持する。
-  - 24時間で期限切れになる`idempotency_results`とは別に保持する。
+  - 24時間で期限切れになる`idempotency_result`とは別に保持する。
 
 ### 配分の計算順序
 
@@ -1969,9 +1976,9 @@ flowchart TD
   - 追加列は`input: false`・`returned: false`とし、Pointsの業務APIが本人・入力・公開範囲を検証して更新・返却する。
   - 表示名もPointsの業務APIで更新し、標準の`/update-user`は`disabledPaths`で無効にする。
   - 初回登録・再開時の初期値と、D1側の型・値の制約をそろえる。[追加項目の公式資料](https://better-auth.com/docs/concepts/database#extending-core-schema)
-  - 退会時は標準User行と`pointsStatus`の`CLOSED`を保持し、`user.name`を仮名へ戻し、説明と固定公開設定の追加列を`null`にする。
+  - 退会時は標準User行と`pointsStatus`の`CLOSED`を保持し、`user.name`を仮名へ戻し、説明と固定公開設定の追加列を初期値（空文字列・`PRIVATE`）へ戻す。
   - Pointsの利用状態は管理者による標準のログイン停止と区別する。
-  - 軸別の金額公開設定、複数の登録パッケージと順序・配分割合、残高・評価・受領・分配の記録は、それぞれの業務テーブルへ保存する。
+  - 軸別の金額公開設定、公式パッケージの登録・順序・配分割合、残高・評価・受領・分配の記録は、[テーブル・データ構造](#テーブルデータ構造)で定める独自テーブルへ保存する。
 
 - 認証情報の取得と保存
   - Google・GitHubから認証時に取得する情報と、Pointsが保存する情報を区別する。
@@ -2637,7 +2644,8 @@ flowchart TD
   - 新しく追加できるのは公開要素、または本人に編集権限がある非公開要素とする。停止中も選択でき、フォーム・CSVで同じ条件を適用する。
   - JSON復元では、同じ操作で新IDとして作成し本人管理となる非公開軸・子パッケージも含められる。
   - 割合は正のJavaScript安全整数で入力する。全割合を最大公約数で割り、各`weight`と合計`totalWeight`が正の安全整数であることを検証する。
-  - 例えば`2:6`は`1:3`として保存し、構成比は厳密な`weight / totalWeight`で保持する。
+  - 例えば`2:6`は`1:3`として保存する。
+  - 構成比は`weight / totalWeight`の分数として扱い、`totalWeight`は保存せず構成から求める。
   - `displayOrder`は0から始まる連続整数とする。更新では、指定した全構成・割合・順番で現在の構成を置き換える。
   - 構成要素が後から非公開になっても参照を保持できる。一度外した非公開要素を再追加する場合は、その要素の編集権限を検証する。
   - 管理画面には種類・ID・割合・順番を表示する。非公開要素の現在名などは、その要素も管理できる場合だけ表示する。
@@ -2692,7 +2700,7 @@ flowchart TD
     C --> D["循環・直接構成1,000件・展開上限を検証<br/>割合を最大公約数で正規化"]
     D --> E{"全条件を満たすか"}
     E -->|いいえ| F["全件未反映でエラーを返す<br/>version競合は409"]
-    E -->|はい| G["本体・構成・必要な計算設定の版・入力と確定結果の履歴を<br/>同じ原子処理で確定、作成時は冪等結果も保存"]
+    E -->|はい| G["本体・必要な計算設定の版・構成を<br/>同じ原子処理で確定、作成時は冪等結果も保存"]
     G --> H["作成時は停止中・非公開で開始<br/>更新時は同じIDを維持"]
 ```
 
@@ -2700,7 +2708,7 @@ flowchart TD
 
 - 未使用のパッケージの完全削除
   - Points内の利用者設定・親パッケージ・過去の本人や他のパッケージの計算設定の版・分配記録などから参照されていない場合に限り、完全削除できる。
-  - そのパッケージ自身の作成・設定変更だけを記録した入力と確定結果は、完全削除を妨げる参照に含めず、削除後も保持する。分配不成立など金額0の経済計算で参照した場合も、参照済みとして扱う。
+  - 分配不成立など金額0の経済計算で参照した場合も、参照済みとして扱う。
   - 削除確定時に参照を再検査し、参照済みなら削除せず利用停止を案内する。
   - 構成・そのパッケージ自身の計算設定の版・管理者所属・対応するOrganizationなど、作成に付随する情報も整理する。子パッケージ本体と既存の確定履歴は保持する。
   - 削除したIDは再利用しない。
@@ -3032,7 +3040,8 @@ flowchart TD
   - 運用ログにはトークン・Cookie・メール・宛先識別情報・プロフィール本文を出力せず、処理名・結果・コード・件数などを記録する。
 
 - 保持と退会後の扱い
-  - 退会後は公開を止め、本人入力の表示名を仮名へ戻し、説明・公開設定・公式パッケージの現在の登録と順序・自動分配の現在設定・Accounts連携を削除する。
+  - 退会後は公開を止め、本人入力の表示名を仮名へ、説明を空へ、公開設定を非公開へ戻し、Accounts連携を削除する。
+  - 公式パッケージの登録と自動分配は、パッケージ0件で自動分配を無効にした設定へ切り替えて解除する。
   - 本人の受信通知と既読情報も削除する。
   - 評価と受領済み記録、確定済みの取引記録、負の残高を含む残高、累計評価額、ポイント増減履歴、過去分の訂正に必要な計算設定の版を保持する。
   - 同じ本人を識別するログイン対応は非公開で保持し、評価入力の宛先識別情報・メモは管理権限の範囲で保持する。
@@ -4074,11 +4083,11 @@ flowchart TD
 
 - 金額の項目名は、入力・計算・保存・応答で同じポイント額を表す。
   - APIとJSONでは十進数文字列、D1では`TEXT`として扱う。
-  - 複数の額を区別する場合は、評価額の`fixAmount`など対象名を付ける。
+  - 複数の額を区別する場合は、評価額の`evaluationAmount`など対象名を付ける。
 
 | 意味                     | API・計算上の項目 | DB列               |
 | ------------------------ | ----------------- | ------------------ |
-| 金額                     | `amount`          | `amount`           |
+| 金額                     | `amount`          | —                  |
 | 残高                     | `balance`         | `balance`          |
 | 累計評価額               | `evaluationTotal` | `evaluation_total` |
 | 最小単位                 | `minimumUnit`     | `minimum_unit`     |
@@ -4100,7 +4109,8 @@ flowchart TD
 
 - 各レコードは最新の状態を保存する。
   - ポイント増減履歴の確定済みの入力・原額・差額・必要な履歴参照と、分配の計算設定の版は不変で保持する。
-  - 初回履歴にある本人への帰属・受領情報は、確定時にversionを検査して更新する。
+    - パッケージの構成と公式パッケージ登録の版は、表示順を除き不変とする。
+  - 初回履歴の受領情報と対象全行の`user_id`は、初回履歴の`version`を検査して更新する。
   - 現在額と受領状態・処理の進捗は、確定履歴と初回履歴の受領情報から判定する。
 
 - 最新レコードの更新競合を検査する値は`version`とする。
@@ -4160,8 +4170,9 @@ flowchart TD
 ### データベース
 
 - スキーマのソースは業務領域ごとに分ける。
-- Drizzleのテーブル定数は`camelCase`の複数形、DBのテーブル名は`snake_case`の複数形とする。
-  - 例は`pointLedgerEntries`と`point_ledger_entries`とする。
+- Drizzleのテーブル定数は`camelCase`の単数形、DBのテーブル名は`snake_case`の単数形とする。
+  - 例は`pointLedgerEntry`と`point_ledger_entry`とする。
+  - テーブルと列は[テーブル・データ構造](#テーブルデータ構造)で定める。
 - 外部キーのDB列は`{target}_id`、Drizzleのプロパティは`{target}Id`とする。
 - 一意制約・検査制約・インデックスには、目的が分かる明示的な名前を付ける。
 - マイグレーションの番号とファイル名は、生成ツールの規則に従う。
@@ -4203,8 +4214,8 @@ flowchart TD
 
 - 現在の実装には、`pusr_`を付けたUUIDのユーザーIDがある。
   - 標準`user.id`への統一と21文字の標準Nano IDへの変更は、今後の実装で対応する。
-- 現在の独自DBには、`points_user`・`evaluation_criterion`・`fix_result`など単数形のテーブル名がある。
-  - 独自テーブルは今後の実装で複数形にそろえ、認証ライブラリの生成スキーマは標準の名前を維持する。
+- 現在の独自DBには`points_user`・`fix_result`など、[テーブル・データ構造](#テーブルデータ構造)にないテーブルがある。
+  - 独自テーブルは今後の実装でこの定義にそろえ、認証ライブラリの生成スキーマは標準の名前を維持する。
 - 金額の実装には`minimumUnitScaled`と`minimum_unit_scaled`など、整数値を区別する名前がある。
   - 十進数文字列への移行時に、API・集計値・関連する項目を今回の金額名へそろえる。
 - 管理者のロール名と宛先の種類は、権限検査・入力検証・保存値を含めて今回の名前にそろえる。
@@ -4231,7 +4242,7 @@ flowchart TD
     F --> S
     S --> M{"受領対象がある？"}
     M -->|"いいえ"|Z["0件で正常完了<br/>受領待ちを保持"]
-    M -->|"はい"|C["初回履歴の帰属・受領情報と本人への反映<br/>元処理・対象への履歴参照を一括確定"]
+    M -->|"はい"|C["対象全行の帰属・初回履歴の受領情報と本人への反映<br/>元処理・対象への履歴参照を一括確定"]
     C --> D["受領結果と残る処理の進捗を返す"]
 ```
 
@@ -4359,7 +4370,7 @@ flowchart TD
   A["本人認証・必要な宛先照合を行い<br/>受領対象を計算"] --> B{"手動受領で確認内容が変わった？"}
   B -- はい --> C["409 CLAIM_SET_CHANGED<br/>最新の内容で再確認"]
   B -- "いいえ・自動受領" --> D["受領対象・帰属・必要な連携と受領資格を最終検証"]
-  D --> F["初回履歴の帰属・受領情報・本人反映と<br/>元処理・対象への履歴参照を一括確定"]
+  D --> F["対象全行の帰属・初回履歴の受領情報・本人反映と<br/>元処理・対象への履歴参照を一括確定"]
   F --> G["確定履歴から未完了の段階を判定し<br/>後続の分配・訂正を分割して処理"]
   G --> H["201：確定済みの受領結果を返す<br/>分配・訂正が残る場合は進捗も返す"]
 ```
@@ -4378,10 +4389,10 @@ flowchart TD
 
 - 対象月、初回登録日時、初回履歴IDの昇順で処理する。
 
-- 初回履歴の帰属・受領情報・本人への反映と、元処理・対象を示す履歴への参照を同じD1原子処理で確定する。
+- 対象全行の帰属・初回履歴の受領情報・本人への反映と、元処理・対象を示す履歴への参照を同じD1原子処理で確定する。
   - 受領対象の現在額、認証本人への帰属、外部宛先の現在の連携と受領資格を保存時に検証する。
   - 検証や受領情報の更新が成立しない場合は、その回の変更を全件未反映にする。
-  - Workerが既存履歴の未反映合計を計算し、共通保存処理で`point_accounts.balance`と`point_accounts.evaluation_total`へ一度だけ反映する。
+  - Workerが既存履歴の未反映合計を計算し、共通保存処理で`point_account.balance`と`point_account.evaluation_total`へ一度だけ反映する。
   - 累計評価額は反映対象の履歴だけを合計する。
   - 合計0でも帰属を固定し、合計が負なら負のまま受領する。負残高では消費系操作を拒否する。
   - 初回履歴の受領日時とversionを検査し、未受領から受領済みへの更新と残高反映を同時に確定する。自動訂正時の即時付与との競合も同じ条件で検査する。
@@ -4424,7 +4435,7 @@ flowchart TD
 | 累計評価額への反映 | 対象（評価を起点とする分配）        |
 | 受領状態・受領前の帰属 | 未受領・本人未確定               |
 
-- 元評価と分配待ち額は、`point_ledger_entries`の初回行として、種別を分けて保持する。
+- 元評価と分配待ち額は、`point_ledger_entry`の初回行として、種別を分けて保持する。
   - 入力識別子、評価軸、評価対象月と任意の日・時刻、符号付きの十進数文字列の初回額、宛先の種類と識別情報、反映区分、発生元の履歴への参照を保存する。
   - 登録時の操作入力・外部照合の事実と、元処理・対象・訂正版・確定段階を識別する最小限の履歴参照を保存する。経路は親履歴への参照からたどり、自動分配の条件は元取引の基準時刻と既存の設定履歴から取得する。
   - 代用評価を再計算した履歴は適用した月別設定の版を参照し、その版から方式・代用元・係数を選ぶ。自動分配に使う元取引時点の設定とは区別する。
@@ -4439,7 +4450,7 @@ flowchart TD
 
 - 各対象の初回履歴へ、帰属する本人と、受領日時・帰属の照合根拠を保持する。
   - Accountsで照合した場合は、その時点のorigin・AccountsユーザーIDを帰属の照合根拠として保持する。登録時と同じ一回の照合を使う場合は、その履歴の根拠への参照を使う。受領時に改めて照合した根拠は初回履歴の受領情報へ保存する。
-  - 固定済み本人への受領だけを行う場合は、受領者のユーザーIDを使い、Accountsのorigin・ユーザーID・連携IDは省略する。
+  - 固定済み本人への受領だけを行う場合は、受領者のユーザーIDを使い、Accountsのorigin・ユーザーIDは省略する。
   - 初回履歴の受領日時が未設定なら未受領、設定済みなら受領済みと判定する。受領前に固定した本人も同じ初回履歴で保持し、受領後も同じ本人への帰属を使う。
   - 受領時点までの履歴を特定する末尾履歴への参照を初回履歴に保存する。受領対象の初回履歴ID一覧と当時の対象別の受領額は、この受領情報と、その対象の初回行から参照先までの確定履歴から求め、件数と評価軸別集計を応答する。
   - 受領情報の更新と既存履歴合計の残高・累計評価額への反映は、同じD1原子処理で確定する。受領額を表す増減履歴を重ねて追加しない。
@@ -4953,7 +4964,7 @@ flowchart TD
   - HTTPメソッドの冪等性と、Pointsが業務結果を保存して返す処理を区別する。
   - `Idempotency-Key`はPointsの補足ルールとする。[IETF文書](https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/)は2026-10-07時点で期限切れの草案として掲載されている。
 
-- 二重処理防止と再送応答の結果は、D1の`idempotency_results`へ保存する。
+- 二重処理防止と再送応答の結果は、D1の`idempotency_result`へ保存する。
   - 本人の操作はユーザーID・操作種別・冪等性キー、精算はClient ID・操作種別・冪等性キーの組で識別する。
   - 正規化した要求内容のhash、初回のHTTP状態コード・結果ID・`data`、確定日時`createdAt`、有効期限`expiresAt`を保存する。
   - 業務変更と同じD1原子処理で保存し、有効な同じ識別範囲の結果は一つとする。
@@ -4973,6 +4984,7 @@ flowchart TD
   - `expiresAt`にインデックスを設け、処理時点で期限切れの結果を有効期限の古い順に削除する。
   - 1回のCron実行で削除する件数の上限は、サーバー側の定数で管理する。
   - 上限を超えた残りの期限切れ結果は、次回の日次実行で削除する。
+  - 同じ日次Cronで、Better Authの`verification`の期限切れ行も上限件数まで削除する。
 
 - 有効な結果がある同じ要求には、保存済みの業務結果を返す。
   - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
@@ -5285,12 +5297,16 @@ flowchart TD
 
 ### ポイント増減履歴と集計値の保存
 
-- `point_ledger_entries`へ、ポイントの増減を伴う操作のフォーム・CSVの入力と増減額、自動訂正の差額と、確定した事実・対応に必要な参照を集約する。
+- `point_ledger_entry`へ、ポイントの増減を伴う操作のフォーム・CSVの入力と増減額、自動訂正の差額と、確定した事実・対応に必要な参照を集約する。
   - ポイントの増減を伴う操作は、評価・代用評価・分配・再分配・譲渡・交換・消費・落札の引き落としと、それらの訂正とする。
   - 評価軸・パッケージ・交換倍率・月別設定・自動分配設定の変更は、業務レコードと設定の版へ保存する。
   - CSVの各行の入力はその行の一次増減と同じ確定単位で保存し、`Idempotency-Key`と元の行番号で識別する。
   - 元評価の登録日時と元分配の基準時刻には、対応する初回履歴の確定日時を使う。
-  - 元評価と分配の対象は初回履歴IDで識別し、自動訂正の行はその初回行と同じ対象の直前の確定履歴を参照する。対象の現在額は、確定済みの初回額と訂正差額をWorkerが合計して求める。
+  - 元評価と分配の対象は初回履歴IDで識別する。
+  - 各行は対象の初回行への参照`target_ledger_entry_id`を持ち、自動訂正の行は同じ対象の直前の確定履歴も参照する。
+  - 対象の現在額は、確定済みの初回額と訂正差額をWorkerが合計して求める。
+  - 各行は本人の`user_id`を持つ。
+  - 帰属・受領で本人が決まったら、その対象の全行の`user_id`を同じ一括処理で更新する。
   - 各行には、その種類に必要な宛先・評価軸・対象月・入力・照合結果・操作者と、元処理・初回対象・訂正契機・確定した段階を識別する参照を保持する。同じ訂正の識別には、既存の契機への参照と訂正版を使う。
   - 外部照合の入力・回答・照合日時と、その回答によって固定した本人は、その時の事実として保持する。登録時と受領時の照合は異なる出来事として扱う。
   - 複数行に共通する情報は、その情報を持つ元の履歴行への参照で取得する。
@@ -5309,13 +5325,13 @@ flowchart TD
   - 受取人がいない計算結果には、元取引への参照を持たせる。実際の評価0とは区別し、受領対象を持たない計算結果は受領件数へ含めない。
 
 - 確定した入力・金額は不変とし、金額の変更は差額の追記で表す。
-  - 初回対象行の帰属・受領情報は現在の確定状態とversionを検証して更新する。
+  - 対象全行の`user_id`と初回対象行の受領情報は、現在の確定状態とversionを検証して更新する。
   - 受領日時が未設定の対象は未受領とし、本人への帰属だけが固定された状態と区別する。
   - 受領者・受領日時・照合根拠と、受領時点の対象履歴の末尾への参照は、初回対象行に保持する。受領時の額は、その対象の初回行から参照先までをたどった確定履歴から取得し、後日の訂正差額と区別する。
   - 同じ一回の照合や同じ確定単位の日時・操作者は、対応する履歴行へ一度保存し、必要な参照から取得する。
 
-- 残高と累計評価額は、確定済み履歴と初回対象行の本人への帰属・受領情報から再計算して復元できる。
-- `point_accounts`テーブルには、ポイント増減履歴から集計した利用者・評価軸ごとの残高`balance`と累計評価額`evaluation_total`を保存する。画面で表示するたびにポイント増減履歴を全件集計する必要を減らす。
+- 残高と累計評価額は、確定済み履歴の`user_id`と初回対象行の受領情報から再計算して復元できる。
+- `point_account`テーブルにはポイント増減履歴から集計した利用者・評価軸ごとの残高`balance`と累計評価額`evaluation_total`を保存する。画面で表示するたびにポイント増減履歴を全件集計する必要を減らす。
 
 ### 履歴・受領・集計値の更新
 
@@ -5328,7 +5344,7 @@ flowchart TD
   - 計算順と、途中で必要な残高不足の検査は保持する。
   - 例えば残高100へ＋7・−3を反映するときは履歴を2行保存し、残高を`"104"`へ一度更新する。
 
-- `point_accounts`の更新は、この共通保存処理を通し、履歴の初回確定・差額の追加・帰属と受領情報・必要な業務変更・冪等結果と同じD1 `batch()`で確定する。
+- `point_account`の更新はこの共通保存処理を通し、履歴の初回確定・差額の追加・帰属と受領情報・必要な業務変更・冪等結果と同じD1 `batch()`で確定する。
   - 競合検査・初回口座の作成・二重反映の防止は、以下の「業務変更の一括確定」にまとめる。
 
 ```mermaid
@@ -5345,7 +5361,7 @@ flowchart TD
 
 ### 残高と累計評価額の計算
 
-- 利用者・評価軸ごとに、本人への反映が確定した履歴を、初回対象行の本人への帰属・受領情報を使って重複なく集計する。
+- 利用者・評価軸ごとに、本人への反映が確定した履歴を、各行の`user_id`と初回対象行の受領情報を使って重複なく集計する。
   - 未処理入力と未受領の履歴は本人の集計から除く。受領によって、同じ額の増減履歴を追加しない。
 
 - 残高は、累計評価額への反映有無にかかわらず、この本人への反映が確定した履歴の増減額を合計する。
@@ -5359,7 +5375,7 @@ flowchart TD
 | ポイント増減履歴に記録する操作                           | 累計評価額への反映 | 更新する値                   |
 | -------------------------------------------------------- | ------------------ | ---------------------------- |
 | 正・負・0の直接評価                                      | `true`             | 残高・累計評価額             |
-| 代用評価（`SUBSTITUTION_FIX`）とその訂正                 | `true`             | 残高・累計評価額             |
+| 代用評価（`SUBSTITUTION_EVALUATION`）とその訂正          | `true`             | 残高・累計評価額             |
 | 評価付与を起点とする両方式の分配受取額とその訂正         | `true`             | 受取人の残高・累計評価額     |
 | 取り分からの分配元引き落とし（未配分枠を含む）とその訂正 | `false`            | 分配元の残高                 |
 | 譲渡を起点とする両方式の自動分配・再分配                 | `false`            | 分配元・受取人の残高         |
@@ -5409,7 +5425,7 @@ flowchart TD
 - Workerは計算に必要な現在値とversionを読み、bignumber.jsで計算してから、D1標準の`batch()`を一度呼ぶ。[D1公式資料](https://developers.cloudflare.com/d1/worker-api/d1-database/#batch)
   - 関連する現在値とversionは、同じSQLまたは読み取り用batchで、互いに整合する状態として取得する。
   - Workerの計算中は、読み取った状態をDBで固定しない。保存直前に、同じbatch内のSQLで計算前提を照合する。
-  - 残高・累計評価額は計算済みの文字列を代入し、業務レコード・イベント・履歴の確定と帰属・受領情報・結果の自動通知・`idempotency_results`を同じbatchへ入れる。
+  - 残高・累計評価額は計算済みの文字列を代入し、業務レコード・履歴の確定と帰属・受領情報・結果の自動通知・`idempotency_result`を同じbatchへ入れる。
   - 一つのSQL文が失敗したら、その確定単位の全件を取り消す。
 
 - 利用者・評価軸ごとの口座にはversionを持ち、更新時に増やす。
@@ -5421,12 +5437,12 @@ flowchart TD
 
 - 前提の不一致や、条件付きUPDATEの更新0件を、batch内部でSQLエラーにする。
   - 履歴の初回確定・差額追加・受領情報の更新時などにSQLで前提を照合し、不一致なら`NOT NULL`などの制約違反にする。
-  - 保存後の件数確認だけでは成功扱いにせず、実際の業務記録・イベント・履歴と受領情報が必要なIDと件数を満たすこともbatch内で検査する。
+  - 保存後の件数確認だけでは成功扱いにせず、実際の業務記録・履歴と受領情報が必要なIDと件数を満たすこともbatch内で検査する。
   - 条件違反では全件を取り消し、version競合は`409 VERSION_CONFLICT`など、操作に応じた安定したエラーコードを返す。
   - 再試行するときは、同じキーの確定済み結果を確認し、未確定なら現在値を読み直して計算する。古い計算結果をそのまま保存しない。
   - 再計算で利用者が確認した重要な対象・条件・金額が変わる場合は、既存の`validationHash`の条件で再確認を求める。
 
-- 同じ要求の二重反映は、業務変更と同時保存する`idempotency_results`の一意性で防ぐ。
+- 同じ要求の二重反映は業務変更と同時保存する`idempotency_result`の一意性で防ぐ。
   - 受領は、初回履歴の受領日時と`version`で防ぐ。
   - 同じ有効キーの要求が同時に届いた場合は一方だけを確定し、他方は全件取消後に保存済み結果を取得する。要求hashが異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
   - 応答が失われて成否不明の場合も、同じ入力・確認結果・キーで再送し、確定済みの結果を返す。
@@ -5517,7 +5533,7 @@ flowchart TD
   - 公開設定にかかわらず、認可された本人の残高を返す。
   - 認証不成立は401、scope不足は403とする。
 
-- 対象は、本人の`point_accounts`に行がある全評価軸とする。
+- 対象は、本人の`point_account`に行がある全評価軸とする。
   - 残高が0や負の評価軸も含める。
   - 本人のポイント一覧と同じく、非公開・停止中の評価軸も含める。
 
@@ -5793,12 +5809,12 @@ sequenceDiagram
   1. 要求の形式を検証し、各落札者のトークンとDPoP署名を検証する。検証できない落札者がいれば、その落札者の拒否理由を`AUTHORIZATION_UNAVAILABLE`とし、要求全体を拒否する。
   2. 全トークンの`client_id`が同じであることを確かめ、その値を呼び出し元のClient IDとする。違えば`403 ACCESS_TOKEN_CLIENT_MISMATCH`で要求全体を拒否する。
   3. 呼び出し元Client IDの枠で、共通の要求回数制限を1回確認する。
-  4. `idempotency_results`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の評価軸ごとの必要額を照合する。
+  4. `idempotency_result`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の評価軸ごとの必要額を照合する。
   5. 有効な結果と内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じならその結果を返し、本人の現在の利用可否・残高・評価軸の現在状態・最小単位を再検査しない。
   6. 有効な結果がなければ、本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
-  7. 全件が条件を満たせば、引き落とし・ポイント増減履歴・`idempotency_results`の結果を一括確定する。
+  7. 全件が条件を満たせば、引き落とし・ポイント増減履歴・`idempotency_result`の結果を一括確定する。
 
-- 精算の再送照合は、共通の`idempotency_results`で行う。
+- 精算の再送照合は共通の`idempotency_result`で行う。
   - 正規化では各落札者の`components`を評価軸ID順へそろえ、金額の表記を統一する。
   - `winners`は要求の配列順のまま比べる。
   - トークンとDPoP署名は内容照合の対象から外す。
@@ -6068,7 +6084,7 @@ flowchart TD
 
 - 現在の実装には、ポイント予約・capture・パッケージ改訂参照を使うAPIがある。
   - 最新仕様の現在パッケージ取得、本人の残高一覧、全落札者の一括引き落としとの差を実装時に確認する。
-  - 現在の予約・captureの保存構造は、呼び出し元Client IDを持つ各落札者のポイント増減履歴と、共通の`idempotency_results`へ置き換える。
+  - 現在の予約・captureの保存構造は、呼び出し元Client IDを持つ各落札者のポイント増減履歴と、共通の`idempotency_result`へ置き換える。
   - パッケージIDを含まない精算の入出力・保存・再送照合と、全指定軸の現在状態検証、非公開構成要素の応答項目、作成初期値は実装時に確認する。現在の実装のパッケージ改訂参照や状態定義から、今回の契約へ移行する必要がある。
   - hono-openapiによるOpenAPIの生成と、生成した型の更新・動作検証は、実装時に行う。
 
@@ -6798,21 +6814,783 @@ flowchart TD
 
 ## テーブル・データ構造
 
-- `idempotency_results`
+- 共通規則
   - 説明
-    - 識別範囲・保存項目・有効期限・期限切れ削除は、[通信IDと二重処理防止](#通信idと二重処理防止)で定める。
-    - `idempotency_key`は、その識別範囲を構成するキーとして保存する。
+    - Better Auth 1.7.12のテーブルは標準スキーマをそのまま使う。
+      - 認証スキーマは`auth-cli.ts`から`src/backend/infrastructure/db/schema/`へ生成し、列名を`snake_case`にする。
+      - 本章では、標準テーブルについてPointsの追加列・独自の索引・値の入れ方だけを書く。
+    - 独自IDは[IDと照合キー](#idと照合キー)の規則で発行する。
+      - UUIDに付ける接頭辞は`ledger_`・`ecver_`・`pkgver_`・`pkgcmp_`・`mesver_`・`adver_`・`acon_`・`ann_`・`ntf_`・`idem_`とする。
+      - 複合主キーで行を特定できるテーブルは、独自IDを持たない。
+    - 金額は`TEXT`で保存する。
+      - Drizzleの`customType`でbignumber.jsの値と相互に変換する。
+      - 書式・桁数・最小単位はWorkerと`customType`で検証し、DBの`CHECK`では検査しない。
+    - 独自テーブルの時刻は`INTEGER`のUnixミリ秒で保存する。
+      - Workerが確定時刻を入れ、DBの既定値は持たない。
+      - 例外として、`evaluation_month`と`evaluation_at`は`TEXT`で保存する。
+    - 真偽値は`INTEGER`の0・1、列挙値は大文字の`TEXT`、JSONは`TEXT`とし、`CHECK`で値の種類を検査する。
+    - `version`は`INTEGER NOT NULL DEFAULT 1`とし、更新のたびに1増やす。
+    - 制約名は一意制約を`{table}_{目的}_uidx`、索引を`{table}_{目的}_idx`、検査制約を`{table}_{目的}_check`とする。
+    - 参照先を削除するときの外部キーの扱いは、次のとおりとする。
+      - `user`への外部キーは`NO ACTION`とする。User行は削除しない。
+      - 評価軸・パッケージを参照する経済記録・計算に使う設定・版は`RESTRICT`とし、参照済みの評価軸・パッケージを削除できなくする。
+      - 本人の表示設定`point_amount_visibility`は`CASCADE`とする。
+      - 対象自身の版と版の子の行は`CASCADE`とし、対象と一緒に削除する。
+      - ポイント増減履歴の行同士の参照列は外部キーにし、batchでは参照先の行を先に挿入する。
+      - 通知の対象・Client ID・Accounts originには外部キーを張らない。
+
+- `user`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマとAdminプラグインの列をそのまま使い、Pointsの追加列を加える。
+    - `id`は`advanced.database.generateId`で発行する21文字のNano IDとする。
+    - `name`は初回登録で「仮ユーザー」とし、その後は業務APIで本人が入力した1〜100文字の表示名を保存する。
+    - `email`は認証元の種類と不変のアカウントIDから作る`.invalid`の代用メールとする。
+    - `email_verified`は`false`、`image`は`NULL`とする。
+    - `role`は通常の利用者を標準の既定値、全体管理者を`appAdmin`とする。
+    - `banned`はログイン停止を表し、`ban_reason`と`ban_expires`は`NULL`とする。
+    - 行は削除しない。
+    - 追加列はすべて`input: false`・`returned: false`とし、Pointsの業務APIだけが更新・返却する。
+    - 退会時は`description`と公開範囲の追加列を初期値へ戻す。
+      - 保存する値と退会・再開時の扱いは、[OAuthログイン](#oauthログイン)と[退会ボタン](#退会ボタン)で定める。
   - カラム
-    - `request_hash`
-      - 共通節の要求hash
-    - `result_status`
-      - HTTP状態コード
-    - `result_body`
-      - 応答結果
+    - `points_status`
+      - `TEXT NOT NULL DEFAULT 'ACTIVE'`とし、値は`ACTIVE | CLOSED`とする。
+      - Pointsの利用状態を表す。
+    - `description`
+      - `TEXT NOT NULL DEFAULT ''`とし、0〜500文字の本人の説明を入れる。
+    - `profile_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - プロフィール全体の公開範囲を表す。
+    - `basic_info_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - 基本情報区画の公開範囲を表す。
+    - `point_list_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - ポイント一覧区画の公開範囲を表す。
+    - `point_packages_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - 公式パッケージ区画の公開範囲を表す。
+    - `connections_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - 連携情報区画の公開範囲を表す。
+    - `history_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+      - 履歴区画の公開範囲を表す。
+
+- `session`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - Adminの`impersonated_by`と、Organizationの`active_organization_id`は常に`NULL`とする。
+    - 有効期間は7日、更新間隔は1日とする。
+    - 同じブラウザで保持するセッションは最大10件とする。
+      - 切替の扱いは[複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)で定める。
+    - 退会とログイン停止では、本人の全行を削除する。
+
+- `account`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマにPointsの追加列を加える。
+    - `provider_id`は`google`・`github`・`accounts-{accounts_connection.id}`とする。
+    - `account_id`は、GoogleではGoogleの`sub`、GitHubでは数値のアカウントID、Accountsでは検証済みの`sub`とする。
+    - トークン・期限・`password`の列は保存前のフックで値を除き、常に`NULL`とする。
+    - Google・GitHubの行は削除しない。
+    - 独自の一意索引`account_provider_account_uidx`を`(provider_id, account_id)`に設ける。
+  - カラム
+    - `external_accounts_json`
+      - `TEXT`とし、Accountsから取得した外部アカウント一覧のJSON配列を入れる。
+      - Accountsの行だけで使う。
+      - 未取得は`NULL`、情報提供なしは`[]`とする。
+    - `external_accounts_fetched_at`
+      - `INTEGER`とし、一覧の取得に成功した日時を入れる。
+      - 未取得は`NULL`とする。
+      - 取得と表示の扱いは[連携情報の更新と公開](#連携情報の更新と公開)で定める。
+
+- `verification`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - OAuth stateとして、`linkSocial`を開始した本人・nonce・code verifierを保存する。
+    - DPoPの`replayStore`と、OAuth Proxyの一時情報も保存する。
+    - 期限切れの行は既存の日次Cronで上限件数まで削除する。
+
+- `rate_limit`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - Better Auth標準の回数制限のカウンターを保存する。
+    - API共通の回数制限はRate Limiting bindingで数え、このテーブルには保存しない。
+      - 回数制限は[Rate limit](#rate-limit)で定める。
+
+- `organization`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - 評価軸・パッケージ・OAuthクライアントごとに1件作る。
+    - `membershipLimit`は20とし、Teamsは有効にしない。
+    - `name`は対象の種類を表す固定の文字列とする。
+    - `slug`は`evaluation-criterion-{id}`・`point-package-{id}`・`oauth-client-{organization.id}`とする。
+      - 評価軸・パッケージの`{id}`はその評価軸・パッケージのIDとする。
+    - `logo`と`metadata`は`NULL`とする。
+    - 管理者の扱いは[権限](#権限)で定める。
+
+- `member`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - `role`は`evaluationCriterionAdmin`・`packageAdmin`・`oauthClientAdmin`とする。
+    - 独自の一意索引`member_organization_user_uidx`を`(organization_id, user_id)`に設ける。
+    - 退会では本人の行を削除する。
+
+- `invitation`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマに含まれるが、Pointsは使わない。
+      - 管理者はユーザーIDで直接追加するため、行を作らない。
+
+- `jwks`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - 秘密鍵は標準の暗号化で保存し、`rotationInterval`は30日とする。
+
+- `oauth_client`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - `reference_id`にはクライアントを管理するOrganizationの`id`を入れる。
+    - 説明文は`metadata`の`description`へ保存する。
+    - `disabled`は一時停止を表す。
+    - `token_endpoint_auth_method`は`private_key_jwt`とし、`jwks`には公開鍵をインラインで保存する。
+    - `application_type`はローカル開発用URLを含む場合に`native`とする。
+    - `uri`には紹介URLを保存する。
+    - 独自の一意索引`oauth_client_reference_uidx`を`reference_id`に設ける。
+    - 管理の扱いは[開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)で定める。
+
+- `oauth_resource`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - `oauthProvider`の`resources`に`{origin}/api/v1`を指定し、起動時に標準の処理で1行作る。
+
+- `oauth_client_resource`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - `enforcePerClientResources: false`とし、行を作らない。
+
+- `oauth_access_token`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - トークンは`storeTokens: "hashed"`で保存する。
+    - JWT Access Tokenは保存しない。
+
+- `oauth_refresh_token`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - トークンは`storeTokens: "hashed"`で保存する。
+    - 退会では本人のRefresh Tokenを失効させる。
+
+- `oauth_consent`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - OAuthクライアントのお知らせの関係ユーザーは、このテーブルの行から決める。
+      - 送信先は[通知する出来事と送信先](#通知する出来事と送信先)で定める。
+    - 同意の取消と退会では行を削除する。
+
+- `oauth_client_assertion`
+  - 説明
+    - Better Auth 1.7.12の標準スキーマをそのまま使う。
+    - `private_key_jwt`の`jti`を保存し、再送を検知する。
+
+- `evaluation_criterion`
+  - 説明
+    - 評価軸の業務レコードとする。
+    - 完全削除では、同じbatchでこの行・対象の`member`・`organization`の順に削除する。
+      - 版は`CASCADE`で一緒に削除する。
+      - 参照済みの評価軸は参照元の`RESTRICT`により削除できない。
+    - 操作の決まりは[評価軸の作成・更新・削除](#評価軸の作成更新削除)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、作成時に標準Nano IDを発行する。
+    - `organization_id`
+      - `TEXT NOT NULL`の一意な列とし、`organization.id`を`RESTRICT`で参照する。
+    - `name`
+      - `TEXT NOT NULL`とし、NFCに正規化した1〜30文字の名前を入れる。
+      - 同名を許可する。
+    - `description`
+      - `TEXT NOT NULL`とし、1〜200文字の説明を入れる。
+    - `related_urls`
+      - `TEXT NOT NULL DEFAULT '[]'`とし、HTTPSのURLのJSON配列を入れる。
+      - 最大20件とする。
+    - `status`
+      - `TEXT NOT NULL DEFAULT 'INACTIVE'`とし、値は`ACTIVE | INACTIVE`とする。
+      - 最新版の`status`と同じbatchで一致させる。
+    - `visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `transfer_enabled`
+      - `INTEGER NOT NULL DEFAULT 1`とし、譲渡の可否を表す。
+    - `exchange_enabled`
+      - `INTEGER NOT NULL DEFAULT 1`とし、交換の可否を表す。
+    - `buy_now_enabled`
+      - `INTEGER NOT NULL DEFAULT 1`とし、即決価格の可否を表す。
+    - `version`
+      - 更新・停止・再開・完全削除の競合検査に使う。
+    - `updated_by_user_id`
+      - `TEXT NOT NULL`とし、最終更新者の`user.id`を入れる。
+    - `status_changed_by_user_id`
+      - `TEXT`とし、最後に停止・再開した人の`user.id`を入れる。
+    - `status_changed_at`
+      - `INTEGER`とし、最後に停止・再開した日時を入れる。
     - `created_at`
-      - 確定日時
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `evaluation_criterion_version`
+  - 説明
+    - 評価軸の計算条件の不変の版とする。
+    - 作成時と、分配方式・最小単位・利用状態の変更時に行を追加する。
+    - `(evaluation_criterion_id, effective_at)`を一意にする。
+    - 版の選び方は[設定履歴と子パッケージの版管理](#設定履歴と子パッケージの版管理)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`ecver_`付きUUIDを入れる。
+    - `evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、`evaluation_criterion.id`を`CASCADE`で参照する。
+    - `auto_distribution_mode`
+      - `TEXT NOT NULL`とし、値は`OWN_SHARE | ADDITIONAL_ISSUANCE`とする。
+    - `minimum_unit`
+      - `TEXT NOT NULL`の金額とし、評価軸の最小単位を入れる。
+    - `status`
+      - `TEXT NOT NULL`とし、値は`ACTIVE | INACTIVE`とする。
+    - `effective_at`
+      - `INTEGER NOT NULL`とし、適用開始時刻を入れる。
+
+- `point_package`
+  - 説明
+    - 公式パッケージの業務レコードとする。
+    - 完全削除の手順は`evaluation_criterion`と同じとする。
+    - 他のパッケージの構成や本人設定の版から参照済みのパッケージは、削除できない。
+    - 操作の決まりは[公式パッケージの作成・更新・削除](#公式パッケージの作成更新削除)と[利用停止・再開・完全削除](#利用停止再開完全削除)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、作成時に標準Nano IDを発行する。
+    - `organization_id`
+      - `TEXT NOT NULL`の一意な列とし、`organization.id`を`RESTRICT`で参照する。
+    - `name`
+      - `TEXT NOT NULL`とし、NFCに正規化した1〜30文字の名前を入れる。
+      - 同名を許可する。
+    - `description`
+      - `TEXT`とし、1〜500文字かつUTF-8で2,000バイト以下の説明を入れる。
+      - 空文字は`NULL`として保存する。
+    - `related_urls`
+      - `TEXT NOT NULL DEFAULT '[]'`とし、HTTPSのURLのJSON配列を入れる。
+      - 最大20件とする。
+    - `status`
+      - `TEXT NOT NULL DEFAULT 'INACTIVE'`とし、値は`ACTIVE | INACTIVE`とする。
+      - 最新版の`status`と同じbatchで一致させる。
+    - `visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `version`
+      - 更新・停止・再開・完全削除の競合検査に使う。
+    - `updated_by_user_id`
+      - `TEXT NOT NULL`とし、最終更新者の`user.id`を入れる。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `point_package_version`
+  - 説明
+    - パッケージの構成と利用状態の版とし、構成の表示順を除き不変とする。
+    - 子パッケージだけを変更した場合は、子の版だけを追加する。
+    - `totalWeight`は保存せず、構成から求める。
+    - `(point_package_id, effective_at)`を一意にする。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`pkgver_`付きUUIDを入れる。
+    - `point_package_id`
+      - `TEXT NOT NULL`とし、`point_package.id`を`CASCADE`で参照する。
+    - `status`
+      - `TEXT NOT NULL`とし、値は`ACTIVE | INACTIVE`とする。
+    - `effective_at`
+      - `INTEGER NOT NULL`とし、適用開始時刻を入れる。
+
+- `point_package_version_component`
+  - 説明
+    - 版ごとの直接の構成要素を1〜1,000件保存する。
+    - 評価軸IDと子パッケージIDのどちらかが`NULL`になり、表示順は書き換えるため、複合主キーではなく独自IDを持つ。
+    - 並べ替えだけの変更では、最新版の`display_order`を書き換え、版を追加しない。
+      - 表示順は計算に使わない。
+    - 同じ版の中では、同じ評価軸も同じ子パッケージも1件までとする。
+      - 部分一意索引を`(point_package_version_id, evaluation_criterion_id)`と`(point_package_version_id, child_point_package_id)`の2本に設ける。
+    - 逆引き用に、`evaluation_criterion_id`と`child_point_package_id`の索引を設ける。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`pkgcmp_`付きUUIDを入れる。
+    - `point_package_version_id`
+      - `TEXT NOT NULL`とし、`point_package_version.id`を`CASCADE`で参照する。
+    - `component_type`
+      - `TEXT NOT NULL`とし、値は`AXIS | PACKAGE`とする。
+    - `evaluation_criterion_id`
+      - `TEXT`とし、`AXIS`のときに構成する評価軸の`evaluation_criterion.id`を`RESTRICT`で参照する。
+    - `child_point_package_id`
+      - `TEXT`とし、`PACKAGE`のときに構成する子パッケージの`point_package.id`を`RESTRICT`で参照する。
+      - `component_type`と、この列・`evaluation_criterion_id`の組み合わせを`CHECK`で検査する。
+    - `weight`
+      - `INTEGER NOT NULL`とし、最大公約数で正規化した重みを入れる。
+      - 1以上、JavaScriptの安全整数以下とする。
+    - `display_order`
+      - `INTEGER NOT NULL`とし、0〜999の表示順を入れる。
+      - 表示順が0から連続していることはWorkerで検証する。
+
+- `exchange_rate`
+  - 説明
+    - 交換の方向ごとに現在の倍率を保存し、版は持たない。
+    - 主キーは`(source_evaluation_criterion_id, target_evaluation_criterion_id)`とし、逆方向の索引を設ける。
+    - 交換倍率の完全削除では、行を物理削除する。
+    - 操作の決まりは[「交換する仕組み」の係数を設定](#交換する仕組みの係数を設定)で定める。
+  - カラム
+    - `source_evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、交換元の`evaluation_criterion.id`を`RESTRICT`で参照する。
+    - `target_evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、交換先の`evaluation_criterion.id`を`RESTRICT`で参照する。
+      - 交換元と異なることを`CHECK`で検査する。
+    - `multiplier`
+      - `TEXT NOT NULL`とし、小数部4桁以内の正の倍率を入れる。
+    - `status`
+      - `TEXT NOT NULL DEFAULT 'ACTIVE'`とし、値は`ACTIVE | DISABLED`とする。
+    - `version`
+      - 更新・無効化・再有効化・完全削除の競合検査に使う。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `monthly_evaluation_setting`
+  - 説明
+    - 付与先の評価軸と評価対象月の組ごとの業務レコードとする。
+    - 主キーは`(target_evaluation_criterion_id, evaluation_month)`とする。
+    - 操作の決まりは[「貢献評価を代用する仕組み」の設定](#貢献評価を代用する仕組みの設定)で定める。
+  - カラム
+    - `target_evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、付与先の`evaluation_criterion.id`を`RESTRICT`で参照する。
+    - `evaluation_month`
+      - `TEXT NOT NULL`とし、UTCの評価対象月を`YYYY-MM`で入れる。
+    - `version`
+      - 設定変更・再計算の競合検査に使う。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `monthly_evaluation_setting_version`
+  - 説明
+    - 月別設定の確定・再計算ごとの不変の版とする。
+    - 代用評価と方式切替の履歴行は、訂正の契機としてこの版を参照する。
+    - `(target_evaluation_criterion_id, evaluation_month, effective_at)`を一意にする。
+    - CSVで確定した版は`(actor_user_id, idempotency_key, csv_row_number)`の部分一意索引で識別する。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`mesver_`付きUUIDを入れる。
+    - `target_evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、付与先の評価軸IDを入れる。
+    - `evaluation_month`
+      - `TEXT NOT NULL`とし、評価対象月を`YYYY-MM`で入れる。
+      - `target_evaluation_criterion_id`と組にして`monthly_evaluation_setting`を`RESTRICT`で参照する。
+    - `evaluation_mode`
+      - `TEXT NOT NULL`とし、値は`DIRECT | SUBSTITUTION`とする。
+    - `source_evaluation_criterion_id`
+      - `TEXT`とし、代用元の`evaluation_criterion.id`を`RESTRICT`で参照する。
+      - `SUBSTITUTION`のときは必須とし、付与先と異なる評価軸にする。
+    - `coefficient`
+      - `TEXT`とし、小数部4桁以内の符号付きの係数を入れる。
+      - `SUBSTITUTION`のときは必須とする。
+    - `actor_user_id`
+      - `TEXT NOT NULL`とし、確定した操作者の`user.id`を入れる。
+    - `request_id`
+      - `TEXT NOT NULL`とし、確定した通信の`requestId`を入れる。
+    - `idempotency_key`
+      - `TEXT`とし、CSVで確定した場合に`Idempotency-Key`を入れる。
+    - `csv_row_number`
+      - `INTEGER`とし、CSVで確定した場合に元の行番号を入れる。
+    - `effective_at`
+      - `INTEGER NOT NULL`とし、確定日時を入れる。
+
+- `auto_distribution_setting`
+  - 説明
+    - 本人の自動分配設定の業務レコードとし、競合検査用の`version`と作成・更新日時だけを持つ。
+    - 行がなければ、自動分配は無効とする。
+    - 操作の決まりは[公式パッケージの設定・自動分配](#公式パッケージの設定自動分配)で定める。
+  - カラム
+    - `user_id`
+      - `TEXT`の主キーとし、`user.id`を参照する。
+    - `version`
+      - 公式パッケージの登録と自動分配設定の競合検査に使う。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `auto_distribution_setting_version`
+  - 説明
+    - 本人の自動分配設定の版とし、登録の表示順を除き不変とする。
+    - 退会と全登録解除では、パッケージ0件で自動分配を無効にした版を追加する。
+    - `(user_id, effective_at)`を一意にする。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`adver_`付きUUIDを入れる。
+    - `user_id`
+      - `TEXT NOT NULL`とし、`user.id`を参照する。
+    - `enabled`
+      - `INTEGER NOT NULL`とし、自動分配の有効・無効を表す。
+      - 有効なら`distribution_basis`と`distribution_value`を必須とする。
+    - `distribution_basis`
+      - `TEXT`とし、値は`PERCENT | FIXED_AMOUNT`とする。
+    - `distribution_value`
+      - `TEXT`とし、`PERCENT`では百分率0〜100の十進数文字列、`FIXED_AMOUNT`では0以上の金額を入れる。
+    - `effective_at`
+      - `INTEGER NOT NULL`とし、適用開始時刻を入れる。
+
+- `auto_distribution_setting_version_package`
+  - 説明
+    - 版ごとの公式パッケージの登録を最大100件保存する。
+    - 主キーは`(auto_distribution_setting_version_id, point_package_id)`とする。
+    - 並べ替えだけの変更では、最新版の`display_order`を書き換え、版を追加しない。
+    - 逆引き用に`point_package_id`の索引を設ける。
+  - カラム
+    - `auto_distribution_setting_version_id`
+      - `TEXT NOT NULL`とし、`auto_distribution_setting_version.id`を`CASCADE`で参照する。
+    - `point_package_id`
+      - `TEXT NOT NULL`とし、`point_package.id`を`RESTRICT`で参照する。
+    - `weight`
+      - `INTEGER NOT NULL`とし、最大公約数で正規化した正の整数の配分を入れる。
+    - `display_order`
+      - `INTEGER NOT NULL`とし、0〜99の表示順を入れる。
+
+- `point_amount_visibility`
+  - 説明
+    - 本人と評価軸の組ごとに、残高と累計評価額の公開範囲を保存する。
+    - 行がなければ、両方とも非公開とする。
+    - 主キーは`(user_id, evaluation_criterion_id)`とする。
+    - 評価軸の削除時は`CASCADE`で行を削除し、退会では本人の行を削除する。
+    - 表示の決まりは[公開する情報と画面の構成](#公開する情報と画面の構成)で定める。
+  - カラム
+    - `user_id`
+      - `TEXT NOT NULL`とし、`user.id`を参照する。
+    - `evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、`evaluation_criterion.id`を`CASCADE`で参照する。
+    - `balance_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `evaluation_total_visibility`
+      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `point_account`
+  - 説明
+    - 本人と評価軸の組ごとに、残高と累計評価額を保存する。
+    - 本人へ初めて反映するときに、額が0でも行を作る。
+    - Workerが計算した文字列を、ポイント増減履歴と同じbatchで確定する。
+    - 主キーは`(user_id, evaluation_criterion_id)`とし、`evaluation_criterion_id`の索引を設ける。
+    - 更新の決まりは[履歴・受領・集計値の更新](#履歴受領集計値の更新)と[業務変更の一括確定](#業務変更の一括確定)で定める。
+  - カラム
+    - `user_id`
+      - `TEXT NOT NULL`とし、`user.id`を参照する。
+    - `evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、`evaluation_criterion.id`を`RESTRICT`で参照する。
+    - `balance`
+      - `TEXT NOT NULL DEFAULT '0'`の金額とし、残高を入れる。
+    - `evaluation_total`
+      - `TEXT NOT NULL DEFAULT '0'`の金額とし、累計評価額を入れる。
+    - `version`
+      - 残高・累計評価額の更新の競合検査に使う。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `point_ledger_entry`
+  - 説明
+    - ポイントの増減を伴う全操作の行を追記する。
+      - 差額0と分配不成立も0の行として保存する。
+    - カラムは識別と金額・参照・本人と宛先・登録時の照合・受領・操作の入力の順に書く。
+    - 増減対象の最初の行を初回行とし、初回行の`target_ledger_entry_id`には自分のIDを入れる。
+      - 訂正差額の後続行は`previous_ledger_entry_id`で同じ対象の直前の行につなぐ。
+      - 元取引の初回行の`created_at`を分配の基準時刻とする。
+    - 受領日時などの受領情報は初回行に持つ。
+    - 操作の入力の列は、操作の初回行だけに入れる。
+      - 譲渡・交換は引き落とし行を操作の初回行とし、加算行の`origin_ledger_entry_id`へそのIDを入れる。
+      - 精算は同じ本人・評価軸の必要額を1行にまとめ、要求の最初の行を操作の初回行とする。
+    - 確定した入力・金額・参照は変えない。
+      - 更新してよいのは`user_id`と初回行の受領情報・`version`だけとする。
+      - 行は削除しない。
+    - 一意制約を次の4つに設ける。
+      - 計算の組として、元取引・訂正契機・月別設定の版・親・元評価・種別・受取先・評価軸・対象月・反映区分を一意にする。
+        - 列は`origin_ledger_entry_id`・`correction_trigger_ledger_entry_id`・`monthly_evaluation_setting_version_id`・`parent_ledger_entry_id`・`substitution_source_ledger_entry_id`・`entry_type`・`recipient_key`・`evaluation_criterion_id`・`evaluation_month`・`affects_evaluation_total`とする。
+        - `NULL`を取り得る列は、`ifnull(列, '')`の式で一意索引に含める。
+      - 代用評価の初回行は、`entry_type = 'SUBSTITUTION_EVALUATION' AND is_correction = 0`の部分一意索引で`(monthly_evaluation_setting_version_id, substitution_source_ledger_entry_id, recipient_key, evaluation_criterion_id)`を一意にする。
+      - CSVの行は`(actor_user_id, idempotency_key, csv_row_number)`を一意にする。
+      - `previous_ledger_entry_id`を一意にする。
+    - 索引を次の列に設ける。
+      - `target_ledger_entry_id`、`origin_ledger_entry_id`、`parent_ledger_entry_id`
+      - `(user_id, created_at)`
+      - `received_at IS NULL`かつ`recipient_key IS NOT NULL`の初回行に限った`(evaluation_criterion_id, evaluation_month)`
+      - `(evaluation_criterion_id, evaluation_month)`
+      - `actor_user_id`、`request_id`
+    - 保存の決まりは[ポイント増減履歴と集計値の保存](#ポイント増減履歴と集計値の保存)と[Pointsが保存する経済データ](#pointsが保存する経済データ)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`ledger_`付きUUIDを入れる。
+      - 初回行のIDをAPIの`firstLedgerEntryId`とする。
+    - `entry_type`
+      - `TEXT NOT NULL`とし、履歴の種別を入れる。
+      - 値は`DIRECT_EVALUATION`・`SUBSTITUTION_EVALUATION`・`DISTRIBUTION_CREDIT`・`DISTRIBUTION_DEBIT`・`DISTRIBUTION_NOT_ESTABLISHED`・`TRANSFER_DEBIT`・`TRANSFER_CREDIT`・`EXCHANGE_DEBIT`・`EXCHANGE_CREDIT`・`SETTLEMENT_DEBIT`とする。
+    - `is_correction`
+      - `INTEGER NOT NULL DEFAULT 0`とし、自動計算による訂正の行を1にする。
+    - `evaluation_criterion_id`
+      - `TEXT NOT NULL`とし、増減する評価軸の`evaluation_criterion.id`を`RESTRICT`で参照する。
+    - `delta_amount`
+      - `TEXT NOT NULL`の金額とし、符号付きの増減額を入れる。
+    - `affects_evaluation_total`
+      - `INTEGER NOT NULL`とし、累計評価額へ反映する行を1にする。
+      - 反映区分は[残高と累計評価額の計算](#残高と累計評価額の計算)で定める。
+    - `evaluation_month`
+      - `TEXT`とし、評価対象月を`YYYY-MM`で入れる。
+      - 評価・代用評価・分配では必須とする。
+      - 譲渡を起点とする分配では、譲渡を確定した月を入れる。
+    - `evaluation_at`
+      - `TEXT`とし、任意の日時を`YYYY-MM-DD`またはUTCのRFC 3339形式で入れる。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、行の確定日時を入れる。
+    - `origin_ledger_entry_id`
+      - `TEXT NOT NULL`とし、元取引の初回行の`point_ledger_entry.id`を入れる。
+    - `target_ledger_entry_id`
+      - `TEXT NOT NULL`とし、増減対象の初回行の`point_ledger_entry.id`を入れる。
+    - `previous_ledger_entry_id`
+      - `TEXT`の一意な列とし、訂正差額の後続行に、同じ対象の直前の行のIDを入れる。
+    - `parent_ledger_entry_id`
+      - `TEXT`とし、分配元となる親の行のIDを入れる。
+      - 分配では必須とする。
+    - `substitution_source_ledger_entry_id`
+      - `TEXT`とし、代用評価の計算元とした元評価の行のIDを入れる。
+    - `correction_trigger_ledger_entry_id`
+      - `TEXT`とし、帰属統合の契機となった受領の代表初回行のIDを入れる。
+    - `monthly_evaluation_setting_version_id`
+      - `TEXT`とし、適用した`monthly_evaluation_setting_version.id`を`RESTRICT`で参照する。
+    - `recipient_key`
+      - `TEXT`とし、受取先の識別キーを入れる。
+      - 本人は`USER:{userId}`、宛先は種類と正規化した識別情報から作る。
+      - 後続行には対象の初回行と同じ値を入れ、本人が決まっても変えない。
+      - 一意制約に使い、端数配分の同順位は[合算単位と端数](#合算単位と端数)の順でWorkerが比較する。
+    - `user_id`
+      - `TEXT`とし、本人の`user.id`を参照する。
+      - 全行に持ち、本人が決まるまでは`NULL`とする。
+    - `recipient_type`
+      - `TEXT`とし、値は`URL | ACCOUNTS_USER | PROVIDER_ACCOUNT | PROVIDER_USERNAME`とする。
+      - 直接評価の初回行と、本人が決まっていない初回行では必須とする。
+      - 種類と宛先の列の組み合わせを`CHECK`で検査する。
+    - `recipient_profile_urls`
+      - `TEXT`とし、URL候補を1〜5件のJSON配列で入れる。
+      - 各URLは512文字以下とする。
+    - `recipient_accounts_origin`
+      - `TEXT`とし、宛先のAccounts originを入れる。
+    - `recipient_accounts_user_id`
+      - `TEXT`とし、宛先のAccountsユーザーIDを入れる。
+    - `recipient_provider`
+      - `TEXT`とし、宛先のProviderを256バイト以下で入れる。
+    - `recipient_provider_account_id`
+      - `TEXT`とし、宛先のProviderの固有IDを256バイト以下で入れる。
+    - `recipient_provider_username`
+      - `TEXT`とし、宛先のProviderのユーザー名を256バイト以下で入れる。
+    - `resolution_result`
+      - `TEXT`とし、直接評価の初回行に登録時の照合結果を入れる。
+      - 値は`MATCHED | NO_MATCH`とする。
+    - `resolved_accounts_origin`
+      - `TEXT`とし、登録時の照合で特定したAccounts originを入れる。
+    - `resolved_accounts_user_id`
+      - `TEXT`とし、登録時の照合で特定したAccountsユーザーIDを入れる。
+    - `resolved_at`
+      - `INTEGER`とし、登録時の照合日時を入れる。
+    - `received_at`
+      - `INTEGER`とし、初回行に受領日時を入れる。
+      - 確定時に本人が決まっていれば、`created_at`と同じ値にする。
+      - `NULL`は未受領を表す。
+    - `receipt_accounts_origin`
+      - `TEXT`とし、受領時の照合根拠のAccounts originを入れる。
+    - `receipt_accounts_user_id`
+      - `TEXT`とし、受領時の照合根拠のAccountsユーザーIDを入れる。
+    - `receipt_request_id`
+      - `TEXT`とし、受領を確定した通信の`requestId`を入れる。
+      - 同じ受領操作の代表行だけに入れる。
+    - `receipt_representative_ledger_entry_id`
+      - `TEXT`とし、同じ受領操作の代表となる初回行のIDを入れる。
+    - `receipt_last_ledger_entry_id`
+      - `TEXT`とし、受領時点の対象履歴の末尾の行のIDを入れる。
+    - `version`
+      - 初回行の帰属・受領情報の更新の競合検査に使う。
+    - `actor_user_id`
+      - `TEXT`とし、操作の初回行に操作者の`user.id`を入れる。
+    - `request_id`
+      - `TEXT`とし、操作の初回行に確定した通信の`requestId`を入れる。
+    - `idempotency_key`
+      - `TEXT`とし、CSVで確定した操作の初回行に`Idempotency-Key`を入れる。
+    - `csv_row_number`
+      - `INTEGER`とし、CSVで確定した操作の初回行に元の行番号を入れる。
+    - `memo`
+      - `TEXT`とし、200文字以下のメモを入れる。
+    - `exchange_amount_basis`
+      - `TEXT`とし、交換で入力した額の基準を入れる。
+      - 値は`SOURCE_AMOUNT | TARGET_AMOUNT`とする。
+    - `exchange_input_amount`
+      - `TEXT`の金額とし、交換で入力した額を入れる。
+    - `settlement_client_id`
+      - `TEXT`とし、精算を要求したClient IDを入れる。
+      - 外部キーは張らない。
+
+- `idempotency_result`
+  - 説明
+    - 再送に返す確定結果を保存する。
+    - 業務変更と同じbatchで保存する。
+    - 有効期間は24時間とし、延長しない。
+      - 期限切れの行は日次Cronで削除し、同じ識別範囲の期限切れ行は新しい結果で置き換える。
+    - 部分一意索引を2本設ける。
+      - 本人の操作は`(user_id, operation, idempotency_key)`を一意にする。
+      - 精算は`(client_id, operation, idempotency_key)`を一意にする。
+    - `expires_at`の索引を設ける。
+    - 照合と削除の決まりは[通信IDと二重処理防止](#通信idと二重処理防止)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`idem_`付きUUIDを入れる。
+    - `user_id`
+      - `TEXT`とし、本人の操作で操作者の`user.id`を入れる。
+    - `client_id`
+      - `TEXT`とし、精算で呼び出し元のClient IDを入れる。
+      - `user_id`と`client_id`のどちらか一方だけを持つことを`CHECK`で検査する。
+    - `operation`
+      - `TEXT NOT NULL`とし、操作の種別を入れる。
+      - 値は`EVALUATION_CRITERION_CREATE`・`POINT_PACKAGE_CREATE`・`DIRECT_EVALUATION_COMMIT`・`TRANSFER_COMMIT`・`EXCHANGE_COMMIT`・各`*_CSV_COMMIT`・`ANNOUNCEMENT_SEND`・`SETTINGS_RESTORE_COMMIT`・`SETTLEMENT_DEBIT`とする。
+    - `idempotency_key`
+      - `TEXT NOT NULL`とし、1〜255文字の`Idempotency-Key`を入れる。
+    - `request_hash`
+      - `TEXT NOT NULL`とし、正規化した要求内容のSHA-256を16進64文字で入れる。
+    - `result_status`
+      - `INTEGER NOT NULL`とし、初回のHTTP状態コードを100〜599で入れる。
+    - `result_id`
+      - `TEXT`とし、初回の結果IDを入れる。
+    - `result_body`
+      - `TEXT NOT NULL`とし、初回の`data`をJSONで入れる。
+      - `json_valid`で検査する。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、確定日時を入れる。
     - `expires_at`
-      - 有効期限
+      - `INTEGER NOT NULL`とし、`created_at`に86,400,000を足した有効期限を入れる。
+      - この関係を`CHECK`で検査する。
+
+- `accounts_connection`
+  - 説明
+    - 接続先のAccountsサービスを保存する。
+    - `account.provider_id`は`accounts-{id}`とする。
+    - 取り下げていない接続先の`origin`を部分一意にする。
+    - 取り下げでは、同じbatchで状態を`WITHDRAWN`、秘密鍵の暗号文を`NULL`にし、その`provider_id`の`account`行を削除する。
+    - 暗号文はAES-256-GCMで作り、IVと認証タグを含むbase64urlで保存する。
+      - AADには接続先IDと用途を含める。
+    - 管理の決まりは[接続先Accountsの管理](#接続先accountsの管理)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`acon_`付きUUIDを入れる。
+    - `origin`
+      - `TEXT NOT NULL`とし、接続先のoriginを入れる。
+    - `display_name`
+      - `TEXT NOT NULL`とし、1〜100文字の表示名を入れる。
+    - `client_id`
+      - `TEXT`とし、Accountsが発行した1〜255文字のClient IDを入れる。
+      - `ACTIVE`では必須とする。
+    - `status`
+      - `TEXT NOT NULL DEFAULT 'PENDING_CLIENT_REGISTRATION'`とし、値は`PENDING_CLIENT_REGISTRATION | ACTIVE | WITHDRAWN`とする。
+    - `signing_public_jwk`
+      - `TEXT NOT NULL`とし、`kid`を含む署名用の公開JWKを入れる。
+    - `signing_private_key_ciphertext`
+      - `TEXT`とし、署名用の秘密鍵の暗号文を入れる。
+    - `dpop_public_jwk`
+      - `TEXT NOT NULL`とし、DPoP用の公開JWKを入れる。
+    - `dpop_private_key_ciphertext`
+      - `TEXT`とし、DPoP用の秘密鍵の暗号文を入れる。
+      - 2つの暗号文は、`WITHDRAWN`では両方`NULL`、それ以外では両方必須とする。
+    - `version`
+      - 有効化・取り下げの競合検査に使う。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、作成日時を入れる。
+    - `updated_at`
+      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
+
+- `announcement`
+  - 説明
+    - 管理者のお知らせの本文と送信記録を、受信者で共有する1行として保存する。
+    - 対象には外部キーを張らず、対象の完全削除後も本文を保持する。
+    - 送信済み一覧用の索引を設ける。
+    - 送信の決まりは[管理者のお知らせの送信](#管理者のお知らせの送信)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`ann_`付きUUIDを入れる。
+    - `target_type`
+      - `TEXT NOT NULL`とし、値は`APP | EVALUATION_CRITERION | POINT_PACKAGE | OAUTH_CLIENT`とする。
+    - `target_id`
+      - `TEXT`とし、対象のIDを入れる。
+    - `audience`
+      - `TEXT NOT NULL`とし、値は`CO_ADMINS | RELATED_USERS | BOTH`とする。
+    - `title_ja`
+      - `TEXT`とし、100文字以内の日本語のタイトルを入れる。
+    - `body_ja`
+      - `TEXT`とし、5,000文字以内の日本語の本文を入れる。
+    - `title_en`
+      - `TEXT`とし、100文字以内の英語のタイトルを入れる。
+    - `body_en`
+      - `TEXT`とし、5,000文字以内の英語の本文を入れる。
+      - 少なくとも一方の言語で、タイトルと本文の両方を必須とする。
+    - `sender_user_id`
+      - `TEXT NOT NULL`とし、送信者の`user.id`を入れる。
+    - `recipient_count`
+      - `INTEGER NOT NULL`とし、送信先の人数を入れる。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、送信日時を入れる。
+
+- `notification`
+  - 説明
+    - 受信者ごとに、お知らせと自動通知の受信通知を保存する。
+    - 期限は設けず、本人が削除するか退会すると本人の行を削除する。
+    - 同じお知らせは一人に一度とし、`(user_id, announcement_id)`の部分一意索引を設ける。
+    - `(user_id, created_at)`の索引と、未読の索引を設ける。
+    - 閲覧と保存の決まりは[通知の閲覧と保存](#通知の閲覧と保存)で定める。
+  - カラム
+    - `id`
+      - `TEXT`の主キーとし、`ntf_`付きUUIDを入れる。
+    - `user_id`
+      - `TEXT NOT NULL`とし、受信者の`user.id`を参照する。
+    - `notification_type`
+      - `TEXT NOT NULL`とし、値は`ANNOUNCEMENT | POINT_RESULT | ADMIN_ROLE_CHANGE | TARGET_STATUS_CHANGE`とする。
+    - `announcement_id`
+      - `TEXT`とし、`announcement.id`を参照する。
+      - `ANNOUNCEMENT`では必須とする。
+    - `target_type`
+      - `TEXT`とし、通知の対象の種類を入れる。
+    - `target_id`
+      - `TEXT`とし、通知の対象のIDを入れる。
+      - 外部キーは張らない。
+    - `target_name`
+      - `TEXT`とし、送信時に受信者が閲覧できた対象名を入れる。
+      - 閲覧できなかった場合は`NULL`とする。
+    - `payload`
+      - `TEXT`とし、自動通知の内容をJSONで入れる。
+    - `read_at`
+      - `INTEGER`とし、既読にした日時を入れる。
+    - `created_at`
+      - `INTEGER NOT NULL`とし、受信日時を入れる。
+
+- 保存しないもの
+  - 説明
+    - 次の情報はテーブルに保存しない。
+      - Google・GitHub・AccountsのIDトークン・アクセストークン・リフレッシュトークン、Client Credentials Token、JWTの本体
+      - 監査ログと運用指標
+      - JSONエクスポートのスナップショットと、CSVの確認中のデータ
+      - JSON復元のID対応表と、規約に同意した版
+      - 削除したID
+      - 評価軸・パッケージなどの設定変更の入力と確定結果
+      - `amountUnit`・`packageTick`・`totalWeight`・`spendableBalance`・匿名名・交換の適用倍率
+      - 分配の計算内訳
+      - 受領件数の集計
+      - 競売データと受領証の番号
+      - API共通の回数制限のカウンター
 
 ## 採用しないもの
 
@@ -6834,8 +7612,8 @@ flowchart TD
 - 外部サービスの接続保存・画面・競売進行・金額算出の内部仕様は、各サービスで管理する。PointsにはOAuth、情報提供と、一括精算の要求・検証・応答の連携契約を記載する。
 
 - Accounts接続先の鍵IDは公開JWKの`kid`へ集約する。API用のClient Credentials Access TokenはPointsの処理ごとに取得し、保存しない。
-- ポイントの増減を伴う操作の入力と評価・分配・訂正の金額、照合・帰属・受領などの確定した事実と必要な参照をポイント増減履歴へ集約し、差額0・分配不成立も保存する。本人への帰属・受領情報は初回対象行へ保存し、現在額・受領結果・再開位置は入力と確定履歴から取得する。設定値と版の一覧、重み・候補額・配分判定・全経路・依存一覧などは、設定履歴と元入力から取得・再計算する。代用評価の今回の月別方式・代用元・係数は月別設定の版から取得し、元取引当時の分配条件・単位と使い分ける。分配の基準時刻は元取引の初回確定日時を参照し、同じ意味のID・日時・共通情報は参照で取得する。交換・譲渡もポイント増減履歴だけで記録し、入力は初回履歴行へ保存する。交換の適用倍率は、確定した実消費額と実受取額から求める。通信ログの照合は`requestId`へ統一する。一意制約、APIの出力項目、帰属・受領・本人反映の原子確定を維持する。
-- `idempotency_results`へ要求hashと確定済みのHTTP結果・確定日時・有効期限を保存する。Accounts連携の情報提供状態は保存済み一覧から求め、初回連携日時・連携行の更新日時・一覧取得日時を用途ごとに使う。
+- ポイントの増減を伴う操作の入力と評価・分配・訂正の金額、照合・帰属・受領などの確定した事実と必要な参照をポイント増減履歴へ集約し、差額0・分配不成立も保存する。受領情報は初回対象行へ保存し、本人への帰属は対象の全行の`user_id`で持つ。現在額・受領結果・再開位置は入力と確定履歴から取得する。設定値と版の一覧、重み・候補額・配分判定・全経路・依存一覧などは、設定履歴と元入力から取得・再計算する。代用評価の今回の月別方式・代用元・係数は月別設定の版から取得し、元取引当時の分配条件・単位と使い分ける。分配の基準時刻は元取引の初回確定日時を参照し、同じ意味のID・日時・共通情報は参照で取得する。交換・譲渡もポイント増減履歴だけで記録し、入力は初回履歴行へ保存する。交換の適用倍率は、確定した実消費額と実受取額から求める。通信ログの照合は`requestId`へ統一する。一意制約、APIの出力項目、帰属・受領・本人反映の原子確定を維持する。
+- `idempotency_result`へ要求hashと確定済みのHTTP結果・確定日時・有効期限を保存する。Accounts連携の情報提供状態は保存済み一覧から求め、初回連携日時・連携行の更新日時・一覧取得日時を用途ごとに使う。
 - 旧CSVスナップショット・運用アラート・予約・利用可否受領証の保存構造とAPIは、v0.2.1で削除する。
   - 対象は`csv_export_snapshot`・`csv_export_snapshot_row`、`ops_alert`、予約・予約内訳・capture・capture明細・予約イベント・予約状態、利用可否受領証の専用冪等性結果・受領証・明細である。
 
@@ -6891,7 +7669,7 @@ flowchart TD
 
 - 管理操作の操作理由入力を削除する。
 
-- 二重処理防止と再送応答の結果を`idempotency_results`へ集約し、各結果の初回確定から1日を有効期間とする。期限切れ結果は日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・譲渡・交換・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、設定の更新・停止・再開・削除は`version`の競合検査、受領は受領日時と`version`で二重反映を防ぐ。
+- 二重処理防止と再送応答の結果を`idempotency_result`へ集約し、各結果の初回確定から1日を有効期間とする。期限切れ結果は日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・譲渡・交換・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、設定の更新・停止・再開・削除は`version`の競合検査、受領は受領日時と`version`で二重反映を防ぐ。
 
 - staging・productionをCloudflareの無料枠で運用する。D1の呼び出し・読み書き・保存量、Workerの実行回数・CPU時間、運用ログの利用量を無料枠に合わせ、Workers Logsは3日保持とする。
 
@@ -6915,7 +7693,7 @@ flowchart TD
 
 - 共有テストD1の暗号化鍵`ACCOUNTS_KEY_ENCRYPTION_KEY`は`BETTER_AUTH_SECRETS`と同じWorkerのsecretとし、staging・PRプレビューに同じ値を登録する。ローカルと本番の鍵は分離する。
 
-- プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報と現在設定を削除し、過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
+- プライバシーポリシーに、取得情報・利用目的・公開範囲・外部サービス・保持と本人の請求を具体化する。退会時は本人のプロフィール情報を削除して説明・公開設定を初期値へ戻し、公式パッケージ登録と自動分配を無効の版で解除し、過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持する。個人情報の問い合わせはメールで受け付ける。変更は施行前にアプリ内のお知らせで通知し、再同意は求めない。
 
 - 利用規約をPoints専用とし、初回登録ボタン付近の同意案内、日英の公開ページ、変更の事前掲載を定める。変更後も操作を継続できる。規約違反に対するポイント没収は方針を定め、実行・表示の設計と実装時期は別途決める。
 
@@ -6986,7 +7764,7 @@ flowchart TD
 
 - PointsのログインProviderはGoogleとGitHubである。
 
-- 退会時は本人情報と現在設定を削除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。退会済みの本人も通常のセッションでログインし、`CLOSED`の間は再開に必要な操作だけを行える。再開後もそのセッションを使う。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
+- 退会時は本人情報を削除して説明・公開設定を初期値へ戻し、公式パッケージ登録と自動分配を無効の版で解除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定の版を含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。退会済みの本人も通常のセッションでログインし、`CLOSED`の間は再開に必要な操作だけを行える。再開後もそのセッションを使う。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
 
 - OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。紹介URLは変更だけを受け付ける。
 
@@ -7089,3 +7867,5 @@ flowchart TD
     - 通常のJSON応答への`prettyJSON({ force: true })`の適用も、更新後のHonoを前提とする。
 
 - 新規の評価・付与・譲渡・通常消費・交換は評価軸の現在の最小単位、過去取引の受領・自動訂正と再分配は当時の単位を使う。単位変更で既存残高・受領待ち・履歴を丸め直さず、本人向けの残高確認では実残高と現在単位での支出可能額を区別する。競売の精算では、要求の必要額を現在の単位へ丸め直さず、実残高で判断する。
+
+- 全テーブル・全カラムを[テーブル・データ構造](#テーブルデータ構造)に定める。独自テーブルの名前を単数形の`snake_case`にし、計算設定の版を評価軸・パッケージ・月別設定・本人設定ごとの版テーブルに分ける。ポイントの増減を伴う操作の入力・照合・受領の情報は`point_ledger_entry`へ集約し、本人が決まったら対象の全行の`user_id`を更新する。本人・ログイン手段・Accounts連携・管理権限・OAuthは、Better Authの標準テーブルとPointsの追加列で表す。
