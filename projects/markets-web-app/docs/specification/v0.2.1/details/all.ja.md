@@ -1999,10 +1999,9 @@ flowchart TD
 
 ### Workflowの上限と1,000人の落札者
 
-- Settlement Workflowのproduction運用はWorkers Freeを前提とする。
-  - Wranglerで`limits.steps=25000`、`limits.subrequests=10000000`、`limits.cpu_ms=300000`を明示する。
-  - stagingもWorkers Free上で、productionと同じ`limits`を明示する。
-  - localでは対応しないWorker単位のCPU・subrequestの上限を設定せず、`limits.steps=25000`とアプリ内の上限を維持する。
+- Settlement Workflowのstaging・production運用はWorkers Freeを前提とする。
+  - Workers Freeの上限は、1 instanceあたり1,024 step、アカウント全体で1日3,000 step、1 stepのCPU 10ms、1 invocationあたり外部subrequest 50件・Cloudflareサービスへのsubrequest 1,000件である。
+  - これらの上限はWorkers Freeでは変更できないため、Wranglerで`limits`を設定しない。
 
 - 一つの計算roundは最大1,000人の落札者とし、全員分を一つのPoints要求にまとめる。
   - 補助的な外向き接続は最大6件のpoolとし、response bodyを読み取るかcancelする。
