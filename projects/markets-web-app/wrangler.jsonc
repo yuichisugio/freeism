@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "auction-worker",
+  "name": "markets-worker",
   "main": "./src/server.ts",
   "compatibility_date": "2026-07-12",
   "compatibility_flags": [
@@ -56,7 +56,7 @@
   },
   "env": {
     "staging": {
-      "name": "auction-worker-staging",
+      "name": "markets-worker-staging",
       "workers_dev": false,
       "preview_urls": false,
       "assets": {
@@ -115,7 +115,7 @@
       },
     },
     "production": {
-      "name": "auction-worker-production",
+      "name": "markets-worker-production",
       "workers_dev": false,
       "preview_urls": false,
       "vars": {

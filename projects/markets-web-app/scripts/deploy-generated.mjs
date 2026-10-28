@@ -15,7 +15,7 @@ const REQUIRED_FLAGS = [
 const REQUIRED_WORKER_FIRST = ["/.well-known/*", "/api/*"];
 
 export function expectedWorkerName(environment) {
-  return `auction-worker-${environment}`;
+  return `markets-worker-${environment}`;
 }
 
 function exactlyOne(items, predicate, message) {

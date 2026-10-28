@@ -54,7 +54,7 @@ app.route("/", marketsBackendApp);
 
 app.get("/api/health", (context) =>
   withSecurityHeaders(
-    context.json({ service: "auction-worker", status: "ok" }),
+    context.json({ service: "markets-worker", status: "ok" }),
     context.env,
     "no-store",
   ),

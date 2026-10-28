@@ -138,7 +138,7 @@ export function releaseTargetFromConfig(config, environment) {
       `${name} custom domain route`,
     );
     if (
-      source.name !== `auction-worker-${name}` ||
+      source.name !== `markets-worker-${name}` ||
       workflow.name !== `auction-settlement-${name}` ||
       analytics.dataset !== `markets_ops_${name}` ||
       source.vars?.APP_HOST !== expectedDomain ||

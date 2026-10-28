@@ -247,7 +247,7 @@
   - 別のアプリとして、同じようなアプリとも連携できる前提で設計したいためである。
   - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」である。
   - Pointsは`points.freeism.app`、Marketsは`markets.freeism.app`で公開する。
-  - Marketsのフロントエンドとバックエンドは`projects/markets-web-app`で一体管理し、Worker名は`auction-worker`とする。
+  - Marketsのフロントエンドとバックエンドは`projects/markets-web-app`で一体管理し、Worker名は`markets-worker`とする。
 
 - 連携の詳細はPoints連携の章とPoints–Markets連携契約の章に書く。
 
@@ -2610,7 +2610,7 @@ upgrade-insecure-requests
 
 - 名前を次のように決める。
   - project directory: `markets-web-app`
-  - Worker service: `auction-worker`
+  - Worker service: `markets-worker`
   - domain: `markets.freeism.app`
   - class、type、component: `PascalCase`
   - TypeScriptの関数、変数、property: `camelCase`
@@ -2619,8 +2619,8 @@ upgrade-insecure-requests
   - D1のtable、column、index、constraint: `snake_case`
 
 - 「Markets」と「Auction」を使い分ける。
-  - product、project、domainの境界には`Markets`を使う。
-  - Worker名とAuctionのdomain objectだけは、承認済みの名前`auction-worker`と`AuctionRoom`を使う。
+  - product、project、domainの境界とWorker名には`Markets`を使う。
+  - Auctionのdomain objectだけは、承認済みの名前`AuctionRoom`を使う。
   - 新しい文書や型で、`freeismApp`、`webApp`、`auctionService`をサービス全体の名前に使わない。
 
 ### ID
