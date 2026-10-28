@@ -6865,6 +6865,7 @@ flowchart TD
 
 - `user`
   - 説明
+    - ユーザーごとの情報を保持する
     - Better Auth 1.7.12の標準スキーマとAdminプラグインの列をそのまま使い、Pointsの追加列を加える。
     - 行は削除しない。
     - 追加列はすべて`input: false`・`returned: false`とし、Pointsの業務APIだけが更新・返却する。
@@ -6949,6 +6950,7 @@ flowchart TD
 
 - `session`
   - 説明
+    - ログインのセッションを保持する
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
     - 同じブラウザで保持するセッションは最大10件とする。
       - 切替の扱いは[複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)で定める。
@@ -6997,6 +6999,7 @@ flowchart TD
 
 - `account`
   - 説明
+    - 連携したSNSアカウントごとの情報を保持する
     - Better Auth 1.7.12の標準スキーマにPointsの追加列を加える。
     - Google・GitHubの行は削除しない。
     - 独自の一意索引`account_provider_account_uidx`を`(provider_id, account_id)`に設ける。
@@ -7069,6 +7072,10 @@ flowchart TD
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
     - OAuth stateとして、`linkSocial`を開始した本人・nonce・code verifierを保存する。
     - DPoPの`replayStore`と、OAuth Proxyの一時情報も保存する。
+    - Pointsが外部アプリへ発行する認可コードも保存する。
+      - `identifier`には、`storeTokens: "hashed"`でハッシュにした認可コードを入れる。
+      - `value`には、認可した利用者・セッション・要求内容をJSONで入れる。
+      - トークンへの交換で行を削除し、期限は標準の10分とする。
     - 期限切れの行は既存の日次Cronで上限件数まで削除する。
   - カラム
     - `id`
