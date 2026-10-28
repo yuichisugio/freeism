@@ -4634,7 +4634,7 @@ flowchart TD
   - ログインしたPoints利用者は、評価軸・パッケージ・OAuthクライアントを作成できる。作成者をその対象の管理者にする。
   - 評価軸・パッケージの作成は、本体・Organization・作成者所属を、同じD1の一つの`batch()`で確定する。失敗時は全件を反映しない。
   - OAuthクライアントはOrganizationと作成者所属を先に一つのD1 batchで確定してから、標準登録APIで登録する。
-    - 標準の`clientReference`からそのOrganizationのIDを返し、クライアントを結び付ける。
+    - 作成者のセッションで標準の`organization.setActive`によりそのOrganizationを選び、`clientReference`が返す`activeOrganizationId`でクライアントを結び付ける。
     - 登録に失敗した場合は、所属だけのOrganizationが残り、クライアントは作成されない。
     - 所属だけのOrganizationは、本人のOAuthクライアント5件の上限に数えない。
   - JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が別途確認して保存する。その他の設定のJSON復元は一括確定する。
@@ -4984,7 +4984,7 @@ flowchart TD
   - `expiresAt`にインデックスを設け、処理時点で期限切れの結果を有効期限の古い順に削除する。
   - 1回のCron実行で削除する件数の上限は、サーバー側の定数で管理する。
   - 上限を超えた残りの期限切れ結果は、次回の日次実行で削除する。
-  - 同じ日次Cronで、Better Authの`verification`の期限切れ行も上限件数まで削除する。
+  - 同じ日次Cronで、Better Authの`verification`と`oauth_client_assertion`の期限切れ行も上限件数まで削除する。
 
 - 有効な結果がある同じ要求には、保存済みの業務結果を返す。
   - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
@@ -5590,13 +5590,16 @@ flowchart TD
   - 一致確認は[RFC 8252](https://www.rfc-editor.org/rfc/rfc8252#section-7.3)に従い、ポートだけを除きます。
   - 1つのクライアントに、本番のHTTPSのURLとローカル開発用のURLを併記できます。
   - ローカル開発用のURLを含むクライアントは`application_type: "native"`、それ以外は`application_type: "web"`として、Better Auth標準の登録・更新APIへ渡します。
-  - `private_key_jwt`、Client Credentials、DPoPは、`application_type`によらず使用できます。
+  - `private_key_jwt`とDPoPは、`application_type`によらず使用できます。
 
 - 管理者と管理一覧
   - 管理者の所属・人数と件数の上限・最後の管理者・退会・ログイン停止の扱いは、[権限](#権限)に従います。
   - Better Auth標準の`clientReference`でクライアントをOrganizationに紐づけ、`clientPrivileges`で対象の管理者権限を検証します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#organizations)
+    - `clientReference`はセッションの`activeOrganizationId`を返します。
+    - 管理者は取得・更新・一時停止・再開・削除の前に、標準の`organization.setActive`で対象のOrganizationを選びます。
   - 管理者の一覧は標準モデルから取得します。
   - 本人の管理一覧には、本人が管理者として登録されているクライアントを表示します。`appAdmin`は全クライアントを確認・削除できます。
+    - 所属していない`appAdmin`による確認・削除は、サーバーが`appAdmin`であることを検証してから、Better Authのadapterで`oauth_client`の行を読み、削除します。
   - 解除・退出・Points退会では対象者の所属だけを解除し、アプリを維持します。
 - 登録と更新の検証
   - 登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共通のschemaで検査します。
@@ -5688,7 +5691,7 @@ Resource APIは、次の条件を検証します。
 - 利用者Tokenには有効なPoints本人と利用者用scopeを要求し、利用者本人の現在の利用可否と対象操作の権限を確認します。退会・ログイン停止中の本人による新規利用を拒否します。
 - 別resourceのTokenと未定義scopeを拒否します。`points`と認可済みの標準scopeは併用できます。
 
-Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、[落札精算の引き落とし](#落札精算の引き落とし)に記載します。
+Points API resourceは`oauthProvider`の`resources`で`dpopBoundAccessTokensRequired: true`とし、DPoPの鍵に結び付かないTokenを発行しません。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、[落札精算の引き落とし](#落札精算の引き落とし)に記載します。
 
 一般アプリも、同じ登録方法とClient IDで利用できます。`openid profile`のみなら、通常のAuthorization Code認可を利用できます。Pointsの接続が必要なscopeを使う場合は、利用者の認可コードの流れで同意を得ます。
 
@@ -6817,8 +6820,17 @@ flowchart TD
 - 共通規則
   - 説明
     - Better Auth 1.7.12のテーブルは標準スキーマをそのまま使う。
-      - 認証スキーマは`auth-cli.ts`から`src/backend/infrastructure/db/schema/`へ生成し、列名を`snake_case`にする。
-      - 本章では、標準テーブルについてPointsの追加列・独自の索引・値の入れ方だけを書く。
+      - 認証スキーマは`auth-cli.ts`から`src/backend/infrastructure/db/schema/`へ生成する。
+      - 列名はBetter Authのフィールド名（`emailVerified`など）を`snake_case`にしたもの（`email_verified`など）とする。
+      - 本章では、標準テーブルも全列を書く。
+      - 各列の最初の行に、Better Auth本体の標準の列か、どのプラグインの標準の列か、Pointsの追加列かを書く。
+    - 標準テーブルの型と制約は、Better AuthのDrizzle（SQLite）の生成規則で決まる。
+      - 文字列は`TEXT`、真偽値は`INTEGER`の0・1、日時は`INTEGER`のUnixミリ秒、数値は`INTEGER`、JSONと配列は`TEXT`のJSONとする。
+      - `id`は全テーブルで`TEXT`の主キーとする。
+      - Better Authが任意と定めた列だけ`NULL`を許し、ほかの列は`NOT NULL`とする。
+      - 外部キーは、Better Authが`SET NULL`と定めた列を除き、`CASCADE`とする。
+      - Better Authが作成時の既定値を現在時刻とする列は、DBの`DEFAULT`で現在時刻のUnixミリ秒を入れる。
+      - Better Auth本体のテーブルの`updated_at`は、行の更新時にDrizzleが現在時刻を入れる。
     - 独自IDは[IDと照合キー](#idと照合キー)の規則で発行する。
       - UUIDに付ける接頭辞は`ledger_`・`ecver_`・`pkgver_`・`pkgcmp_`・`mesver_`・`adver_`・`acon_`・`ann_`・`ntf_`・`idem_`とする。
       - 複合主キーで行を特定できるテーブルは、独自IDを持たない。
@@ -6828,10 +6840,10 @@ flowchart TD
     - 独自テーブルの時刻は`INTEGER`のUnixミリ秒で保存する。
       - Workerが確定時刻を入れ、DBの既定値は持たない。
       - 例外として、`evaluation_month`と`evaluation_at`は`TEXT`で保存する。
-    - 真偽値は`INTEGER`の0・1、列挙値は大文字の`TEXT`、JSONは`TEXT`とし、`CHECK`で値の種類を検査する。
+    - 独自テーブルの真偽値は`INTEGER`の0・1、列挙値は大文字の`TEXT`、JSONは`TEXT`とし、`CHECK`で値の種類を検査する。
     - `version`は`INTEGER NOT NULL DEFAULT 1`とし、更新のたびに1増やす。
-    - 制約名は一意制約を`{table}_{目的}_uidx`、索引を`{table}_{目的}_idx`、検査制約を`{table}_{目的}_check`とする。
-    - 参照先を削除するときの外部キーの扱いは、次のとおりとする。
+    - 独自の制約名は一意制約を`{table}_{目的}_uidx`、索引を`{table}_{目的}_idx`、検査制約を`{table}_{目的}_check`とする。
+    - 独自テーブルの外部キーで、参照先を削除するときの扱いは次のとおりとする。
       - `ON DELETE`の`NO ACTION`と`RESTRICT`は、参照が残る削除をエラーにして止める。SQLiteでの違いは確認の時点（文の終わりか、すぐか）だけとする。`CASCADE`は、参照している行も一緒に削除する。
       - `user`への外部キーは`NO ACTION`とする。User行は削除しない。
         - 退会してもUser行を残し、再開に使うため、削除は起きない前提とする。
@@ -6854,64 +6866,200 @@ flowchart TD
 - `user`
   - 説明
     - Better Auth 1.7.12の標準スキーマとAdminプラグインの列をそのまま使い、Pointsの追加列を加える。
-    - `id`は`advanced.database.generateId`で発行する21文字のNano IDとする。
-    - `name`は初回登録で「仮ユーザー」とし、その後は業務APIで本人が入力した1〜100文字の表示名を保存する。
-    - `email`は認証元の種類と不変のアカウントIDから作る`.invalid`の代用メールとする。
-    - `email_verified`は`false`、`image`は`NULL`とする。
-    - `role`は通常の利用者を標準の既定値、全体管理者を`appAdmin`とする。
-    - `banned`はログイン停止を表し、`ban_reason`と`ban_expires`は`NULL`とする。
     - 行は削除しない。
     - 追加列はすべて`input: false`・`returned: false`とし、Pointsの業務APIだけが更新・返却する。
     - 退会時は`description`と公開範囲の追加列を初期値へ戻す。
       - 保存する値と退会・再開時の扱いは、[OAuthログイン](#oauthログイン)と[退会ボタン](#退会ボタン)で定める。
   - カラム
+    - `id`
+      - Better Auth標準の列とする。
+      - `TEXT`の主キーとする。
+      - `advanced.database.generateId`で発行する21文字のNano IDを入れる。
+    - `name`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 初回登録で「仮ユーザー」を入れ、その後は業務APIで本人が入力した1〜100文字の表示名を入れる。
+    - `email`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - 認証元の種類と不変のアカウントIDから作る`.invalid`の代用メールを入れる。
+    - `email_verified`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL DEFAULT 0`とする。
+      - 常に`false`（0）を入れる。
+    - `image`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - Pointsでは使わず、`NULL`とする。
+    - `created_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で最終更新日時を入れる。
+    - `role`
+      - Better AuthのAdminプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 通常の利用者はAdminの`defaultRole`の既定値`user`、全体管理者は`appAdmin`とする。
+    - `banned`
+      - Better AuthのAdminプラグインの標準の列とする。
+      - `INTEGER DEFAULT 0`とする。
+      - ログイン停止を表し、標準の停止・再開の処理で値を入れる。
+    - `ban_reason`
+      - Better AuthのAdminプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の停止・再開の処理で値を入れ、Pointsでは表示・判定に使わない。
+    - `ban_expires`
+      - Better AuthのAdminプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 停止に期限を設けないため、`NULL`とする。
     - `points_status`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'ACTIVE'`とし、値は`ACTIVE | CLOSED`とする。
       - Pointsの利用状態を表す。
     - `description`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT ''`とし、0〜500文字の本人の説明を入れる。
     - `profile_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - プロフィール全体の公開範囲を表す。
     - `basic_info_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - 基本情報区画の公開範囲を表す。
     - `point_list_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - ポイント一覧区画の公開範囲を表す。
     - `point_packages_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - 公式パッケージ区画の公開範囲を表す。
     - `connections_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - 連携情報区画の公開範囲を表す。
     - `history_visibility`
+      - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
       - 履歴区画の公開範囲を表す。
 
 - `session`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - Adminの`impersonated_by`と、Organizationの`active_organization_id`は常に`NULL`とする。
-    - 有効期間は7日、更新間隔は1日とする。
     - 同じブラウザで保持するセッションは最大10件とする。
       - 切替の扱いは[複数のPointsアカウントの切り替え](#複数のpointsアカウントの切り替え)で定める。
     - 退会とログイン停止では、本人の全行を削除する。
+  - カラム
+    - `id`
+      - Better Auth標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `expires_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 有効期間は7日、更新間隔は1日とし、標準の処理で期限を入れる。
+    - `token`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - 標準の処理で値を入れる。
+    - `created_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で最終更新日時を入れる。
+    - `ip_address`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `user_agent`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `user_id`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で、ログインした本人の`user.id`を入れる。
+    - `impersonated_by`
+      - Better AuthのAdminプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsでは使わず、`NULL`とする。
+    - `active_organization_id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`とする。
+      - OAuthクライアントの管理で、標準の`organization.setActive`により選んだ対象のOrganizationの`id`を入れる。
 
 - `account`
   - 説明
     - Better Auth 1.7.12の標準スキーマにPointsの追加列を加える。
-    - `provider_id`は`google`・`github`・`accounts-{accounts_connection.id}`とする。
-    - `account_id`は、GoogleではGoogleの`sub`、GitHubでは数値のアカウントID、Accountsでは検証済みの`sub`とする。
-    - トークン・期限・`password`の列は保存前のフックで値を除き、常に`NULL`とする。
     - Google・GitHubの行は削除しない。
     - 独自の一意索引`account_provider_account_uidx`を`(provider_id, account_id)`に設ける。
   - カラム
+    - `id`
+      - Better Auth標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `account_id`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - GoogleではGoogleの`sub`、GitHubでは数値のアカウントID、Accountsでは検証済みの`sub`を入れる。
+    - `provider_id`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - `google`・`github`・`accounts-{accounts_connection.id}`を入れる。
+    - `user_id`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で、ログイン手段を持つ本人の`user.id`を入れる。
+    - `access_token`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `refresh_token`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `id_token`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `access_token_expires_at`
+      - Better Auth標準の列とする。
+      - `INTEGER`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `refresh_token_expires_at`
+      - Better Auth標準の列とする。
+      - `INTEGER`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `scope`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `password`
+      - Better Auth標準の列とする。
+      - `TEXT`とする。
+      - 保存前のフックで値を除き、常に`NULL`とする。
+    - `created_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で最終更新日時を入れる。
     - `external_accounts_json`
+      - Pointsの追加列とする。
       - `TEXT`とし、Accountsから取得した外部アカウント一覧のJSON配列を入れる。
       - Accountsの行だけで使う。
       - 未取得は`NULL`、情報提供なしは`[]`とする。
     - `external_accounts_fetched_at`
+      - Pointsの追加列とする。
       - `INTEGER`とし、一覧の取得に成功した日時を入れる。
       - 未取得は`NULL`とする。
       - 取得と表示の扱いは[連携情報の更新と公開](#連携情報の更新と公開)で定める。
@@ -6922,6 +7070,31 @@ flowchart TD
     - OAuth stateとして、`linkSocial`を開始した本人・nonce・code verifierを保存する。
     - DPoPの`replayStore`と、OAuth Proxyの一時情報も保存する。
     - 期限切れの行は既存の日次Cronで上限件数まで削除する。
+  - カラム
+    - `id`
+      - Better Auth標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `identifier`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `value`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 標準の処理で値を入れる。
+    - `expires_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で期限を入れる。
+    - `created_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - 標準の処理で最終更新日時を入れる。
 
 - `rate_limit`
   - 説明
@@ -6929,68 +7102,542 @@ flowchart TD
     - Better Auth標準の回数制限のカウンターを保存する。
     - API共通の回数制限はRate Limiting bindingで数え、このテーブルには保存しない。
       - 回数制限は[Rate limit](#rate-limit)で定める。
+  - カラム
+    - `id`
+      - Better Auth標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `key`
+      - Better Auth標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - 標準の処理で値を入れる。
+    - `count`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で値を入れる。
+    - `last_request`
+      - Better Auth標準の列とする。
+      - `INTEGER NOT NULL`とし、DBの`DEFAULT`は持たない。
+      - Better Authが最後の要求の時刻をUnixミリ秒で入れる。
 
 - `organization`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
     - 評価軸・パッケージ・OAuthクライアントごとに1件作る。
     - `membershipLimit`は20とし、Teamsは有効にしない。
-    - `name`は対象の種類を表す固定の文字列とする。
-    - `slug`は`evaluation-criterion-{id}`・`point-package-{id}`・`oauth-client-{organization.id}`とする。
-      - 評価軸・パッケージの`{id}`はその評価軸・パッケージのIDとする。
-    - `logo`と`metadata`は`NULL`とする。
     - 管理者の扱いは[権限](#権限)で定める。
+  - カラム
+    - `id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `name`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 対象の種類を表す固定の文字列を入れる。
+    - `slug`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - `evaluation-criterion-{id}`・`point-package-{id}`・`oauth-client-{organization.id}`を入れる。
+      - 評価軸・パッケージの`{id}`はその評価軸・パッケージのIDとする。
+    - `logo`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsでは使わず、`NULL`とする。
+    - `created_at`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
+    - `metadata`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsでは使わず、`NULL`とする。
 
 - `member`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - `role`は`evaluationCriterionAdmin`・`packageAdmin`・`oauthClientAdmin`とする。
     - 独自の一意索引`member_organization_user_uidx`を`(organization_id, user_id)`に設ける。
     - 退会では本人の行を削除する。
+  - カラム
+    - `id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `organization_id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`organization.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 所属先のOrganizationの`id`を入れる。
+    - `user_id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 管理者として所属する本人の`user.id`を入れる。
+    - `role`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL DEFAULT 'member'`とする。
+      - `evaluationCriterionAdmin`・`packageAdmin`・`oauthClientAdmin`のどれかを入れ、既定値の`member`は使わない。
+    - `created_at`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
 
 - `invitation`
   - 説明
     - Better Auth 1.7.12の標準スキーマに含まれるが、Pointsは使わない。
       - 管理者はユーザーIDで直接追加するため、行を作らない。
+  - カラム
+    - `id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - Pointsでは使わない。
+    - `organization_id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`organization.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - Pointsでは使わない。
+    - `email`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の索引を設ける。
+      - Pointsでは使わない。
+    - `role`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsでは使わない。
+    - `status`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL DEFAULT 'pending'`とする。
+      - Pointsでは使わない。
+    - `expires_at`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - Pointsでは使わない。
+    - `created_at`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とし、`DEFAULT`は現在時刻のUnixミリ秒とする。
+      - Pointsでは使わない。
+    - `inviter_id`
+      - Better AuthのOrganizationプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`user.id`を`CASCADE`で参照する。
+      - Pointsでは使わない。
 
 - `jwks`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - 秘密鍵は標準の暗号化で保存し、`rotationInterval`は30日とする。
+  - カラム
+    - `id`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `public_key`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 標準の処理で署名鍵の公開鍵を入れる。
+    - `private_key`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 署名鍵の秘密鍵を、標準の暗号化で入れる。
+    - `created_at`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
+    - `expires_at`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - `rotationInterval`を30日とし、標準の処理で期限を入れる。
+    - `alg`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `TEXT`とする。
+      - `EdDSA`を入れる。
+    - `crv`
+      - Better AuthのJWTプラグインの標準の列とする。
+      - `TEXT`とする。
+      - `Ed25519`を入れる。
 
 - `oauth_client`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - `reference_id`にはクライアントを管理するOrganizationの`id`を入れる。
-    - 説明文は`metadata`の`description`へ保存する。
-    - `disabled`は一時停止を表す。
-    - `token_endpoint_auth_method`は`private_key_jwt`とし、`jwks`には公開鍵をインラインで保存する。
-    - `application_type`はローカル開発用URLを含む場合に`native`とする。
-    - `uri`には紹介URLを保存する。
     - 独自の一意索引`oauth_client_reference_uidx`を`reference_id`に設ける。
     - 管理の扱いは[開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)で定める。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `client_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - Pointsが発行するClient IDを入れる。
+    - `client_secret`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - クライアント認証に`private_key_jwt`を使うため、`NULL`とする。
+    - `client_discovery_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `disabled`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER DEFAULT 0`とする。
+      - 一時停止を表し、停止中は`true`、再開後は`false`とする。
+    - `skip_consent`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - Pointsは値を渡さず、`NULL`とする。同意画面を省かない。
+    - `enable_end_session`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `subject_type`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。`sub`は`user.id`とする。
+    - `scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - Pointsは値を渡さず、`NULL`とする。Providerの`scopes`を使う。
+    - `client_credentials_scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT DEFAULT '[]'`のJSON配列とする。
+      - Client Credentialsを使わないため、既定値の`[]`とする。
+    - `user_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - `reference_id`で管理者を表すため、`NULL`とする。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で最終更新日時を入れる。
+    - `name`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 登録時に入力したアプリ名を入れる。
+    - `uri`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 紹介URLを入れる。未入力は`NULL`とする。
+    - `icon`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `contacts`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `tos`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `policy`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `software_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `software_version`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `software_statement`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `redirect_uris`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`のJSON配列とする。
+      - 登録した1件以上のリダイレクトURLを入れる。
+    - `post_logout_redirect_uris`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `backchannel_logout_uri`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `backchannel_logout_session_required`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - Pointsは値を渡さず、`NULL`とする。
+    - `token_endpoint_auth_method`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - `private_key_jwt`を入れる。
+    - `application_type`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - ローカル開発用URLを含む場合は`native`、それ以外は`web`を入れる。
+    - `jwks`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - `private_key_jwt`用の公開鍵を、インラインJWKSの`{"keys":[...]}`で入れる。
+    - `jwks_uri`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 公開鍵は`jwks`に入れるため、`NULL`とする。
+    - `grant_types`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の既定値`["authorization_code"]`を入れる。`refresh_token`は標準の処理で許可される。
+    - `response_types`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `require_pkce`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - Pointsは値を渡さず、`NULL`とする。PKCEは標準の処理で必須とする。
+    - `dpop_bound_access_tokens`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER DEFAULT 0`とする。
+      - DPoPは`oauth_resource`の側で必須にするため、既定値の`false`（0）とする。
+    - `reference_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - クライアントを管理するOrganizationの`id`を入れる。
+    - `metadata`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - 説明文を`description`に入れる。
 
 - `oauth_resource`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - `oauthProvider`の`resources`に`{origin}/api/v1`を指定し、起動時に標準の処理で1行作る。
+    - `oauthProvider`の`resources`の指定から、起動時に標準の処理で1行作る。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `identifier`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - `oauthProvider`の`resources`に指定した`{origin}/api/v1`を入れる。
+    - `name`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とする。
+      - 標準の処理で値を入れる。
+    - `access_token_ttl`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で値を入れる。
+    - `refresh_token_ttl`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で値を入れる。
+    - `signing_algorithm`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `signing_key_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `allowed_scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `custom_claims`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - 標準の処理で値を入れる。
+    - `dpop_bound_access_tokens_required`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER DEFAULT 0`とする。
+      - `resources`に`dpopBoundAccessTokensRequired: true`を指定し、`true`（1）を入れる。
+    - `disabled`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER DEFAULT 0`とする。
+      - 標準の処理で値を入れる。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で最終更新日時を入れる。
+    - `policy_version`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER DEFAULT 1`とする。
+      - 標準の処理で値を入れる。
+    - `metadata`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - 標準の処理で値を入れる。
 
 - `oauth_client_resource`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
     - `enforcePerClientResources: false`とし、行を作らない。
+    - 標準の一意索引を`(client_id, resource_id)`に設ける。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - Pointsでは使わない。
+    - `client_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`oauth_client.client_id`を`CASCADE`で参照し、標準の索引を設ける。
+      - Pointsでは使わない。
+    - `resource_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`oauth_resource.identifier`を`CASCADE`で参照し、標準の索引を設ける。
+      - Pointsでは使わない。
+    - `metadata`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - Pointsでは使わない。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - Pointsでは使わない。
 
 - `oauth_access_token`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - トークンは`storeTokens: "hashed"`で保存する。
-    - JWT Access Tokenは保存しない。
+    - JWT Access Tokenは保存せず、不透明なAccess Tokenを使う場合だけ行を作る。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `token`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - `storeTokens: "hashed"`でハッシュにしたAccess Tokenを入れる。
+    - `client_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`oauth_client.client_id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `session_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`session.id`を`SET NULL`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `user_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `reference_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `authorization_code_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `resources`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `requested_user_info_claims`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `refresh_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`oauth_refresh_token.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `expires_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で期限を入れる。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
+    - `revoked`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で失効した日時を入れる。
+    - `confirmation`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - 標準の処理で、DPoPの鍵の`jkt`を入れる。
+    - `scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`のJSON配列とする。
+      - 標準の処理で値を入れる。
 
 - `oauth_refresh_token`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - トークンは`storeTokens: "hashed"`で保存する。
     - 退会では本人のRefresh Tokenを失効させる。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `token`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、標準の一意制約を設ける。
+      - `storeTokens: "hashed"`でハッシュにしたRefresh Tokenを入れる。
+    - `client_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`oauth_client.client_id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `session_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`session.id`を`SET NULL`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `user_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `reference_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `authorization_code_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `resources`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `requested_user_info_claims`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `expires_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で期限を入れる。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
+    - `revoked`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で失効した日時を入れる。
+    - `rotated_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で値を入れる。
+    - `rotation_replay_response`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `rotation_replay_expires_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で値を入れる。
+    - `auth_time`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER`とする。
+      - 標準の処理で値を入れる。
+    - `confirmation`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSONとする。
+      - 標準の処理で、DPoPの鍵の`jkt`を入れる。
+    - `scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`のJSON配列とする。
+      - 標準の処理で値を入れる。
 
 - `oauth_consent`
   - 説明
@@ -6998,11 +7645,57 @@ flowchart TD
     - OAuthクライアントのお知らせの関係ユーザーは、このテーブルの行から決める。
       - 送信先は[通知する出来事と送信先](#通知する出来事と送信先)で定める。
     - 同意の取消と退会では行を削除する。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - 標準の処理で値を入れる。
+    - `client_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`とし、`oauth_client.client_id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で値を入れる。
+    - `user_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とし、`user.id`を`CASCADE`で参照し、標準の索引を設ける。
+      - 標準の処理で、同意した本人の`user.id`を入れる。
+    - `reference_id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`とする。
+      - 標準の処理で値を入れる。
+    - `resources`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `requested_user_info_claims`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `scopes`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT NOT NULL`のJSON配列とする。
+      - 標準の処理で値を入れる。
+    - `created_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で作成日時を入れる。
+    - `updated_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で最終更新日時を入れる。
 
 - `oauth_client_assertion`
   - 説明
     - Better Auth 1.7.12の標準スキーマをそのまま使う。
-    - `private_key_jwt`の`jti`を保存し、再送を検知する。
+    - 期限切れの行は既存の日次Cronで上限件数まで削除する。
+  - カラム
+    - `id`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `TEXT`の主キーとする。
+      - `private_key_jwt`の`jti`のダイジェストを入れ、主キーの衝突で再送を検知する。
+    - `expires_at`
+      - Better AuthのOAuth Providerプラグインの標準の列とする。
+      - `INTEGER NOT NULL`とする。
+      - 標準の処理で期限を入れる。
 
 - `evaluation_criterion`
   - 説明
