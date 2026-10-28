@@ -11,7 +11,7 @@
 	"scripts": {
 		"dev": "blume dev",
 		"check": "blume check",
-		"test": "vitest run --passWithNoTests",
+		"test": "vp test run --passWithNoTests",
 		"build": "blume build",
 		"deploy:staging": "wrangler deploy --env staging",
 		"deploy:production": "wrangler deploy --env production",
@@ -50,7 +50,7 @@
 		"textlint-rule-prh": "^5.3.0",
 		"textlint-rule-spellcheck-tech-word": "^5.0.0",
 		"typescript": "6.0.2",
-		"vitest": "^3.2.4",
+		"vite-plus": "1.0.0",
 		"wrangler": "4.111.0"
 	},
 	"author": "yuichisugio",
