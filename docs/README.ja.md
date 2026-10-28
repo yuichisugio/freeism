@@ -6,6 +6,7 @@
   - [フォルダ構造](#フォルダ構造)
   - [初期設定](#初期設定)
   - [リリース運用](#リリース運用)
+  - [CI の Cloudflare 認証](#ci-の-cloudflare-認証)
 
 ## 言語
 
@@ -59,3 +60,54 @@ mise run init
 リリース対象の変更では、`pnpm changeset` を実行し、対象アプリ、semver の更新種別、利用者向けの要約を入力します。生成された `.changeset/*.md` を通常のプルリクエストに含めてください。`main` へのマージ後、Changesets が Version PR を作成または更新します。Version PR をマージすると、パッケージのバージョンと `CHANGELOG.md` が確定します。文書のみ、CI のみ、Changesets 設定のみの変更では Changeset は不要です。
 
 このワークフローは npm 公開、Git タグ、GitHub Release を作成しません。
+
+## CI の Cloudflare 認証
+
+GitHub Actions のデプロイは、GitHub Environment ごとのシークレット `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` で Cloudflare にアクセスします。
+
+| Environment          | 使うワークフロー                                                                                             | 起動条件           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------ |
+| `web-app-staging`    | `cloudflare-test.yml`、`main-docs-cloudflare-test.yml`、`main-web-app-cloudflare-test.yml`                   | `test/*` への push |
+| `web-app-staging`    | `points-pr-preview.yml`                                                                                      | プルリクエスト     |
+| `web-app-production` | `cloudflare-production.yml`、`main-docs-cloudflare-production.yml`、`main-web-app-cloudflare-production.yml` | `main` への push   |
+
+### トークンの作成
+
+Cloudflare ダッシュボードの Manage account → Account API tokens で、Account API Token を作成します。
+権限は、リソースの範囲ごとに次の 2 組を設定します。
+Workers と D1 をゾーンの範囲に付けると効かないため、必ずアカウントの範囲に付けます。
+
+| リソースの範囲                   | 権限                      |
+| -------------------------------- | ------------------------- |
+| Freeism の Cloudflare アカウント | Workers: Admin、D1: Write |
+| ゾーン `freeism.app`             | Workers Routes: Edit      |
+
+- Workers の Admin は、まだ存在しない Worker を初回デプロイで作成するために必要です。
+- Durable Objects、Workflows、cron、静的アセットは Workers の権限で扱えます。
+- D1 の Write は、D1 マイグレーションの適用と確認に使います。
+- Workers Routes の Edit は、`*.freeism.app` のカスタムドメインの追加と付け替えに使います。
+
+### GitHub への登録
+
+シークレットの登録には、リポジトリの管理者権限が必要です。
+`gh secret set` を値の指定なしで実行すると、入力が画面とシェル履歴に残りません。
+
+```shell
+gh secret set CLOUDFLARE_API_TOKEN --env web-app-staging --repo yuichisugio/freeism
+gh secret set CLOUDFLARE_ACCOUNT_ID --env web-app-staging --repo yuichisugio/freeism
+gh secret set CLOUDFLARE_API_TOKEN --env web-app-production --repo yuichisugio/freeism
+gh secret set CLOUDFLARE_ACCOUNT_ID --env web-app-production --repo yuichisugio/freeism
+```
+
+### 権限の確認
+
+トークンを環境変数に入れ、Cloudflare API と wrangler で権限を確認します。
+`read -s` で入力すると、トークンが画面とシェル履歴に残りません。
+
+```shell
+read -s "CLOUDFLARE_API_TOKEN?Token: " && export CLOUDFLARE_API_TOKEN && echo
+export CLOUDFLARE_ACCOUNT_ID=<アカウント ID>
+curl -s "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/tokens/verify" -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+pnpm --filter @freeism/points-web-app exec wrangler d1 list
+pnpm --filter @freeism/points-web-app exec wrangler deployments list --name points-worker-staging
+```

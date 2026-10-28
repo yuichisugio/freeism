@@ -5,6 +5,7 @@
   - [Overview](#overview)
   - [Folder structure](#folder-structure)
   - [Release workflow](#release-workflow)
+  - [Cloudflare credentials for CI](#cloudflare-credentials-for-ci)
 
 ## Language
 
@@ -49,3 +50,24 @@ freeism/
 For release-relevant changes, run `pnpm changeset`, select the affected application and semver bump, then add the generated `.changeset/*.md` with a user-facing summary to the usual pull request. After it merges to `main`, Changesets creates or updates a Version PR. Merging that PR finalizes package versions and `CHANGELOG.md` files. Documentation-only, CI-only, and Changesets-configuration changes do not need a Changeset.
 
 This workflow does not publish to npm or create Git tags or GitHub Releases.
+
+## Cloudflare credentials for CI
+
+GitHub Actions deployments access Cloudflare with the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets of each GitHub Environment.
+
+| Environment          | Workflows                                                                                                    | Trigger          |
+| -------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------- |
+| `web-app-staging`    | `cloudflare-test.yml`, `main-docs-cloudflare-test.yml`, `main-web-app-cloudflare-test.yml`                   | Push to `test/*` |
+| `web-app-staging`    | `points-pr-preview.yml`                                                                                      | Pull request     |
+| `web-app-production` | `cloudflare-production.yml`, `main-docs-cloudflare-production.yml`, `main-web-app-cloudflare-production.yml` | Push to `main`   |
+
+Create an Account API Token in the Cloudflare dashboard under Manage account → Account API tokens, with these two resource scopes.
+Attach Workers and D1 to the account scope; they have no effect on the zone scope.
+
+| Resource scope                 | Permissions               |
+| ------------------------------ | ------------------------- |
+| The Freeism Cloudflare account | Workers: Admin, D1: Write |
+| Zone `freeism.app`             | Workers Routes: Edit      |
+
+Register the secrets with repository admin rights; `gh secret set` without a value prompts for hidden input.
+See the [Japanese README](docs/README.ja.md#ci-の-cloudflare-認証) for the registration and verification commands.
