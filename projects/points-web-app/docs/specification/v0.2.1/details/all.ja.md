@@ -5648,6 +5648,11 @@ flowchart TD
   - JWT署名鍵の更新間隔は`jwks.rotationInterval: 2592000`（30日）とし、旧鍵の検証猶予`gracePeriod`は標準の30日を使います。[公式資料](https://better-auth.com/docs/plugins/jwt#key-rotation)
   - 新しいTokenは更新後の鍵で署名し、発行済みTokenは旧鍵で期限まで検証できるようにします。
   - 署名鍵の更新、Refresh Tokenのローテーション・再利用検知、保存Tokenの失効は、それぞれBetter Auth標準の処理を使います。
+  - Refresh Tokenの有効期間は`refreshTokenExpiresIn: 7776000`（90日）とします。
+    - 期限は更新のたびに発行し直すRefresh Tokenから数えます。90日間更新されなかった連携だけが、もう一度の連携を必要とします。
+  - 入れ替え済みのRefresh Tokenによる再送の猶予は、`refreshTokenReuseInterval: 30`（30秒）とします。
+    - 新しいTokenの応答が通信の失敗で届かなかった場合に、同じscope・resource・DPoPの鍵による30秒以内の再送には、前回と同じ応答を返します。
+    - 猶予を過ぎた再送と、内容が違う再送は、標準の再利用検知で扱い、そのクライアントと利用者のRefresh Tokenをすべて失効させます。
 
 - 標準機能への移行時の確認
   - 同意画面では標準の`verifyOAuthQueryParams`・`getOAuthClientPublic`・`oauth2.consent`を使い、採用する版の公開export・型・動作を確認する。
@@ -7612,7 +7617,7 @@ flowchart TD
     - `expires_at`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `INTEGER NOT NULL`とする。
-      - 標準の処理で期限を入れる。
+      - 発行から90日後（`refreshTokenExpiresIn`）の期限を入れる。
     - `created_at`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `INTEGER NOT NULL`とする。
@@ -7624,15 +7629,15 @@ flowchart TD
     - `rotated_at`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `INTEGER`とする。
-      - 標準の処理で値を入れる。
+      - 新しいRefresh Tokenへ入れ替えた日時を入れる。
     - `rotation_replay_response`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `TEXT`とする。
-      - 標準の処理で値を入れる。
+      - 入れ替えたときの応答を暗号化して入れ、猶予の間の再送に同じ応答を返す。
     - `rotation_replay_expires_at`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `INTEGER`とする。
-      - 標準の処理で値を入れる。
+      - 入れ替えた日時に30秒（`refreshTokenReuseInterval`）を足した日時を入れる。
     - `auth_time`
       - Better AuthのOAuth Providerプラグインの標準の列とする。
       - `INTEGER`とする。
@@ -8581,3 +8586,5 @@ flowchart TD
 - 新規の評価・付与・譲渡・通常消費・交換は評価軸の現在の最小単位、過去取引の受領・自動訂正と再分配は当時の単位を使う。単位変更で既存残高・受領待ち・履歴を丸め直さず、本人向けの残高確認では実残高と現在単位での支出可能額を区別する。競売の精算では、要求の必要額を現在の単位へ丸め直さず、実残高で判断する。
 
 - 全テーブル・全カラムを[テーブル・データ構造](#テーブルデータ構造)に定める。独自テーブルの名前を単数形の`snake_case`にし、計算設定の版を評価軸・パッケージ・月別設定・本人設定ごとの版テーブルに分ける。ポイントの増減を伴う操作の入力・照合・受領の情報は`point_ledger_entry`へ集約し、本人が決まったら対象の全行の`user_id`を更新する。本人・ログイン手段・Accounts連携・管理権限・OAuthは、Better Authの標準テーブルとPointsの追加列で表す。
+
+- Pointsが発行するRefresh Tokenの有効期間を90日、入れ替え済みのRefresh Tokenによる再送の猶予を30秒と定める。
