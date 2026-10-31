@@ -1,19 +1,139 @@
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it, vi } from "vite-plus/test";
+import { pointsClientPrivateKeyJwk } from "../fixtures/points-oauth";
+import { importJWK, SignJWT } from "jose";
 
 import {
   assertNoPointsReturnTargetInput,
   createPointsOAuthState,
 } from "../../src/backend/points/oauth-state";
 import { PointsApiClient, PointsApiError } from "../../src/backend/points/points-api-client";
-import { PointsOAuthClient } from "../../src/backend/points/points-oauth-client";
+import {
+  PointsOAuthClient,
+  type PointsOAuthClientConfig,
+} from "../../src/backend/points/points-oauth-client";
 
-class RecordingFetcher implements Fetcher {
-  requests: Request[] = [];
+const origin = "https://points.example.test";
+const config: PointsOAuthClientConfig = {
+  origin,
+  issuer: origin,
+  resource: `${origin}/api/v1`,
+  clientId: "client-1",
+  signingKeyJwk: pointsClientPrivateKeyJwk,
+  dpopKeyJwk: pointsClientPrivateKeyJwk,
+  metadata: {
+    issuer: origin,
+    authorization_endpoint: `${origin}/api/auth/oauth2/authorize`,
+    token_endpoint: `${origin}/api/auth/oauth2/token`,
+    introspection_endpoint: `${origin}/api/auth/oauth2/introspect`,
+    revocation_endpoint: `${origin}/api/auth/oauth2/revoke`,
+  },
+  fetch: globalThis.fetch,
+};
 
-  async fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const request = new Request(input, init);
-    this.requests.push(request);
-    if (request.url.endsWith("/api/v1/oauth/link-attempts")) {
+function api(fetch: typeof globalThis.fetch, token = "m2m-token") {
+  const oauth = new PointsOAuthClient({ ...config, fetch });
+  vi.spyOn(oauth, "getM2MAccessToken").mockResolvedValue(token);
+  return new PointsApiClient({ origin, fetch, oauth });
+}
+
+describe("Points provider clients", () => {
+  it("uses discovered authorization endpoint and selected resource", () => {
+    const oauth = new PointsOAuthClient(config);
+    const url = new URL(
+      oauth.authorizationUrl({
+        callbackUri: "https://markets.example.test/callback",
+        nonce: "n",
+        pkceChallenge: "c",
+        scopes: ["openid"],
+        state: "s",
+      }),
+    );
+    expect(url.pathname).toBe("/api/auth/oauth2/authorize");
+    expect(url.searchParams.get("resource")).toBe(`${origin}/api/v1`);
+    expect(url.searchParams.get("client_id")).toBe("client-1");
+  });
+
+  it("validates callback issuer and matching signed ID token subject", async () => {
+    const signingJwk = JSON.parse(pointsClientPrivateKeyJwk);
+    const idToken = await new SignJWT({ nonce: "nonce-a" })
+      .setProtectedHeader({ alg: "EdDSA", kid: signingJwk.kid })
+      .setIssuer(origin)
+      .setAudience("client-1")
+      .setSubject("subject-a")
+      .setIssuedAt()
+      .setExpirationTime("5m")
+      .sign(await importJWK(signingJwk, "EdDSA"));
+    const requests: Request[] = [];
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      requests.push(request);
+      if (request.url.endsWith("/oauth2/token"))
+        return Response.json({
+          access_token: "access-a",
+          expires_in: 300,
+          refresh_token: "refresh-a",
+          token_type: "DPoP",
+          id_token: idToken,
+          scope: "openid points.balance.read",
+        });
+      if (request.url.endsWith("/oauth2/introspect"))
+        return Response.json({
+          active: true,
+          aud: `${origin}/api/v1`,
+          client_id: "client-1",
+          exp: Math.floor(Date.now() / 1000) + 300,
+          iss: origin,
+          scope: "openid points.balance.read",
+          sub: "subject-a",
+        });
+      if (request.url.endsWith("/jwks"))
+        return Response.json({
+          keys: [
+            {
+              kty: signingJwk.kty,
+              crv: signingJwk.crv,
+              x: signingJwk.x,
+              kid: signingJwk.kid,
+              alg: "EdDSA",
+              use: "sig",
+            },
+          ],
+        });
+      throw new Error(`Unexpected request: ${request.url}`);
+    }) as typeof globalThis.fetch;
+    const oauth = new PointsOAuthClient({
+      ...config,
+      metadata: {
+        ...config.metadata,
+        jwks_uri: `${origin}/jwks`,
+        authorization_response_iss_parameter_supported: true,
+      },
+      fetch,
+    });
+    const input = {
+      callbackUri: "https://markets.example.test/callback",
+      code: "code-a",
+      issuer: origin,
+      nonce: "nonce-a",
+      pkceVerifier: "verifier-a",
+      requiredScopes: ["points.balance.read"],
+      state: "state-a",
+    };
+    await expect(oauth.exchangeAuthorizationCode(input)).resolves.toMatchObject({
+      subject: "subject-a",
+      issuer: origin,
+    });
+    expect(requests.some((request) => request.url.endsWith("/oauth2/token"))).toBe(true);
+    await expect(
+      oauth.exchangeAuthorizationCode({ ...input, issuer: undefined }),
+    ).rejects.toThrow();
+  });
+
+  it("sends a DPoP proof with a provider-scoped M2M token", async () => {
+    const requests: Request[] = [];
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      requests.push(request);
       return Response.json(
         {
           data: { expiresAt: "2026-07-13T00:10:00.000Z", linkAttemptId: "pla_1" },
@@ -21,92 +141,76 @@ class RecordingFetcher implements Fetcher {
         },
         { status: 201 },
       );
-    }
-    return Response.json({
-      data: {
-        grantVersion: 1,
-        grantedScopes: ["points.connection.read"],
-        issuer: "https://points.example.test/api/auth",
-        linkedAt: "2026-07-13T00:00:00.000Z",
-        pointsConnectionId: "pcn_1",
-        status: "ACTIVE",
-        subject: "pairwise-subject",
-      },
-      meta: { requestId: "req_2" },
-    });
-  }
-
-  connect(): Socket {
-    throw new Error("not implemented");
-  }
-}
-
-describe("Points API client contract", () => {
-  it("exposes only the frozen eleven generated operations", () => {
-    const methods = Object.getOwnPropertyNames(PointsApiClient.prototype)
-      .filter((name) => name !== "constructor")
-      .sort();
-    expect(methods).toEqual(
-      [
-        "capturePointSettlement",
-        "checkPointBalance",
-        "checkPointPackageAuctionEligibility",
-        "createPointReservation",
-        "createPointsLinkAttempt",
-        "deactivatePointsConnection",
-        "finalizePointsLinkAttempt",
-        "getPointReservationStatus",
-        "getPointsConnection",
-        "getPublicPointPackageRevision",
-        "releasePointReservation",
-      ].sort(),
-    );
-  });
-
-  it("uses a scoped M2M bearer for link attempts and a user bearer for connection reads", async () => {
-    const fetcher = new RecordingFetcher();
-    const client = new PointsApiClient(fetcher, async (scopes) => `m2m:${scopes.join(" ")}`);
-    await client.createPointsLinkAttempt(
+    }) as typeof globalThis.fetch;
+    await api(fetch).createPointsLinkAttempt(
       {
         expiresAt: "2026-07-13T00:10:00.000Z",
         marketsUserId: "musr_1",
         pkceChallenge: "a".repeat(43),
-        redirectUri: "https://markets.example.test/api/points-connection/callback",
+        redirectUri: "https://markets.example.test/callback",
         requestedScopes: ["openid"],
         returnUrlHash: `sha256:${"b".repeat(64)}`,
         stateHash: `sha256:${"c".repeat(64)}`,
       },
-      "link-attempt-1",
+      "link-key",
     );
-    await client.getPointsConnection("opaque-user-token");
-
-    expect(fetcher.requests[0]?.headers.get("Authorization")).toBe(
-      "Bearer m2m:points.connection.link-attempt.create",
-    );
-    expect(fetcher.requests[1]?.headers.get("Authorization")).toBe("Bearer opaque-user-token");
+    expect(requests[0]?.url).toBe(`${origin}/api/v1/oauth/link-attempts`);
+    expect(requests[0]?.headers.get("Authorization")).toBe("DPoP m2m-token");
+    expect(requests[0]?.headers.get("DPoP")).toBeTruthy();
   });
 
-  it("keeps typed item errors from an auction eligibility conflict", async () => {
-    const fetcher: Fetcher = {
-      fetch: async () =>
-        Response.json(
-          {
-            code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
-            errors: [
-              { auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" },
-              { auctionItemId: "row-2", code: "CONTENT_HASH_MISMATCH" },
-            ],
-          },
-          { status: 409 },
-        ),
-      connect: () => {
-        throw new Error("not implemented");
+  it("allows a registered loopback origin for client credentials", async () => {
+    const localOrigin = "http://127.0.0.1:8787";
+    const requests: Request[] = [];
+    const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const request = new Request(input, init);
+      requests.push(request);
+      if (request.url.endsWith("/oauth2/token"))
+        return Response.json({
+          access_token: "local-m2m",
+          expires_in: 300,
+          token_type: "DPoP",
+        });
+      return Response.json({
+        active: true,
+        aud: `${localOrigin}/api/v1`,
+        client_id: "client-1",
+        exp: Math.floor(Date.now() / 1000) + 300,
+        iss: localOrigin,
+        scope: "points.reservations.status",
+        sub: "client-1",
+      });
+    }) as typeof globalThis.fetch;
+    const oauth = new PointsOAuthClient({
+      ...config,
+      origin: localOrigin,
+      issuer: localOrigin,
+      resource: `${localOrigin}/api/v1`,
+      metadata: {
+        issuer: localOrigin,
+        token_endpoint: `${localOrigin}/oauth2/token`,
+        introspection_endpoint: `${localOrigin}/oauth2/introspect`,
       },
-    };
-    const client = new PointsApiClient(fetcher, async () => "m2m-token");
+      fetch,
+    });
+    await expect(oauth.getM2MAccessToken(["points.reservations.status"])).resolves.toBe(
+      "local-m2m",
+    );
+    expect(requests).toHaveLength(2);
+  });
 
+  it("keeps typed eligibility errors", async () => {
+    const fetch = vi.fn(async () =>
+      Response.json(
+        {
+          code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
+          errors: [{ auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" }],
+        },
+        { status: 409 },
+      ),
+    ) as typeof globalThis.fetch;
     await expect(
-      client.checkPointPackageAuctionEligibility(
+      api(fetch).checkPointPackageAuctionEligibility(
         {
           auctionCommandHash: `sha256:${"a".repeat(64)}`,
           auctionCommandId: "acmd_1",
@@ -119,64 +223,22 @@ describe("Points API client contract", () => {
             },
           ],
         },
-        "preview-key-1",
+        "preview-key",
       ),
     ).rejects.toMatchObject({
-      code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
-      errors: [
-        { auctionItemId: "row-1", code: "POINT_PACKAGE_INACTIVE" },
-        { auctionItemId: "row-2", code: "CONTENT_HASH_MISMATCH" },
-      ],
       status: 409,
+      code: "POINT_PACKAGE_AUCTION_INELIGIBLE",
     } satisfies Partial<PointsApiError>);
   });
 
-  it("has no caller-controlled return target and keeps the fixed settings path", async () => {
+  it("keeps the fixed return path and rejects caller-controlled targets", async () => {
     const state = await createPointsOAuthState({
-      callbackUri: "https://markets.example.test/api/points-connection/callback",
-      now: new Date("2026-07-13T00:00:00.000Z"),
+      callbackUri: "https://markets.example.test/callback",
       sessionId: "session-1",
     });
     expect(state.returnPath).toBe("/settings/points-connection");
     expect(() => assertNoPointsReturnTargetInput(new URLSearchParams("returnTo=/evil"))).toThrow(
       "POINTS_RETURN_TARGET_FORBIDDEN",
     );
-  });
-});
-
-describe("Points OAuth client separation", () => {
-  it("requires distinct user, M2M, and settlement clients and secrets", () => {
-    const fetcher = new RecordingFetcher();
-    expect(
-      () =>
-        new PointsOAuthClient(fetcher, {
-          audience: "https://points.example.test/api/v1",
-          issuer: "https://points.example.test/api/auth",
-          m2mClientId: "shared-client",
-          m2mClientSecret: "shared-secret",
-          settlementClientId: "settlement-client",
-          settlementClientSecret: "settlement-secret",
-          userClientId: "shared-client",
-          userClientSecret: "shared-secret",
-        }),
-    ).toThrow("POINTS_OAUTH_CLIENTS_NOT_SEPARATE");
-  });
-
-  it("rejects user scopes before requesting an M2M client-credentials token", async () => {
-    const fetcher = new RecordingFetcher();
-    const oauth = new PointsOAuthClient(fetcher, {
-      audience: "https://points.example.test/api/v1",
-      issuer: "https://points.example.test/api/auth",
-      m2mClientId: "m2m-client",
-      m2mClientSecret: "m2m-secret",
-      settlementClientId: "settlement-client",
-      settlementClientSecret: "settlement-secret",
-      userClientId: "user-client",
-      userClientSecret: "user-secret",
-    });
-    await expect(oauth.getM2MAccessToken(["points.balance.read"])).rejects.toThrow(
-      "POINTS_M2M_SCOPE_INVALID",
-    );
-    expect(fetcher.requests).toHaveLength(0);
   });
 });

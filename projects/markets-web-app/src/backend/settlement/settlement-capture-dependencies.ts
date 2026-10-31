@@ -1,21 +1,13 @@
 import { D1SettlementCaptureRepository } from "../db/d1-settlement-capture-repository";
 import type { Bindings } from "../http/context";
-import { PointsApiClient } from "../points/points-api-client";
-import { PointsOAuthClient } from "../points/points-oauth-client";
+import { openSettlementProvider } from "./settlement-provider";
 import type { CaptureAllWinnersDependencies } from "./capture-all-winners";
 
-export function createSettlementCaptureDependencies(env: Bindings): CaptureAllWinnersDependencies {
-  const oauth = new PointsOAuthClient(env.POINTS_SERVICE, {
-    audience: env.POINTS_AUDIENCE,
-    issuer: env.POINTS_ISSUER,
-    m2mClientId: env.POINTS_M2M_CLIENT_ID,
-    m2mClientSecret: env.POINTS_M2M_CLIENT_SECRET,
-    settlementClientId: env.POINTS_SETTLEMENT_CLIENT_ID,
-    settlementClientSecret: env.POINTS_SETTLEMENT_CLIENT_SECRET,
-    userClientId: env.POINTS_USER_CLIENT_ID,
-    userClientSecret: env.POINTS_USER_CLIENT_SECRET,
-  });
-  const api = new PointsApiClient(env.POINTS_SERVICE, (scopes) => oauth.getM2MAccessToken(scopes));
+export async function createSettlementCaptureDependencies(
+  env: Bindings,
+  settlementId: string,
+): Promise<CaptureAllWinnersDependencies> {
+  const { api } = await openSettlementProvider(env, settlementId);
   return {
     gateway: {
       async capture(input) {

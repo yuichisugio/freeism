@@ -13,6 +13,7 @@ import { dispatchSettlementOutbox } from "../settlement/outbox-dispatcher";
 
 interface PlanRow {
   auctionId: string;
+  providerId: string;
   cutoffHash: string | null;
   planHash: string;
   planJson: string;
@@ -61,10 +62,12 @@ export class D1SettlementReservationRepository implements SettlementReservationR
   ): Promise<LoadedSettlementPlan> {
     const row = await this.db
       .prepare(
-        `SELECT s.auction_id AS auctionId, s.settlement_revision AS settlementRevision,
+        `SELECT s.auction_id AS auctionId, a.provider_id AS providerId,
+                s.settlement_revision AS settlementRevision,
                 s.saga_state AS sagaState, p.plan_hash AS planHash, p.plan_json AS planJson,
                 c.ranking_input_hash AS cutoffHash
          FROM settlements s
+         JOIN auctions a ON a.id = s.auction_id
          JOIN settlement_plans p ON p.id = s.current_plan_id
          LEFT JOIN auction_close_cutoffs c ON c.auction_id = s.auction_id
          WHERE s.id = ?`,
@@ -80,6 +83,7 @@ export class D1SettlementReservationRepository implements SettlementReservationR
       throw new Error("SETTLEMENT_PLAN_MISMATCH");
     }
     const plan = JSON.parse(row.planJson) as SettlementPlan;
+    if (plan.providerId !== row.providerId) throw new Error("SETTLEMENT_PROVIDER_MISMATCH");
     const requestedUsers =
       plan.kind === "BUY_NOW"
         ? [plan.buyerMarketsUserId]
@@ -95,19 +99,20 @@ export class D1SettlementReservationRepository implements SettlementReservationR
                       bp.reached_sequence AS reachedSequence,
                       (SELECT id FROM points_connection pc
                        WHERE pc.markets_user_id = bp.bidder_markets_user_id
+                         AND pc.provider_id = ?
                        ORDER BY CASE pc.status WHEN 'ACTIVE' THEN 0 ELSE 1 END,
                                 pc.updated_at DESC LIMIT 1) AS pointsConnectionId
                FROM bid_positions bp
                WHERE bp.auction_id = ? AND bp.status = 'ACTIVE' AND bp.updated_at <= ?
                ORDER BY bp.reached_sequence, bp.id`,
             )
-            .bind(plan.auctionId, plan.cutoffAt)
+            .bind(row.providerId, plan.auctionId, plan.cutoffAt)
             .all<PositionRow>()
         : { results: [] as PositionRow[] };
     const connections = await this.db
       .prepare(
         `SELECT id AS pointsConnectionId, markets_user_id AS marketsUserId, status
-         FROM points_connection WHERE markets_user_id IN (
+         FROM points_connection WHERE provider_id = ? AND markets_user_id IN (
              SELECT bidder_markets_user_id FROM bid_positions WHERE auction_id = ?
              UNION SELECT buyer_markets_user_id FROM buy_now_holds WHERE auction_id = ?
            )
@@ -115,7 +120,7 @@ export class D1SettlementReservationRepository implements SettlementReservationR
                   CASE status WHEN 'ACTIVE' THEN 0 ELSE 1 END,
                   updated_at DESC`,
       )
-      .bind(plan.auctionId, plan.auctionId)
+      .bind(row.providerId, plan.auctionId, plan.auctionId)
       .all<ConnectionCandidate>();
     const excluded = await this.db
       .prepare(

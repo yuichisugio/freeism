@@ -8,9 +8,8 @@ check "workspace_matches_environment" {
 module "web_app_edge" {
   source = "./modules/web-app-edge"
 
-  account_id            = var.account_id
-  zone_id               = var.zone_id
-  environment           = var.environment
-  access_allowed_emails = var.access_allowed_emails
-  ops_alert_email       = var.ops_alert_email
+  account_id      = var.account_id
+  zone_id         = var.zone_id
+  environment     = var.environment
+  ops_alert_email = var.ops_alert_email
 }

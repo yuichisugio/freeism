@@ -1,4 +1,0 @@
-{
-  "!(CLAUDE).{js,jsx,ts,tsx,cjs,mjs,md,json,lintstagedrc,yml,yaml}": ["prettier --write"],
-  "**/*.prisma": ["prisma format"]
-}

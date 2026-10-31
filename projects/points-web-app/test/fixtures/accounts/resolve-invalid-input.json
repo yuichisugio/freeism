@@ -1,0 +1,41 @@
+{
+  "accountsOrigin": "https://accounts.example.test",
+  "results": [
+    {
+      "index": 0,
+      "identifier": {
+        "type": "accounts_user",
+        "accountsUserId": "ausr_sample"
+      },
+      "status": "matched",
+      "accountsUserId": "ausr_sample",
+      "errors": []
+    },
+    {
+      "index": 1,
+      "identifier": {
+        "type": "url",
+        "url": "https://example.org/unlinked/"
+      },
+      "status": "no_match",
+      "accountsUserId": null,
+      "errors": []
+    },
+    {
+      "index": 2,
+      "identifier": {
+        "type": "url",
+        "url": "https://example.org:8443/"
+      },
+      "status": "invalid_input",
+      "accountsUserId": null,
+      "errors": [
+        {
+          "code": "INVALID_VALUE",
+          "message": "url is not accepted.",
+          "path": ["identifiers", 2, "url"]
+        }
+      ]
+    }
+  ]
+}

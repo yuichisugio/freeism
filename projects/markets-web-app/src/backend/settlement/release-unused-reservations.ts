@@ -54,13 +54,14 @@ export async function releaseUnusedReservations(
         `UPDATE settlement_round_winners
          SET status = 'RELEASED', release_receipt_id = ?, release_content_hash = ?,
              released_at = ?, updated_at = ?
-         WHERE point_reservation_id = ? AND status = 'ACTIVE'`,
+         WHERE reservation_key = ? AND point_reservation_id = ? AND status = 'ACTIVE'`,
       )
       .bind(
         receipt.receiptId,
         receipt.contentHash,
         receipt.releasedAt,
         dependencies.now().toISOString(),
+        winner.reservationKey,
         winner.pointReservationId,
       )
       .run();

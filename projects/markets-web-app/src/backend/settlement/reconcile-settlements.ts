@@ -16,6 +16,7 @@ export interface SettlementReconciliationDependencies {
   db: D1Database;
   finalizeCaptured(settlementId: string): Promise<unknown>;
   getStatuses(
+    settlementId: string,
     reservationKeys: readonly string[],
   ): Promise<readonly ReconciliationReservationStatus[]>;
   hasCaptureReceipt(settlementId: string): Promise<boolean>;
@@ -124,7 +125,7 @@ export async function reconcileSettlement(
 
   if (reservationKeys.length === 0 || row.sagaState === "MANUAL_ACTION_REQUIRED") {
     if (reservationKeys.length > 0) {
-      const statuses = await dependencies.getStatuses(reservationKeys);
+      const statuses = await dependencies.getStatuses(settlementId, reservationKeys);
       if (
         statuses.length === reservationKeys.length &&
         statuses.every((item) => item.status === "CAPTURED")
@@ -135,12 +136,12 @@ export async function reconcileSettlement(
     return { action: "MANUAL_ACTION_REQUIRED", settlementId };
   }
 
-  const statuses = await dependencies.getStatuses(reservationKeys);
+  const statuses = await dependencies.getStatuses(settlementId, reservationKeys);
   if (statuses.some((item) => item.status === "CAPTURED")) {
     return forwardCapturedOrRequireManual(dependencies, settlementId);
   }
   await dependencies.releaseBeforeCapture(settlementId, statuses);
-  const verifiedStatuses = await dependencies.getStatuses(reservationKeys);
+  const verifiedStatuses = await dependencies.getStatuses(settlementId, reservationKeys);
   if (verifiedStatuses.some((item) => item.status === "CAPTURED")) {
     return forwardCapturedOrRequireManual(dependencies, settlementId);
   }

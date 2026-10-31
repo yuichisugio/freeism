@@ -1,3 +1,4 @@
+import { writeEconomicRejectionLog } from "../observability/economic-rejection-logger";
 import { parseAndValidateCsv } from "../csv/csv-input";
 import { defineCsvSchema, textColumn } from "../csv/csv-schema";
 import { canonicalJson, sha256Hex, type CsvValidationError } from "../csv/csv-validation-result";
@@ -154,6 +155,7 @@ export async function commitTransfers(
   bytes: Uint8Array,
   input: {
     actorPointsUserId: string;
+    environment?: string;
     expectedValidationHash: string;
     idempotencyKey: string;
     now?: Date;
@@ -178,16 +180,18 @@ export async function commitTransfers(
   if (validated.errors.length > 0) {
     throw Object.assign(new Error("CSV_VALIDATION_FAILED"), { errors: validated.errors });
   }
+  const requestId = `req_${crypto.randomUUID()}`;
   try {
     const responseBody = await commitPointTransaction(db, {
       actorPointsUserId: input.actorPointsUserId,
+      environment: input.environment,
       batchId: `txbatch_${crypto.randomUUID()}`,
       fileHash: validated.fileHash,
       idempotencyKey: input.idempotencyKey,
       items: validated.rows,
       now: input.now ?? new Date(),
       payloadHash,
-      requestId: `req_${crypto.randomUUID()}`,
+      requestId,
       transactionType: "TRANSFER",
       validationHash: validated.validationHash,
     });
@@ -203,6 +207,12 @@ export async function commitTransfers(
     if (concurrentReplay) {
       return { responseBody: concurrentReplay.body, status: concurrentReplay.status };
     }
+    writeEconomicRejectionLog(error, {
+      action: "TRANSFER_CSV_COMMIT",
+      environment: input.environment,
+      requestId,
+      resourceType: "point_transaction",
+    });
     throw error;
   }
 }

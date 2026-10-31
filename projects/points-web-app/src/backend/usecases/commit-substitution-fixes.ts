@@ -1,3 +1,5 @@
+import { writeEconomicRejectionLog } from "../observability/economic-rejection-logger";
+import { writeAuditLog } from "../observability/audit-logger";
 import { parseAndValidateCsv } from "../csv/csv-input";
 import { defineCsvSchema, textColumn } from "../csv/csv-schema";
 import { canonicalJson, sha256Hex, type CsvValidationError } from "../csv/csv-validation-result";
@@ -12,6 +14,7 @@ import {
   parseEvaluationMonth,
 } from "../domain/distribution/substitution";
 import { hashCanonicalPayload } from "../domain/idempotency/idempotency-result";
+import { recipientBusinessKeySql } from "../infrastructure/db/d1-fix-repository";
 import { findCsvCommitReplay } from "../infrastructure/db/d1-point-transaction-repository";
 
 const METHOD_HEADER =
@@ -308,12 +311,7 @@ async function currentSourceTotalsByPair(
                 JOIN fix_revision claimed_revision ON claimed_revision.id = unclaimed.source_fix_revision_id
                 WHERE claimed_revision.fix_result_id = revision.fix_result_id
                   AND unclaimed.evaluation_criterion_id = entry.evaluation_criterion_id
-                  AND ((unclaimed.recipient_provider_id = 'github'
-                        AND entry.recipient_provider_id = 'github'
-                        AND unclaimed.recipient_account_id = entry.recipient_account_id)
-                    OR (unclaimed.recipient_provider_id IS NULL
-                        AND entry.recipient_provider_id IS NULL
-                        AND unclaimed.recipient_profile_url = entry.recipient_profile_url))
+                  AND ${recipientBusinessKeySql("unclaimed")} = ${recipientBusinessKeySql("entry")}
                 ORDER BY claim.claimed_at LIMIT 1
               )) AS pointsUserId,
               entry.amount_scaled AS amountScaled
@@ -558,6 +556,7 @@ export async function commitSubstitutionCsv(
   bytes: Uint8Array,
   input: {
     actorPointsUserId: string;
+    environment?: string;
     expectedValidationHash: string;
     idempotencyKey: string;
     now?: Date;
@@ -791,13 +790,6 @@ export async function commitSubstitutionCsv(
         JSON.stringify(responseBody),
         now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-         VALUES (?, ?, 'SUBSTITUTION_CSV_COMMIT', 'substitution', ?, ?, 'SUCCESS', ?)`,
-      )
-      .bind(`audit_${crypto.randomUUID()}`, input.actorPointsUserId, input.reason, requestId, now),
   ];
   try {
     await runCsvAtomicBatch(db, statements);
@@ -810,7 +802,20 @@ export async function commitSubstitutionCsv(
       payloadHash,
     );
     if (concurrent) return { responseBody: concurrent.body, status: concurrent.status };
+    writeEconomicRejectionLog(error, {
+      action: "SUBSTITUTION_CSV_COMMIT",
+      environment: input.environment,
+      requestId,
+      resourceType: "substitution",
+    });
     throw error;
   }
+  writeAuditLog({
+    action: "SUBSTITUTION_CSV_COMMIT",
+    environment: input.environment,
+    requestId,
+    resourceType: "substitution",
+    affectedCount: results.length,
+  });
   return { responseBody, status: 201 };
 }

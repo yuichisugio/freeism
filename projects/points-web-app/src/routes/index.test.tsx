@@ -5,21 +5,22 @@ import { IndexPage } from "./index";
 import { FixedPageView } from "../content/fixed-pages";
 
 describe("Points shell", () => {
-  it("names the service and links to Markets", () => {
+  it("names the service and shows the empty balance state", () => {
     const html = renderToStaticMarkup(<IndexPage />);
 
     expect(html).toContain(">Freeism Points</h1>");
-    expect(html).toContain('href="https://markets.freeism.app"');
+    expect(html).toContain("表示できるポイント残高はまだありません。");
+    expect(html).not.toContain("Freeism Marketsへ");
   });
 });
 
 describe("fixed public pages", () => {
-  it("renders both canonical locales and their source hashes", () => {
+  it("renders both canonical locales", () => {
     const html = renderToStaticMarkup(
       <FixedPageView
         page={{
-          en: { markdown: "# Terms\n\n- English item", sourceSha256: "en-hash" },
-          ja: { markdown: "# 利用規約\n\n- 日本語項目", sourceSha256: "ja-hash" },
+          en: { markdown: "# Terms\n\n- English item" },
+          ja: { markdown: "# 利用規約\n\n- 日本語項目" },
           route: "terms",
         }}
       />,
@@ -27,8 +28,6 @@ describe("fixed public pages", () => {
 
     expect(html).toContain('lang="ja"');
     expect(html).toContain('lang="en"');
-    expect(html).toContain('data-source-sha256="ja-hash"');
-    expect(html).toContain('data-source-sha256="en-hash"');
     expect(html).toContain("<h1>利用規約</h1>");
     expect(html).toContain("<h1>Terms</h1>");
   });

@@ -3,11 +3,16 @@ import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqli
 
 import { user } from "./auth";
 import { marketsUsers } from "./markets-user";
+import { pointsProviders } from "./points-provider";
 
 export const pointsOAuthStates = sqliteTable(
   "points_oauth_state",
   {
     linkAttemptId: text("link_attempt_id").primaryKey(),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => pointsProviders.id),
+    reauthConnectionId: text("reauth_connection_id"),
     marketsUserId: text("markets_user_id")
       .notNull()
       .references(() => marketsUsers.id),
@@ -40,6 +45,9 @@ export const pointsConnections = sqliteTable(
   "points_connection",
   {
     id: text("id").primaryKey(),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => pointsProviders.id),
     marketsUserId: text("markets_user_id")
       .notNull()
       .references(() => marketsUsers.id),
@@ -75,11 +83,11 @@ export const pointsConnections = sqliteTable(
   },
   (table) => [
     uniqueIndex("points_connection_link_attempt_uidx").on(table.linkAttemptId),
-    uniqueIndex("points_connection_live_markets_user_uidx")
-      .on(table.marketsUserId)
+    uniqueIndex("points_connection_live_markets_user_provider_uidx")
+      .on(table.marketsUserId, table.providerId)
       .where(sql`${table.status} IN ('PENDING_CONFIRMATION', 'ACTIVE')`),
     uniqueIndex("points_connection_live_subject_uidx")
-      .on(table.pointsIssuer, table.pointsSubject)
+      .on(table.providerId, table.pointsSubject)
       .where(sql`${table.status} IN ('PENDING_CONFIRMATION', 'ACTIVE')`),
     index("points_connection_auth_user_idx").on(table.authUserId),
   ],
@@ -89,6 +97,9 @@ export const pointsUnlinkAuthorizations = sqliteTable(
   "points_unlink_authorization",
   {
     id: text("id").primaryKey(),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => pointsProviders.id),
     pointsConnectionId: text("points_connection_id")
       .notNull()
       .references(() => pointsConnections.id),

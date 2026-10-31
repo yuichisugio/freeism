@@ -6,18 +6,16 @@
   "scripts": {
     "dev": "astro dev",
     "check": "astro check",
-    "test": "vitest run --passWithNoTests",
+    "test": "vp test run --passWithNoTests",
     "build": "astro build",
     "deploy:staging": "wrangler deploy --env staging",
-    "deploy:production": "wrangler deploy --env production",
-    "smoke:staging": "node scripts/smoke-static-site.mjs --url https://staging.freeism.app/ --canonical https://freeism.app/ --text Freeism --link https://docs.freeism.app/ --link https://points.freeism.app/ --link https://markets.freeism.app/",
-    "smoke:production": "node scripts/smoke-static-site.mjs --url https://freeism.app/ --canonical https://freeism.app/ --text Freeism --link https://docs.freeism.app/ --link https://points.freeism.app/ --link https://markets.freeism.app/"
+    "deploy:production": "wrangler deploy --env production"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.9",
     "astro": "^6.3.1",
     "typescript": "6.0.2",
-    "vitest": "^3.2.4",
+    "vite-plus": "1.0.0",
     "wrangler": "4.108.0"
   }
 }

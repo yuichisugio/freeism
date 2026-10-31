@@ -1,0 +1,416 @@
+/*
+ * HeroUI v3 と Tailwind CSS 4 を使う画面向けの上書き。
+ * `src/frontend/styles.css` のうち、Tailwind の `@theme`、HeroUI の変数とトークンの対応、`@layer base`、`@layer components` をそのまま切り出したもの。
+ * tokens.css の後に読み込む。
+ *
+ *   @import "tailwindcss";
+ *   @import "@heroui/styles";
+ *   @import "./tokens.css";
+ *   @import "./heroui-overrides.css";
+ *
+ * `@theme` の値は tokens.css の同じ名前のトークンと同じにする（Tailwind がユーティリティ `text-md`・`rounded-xl` などを作るために `@theme` にも置く）。
+ * 確認した版: `@heroui/react` と `@heroui/styles` 3.2.6、`tailwindcss` 4.3.3。
+ * @see ./README.ja.md
+ * @see ./design-system.ja.md
+ */
+
+/*
+ * -------------------------------------------------- Tailwind のテーマ（書体・文字サイズ・行間・角丸）
+ * 寸法は基準値に `--scale` を掛ける（`--scale` は tokens.css で定義する）。
+ */
+@theme {
+  --font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif;
+  --font-sans: "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
+  --font-mono: "M PLUS 1 Code", ui-monospace, Menlo, monospace;
+
+  --text-2xs: calc(11px * var(--scale));
+  --text-2xs--line-height: 1.7;
+  --text-xs: calc(12px * var(--scale));
+  --text-xs--line-height: 1.7;
+  --text-sm: calc(13px * var(--scale));
+  --text-sm--line-height: 1.7;
+  --text-md: calc(14px * var(--scale));
+  --text-md--line-height: 1.7;
+  --text-lg: calc(16px * var(--scale));
+  --text-lg--line-height: 1.7;
+  --text-xl: calc(20px * var(--scale));
+  --text-xl--line-height: 1.7;
+  --text-2xl: calc(26px * var(--scale));
+  --text-2xl--line-height: 1.7;
+  --text-3xl: calc(30px * var(--scale));
+  --text-3xl--line-height: 1.7;
+
+  --leading-tight: 1.35;
+
+  --radius-sm: calc(8px * var(--scale));
+  --radius-md: calc(12px * var(--scale));
+  --radius-lg: calc(14px * var(--scale));
+  --radius-xl: calc(20px * var(--scale));
+  --radius-2xl: calc(24px * var(--scale));
+}
+
+/* -------------------------------------------------- HeroUI に無い色のユーティリティ */
+@theme inline {
+  --color-border-strong: var(--border-strong);
+  --color-highlight: var(--highlight);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-favicon-plate: var(--favicon-plate);
+  --color-favicon-fallback: var(--favicon-fallback);
+  --color-brand-github: var(--brand-github);
+}
+
+/*
+ * -------------------------------------------------- HeroUI の変数とトークンの対応
+ * トークンと同じ名前の HeroUI の変数（`--background`・`--surface`・`--accent` など）は、tokens.css の定義がそのまま効く。
+ * HeroUI だけが持つ変数はここでトークンに向ける。
+ * HeroUI のダークの値は `data-theme="dark"` でしか当たらないため、固定値を持つ変数もすべてここで向け、システムがダークのときも同じ見た目にする。
+ * `var()` の参照なので、テーマの切替で参照先のトークンが変わると追従する。
+ * `--spacing` は Tailwind の数値（`p-4` など）を `--space-N` と同じ値にするための上書き（HeroUI がレイヤーの中で定義する）。
+ */
+:root {
+  --spacing: calc(4px * var(--scale));
+  --overlay: var(--surface);
+  --surface-tertiary: var(--surface-secondary);
+  --default: var(--surface-secondary);
+  --default-foreground: var(--foreground);
+  --segment: var(--surface);
+  --segment-foreground: var(--foreground);
+  --separator: var(--border);
+  --accent-soft-foreground: var(--accent);
+  --success-soft-foreground: var(--success);
+  --warning-soft-foreground: var(--warning);
+  --danger-soft-foreground: var(--danger);
+  --field-background: var(--surface-secondary);
+  --field-foreground: var(--foreground);
+  --field-border: transparent;
+  --field-border-width: 1px;
+  --field-border-focus: var(--accent);
+  --field-focus: var(--surface);
+  --field-radius: var(--radius-lg);
+  --radius: calc(8px * var(--scale));
+  --field-shadow: 0 0 0 0 transparent;
+  --surface-shadow: var(--shadow);
+  --overlay-shadow: var(--shadow-pop);
+  --disabled-opacity: 0.45;
+}
+
+/* -------------------------------------------------- 基本の要素 */
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: var(--text-md);
+    line-height: var(--leading);
+  }
+
+  /* `--tw-leading`は、`text-*`のユーティリティを付けた見出しでも行間を --leading-tight にするため。 */
+  h1,
+  h2,
+  h3 {
+    --tw-leading: var(--leading-tight);
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    text-wrap: balance;
+  }
+
+  a {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+    }
+  }
+}
+
+/* -------------------------------------------------- HeroUI の部品の見た目 */
+@layer components {
+  /* ボタン: 通常 --control-h、小 --control-h-sm、形は pill。 */
+  .button {
+    height: var(--control-h);
+    padding-inline: var(--space-5);
+    border-radius: 9999px;
+    font-size: var(--text-md);
+    text-decoration: none;
+  }
+
+  .button--sm {
+    height: var(--control-h-sm);
+    padding-inline: var(--space-4);
+    font-size: var(--text-sm);
+  }
+
+  .button--icon-only {
+    width: var(--control-h);
+    padding: 0;
+  }
+
+  .button--icon-only.button--sm {
+    width: var(--control-h-sm);
+  }
+
+  /*
+   * ボタンの中のアイコン: どの幅でも --icon-sm。
+   * HeroUI は 640px 未満で 20px にするため、同じセレクタで上書きする。
+   * 大きさのユーティリティ（`size-5` など）を付けたアイコンは、そちらに従う。
+   */
+  .button svg:not([data-slot="spinner"] svg, [data-slot="link-icon"] svg) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+  }
+
+  /* セカンダリ（`outline`）: 面と枠。 */
+  .button--outline {
+    --button-bg: var(--surface);
+    --button-bg-hover: var(--surface-secondary);
+    --button-bg-pressed: var(--surface-secondary);
+    --button-fg: var(--foreground);
+
+    &:hover {
+      border-color: var(--border-strong);
+    }
+  }
+
+  /* ソフト（`secondary`）: 主色の淡い面。 */
+  .button--secondary {
+    --button-bg: var(--accent-soft);
+    --button-bg-hover: color-mix(in srgb, var(--accent-soft) 85%, var(--accent));
+    --button-bg-pressed: var(--button-bg-hover);
+    --button-fg: var(--accent);
+  }
+
+  .button--tertiary {
+    --button-fg: var(--foreground);
+  }
+
+  .button--ghost {
+    --button-bg-hover: var(--surface-secondary);
+    --button-fg: var(--muted);
+
+    &:hover {
+      --button-fg: var(--foreground);
+    }
+  }
+
+  /*
+   * チップ: 高さ 24px（× --scale）、pill。
+   * 状態を示すだけで押せない。
+   */
+  .chip {
+    height: calc(24px * var(--scale));
+    gap: var(--space-1);
+    padding-inline: var(--space-3);
+    border-radius: 9999px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .chip--default.chip--soft {
+    --chip-bg: var(--surface-secondary);
+    --chip-fg: var(--muted);
+  }
+
+  /* 枠カード: 中の間隔は --space-4。 */
+  .card {
+    gap: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+
+    @media (width < 40rem) {
+      padding: var(--space-4);
+    }
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: 700;
+  }
+
+  /* ダイアログ。 */
+  .modal__dialog {
+    border-radius: var(--radius-2xl);
+  }
+
+  .modal__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+
+  /* 本文は --foreground。見出し→本文→ボタンの間隔は --space-4。 */
+  .modal__body {
+    color: var(--foreground);
+    line-height: var(--leading);
+  }
+
+  .modal__header + .modal__body,
+  .modal__body + .modal__footer {
+    margin-top: var(--space-4);
+  }
+
+  /* 閉じるボタン: ゴーストの小さい icon-only ボタンと同じ見た目にし、見出しと同じ行の右端に置く。 */
+  .modal__close-trigger {
+    top: var(--space-6);
+    inset-inline-end: var(--space-6);
+    width: var(--control-h-sm);
+    height: var(--control-h-sm);
+    border-radius: 9999px;
+    background-color: transparent;
+    color: var(--muted);
+
+    &:hover {
+      background-color: var(--surface-secondary);
+      color: var(--foreground);
+    }
+  }
+
+  /* 見出しを閉じるボタンと重ねず、縦の中心を揃える。 */
+  .modal__close-trigger ~ .modal__header {
+    padding-top: var(--space-1);
+    padding-inline-end: calc(var(--control-h-sm) + var(--space-3));
+  }
+
+  /* ポップオーバー（アカウント切替メニューなど）。 */
+  .dropdown__popover,
+  .popover {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+  }
+
+  .menu-item {
+    border-radius: var(--radius-lg);
+  }
+
+  /* 情報メッセージ・エラー通知: 淡い面、影なし。 */
+  .alert {
+    border-radius: var(--radius-md);
+    box-shadow: none;
+  }
+
+  .alert--accent {
+    background-color: var(--accent-soft);
+  }
+
+  .alert--success {
+    background-color: var(--success-soft);
+  }
+
+  .alert--warning {
+    background-color: var(--warning-soft);
+  }
+
+  .alert--danger {
+    background-color: var(--danger-soft);
+  }
+
+  .alert__content {
+    gap: var(--space-2);
+  }
+
+  .alert--danger .alert__title {
+    font-weight: 700;
+  }
+
+  .alert__description {
+    color: var(--foreground);
+  }
+
+  /*
+   * 入力欄: 高さ --input-h、内側の余白は左右 --space-4。
+   * フォーカスで枠を主色・面を --surface にする指定は、HeroUI の変数（--field-border-focus・--field-focus）で行う。
+   */
+  .input {
+    min-height: var(--input-h);
+    padding: 0 var(--space-4);
+    font-size: var(--text-md);
+  }
+
+  .textarea {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--text-md);
+  }
+
+  /*
+   * チェックボックス: --checkbox 角、角丸 --radius-sm、枠 1.5px の --border-strong、面 --surface。
+   * 枠の色と面は、HeroUI の入力欄の変数をこの部品の中だけで向け直す。
+   */
+  .checkbox {
+    --field-background: var(--surface);
+    --field-border: var(--border-strong);
+    --field-border-hover: var(--border-strong);
+  }
+
+  /* チェック時・中間表示は、枠の下まで主色で塗る。 */
+  .checkbox[data-selected="true"],
+  .checkbox[data-indeterminate="true"] {
+    --field-background: var(--accent);
+    --field-border: var(--accent);
+    --field-border-hover: var(--accent);
+  }
+
+  .checkbox__control {
+    width: var(--checkbox);
+    height: var(--checkbox);
+    border-width: 1.5px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* 中の印も --checkbox に合わせて大きくする。 */
+  .checkbox__indicator,
+  .checkbox [data-slot="checkbox-default-indicator--checkmark"],
+  .checkbox[data-indeterminate="true"] [data-slot="checkbox-default-indicator--indeterminate"] {
+    width: calc(14px * var(--scale));
+    height: calc(14px * var(--scale));
+  }
+
+  /*
+   * 確認ダイアログ: 幅 --dialog-w、角丸 --radius-2xl。
+   * 見出しは --text-xl の太字にし、注意アイコン（各ダイアログで置く --icon-md のアイコン）を見出しの左に並べる。
+   * 本文は --foreground。見出し→本文→ボタンの間隔は --space-4。
+   */
+  .alert-dialog__dialog {
+    max-width: var(--dialog-w);
+    border-radius: var(--radius-2xl);
+  }
+
+  .alert-dialog__header {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    padding-top: var(--space-1);
+  }
+
+  .alert-dialog__heading {
+    font-family: var(--font-display);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+
+  .alert-dialog__body {
+    color: var(--foreground);
+    line-height: var(--leading);
+  }
+
+  .alert-dialog__header + .alert-dialog__body,
+  .alert-dialog__body + .alert-dialog__footer {
+    margin-top: var(--space-4);
+  }
+}

@@ -55,5 +55,8 @@
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.suggest.autoImports": true,
   "typescript.tsdk": "${workspaceFolder}/projects/web-app/node_modules/typescript/lib",
-  "vitest.rootConfig": "./projects/web-app/vitest.config.ts"
+  "vitest.rootConfig": "./projects/web-app/vitest.config.ts",
+  "[json]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  }
 }

@@ -1,5 +1,7 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
+
+afterEach(() => vi.restoreAllMocks());
 
 import { createPointsBackendApp } from "../../src/backend/app";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
@@ -372,6 +374,7 @@ describe("transfer and exchange transaction ledger", () => {
   });
 
   it("rolls back every row when aggregate transfer debits exceed the current balance", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     const suffix = crypto.randomUUID().replaceAll("-", "");
     const senderAuthId = `sum_sender_${suffix}`;
     const firstRecipientAuthId = `sum_first_${suffix}`;
@@ -483,6 +486,15 @@ describe("transfer and exchange transaction ledger", () => {
     });
     expect(overflowCommit.status).toBe(409);
     await expect(overflowCommit.json()).resolves.toMatchObject({ code: "SAFE_INTEGER_OVERFLOW" });
+    const transactionLogs = log.mock.calls
+      .map(([entry]) => entry)
+      .filter((entry) => entry.operation === "TRANSFER_CSV_COMMIT");
+    expect(transactionLogs).toEqual([
+      expect.objectContaining({ outcome: "REJECTED", code: "INSUFFICIENT_BALANCE" }),
+      expect.objectContaining({ outcome: "REJECTED", code: "SAFE_INTEGER_OVERFLOW" }),
+    ]);
+    expect(JSON.stringify(transactionLogs)).not.toContain(sender.id);
+    expect(JSON.stringify(transactionLogs)).not.toContain("INSERT");
     const balancesAfterOverflow = await env
       .DB!.prepare(
         `SELECT points_user_id AS pointsUserId, balance FROM point_account

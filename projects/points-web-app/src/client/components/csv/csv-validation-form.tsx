@@ -1,15 +1,34 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { GoogleReauthButton } from "../auth/google-reauth-button";
 
-type Validation = { fileHash: string; rowCount: number; validationHash: string };
+/**
+ * validate の応答。
+ * `validationHash` が `null` の場合は確定できない（例: FIX の受領者を照合できなかった）。
+ */
+export type CsvValidation = { rowCount: number; validationHash: string | null };
 
-export function CsvValidationForm({
+/**
+ * CSV をサーバーで検証し、検証結果の hash で確定するフォーム。
+ * @param headers validate・commit の両方に付ける header
+ * @param disabled 検証を始められない時に `true`
+ * @param renderValidation 検証結果の詳細の表示
+ */
+export function CsvValidationForm<TValidation extends CsvValidation = CsvValidation>({
   endpoint,
   title,
-}: Readonly<{ endpoint: string; title: string }>) {
+  headers = {},
+  disabled = false,
+  renderValidation,
+}: Readonly<{
+  endpoint: string;
+  title: string;
+  headers?: Readonly<Record<string, string>>;
+  disabled?: boolean;
+  renderValidation?: (validation: TValidation) => ReactNode;
+}>) {
   const [file, setFile] = useState<File | null>(null);
-  const [validation, setValidation] = useState<Validation | null>(null);
+  const [validation, setValidation] = useState<TValidation | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [reason, setReason] = useState("");
@@ -24,7 +43,8 @@ export function CsvValidationForm({
         body: file,
         headers: {
           "Content-Type": "text/csv",
-          ...(action === "commit" && validation
+          ...headers,
+          ...(action === "commit" && validation?.validationHash
             ? {
                 "Idempotency-Key": crypto.randomUUID(),
                 "X-Validation-Hash": validation.validationHash,
@@ -35,7 +55,7 @@ export function CsvValidationForm({
         method: "POST",
       });
       const body = (await response.json()) as {
-        data?: Validation;
+        data?: TValidation;
         errors?: Array<{ code?: string; column?: string | null; message?: string; row?: number }>;
         title?: string;
       };
@@ -88,7 +108,8 @@ export function CsvValidationForm({
           {error}
         </p>
       ) : null}
-      {validation ? (
+      {validation && renderValidation ? renderValidation(validation) : null}
+      {validation?.validationHash ? (
         <div className="status-card" aria-live="polite">
           <strong>{validation.rowCount}行を確認しました。</strong>
           <p>この検証結果を確定すると台帳へ反映します。</p>
@@ -108,7 +129,11 @@ export function CsvValidationForm({
           </button>
         </div>
       ) : (
-        <button disabled={!file || pending} onClick={() => void send("validate")} type="button">
+        <button
+          disabled={!file || pending || disabled}
+          onClick={() => void send("validate")}
+          type="button"
+        >
           {pending ? "確認中…" : "サーバーで内容を確認"}
         </button>
       )}

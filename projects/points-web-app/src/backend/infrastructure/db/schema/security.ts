@@ -22,23 +22,3 @@ export const appRateLimitWindows = sqliteTable(
     check("app_rate_limit_request_count_check", sql`${table.requestCount} > 0`),
   ],
 );
-
-export const turnstileTokenReplays = sqliteTable(
-  "turnstile_token_replay",
-  {
-    tokenHash: text("token_hash").primaryKey(),
-    operation: text("operation").notNull(),
-    hostname: text("hostname").notNull(),
-    action: text("action").notNull(),
-    expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
-    usedAt: integer("used_at", { mode: "timestamp_ms" }).notNull(),
-  },
-  (table) => [
-    index("turnstile_token_replay_expiry_idx").on(table.expiresAt),
-    check("turnstile_token_hash_check", sql`length(${table.tokenHash}) = 64`),
-    check("turnstile_operation_check", sql`length(${table.operation}) > 0`),
-    check("turnstile_hostname_check", sql`length(${table.hostname}) > 0`),
-    check("turnstile_action_check", sql`length(${table.action}) > 0`),
-    check("turnstile_expiry_check", sql`${table.expiresAt} >= ${table.usedAt}`),
-  ],
-);

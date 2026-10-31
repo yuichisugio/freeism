@@ -1,9 +1,12 @@
 import type { Context, Hono } from "hono";
-import type { z } from "zod";
+import * as v from "valibot";
+import { createResourceServerChallenge } from "@better-auth/oauth-provider";
+import { APIError } from "better-auth/api";
 
 import { pointsOAuthScopes } from "../../auth/points-oauth-provider";
+import { createPointsAuth } from "../../auth/create-auth";
 import {
-  introspectResourceRequest,
+  verifyPointsResourceRequest,
   type PointsOAuthPrincipal,
 } from "../../auth/resource-token-introspection";
 import { canonicalJson, sha256Hex } from "../../csv/csv-validation-result";
@@ -50,27 +53,23 @@ export type AuthorizePointsResource = (
 ) => Promise<PointsOAuthPrincipal>;
 
 const defaultAuthorize: AuthorizePointsResource = (request, env, kind, scopes) =>
-  introspectResourceRequest(
+  verifyPointsResourceRequest(
     request,
     {
       allowedScopes: kind === "USER" ? pointsOAuthScopes.USER : pointsOAuthScopes.M2M,
       audience: `${env.APP_ORIGIN}/api/v1`,
-      clientId:
-        kind === "USER" ? env.MARKETS_USER_OAUTH_CLIENT_ID : env.MARKETS_M2M_OAUTH_CLIENT_ID,
-      clientSecret:
-        kind === "USER"
-          ? env.MARKETS_USER_OAUTH_CLIENT_SECRET
-          : env.MARKETS_M2M_OAUTH_CLIENT_SECRET,
-      introspectionUrl: `${env.APP_ORIGIN}/api/auth/oauth2/introspect`,
-      issuer: `${env.APP_ORIGIN}/api/auth`,
+      auth: createPointsAuth(env),
+      db: env.DB,
+      issuer: env.APP_ORIGIN,
+      jwksUrl: `${env.APP_ORIGIN}/api/auth/jwks`,
       kind,
     },
     scopes,
   );
 
-async function readJson<T>(
+async function readJson<TSchema extends v.GenericSchema>(
   context: Context<BackendContext>,
-  schema: z.ZodType<T>,
+  schema: TSchema,
   limit = 64 * 1024,
 ) {
   const bytes = new Uint8Array(await context.req.arrayBuffer());
@@ -81,9 +80,9 @@ async function readJson<T>(
   } catch {
     throw new Error("MALFORMED_REQUEST");
   }
-  const result = schema.safeParse(parsed);
+  const result = v.safeParse(schema, parsed);
   if (!result.success) throw new Error("VALIDATION_FAILED");
-  return result.data;
+  return result.output;
 }
 
 function idempotencyKey(context: Context<BackendContext>) {
@@ -132,8 +131,20 @@ function mapError(context: Context<BackendContext>, error: unknown) {
   const code = error instanceof Error ? error.message : "INTERNAL_ERROR";
   if (code === "REQUEST_BODY_TOO_LARGE")
     return problem(context, 413, code, "Request body too large");
-  if (code === "INVALID_ACCESS_TOKEN") return problem(context, 401, code, "Invalid access token");
-  if (code === "POINTS_CONNECTION_NOT_ACTIVE") {
+  if (code === "INVALID_ACCESS_TOKEN" || code === "POINTS_CONNECTION_NOT_ACTIVE") {
+    const resource = `${requireBindings(context.env).APP_ORIGIN}/api/v1`;
+    const challenge = createResourceServerChallenge(
+      new APIError("UNAUTHORIZED", {
+        error: "invalid_token",
+        error_description: "DPoP access token is required",
+        message: "Invalid access token",
+      }),
+      resource,
+    );
+    if (challenge) {
+      const wwwAuthenticate = new Headers(challenge.headers).get("WWW-Authenticate");
+      if (wwwAuthenticate) context.header("WWW-Authenticate", wwwAuthenticate);
+    }
     return problem(context, 401, "INVALID_ACCESS_TOKEN", "Invalid access token");
   }
   if (code === "POINT_RESERVATION_STATUS_INVALID") {
@@ -186,7 +197,7 @@ export function registerOAuthResourceRoutes(
         payloadHash,
         requestedScopes: body.requestedScopes,
         stateHash: body.stateHash,
-        userClientId: env.MARKETS_USER_OAUTH_CLIENT_ID,
+        userClientId: principal.clientId,
       });
       return context.json(
         {
@@ -230,6 +241,7 @@ export function registerOAuthResourceRoutes(
           data: {
             finalizedAt: finalizedAt.toISOString(),
             grantStatus: finalized.status === "CANCELLED" ? "CANCELLED" : "ACTIVE",
+            ...(finalized.status === "CANCELLED" ? {} : { grantVersion: finalized.grantVersion }),
             linkAttemptFinalizationReceiptId: `plf_${context.req.param("linkAttemptId")}`,
             linkAttemptId: context.req.param("linkAttemptId"),
             marketsPointsConnectionId: finalized.marketsPointsConnectionId,
@@ -260,6 +272,31 @@ export function registerOAuthResourceRoutes(
           data: { ...connection, linkedAt: connection.linkedAt.toISOString() },
           meta: { requestId: requestId(context) },
         },
+        200,
+        { "Cache-Control": "private, no-store" },
+      );
+    } catch (error) {
+      return mapError(context, error);
+    }
+  });
+
+  app.get("/api/v1/me/admin-membership", async (context) => {
+    try {
+      const env = requireBindings(context.env);
+      const principal = await authorize(context.req.raw, env, "USER", ["points.connection.read"]);
+      if (principal.kind !== "USER") throw new Error("INVALID_ACCESS_TOKEN");
+      const connection = await resolveActivePointsConnection(env.DB, {
+        issuer: principal.issuer,
+        pointsSubject: principal.subject,
+        userClientId: principal.clientId,
+      });
+      const membership = await env.DB.prepare(
+        "SELECT 1 FROM admin_membership WHERE points_user_id = ? AND role = 'ADMIN'",
+      )
+        .bind(connection.pointsUserId)
+        .first();
+      return context.json(
+        { data: { isAdmin: Boolean(membership) }, meta: { requestId: requestId(context) } },
         200,
         { "Cache-Control": "private, no-store" },
       );
@@ -328,6 +365,7 @@ export function registerOAuthResourceRoutes(
       const responseRequestId = requestId(context);
       if (body.deactivationKey !== key) throw new Error("IDEMPOTENCY_KEY_REUSED");
       const deactivated = await deactivatePointsConnection(env.DB, {
+        environment: env.APP_ENV,
         idempotencyKey: key,
         issuer: principal.issuer,
         pointsConnectionId: body.pointsConnectionId,
