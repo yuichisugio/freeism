@@ -8269,10 +8269,11 @@ flowchart TD
       - `TEXT`とし、`announcement.id`を参照する。
       - `ANNOUNCEMENT`では必須とする。
     - `target_type`
-      - `TEXT`とし、通知の対象の種類を入れる。
+      - `TEXT`とし、自動通知の対象の種類を入れる。
     - `target_id`
-      - `TEXT`とし、通知の対象のIDを入れる。
+      - `TEXT`とし、自動通知の対象のIDを入れる。
       - 外部キーは張らない。
+      - 2列は、`ANNOUNCEMENT`では`NULL`とし、対象を`announcement`から取得する。
     - `target_name`
       - `TEXT`とし、送信時に受信者が閲覧できた対象名を入れる。
       - 閲覧できなかった場合は`NULL`とする。
