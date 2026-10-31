@@ -6,6 +6,7 @@
   - [フォルダ構造](#フォルダ構造)
   - [初期設定](#初期設定)
   - [リリース運用](#リリース運用)
+  - [コミット前のチェック](#コミット前のチェック)
   - [CI の Cloudflare 認証](#ci-の-cloudflare-認証)
 
 ## 言語
@@ -60,6 +61,26 @@ mise run init
 リリース対象の変更では、`pnpm changeset` を実行し、対象アプリ、semver の更新種別、利用者向けの要約を入力します。生成された `.changeset/*.md` を通常のプルリクエストに含めてください。`main` へのマージ後、Changesets が Version PR を作成または更新します。Version PR をマージすると、パッケージのバージョンと `CHANGELOG.md` が確定します。文書のみ、CI のみ、Changesets 設定のみの変更では Changeset は不要です。
 
 このワークフローは npm 公開、Git タグ、GitHub Release を作成しません。
+
+## コミット前のチェック
+
+コミット前のチェックは、Vite+ の `vp staged` で行います。
+チェックの対象とコマンドは、ルートの `vite.config.ts` の `staged` に書きます。
+現在は `staged` を設定していないため、コミット前のチェックは動きません。
+
+チェックを追加するときは、次の 3 つを行います。
+
+1. ルートの `vite.config.ts` の `staged` に、対象のファイルとコマンドを書きます。
+2. `.vite-hooks/pre-commit` に `vp staged` を書き、リポジトリに含めます。
+3. `pnpm exec vp hooks enable` で、各クローンのフックを有効にします。
+
+```ts
+export default defineConfig({
+  staged: {
+    "projects/points-web-app/**/*.{ts,tsx}": "vp check --fix",
+  },
+});
+```
 
 ## CI の Cloudflare 認証
 

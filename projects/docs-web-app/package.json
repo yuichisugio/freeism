@@ -18,8 +18,7 @@
 		"smoke:staging": "node scripts/smoke-static-site.mjs --url https://staging.docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://staging.docs.freeism.app/en/ --link https://staging.docs.freeism.app/notes",
 		"smoke:production": "node scripts/smoke-static-site.mjs --url https://docs.freeism.app/ --canonical https://docs.freeism.app/ --text \"無料主義 v3\" --link https://docs.freeism.app/en/ --link https://docs.freeism.app/notes",
 		"lint:fix": "pnpm exec textlint --fix src/readme/README.ja.md && pnpm exec textlint --fix src/freeism.ja.md",
-		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md",
-		"lint-staged": "lint-staged"
+		"lint": "pnpm exec textlint src/readme/README.ja.md && pnpm exec textlint src/freeism.ja.md"
 	},
 	"keywords": [],
 	"devDependencies": {
@@ -29,8 +28,6 @@
 		"@textlint-ja/textlint-rule-no-insert-dropping-sa": "^1.0.1",
 		"astro": "^7.0.9",
 		"blume": "^1.0.3",
-		"husky": "^5.0.0-alpha.6",
-		"lint-staged": "^15.3.0",
 		"textlint": "^11.6.3",
 		"textlint-filter-rule-comments": "^1.2.2",
 		"textlint-filter-rule-whitelist": "^2.0.0",

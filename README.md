@@ -5,6 +5,7 @@
   - [Overview](#overview)
   - [Folder structure](#folder-structure)
   - [Release workflow](#release-workflow)
+  - [Pre-commit checks](#pre-commit-checks)
   - [Cloudflare credentials for CI](#cloudflare-credentials-for-ci)
 
 ## Language
@@ -50,6 +51,13 @@ freeism/
 For release-relevant changes, run `pnpm changeset`, select the affected application and semver bump, then add the generated `.changeset/*.md` with a user-facing summary to the usual pull request. After it merges to `main`, Changesets creates or updates a Version PR. Merging that PR finalizes package versions and `CHANGELOG.md` files. Documentation-only, CI-only, and Changesets-configuration changes do not need a Changeset.
 
 This workflow does not publish to npm or create Git tags or GitHub Releases.
+
+## Pre-commit checks
+
+Pre-commit checks run through Vite+ `vp staged`, configured in the `staged` block of the root `vite.config.ts`.
+No `staged` rules are configured yet, so no pre-commit check runs.
+To add one, write the rule in `staged`, commit `.vite-hooks/pre-commit` containing `vp staged`, and run `pnpm exec vp hooks enable` in each clone.
+See the [Japanese README](docs/README.ja.md#コミット前のチェック) for an example.
 
 ## Cloudflare credentials for CI
 
