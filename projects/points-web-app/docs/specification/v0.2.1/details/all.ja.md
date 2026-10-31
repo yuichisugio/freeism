@@ -1225,7 +1225,7 @@ flowchart TD
   - 存在しないID、重複ID、本人以外を対象にした要求を拒否する。
   - 新しく登録する非公開パッケージは、本人の編集権限を検証する。
   - 公開時から登録済みのパッケージは、非公開になっても保持できる。
-  - 本人の自動分配設定の`version`で競合を検査する。
+  - 保存の競合は検査せず、あとから保存した内容を確定する。
 
 - 設定
   - 利用者は画面のフォームで、公式パッケージ、自動分配の有効・無効、分配する割合または固定額を設定する。
@@ -4694,7 +4694,7 @@ flowchart TD
 | ポイント交換のフォーム確定                    | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、冪等性キー                                                               |
 | 譲渡フォームの確定                            | 譲渡フォームの確認・確定                                                                                            | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                                                             |
 | 利用者CSV確定                                 | `POST /api/{transfers,exchanges}/csv/commit`                                                                        | 本人、冪等性キー                                                                                               |
-| 自動分配設定の保存                            | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証、`version`の競合検査                                                                  |
+| 自動分配設定の保存                            | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証                                                                                 |
 | JSON設定復元の確認・確定                      | `QUERY /api/settings/restore/validate`、`POST /api/settings/restore/commit`                                         | 本人、各設定の管理権限、確定時の冪等性キー                                                                     |
 | 管理者のお知らせの確認・送信                  | `QUERY /api/v1/announcements/preview`、`POST /api/v1/announcements`                                                 | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                               |
 | 接続先Accountsの作成／有効化／取り下げ        | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、作成は取り下げていない接続先のoriginの一意制約、有効化・取り下げは`version`の競合検査              |
@@ -7924,24 +7924,12 @@ flowchart TD
     - `effective_at`
       - `INTEGER NOT NULL`とし、確定日時を入れる。
 
-- `auto_distribution_setting`
-  - 説明
-    - 本人の自動分配設定の業務レコードとし、競合検査用の`version`と作成・更新日時だけを持つ。
-    - 行がなければ、自動分配は無効とする。
-    - 操作の決まりは[公式パッケージの設定・自動分配](#公式パッケージの設定自動分配)で定める。
-  - カラム
-    - `user_id`
-      - `TEXT`の主キーとし、`user.id`を参照する。
-    - `version`
-      - 公式パッケージの登録と自動分配設定の競合検査に使う。
-    - `created_at`
-      - `INTEGER NOT NULL`とし、作成日時を入れる。
-    - `updated_at`
-      - `INTEGER NOT NULL`とし、最終更新日時を入れる。
-
 - `auto_distribution_setting_version`
   - 説明
     - 本人の自動分配設定の版とし、登録の表示順を除き不変とする。
+    - 行がなければ、自動分配は無効とする。
+    - 保存の競合は検査せず、あとから保存した内容で新しい版を確定する。
+    - 操作の決まりは[公式パッケージの設定・自動分配](#公式パッケージの設定自動分配)で定める。
     - 退会と全登録解除では、パッケージ0件で自動分配を無効にした版を追加する。
     - `(user_id, effective_at)`を一意にする。
   - カラム
@@ -7959,7 +7947,7 @@ flowchart TD
     - `effective_at`
       - `INTEGER NOT NULL`とし、適用開始時刻を入れる。
 
-- `auto_distribution_setting_version_package`
+- `auto_distribution_target_version`
   - 説明
     - 版ごとの公式パッケージの登録を最大100件保存する。
     - 主キーは`(auto_distribution_setting_version_id, point_package_id)`とする。
@@ -8588,3 +8576,5 @@ flowchart TD
 - 全テーブル・全カラムを[テーブル・データ構造](#テーブルデータ構造)に定める。独自テーブルの名前を単数形の`snake_case`にし、計算設定の版を評価軸・パッケージ・月別設定・本人設定ごとの版テーブルに分ける。ポイントの増減を伴う操作の入力・照合・受領の情報は`point_ledger_entry`へ集約し、本人が決まったら対象の全行の`user_id`を更新する。本人・ログイン手段・Accounts連携・管理権限・OAuthは、Better Authの標準テーブルとPointsの追加列で表す。
 
 - Pointsが発行するRefresh Tokenの有効期間を90日、入れ替え済みのRefresh Tokenによる再送の猶予を30秒と定める。
+
+- 本人の自動分配設定は版のテーブル`auto_distribution_setting_version`と登録の`auto_distribution_target_version`だけで表し、保存の競合は検査しない。
