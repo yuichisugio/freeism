@@ -8053,7 +8053,8 @@ Resource APIは、次の条件を検証します。
 - 標準の`verifyAccessTokenRequest`で、Better Auth標準JWKSによるJWT署名とDPoPを検証します。JWKSの取得先を`jwksUrl`へ指定し、`remoteVerify`は省略します。
 - issuer、Points API audience、期限、Client ID、必要なscope、DPoP proofの鍵結合と再送を検査します。
 - 利用者Tokenには有効なPoints本人と利用者用scopeを要求し、利用者本人の現在の利用可否と対象操作の権限を確認します。退会・ログイン停止中の本人による新規利用を拒否します。
-- 別resourceのTokenと未定義scopeを拒否します。`points`と認可済みの標準scopeは併用できます。
+- 本人とクライアントの`oauth_consent`が残っていて、必要なscopeを含むことを確認します。同意を取り消した後は、発行済みのJWTとRefresh Tokenで更新したトークンを拒否します。
+- 別resourceのTokenと未定義scopeを拒否します。`points:read`・`points:edit`・`points:admin`と認可済みの標準scopeは併用できます。
 
 Points API resourceは`oauthProvider`の`resources`で`dpopBoundAccessTokensRequired: true`とし、DPoPの鍵に結び付かないTokenを発行しません。Token取得、資源API要求、refreshには同じDPoP鍵を使います。資源APIには、`Authorization: DPoP`と`DPoP`ヘッダーを送ります。一括精算でのトークンとproofの渡し方は、[落札精算の引き落とし](#落札精算の引き落とし)に記載します。
 
@@ -8083,7 +8084,7 @@ Points API resourceは`oauthProvider`の`resources`で`dpopBoundAccessTokensRequ
 
 ### 同意と連携の開始
 
-- 初回と認可するscopeの追加時には、Points側で明示的な同意画面を表示する。`points`について、非公開を含む本人用情報の取得、設定変更、譲渡・交換・精算・退会、本人が管理できる対象への操作を委任することを説明する。`profile`による表示名の提供と、`offline_access`によるオフライン利用も別に説明する。
+- 初回と認可するscopeの追加時には、Points側で明示的な同意画面を表示する。`points:read`・`points:edit`・`points:admin`について、それぞれ委任する操作を説明する。`points:edit`には落札の引き落としが含まれることを示す。`profile`による表示名の提供と、`offline_access`によるオフライン利用も別に説明する。
 - 同意画面の表示前に、Pointsサーバーが標準の`verifyOAuthQueryParams`と`auth.$context`の`secret`で署名付きクエリを検証する。改変・期限切れの場合は画面を表示せず、連携を最初からやり直すよう案内する。
 - 検証済みのクエリから要求されたscope・claimsを表示し、アプリ名などの公開情報は標準の`auth.api.getOAuthClientPublic`で取得する。表示前にはログインと本人の利用可否も検証する。
 - 承認・拒否は標準の`authClient.oauth2.consent`で確定する。署名の検証だけで認可を許可せず、クライアント・scopeなどの検証と同意の保存には標準の認可処理を使う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#consent-screen)
@@ -8145,11 +8146,6 @@ sequenceDiagram
 
 ### 落札精算の引き落とし
 
-`POST /api/v1/settlement-debits`
-
-- `operationId`は`debitPointSettlement`、成功は200、本文上限は1,048,576バイトとする。
-  - `Idempotency-Key`を必須とする。
-
 - Marketsは一つの競売の全落札者を一つの要求で送る。
   - 例えば、同じ競売で田中さんが60ポイント、佐藤さんが30ポイントを支払う場合、その二人分をまとめて送る。
   - 別の競売や別のMarketsサービスの落札者は、それぞれの精算要求へ分ける。
@@ -8158,33 +8154,24 @@ sequenceDiagram
 - 各落札者のトークンとDPoP署名で認可を確かめ、呼び出し元もトークンから決める。
   - Marketsは、各落札者の利用者アクセストークンと、そのトークンに対応する今回の要求のDPoP署名を送る。
   - 各トークンとDPoP署名はBetter Authの公開API`verifyAccessTokenRequest`で検証する。
-  - JWTの署名・発行者・宛先・期限・クライアント・権限`points`と、DPoPの鍵結合・HTTPメソッド`POST`・URL・トークンとの対応・再送を検証する。
+  - JWTの署名・発行者・宛先・期限・クライアント・権限`points:edit`と、DPoPの鍵結合・HTTPメソッド`POST`・URL・トークンとの対応・再送を検証する。
   - 複数のWorkerでDPoPの再送を検出できるよう、`dpop.replayStore`にはBetter Auth標準のDB保存を使う。
   - 各人のトークンと署名を一つのJSON本文へまとめる形式は、標準のJWT・DPoP検証規則を利用する承認済みの独自APIとする。
   - トークンと署名は検証にだけ使い、ポイント増減履歴・ログ・応答へ保存しない。
-
-- 要求には落札者ごとに評価軸IDと必要額を指定する。
-  - 本文には`winners`、ヘッダーには`Idempotency-Key`を必須とする。
-  - `winners`は1件以上とし、各要素には`accessToken`、`dpopProof`、`components`を必須とする。
-  - 再送でも新規の精算と同じく全要素にトークンと署名を付ける。
-    - DPoP署名は再送のたびに作り直し、期限切れのトークンは更新して送る。
-  - 支払名義は検証済みトークンの`sub`が示すPoints本人とする。
-  - `components`は1件以上の`{evaluationCriterionId, requiredAmount}`とし、共通の金額表現・桁数と重複軸の検証を行う。
-  - 必要額が0の行も含め、要求に指定した全評価軸の存在と現在状態を検証する。
 
 - Pointsは、次の順で処理する。
   1. 要求の形式を検証し、各落札者のトークンとDPoP署名を検証する。検証できない落札者がいれば、その落札者の拒否理由を`AUTHORIZATION_UNAVAILABLE`とし、要求全体を拒否する。
   2. 全トークンの`client_id`が同じであることを確かめ、その値を呼び出し元のClient IDとする。違えば`403 ACCESS_TOKEN_CLIENT_MISMATCH`で要求全体を拒否する。
   3. 呼び出し元Client IDの枠で、共通の要求回数制限を1回確認する。
-  4. `idempotency_result`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の評価軸ごとの必要額を照合する。
+  4. `idempotency_result`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の支払名義（トークンの`sub`）と評価軸ごとの必要額を照合する。
   5. 有効な結果と内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じならその結果を返し、本人の現在の利用可否・残高・評価軸の現在状態・最小単位を再検査しない。
   6. 有効な結果がなければ、本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
   7. 全件が条件を満たせば、引き落とし・ポイント増減履歴・`idempotency_result`の結果を一括確定する。
 
 - 精算の再送照合は共通の`idempotency_result`で行う。
   - 正規化では各落札者の`components`を評価軸ID順へそろえ、金額の表記を統一する。
-  - `winners`は要求の配列順のまま比べる。
-  - トークンとDPoP署名は内容照合の対象から外す。
+  - `winners`は要求の配列順のまま比べ、各落札者の検証済みトークンの`sub`と`components`を照合する。
+  - トークンとDPoP署名の文字列は内容照合の対象から外す。
   - 同じキーの要求が同時に届いても、確定する引き落としは一回とする。
   - 精算の確定結果は、呼び出し元Client IDと各落札者のポイント増減履歴として保持する。
   - 受領証の番号はPointsで発行せず、成功応答を受けたMarketsが発行する。
@@ -8204,25 +8191,66 @@ sequenceDiagram
   - 指定軸が完全削除されていれば新しい精算を拒否する。
   - 確定済みの精算結果は停止・非公開化・削除後も業務記録として保持し、有効な冪等性結果があれば同じ要求の再送にその結果を返す。
 
-- 指定した評価軸が停止中なら`409 EVALUATION_CRITERION_INACTIVE`を返す。
-  - 存在しない評価軸は`404 RESOURCE_NOT_FOUND`とする。
-  - これらは要求全体の精算失敗として返し、特定の落札者だけのエラーにはしない。
-
 - 精算結果が不明な場合は、再送保証の有効期間内に、同じ`winners`の`components`と同じ冪等性キーで結果を確認する。
   - トークンとDPoP署名の検証での拒否は、精算が確定済みかどうかを示さない。
 
-- 認可が無効、または本人がログイン停止中の落札者がいれば`409 AUTHORIZATION_UNAVAILABLE`、残高が足りない落札者がいれば`409 INSUFFICIENT_BALANCE`とする。
-  - 両方いる場合も、拒否された落札者ごとに`reason`で分ける。
-  - 追加項目`rejectedWinners`は`index`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`index`昇順で返す。
-  - `index`は拒否された落札者の`winners`での0始まりの配列位置とする。
-  - 空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
+#### `POST /api/v1/settlement-debits`
 
-- 成功時の`data`は`status`と`debitedAt`だけとする。
-  - `status`は`DEBITED`、`debitedAt`は引き落としを確定した日時とする。
+- 説明
+  - 落札を一括で引き落とす。operationId は`debitPointSettlement`。
+  - 認証・権限は、本文で受け取る各落札者の`points:edit` scopeのAccess TokenとDPoP署名とする。Cookieと`Authorization`ヘッダーは使わない。
+  - 要求には落札者ごとに評価軸IDと必要額を指定する。
+  - 支払名義は検証済みトークンの`sub`が示すPoints本人とする。
+  - 必要額が0の行も含め、要求に指定した全評価軸の存在と現在状態を検証する。
+  - `version`と`validationHash`は要らない。
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須）
+  - ボディー
+
+    | 項目                                           | 型           | 必須 | 説明                                                              |
+    | ---------------------------------------------- | ------------ | ---- | ----------------------------------------------------------------- |
+    | `winners`                                      | `object[]`   | 必須 | 落札者ごとの引き落とし内容。1件以上                               |
+    | `winners[].accessToken`                        | `string`     | 必須 | 落札者の利用者アクセストークン                                    |
+    | `winners[].dpopProof`                          | `string`     | 必須 | そのトークンに対応する今回の要求のDPoP署名                        |
+    | `winners[].components`                         | `object[]`   | 必須 | 評価軸ごとの必要額。1件以上。同じ落札者の中で評価軸を重複させない |
+    | `winners[].components[].evaluationCriterionId` | `string`     | 必須 | 引き落とす評価軸のID                                              |
+    | `winners[].components[].requiredAmount`        | 金額の文字列 | 必須 | 必要額。0以上                                                     |
+
+  - 再送でも新規の精算と同じく全要素にトークンと署名を付ける。
+    - DPoP署名は再送のたびに作り直し、期限切れのトークンは更新して送る。
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目        | 型                   | 説明                                       |
+    | ----------- | -------------------- | ------------------------------------------ |
+    | `status`    | `DEBITED`            | 精算の状態。引き落としを確定したことを表す |
+    | `debitedAt` | `string`（RFC 3339） | 引き落としを確定した日時                   |
+
+    `meta`は`requestId`だけとする。
+
+  - 失敗時
+
+    | 状態 | コード                          | 起きる場合                                           |
+    | ---- | ------------------------------- | ---------------------------------------------------- |
+    | 400  | `IDEMPOTENCY_KEY_REQUIRED`      | `Idempotency-Key`がない                              |
+    | 403  | `ACCESS_TOKEN_CLIENT_MISMATCH`  | トークンの`client_id`が混在している                  |
+    | 404  | `RESOURCE_NOT_FOUND`            | 指定した評価軸が存在しない                           |
+    | 409  | `AUTHORIZATION_UNAVAILABLE`     | 認可が無効、または本人がログイン停止中の落札者がいる |
+    | 409  | `INSUFFICIENT_BALANCE`          | 残高が足りない落札者がいる                           |
+    | 409  | `EVALUATION_CRITERION_INACTIVE` | 指定した評価軸が停止中                               |
+    | 409  | `IDEMPOTENCY_KEY_REUSED`        | 同じキーで内容が違う                                 |
+    | 422  | `VALIDATION_FAILED`             | 必要額の書式・範囲・重複軸が不正                     |
+    | 429  | `RATE_LIMITED`                  | 呼び出し元Client IDの回数制限を超えた                |
+    - `EVALUATION_CRITERION_INACTIVE`と`RESOURCE_NOT_FOUND`は要求全体の精算失敗として返し、特定の落札者だけのエラーにはしない。
+    - `AUTHORIZATION_UNAVAILABLE`と`INSUFFICIENT_BALANCE`の落札者が両方いる場合も、拒否された落札者ごとに`reason`で分ける。
+    - 追加項目`rejectedWinners`は`index`と`reason`（`AUTHORIZATION_UNAVAILABLE`または`INSUFFICIENT_BALANCE`）だけを、`index`昇順で返す。
+      - `index`は拒否された落札者の`winners`での0始まりの配列位置とする。
+      - 空配列は返さない。残高、評価軸、必要額、Pointsの利用者IDは返さない。
 
 - 要求と応答の例
   - トークン・DPoP署名・ID・`title`の文言は説明用の値とする。
-  - 応答には共通の`X-Request-Id`と`Cache-Control: private, no-store`を付ける。
 
   | 場面                                     | 状態コード・`code`                  | 補足                                |
   | ---------------------------------------- | ----------------------------------- | ----------------------------------- |
@@ -8693,7 +8721,7 @@ points-web-app/
         - `auth/`
           - 説明
             - 認証済み本人のID・Client ID・IPなど、操作主体を確認する。
-            - Cookieセッションと`points` scopeのOAuth認証の合成、DPoP付きトークンの検証の呼び出し、権限の確認。
+            - Cookieセッションと、操作に必要なscopeのOAuth認証の合成、DPoP付きトークンの検証の呼び出し、権限の確認。
         - `csv/`
           - 説明
             - CSVを入力の変換として解析・検証する。
@@ -9282,30 +9310,30 @@ flowchart TD
     - `description`
       - Pointsの追加列とする。
       - `TEXT NOT NULL DEFAULT ''`とし、0〜500文字の本人の説明を入れる。
-    - `profile_visibility`
+    - `is_profile_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - プロフィール全体の公開範囲を表す。
-    - `basic_info_visibility`
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - プロフィール全体を公開するかを表す。
+    - `is_basic_info_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - 基本情報区画の公開範囲を表す。
-    - `point_list_visibility`
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - 基本情報区画を公開するかを表す。
+    - `is_point_list_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - ポイント一覧区画の公開範囲を表す。
-    - `point_packages_visibility`
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - ポイント一覧区画を公開するかを表す。
+    - `is_point_packages_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - 公式パッケージ区画の公開範囲を表す。
-    - `connections_visibility`
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - 公式パッケージ区画を公開するかを表す。
+    - `is_connections_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - 連携情報区画の公開範囲を表す。
-    - `history_visibility`
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - 連携情報区画を公開するかを表す。
+    - `is_history_public`
       - Pointsの追加列とする。
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-      - 履歴区画の公開範囲を表す。
+      - `INTEGER NOT NULL DEFAULT 0`とし、真偽値を0・1で入れる。
+      - 履歴区画を公開するかを表す。
 
 - `session`
   - 説明
@@ -10086,8 +10114,8 @@ flowchart TD
     - `status`
       - `TEXT NOT NULL DEFAULT 'INACTIVE'`とし、値は`ACTIVE | INACTIVE`とする。
       - 最新バージョンの`status`と同じbatchで一致させる。
-    - `visibility`
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `is_public`
+      - `INTEGER NOT NULL DEFAULT 0`とし、評価軸を公開するかを表す。
     - `transfer_enabled`
       - `INTEGER NOT NULL DEFAULT 1`とし、譲渡の可否を表す。
     - `exchange_enabled`
@@ -10150,8 +10178,8 @@ flowchart TD
     - `status`
       - `TEXT NOT NULL DEFAULT 'INACTIVE'`とし、値は`ACTIVE | INACTIVE`とする。
       - 最新バージョンの`status`と同じbatchで一致させる。
-    - `visibility`
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `is_public`
+      - `INTEGER NOT NULL DEFAULT 0`とし、パッケージを公開するかを表す。
     - `version`
       - 更新・停止・再開・完全削除の競合検査に使う。
     - `updated_by_user_id`
@@ -10250,7 +10278,7 @@ flowchart TD
     - 月別設定の確定・再計算ごとの不変のバージョンとする。
     - 代用評価と方式切替の履歴行は、訂正の契機としてこのバージョンを参照する。
     - `(target_evaluation_criterion_id, evaluation_month, effective_at)`を一意にする。
-    - CSVで確定したバージョンは`(actor_user_id, idempotency_key, csv_row_number)`の部分一意索引で識別する。
+    - 確定要求ごとのバージョンは`(actor_user_id, idempotency_key, target_evaluation_criterion_id, evaluation_month)`の一意索引で識別する。
   - カラム
     - `id`
       - `TEXT`の主キーとし、`mesver_`付きUUIDを入れる。
@@ -10272,7 +10300,7 @@ flowchart TD
     - `request_id`
       - `TEXT NOT NULL`とし、確定した通信の`requestId`を入れる。
     - `idempotency_key`
-      - `TEXT`とし、CSVで確定した場合に`Idempotency-Key`を入れる。
+      - `TEXT NOT NULL`とし、確定したフォーム・CSVの要求の`Idempotency-Key`を入れる。
     - `csv_row_number`
       - `INTEGER`とし、CSVで確定した場合に元の行番号を入れる。
     - `effective_at`
@@ -10329,10 +10357,10 @@ flowchart TD
       - `TEXT NOT NULL`とし、`user.id`を参照する。
     - `evaluation_criterion_id`
       - `TEXT NOT NULL`とし、`evaluation_criterion.id`を`CASCADE`で参照する。
-    - `balance_visibility`
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
-    - `evaluation_total_visibility`
-      - `TEXT NOT NULL DEFAULT 'PRIVATE'`とし、値は`PUBLIC | PRIVATE`とする。
+    - `is_balance_public`
+      - `INTEGER NOT NULL DEFAULT 0`とし、残高を公開するかを0・1で入れる。
+    - `is_evaluation_total_public`
+      - `INTEGER NOT NULL DEFAULT 0`とし、累計評価額を公開するかを0・1で入れる。
     - `updated_at`
       - `INTEGER NOT NULL`とし、最終更新日時を入れる。
 
@@ -10501,7 +10529,8 @@ flowchart TD
   - 説明
     - 再送に返す確定結果を保存する。
     - 業務変更と同じbatchで保存する。
-    - 有効期間は24時間とし、延長しない。
+    - 有効期間は完了から24時間とし、延長しない。
+      - 未完了の結果は完了するまで削除しない。
       - 期限切れの行は日次Cronで削除し、同じ識別範囲の期限切れ行は新しい結果で置き換える。
     - 部分一意索引を2本設ける。
       - 本人の操作は`(user_id, operation, idempotency_key)`を一意にする。
@@ -10518,23 +10547,26 @@ flowchart TD
       - `user_id`と`client_id`のどちらか一方だけを持つことを`CHECK`で検査する。
     - `operation`
       - `TEXT NOT NULL`とし、操作の種別を入れる。
-      - 値は`EVALUATION_CRITERION_CREATE`・`POINT_PACKAGE_CREATE`・`DIRECT_EVALUATION_COMMIT`・`TRANSFER_COMMIT`・`EXCHANGE_COMMIT`・各`*_CSV_COMMIT`・`ANNOUNCEMENT_SEND`・`SETTINGS_RESTORE_COMMIT`・`SETTLEMENT_DEBIT`とする。
+      - 値は次のとおりとする。
+        - フォームの作成・確定：`EVALUATION_CRITERION_CREATE`・`POINT_PACKAGE_CREATE`・`DIRECT_EVALUATION_COMMIT`・`MONTHLY_EVALUATION_SETTING_COMMIT`・`TRANSFER_COMMIT`・`EXCHANGE_COMMIT`・`CLAIM_COMMIT`
+        - CSVの確定：`EVALUATION_CRITERION_CSV_COMMIT`・`POINT_PACKAGE_CSV_COMMIT`・`DIRECT_EVALUATION_CSV_COMMIT`・`MONTHLY_EVALUATION_SETTING_CSV_COMMIT`・`EXCHANGE_RATE_CSV_COMMIT`・`TRANSFER_CSV_COMMIT`・`EXCHANGE_CSV_COMMIT`
+        - そのほか：`ANNOUNCEMENT_SEND`・`SETTINGS_RESTORE_COMMIT`・`SETTLEMENT_DEBIT`
     - `idempotency_key`
       - `TEXT NOT NULL`とし、1〜255文字の`Idempotency-Key`を入れる。
     - `request_hash`
       - `TEXT NOT NULL`とし、正規化した要求内容のSHA-256を16進64文字で入れる。
     - `result_status`
-      - `INTEGER NOT NULL`とし、初回のHTTP状態コードを100〜599で入れる。
+      - `INTEGER NOT NULL`とし、保存した最新のHTTP状態コードを100〜599で入れる。
     - `result_id`
-      - `TEXT`とし、初回の結果IDを入れる。
+      - `TEXT`とし、保存した最新の結果IDを入れる。
     - `result_body`
-      - `TEXT NOT NULL`とし、初回の`data`をJSONで入れる。
+      - `TEXT NOT NULL`とし、保存した最新の`data`をJSONで入れる。
       - `json_valid`で検査する。
     - `created_at`
       - `INTEGER NOT NULL`とし、確定日時を入れる。
     - `expires_at`
-      - `INTEGER NOT NULL`とし、`created_at`に86,400,000を足した有効期限を入れる。
-      - この関係を`CHECK`で検査する。
+      - `INTEGER`とし、完了を保存した日時に86,400,000を足した有効期限を入れる。
+      - `result_body`の`completion`が`INCOMPLETE`の間は`NULL`とする。
 
 - `accounts_connection`
   - 説明
@@ -10633,10 +10665,10 @@ flowchart TD
       | `ANNOUNCEMENT`         | `{"targets":[{"type":"EVALUATION_CRITERION","id":"ec_a","name":"貢献ポイント"}],"detail":null}`                                                                                                                   |
       | `POINT_RESULT`         | `{"targets":[{"type":"EVALUATION_CRITERION","id":"ec_a","name":"貢献ポイント"},{"type":"EVALUATION_CRITERION","id":"ec_b","name":null}],"detail":{"operation":"EXCHANGE","amounts":{"ec_a":"-100","ec_b":"50"}}}` |
       | `ADMIN_ROLE_CHANGE`    | `{"targets":[{"type":"EVALUATION_CRITERION","id":"ec_a","name":"貢献ポイント"}],"detail":{"change":"ADDED"}}`                                                                                                     |
-      | `TARGET_STATUS_CHANGE` | `{"targets":[{"type":"POINT_PACKAGE","id":"pkg_x","name":null}],"detail":{"status":"STOPPED"}}`                                                                                                                   |
+      | `TARGET_STATUS_CHANGE` | `{"targets":[{"type":"POINT_PACKAGE","id":"pkg_x","name":null}],"detail":{"status":"INACTIVE"}}`                                                                                                                  |
 
     - `read_at`
-      - `INTEGER`とし、既読にした日時を入れる。
+      - `INTEGER`とし、既読にした日時を入れる。未読では`NULL`とし、未読に戻したときも`NULL`にする。
     - `created_at`
       - `INTEGER NOT NULL`とし、受信日時を入れる。
 
@@ -10649,7 +10681,7 @@ flowchart TD
       - JSON復元のID対応表と、利用者が同意した規約のバージョン
       - 削除したID
       - 評価軸・パッケージなどの設定変更の入力と確定結果
-      - `amountUnit`・`packageTick`・`totalWeight`・`spendableBalance`・匿名名・交換の適用倍率
+      - `amountUnit`・`totalWeight`・`spendableBalance`・匿名名・交換の適用倍率
       - 分配の計算内訳
       - 受領件数の集計
       - 競売データと受領証の番号
@@ -10680,13 +10712,13 @@ flowchart TD
 - 旧CSVスナップショット・運用アラート・予約・利用可否受領証の保存構造とAPIは、v0.2.1で削除する。
   - 対象は`csv_export_snapshot`・`csv_export_snapshot_row`、`ops_alert`、予約・予約内訳・capture・capture明細・予約イベント・予約状態、利用可否受領証の専用冪等性結果・受領証・明細である。
 
-- 直接評価はフォーム・CSVから独立した評価として追加し、登録済みの額・宛先・評価軸・対象月を保持する。調整分も新しい正・負の評価として追加する。直接評価CSVは全10列の見出しを必須とし、使わない宛先欄を空欄にする。外部宛先の未受領分は宛先別に計算し、本人へ移した分から本人単位で合算する。
+- 直接評価はフォーム・CSVから独立した評価として追加し、登録済みの額・宛先・評価軸・対象月を保持する。調整分も新しい正・負の評価として追加する。フォームは1つの評価軸への1〜100件を1回の要求で確認・登録し、記載順に確定する。直接評価CSVは全10列の見出しを必須とし、使わない宛先欄を空欄にする。外部宛先の未受領分は宛先別に計算し、本人へ移した分から本人単位で合算する。
 
-- 受領の確定要求は現在の本人認証を確認し、初回対象行の受領日時・versionと確定履歴で二重反映を防ぎ、未完了の後続処理を再開する。受領済みの対象への再送は、受領件数0の正常完了とする。新しい受領では連携・受領対象を再検証・再計算し、正常な受領対象0件と必要な更新対象の不存在を区別する。
+- 受領の確定要求は現在の本人認証を確認し、`Idempotency-Key`と、初回対象行の受領日時・versionと確定履歴で二重反映を防ぎ、未完了の後続処理を同じキーの再送で再開する。受領済みの対象への再送は、受領件数0の正常完了とする。新しい受領では連携・受領対象を再検証・再計算し、正常な受領対象0件と必要な更新対象の不存在を区別する。
 
-- 本人操作の受領では帰属・受領を確定してから、分配・関連取引の訂正を段階的に進める。確認画面と実行結果には、処理の進捗を表示する。
+- 本人操作の受領では帰属・受領を確定してから、分配・関連取引の訂正を段階的に進める。実行結果には分配・訂正の未完了と完了を表示する。
 
-- 本人宛てに確定した未受領分と、Accountsで本人のものと確認する分は、共通の「未受領ポイントを受け取る」操作と確認手順で扱う。画面が内部で連携を指定し、本人宛てに確定した分はAccounts連携なしでも受領できる。連携指定の`id`には、Google・GitHubのログイン用行と同じBetter Auth標準の`account`テーブルにある、Accounts連携用の行の`id`カラムを使う。
+- 本人宛てに確定した未受領分と、Accountsで本人のものと確認する分は、共通の「未受領ポイントを受け取る」操作と確認手順で扱う。画面が内部で連携を指定し、本人宛てに確定した分はAccounts連携なしでも受領できる。連携指定の`accountsLinkId`には、Google・GitHubのログイン用行と同じBetter Auth標準の`account`テーブルにある、Accounts連携用の行の`id`カラムを使う。
 
 - 評価軸の停止は、新しい決済の引き落としを拒否し、新規分配の計算元から除外する状態とする。残った有効な計算元の割合を100％へ正規化し、計算元が残らなければ分配を開始せず本人に残す。停止中も設定変更・再計算・直接付与・自動訂正・受領・その種類のポイントの自動分配・再分配・譲渡・交換・代用元の参照を行える。軸の利用状態も計算設定のバージョンに保存し、過去訂正・遅延受領には元取引の基準時刻の状態を使う。パッケージ・OAuthクライアント・Accounts接続先・本人の停止は、それぞれの利用条件を維持する。
 
@@ -10694,7 +10726,7 @@ flowchart TD
 
 - 未受領の評価・自動分配・再分配も、各対象の額と自動計算による訂正差額をポイント増減履歴へ保存する。直接評価の調整分は別の初回履歴IDで保持する。受領時は対象ごとの既存履歴を本人へ紐づけ、その合計額を一度だけ反映する。発生日時と受領日時を区別して表示する。
 
-- 一覧は検索API、利用者の詳細は`/api/v1/users/{userId}`、履歴はその配下の`/history`へ整理する。パッケージ詳細は`/api/v1/point-packages/{pointPackageId}`とし、評価軸・パッケージの詳細には展開後の計算情報を常に返す。`amountUnit`・`packageTick`はDBに保存せず、応答のたびに求める。
+- 一覧は検索API、利用者の詳細は`/api/v1/users/{userId}`、履歴はその配下の`/history`へ整理する。パッケージ詳細は`/api/v1/point-packages/{pointPackageId}`とし、評価軸・パッケージの詳細には、表示と出品の計算に共用する展開後の`calculation`を常に返す。
 
 - Pointsの検索・詳細取得は、評価軸単体とネストしたパッケージに対応し、公開範囲と本人の権限に応じて展開後の計算情報を返す。
 
@@ -10708,13 +10740,26 @@ flowchart TD
 
 - API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは外部サービスのサーバーから取得でき、最新の公開条件で応答する。外部サイトのバッジにはShields.ioが取得したJSONから生成する画像を使う。
 
+- Points独自APIの経路と入出力を各機能のAPIの節で定める。
+  - 経路を`/api/v1`にそろえ、本人だけの操作を`/api/v1/me`、`appAdmin`だけの操作を`/api/v1/admin`に置く。公開の取得と管理の更新・削除は同じ経路でメソッドを分け、`except()`の条件はメソッドと経路で判定する関数にする。
+  - 共通のエラーコードに`PERMISSION_DENIED`・`ACCOUNT_CLOSED`・`VERSION_CONFLICT`・`CONFIRMATION_CHANGED`を加え、Accountsなど外部サービスとの通信の失敗を`DEPENDENCY_UNAVAILABLE`にそろえる。
+  - 確認と確定の照合を、確認の`QUERY`が返す`validationHash`と`409 CONFIRMATION_CHANGED`にそろえる。受領、設定復元、お知らせ、CSV、交換、譲渡、直接評価、月別評価方式が対象である。
+  - CSVの経路を`QUERY /api/v1/csv-imports/{operation}/preview`と`POST /api/v1/csv-imports/{operation}`の形にまとめ、入力エラーのコードを`422 VALIDATION_FAILED`と`errors[]`にそろえる。
+  - 分配・訂正を伴う確定は、上限の手前で止めたら通常の成功で`completion: INCOMPLETE`を返し、本人が同じ`Idempotency-Key`で再送して続きを進める。本人が再送しない間は未完了のまま残す。画面は未完了の要求を`localStorage`に保存し、タブを閉じた後も同じキーで再送できるようにする。フォームの譲渡の受取人の自動分配と日次Cronの処理の続きは、次の日次Cronが進める。
+  - 管理者の追加・解除・退出を、評価軸・パッケージ・OAuthクライアントの`.../{id}/admins`にそろえる。追加は新規なら201、既存なら200とし、人数の上限は`409 ADMIN_LIMIT_REACHED`、管理者にできない相手は`409 ADMIN_TARGET_UNAVAILABLE`とする。
+  - OAuthクライアントの登録・一覧・更新・一時停止・再開・削除をPointsの独自APIにし、標準の作成・更新・削除のHTTP経路を`disabledPaths`で止める。
+  - 公式パッケージの登録・表示順・配分割合と自動分配設定を、1つの`PUT /api/v1/me/auto-distribution-setting`で保存する。
+  - 本人の連携一覧を、利用者の詳細APIの本人用の応答にまとめる。
+  - 別タブでアカウントを切り替えたときは、切り替えたタブがBetter Authの`getGlobalBroadcastChannel()`でほかのタブへ知らせ、本人が変わったタブは画面全体を読み込み直す。
+  - `version`を持つ対象の完全削除は、URLのクエリ`expectedVersion`で競合を検査する。
+
 - Points–Markets連携は複数名義に対応し、Pointsは共通のOAuth・DPoP検証と、一つの競売の全落札者の一括引き落としを担当する。
   - 精算は`POST /api/v1/settlement-debits`とし、要求を落札者ごとのトークン・署名・評価軸IDと必要額に絞る。
   - 要求から`settlementId`・`auctionId`・`pointsSubject`・`marketsUserId`を除き、支払名義はトークンの`sub`で決める。
   - 呼び出し元はトークンの`client_id`で決め、要求には`client_assertion`を含めない。全トークンの`client_id`がそろわなければ`403 ACCESS_TOKEN_CLIENT_MISMATCH`とする。
   - 再送でもトークンと署名を送る。
   - 成功応答は`status`・`debitedAt`だけとし、受領証の番号はMarketsが発行する。拒否は`winners`の配列位置`index`と`reason`で返す。
-  - 再送は有効な冪等性結果をClient ID・操作種別・冪等性キー・各落札者の`components`で照合し、精算の確定結果は取引記録として保持する。
+  - 再送は有効な冪等性結果をClient ID・操作種別・冪等性キー・各落札者の支払名義（`sub`）と`components`で照合し、精算の確定結果は取引記録として保持する。
 
 - セキュリティ・保存・運用の仕様を、HTTP、OAuth、ポイント増減履歴、精算、ライブラリ、デプロイの関連節へ統合する。D1はサービス上限と最大入力での検証結果に基づいて保存方式を選び、標準の一括処理と必要な業務条件で全件確定・取消を行う。mainはPR・必須検査・最新ブランチとの一致で保護する。精算の二重処理防止は`Idempotency-Key`だけで行い、別のキーで同じ精算を二重に送らない管理はMarketsが行う。
 
@@ -10732,7 +10777,7 @@ flowchart TD
 
 - 管理操作の操作理由入力を削除する。
 
-- 二重処理防止と再送応答の結果を`idempotency_result`へ集約し、各結果の初回確定から1日を有効期間とする。期限切れ結果は日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・譲渡・交換・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、設定の更新・停止・再開・削除は`version`の競合検査、受領は受領日時と`version`で二重反映を防ぐ。
+- 二重処理防止と再送応答の結果を`idempotency_result`へ集約し、各結果の完了から1日を有効期間とする。未完了の結果は完了まで削除しない。期限切れ結果は日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・月別評価方式の確定と再計算・譲渡・交換・受領・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、設定の更新・停止・再開・削除は`version`の競合検査で二重反映を防ぐ。
 
 - staging・productionをCloudflareの無料枠で運用する。D1の呼び出し・読み書き・保存量、Workerの実行回数・CPU時間、運用ログの利用量を無料枠に合わせ、Workers Logsは3日保持とする。
 
@@ -10772,13 +10817,13 @@ flowchart TD
 
 - 評価軸は初期非公開とし、公開プロフィールには表示可能な全設定を表示し、月別評価方式は20件ずつ表示する。非公開の人物・代用元を隠し、利用・管理操作への導線と利用できない理由を表示する。
 
-- 再連携で同じAccountsユーザーを選ぶと既存の連携を更新し、別のAccountsユーザーを選ぶと新しい連携として追加する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。更新操作の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は本人の更新操作で全連携をまとめて取得し、一覧表示と公開プロフィールには保存済み情報を使う。
+- 再連携で同じAccountsユーザーを選ぶと既存の連携を更新し、別のAccountsユーザーを選ぶと新しい連携として追加する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。更新操作の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は受領の確定の中でAccountsから取得・保存し、一覧表示と公開プロフィールには保存済み情報を使う。
 
 - Accounts接続先は、管理者が登録・接続検証して有効化する。作成の重複は取り下げていない接続先のoriginの一意制約、有効化・取り下げの二重処理は`version`の競合検査で防ぐ。取り下げでは鍵とユーザー連携を削除して終端の状態とし、再利用するときは同じoriginで新しい接続先を作る。
 
 - Cookie・CSRF・OriginはBetter Authの標準対策を基準とする。要求元の検査は、認証APIではBetter Authの標準検査、Points独自APIではHono標準の`csrf()`で行い、DPoPで認証する要求は`csrf()`から除外する。
 
-- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。連携は画面から標準の`linkSocial`で開始し、state・認可コード交換・ID Tokenの検証はGeneric OAuthの標準処理に任せて、開始した本人へ連携・再連携を保存する。トークン要求には`client_id`・`client_assertion`・DPoP proofを付ける。設定画面へ戻ってから「情報を更新」を実行し、ポイントを自動受領する。
+- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。連携は画面から標準の`linkSocial`で開始し、state・認可コード交換・ID Tokenの検証はGeneric OAuthの標準処理に任せて、開始した本人へ連携・再連携を保存する。トークン要求には`client_id`・`client_assertion`・DPoP proofを付ける。設定画面へ戻ってから保存した連携へ受領の確定を送り、連携情報の取得とポイントの自動受領を行う。
 
 - Accountsの情報取得は、成功して提供情報がない場合を「情報提供なし」、一度も成功していない場合を「未取得」に統一する。再取得に失敗した場合は前回の情報と取得日時を保持する。
 
@@ -10798,7 +10843,7 @@ flowchart TD
 
 - ポイント譲渡をフォーム・CSVに対応させる。操作条件と譲渡を起点とする分配の扱いは、[ポイント譲渡する機能](#ポイント譲渡する機能)にまとめる。
 
-- 交換倍率は停止中・交換不可の軸でも設定でき、保存・無効化・再有効化・完全削除に対応する。CSVで保存・削除を指定し、評価軸の情報から交換可否と理由付きの倍率一覧を開けるようにする。
+- 交換倍率は停止中・交換不可の軸でも設定でき、保存・無効化・再有効化・完全削除に対応する。CSVで保存・削除を指定し、評価軸の情報から交換可否と理由付きの倍率一覧を開けるようにする。フォームは`PATCH /api/v1/exchange-rates`で最大100件の方向の保存・削除を、一つのD1原子処理でまとめて確定する。
 
 - 公開プロフィールは公開項目がない区画にも非表示の案内を出す。パッケージの構成では、非公開要素の実名・実ID・リンク・非公開の子構成を隠し、匿名名と割合を表示する。割合は全構成に対する設定値を維持する。
 
@@ -10831,7 +10876,7 @@ flowchart TD
 
 - OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。紹介URLは変更だけを受け付ける。
 
-- 全体管理者と各対象の管理者はそれぞれ最大20人とする。各対象の管理者所属は標準のOrganization APIで追加・解除し、`membershipLimit`と`organizationHooks`で人数・件数と追加先を検証する。解除・退出・退会・ログイン停止で操作できる`appAdmin`がいなくなる変更を拒否する。
+- 全体管理者と各対象の管理者はそれぞれ最大20人とする。各対象の管理者所属はPointsの独自APIで受け付け、サーバーが権限を確かめてから標準のOrganizationの`auth.api`で追加・解除し、`membershipLimit`と`organizationHooks`で人数・件数と追加先を検証する。標準の`/organization/*`のHTTP経路は`disabledPaths`で止める。解除・退出・退会・ログイン停止で操作できる`appAdmin`がいなくなる変更を拒否する。
 
 - 全体管理者が利用者のログインを無期限で停止・再開できる。停止中は本人用API・外部操作・トークン更新を拒否し、所属・公開設定・認可・取引記録と受取りは維持する。競売の新しい引き落としも停止中は拒否する。
 
@@ -10843,7 +10888,7 @@ flowchart TD
 
 - PointsではTask、PWA、画像は対象外とする。
 
-- アプリ内通知に、管理範囲ごとのお知らせと本人分の処理結果・重要な変更の自動通知を設ける。未読件数・既読管理・本人による削除と、件名・本文・対象名の部分一致検索に対応し、業務結果と通知を一括保存する。通知の対象と内容は`payload`のJSONへまとめ、文章は表示時に選択中の言語で組み立てる。
+- アプリ内通知に、管理範囲ごとのお知らせと本人分の処理結果・重要な変更の自動通知を設ける。未読件数・既読と未読に戻す操作・本人による削除と、件名・本文・対象名の部分一致検索に対応し、業務結果と通知を一括保存する。通知の対象と内容は`payload`のJSONへまとめ、文章は表示時に選択中の言語で組み立てる。
 
 - Points OAuth Providerは標準のTokenハッシュ保存とJWT署名鍵の暗号化保存・30日間隔の更新を使う。クライアントの停止中は、標準の`disabled`で認可・Token発行・更新を拒否し、発行済みJWTは最長15分の期限まで有効とする。登録・同意・Tokenを保持し、再開後は期限を延長せず再利用できる。同意取消とRefresh Token失効を分けて扱う。
 
@@ -10851,9 +10896,9 @@ flowchart TD
 
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
 
-- PointsはOAuthクライアント経由の残高一覧と落札の一括引き落としに対応する。残高一覧は必要額の充足を判定せず、本人が残高を持つ全評価軸の残高と評価軸の情報を`GET /api/v1/me/point-balances`で返す。サービス間の呼び出しは、OpenAPIから生成した型と素の`fetch()`で行う。出品・入札・購入と落札証明はMarketsが管理する。
+- PointsはOAuthクライアント経由の残高一覧と落札の一括引き落としに対応する。残高一覧は必要額の充足を判定せず、本人が残高を持つ全評価軸の残高と評価軸の情報を`QUERY /api/v1/me/point-balances`で返す。サービス間の呼び出しは、OpenAPIから生成した型と素の`fetch()`で行う。出品・入札・購入と落札証明はMarketsが管理する。
 
-- 本人データと、本人が管理者として登録されている対象の設定を、最大5MiBの一つのJSONとして一括で応答する。上限を超える場合は出力せずエラーを返し、計算項目は再計算せず保存済みの事実を出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は確認結果を含む最大5MiBの要求で一括確定する。確認結果はブラウザで保持して確定時に返し、重要な確認項目が変わった場合は再確認する。
+- 本人データと、本人が管理者として登録されている対象の設定を、最大5MiBの一つのJSONとして一括で応答する。上限を超える場合は出力せずエラーを返し、計算項目は再計算せず保存済みの事実を出力する。OAuth設定は通常の登録・更新画面へ読み込んで別途保存し、それ以外の設定は確認で受け取った`validationHash`を含む最大5MiBの要求で一括確定する。新しいIDは確定のときに発行し、重要な確認項目が変わった場合は`409 CONFIRMATION_CHANGED`で再確認を求める。
   - 設定復元は経済処理のない設定だけの操作とし、月別評価設定は復元対象に含めずフォーム・CSVで入れ直す。確定済みの取引は参照用として保持する。
   - ファイル内のIDの対象が存在し、復元する本人がその対象の管理者なら更新し、それ以外は新しいIDで作成する。公式パッケージの登録と自動分配設定は、ファイルの内容で全置換する。
   - 出力するJSONファイルの保存名は、ブラウザが`<a download>`の値で指定する。
@@ -10866,13 +10911,13 @@ flowchart TD
 
 - 検索・詳細取得は`no-store`とする。精算要求では評価軸IDと必要額を受け取り、認証・権限・全指定軸の現在状態・金額・実残高を検証する。必要額の算出手順と競売データの保存方法はMarketsの責務とする。
 
-- Accounts連携情報は連携・再連携直後と本人の「情報を更新」で取得し、経過時間と取得件数の制限を設けず、更新操作では本人の有効な連携すべてを取得対象とする。運用上の失敗は構造化ログへ記録する。
+- Accounts連携情報は連携・再連携直後と本人の「情報を更新」で、受領の確定の中で取得・保存する。経過時間と取得件数の制限を設けず、更新操作では本人の有効な連携すべてへ受領の確定を送る。運用上の失敗は構造化ログへ記録する。
 
 - 残高・累計評価額・評価結果の受領状態を再計算して照合する定期実行と手動機能を廃止する。
 
 - 監査記録全般のDB保存をWorkersの構造化ログへ変更する。運用指標（`OPS_METRICS`）も廃止し、運用の記録を構造化ログへ一本化する。成功は業務データの確定後、拒否は拒否の確定またはロールバック後に記録する。ポイント増減履歴と、その入力・照合・計算・受領情報などの業務データはD1へ保存し、ログ出力の失敗で取引を再実行しない。
 
-- 貢献評価代用は付与先評価軸・評価対象月単位で直接評価と切り替え、全員へ一括適用する。直接評価の月締めを設けず、保存済みの評価を使い、0件は0として扱う。代用元は一つとし、元評価・受取先ごとの直接・代用評価と分配受取額へ符号付き係数を掛ける。月別の循環を防ぎ、管理者が再計算する。方式変更は旧付与・旧分配を差し替え、未受領の代用評価も扱う。代用評価へ切り替えた月の既存の直接入力は以後採用せず、直接評価へ戻した月は0から始める。
+- 貢献評価代用は付与先評価軸・評価対象月単位で直接評価と切り替え、全員へ一括適用する。直接評価の月締めを設けず、保存済みの評価を使い、0件は0として扱う。代用元は一つとし、元評価・受取先ごとの直接・代用評価と分配受取額へ符号付き係数を掛ける。月別の循環を防ぎ、管理者が再計算する。方式変更は旧付与・旧分配を差し替え、未受領の代用評価も扱う。代用評価へ切り替えた月の既存の直接入力は以後採用せず、直接評価へ戻した月は0から始める。フォームは一つの評価軸の最大12か月を一回の要求で試算・確定し、月の古い順に確定する。再計算は現在の設定をそのまま確定する操作とし、フォーム・CSVとも設定の確定と同じAPIで行う。
 
 - 月全員分の計算順は、[貢献評価を代用する仕組み](#貢献評価を代用する仕組みの設定)にまとめ、フォーム・CSVで共用する。
 
@@ -10886,7 +10931,7 @@ flowchart TD
 
 - ポイント増減の統合履歴に競売精算などの消費を含め、公開履歴では購入内容と相手方を隠す。プロフィールURLのコピーボタンはURLをコピーする。
 
-- 手動受領は確認結果そのものを送って再計算結果と比較し、受領確定のJSON本文上限を5MiBとする。
+- 手動受領は確認で受け取った`validationHash`を送って再計算結果と比較し、変わった場合は`409 CONFIRMATION_CHANGED`で再確認を求める。
   - 受領本体の確定前に容量・計算・DBの上限を超えた場合は、本体を確定しない。
   - 後続の分配・訂正の確定単位と上限超過時の扱いは、[分割確定と再開](#分割確定と再開)にまとめる。
 
@@ -10894,7 +10939,7 @@ flowchart TD
 
 - Pointsの公開画面・設定画面は同一originで、外部サービスはそのバックエンド経由で業務APIを共用する。Points独自の取得と、業務状態を変更しない確認・検証・試算をQUERYへ統一し、CookieまたはOAuthの本人と権限で応答を決める。本文はJSONを基本とし、CSV検証ではmultipart形式を使う。送信・CSV・復元の確定はPOSTとする。標準認証・メタデータ・HTML・静的ファイル・バッジは標準メソッドを維持し、公開表示の確認では本人認証を送らない。
 
-- Points独自の業務scopeを`points`一つへ統一し、本人用情報の取得と、本人の権限で実行できる業務操作全体を委任する。標準scopeとBetter Auth標準の認証・管理フローは、それぞれの用途を維持する。
+- Points独自の業務scopeを`points:read`・`points:edit`・`points:admin`の3つとし、取得、管理者の権限を使わない変更、管理者の権限を使う変更を委任する。本人の認可が必要なPoints独自APIは、Cookieセッションと、操作に必要なscopeのOAuth＋DPoPのどちらでも受け付ける。OAuthクライアントの管理と、退会と再開は、Cookieセッションだけで受け付ける。標準scopeとBetter Auth標準の認証・同意フローは、それぞれの用途を維持する。
 
 - 自動分配では、端数処理と本人別合算後に全対象へ最小単位以上を配れる場合だけ分配する。配れない分配枠は本人にも戻さず、残高・受領待ちへ計上せず、後日へ持ち越さない。判定と両方式の扱いは[合算単位と端数](#合算単位と端数)にまとめる。公開プロフィールの匿名表示と、外部アプリが計算に使うID付き情報を区別する。
 
