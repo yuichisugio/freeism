@@ -1641,6 +1641,158 @@ flowchart TD
     E --> F["共通ルールで必要な後続処理を開始"]
 ```
 
+##### 直接評価のAPI
+
+- フォームは1回の要求で、1つの評価軸への1〜100件の評価を確認・登録する。
+  - 記載順に、各件とそこから起きる再分配を確定してから次の件へ進む。
+  - 100件を超える登録と、行ごとに評価軸を変える登録は、[CSVアップロードのAPI](#csvアップロードのapi)で行う。
+  - 評価結果の一覧は軸の管理画面で登録済みの評価と受領状態を確かめるために使う。
+
+###### `QUERY /api/v1/direct-evaluations/preview`
+
+- 説明
+  - 登録する評価を確認する。operationId は`previewDirectEvaluation`。
+  - 認証・権限は、対象軸の`evaluationCriterionAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - `Idempotency-Key`・`version`・`validationHash`は、どれも要求しない。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー
+
+    | 項目                     | 型                     | 必須 | 説明                                                                                             |
+    | ------------------------ | ---------------------- | ---- | ------------------------------------------------------------------------------------------------ |
+    | `evaluationCriterionId`  | `string`               | 必須 | 付与先の評価軸のID。全件に共通の評価軸とする                                                     |
+    | `entries`                | 配列                   | 必須 | 登録する評価。1〜100件                                                                           |
+    | `entries[].recipient`    | 宛先のオブジェクト     | 必須 | 評価の宛先。`type`で表の下の4種類から一つを選ぶ。各値は[宛先の指定](#宛先の指定)の条件で検証する |
+    | `entries[].amount`       | 符号付きの金額の文字列 | 必須 | 評価額。0も受け付ける                                                                            |
+    | `entries[].evaluationAt` | `string`               | 必須 | 評価日時。`YYYY-MM`、`YYYY-MM-DD`、またはUTCのRFC 3339形式とし、その年月を評価対象月とする       |
+    | `entries[].memo`         | `string`               | 任意 | メモ。200文字以下                                                                                |
+    - `recipient`の形
+      - `{ type: "URL", profileUrls: string[] }`
+      - `{ type: "ACCOUNTS_USER", accountsOrigin: string, accountsUserId: string }`
+      - `{ type: "PROVIDER_ACCOUNT", provider: string, providerAccountId: string }`
+      - `{ type: "PROVIDER_USERNAME", provider: string, providerUsername: string }`
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目                            | 型                                                                                                | 説明                                                                            |
+    | ------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+    | `entries`                       | 配列                                                                                              | 評価ごとの確認結果。要求の`entries`と同じ順に並べる                             |
+    | `entries[].recipientResolution` | `{ result: MATCHED \| NO_MATCH, accountsOrigin: string \| null, accountsUserId: string \| null }` | 照合で選ばれた付与先と接続先を表す                                              |
+    | `entries[].receiptStatus`       | `RECEIVED \| UNCLAIMED`                                                                           | 受領状態                                                                        |
+    | `entries[].amount`              | 金額の文字列                                                                                      | 評価額                                                                          |
+    | `entries[].evaluationMonth`     | `string`（`YYYY-MM`）                                                                             | 評価対象月                                                                      |
+    | `entries[].evaluationAt`        | `string \| null`（RFC 3339）                                                                      | 評価日時。年月だけの入力では`null`                                              |
+    | `entries[].distributedAmount`   | 金額の文字列                                                                                      | 受取人の自動分配で他の人へ渡る額の合計とし、未受領・自動分配なしでは`"0"`とする |
+    | `validationHash`                | `string`                                                                                          | 確認内容の検証値。登録の要求で送り返す                                          |
+    - `meta`は`requestId`だけとする。
+
+  - 失敗時
+
+    | 状態          | コード                           | 起きる場合                                                                                  |
+    | ------------- | -------------------------------- | ------------------------------------------------------------------------------------------- |
+    | 404           | `RESOURCE_NOT_FOUND`             | 権限がなく、対象軸が非公開である                                                            |
+    | 403           | `PERMISSION_DENIED`              | 権限がなく、対象軸が公開である                                                              |
+    | 409           | `ACCOUNTS_CONNECTION_NOT_ACTIVE` | 照合の失敗。[直接評価の登録時の照合](#直接評価の登録時の照合)で定める                       |
+    | 422           | `VALIDATION_FAILED`              | 照合の失敗と、件ごとの入力エラー。評価対象月が直接評価を採用していない場合も含む            |
+    | 502・503・504 | `DEPENDENCY_UNAVAILABLE`         | 照合の失敗。状態コードの使い分けは[直接評価の登録時の照合](#直接評価の登録時の照合)で定める |
+    | 503           | `ACCOUNTS_CLIENT_UNAUTHORIZED`   | 照合の失敗。[直接評価の登録時の照合](#直接評価の登録時の照合)で定める                       |
+    - 評価対象月が直接評価を採用していない場合は、`errors[]`に`EVALUATION_MODE_NOT_DIRECT`を返す。画面は直接評価への切替を案内する。
+    - 件ごとの入力エラーは、`errors[]`の`field`に`entries.2.amount`のような項目のパスを入れて返す。
+    - 全件を検査し、1件でも誤りがあればどの件も確定しない。
+
+###### `POST /api/v1/direct-evaluations`
+
+- 説明
+  - 確認した評価を登録する。operationId は`createDirectEvaluation`。
+  - 認証・権限は、確認と同じとする。
+  - `Idempotency-Key`と`validationHash`を必須とする。`version`は使わない。
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須。操作の種別`DIRECT_EVALUATION_COMMIT`）
+  - ボディー：確認と同じ項目に加えて、次の項目を持つ。
+
+    | 項目             | 型       | 必須 | 説明                                       |
+    | ---------------- | -------- | ---- | ------------------------------------------ |
+    | `validationHash` | `string` | 必須 | 確認内容の検証値。確認で受け取った値を送る |
+
+- レスポンス
+  - 成功時（201）
+
+    | 項目                                                                                                                                  | 型                           | 説明                                                                                        |
+    | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------- |
+    | `evaluationCriterionId`                                                                                                               | `string`                     | 付与先の評価軸のID                                                                          |
+    | `entries`                                                                                                                             | 配列                         | 確定した件の配列とし、要求の`entries`と同じ順に並べる                                       |
+    | `entries[].firstLedgerEntryId`                                                                                                        | `string`                     | 評価の初回履歴ID                                                                            |
+    | `entries[].amount`・`entries[].evaluationMonth`・`entries[].evaluationAt`・`entries[].recipientResolution`・`entries[].receiptStatus` | 確認の応答と同じ             | 確定した値                                                                                  |
+    | `entries[].memo`                                                                                                                      | `string \| null`             | メモ。確定した値                                                                            |
+    | `entries[].recipient`                                                                                                                 | 要求と同じ宛先のオブジェクト | 評価の宛先。確定した値                                                                      |
+    | `completion`                                                                                                                          | `COMPLETED \| INCOMPLETE`    | 処理の完了状態。全件とその後続の分配を確定したら`COMPLETED`、残りがあれば`INCOMPLETE`とする |
+
+  - 失敗時：確認と同じ失敗に加えて、次の失敗を返す。
+
+    | 状態 | コード                 | 起きる場合                                                 |
+    | ---- | ---------------------- | ---------------------------------------------------------- |
+    | 409  | `CONFIRMATION_CHANGED` | 登録時に計算し直した確認項目が`validationHash`と一致しない |
+
+###### `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}/evaluations`
+
+- 説明
+  - 直接評価と代用評価の評価結果を一覧にする。operationId は`listEvaluations`。
+  - 認証・権限は、確認と同じとする。
+  - `Idempotency-Key`・`version`・`validationHash`は使わない。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目                    | 型       | 必須 | 説明       |
+    | ----------------------- | -------- | ---- | ---------- |
+    | `evaluationCriterionId` | `string` | 必須 | 対象軸のID |
+
+  - ボディー
+
+    | 項目                 | 型                    | 必須 | 説明                     |
+    | -------------------- | --------------------- | ---- | ------------------------ |
+    | `page`               | `integer`             | 任意 | ページ番号。1以上、既定1 |
+    | `evaluationMonth`    | `string`（`YYYY-MM`） | 任意 | 評価対象月で絞り込む     |
+    | `firstLedgerEntryId` | `string`              | 任意 | 初回履歴IDで絞り込む     |
+    | `actorUserId`        | `string`              | 任意 | 操作者で絞り込む         |
+    | `requestId`          | `string`              | 任意 | 初回の通信IDで絞り込む   |
+
+- レスポンス
+  - 成功時（200）
+
+    `data`は評価の配列とし、登録日時の新しい順に20件ずつ返す。各要素は次の項目を持つ。
+
+    | 項目                  | 型                                             | 説明                               |
+    | --------------------- | ---------------------------------------------- | ---------------------------------- |
+    | `firstLedgerEntryId`  | `string`                                       | 評価の初回履歴ID                   |
+    | `kind`                | `DIRECT_EVALUATION \| SUBSTITUTION_EVALUATION` | 評価の種類                         |
+    | `evaluationMonth`     | `string`（`YYYY-MM`）                          | 評価対象月                         |
+    | `evaluationAt`        | `string \| null`（RFC 3339）                   | 評価日時                           |
+    | `initialAmount`       | 金額の文字列                                   | 初回の登録額                       |
+    | `currentAmount`       | 金額の文字列                                   | 訂正を含む現在額                   |
+    | `recipient`           | 入力した宛先のオブジェクト                     | 評価の宛先                         |
+    | `recipientResolution` | 確認の応答と同じ形、または`null`               | 宛先の照合結果。代用評価では`null` |
+    | `recipientUserId`     | `string \| null`                               | 受領した本人                       |
+    | `receiptStatus`       | `RECEIVED \| UNCLAIMED`                        | 受領状態                           |
+    | `receivedAt`          | `string \| null`（RFC 3339）                   | 受領日時。未受領では`null`         |
+    | `memo`                | `string \| null`                               | メモ                               |
+    | `actorUserId`         | `string \| null`                               | 登録した操作者のユーザーID         |
+    | `requestId`           | `string`                                       | 初回の通信ID                       |
+    | `createdAt`           | `string`（RFC 3339）                           | 登録日時                           |
+    - `meta`にページ情報を返す。
+
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                                     |
+    | ---- | -------------------- | ---------------------------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | 権限がなく、対象軸が非公開である（確認と同じ） |
+    | 403  | `PERMISSION_DENIED`  | 権限がなく、対象軸が公開である（確認と同じ）   |
+    | 422  | `VALIDATION_FAILED`  | 入力の誤り                                     |
+
 ### ポイント交換する機能
 
 - 交換の基本動作
@@ -1677,12 +1829,6 @@ flowchart TD
   - 組数が0、入力・保存・返却する金額が許可範囲外、または交換元の残高が実消費額未満の場合は拒否する。
   - 残高不足を理由に組数を減らしたり、希望受取額未満で交換したりしない。
 
-- APIの入力と応答
-  - フォーム・CSVのAPIは、`sourceEvaluationCriterionId`・`targetEvaluationCriterionId`と、`sourceAmount`・`targetAmount`のどちらか一方を受け付ける。
-  - `sourceAmount`は消費上限、`targetAmount`は希望最低受取額を表し、両方の指定と両方の省略を拒否する。
-  - 確認応答と確定結果では、実消費額を`consumedAmount`、実受取額を`receivedAmount`として十進数文字列で返し、入力額と区別する。
-  - 上限の未使用額は`sourceAmount - consumedAmount`から求め、交換後残高とは分けて扱う。
-
 - 確認と確定
   - サーバーで本人の認証、評価軸の存在、倍率の状態、交換可否、金額、残高を検証する。
   - 確認画面へ交換元・交換先、指定した消費上限または希望最低受取額、実消費額・実受取額・適用倍率・両軸の最小単位・交換後の両残高を表示する。
@@ -1692,8 +1838,6 @@ flowchart TD
     - 確定時には両評価軸の存在・交換可否と残高も再検証する。
     - 交換できなくなった場合は確定せず、その理由を確認画面へ表示する。
   - 元ポイントの引き落としと先ポイントの加算を、同じ原子処理で確定する。
-  - `Idempotency-Key`と確定要求の内容を照合し、同じ要求の再送には既存の結果を返す。
-    - 要求の照合には、上限指定か希望額指定かと、その入力額を含める。実消費額・実受取額が同じでも入力が違えば別の要求として扱う。
 
 - 履歴への保存
   - 元・先の増減をポイント増減履歴へ記録する。上限指定か希望額指定かと入力額、操作者、確定日時は、交換の初回履歴行へ保存する。
@@ -1721,6 +1865,10 @@ flowchart TD
   F -->|確認条件に変更なし・交換可| I["元・先の残高と<br/>ポイント増減履歴を一括確定"]
   I --> J["累計評価額を維持<br/>交換による自動分配は始めない"]
 ```
+
+#### ポイント交換のAPI
+
+- CSVによる交換は[CSVアップロードのAPI](#csvアップロードのapi)で行う。
 
 ### ポイント譲渡する機能
 
