@@ -3753,27 +3753,133 @@ flowchart TD
 
 ### 評価軸のプロフィール・交換倍率取得API
 
-- `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}`を、公開プロフィールと管理画面で共用する。
-  - `operationId`は`getEvaluationCriterion`とする。
-  - `data`は単一オブジェクトとし、表示・管理情報に加えて、単体出品用の計算情報を`calculation`へ常に返す。
-  - 公開取得では、基本情報・設定・管理情報・月別評価方式のうち、公開プロフィールに表示できる情報を返す。
-  - 月別評価方式は`page`で1ページ20件、新しい月から返す。既定は1とし、`evaluationMonth`でUTCの年月へ絞り込める。
-  - 月別設定のページ情報は`meta`へ返す。
-  - 対象軸の管理者またはアプリ全体管理者には、非公開軸も含め、現在の設定・`version`・管理情報・月別設定を返す。
-  - 管理用の応答には非公開の管理者・更新者も含める。非公開の代用元の詳細は、その代用元も管理できる場合に返す。
-  - 公開取得では、非公開の管理者・更新者・代用元の名前とIDを隠し、画面用の非公開表示を返す。
+- 評価軸の詳細と交換倍率の一覧は、公開プロフィールと管理画面で同じAPIを使う。
+  - 評価軸の詳細は、Marketsが単体出品の計算情報を取得する場合にも使う。
 
-- `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}/exchange-rates`を、倍率一覧と管理画面で共用する。
-  - `operationId`は`listExchangeRates`とする。
-  - 指定した軸を交換元または交換先とする設定のうち、両軸を閲覧できる設定を返す。
-  - `data`に方向、両軸の名前・ID、倍率、設定の有効状態、現在の交換可否と理由を返す。
-  - 交換許可OFF・無効な設定も理由付きで返す。
-  - 公開取得では両軸が公開の設定だけを返す。管理用の取得では、非公開軸ごとに操作者の管理権限を検証する。
-  - 設定の編集権限は交換先の軸で判定し、編集できる設定には現在の`version`を返す。
-  - 例えばA→Bでは、A軸の管理者であるだけではB軸の倍率設定を編集できず、非公開のB軸の情報も取得できない。
+#### `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}`
 
-- 指定した軸が存在しない場合と、非公開で閲覧権限がない場合は`404 RESOURCE_NOT_FOUND`を返す。
+- 説明
+  - 評価軸の表示・管理情報、月別評価方式、`calculation`を持つ単一オブジェクトを返す。operationId は`getEvaluationCriterion`。
+  - 認証・権限は、任意の本人認証とする。管理用の範囲は、対象軸の`evaluationCriterionAdmin`または`appAdmin`に返す。
+  - 月別評価方式を新しい月から20件ずつ返す。
   - 停止中でも、公開軸または本人が管理できる軸は取得できる。
+  - 公開取得では公開プロフィールに表示できる情報を返す。
+    - 非公開の管理者・更新者・代用元は隠す。
+    - 対象軸の管理者またはアプリ全体管理者には、非公開軸も含め、非公開の管理者・更新者も表示できる形で返す。
+    - 非公開の代用元はその代用元も管理できる場合に表示できる形で返す。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目                    | 型       | 必須 | 説明         |
+    | ----------------------- | -------- | ---- | ------------ |
+    | `evaluationCriterionId` | `string` | 必須 | 対象の評価軸 |
+
+  - ボディー
+
+    | 項目              | 型                    | 必須 | 説明                                                                 |
+    | ----------------- | --------------------- | ---- | -------------------------------------------------------------------- |
+    | `page`            | `integer`             | 任意 | ページ番号。1以上。既定は1                                           |
+    | `evaluationMonth` | `string`（`YYYY-MM`） | 任意 | 評価対象月。UTCの年月を表す`YYYY-MM`。月別評価方式をその月へ絞り込む |
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目                                          | 型                                 | 説明                                                                      |
+    | --------------------------------------------- | ---------------------------------- | ------------------------------------------------------------------------- |
+    | `type`                                        | `EVALUATION_CRITERION`             | 対象の種類                                                                |
+    | `id`                                          | `string`                           | 評価軸のID                                                                |
+    | `name`                                        | `string`                           | 評価軸の名前                                                              |
+    | `description`                                 | `string`                           | 評価軸の説明                                                              |
+    | `relatedUrl`                                  | `string[]`                         | 関連URL                                                                   |
+    | `isPublic`                                    | `boolean`                          | 公開しているか                                                            |
+    | `status`                                      | `ACTIVE \| INACTIVE`               | 利用状態                                                                  |
+    | `editable`                                    | `boolean`                          | 操作者がこの軸を管理できるか                                              |
+    | `transferEnabled`                             | `boolean`                          | 譲渡を許可するか                                                          |
+    | `exchangeEnabled`                             | `boolean`                          | 交換を許可するか                                                          |
+    | `buyNowEnabled`                               | `boolean`                          | 即決価格の利用を許可するか                                                |
+    | `autoDistributionMode`                        | `OWN_SHARE \| ADDITIONAL_ISSUANCE` | 自動分配方式                                                              |
+    | `minimumUnit`                                 | 金額の文字列                       | 現在の最小単位                                                            |
+    | `createdAt`                                   | `string`（RFC 3339）               | 作成日時                                                                  |
+    | `updatedAt`                                   | `string`（RFC 3339）               | 最終更新日時                                                              |
+    | `version`                                     | `integer`                          | 競合の検査に使う`version`                                                 |
+    | `admins`                                      | 人物の配列                         | 管理者                                                                    |
+    | `updatedBy`                                   | 人物                               | 最終更新者                                                                |
+    | `statusChangedBy`                             | 人物 \| `null`                     | 最後に停止・再開をした人。停止・再開の記録がなければ`null`                |
+    | `statusChangedAt`                             | `string \| null`（RFC 3339）       | `statusChangedBy`が停止・再開をした日時。停止・再開の記録がなければ`null` |
+    | `monthlyEvaluationSettings`                   | 配列                               | 月別評価方式                                                              |
+    | `monthlyEvaluationSettings[].evaluationMonth` | `string`（`YYYY-MM`）              | 評価対象月                                                                |
+    | `monthlyEvaluationSettings[].evaluationMode`  | `DIRECT \| SUBSTITUTION`           | 評価方式                                                                  |
+    | `monthlyEvaluationSettings[].version`         | `integer`                          | 月別設定の競合の検査に使う`version`                                       |
+    | `monthlyEvaluationSettings[].coefficient`     | 十進数の文字列                     | 代用元に掛ける係数。`SUBSTITUTION`の要素だけが持つ                        |
+    | `monthlyEvaluationSettings[].source`          | 代用元                             | 代用元の評価軸。`SUBSTITUTION`の要素だけが持つ                            |
+    | `calculation`                                 | オブジェクト                       | 単体出品用の計算情報                                                      |
+    - 人物は、表示できる場合は`{ "hidden": false, "userId": string, "name": string }`、隠す場合は`{ "hidden": true }`とする。
+    - `source`は、表示できる場合は`{ "hidden": false, "evaluationCriterionId": string, "name": string }`、隠す場合は`{ "hidden": true }`とする。
+    - `calculation`は、対象軸だけの`components`1件、`totalWeight: 1`と、`amountUnit`・`packageTick`を常に返す。
+      - 項目の形は[パッケージのプロフィール取得API](#パッケージのプロフィール取得api)の`calculation`と同じとする。`components`の要素は`weight: 1`・`anonymized: false`とし、対象軸の名前を持つ。
+      - `packageTick`は対象軸の最小単位と同額とする。軸の最小単位が初期値の1なら、`packageTick`は`"1"`となる。
+    - `meta`には、月別評価方式のページ情報を返す。
+
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                                           |
+    | ---- | -------------------- | ---------------------------------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | 指定した軸が存在しない、または非公開で閲覧権限がない |
+    | 422  | `VALIDATION_FAILED`  | `page`・`evaluationMonth`の誤り                      |
+
+#### `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}/exchange-rates`
+
+- 説明
+  - 交換倍率設定の配列を返す。operationId は`listExchangeRates`。
+  - 認証・権限は、任意の本人認証とする。非公開軸を含む設定は、その非公開軸の`evaluationCriterionAdmin`または`appAdmin`に返す。
+  - 相手の評価軸の名前順、同名ならID順に20件ずつ返す。
+  - 停止中の軸の扱いは、評価軸の取得と同じとする。
+  - 指定した軸を交換元または交換先とする設定のうち、両軸を閲覧できる設定を返す。
+    - 交換許可OFF・無効な設定も理由付きで返す。
+    - 公開取得では両軸が公開の設定だけを返す。管理用の取得では、非公開軸ごとに操作者の管理権限を検証する。
+    - 例えばA→Bでは、A軸の管理者であるだけではB軸の倍率設定を編集できず、非公開のB軸の情報も取得できない。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目                    | 型       | 必須 | 説明         |
+    | ----------------------- | -------- | ---- | ------------ |
+    | `evaluationCriterionId` | `string` | 必須 | 対象の評価軸 |
+
+  - ボディー
+
+    | 項目   | 型        | 必須 | 説明                       |
+    | ------ | --------- | ---- | -------------------------- |
+    | `page` | `integer` | 任意 | ページ番号。1以上。既定は1 |
+
+- レスポンス
+  - 成功時（200）
+
+    `data`は交換倍率設定の配列とし、各要素は次の項目を持つ。
+
+    | 項目                           | 型                                                                            | 説明                                                       |
+    | ------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------------------- |
+    | `source.evaluationCriterionId` | `string`                                                                      | 交換元の評価軸                                             |
+    | `source.name`                  | `string`                                                                      | 交換元の名前                                               |
+    | `target.evaluationCriterionId` | `string`                                                                      | 交換先の評価軸                                             |
+    | `target.name`                  | `string`                                                                      | 交換先の名前                                               |
+    | `multiplier`                   | 十進数の文字列                                                                | 交換倍率                                                   |
+    | `status`                       | `ACTIVE \| DISABLED`                                                          | 設定の有効状態                                             |
+    | `version`                      | `integer`                                                                     | 競合の検査に使う`version`                                  |
+    | `exchangeAvailable`            | `boolean`                                                                     | 現在交換できるか                                           |
+    | `unavailableReasons`           | `RATE_DISABLED \| SOURCE_EXCHANGE_DISABLED \| TARGET_EXCHANGE_DISABLED`の配列 | 交換できない理由。交換できる場合は空の配列                 |
+    | `editable`                     | `boolean`                                                                     | 操作者が設定を編集できるか。編集権限は交換先の軸で判定する |
+    - `meta`には、ページ情報を返す。
+
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                                           |
+    | ---- | -------------------- | ---------------------------------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | 指定した軸が存在しない、または非公開で閲覧権限がない |
+    | 422  | `VALIDATION_FAILED`  | `page`の誤り                                         |
 
 ## パッケージのプロフィール画面
 
@@ -3805,7 +3911,7 @@ flowchart TD
   - 非公開要素は「匿名Aの評価軸」「匿名Bのパッケージ」などの匿名名と割合を表示する。実名・実ID・リンク・非公開の子構成は、公開画面とAPIの表示用区画に含めない。
   - 匿名名は全構成の表示順に基づいて応答時に生成し、ページ移動でも同じ構成順の名前を使う。永続的な匿名IDは保存しない。
   - 全要素が非公開でも、構成区画に匿名名と割合を一覧表示する。
-  - 最終的に構成する評価軸の割合も計算して、表示用区画に一覧表示する。展開後の一覧にも、前述の非公開要素の匿名表示と割合の表示規則を適用する。公開画面には、この表示用区画を使う。
+  - 最終的に構成する評価軸の割合も、`calculation.components`から一覧表示する。閲覧できない非公開の評価軸は匿名名と割合で表示し、評価軸IDは出品の計算に使うため応答に含めるが画面には表示しない。
 
 - 用途と現在状態
   - 自動分配の利用可否と、外部サービスへ提供するパッケージ・構成軸の現在状態を表示する。
