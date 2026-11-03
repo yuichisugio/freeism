@@ -1294,10 +1294,11 @@ flowchart TD
     - 新しく選べない代用元は、`errors[]`の`SUBSTITUTION_SOURCE_NOT_ALLOWED`とする。
     - 自分自身を含む循環は、`errors[]`の`SUBSTITUTION_CYCLE`とする。
 
-###### `PUT /api/v1/evaluation-criteria/{evaluationCriterionId}/monthly-evaluation-settings`
+###### `PATCH /api/v1/evaluation-criteria/{evaluationCriterionId}/monthly-evaluation-settings`
 
 - 説明
-  - 複数の月の方式・代用元・係数を確定する。operationId は`saveMonthlyEvaluationSettings`。
+  - 複数の月の方式・代用元・係数を確定する。operationId は`updateMonthlyEvaluationSettings`。
+  - 送った月だけを変え、ほかの月は変えない。部分変更のため、HTTPの`PATCH`を使う。[RFC 5789](https://www.rfc-editor.org/rfc/rfc5789)
   - 認証・権限は、試算と同じとする。
   - `Idempotency-Key`・各月の`expectedVersion`・`validationHash`を必須とする。
   - 月を古い順に確定する。各月の最初の確定単位で月別設定の新しいバージョンを保存し、そのバージョンにも`Idempotency-Key`を保存する。後続処理は、[分配・再分配・訂正の共通ルール](#分配再分配訂正の共通ルール)で定める単位で確定する。
@@ -1345,6 +1346,7 @@ flowchart TD
   - 実際の交換では、両軸の存在・交換許可・その方向の設定を検証する。
   - 同じ交換元・交換先の組ごとに`exchangeRate`の最新レコードを更新する。既存設定の更新・削除では現在versionを指定する。
   - 無効化では倍率を保持する。フォームの保存は倍率を必須とする。CSVで既存設定を保存するときは、倍率が空欄なら現在値を維持する。
+  - フォーム・CSVとも、複数の方向をまとめて確定できる。
 
 - 倍率の表示と確認
   - 評価軸プロフィール・検索結果など、評価軸の情報を表示する箇所に「交換倍率」の導線を設ける。交換画面では選択した方向の倍率を直接表示する。
@@ -1372,17 +1374,59 @@ flowchart TD
 
 - 倍率の一覧と現在の`version`は、[評価軸のプロフィール・交換倍率取得API](#評価軸のプロフィール交換倍率取得api)の`listExchangeRates`で取得する。
   - 確認画面はその現在値と入力から画面で作る。サーバーは確定時に検証する。
+  - フォームでは、複数の方向の作成・更新・無効化・再有効化・削除を一回の要求でまとめて確定する。一つの方向だけのときも、要素が一つの`items`を送る。
   - CSVによる設定・削除は、[CSVアップロードのAPI](#csvアップロードのapi)で行う。
 
-- 共通の決まり
-  - 2本とも、経路に次の値を持つ。
+###### `PATCH /api/v1/exchange-rates`
 
-    | 項目                          | 型       | 必須 | 説明               |
-    | ----------------------------- | -------- | ---- | ------------------ |
-    | `sourceEvaluationCriterionId` | `string` | 必須 | 交換元の評価軸のID |
-    | `targetEvaluationCriterionId` | `string` | 必須 | 交換先の評価軸のID |
+- 説明
+  - 複数の方向の交換倍率を、作成・更新・無効化・再有効化・完全削除する。operationId は`updateExchangeRates`。
+  - 送った方向だけを変え、ほかの方向は変えない。部分変更のため、HTTPの`PATCH`を使う。[RFC 5789](https://www.rfc-editor.org/rfc/rfc5789)
+  - 認証・権限は、各要素の交換先の軸の`evaluationCriterionAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - `Idempotency-Key`と`validationHash`を使わず、各要素の`expectedVersion`で競合を検査する。
+  - 全要素を検証してから、一つのD1原子処理で確定する。一つでも失敗した場合は、どの要素も保存しない。
 
-  - 2本とも、`Idempotency-Key`と`validationHash`を使わず、`expectedVersion`で競合を検査する。
+- リクエスト
+  - ヘッダー：なし
+  - パス：なし
+  - ボディー
+
+    | 項目                                  | 型                   | 必須     | 説明                                                                                                   |
+    | ------------------------------------- | -------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+    | `items`                               | 配列                 | 必須     | 変更する方向。1件以上100件以下                                                                         |
+    | `items[].operation`                   | `SAVE \| DELETE`     | 必須     | `SAVE`は作成・更新・無効化・再有効化、`DELETE`は完全削除とする                                         |
+    | `items[].sourceEvaluationCriterionId` | `string`             | 必須     | 交換元の評価軸のID                                                                                     |
+    | `items[].targetEvaluationCriterionId` | `string`             | 必須     | 交換先の評価軸のID                                                                                     |
+    | `items[].multiplier`                  | 十進数の文字列       | 条件付き | 交換倍率。金額の文字列と同じ書式の正の値とする。小数4桁まで。`SAVE`で必須とし、`DELETE`では指定しない  |
+    | `items[].status`                      | `ACTIVE \| DISABLED` | 条件付き | 設定の有効状態。`DISABLED`で無効化する。`SAVE`で必須とし、`DELETE`では指定しない                       |
+    | `items[].expectedVersion`             | `integer \| null`    | 必須     | 競合の検査に使う`version`。`SAVE`の新規作成では`null`、既存の設定の更新と削除では現在の`version`とする |
+
+  - 同じ交換元・交換先の組を、同じ要求で重ねて指定できない。
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目                                    | 型                             | 説明                                            |
+    | --------------------------------------- | ------------------------------ | ----------------------------------------------- |
+    | `results[]`                             | 配列                           | 要素ごとの結果。`items`と同じ順に返す           |
+    | `results[].action`                      | `CREATE \| UPDATE \| DELETE`   | 実行した操作                                    |
+    | `results[].sourceEvaluationCriterionId` | `string`                       | 交換元の評価軸のID                              |
+    | `results[].targetEvaluationCriterionId` | `string`                       | 交換先の評価軸のID                              |
+    | `results[].multiplier`                  | 十進数の文字列 \| `null`       | 交換倍率。削除では`null`とする                  |
+    | `results[].status`                      | `ACTIVE \| DISABLED` \| `null` | 設定の有効状態。削除では`null`とする            |
+    | `results[].version`                     | `integer \| null`              | 競合の検査に使う`version`。削除では`null`とする |
+
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                                                                                                 |
+    | ---- | -------------------- | ---------------------------------------------------------------------------------------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | いずれかの要素で、交換先の軸に権限がなく、その軸が非公開である                                             |
+    | 403  | `PERMISSION_DENIED`  | いずれかの要素で、交換先の軸に権限がなく、その軸が公開である                                               |
+    | 404  | `RESOURCE_NOT_FOUND` | いずれかの要素で、交換元の軸が存在しない、または閲覧できない非公開の軸である。削除する設定がない場合も含む |
+    | 409  | `VERSION_CONFLICT`   | いずれかの要素の`expectedVersion`が現在の値と違う。新規作成で`null`を送ったが設定がある場合も含む          |
+    | 422  | `VALIDATION_FAILED`  | 交換元と交換先が同じ軸である。倍率の誤り・不足、`items`の件数の超過、同じ組の重複も含む                    |
+    - 要素に対応する入力エラーは、`errors[].field`へ`items.0.multiplier`のような項目のパスを入れる。
+    - 要素に対応する`403`・`404`・`409`の失敗は、該当する要素の位置を補足情報`itemIndexes`（0から始まる`integer`の配列）で返す。
 
 #### 評価軸ポイントの加算・減算
 
@@ -1518,12 +1562,12 @@ flowchart TD
   - 入力した宛先と照合結果は区別し、Points本人への帰属は受領を確定するまで未確定とする。
   - 受付できない入力への回答が`invalid_input`である。
   - 個別の照合結果を含むHTTP 400では、結果内の`invalid_input`を入力エラーとして扱う。
-  - 該当する行・列に`RECIPIENT_IDENTIFIER_INVALID`を付け、`422 CSV_VALIDATION_FAILED`を返す。
-  - 成功時は、実際に選ばれた付与先と接続先、照合結果、付与済み・未受領の別、評価と分配の処理結果を画面へ返す。
+  - 該当する行・列に`RECIPIENT_IDENTIFIER_INVALID`を付け、`422 VALIDATION_FAILED`を返す。
 
 - 照合できない場合
   - 問い合わせが複数の要求に分かれた場合も、いずれかの要求で通信失敗、タイムアウト、サービス側の障害や制限、認証失敗、要求の拒否、不正な応答などがあり、照合を完了できなければ、評価も分配も全件を反映しない。
-  - 照合できない場合は`503 ACCOUNTS_RESOLVE_UNAVAILABLE`を返す。
+  - 照合できない場合は`DEPENDENCY_UNAVAILABLE`を返す。
+    - 状態コードは、不正な応答なら502、応答待ちの時間切れなら504、それ以外は503とする。
     - 問い合わせ制限で待ち時間が指定された場合は、`Retry-After`を返す。
   - Accountsが認証を拒否した場合は、`503 ACCOUNTS_CLIENT_UNAUTHORIZED`を返す。
   - 「正常に照合したが人物が見つからない場合」は未受領として登録できる。「照合処理を完了できない場合」はエラーとして登録を止める。
@@ -1578,8 +1622,8 @@ flowchart TD
 - 各評価の登録時の入力・照合情報は、初回履歴行から取得する。
   - 監査ログには、[監査ログ](#監査ログ)で定める項目を記録する。
 
-- フォームの送信または確認済みCSVの確定要求を受け、入力の検証と照合・計算がすべて成功した後、各評価の操作本体を確定する。CSVは行順に進める。各操作本体では次を一つのD1原子処理で確定する。
-  1. 初回履歴行の入力・照合情報・登録額・確定日時と、後続分配を導くための元取引への参照。CSVでは`Idempotency-Key`と元の行番号も保存する。
+- フォームの送信または確認済みCSVの確定要求を受け、入力の検証と照合・計算がすべて成功した後、各評価の操作本体を確定する。フォームとCSVは記載順に進める。各操作本体では次を一つのD1原子処理で確定する。
+  1. 初回履歴行の入力・照合情報・登録額・確定日時と、後続分配を導くための元取引への参照。フォームでは`Idempotency-Key`と`entries`の順番、CSVでは`Idempotency-Key`と元の行番号も保存する。
   2. 未受領なら受領日時を未確定のまま保持し、即時受領なら帰属先本人・受領日時・照合根拠
   3. Workerが計算し、共通保存処理で代入する`point_account.balance`と`evaluation_total`
   4. 冪等性の結果
