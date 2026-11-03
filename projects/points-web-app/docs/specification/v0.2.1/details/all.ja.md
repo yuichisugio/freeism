@@ -889,7 +889,7 @@ flowchart TD
 
 - 説明
   - 評価軸を作成する。operationId は`createEvaluationCriterion`。
-  - 認証・権限は、Points利用者の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - 認証・権限は、Points利用者の本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とする。
   - 省略した項目には[評価軸の作成・更新・削除](#評価軸の作成更新削除)の「入力項目と初期値」で定める初期値を使う。
   - `version`と`validationHash`は使わない。
 
@@ -1002,7 +1002,7 @@ flowchart TD
 
 - 説明
   - 評価軸の管理者の一覧を取得する。operationId は`listEvaluationCriterionAdmins`。
-  - 認証・権限は、更新と同じとする。
+  - 認証・権限は、その軸の`evaluationCriterionAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
   - 最大20人の管理者をページに分けずに返す。
 
 - リクエスト
@@ -1740,7 +1740,7 @@ flowchart TD
 
 - 説明
   - 直接評価と代用評価の評価結果を一覧にする。operationId は`listEvaluations`。
-  - 認証・権限は、確認と同じとする。
+  - 認証・権限は、対象軸の`evaluationCriterionAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
   - `Idempotency-Key`・`version`・`validationHash`は使わない。
 
 - リクエスト
@@ -4185,14 +4185,222 @@ flowchart TD
   - このパッケージが停止・非公開でも、精算要求のX・Yが有効で、本人認可・必要額・残高などの共通条件を満たせば精算できる。
   - X軸そのものを停止すると、Xを含む新しい精算は全件拒否する。Xを再開すれば、未確定の精算要求を現在の条件で再検証できる。
 
+### 公式パッケージの管理API
+
+- 公式パッケージの作成・更新・停止・再開・完全削除と、管理者の追加・解除・退出は、次のAPIで行う。
+  - 確認画面は詳細取得の応答と入力から画面の中で作る。
+  - 一括の作成・更新・削除は[CSVアップロードのAPI](#csvアップロードのapi)で行う。
+
+- 共通の決まり
+  - 存在しないパッケージと、非公開で閲覧権限がないパッケージへの管理操作は、`404 RESOURCE_NOT_FOUND`を返す。
+  - 公開パッケージを管理できない場合は、`403 PERMISSION_DENIED`を返す。
+
+#### `POST /api/v1/point-packages`
+
+- 説明
+  - 設定と全構成を指定して公式パッケージを作成する。operationId は`createPointPackage`。
+  - 認証・権限は、Points利用者の本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とする。
+  - 文字数・件数・割合の制約は前述の入力項目と構成の規則を適用する。
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須。操作の種別`POINT_PACKAGE_CREATE`）
+  - ボディー
+
+    | 項目                                                                | 型                   | 必須     | 説明                                                                   |
+    | ------------------------------------------------------------------- | -------------------- | -------- | ---------------------------------------------------------------------- |
+    | `name`                                                              | `string`             | 必須     | パッケージ名。1〜30文字                                                |
+    | `description`                                                       | `string \| null`     | 任意     | パッケージの説明。0〜500文字                                           |
+    | `relatedUrl`                                                        | `string[]`           | 任意     | 関連URL。0〜20件のHTTPSのURL                                           |
+    | `isPublic`                                                          | `boolean`            | 任意     | 公開するか。省略時は初期値の`false`                                    |
+    | `status`                                                            | `ACTIVE \| INACTIVE` | 任意     | 利用状態。省略時は初期値の`INACTIVE`                                   |
+    | `components`                                                        | 配列                 | 必須     | 全構成。配列の順を`displayOrder`とする                                 |
+    | `components[].type`                                                 | `AXIS \| PACKAGE`    | 必須     | 構成要素の種類。`AXIS`は評価軸、`PACKAGE`は子パッケージ                |
+    | `components[].evaluationCriterionId`・`components[].pointPackageId` | `string`             | 条件付き | 構成要素の評価軸またはパッケージのID。`type`に対応するほうを必須とする |
+    | `components[].weight`                                               | `integer`            | 必須     | 構成要素の割合。正の安全整数                                           |
+
+- レスポンス
+  - 成功時（201）
+
+    | 項目      | 型        | 説明                      |
+    | --------- | --------- | ------------------------- |
+    | `id`      | `string`  | 作成したパッケージのID    |
+    | `version` | `integer` | 競合の検査に使う`version` |
+
+  - 失敗時
+
+    | 状態 | コード              | 起きる場合 |
+    | ---- | ------------------- | ---------- |
+    | 422  | `VALIDATION_FAILED` | 構成の誤り |
+    - 構成の誤りでは、`errors[].code`に次の値を入れる。`field`は`components.3.pointPackageId`のような項目のパスとする。
+      - `POINT_PACKAGE_COMPONENT_DUPLICATED`は、同じ種類・IDの直接登録の重複を表す。
+      - `POINT_PACKAGE_COMPONENT_UNAVAILABLE`は、存在しない要素と、新しく追加する非公開要素の編集権限がない場合を区別せずに表す。
+      - `POINT_PACKAGE_CYCLE_DETECTED`は、自己参照と間接的な循環を表す。
+      - `POINT_PACKAGE_LIMIT_EXCEEDED`は、展開で辿る構成行の1,000件、または割合の安全整数の範囲を超えた場合を表す。
+
+#### `PATCH /api/v1/point-packages/{pointPackageId}`
+
+- 説明
+  - 公式パッケージの設定・構成を更新し、停止・再開もする。operationId は`updatePointPackage`。
+  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - 変更する項目を1項目以上指定する。省略した項目は現在の値を保つ。
+  - `components`を指定した場合は全構成を送り、現在の構成を置き換える。
+  - 停止・再開は`status`だけ、公開範囲の変更は`isPublic`だけを送る。
+  - `version`の競合検査で二重反映を防ぎ、`Idempotency-Key`を要求しない。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目             | 型       | 必須 | 説明             |
+    | ---------------- | -------- | ---- | ---------------- |
+    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
+
+  - ボディー
+
+    | 項目              | 型         | 必須 | 説明                                             |
+    | ----------------- | ---------- | ---- | ------------------------------------------------ |
+    | `expectedVersion` | `integer`  | 必須 | 競合の検査に使う`version`。現在の`version`とする |
+    | `name`            | 作成と同じ | 任意 | パッケージ名                                     |
+    | `description`     | 作成と同じ | 任意 | パッケージの説明                                 |
+    | `relatedUrl`      | 作成と同じ | 任意 | 関連URL                                          |
+    | `isPublic`        | 作成と同じ | 任意 | 公開するか                                       |
+    | `status`          | 作成と同じ | 任意 | 利用状態                                         |
+    | `components`      | 作成と同じ | 任意 | 全構成                                           |
+
+- レスポンス
+  - 成功時（200）：`data`は作成と同じ項目（更新後の`id`・`version`）を持つ。
+  - 失敗時
+
+    | 状態 | コード              | 起きる場合                               |
+    | ---- | ------------------- | ---------------------------------------- |
+    | 409  | `VERSION_CONFLICT`  | `expectedVersion`が現在の`version`と違う |
+    | 422  | `VALIDATION_FAILED` | 構成の誤り。`errors[].code`は作成と同じ  |
+
+#### `DELETE /api/v1/point-packages/{pointPackageId}`
+
+- 説明
+  - 公式パッケージを完全削除する。operationId は`deletePointPackage`。
+  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - `version`の競合検査で二重反映を防ぎ、`Idempotency-Key`を要求しない。
+  - Points内で参照済みのパッケージは削除できず、画面は利用停止を案内する。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目             | 型       | 必須 | 説明             |
+    | ---------------- | -------- | ---- | ---------------- |
+    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
+
+  - クエリ
+
+    | 項目              | 型        | 必須 | 説明                                             |
+    | ----------------- | --------- | ---- | ------------------------------------------------ |
+    | `expectedVersion` | `integer` | 必須 | 競合の検査に使う`version`。現在の`version`とする |
+
+- レスポンス
+  - 成功時（204）：本文なし
+  - 失敗時
+
+    | 状態 | コード                 | 起きる場合                               |
+    | ---- | ---------------------- | ---------------------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND`   | 削除の成功後に同じ要求を再送した         |
+    | 409  | `POINT_PACKAGE_IN_USE` | Points内で参照済みのパッケージ           |
+    | 409  | `VERSION_CONFLICT`     | `expectedVersion`が現在の`version`と違う |
+
+#### `QUERY /api/v1/point-packages/{pointPackageId}/admins`
+
+- 説明
+  - パッケージの管理者の一覧を返す。operationId は`listPointPackageAdmins`。
+  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
+  - 管理者は最大20人のため、ページへ分けずに全員を`addedAt`の古い順に返す。
+  - 非公開の利用者も名前とユーザーIDを返す。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目             | 型       | 必須 | 説明             |
+    | ---------------- | -------- | ---- | ---------------- |
+    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
+
+  - ボディー：`{}`（項目なし）
+
+- レスポンス
+  - 成功時（200）
+
+    `data`は管理者の配列とし、各要素は次の項目を持つ。
+
+    | 項目      | 型                   | 説明               |
+    | --------- | -------------------- | ------------------ |
+    | `userId`  | `string`             | 管理者のユーザーID |
+    | `name`    | `string`             | 管理者の表示名     |
+    | `addedAt` | `string`（RFC 3339） | 追加日時           |
+
+#### `POST /api/v1/point-packages/{pointPackageId}/admins`
+
+- 説明
+  - パッケージに管理者を追加する。operationId は`addPointPackageAdmin`。
+  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - すでに管理者の場合は所属を重ねない。
+  - 所属の重複は所属の一意索引で防ぐため、`Idempotency-Key`を要求しない。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目             | 型       | 必須 | 説明             |
+    | ---------------- | -------- | ---- | ---------------- |
+    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
+
+  - ボディー
+
+    | 項目     | 型       | 必須 | 説明           |
+    | -------- | -------- | ---- | -------------- |
+    | `userId` | `string` | 必須 | 追加する利用者 |
+
+- レスポンス
+  - 成功時（201：新しく追加した場合、200：すでに管理者の場合）：`data`は、管理者の一覧の要素と同じ項目を持つ。
+  - 失敗時
+
+    | 状態 | コード                     | 起きる場合                                                             |
+    | ---- | -------------------------- | ---------------------------------------------------------------------- |
+    | 409  | `ADMIN_TARGET_UNAVAILABLE` | 追加先が存在しない、Pointsの状態が`ACTIVE`でない、またはログイン停止中 |
+    | 409  | `ADMIN_LIMIT_REACHED`      | 管理者が20人に達している                                               |
+
+#### `DELETE /api/v1/point-packages/{pointPackageId}/admins/{userId}`
+
+- 説明
+  - パッケージの管理者を解除する。operationId は`removePointPackageAdmin`。
+  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:admin` scopeのOAuth認証）とする。
+  - 解除する`userId`が自分なら、退出として扱う。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目             | 型       | 必須 | 説明             |
+    | ---------------- | -------- | ---- | ---------------- |
+    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
+    | `userId`         | `string` | 必須 | 解除する利用者   |
+
+- レスポンス
+  - 成功時（204）：本文なし
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                   |
+    | ---- | -------------------- | ---------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | 指定した利用者が管理者でない |
+
 ### 精算要求で受け取る情報
 
-- Pointsは、評価軸IDと必要額の組を`components`配列で受け取る。
+- Pointsは[落札精算の引き落とし](#落札精算の引き落とし)の要求で、落札者ごとに評価軸IDと必要額の組を`components`配列で受け取る。
+  - `components`は1件以上とし、各要素は次の2項目を必須とする。
 
-  | 項目                    | 意味                                             | 例                       |
-  | ----------------------- | ------------------------------------------------ | ------------------------ |
-  | `evaluationCriterionId` | 引き落とすポイントの種類を識別する評価軸ID       | Xの評価軸ID、Yの評価軸ID |
-  | `requiredAmount`        | その評価軸で引き落とす必要額。非負の十進数文字列 | Xは`"12"`、Yは`"8"`      |
+  | 項目                    | 型           | 意味                                                                     | 例                       |
+  | ----------------------- | ------------ | ------------------------------------------------------------------------ | ------------------------ |
+  | `evaluationCriterionId` | `string`     | 引き落とすポイントの種類を識別する評価軸ID。同じ落札者の中で重複させない | Xの評価軸ID、Yの評価軸ID |
+  | `requiredAmount`        | 金額の文字列 | その評価軸で引き落とす必要額。0以上とする                                | Xは`"12"`、Yは`"8"`      |
   - 次のJSONは、精算要求の落札者一覧`winners`の1人分から、`components`だけを抜き出した例とする。
   - 「落札者からXポイントを12、Yポイントを8引き落としてほしい」という要求を示す。
   - 評価軸IDには説明用の仮の値を記載する。
@@ -4214,43 +4422,21 @@ flowchart TD
 
 - Pointsは受け取った必要額を現在の最小単位へ丸め直さず、その倍数でないことだけでは精算を拒否しない。
 
-- 新しい精算では、Pointsは要求の全評価軸IDの存在と現在状態を検証する。
-  - 必要額0の行も含め、一つでも停止中なら全件を引き落とさない。
-  - 評価軸の公開範囲は精算の許可条件に含めない。
-
-- 各落札者のトークン・DPoP署名と権限、各対象の存在、非負の金額、軸の重複、金額精度、残高も検証する。
-  - 存在しない評価軸による新しい精算は拒否する。
-  - Workerが受け取った必要額を検査し、同じ本人・評価軸ごとの合計と引き落とし後の残高を正確に計算する。共通の原子処理で引き落とす。
-
 ### 出品用の評価軸・パッケージ情報
 
 - Marketsは検索で候補を取得し、選択した種類とIDから対象別の詳細を取得する。
   - 一覧は`QUERY /api/v1/search`へ`{ "types": ["POINT_PACKAGE", "EVALUATION_CRITERION"], "page": 1, "pageSize": 20 }`を送る。
   - パッケージは`QUERY /api/v1/point-packages/{pointPackageId}`へJSON本文`{}`を送る。
   - 評価軸単体は`QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}`へJSON本文`{}`を送る。
-  - 認証なしでは公開対象、有効なCookieセッションまたは`points` scopeのOAuth認証がある場合は、本人が管理できる非公開対象も取得できる。
-  - 公開範囲は問い合わせ時点の値を検証する。非公開で閲覧できない対象と不存在は、同じ`404 RESOURCE_NOT_FOUND`を返す。
-  - 対象・構成軸の停止は200応答の状態として返す。この取得は出品の許可や精算成功を保証するものではない。
+  - 認証なしでは公開対象を取得できる。本人の`points:read` scopeのOAuth認証がある場合は、本人が管理できる非公開対象も取得できる。
+  - 応答の項目と返す範囲は、[パッケージのプロフィール取得API](#パッケージのプロフィール取得api)と[評価軸のプロフィール・交換倍率取得API](#評価軸のプロフィール交換倍率取得api)で定める。
 
-- 詳細取得APIの返答例
-  - 対象別の詳細は、単一オブジェクトの`data`に表示・管理情報と計算情報を返す。
-    - `type`、`id`、`name`、`visibility`、`status`、`editable`、`description`、`relatedUrl`を返す。説明はnullを許可し、関連URLは最大20件とする。
-    - パッケージの`status`は保存している`ACTIVE | INACTIVE`を返す。
-  - `data.calculation`に`components`・`totalWeight`・`amountUnit`・`packageTick`を常に返す。
-    - 計算情報の取得を切り替える入力項目は設けない。
-    - `calculation.components`は、子パッケージまで展開して同じ軸を合算した1件以上の配列とし、評価軸ID昇順で全件返す。
-    - 直接構成と月別設定のページ分割は、計算情報の対象範囲へ影響させない。
-    - 各要素の`evaluationCriterionId`・`weight`・`minimumUnit`・`status`・`buyNowEnabled`を必須とする。`buyNowEnabled`には、その軸で即決価格の利用を許可する現在の設定値を返す。利用状態と公開範囲にかかわらず返す。
-    - 展開途中の非公開子パッケージのID・名前・構造は返さない。
-    - 公開軸には名前・説明などの公開情報も返す。
-    - 非公開軸では原則としてID・割合・最小単位・状態・即決価格の許可など競売で必須の情報だけを返す。
-    - その非公開軸も管理できる本人への認証済み応答では、名前などの詳細を返せる。親パッケージの管理権限だけでは、その軸の詳細取得を許可しない。
-    - 評価軸単体の`calculation`は、対象軸だけの`components`1件、`weight: 1`、`totalWeight: 1`と、`amountUnit`・対象軸の最小単位と同額の`packageTick`を返す。軸の最小単位が初期値の1なら、`packageTick`は`"1"`となる。
-  - 応答例は、Pの直接構成をX軸1・非公開の子Q3、Qの構成をX軸1・Y軸1とした場合を示す。
-    - 展開結果はX対Y＝5対3となり、X・Yの最小単位はともに0.0001とする。
-    - Y軸も非公開・停止中とし、問い合わせた本人にはQとY軸の管理権限がないものとする。
-    - X・Y軸の即決価格の利用可否は、どちらも初期値のONから変更していないものとする。
-    - 直接構成ではQを匿名表示し、計算情報ではY軸のID・割合・状態・即決価格の許可を返す。
+- 応答例は、Pの直接構成をX軸1・非公開の子Q3、Qの構成をX軸1・Y軸1とした場合を示す。
+  - 展開結果はX対Y＝5対3となり、X・Yの最小単位はともに0.0001とする。
+  - Y軸も非公開・停止中とし、問い合わせた本人にはQとY軸の管理権限がないものとする。
+  - X・Y軸の即決価格の利用可否は、どちらも初期値のONから変更していないものとする。
+  - 直接構成ではQを匿名表示し、計算情報ではY軸を匿名表示したうえで、ID・割合・状態・即決価格の許可を返す。
+  - 応答例では日時・`version`・人物の項目を省略する。
 
 ```json
 {
@@ -4260,7 +4446,7 @@ flowchart TD
     "name": "研究への貢献",
     "description": null,
     "relatedUrl": ["https://example.com/package"],
-    "visibility": "PUBLIC",
+    "isPublic": true,
     "status": "ACTIVE",
     "editable": false,
     "totalWeight": 4,
@@ -4269,37 +4455,41 @@ flowchart TD
         "type": "AXIS",
         "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
         "name": "X軸",
+        "anonymized": false,
         "weight": 1,
+        "displayOrder": 0,
         "status": "ACTIVE"
       },
       {
         "type": "PACKAGE",
         "name": "匿名Bのパッケージ",
-        "weight": 3
+        "anonymized": true,
+        "weight": 3,
+        "displayOrder": 1
       }
     ],
-    "calculation": {
-      "totalWeight": 8,
-      "amountUnit": "0.0001",
-      "packageTick": "0.0008",
-      "components": [
-        {
-          "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
-          "weight": 5,
-          "minimumUnit": "0.0001",
-          "status": "ACTIVE",
-          "name": "X軸",
-          "buyNowEnabled": true
-        },
-        {
-          "evaluationCriterionId": "Z7wYdE5vT9mQx3nKp2aBc",
-          "weight": 3,
-          "minimumUnit": "0.0001",
-          "status": "INACTIVE",
-          "buyNowEnabled": true
-        }
-      ]
-    }
+    "calculation": [
+      {
+        "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL",
+        "weight": 5,
+        "minimumUnit": "0.0001",
+        "status": "ACTIVE",
+        "buyNowEnabled": true,
+        "isPublic": true,
+        "anonymized": false,
+        "name": "X軸"
+      },
+      {
+        "evaluationCriterionId": "Z7wYdE5vT9mQx3nKp2aBc",
+        "weight": 3,
+        "minimumUnit": "0.0001",
+        "status": "INACTIVE",
+        "buyNowEnabled": true,
+        "isPublic": false,
+        "anonymized": true,
+        "name": "匿名Bの評価軸"
+      }
+    ]
   },
   "meta": {
     "requestId": "req_550e8400-e29b-41d4-a716-446655440000",
@@ -4311,35 +4501,10 @@ flowchart TD
 }
 ```
 
-- Pointsが返す割合と価格刻み
-  - 展開後の`weight`は最大公約数で正規化した正の安全整数、`totalWeight`はその安全整数合計とする。比率は厳密な`weight / totalWeight`とする。
-  - `amountUnit`は、金額の小数4桁に対応する固定値`"0.0001"`を返す。
-  - 各componentの`minimumUnit`は、取得時点の評価軸の最小単位を十進数文字列で返す。
-  - `packageTick`は、各componentへの配分額がその軸の最小単位の倍数になる、最小の正の価格刻みとする。`component`は、パッケージを構成する各評価軸を指す。
-    - 価格を各軸へ割合どおりに分けたとき、どの軸の必要額も最小単位に合うようにするための刻みである。
-    - 各軸の整数の単位数を`unitCount = minimumUnit / amountUnit`とする。
-    - 各軸の`unitCount * totalWeight / GCD(unitCount * totalWeight, weight)`を求め、その最小公倍数に`amountUnit`を掛ける。`GCD`は、二つの整数の最大公約数を表す。
-    - 単位数と最小公倍数は任意精度の整数として厳密に計算し、計算途中の整数が大きくなっても桁落ちや誤差を起こさずに扱う。
-    - 結果の金額には共通の桁数・大きさの上限を適用する。割合を表す`weight`・`totalWeight`の安全整数条件とは区別する。
-  - `amountUnit`・`packageTick`はDBの列として持たず、応答のたびに求めて返す。
-
-- 価格刻みの例：X対Y＝3対2、Xの最小単位0.1、Yの最小単位0.05の場合
-  - 商品1個の価格をXへ60％、Yへ40％に分ける。両方の必要額が各軸の最小単位に合うよう、価格の刻みを決める。
-
-  | 商品1個の価格 | Xの必要額（60％） | Yの必要額（40％） | 最小単位に合うか     |
-  | ------------: | ----------------: | ----------------: | -------------------- |
-  |          0.25 |              0.15 |              0.10 | Xが0.1の倍数ではない |
-  |          0.50 |              0.30 |              0.20 | 両方とも合う         |
-  |          1.00 |              0.60 |              0.40 | 両方とも合う         |
-  - この条件では、両方の最小単位に合う最小の正の価格刻みは0.5となる。この刻みの整数個分を価格にすれば、各軸の必要額を丸めずに計算できる。
-  - `amountUnit`の0.0001を使い、次の順で求める。
-  1. 各軸の最小単位を、`amountUnit`の整数個分で表す。
-     - Xの`unitCount`は`0.1 / 0.0001 = 1000`、Yは`0.05 / 0.0001 = 500`となる。
-  2. 価格を`amountUnit`何個分で表すかを考え、各軸の条件を満たす価格の刻み数を求める。`totalWeight = 3 + 2 = 5`、Xの`weight`は3、Yは2とする。
-     - Xは`1000 * 5 / GCD(5000, 3) = 5000`となる。価格の刻み数を5000の倍数にすれば、Xの必要額が0.1の倍数になる。
-     - Yは`500 * 5 / GCD(2500, 2) = 1250`となる。価格の刻み数を1250の倍数にすれば、Yの必要額が0.05の倍数になる。
-  3. 両方の条件を満たす最小の刻み数を金額へ戻す。
-     - 5000と1250の最小公倍数は5000なので、`packageTick = 5000 * 0.0001 = 0.5`となる。
+- Pointsが返す割合と最小単位
+  - 展開後の`weight`は最大公約数で正規化した正の安全整数とし、その合計も安全整数とする。比率は厳密な`weight / 合計`とする。
+  - 各要素の`minimumUnit`は、取得時点の評価軸の最小単位を十進数文字列で返す。
+  - 競売の価格刻みは、外部サービスが`calculation`の割合と最小単位から求める。
 
 ### パッケージ情報の提供と精算時の検証
 
@@ -4348,7 +4513,7 @@ flowchart TD
 - 新しい精算では、Pointsが要求に指定された全評価軸の存在・現在の稼働状態と、本人認可・金額・残高を検証する。非公開であることだけでは拒否しない。
 - 認可本人が管理する非公開軸の名前は、PointsのOAuth認可画面で情報提供への同意を得た場合に提供する。
   - 提供した非公開名は本人向けの選択に限り利用でき、公開競売への実名の保存・表示は許可範囲に含めない。出品ごとの追加同意は設けない。
-  - `points`への同意は本人が利用できる業務API全体の委任であり、API応答の項目制限だけで外部アプリによる情報保存を制御できるものではない。
+  - `points:read`への同意は本人が取得できる情報全体の委任であり、API応答の項目制限だけで外部アプリによる情報保存を制御できるものではない。
 - 非公開時の応答制限は、外部サービスが以前取得した情報の消去を保証しない。Nano IDは不変IDであり、以前の公開情報との対応まで消すものではない。
 
 図は、情報取得と新しい精算でPointsが行う処理を示す。有効な冪等性結果を返す再送は、[落札精算の引き落とし](#落札精算の引き落とし)に従う。
@@ -4356,7 +4521,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     A["外部サービスからの検索・詳細取得要求"] --> B["Pointsが閲覧範囲を検証<br/>表示用区画と計算情報を分けて返す"]
-    B --> B2["計算情報には全展開軸のID・割合<br/>状態・各軸の最小単位・システムの金額刻み・価格刻みを返す"]
+    B --> B2["計算情報には全展開軸のID・割合<br/>状態・各軸の最小単位・即決価格の許可を返す"]
     E["外部サービスからの精算要求<br/>評価軸IDと必要額を受け取る"]
     E --> F["Pointsが全指定軸の存在・現在状態<br/>各明細の金額・本人認可・合算した必要額と実残高を検証<br/>必要額を現在の単位へ丸め直さない"]
     F --> G{"全条件を満たすか"}
