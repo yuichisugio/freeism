@@ -6884,7 +6884,7 @@ flowchart TD
   - QUERYの経路はHono標準の`app.query()`で定義する。
   - OAuth・Better Auth標準API、公開メタデータ・JWKS・UserInfo、HTML・静的ファイル・Shields.ioバッジの配信は、それぞれの標準のGET・HEADなどを使う。
   - `POST`は新規作成・確定など、その操作で定めた処理とする。
-  - `PUT`は指定した内容全体への置換、`DELETE`は対象の削除とする。
+  - `PUT`は指定した内容全体への置換、`PATCH`は指定した項目・要素だけの部分変更、`DELETE`は対象の削除とする。
   - 更新・確定操作は、各操作で定めた経路・メソッドを使う。
 
 - QUERYの本文は、UTF-8のJSONを基本とする。
@@ -6918,10 +6918,18 @@ flowchart TD
 - 本人と操作権限は、サーバーで検証する。
   - Cookie認証ではBetter Authのセッションと`csrf()`による要求元検査を適用する。
   - 利用者の認可による外部APIでは、`Authorization: DPoP {token}`と`DPoP: {proof}`を送る。
-  - 外部からのPoints独自業務APIには`points` scopeを要求し、トークン・DPoP、本人の現在状態、対象の権限を検証する。
+  - 外部からのPoints独自APIには操作に必要なscopeを要求し、トークン・DPoP、本人の現在状態、対象の権限を検証する。
   - CookieのOrigin・CSRF検証とOAuthのDPoP検証は、それぞれの認証方式へ適用する。DPoPの`htm`は実際のHTTPメソッドと照合し、QUERYでは`QUERY`を検証する。
   - 精算では本文で受け取る各落札者のトークンとDPoP署名を検証する。
   - 本文に書かれた本人ID・ロールだけを、認証や権限の根拠にしない。
+
+- OAuth＋DPoPでは、OAuthクライアントの管理と、退会と再開を除くPoints独自APIを受け付ける。
+  - OAuthの同意の取り消し、Accounts連携の開始と再連携・解除、Adminプラグインの操作などのBetter Auth標準の経路（`/api/auth/*`）は、標準のセッションで扱う。
+  - 公開の取得では、OAuth認証があれば、その本人が閲覧・管理できる非公開の対象も返す。
+  - 確認・検証・試算の`QUERY`は、確定と同じscopeを要求する。
+  - 必要なscopeがない場合は`403 INSUFFICIENT_SCOPE`を返す。
+  - 各scopeは他のscopeを含まない。外部アプリは必要なscopeをすべて要求する。
+  - 任意の本人認証で`points:read`がない場合は、公開情報だけを返す。
 
 ```mermaid
 flowchart TD
@@ -6962,16 +6970,15 @@ flowchart TD
   - CSVでは、ファイル部分と、フォーム項目・各部分のヘッダー・区切り情報を含む本文全体を別々に検証する。
   - ファイル部分の容量はValibotの`v.pipe(v.file(), v.maxSize(...))`で検証する。
     - ファイルの中身は、サーバーのPapa ParseとUTF-8の検証で判定する。
-  - 設定復元では、ブラウザが選ぶファイルと、設定・確認結果を含めてサーバーへ送るJSON本文を区別し、どちらも最大5MiBとする。
+  - 設定復元では、ブラウザが選ぶファイルと、設定と`validationHash`を含めてサーバーへ送るJSON本文を区別し、どちらも最大5MiBとする。
 
-| 対象                 | 容量を数える範囲                        | 上限                           |
-| -------------------- | --------------------------------------- | ------------------------------ |
-| 通常のJSON要求       | UTF-8の本文全体                         | 65,536 bytes（64KiB）          |
-| 設定復元の検証・確定 | 設定・確認結果を含むUTF-8のJSON本文全体 | 5,242,880 bytes（5MiB）        |
-| 未受領評価の受領確定 | 確認結果を含むUTF-8のJSON本文全体       | 5,242,880 bytes（5MiB）        |
-| 精算の一括引き落とし | UTF-8のJSON本文全体                     | 1,048,576 bytes（1MiB）        |
-| CSVファイル          | `file`のファイル内容                    | 5,242,880 bytes（5MiB）        |
-| CSVのフォーム送信    | 区切り情報を含む本文全体                | 5,308,416 bytes（5MiB＋64KiB） |
+| 対象                 | 容量を数える範囲                                | 上限                           |
+| -------------------- | ----------------------------------------------- | ------------------------------ |
+| 通常のJSON要求       | UTF-8の本文全体                                 | 65,536 bytes（64KiB）          |
+| 設定復元の検証・確定 | 設定と`validationHash`を含むUTF-8のJSON本文全体 | 5,242,880 bytes（5MiB）        |
+| 精算の一括引き落とし | UTF-8のJSON本文全体                             | 1,048,576 bytes（1MiB）        |
+| CSVファイル          | `file`のファイル内容                            | 5,242,880 bytes（5MiB）        |
+| CSVのフォーム送信    | 区切り情報を含む本文全体                        | 5,308,416 bytes（5MiB＋64KiB） |
 
 - 取得APIで要求の待機時間を制限するときは、Hono標準の`timeout()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/timeout)
   - 適用先は、業務変更の確定を含まない処理に限定する。
@@ -7053,7 +7060,11 @@ flowchart TD
 ```
 
 - 共通のエラーコードを定める。
-  - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`REQUEST_ORIGIN_REJECTED`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
+  - `MALFORMED_REQUEST`、`AUTHENTICATION_REQUIRED`、`INVALID_ACCESS_TOKEN`、`INSUFFICIENT_SCOPE`、`PERMISSION_DENIED`、`ACCOUNT_CLOSED`、`REQUEST_ORIGIN_REJECTED`、`RESOURCE_NOT_FOUND`、`CONTENT_TYPE_UNSUPPORTED`、`REQUEST_BODY_TOO_LARGE`、`VALIDATION_FAILED`、`VERSION_CONFLICT`、`CONFIRMATION_CHANGED`、`IDEMPOTENCY_KEY_REQUIRED`、`IDEMPOTENCY_KEY_REUSED`、`RATE_LIMITED`、`INTERNAL_ERROR`、`DEPENDENCY_UNAVAILABLE`とする。
+  - `403 PERMISSION_DENIED`は、認証済みだが対象の権限がない場合とする。閲覧できない非公開の対象では、`404 RESOURCE_NOT_FOUND`を返す。
+  - `403 ACCOUNT_CLOSED`は、退会済みの本人が業務APIを呼んだ場合とする。
+  - `409 VERSION_CONFLICT`は、要求の`expectedVersion`が現在の`version`と違う場合とする。
+  - `409 CONFIRMATION_CHANGED`は、確定時に計算し直した確認項目が`validationHash`と一致しない場合とする。画面は確認の`QUERY`を呼び直す。
   - 操作固有のコードには、`AUTHORIZATION_UNAVAILABLE`、`INSUFFICIENT_BALANCE`、`EVALUATION_CRITERION_INACTIVE`など、各操作で定めた値を使う。
   - 精算の`rejectedWinners`など、操作固有の拡張項目と返却範囲は各操作の契約で定める。
 
@@ -7106,9 +7117,9 @@ flowchart TD
   - 同じ業務要求の再送でも、今回の通信IDを発行する。
 
 - 再送で結果が増える操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
-  - 評価軸・パッケージの作成、直接評価、譲渡、交換、CSV確定、お知らせ送信、設定復元、精算が該当する。
-  - 更新・停止・再開・削除などの設定変更と受領は、`version`の競合検査や受領日時で二重反映を防ぐ。
-  - 必須となる操作と本人・対象の条件は、各操作の契約に記載する。
+  - 評価軸・パッケージの作成、直接評価、月別評価方式の確定・再計算、譲渡、交換、受領、CSV確定、お知らせ送信、設定復元、精算が該当する。
+  - 更新・停止・再開・削除などの設定変更は、`version`の競合検査で二重反映を防ぐ。
+  - 必須となる操作の種別名と、本人・対象の条件は、各操作の契約に記載する。
   - 必須の操作でヘッダーが欠落した場合は、`400 IDEMPOTENCY_KEY_REQUIRED`を返し、業務処理を実行しない。
   - QUERYと標準のGET・HEADでは要求しない。
   - 内部の項目名は`idempotencyKey`とする。
@@ -7123,9 +7134,11 @@ flowchart TD
   - 置き換えは既存結果が期限切れであることを条件とし、業務変更と同じD1原子処理で行う。
   - 評価・分配・訂正・受領に必要な情報と、ポイントの増減を伴うCSVの入力はポイント増減履歴へ集約し、精算などの固有情報は各機能で定める保存先へ保持する。
 
-- 再送保証の有効期間は、各結果の初回確定から1日（24時間、86,400秒）とする。
-  - `expiresAt`は`createdAt`の86,400秒後とし、再送で延長しない。
-  - 現在時刻が`expiresAt`未満の結果だけを再送の照合に使う。
+- 再送保証の有効期間は、各結果が完了した確定から1日（24時間、86,400秒）とする。
+  - 一回の要求で完了した結果の`expiresAt`は、`createdAt`の86,400秒後とし、再送で延長しない。
+  - [分割確定と再開](#分割確定と再開)の`completion: INCOMPLETE`の結果は、完了するまで`expiresAt`を持たず、保存期限で削除しない。24時間を過ぎても、同じキーの再送で続きを進められるようにするためである。
+  - 続きの再送で完了した結果は、完了を保存した時点の86,400秒後を`expiresAt`とする。
+  - 未完了の結果と、現在時刻が`expiresAt`未満の結果だけを再送の照合に使う。
   - 期限後は、同じキーでも新しい要求として現在の認証・権限・入力・業務条件を検証する。
   - 新しい独立操作として実行条件を満たす要求は、期限後に以前と同じ内容でも再実行され得る。CSVの続きの行や、確定済みの操作から続く分配・訂正では、業務記録の完了状態を確認し、未完了の部分だけを再開する。
   - この有効期間は、CSV・通知・設定復元・精算を含む、`Idempotency-Key`を要求する全操作に適用する。
@@ -7140,6 +7153,7 @@ flowchart TD
 - 有効な結果がある同じ要求には、保存済みの業務結果を返す。
   - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
   - 初回が`201`なら再送も`201`とする。
+  - 保存した結果が`completion: INCOMPLETE`なら、続きを進めて新しい進み具合を返し、保存した結果をその進み具合で更新する。`COMPLETED`なら、保存した結果を返す。
   - 保存済みのキーで内容が異なる場合は`409 IDEMPOTENCY_KEY_REUSED`とする。
   - 全件未確定で終わった失敗は結果として固定せず、同じ要求の再送時に現在の条件で再検証する。
 
@@ -7158,9 +7172,11 @@ flowchart TD
   subgraph request["Idempotency-Keyが必須の操作"]
     A["操作で定めた認証・入力検証を適用"] --> B{"キーがあるか"}
     B -->|いいえ| R["400 IDEMPOTENCY_KEY_REQUIRED"]
-    B -->|はい| C{"同じ識別範囲に<br/>確定から24時間未満の結果があるか"}
+    B -->|はい| C{"同じ識別範囲に有効な結果<br/>（未完了、または完了から24時間未満）があるか"}
     C -->|ある| D{"正規化した内容が同じか"}
-    D -->|同じ| E["初回の状態コード・結果ID・dataを返す<br/>今回のrequestIdを付ける"]
+    D -->|同じ| W{"保存した結果がINCOMPLETEか"}
+    W -->|いいえ| E["初回の状態コード・結果ID・dataを返す<br/>今回のrequestIdを付ける"]
+    W -->|はい| U
     D -->|異なる| F["409 IDEMPOTENCY_KEY_REUSED"]
     C -->|ない・期限切れ| G["現在の認証・権限・入力・業務状態を検証"]
     G --> P{"CSVの続きや後続処理の再開か"}
@@ -7194,7 +7210,7 @@ flowchart TD
 
 - Marketsなどの外部サービスは、そのサービスのバックエンドからPoints APIを呼ぶ。
   - 公開情報の取得には認証情報を送らず、取得時点の公開条件に従って応答する。
-  - 本人用情報の取得・操作にはOAuthとDPoPを使い、Pointsが本人と操作権限を検証する。認証方式ごとの検査は、[HTTPメソッドと入力](#httpメソッドと入力)の本人認証・権限検証に従う。
+  - 本人の認可が必要なAPIには、操作に必要なscopeのOAuthとDPoPを使い、Pointsが本人と操作権限を検証する。認証方式ごとの検査は、[HTTPメソッドと入力](#httpメソッドと入力)の本人認証・権限検証に従う。
   - 外部サービスの画面は、そのサービスのバックエンドを通じて結果を取得する。
 
 - 外部サイトに表示するバッジは、Shields.ioのサーバーがPointsのバッジ用JSONを取得し、生成した画像をブラウザへ返す。
@@ -7207,7 +7223,7 @@ flowchart TD
   end
   subgraph external["外部サービスとの連携"]
     M["Marketsなどのブラウザ画面"] --> B["利用側サービスのバックエンド"]
-    B -->|公開取得は認証情報なし<br/>本人用はOAuth・DPoP| A
+    B -->|公開取得は認証情報なし<br/>本人の認可が必要なAPIはOAuth・DPoP| A
     A -->|取得・操作の結果| B
     B -->|結果| M
   end
@@ -7289,6 +7305,7 @@ upgrade-insecure-requests
 - QUERYのJSON本文・複数種類とID集合による検索・対象別の詳細取得・本文形式のエラーと、Cookie／OAuth／未認証の公開取得を確認する。
 - フォームの事前確認・検証・試算が業務状態を変更しないことと、CSV検証を含む各QUERYの本文形式に対応した`Accept-Query`を確認する。
 - Pointsの画面からの同一originの呼び出し、外部サービスのバックエンド経由の連携、Shields.ioのサーバーによるバッジ用JSONの取得を確認する。
+- scope不足の`403 INSUFFICIENT_SCOPE`、OAuthクライアントの管理と退会・再開がOAuthを拒否すること、管理者の権限で見る取得を`points:read`で受け付けること、評価軸・パッケージの作成を`points:edit`で受け付けること、CSVと設定の復元が管理者の権限を使う要素を含む場合だけ`points:admin`を要求すること、同意の取り消し後にトークンを拒否することを確認する。
 - DPoPの`htm=QUERY`、公開表示での本人認証の省略、必須操作の`Idempotency-Key`と401の`WWW-Authenticate`による認証チャレンジを確認する。
 - `/api/*`の成功・失敗とBetter Authの応答に`Cache-Control: no-store`が付き、OAuthのトークン応答に`Pragma: no-cache`も付くことを確認する。
 - 成功・失敗・再送で通信IDを本文・応答ヘッダー・ログから照合し、確定済みの結果を二重に実行しないことを確認する。
@@ -7300,7 +7317,7 @@ upgrade-insecure-requests
   - 現在のCSV送信は`text/csv`本文と独自ヘッダーで追加情報を送っている。フォーム送信と`validationHash`による重要な確認項目の照合へそろえる。
   - 現在のCSVエラーには`column`があり、空行後の番号が検証段階で異なる経路がある。`field`と解析後の行番号へそろえる。
   - 現在の検索にはページ指定の処理がなく、種類別の取得件数を合算している。混合一覧のページ情報と既存の20件表示へそろえる。
-  - 現在の独自取得APIはGETを使い、OAuthの業務scopeも機能別である。標準の`app.query()`によるQUERY・JSON本文・単一の`points` scopeと、Cookie／OAuthの共通権限検証へ移行する。
+  - 現在の独自取得APIはGETを使い、OAuthの業務scopeも機能別である。標準の`app.query()`によるQUERY・JSON本文・`points:read`・`points:edit`・`points:admin`の3つのscopeと、Cookie／OAuthの共通権限検証へ移行する。
   - Honoのルーティング、Cloudflare Workers、同一originのブラウザの`fetch()`、外部サービスのバックエンドの`fetch()`とOpenAPI 3.2の定義によるQUERYの送受信は、実装時に実環境で確認する。標準認証・配信のGETも確認する。
   - 現在の応答には`meta.requestId`がない経路があり、入力ヘッダー・エラー本文・拒否ログのIDも一致していない経路がある。今回の通信IDへ統一する。
   - 現在のCSV画面は確定ごとに新しいキーを発行し、通信失敗で確認結果を消す。成否不明時の同じ要求・キーの保持へそろえる。
@@ -7351,7 +7368,7 @@ upgrade-insecure-requests
   - 比率は分子・分母を保持し、必要な単位の個数について`dividedToIntegerBy()`と剰余で丸めを確定する。異なる分母の剰余は交差積で比較し、途中で丸めた小数を使って配分順位を決めない。
   - 計算中の除算をライブラリ既定の小数桁数で丸めてから、業務上の丸めを重ねない。
   - 整数部・小数部の桁数と、要求本文・D1の容量・Workerの処理量の上限を検証する。
-  - 入力、業務上の計算結果、集計後、保存前、API応答前に必要な範囲を確認し、上限を超えた場合はその確定単位を拒否する。比率の分子・分母、剰余の交差積、価格刻みを求める最小公倍数などの途中計算は任意精度で保持し、確定額へ適用する桁数に丸めない。
+  - 入力、業務上の計算結果、集計後、保存前、API応答前に必要な範囲を確認し、上限を超えた場合はその確定単位を拒否する。比率の分子・分母、剰余の交差積などの途中計算は任意精度で保持し、確定額へ適用する桁数に丸めない。
   - 整数部の桁数に収まる場合、`900719925474.0991`と`900719925474.0992`はどちらも正確に扱う。負数も同じ絶対値で判定する。
   - パッケージの割合・件数・versionは金額と区別し、各機能で定める整数の条件を適用する。
 
