@@ -883,7 +883,7 @@ flowchart TD
 - 権限がない操作者には、非公開の軸なら`404 RESOURCE_NOT_FOUND`、公開の軸なら`403 PERMISSION_DENIED`を返す。
   - この扱いは作成を除くこの節のすべてのAPIに適用する。
 
-- 管理者の一覧・追加・解除・退出は`Idempotency-Key`・`version`・`validationHash`を使わない。
+- 管理者の追加・解除・退出は`Idempotency-Key`・`version`・`validationHash`を使わない。管理者の一覧は、評価軸の詳細の`admins`から取得する。
 
 ##### `POST /api/v1/evaluation-criteria`
 
@@ -998,34 +998,6 @@ flowchart TD
     | 409  | `VERSION_CONFLICT`            | `expectedVersion`による競合の検査に通らない |
     | 404  | `RESOURCE_NOT_FOUND`          | 削除済みの軸への再送                        |
 
-##### `QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}/admins`
-
-- 説明
-  - 評価軸の管理者の一覧を取得する。operationId は`listEvaluationCriterionAdmins`。
-  - 認証・権限は、その軸の`evaluationCriterionAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
-  - 最大20人の管理者をページに分けずに返す。
-
-- リクエスト
-  - ヘッダー：なし
-  - パス
-
-    | 項目                    | 型       | 必須 | 説明       |
-    | ----------------------- | -------- | ---- | ---------- |
-    | `evaluationCriterionId` | `string` | 必須 | 評価軸のID |
-
-  - ボディー：`{}`（項目なし）
-
-- レスポンス
-  - 成功時（200）
-
-    `data`は管理者の配列とし、各要素は次の項目を持つ。追加日時の古い順に並べる。
-
-    | 項目      | 型                   | 説明               |
-    | --------- | -------------------- | ------------------ |
-    | `userId`  | `string`             | 管理者のユーザーID |
-    | `name`    | `string`             | 管理者の表示名     |
-    | `addedAt` | `string`（RFC 3339） | 追加日時           |
-
 ##### `POST /api/v1/evaluation-criteria/{evaluationCriterionId}/admins`
 
 - 説明
@@ -1050,7 +1022,7 @@ flowchart TD
 - レスポンス
   - 成功時（201：新しく追加した場合、200：すでに管理者の場合）
 
-    `data`は管理者の一覧の要素と同じ形とする。
+    `data`は、評価軸の詳細の`admins`の要素と同じ形とする。
 
   - 失敗時
 
@@ -3816,6 +3788,7 @@ flowchart TD
     | `monthlyEvaluationSettings[].source`          | 代用元                             | 代用元の評価軸。`SUBSTITUTION`の要素だけが持つ                            |
     | `calculation`                                 | 1件の配列                          | 単体出品に使う構成。対象軸だけを要素に持つ                                |
     - 人物は、表示できる場合は`{ "hidden": false, "userId": string, "name": string }`、隠す場合は`{ "hidden": true }`とする。
+    - `admins`の要素は、人物に追加日時`addedAt`（RFC 3339）を加えた形とする。最大20人をページに分けず、`addedAt`の古い順、同じ時刻は`userId`の昇順に並べる。
     - `source`は、表示できる場合は`{ "hidden": false, "evaluationCriterionId": string, "name": string }`、隠す場合は`{ "hidden": true }`とする。
     - `calculation`は、対象軸だけの要素を1件返す。
       - 要素の形は[パッケージのプロフィール取得API](#パッケージのプロフィール取得api)の`calculation[]`と同じとし、`weight: 1`・`anonymized: false`と対象軸の名前を持つ。
@@ -4308,35 +4281,6 @@ flowchart TD
     | 409  | `POINT_PACKAGE_IN_USE` | Points内で参照済みのパッケージ           |
     | 409  | `VERSION_CONFLICT`     | `expectedVersion`が現在の`version`と違う |
 
-#### `QUERY /api/v1/point-packages/{pointPackageId}/admins`
-
-- 説明
-  - パッケージの管理者の一覧を返す。operationId は`listPointPackageAdmins`。
-  - 認証・権限は、対象の`packageAdmin`または`appAdmin`の本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
-  - 管理者は最大20人のため、ページへ分けずに全員を`addedAt`の古い順に返す。
-  - 非公開の利用者も名前とユーザーIDを返す。
-
-- リクエスト
-  - ヘッダー：なし
-  - パス
-
-    | 項目             | 型       | 必須 | 説明             |
-    | ---------------- | -------- | ---- | ---------------- |
-    | `pointPackageId` | `string` | 必須 | 対象のパッケージ |
-
-  - ボディー：`{}`（項目なし）
-
-- レスポンス
-  - 成功時（200）
-
-    `data`は管理者の配列とし、各要素は次の項目を持つ。
-
-    | 項目      | 型                   | 説明               |
-    | --------- | -------------------- | ------------------ |
-    | `userId`  | `string`             | 管理者のユーザーID |
-    | `name`    | `string`             | 管理者の表示名     |
-    | `addedAt` | `string`（RFC 3339） | 追加日時           |
-
 #### `POST /api/v1/point-packages/{pointPackageId}/admins`
 
 - 説明
@@ -4360,7 +4304,7 @@ flowchart TD
     | `userId` | `string` | 必須 | 追加する利用者 |
 
 - レスポンス
-  - 成功時（201：新しく追加した場合、200：すでに管理者の場合）：`data`は、管理者の一覧の要素と同じ項目を持つ。
+  - 成功時（201：新しく追加した場合、200：すでに管理者の場合）：`data`は、パッケージの詳細の`admins`の要素と同じ項目を持つ。
   - 失敗時
 
     | 状態 | コード                     | 起きる場合                                                             |
@@ -7694,21 +7638,47 @@ flowchart TD
 
 ### 本人の残高一覧API
 
-- `GET /api/v1/me/point-balances`で、認可された本人が残高を持つ全評価軸の残高と、評価軸の情報を返す。
-  - `operationId`は`listPointBalances`、成功は200とする。
-  - Points画面ではCookieセッション、外部アプリでは`points` scopeの利用者アクセストークン、Points API audience、DPoP認証を要求する。
-  - Pointsはトークン・DPoPと、本人・権限を検証する。本人が退会・ログイン停止中なら取得を拒否する。
+#### `QUERY /api/v1/me/point-balances`
+
+- 説明
+  - 認可された本人が残高を持つ全評価軸の残高と、評価軸の情報を返す。operationId は`listPointBalances`。
+  - 認証・権限は、Cookieセッション、または`points:read` scopeのOAuth＋DPoPとし、認可された本人とする。
+  - Points画面はCookieセッション、外部アプリは利用者アクセストークンで呼ぶ。
   - 公開設定にかかわらず、認可された本人の残高を返す。
-  - 認証不成立は401、scope不足は403とする。
-
-- 対象は、本人の`point_account`に行がある全評価軸とする。
-  - 残高が0や負の評価軸も含める。
-  - 本人のポイント一覧と同じく、非公開・停止中の評価軸も含める。
-
-- `data.balances`の各要素は`evaluationCriterionId`・`name`・`status`・`minimumUnit`・`balance`とし、評価軸ID昇順で返す。
-  - `status`は評価軸の利用状態（`ACTIVE`・`INACTIVE`）、`minimumUnit`は現在の最小単位とする。
-  - `balance`は全桁を保持した符号付きの実残高とし、[金額表現](#金額表現)の十進数文字列で返す。
+  - 対象は、本人の`point_account`に行がある全評価軸とする。
+    - 残高が0や負の評価軸も含める。
+    - 本人のポイント一覧と同じく、非公開・停止中の評価軸も含める。
+    - 全件を返し、ページに分けない。
   - 取得ではポイントを確保しない。精算では、確定時の実残高で改めて判定する。
+  - `Idempotency-Key`・`version`・`validationHash`は要らない。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー：`{}`（項目なし）
+
+- レスポンス
+  - 成功時（200）
+
+    `data`は評価軸ごとの残高の配列とし、評価軸ID昇順に並べる。各要素は次の項目を持つ。
+
+    | 項目                    | 型                   | 説明                           |
+    | ----------------------- | -------------------- | ------------------------------ |
+    | `evaluationCriterionId` | `string`             | 評価軸のID                     |
+    | `name`                  | `string`             | 評価軸の名前                   |
+    | `status`                | `ACTIVE \| INACTIVE` | 評価軸の利用状態               |
+    | `minimumUnit`           | 金額の文字列         | 現在の最小単位                 |
+    | `balance`               | 金額の文字列         | 全桁を保持した符号付きの実残高 |
+
+    `meta`は`requestId`だけとする。
+
+  - 失敗時
+
+    | 状態 | コード                    | 起きる場合                                       |
+    | ---- | ------------------------- | ------------------------------------------------ |
+    | 401  | `AUTHENTICATION_REQUIRED` | Cookieセッションがない                           |
+    | 401  | `INVALID_ACCESS_TOKEN`    | トークン・DPoPが無効、または本人がログイン停止中 |
+    | 403  | `INSUFFICIENT_SCOPE`      | `points:read` scopeがない                        |
+    | 403  | `ACCOUNT_CLOSED`          | 本人が退会済み                                   |
 
 ## Points–Markets連携契約
 
@@ -7764,15 +7734,11 @@ flowchart TD
   - 管理者の所属・人数と件数の上限・最後の管理者・退会・ログイン停止の扱いは、[権限](#権限)に従います。
   - Better Auth標準の`clientReference`でクライアントをOrganizationに紐づけ、`clientPrivileges`で対象の管理者権限を検証します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#organizations)
     - `clientReference`はセッションの`activeOrganizationId`を返します。
-    - 管理者は取得・更新・一時停止・再開・削除の前に、標準の`organization.setActive`で対象のOrganizationを選びます。
-  - 管理者の一覧は標準モデルから取得します。
-  - 本人の管理一覧には、本人が管理者として登録されているクライアントを表示します。`appAdmin`は全クライアントを確認・削除できます。
-    - 所属していない`appAdmin`による確認・削除は、サーバーが`appAdmin`であることを検証してから、Better Authのadapterで`oauth_client`の行を読み、削除します。
+  - 管理一覧には、本人が管理者として登録されているクライアントを表示します。`appAdmin`の管理一覧には全クライアントを表示し、一時停止・再開・削除できます。
   - 解除・退出・Points退会では対象者の所属だけを解除し、アプリを維持します。
 - 登録と更新の検証
   - 登録画面とバックエンドは、必須項目とリダイレクトURLの規則を共通のschemaで検査します。
   - リダイレクトURLはBetter Auth標準の登録規則で検証します。
-  - 一覧・詳細・更新・一時停止・再開・削除では、対象クライアントのOrganizationと管理者所属をサーバーで確認します。
   - 「その他」の「開発者向け」で、登録時に公開鍵を登録できます。登録時の鍵の検査とクライアント認証には、Better Auth標準の機能を使います。
 
 - JSONのOAuth設定は通常の登録・更新画面へ読み込み、本人が内容を確認して別途保存します。
@@ -7784,13 +7750,10 @@ flowchart TD
   - 対象ごとの管理権限、複数人の管理、新規作成・管理者追加での本人5件と管理者20人の上限を確認します。
   - 管理者の退会後も、残った管理者または`appAdmin`がアプリを管理でき、他の利用者の認可が維持されることを確認します。
 
-登録は`adminCreateOAuthClient`、アプリ情報とリダイレクトURLの更新は`adminUpdateOAuthClient`です。管理画面からのこの更新では公開鍵を変更しません。紹介URL（`client_uri`）は変更だけを受け付け、削除（`NULL`への更新）はしません。
-
 公開鍵は、クライアント自身が標準の`POST /api/auth/oauth2/client/rotate-keys`で更新します。Pointsは`oauthProvider({ allowClientKeyRotation: true })`で、このエンドポイントを有効にします（Better Auth 1.7.10以上）。クライアントは現在の鍵で署名した`client_assertion`（`aud`はこのエンドポイントのURL）と、新しい`jwks`（鍵の全体）を送ります。送らなかった鍵はすぐ無効になるため、新旧の鍵を併記して送ってから、新しい鍵だけを送る2段階で切り替えます。秘密鍵を失った場合や漏れた場合は、クライアントを登録し直し、利用者は同意し直します。
 
 - クライアントの一時停止・再開
-  - 対象の`oauthClientAdmin`または`appAdmin`が「開発者向け」画面で操作します。
-  - サーバーで管理権限を確認し、Better Auth標準の`adminUpdateOAuthClient`へ`disabled: true`を渡して一時停止します。
+  - 対象の`oauthClientAdmin`または`appAdmin`が「開発者向け」画面で操作し、Better Auth標準の`disabled`を`true`にして一時停止します。
   - 停止中は、標準の`disabled`により新規認可・認可コード交換・Token発行・更新を拒否します。
     - 発行済みのJWT Access Tokenは、最長15分の期限まで有効です。
   - Client ID・登録内容・同意・Tokenの有効期限を保持し、`disabled: false`で再開します。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#update-client)
@@ -7836,20 +7799,248 @@ flowchart TD
 
 利用者認可には`authorization_code`と`refresh_token`を使い、利用者scope、Points API resource、登録済みのredirect URIを指定します。
 
-| 用途       | grant                                 | scope・検査                              |
-| ---------- | ------------------------------------- | ---------------------------------------- |
-| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access points`。 |
+| 用途       | grant                                 | scope・検査                                                                                       |
+| ---------- | ------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 利用者委任 | `authorization_code`、`refresh_token` | `openid profile offline_access`と、`points:read`・`points:edit`・`points:admin`のうち必要なもの。 |
 
-- Points独自の業務scopeは`points`一つとする。
-  - 認可本人がPoints独自業務APIで行える全操作を委任する。本人用の非公開情報の取得、設定の更新、譲渡・交換・受領・精算・退会、本人が管理権限を持つ対象への操作を含む。
-  - 各要求では本人と対象の現在の権限を検証する。`points`への同意だけで、他人の非公開情報や本人が持たない管理権限を与えない。
+- Points独自の業務scopeは、次の3つとする。
+
+  | scope          | 委任する操作                                                                                                                                                                                                                                                                   |
+  | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | `points:read`  | 取得。管理者の権限で見る取得も含む。共用の取得API（公開の取得と、本人用の非公開情報・管理用設定の取得）、[本人の残高一覧API](#本人の残高一覧api)、通知の一覧と詳細、JSONエクスポート、Accounts接続先の一覧、評価結果の一覧、送信済みお知らせの一覧                             |
+  | `points:edit`  | 管理者の権限を使わない変更。プロフィールと公開設定、評価軸・パッケージの作成、公式パッケージと自動分配の設定、譲渡・交換・受領（Accounts連携の情報の更新を含む）、通知の既読・未読の変更と削除、設定の復元、[落札精算の引き落とし](#落札精算の引き落とし)                      |
+  | `points:admin` | `appAdmin`・`evaluationCriterionAdmin`・`packageAdmin`の権限を使う変更。評価軸・パッケージの更新・削除、交換倍率の設定・削除、評価軸・パッケージの管理者の追加・解除、直接評価の登録、月別評価方式の設定と再計算、お知らせの確認・送信、Accounts接続先の作成・有効化・取り下げ |
+  - 取得は、管理者の権限で見るものも`points:read`とする。変更は、管理者の権限を使うものを`points:admin`、それ以外を`points:edit`とする。
+  - 確認・検証・試算の`QUERY`は、確定と同じscopeを要求する。CSVアップロードは、`{operation}`ごとのscopeを要求する。
+  - 評価軸・パッケージのCSVと設定の復元は`points:edit`を要求し、既存の評価軸・パッケージの更新・削除や交換倍率を含む場合は`points:admin`も要求する。
+  - Points独自APIのうち、次はCookieセッションだけで受け付ける。
+    - OAuthクライアントの管理。トークンを持つアプリが、別のクライアントを作ったり自分の権限を広げたりできないようにする。
+    - 退会と再開。退会は、本人がブラウザで判断する操作とする。退会した本人のトークンは拒否するため、再開もCookieセッションで行う。
+  - OAuthの同意の取り消しと、Accounts連携の開始・再連携は、Better Auth標準の経路で、標準のセッションで扱う。Accounts連携は、ブラウザでのリダイレクトが前提の流れである。
+  - 各要求では本人と対象の現在の権限を検証する。scopeへの同意だけで、他人の非公開情報や本人が持たない管理権限を与えない。
   - `openid`・`profile`・`offline_access`は、それぞれ本人識別・表示名の提供・更新用トークンの標準scopeとして扱う。
-  - Better Auth標準の認証・クライアント管理・管理者所属は、標準のセッションと操作フローで扱う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider)
+  - Better Auth標準の認証・同意は、標準のセッションと操作フローで扱う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider)
   - Marketsも他の外部アプリと同じscope・権限で利用する。
 
-落札の引き落としは、この利用者認可の`points`だけで行います。OAuthクライアントも、受け取ったresourceとscopeが認可要求に対応することを確認します。
+落札の引き落としは、この利用者認可の`points:edit`で行います。OAuthクライアントも、受け取ったresourceとscopeが認可要求に対応することを確認します。
 
 `private_key_jwt`は、`iss=sub=clientId`です。`aud`は、認証を受け付けるPointsのOAuthエンドポイントの絶対URLです。あわせて約60秒の`iat`と`exp`、ランダムな`jti`、`alg=EdDSA`、登録済み`kid`で署名します。秘密鍵は、PointsのWorker、D1、ブラウザー、ログ、成果物へ渡しません。
+
+### OAuthクライアント管理のAPI
+
+- 公開鍵の更新、同意画面のアプリ情報、同意、Tokenの失効は、Better Auth標準のAPIを使う。
+  - 登録、一覧、更新・一時停止・再開、削除、管理者の追加・解除・退出は、次のPoints独自APIで行う。
+  - 標準の`get-clients`は`clientReference`が返す1件のOrganizationのクライアントだけを返すため、本人の一覧はPointsが返す。
+  - 標準の`update-client`は説明文と`disabled`を受け付けないため、更新・一時停止・再開はPointsのサーバーが標準の`adminUpdateOAuthClient`を呼ぶ。
+  - 所属していない`appAdmin`は`clientReference`が対象のOrganizationと一致せず、標準の更新・削除で拒否される。このため、サーバーがBetter Authのadapterで`oauth_client`の行を読み書きする。
+
+- 共通の決まり
+  - クライアントの応答の項目は一覧・登録・更新で共通とし、次の項目を持つ。
+
+    | 項目           | 型                   | 説明                                                                                                                                       |
+    | -------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+    | `clientId`     | `string`             | クライアントのClient ID                                                                                                                    |
+    | `name`         | `string`             | アプリ名                                                                                                                                   |
+    | `uri`          | `string`または`null` | 紹介URL                                                                                                                                    |
+    | `description`  | `string`または`null` | 説明文                                                                                                                                     |
+    | `redirectUris` | `string[]`           | リダイレクトURL                                                                                                                            |
+    | `jwks`         | `{"keys":[...]}`     | クライアントの公開鍵のJWKS。公開鍵だけを持つ                                                                                               |
+    | `status`       | `ACTIVE \| INACTIVE` | クライアントの利用状態。標準の`disabled`から求め、`disabled: true`を`INACTIVE`とする                                                       |
+    | `createdAt`    | `string`（RFC 3339） | 登録日時                                                                                                                                   |
+    | `updatedAt`    | `string`（RFC 3339） | 最終更新日時                                                                                                                               |
+    | `admins`       | 配列                 | 管理者。各要素は`userId`（`string`）・`name`（`string`）・`addedAt`（RFC 3339）を持つ。`addedAt`の古い順、同じ時刻は`userId`の昇順に並べる |
+
+  - `admins`は標準の`member`から読む。所属していない`appAdmin`にも同じ方法で返す。管理者は最大20人のため、ページに分けない。
+  - 標準の`oauth_client`に`version`の列がないため、更新の競合検査はしない。
+  - 管理操作の主な失敗は各APIで共通とし、次のとおりとする。
+
+    | 状態 | コード               | 起きる場合                     |
+    | ---- | -------------------- | ------------------------------ |
+    | 404  | `RESOURCE_NOT_FOUND` | 対象のクライアントが存在しない |
+    | 403  | `PERMISSION_DENIED`  | 対象の管理権限がない           |
+    | 403  | `ACCOUNT_CLOSED`     | 本人が退会済み                 |
+
+  - `Idempotency-Key`・`version`・`validationHash`は、どのAPIでも要らない。
+
+#### `QUERY /api/v1/oauth-clients`
+
+- 説明
+  - 操作者が管理できるクライアントを返す。operationId は`listOAuthClients`。
+  - 認証・権限は、Cookieセッションのログインした Points利用者とする。
+  - `appAdmin`には全クライアントを返し、それ以外には本人が管理者として所属するクライアントを返す。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー
+
+    | 項目   | 型        | 必須 | 説明                       |
+    | ------ | --------- | ---- | -------------------------- |
+    | `page` | `integer` | 任意 | ページ番号。1以上。既定は1 |
+
+- レスポンス
+  - 成功時（200）
+    - `data`はクライアントの配列とし、各要素は共通の決まりのクライアントの項目を持つ。
+    - 1ページ20件で、並び順は`createdAt`の降順、同じ時刻は`clientId`の昇順とする。
+    - `meta`には共通のページ情報を入れる。
+
+  - 失敗時：共通の決まりと同じ。
+
+#### `POST /api/v1/oauth-clients`
+
+- 説明
+  - クライアントを登録する。operationId は`createOAuthClient`。
+  - 認証・権限は、Cookieセッションのログインした Points利用者とする。
+  - サーバーは本人の管理件数が5件未満であることを確かめ、[権限](#権限)の手順でOrganizationと作成者の所属を確定する。
+  - 次に、標準の`organization.setActive`でそのOrganizationを選び、標準の`adminCreateOAuthClient`で登録する。
+    - `token_endpoint_auth_method`は`private_key_jwt`、`application_type`はリダイレクトURLから求めた値とし、説明文は`metadata.description`へ渡す。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー
+
+    | 項目           | 型         | 必須 | 説明                                       |
+    | -------------- | ---------- | ---- | ------------------------------------------ |
+    | `name`         | `string`   | 必須 | アプリ名。1〜100文字                       |
+    | `uri`          | `string`   | 任意 | 紹介URL。HTTPSのURL、2048バイト以下        |
+    | `description`  | `string`   | 任意 | 説明文。500文字以下                        |
+    | `redirectUris` | `string[]` | 必須 | リダイレクトURL。1〜10件、各2048バイト以下 |
+    | `jwks`         | `object`   | 必須 | 1件以上の公開鍵を持つインラインJWKS        |
+
+  - リダイレクトURLと公開鍵の規則は、本節の登録条件に従う。
+
+- レスポンス
+  - 成功時（201）
+    - `data`は登録したクライアントとし、共通の決まりのクライアントの項目を持つ。
+
+  - 失敗時
+
+    | 状態 | コード                       | 起きる場合                      |
+    | ---- | ---------------------------- | ------------------------------- |
+    | 409  | `OAUTH_CLIENT_LIMIT_REACHED` | 本人の管理件数が5件に達している |
+    | 422  | `VALIDATION_FAILED`          | 入力の誤り                      |
+
+#### `PATCH /api/v1/oauth-clients/{clientId}`
+
+- 説明
+  - アプリ情報・リダイレクトURLの更新と、一時停止・再開を行う。operationId は`updateOAuthClient`。
+  - 認証・権限は、Cookieセッションの対象の`oauthClientAdmin`または`appAdmin`とする。
+  - 所属する管理者の要求では、サーバーが標準の`organization.setActive`で対象のOrganizationを選び、標準の`adminUpdateOAuthClient`へ変更を渡す。
+    - `status`は`disabled`へ変換する。`redirectUris`を変えた場合は`application_type`も求め直す。
+  - 所属していない`appAdmin`は`status`だけを変更でき、サーバーがadapterで`disabled`を更新する。
+  - `status`を変えた場合は、変更を確定した後に、共同管理者と関係ユーザーへの通知を保存する。同じ状態を指定した場合は通知しない。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目       | 型       | 必須 | 説明               |
+    | ---------- | -------- | ---- | ------------------ |
+    | `clientId` | `string` | 必須 | 対象のクライアント |
+
+  - ボディー
+
+    | 項目           | 型                   | 必須 | 説明                               |
+    | -------------- | -------------------- | ---- | ---------------------------------- |
+    | `name`         | `string`             | 任意 | アプリ名                           |
+    | `uri`          | `string`             | 任意 | 紹介URL                            |
+    | `description`  | `string`             | 任意 | 説明文。空文字で削除できる         |
+    | `redirectUris` | `string[]`           | 任意 | リダイレクトURL                    |
+    | `status`       | `ACTIVE \| INACTIVE` | 任意 | 利用状態。`INACTIVE`で一時停止する |
+
+  - すべて任意で1項目以上を送る。各項目の制約は登録と同じとする。
+  - 公開鍵は受け付けない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。
+  - 紹介URLは変更だけを受け付け、`null`による削除は受け付けない。
+
+- レスポンス
+  - 成功時（200）
+    - `data`は更新後のクライアントとする。
+
+  - 失敗時
+
+    | 状態 | コード              | 起きる場合                                                 |
+    | ---- | ------------------- | ---------------------------------------------------------- |
+    | 403  | `PERMISSION_DENIED` | 所属していない`appAdmin`の要求が`status`のほかの項目を含む |
+    | 422  | `VALIDATION_FAILED` | 入力の誤り                                                 |
+
+#### `DELETE /api/v1/oauth-clients/{clientId}`
+
+- 説明
+  - クライアントを完全に削除する。operationId は`deleteOAuthClient`。
+  - 認証・権限は、Cookieセッションの対象の`oauthClientAdmin`または`appAdmin`とする。
+  - サーバーは削除する直前の関係から通知先を決め、adapterで`oauth_client`の行を削除する。同意とTokenは外部キーの`CASCADE`で削除される。
+  - あわせて、対象のOrganizationと管理者所属を削除し、共同管理者と関係ユーザーへの通知を保存する。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目       | 型       | 必須 | 説明               |
+    | ---------- | -------- | ---- | ------------------ |
+    | `clientId` | `string` | 必須 | 対象のクライアント |
+
+  - ボディー：なし
+
+- レスポンス
+  - 成功時（204）：本文なし
+  - 失敗時：共通の決まりと同じ。
+
+#### `POST /api/v1/oauth-clients/{clientId}/admins`
+
+- 説明
+  - 管理者を追加する。operationId は`addOAuthClientAdmin`。
+  - 認証・権限は、Cookieセッションの対象の`oauthClientAdmin`または`appAdmin`とする。
+  - 所属のロールは`oauthClientAdmin`とする。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目       | 型       | 必須 | 説明               |
+    | ---------- | -------- | ---- | ------------------ |
+    | `clientId` | `string` | 必須 | 対象のクライアント |
+
+  - ボディー
+
+    | 項目     | 型       | 必須 | 説明           |
+    | -------- | -------- | ---- | -------------- |
+    | `userId` | `string` | 必須 | 追加する利用者 |
+
+- レスポンス
+  - 成功時（201：新しく追加した場合、200：既に管理者の場合）
+    - `data`は、クライアントの`admins`の要素と同じ項目とする。
+
+  - 失敗時
+
+    | 状態 | コード                       | 起きる場合                                   |
+    | ---- | ---------------------------- | -------------------------------------------- |
+    | 409  | `ADMIN_LIMIT_REACHED`        | 管理者が20人に達している                     |
+    | 409  | `OAUTH_CLIENT_LIMIT_REACHED` | 追加先の管理件数が5件に達している            |
+    | 409  | `ADMIN_TARGET_UNAVAILABLE`   | 追加先が存在しない・退会済み・ログイン停止中 |
+
+#### `DELETE /api/v1/oauth-clients/{clientId}/admins/{userId}`
+
+- 説明
+  - 管理者を解除する。自分の`userId`を指定した場合は退出とする。operationId は`removeOAuthClientAdmin`。
+  - 認証・権限は、Cookieセッションの対象の`oauthClientAdmin`または`appAdmin`とする。退出は本人が行う。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目       | 型       | 必須 | 説明               |
+    | ---------- | -------- | ---- | ------------------ |
+    | `clientId` | `string` | 必須 | 対象のクライアント |
+    | `userId`   | `string` | 必須 | 解除する管理者     |
+
+  - ボディー：なし
+
+- レスポンス
+  - 成功時（204）：本文なし
+  - 失敗時
+
+    | 状態 | コード               | 起きる場合                   |
+    | ---- | -------------------- | ---------------------------- |
+    | 404  | `RESOURCE_NOT_FOUND` | 指定した利用者が管理者でない |
 
 ### Access TokenとResource APIの検証
 
