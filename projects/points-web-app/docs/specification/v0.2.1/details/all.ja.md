@@ -5931,6 +5931,131 @@ flowchart TD
 - CSVの1,000行・5MiBの境界を実D1環境で測定し、[D1の一括書き込み制約](#d1の一括書き込み制約)を満たすことを確認する。
   - サービス上限内に収まらない場合は、受け付ける件数・容量を保ったまま、スキーマと一括書き込みの方式を見直す。
 
+### CSVアップロードのAPI
+
+- 全操作のCSVで、検証の`QUERY /api/v1/csv-imports/{operation}/preview`と、確定の`POST /api/v1/csv-imports/{operation}`を使う。
+  - `{operation}`の値は、検証のAPIに書く7種類とする。
+  - 各機能のCSVの経路はこの節で定める。
+  - 全経路をCookieセッション、または`{operation}`ごとのscopeのOAuth認証で受け付け、行ごとに対象の権限を確かめる。
+
+#### `QUERY /api/v1/csv-imports/{operation}/preview`
+
+- 説明
+  - CSVの全行を検証する。何も保存しない。
+  - `{operation}`ごとの操作・operationId・認証・権限は、次のとおりとする。
+    - `evaluation-criteria`：評価軸の作成・更新・削除。operationId は`previewEvaluationCriteriaCsv`。認証・権限は、ログインしたPoints利用者。更新・削除の行は、その評価軸の`evaluationCriterionAdmin`または`appAdmin`とする。OAuthのscopeは`points:edit`とし、更新・削除の行を含む場合は`points:admin`も要求する。
+    - `point-packages`：パッケージの作成・更新・削除。operationId は`previewPointPackagesCsv`。認証・権限は、ログインしたPoints利用者。更新・削除の行は、そのパッケージの`packageAdmin`または`appAdmin`とする。OAuthのscopeは`points:edit`とし、更新・削除の行を含む場合は`points:admin`も要求する。
+    - `direct-evaluations`：直接評価の登録。operationId は`previewDirectEvaluationsCsv`。認証・権限は、各行の評価軸の`evaluationCriterionAdmin`または`appAdmin`とする。OAuthのscopeは`points:admin`とする。
+    - `monthly-evaluation-settings`：月別評価方式の設定・再計算。operationId は`previewMonthlyEvaluationSettingsCsv`。認証・権限は、各行の付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`とする。OAuthのscopeは`points:admin`とする。
+    - `exchange-rates`：交換倍率の設定・削除。operationId は`previewExchangeRatesCsv`。認証・権限は、各行の交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`とする。OAuthのscopeは`points:admin`とする。
+    - `transfers`：ポイント譲渡。operationId は`previewTransfersCsv`。認証・権限は、送信者の本人だけとする。OAuthのscopeは`points:edit`とする。
+    - `exchanges`：ポイント交換。operationId は`previewExchangesCsv`。認証・権限は、交換する本人だけとする。OAuthのscopeは`points:edit`とする。
+
+- リクエスト
+  - ヘッダー：なし
+  - パス
+
+    | 項目        | 型       | 必須 | 説明                                                   |
+    | ----------- | -------- | ---- | ------------------------------------------------------ |
+    | `operation` | `string` | 必須 | CSVで行う操作の種類。説明に書いた7種類のどれかとする。 |
+
+  - ボディー
+
+    要求項目は`file`だけとする。
+
+    | 項目   | 型          | 必須 | 説明                |
+    | ------ | ----------- | ---- | ------------------- |
+    | `file` | CSVファイル | 必須 | 取り込むCSVファイル |
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目              | 型                                                                                              | 説明                                                                           |
+    | ----------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+    | `rowCount`        | `integer`                                                                                       | データ行の件数とする。                                                         |
+    | `rows`            | 配列                                                                                            | 行ごとの確認結果とする。各要素の項目は表の下に書く。                           |
+    | `summary`         | `{ createCount: integer, updateCount: integer, deleteCount: integer }`                          | 作成・更新・削除の件数。評価軸・パッケージ・交換倍率だけが持つ。               |
+    | `amountTotals`    | `{ evaluationCriterionId: string, positiveTotal: 金額の文字列, negativeTotal: 金額の文字列 }[]` | 評価軸ごとの増減額の正の合計と負の合計。金額を扱う操作だけが持つ。             |
+    | `duplicateGroups` | `{ rows: integer[], totalAmount: 金額の文字列 \| null }[]`                                      | 同じ内容の新規行の組とし、金額を扱わない操作では`totalAmount`を`null`とする。  |
+    | `validationHash`  | `string`                                                                                        | 確認内容の検証値。交換・譲渡の対象は各行のフォームの確認と同じ確認項目とする。 |
+    - `rows`の各要素は`row`（`integer`）と、確認画面に表示する対象・条件・金額を持つ。項目名はその操作のフォームの確認・保存APIと同じにする。
+      - 評価軸・パッケージ・交換倍率の`rows`の各要素は、`action`（`CREATE | UPDATE | DELETE`）も持つ。
+      - 交換の`rows`の各要素は[ポイント交換のAPI](#ポイント交換のapi)の確認と同じ計算項目を持ち、`validationHash`は除く。
+      - 譲渡の`rows`の各要素は[ポイント譲渡のAPI](#ポイント譲渡のapi)の確認と同じ`evaluationCriterionId`・`amount`・`recipient`と、その行までを確定した後の送信者の残高`balanceAfter`（金額の文字列）を持つ。
+
+  - 失敗時
+
+    | 状態 | コード                   | 起きる場合                                                       |
+    | ---- | ------------------------ | ---------------------------------------------------------------- |
+    | 422  | `VALIDATION_FAILED`      | ファイルまたは行に誤りがある。全行の誤りを`errors[]`にまとめる。 |
+    | 503  | `DEPENDENCY_UNAVAILABLE` | 直接評価の宛先照合でAccountsと通信できない                       |
+    - `errors[]`の`code`は、次のとおりとする。
+      - ファイル全体の誤りは`field`を`file`とし、`row`を返さない。コードは`CSV_MALFORMED`（構文の誤り）、`CSV_ENCODING_INVALID`（UTF-8ではない）、`CSV_NO_DATA_ROWS`、`CSV_TOO_MANY_ROWS`とする。
+      - 列名の誤りは`row`を1、`field`を列名とし、コードを`CSV_HEADER_DUPLICATED`・`CSV_HEADER_MISSING`・`CSV_HEADER_UNKNOWN`とする。
+      - 見出しと列数が違うデータ行は、`CSV_COLUMN_COUNT_MISMATCH`とする。
+      - [行の処理順と重複](#行の処理順と重複)で重複を拒否する対象を、同じファイルで重ねて指定した行は`CSV_DUPLICATE_TARGET`とする。
+      - 明示した`expectedVersion`が現在のversionと違う行は`VERSION_CONFLICT`、権限のない行は`PERMISSION_DENIED`とする。
+      - そのほかの値の誤りは各機能の入力検証と同じコードとする。
+      - 交換・譲渡の行ごとの実行不可と残高不足は、フォームの操作固有のコード（`EXCHANGE_DISABLED`・`TRANSFER_DISABLED`・`INSUFFICIENT_BALANCE`など）を`errors[]`の`code`に入れる。
+
+#### `POST /api/v1/csv-imports/{operation}`
+
+- 説明
+  - 検証したCSVを確定する。
+  - 認証・権限は、検証と同じとする。operationId は`{operation}`ごとに次のとおりとする。
+    - `evaluation-criteria`：`commitEvaluationCriteriaCsv`
+    - `point-packages`：`commitPointPackagesCsv`
+    - `direct-evaluations`：`commitDirectEvaluationsCsv`
+    - `monthly-evaluation-settings`：`commitMonthlyEvaluationSettingsCsv`
+    - `exchange-rates`：`commitExchangeRatesCsv`
+    - `transfers`：`commitTransfersCsv`
+    - `exchanges`：`commitExchangesCsv`
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須）。操作の種別は`{operation}`ごとに次のとおりとする。
+    - `evaluation-criteria`：`EVALUATION_CRITERION_CSV_COMMIT`
+    - `point-packages`：`POINT_PACKAGE_CSV_COMMIT`
+    - `direct-evaluations`：`DIRECT_EVALUATION_CSV_COMMIT`
+    - `monthly-evaluation-settings`：`MONTHLY_EVALUATION_SETTING_CSV_COMMIT`
+    - `exchange-rates`：`EXCHANGE_RATE_CSV_COMMIT`
+    - `transfers`：`TRANSFER_CSV_COMMIT`
+    - `exchanges`：`EXCHANGE_CSV_COMMIT`
+  - パス：`operation`は検証と同じとする。
+  - ボディー
+
+    | 項目             | 型          | 必須 | 説明                                                    |
+    | ---------------- | ----------- | ---- | ------------------------------------------------------- |
+    | `file`           | CSVファイル | 必須 | 確定するCSVファイル。検証したファイルと同じ内容とする。 |
+    | `validationHash` | `string`    | 必須 | 確認内容の検証値。検証で受け取った値とする。            |
+
+- レスポンス
+  - 成功時（200）
+
+    `data`に進み具合と確定した行の結果を返す。
+
+    | 項目                | 型                        | 説明                                                                  |
+    | ------------------- | ------------------------- | --------------------------------------------------------------------- |
+    | `completion`        | `COMPLETED \| INCOMPLETE` | 処理の完了状態。評価軸・パッケージ・交換倍率は常に`COMPLETED`とする。 |
+    | `completedRowCount` | `integer`                 | 確定済みの行数とする。                                                |
+    | `lastCompletedRow`  | `integer \| null`         | 確定済みの最後の行番号とする。                                        |
+    | `results`           | 配列                      | これまでに確定した行とする。各要素の項目は表の下に書く。              |
+    - `results`の各要素は`row`（`integer`）を持つ。
+      - 評価軸・パッケージ・交換倍率の`results`の各要素は、`action`（`CREATE | UPDATE | DELETE`）、`id`（`string | null`）、`version`（`integer | null`）も持つ。
+      - ポイントの増減を伴うCSVの`results`の各要素は、`firstLedgerEntryId`（`string | null`）も持つ。
+
+  - 失敗時
+
+    | 状態 | コード                     | 起きる場合                                                                        |
+    | ---- | -------------------------- | --------------------------------------------------------------------------------- |
+    | 409  | `CONFIRMATION_CHANGED`     | `validationHash`が一致しない。画面は検証のQUERYを呼び直して最新の結果を表示する。 |
+    | 409  | `VERSION_CONFLICT`         | 明示したversionが確定時に競合した。`errors[]`に該当する行を入れる。               |
+    | 409  | `INSUFFICIENT_BALANCE`     | 残高が足りない                                                                    |
+    | 403  | `PERMISSION_DENIED`        | 権限のない行がある                                                                |
+    | 422  | `VALIDATION_FAILED`        | 値の誤りがある                                                                    |
+    | 503  | `DEPENDENCY_UNAVAILABLE`   | 検証と同じ                                                                        |
+    | 400  | `IDEMPOTENCY_KEY_REQUIRED` | `Idempotency-Key`がない                                                           |
+    | 409  | `IDEMPOTENCY_KEY_REUSED`   | 保存済みのキーで内容が異なる                                                      |
+
 ### 確認する例
 
 - UTF-8・先頭BOM・不正な文字コード、5MiBの境界、LF・CRLF・CR、引用符内の改行・カンマ・二重引用符、日本語を含むセル。
@@ -5965,7 +6090,7 @@ flowchart TD
 - 通常のファイル・ディレクトリ・URLの経路名は`kebab-case`とする。
 - 環境変数とPoints独自の列挙値は`SCREAMING_SNAKE_CASE`とする。
   - 状態・種類・方式・操作などの値を大文字でそろえる。
-  - 例は`ACTIVE`・`PRIVATE`・`SAVE`・宛先の種類`URL`・`ACCOUNTS_USER`・`PROVIDER_ACCOUNT`・`PROVIDER_USERNAME`とする。
+  - 例は`ACTIVE`・`SAVE`・宛先の種類`URL`・`ACCOUNTS_USER`・`PROVIDER_ACCOUNT`・`PROVIDER_USERNAME`とする。
 - D1のテーブル・列・インデックス・制約の名前は`snake_case`とする。
 - 評価軸の英語名は`evaluationCriterion`とする。複数形は`evaluationCriteria`とする。
   - 評価軸管理者は`evaluationCriterionAdmin`、アプリ全体管理者は`appAdmin`、パッケージ管理者は`packageAdmin`、OAuthクライアント管理者は`oauthClientAdmin`とする。
@@ -6010,8 +6135,7 @@ flowchart TD
 | 残高                     | `balance`         | `balance`          |
 | 累計評価額               | `evaluationTotal` | `evaluation_total` |
 | 最小単位                 | `minimumUnit`     | `minimum_unit`     |
-| システムの金額刻み       | `amountUnit`      | —（応答時に計算）  |
-| 競売の価格刻み           | `packageTick`     | —（応答時に計算）  |
+| システムの金額刻み       | `amountUnit`      | —（固定値）        |
 | ポイント増減履歴の増減額 | `deltaAmount`     | `delta_amount`     |
 
 - `minimumUnit="1"`は1ポイントを表す。CSVでも同じ小数文字列を使う。
@@ -6041,19 +6165,23 @@ flowchart TD
   - パッケージの利用状態は、保存項目とAPI応答のどちらも`status`で表す。
   - 状態の値と遷移は各機能で定義し、複数の真偽値を組み合わせて一つの状態を表さない。
 
-- 公開範囲は`visibility`、操作許可は`transferEnabled`などの`*Enabled`として、利用状態と分ける。
+- 公開範囲は`isPublic`、操作許可は`transferEnabled`などの`*Enabled`として、利用状態と分ける。
 - 完了済みの経済処理を未実行へ戻す`reset*`・`undo*`という操作は設けない。
 - OAuthの`state`とHTTP応答の`status`は、業務状態とは別の標準項目として扱う。
 
 ### HTTPとAPI
 
-- 公開画面・本人設定・管理画面の取得APIを、`/api/v1/...`で共用する。
+- Points独自APIの経路はすべて`/api/v1`配下に置く。
+  - 本人だけが操作する経路は`/api/v1/me/...`、`appAdmin`だけが操作する経路は`/api/v1/admin/...`とする。
+  - 公開の取得と管理者の更新・削除は、同じ経路でメソッドを分ける。例えば評価軸は`QUERY`・`PATCH`・`DELETE /api/v1/evaluation-criteria/{evaluationCriterionId}`とし、作成は`POST /api/v1/evaluation-criteria`とする。
+
+- 公開画面・本人設定・管理画面の取得APIを共用する。
   - 一覧は検索API、詳細は利用者・評価軸・パッケージごとのAPI、履歴と交換倍率は各対象の配下のAPIを使う。
   - 詳細の`data`は単一オブジェクト、一覧・履歴の`data`は配列とする。
   - 更新・確認・確定などの操作は、各機能に定めた経路を使う。
 
 - 共用する取得APIは、サーバーがCookieセッションまたはOAuth認証から操作者を決め、現在の閲覧権限で返す項目を選ぶ。
-  - OAuthでは`points` scopeとPoints API audience、DPoP、本人の現在状態を検証する。有効な本人認証がない場合は公開情報だけを返す。
+  - OAuthでは`points:read` scopeとPoints API audience、DPoP、本人の現在状態を検証する。有効な本人認証がない場合は公開情報だけを返す。
   - 本人の設定と非公開情報は本人に、対象の管理用設定はその対象を管理できる操作者に返す。
   - 指定した非公開の対象を閲覧できない場合は、存在しない場合と同じ`404 RESOURCE_NOT_FOUND`を返す。検索・一覧では閲覧できる対象へ絞り込む。
   - 取得はQUERYとJSON本文を使い、成功時は200とする。冪等性キーは要求せず、入力値の誤りは422とする。
@@ -6138,7 +6266,7 @@ flowchart TD
 - 金額の実装には`minimumUnitScaled`と`minimum_unit_scaled`など、整数値を区別する名前がある。
   - 十進数文字列への移行時に、API・集計値・関連する項目を今回の金額名へそろえる。
 - 管理者のロール名と宛先の種類は、権限検査・入力検証・保存値を含めて今回の名前にそろえる。
-- PointsとMarketsの連携では、価格刻みの応答と利用側の項目名・金額表現を、実装時にそろえる。
+- PointsとMarketsの連携では、展開後の構成の応答と利用側の項目名・金額表現を、実装時にそろえる。
 
 ## アカウント紐付け時のポイント付与
 
@@ -6162,7 +6290,7 @@ flowchart TD
     S --> M{"受領対象がある？"}
     M -->|"いいえ"|Z["0件で正常完了<br/>受領待ちを保持"]
     M -->|"はい"|C["対象全行の帰属・初回履歴の受領情報と本人への反映<br/>元処理・対象への履歴参照を一括確定"]
-    C --> D["受領結果と残る処理の進捗を返す"]
+    C --> D["受領結果と後続処理の未完了・完了を返す"]
 ```
 
 [配分と受領待ちの計算例](#配分と受領待ちの計算例)のB宛てY18を受領する。Bさんの再分配が無効の場合は次のようになる。元のX評価60も未受領なら、同じ受領処理の対象となる。
@@ -6233,76 +6361,62 @@ flowchart LR
   - 実際に確定した分の結果を通知する。
   - Accounts連携は保持する。
 
-- 自動受領は、設定画面から`POST /api/unclaimed-fixes/claims`を送って行う。
+- 自動受領は設定画面から[受領の確定](#受領のapi)を送って行う。
   - 新規連携・再連携後は、保存した連携を対象とする。
-  - 「情報を更新」では、今回の取得に成功した連携ごとに、標準Account行の`account.id`を項目`id`へ指定して受領POSTを送る。
+  - 「情報を更新」では有効な接続先の連携ごとに、標準Account行の`account.id`を`accountsLinkId`へ指定して受領の確定を送る。
   - 一つの連携で受領に失敗しても、他の連携の受領を続ける。
-  - 各POSTでサーバーが現在の連携と受領資格を検証し、Accountsから取得した最新の一覧で宛先を照合する。
-  - 連携情報の更新と受領は別々に確定する。
+  - 各POSTでサーバーが現在の連携と受領資格を検証し、Accountsから取得した最新の一覧を保存してから、その一覧で宛先を照合する。
+  - 一覧の保存と受領は、一つの要求の中で別々に確定する。
   - 受領に失敗しても、更新済みの一覧・取得日時と、他の連携で確定した受領・再分配の結果を保持する。
-  - 設定画面には連携ごとの情報更新と受領の成否を分けて表示し、分配・訂正の進行中と完了も区別する。中断した処理は手動受領から再実行できるよう案内する。
+  - 設定画面には連携ごとの情報更新と受領の成否を分けて表示し、分配・訂正の未完了と完了も区別する。
+  - 分配・訂正が未完了の場合、画面は自動で再送しない。本人が「続きを実行」を押したときに、同じ受領の確定を再送する。
 
 - 設定画面では、本人宛てに確定した分と、Accountsで本人のものと確認する分を、同じ「未受領ポイントを受け取る」操作で扱う。
   - 受取人が本人と確定している未受領分は、Accounts連携の有無にかかわらず、この操作から受領できる。
   - 有効なAccounts連携の欄にも同じ操作を表示し、その連携で本人のものと確認できた外部宛先の分を、本人宛てに確定した分とあわせて受領する。
-  - 画面が、受領に使うAccounts連携に応じて`id`の指定・省略を決める。
+  - 画面が、受領に使うAccounts連携に応じて`accountsLinkId`の指定・省略を決める。
   - 手動受領では、共通の確認画面に元評価、分配待ち額、再分配・訂正による増減と計算した残高を示し、利用者が確認してから確定する。
   - 自動受領に失敗した場合も、連携を保持して同じ操作から再実行できる。
-  - 実行後は受領件数、確定済みの評価軸別増減、残る分配・訂正の進捗を表示する。
+  - 実行後は受領件数、確定済みの評価軸別増減、分配・訂正が未完了かどうかを表示する。
 
 - 処理失敗や上限で未処理の割当が残った場合も、固定済みのユーザーIDへの帰属を保持する。
   - 本人は、設定画面の「未受領ポイントを受け取る」から、Pointsの本人認証だけで受領できる。
   - この割当にはAccounts再連携と外部宛先の再照合を要求せず、他の本人や外部アカウントの現在所有者へ移さない。人物未特定の宛先の受領には、Accounts連携と照合を行う。
 
-- 受領確認は`QUERY /api/unclaimed-fixes/claim-preview`とする。
-  - 本人認証を要求し、現在の経済データと必要な宛先照合の結果から、受領対象の初回履歴ID・現在額・元評価か分配かの区分・再分配結果・反映後残高を返す。
-  - 連携指定の項目`id`にはAccounts連携用の標準Account行の`account.id`を画面から渡す。利用者にIDの入力や指定・省略の選択を求めない。
-  - 省略した要求では、受取人が認証本人と確定している未受領分だけを対象とし、Pointsの本人認証で確認する。
-  - 指定した要求では、指定された連携で外部宛先が本人のものか確認し、受取人が認証本人と確定している未受領分もあわせて対象とする。
+- 受領の確認と確定は、連携の指定によって対象を決める。
+  - 受領者は認証本人から決める。
+  - 連携を指定しない場合は、受取人が認証本人と確定している未受領分だけを対象とし、Pointsの本人認証で確認する。
+  - 連携を指定した場合は、その連携で外部宛先が本人のものか確認し、受取人が認証本人と確定している未受領分もあわせて対象とする。
   - 同じ受領対象は一度だけ扱い、本人宛てに確定している分の確認ではAccountsへ問い合わせない。
-  - サーバーは指定されたIDを標準の`account.id`で照合し、Accounts連携用の行であること、認証本人の所有であること、接続先が有効であることを検証する。
+  - サーバーは指定された連携を標準の`account.id`で照合し、Accounts連携用の行であること、認証本人の所有であること、接続先が有効であることを検証する。
+  - 利用者に、連携IDの入力や指定・省略の選択を求めない。
   - 確認だけではポイントを変更しない。
-
-- 確定は`POST /api/unclaimed-fixes/claims`とする。
-  - 本人認証を要求し、受領者は認証本人から決める。連携IDの指定・省略による対象範囲は受領確認と同じとする。
-  - 手動受領では表示した確認結果そのものも送る。自動受領では連携IDを送る。
-  - JSON本文は確認結果を含めて最大5MiBとし、超過した場合は解析前に`413 REQUEST_BODY_TOO_LARGE`で拒否する。
 
 - サーバーは受領の確定要求を次の順で処理する。
   - 最初に、現在の本人認証を確認する。
   - 次に、初回履歴の受領日時と、元処理・対象・訂正のバージョン・確定段階に対応する履歴を確認し、確定済みの受領を繰り返さず、未完了の分配・訂正を再開する。新しい受領では受領対象を選び、受領と分配・訂正を計算する。
   - 宛先照合を行う場合は、現在の連携と受領資格も検証する。
   - 連携IDを指定した要求では、標準Account行の所有者・用途と接続先の有効性も再検証する。
-  - 手動受領では、送られた確認結果と再計算した結果を比較し、変わった場合は`409 CLAIM_SET_CHANGED`で再確認を求める。確認した対象がすべて受領済みになった再送は、変更として扱わない。
+  - 手動受領では確認時の`validationHash`と再計算した結果を比較し、変わった場合は`409 CONFIRMATION_CHANGED`で再確認を求める。確認した対象がすべて受領済みになった再送は、変更として扱わない。
 
-- 成功は`201`とし、`claimedCount`、評価軸別の正味受領額・正件数・負件数・全件数、分配による本人の増減を返す。
+- 受領の結果は確定した記録から求める。
   - 受領対象一覧と受領時の結果は、各対象の初回履歴にある受領情報と、その時点までの確定履歴から取得する。後続処理の進捗も確定履歴から判定して応答する。
   - 初回履歴の受領日時で受領済みの対象を除き、確定済みの受領を重ねて反映しない。
   - 件数は元評価と分配待ち額の受領対象を数える。再分配用の計算明細の数とは区別する。
-  - 合計0でも帰属を確定した受領対象は1件と数える。過去のポイント増減履歴の行数は、受領件数へ加えない。分配・訂正が残る場合は、受領済みの結果と未完了の進捗を分けて返す。
-  - 対象0件と、同じ対象を受領済みの再送も、`claimedCount: 0`で正常完了とする。
+  - 合計0でも帰属を確定した受領対象は1件と数える。過去のポイント増減履歴の行数は、受領件数へ加えない。
+  - 対象0件と、同じ対象を受領済みの再送も、受領件数0の正常完了とする。
 
 受領本体の確定と後続処理は、次のように分ける。図は、未完了処理の再開に該当しない、新しい受領の流れを示す。
 
 ```mermaid
 flowchart TD
   A["本人認証・必要な宛先照合を行い<br/>受領対象を計算"] --> B{"手動受領で確認内容が変わった？"}
-  B -- はい --> C["409 CLAIM_SET_CHANGED<br/>最新の内容で再確認"]
+  B -- はい --> C["409 CONFIRMATION_CHANGED<br/>最新の内容で再確認"]
   B -- "いいえ・自動受領" --> D["受領対象・帰属・必要な連携と受領資格を最終検証"]
   D --> F["対象全行の帰属・初回履歴の受領情報・本人反映と<br/>元処理・対象への履歴参照を一括確定"]
   F --> G["確定履歴から未完了の段階を判定し<br/>後続の分配・訂正を分割して処理"]
-  G --> H["201：確定済みの受領結果を返す<br/>分配・訂正が残る場合は進捗も返す"]
+  G --> H["201：確定済みの受領結果を返す<br/>分配・訂正が残る場合は未完了を返す"]
 ```
-
-- 入力・接続先の失敗は次の応答とする。
-  - 指定した連携が本人の連携でない・存在しない場合は`404 ACCOUNTS_LINK_NOT_FOUND`とする。
-  - 解析後の本文の入力値が不正なら`422 CLAIM_BODY_INVALID`とする。
-  - JSONの構文を解析できなければ`400 MALFORMED_REQUEST`とする。
-  - Accountsによる宛先照合を行う場合、接続先が有効でなければ`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`とする。以下のAccounts通信エラーも、宛先照合を行う場合に適用する。
-  - 一覧の通信失敗・一時的な利用不能・制限超過は`503 ACCOUNTS_UNAVAILABLE`とし、Accountsの`429`では`Retry-After`を転記する。
-  - 不正な一覧応答は`502 ACCOUNTS_UNAVAILABLE`、応答待ちのタイムアウトは`504 ACCOUNTS_UNAVAILABLE`とする。
-  - Accountsが認証を拒否した場合は`503 ACCOUNTS_CLIENT_UNAUTHORIZED`とする。
-  - 識別子・Tokenを含めずに、構造化ログへ記録する。
 
 ### 受領の処理順と確定
 
