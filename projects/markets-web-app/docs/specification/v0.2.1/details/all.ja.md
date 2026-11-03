@@ -385,16 +385,17 @@
 - 作成時に、Pointsからパッケージまたは評価軸単体の現在の詳細を取得して検証し、計算条件を保存する。
   - MarketsはPointsの詳細取得応答に含まれる`data.calculation`を受け取る。
   - 表示・管理情報と`data.calculation`は、同じ`data`オブジェクト内に入る。
-  - 詳細取得の応答から、表示用の区画と、全展開軸の計算情報（`calculation`）を区別して取得する。
-  - 表示用区画の見え方で、計算対象を減らさない。
+  - 全展開軸の計算情報と表示名は、`calculation`から取得する。
+  - 匿名表示の評価軸も、計算対象から除かない。
   - 重複する評価軸は取得時に合算された構成を保存する。
-  - 保存するのは、全展開軸のID・割合・各軸の最小単位・`amountUnit`・`packageTick`・状態・即決可否・取得時刻と、提供された公開表示名（パッケージ名、構成軸の公開名とID）である。
+  - 保存するのは、全展開軸のID・割合・各軸の最小単位・`amountUnit`・`packageTick`・状態・即決可否・取得時刻と、公開表示名（パッケージ名と、`calculation`のうち`isPublic`が`true`の評価軸の`name`）である。
   - パッケージを選ぶ場合は、その現在状態が`ACTIVE`であることを確認する。
   - パッケージIDは選択と詳細取得の間だけ扱い、競売・精算レコードには保存しない。
+  - `amountUnit`はFreeism Pointsの小数4桁に合わせた`"0.0001"`とし、`packageTick`は取得した`calculation`の割合と最小単位からMarketsが求める。
   - `packageTick`の求め方は金額表現と価格刻みの章にまとめる。
 
 - Pointsが閲覧権限を確認して返した情報を、許可された範囲で表示する。
-  - 本人が管理する非公開軸の名前は、本人の選択画面だけに表示する。
+  - 本人が管理する非公開軸（`isPublic`が`false`で`anonymized`が`false`の軸）の名前は、本人の選択画面だけに表示する。
   - 非公開軸の名前は公開表示へ保存せず、評価軸IDを表示する。
   - 出品ごとの追加同意は設けず、本人の認可による取得条件と情報の利用条件を守る。
 
@@ -463,7 +464,7 @@
 - 画面はfile選択button、server検証後の確認画面、全error一覧を基本とする。
   - drag-and-dropとserver draftは使わない。
   - field validationのerrorは`errors[]`へrow・field・codeで返す。
-  - server validation後のpreviewには、Pointsから取得したpackage component vector、計算済みの`packageTick`、時刻、即決、延長ruleを表示する。
+  - server validation後のpreviewには、Pointsから取得したpackage component vector、Marketsが求めた`packageTick`、時刻、即決、延長ruleを表示する。
 
 - 1回のCSV importでは、`ACTIVE`なPoints提供先を1つ選ぶ。
   - 全行のpackage検証とAuctionをその提供先へ固定する。
@@ -471,7 +472,7 @@
   - commit bodyの`providerId`は`preview.providerId`と一致させる。
 
 - 確定時はclient previewを信用せず、CSVをserverで再parseする。
-  - Pointsの詳細取得で、全展開軸・割合・状態・最小単位・金額刻み・価格刻みを再取得する。
+  - Pointsの詳細取得で、全展開軸・割合・状態・最小単位を再取得し、価格刻みを求め直す。
   - パッケージを選ぶ場合は、その現在状態が`ACTIVE`であることを確認する。
   - previewで本人が確認した重要な対象・条件・金額と変わっていれば、再確認を求める。
 
@@ -1715,7 +1716,7 @@ flowchart TD
 
 - `packageTick`は、商品1個の価格を各componentへ割合どおりに分けたとき、各軸の必要額がその軸の最小単位の倍数になる、最小の正の価格刻みである。
   - `component`は、パッケージを構成する各評価軸を指す。
-  - Markets Workerは取得した計算情報を使ってこの価格刻みを再計算し、Pointsの応答と一致することを照合する。
+  - Markets Workerは、Pointsから取得した`calculation`の各軸の`weight`・`minimumUnit`からこの価格刻みを求める。`totalWeight`は`weight`の合計とする。
   - 各軸の整数の単位数を`unitCount = minimumUnit / amountUnit`とし、各軸の`unitCount * totalWeight / GCD(unitCount * totalWeight, weight)`の最小公倍数に`amountUnit`を掛ける。
   - `GCD`は、二つの整数の最大公約数を表す。
   - 単位数と最小公倍数は任意精度の整数として厳密に計算し、途中の整数が大きくなっても桁落ちや誤差を起こさずに扱う。
@@ -1762,7 +1763,7 @@ flowchart TD
   | 変数                    | 意味                                                    | 具体例の値               |
   | ----------------------- | ------------------------------------------------------- | ------------------------ |
   | `priceTickCount`        | 精算に使う商品1個の確定価格が、価格刻み何個分に当たるか | 20,000個分               |
-  | `amountUnit`            | 競売作成時にPointsから取得して保存したシステムの金額刻み | `"0.0001"`               |
+  | `amountUnit`            | 競売作成時に保存したシステムの金額刻み | `"0.0001"`               |
   | `packageTick`           | 商品1個の価格刻み                                       | `"0.0005"`               |
   | `price`                 | 商品1個の価格                                           | `"10"`                   |
   | `quantity`              | 落札した商品の数量                                      | 2個                      |
@@ -1802,7 +1803,7 @@ flowchart TD
 
 - 保存した最小単位による計算と、数量・versionの整数境界を検証する。
 
-- `packageTick`の再計算がPointsの応答と一致し、不一致を検出できることを検証する。
+- `calculation`の割合・最小単位から求めた`packageTick`で、各軸の必要額が最小単位の倍数になることを検証する。
 
 - 現在の単位と異なる既存の競売を、保存した単位で精算できることを検証する。
   - 例えば、元の単位0.01で求めた0.03・0.07は、現在の単位が0.1でも合計0.1を実残高と照合する。
@@ -3151,5 +3152,5 @@ PRとmerge queueでは次を実行する。
 - Auctionは出品フォームとCSVで作成する。対面決済、QR決済、店舗履歴をMarketsに導入する。外部ECのclaim tokenを実装し、検証は画面からのPOSTで行う。MarketsのIDは標準Nano IDとする。
 - 競売作成時と開始前編集時にパッケージの構成・割合・入札額の刻み・表示名を保存し、その後の更新・無効化にかかわらず保存した条件で開始・精算する。
 - 評価軸の`minimumUnit`は作成後も変更でき、既存競売の計算には保存した作成時の単位を使う。
-- 金額は十進数文字列としてbignumber.jsで計算し、価格刻み・割合・最小単位・共通精度を作成時に保存する。Freeism Pointsとの連携では整数部は最大30桁、小数部は4桁とし、`amountUnit`は作成時にPointsから取得した値を保存する。PointsへはMarketsが計算した各軸の必要額を送る。
+- 金額は十進数文字列としてbignumber.jsで計算し、価格刻み・割合・最小単位・共通精度を作成時に保存する。Freeism Pointsとの連携では整数部は最大30桁、小数部は4桁とし、`amountUnit`は小数4桁に合わせた`"0.0001"`を作成時に保存する。PointsへはMarketsが計算した各軸の必要額を送る。
 - Marketsが評価軸別の引き落とし額を計算し、Pointsが認証・権限・評価軸の存在と現在状態・金額・残高を検証して確定する。
