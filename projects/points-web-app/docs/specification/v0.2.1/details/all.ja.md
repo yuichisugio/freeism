@@ -5570,6 +5570,122 @@ flowchart TD
   K -- はい --> M["新しいIDを発行し<br/>設定・作成対象・管理者所属・冪等性の結果を一括確定"]
 ```
 
+### JSONエクスポート・設定復元のAPI
+
+#### `QUERY /api/v1/me/data-export`
+
+- 説明
+  - 本人データをエクスポート形式のJSONで出力する。operationId は`exportMyData`。
+  - 認証・権限は、本人認証（Cookieセッション、または`points:read` scopeのOAuth認証）とする。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー：`{}`（項目なし）
+
+- レスポンス
+  - 成功時（200）
+
+    `application/json`でエクスポート形式のJSONを本文全体として返す。`data`・`meta`で包まないため、通信IDは`X-Request-Id`だけで返す。本文は次の項目を持つ。
+
+    | 項目            | 型                   | 説明                                                |
+    | --------------- | -------------------- | --------------------------------------------------- |
+    | `formatVersion` | `integer`            | エクスポート形式のバージョン。今の形式は`1`とする。 |
+    | `exportedAt`    | `string`（RFC 3339） | 取得を始めた日時とする。                            |
+    | `settings`      | `object`             | 復元できる設定とする。                              |
+    | `reference`     | `object`             | 参照用データとし、復元には使わない。                |
+    - `settings`は、次の区画を持つ。
+      - `profile`（`object`）、`pointPackageRegistration`（`object`）、`evaluationCriteria`（配列）、`pointPackages`（配列）、`exchangeRates`（配列）、`oauthClients`（配列）とする。
+      - `pointPackageRegistration`は、公式パッケージの登録・順序・配分割合と、自動分配設定を持つ。
+      - 各区画の項目名と型は、その設定を保存するAPIの要求項目と同じにする。評価軸・パッケージ・交換倍率の要素は、対象を指すIDと`version`も持つ。
+      - `oauthClients`の要素はBetter Auth OAuth Providerの標準のクライアント情報の項目名を使う。
+
+    - `reference`は、次の区画を持つ。
+      - `user`（`userId`・`pointsStatus`・`createdAt`）、`pointAccounts`、`ledgerEntries`、`monthlyEvaluationSettings`、`notifications`、`adminMemberships`、`loginAccounts`、`accountsLinks`、`oauthAuthorizations`とする。
+      - `user`以外の区画は配列とし、各要素の項目は、本人用の取得APIが本人に返す項目と同じにする。
+
+  - 失敗時
+
+    | 状態 | コード                  | 起きる場合   |
+    | ---- | ----------------------- | ------------ |
+    | 422  | `DATA_EXPORT_TOO_LARGE` | 5MiBを超える |
+
+#### `QUERY /api/v1/me/settings-restores/preview`
+
+- 説明
+  - 設定復元の計画を確かめる。何も保存しない。operationId は`previewSettingsRestore`。
+  - 認証・権限は、本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とし、各対象の管理権限を持つ利用者に限る。既存の評価軸・パッケージを更新する要素、または交換倍率の区画を含む場合は、OAuth認証に`points:admin` scopeも要求する。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー
+
+    | 項目            | 型        | 必須 | 説明                                                                                                                         |
+    | --------------- | --------- | ---- | ---------------------------------------------------------------------------------------------------------------------------- |
+    | `formatVersion` | `integer` | 必須 | エクスポート形式のバージョン。対応する形式のバージョンだけを受け付ける。                                                     |
+    | `settings`      | `object`  | 必須 | 復元する設定。エクスポートの`settings`から`oauthClients`を除いた区画を持つ。各区画は任意とし、省略した区画の設定は変えない。 |
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目                       | 型                                                                                                | 説明                                                                                                |
+    | -------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+    | `plan`                     | 配列                                                                                              | 処理順に並べた復元の計画とする。                                                                    |
+    | `plan[].order`             | `integer`                                                                                         | 処理順                                                                                              |
+    | `plan[].targetType`        | `PROFILE \| POINT_PACKAGE_REGISTRATION \| EVALUATION_CRITERION \| POINT_PACKAGE \| EXCHANGE_RATE` | 復元する対象の種類                                                                                  |
+    | `plan[].action`            | `CREATE \| UPDATE`                                                                                | 処理の種類。`CREATE`は作成、`UPDATE`は更新                                                          |
+    | `plan[].sourcePath`        | `string`                                                                                          | ファイル内の項目のドットパスとする。                                                                |
+    | `plan[].currentVersion`    | `integer \| null`                                                                                 | 更新する対象の現在のversionとする。                                                                 |
+    | `pointPackageRegistration` | `object \| null`                                                                                  | 復元後の全登録・順序・配分割合と自動分配設定とし、ファイルにこの区画がなければ`null`とする。        |
+    | `validationHash`           | `string`                                                                                          | 確認内容の検証値。計画、更新する対象の現在のversion、確認画面に表示する重要な対象・条件から求める。 |
+
+    新しいIDは確定時に発行し、確認の応答には含めない。
+
+  - 失敗時
+
+    | 状態 | コード              | 起きる場合               |
+    | ---- | ------------------- | ------------------------ |
+    | 422  | `VALIDATION_FAILED` | 要求項目が条件に合わない |
+    - 解決できない参照は`errors[]`の`code`を`REFERENCE_NOT_FOUND`とする。
+
+#### `POST /api/v1/me/settings-restores`
+
+- 説明
+  - 確認した計画で設定を復元する。operationId は`commitSettingsRestore`。
+  - 認証・権限は、本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とし、各対象の管理権限を持つ利用者に限る。既存の評価軸・パッケージを更新する要素、または交換倍率の区画を含む場合は、OAuth認証に`points:admin` scopeも要求する。
+  - サーバーは計画を作り直して`validationHash`を求め直し、一致しなければ`409 CONFIRMATION_CHANGED`を返す。
+  - `409 CONFIRMATION_CHANGED`を受けた画面は、確認のQUERYを呼び直して最新の結果を表示する。
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須。操作の種別`SETTINGS_RESTORE_COMMIT`）
+  - ボディー
+
+    確認と同じ`formatVersion`・`settings`に加えて、次の項目を持つ。
+
+    | 項目             | 型       | 必須 | 説明                                 |
+    | ---------------- | -------- | ---- | ------------------------------------ |
+    | `validationHash` | `string` | 必須 | 確認内容の検証値。確認で受け取った値 |
+
+- レスポンス
+  - 成功時（200）
+
+    | 項目                   | 型                                                                                                | 説明                                                       |
+    | ---------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+    | `results`              | 配列                                                                                              | 作成・更新した対象とする。                                 |
+    | `results[].targetType` | `PROFILE \| POINT_PACKAGE_REGISTRATION \| EVALUATION_CRITERION \| POINT_PACKAGE \| EXCHANGE_RATE` | 復元した対象の種類                                         |
+    | `results[].action`     | `CREATE \| UPDATE`                                                                                | 処理の種類。`CREATE`は作成、`UPDATE`は更新                 |
+    | `results[].sourcePath` | `string`                                                                                          | ファイル内の項目のドットパス                               |
+    | `results[].id`         | `string \| null`                                                                                  | 対象のID。新しいIDで作成した対象では、発行したIDを入れる。 |
+    | `results[].version`    | `integer \| null`                                                                                 | 対象の復元後の`version`                                    |
+
+  - 失敗時
+
+    | 状態 | コード                     | 起きる場合                   |
+    | ---- | -------------------------- | ---------------------------- |
+    | 409  | `CONFIRMATION_CHANGED`     | `validationHash`が一致しない |
+    | 422  | `VALIDATION_FAILED`        | 確認と同じ                   |
+    | 400  | `IDEMPOTENCY_KEY_REQUIRED` | `Idempotency-Key`がない      |
+    | 409  | `IDEMPOTENCY_KEY_REUSED`   | 保存済みのキーで内容が異なる |
+
 ## CSVアップロード
 
 ### 対象操作と画面
@@ -5638,7 +5754,7 @@ flowchart TD
 ### 操作ごとの列と指定方法
 
 - 評価軸の作成・更新・削除
-  - 列は`operation`、`evaluationCriterionId`、`expectedVersion`、`status`、`visibility`、`name`、`description`、`minimumUnit`、`transferEnabled`、`exchangeEnabled`、`buyNowEnabled`、`autoDistributionMode`、`relatedUrl`とする。
+  - 列は`operation`、`evaluationCriterionId`、`expectedVersion`、`status`、`isPublic`、`name`、`description`、`minimumUnit`、`transferEnabled`、`exchangeEnabled`、`buyNowEnabled`、`autoDistributionMode`、`relatedUrl`とする。
   - `SAVE`で作成・更新・停止・再開・公開範囲変更、`DELETE`で未使用軸の完全削除を行う。
   - 新規作成はIDと`expectedVersion`を空欄、更新・削除は両方を必須とする。
   - 新規作成では名前・説明を必須とし、他の設定が空欄なら通常の作成初期値を使う。
@@ -5646,17 +5762,17 @@ flowchart TD
   - 更新では空欄の設定を維持し、値を指定した設定だけを置き換える。
   - `relatedUrl`は更新時の空欄で現在値を維持し、`[]`で全削除、URL指定で一覧全体を置き換える。
   - 新規作成の`relatedUrl`が空欄または`[]`なら、関連URLなしとする。
-  - `status`は`ACTIVE | INACTIVE`、`visibility`は`PUBLIC | PRIVATE`、利用可否は`true | false`とする。
+  - `status`は`ACTIVE | INACTIVE`、`isPublic`と利用可否は`true | false`とする。
   - `autoDistributionMode`は`OWN_SHARE | ADDITIONAL_ISSUANCE`とする。
   - 削除行はIDと現在versionだけを指定し、設定欄は空欄にする。
 
 - パッケージの作成・更新・削除
-  - 列は`operation`、`pointPackageId`、`expectedVersion`、`status`、`visibility`、`name`、`description`、`relatedUrl`、`components`とする。
+  - 列は`operation`、`pointPackageId`、`expectedVersion`、`status`、`isPublic`、`name`、`description`、`relatedUrl`、`components`とする。
   - `SAVE`で作成・更新・停止・再開・公開範囲変更、`DELETE`で未使用パッケージの完全削除を行う。
   - 新規作成はIDと`expectedVersion`を空欄、更新・削除は両方を必須とする。
   - 保存行は名前・状態・公開範囲・全構成を必須とし、説明と関連URLは任意とする。
-  - `status`は`ACTIVE | INACTIVE`、`visibility`は`PUBLIC | PRIVATE`とする。
-  - 新規用テンプレートには`INACTIVE`・`PRIVATE`の初期値を入れる。
+  - `status`は`ACTIVE | INACTIVE`、`isPublic`は`true | false`とする。
+  - 新規用テンプレートには`INACTIVE`・`false`の初期値を入れる。
   - 空欄の説明・関連URLは、現在の値を空に置き換える。
   - `components`は`AXIS:軸ID:1,PACKAGE:子パッケージID:3`の形式で、セル全体を二重引用符で囲む。
   - 各構成要素は種類`AXIS | PACKAGE`、対応するID、正の整数の割合をコロンで区切り、要素同士はカンマで区切る。直接の同じ種類・IDの重複を拒否し、一括変更後の参照・循環・追加権限を検証する。
@@ -5676,8 +5792,8 @@ flowchart TD
   - 設定の列は`targetEvaluationCriterionId`、`evaluationMonth`、`evaluationMode`、`sourceEvaluationCriterionId`、`coefficient`、`expectedVersion`とする。
   - `evaluationMode`は`DIRECT | SUBSTITUTION`とする。
   - 代用評価では代用元と符号付き係数を必須とし、直接評価では両方を空欄にする。
-  - 再計算の列は`targetEvaluationCriterionId`、`evaluationMonth`、`expectedVersion`とし、対象月の現在設定で全員分を計算する。
-  - 新規設定の`expectedVersion`は空欄、既存設定の変更・再計算は現在versionを必須とする。
+  - 再計算は、現在の方式・代用元・係数をそのまま書いた行で行う。
+  - 新規設定の`expectedVersion`は空欄、既存設定は現在versionを必須とする。
   - 循環の検査には、そのファイルで変更する月別設定全体を使う。
 
 - 交換倍率の設定・削除
@@ -5725,11 +5841,17 @@ flowchart TD
   - 入力には確定要求の`Idempotency-Key`と元のCSV行番号を含め、この組を一意にする。
   - 月別評価方式の行では、その行の最初の確定単位で月別設定の新しいバージョンを保存し、そのバージョンにも`Idempotency-Key`と行番号を保存する。
   - 後続処理は、[分配・再分配・訂正の共通ルール](#分配再分配訂正の共通ルール)で定める単位で確定する。
-  - 冪等性の結果は最後の行の操作本体と同じD1原子処理で保存する。
+  - 冪等性の結果は、全行の完了または上限の手前で止めた時点の最後の確定単位と同じD1原子処理で、進み具合とともに保存する。
 
-- 途中の行で失敗した場合は、確定済みの行を保持してエラーを返す。
-  - 応答のProblem Detailsに確定済みの最後の行番号`lastCompletedRow`を含め、画面には確定済みの行と残る行の行番号を表示する。
-  - 同じファイル・`validationHash`・`Idempotency-Key`で再送すると、確定済みの行と段階を飛ばして続きを処理する。
+- 一つの確定要求ではWorkersのCPU時間とD1の呼び出し回数の上限の手前まで、行と段階を確定し続ける。
+  - 上限の手前で止めた場合は、200の応答で`completion: INCOMPLETE`と確定済みの最後の行番号`lastCompletedRow`を返す。
+  - 途中の行で失敗した場合は、確定済みの行を保持し、Problem Detailsに`lastCompletedRow`を含めてエラーを返す。
+  - 画面は自動で再送せず、未完了であることと、確定済みの行と残る行の行番号を表示する。
+
+- 本人が「続きを実行」を押すと、画面は同じファイル・`validationHash`・`Idempotency-Key`で確定要求を再送する。
+  - サーバーは確定済みの行と段階を飛ばして続きを処理する。
+  - 確定済みの行は保存済みの履歴から読み、今の残高で計算し直さない。残りの行だけを現在の条件で計算し直し、両方を合わせた確認項目で`validationHash`を照合する。
+  - 保存した結果が完了なら、続きを処理せずにその結果を返す。
   - 残る行だけのCSVを新しい確定要求で送る場合は、新しい操作として検証する。確定済みの行を含むファイルを新しい操作として送ると、その行を重ねて反映することを画面で案内する。
 
 - 確定後は処理結果を表示し、管理操作の監査は既存の構造化ログへ記録する。
@@ -5743,14 +5865,16 @@ flowchart TD
   D -- いいえ --> E[CSV本体を全行未反映]
   D -- はい --> K{"ポイントの増減を伴うCSV？"}
   K -- いいえ --> L["全行の設定変更と冪等性結果を一括確定"]
-  K -- はい --> G["次の行の入力と一次増減を一括確定<br/>最後の行では冪等性結果も保存"]
+  K -- はい --> G["次の行の入力と一次増減を一括確定<br/>完了・停止の時点で冪等性結果も保存"]
   G --> H[共通ルールでその行の全再分配・訂正を完了]
   H --> I{次の行がある?}
   I -- はい --> G
   I -- いいえ --> J[全行の処理完了]
+  I -- はい・上限の手前 --> Y["completion: INCOMPLETEと<br/>lastCompletedRowを返す"]
   G -. 失敗 .-> X["確定済みの行を保持し<br/>lastCompletedRowを返す"]
   H -. 失敗 .-> X
-  X --> R["同じ要求の再送で<br/>確定済みの行と段階を飛ばして続きを処理"]
+  X --> R["本人の「続きを実行」で同じ要求を再送<br/>確定済みの行と段階を飛ばして続きを処理"]
+  Y --> R
   R --> G
 ```
 
@@ -5778,8 +5902,8 @@ flowchart TD
 
 - 確認した重要な対象・条件・金額が変わった場合は、最新の結果を再確認する。
   - サーバーは確定時の検証・計算結果から同じ確認項目を取り出し、`validationHash`を照合する。
-  - 一致しない場合は確定せず、実行可能なら最新結果を表示する。
-  - 利用者が最新結果を確認してから、新しい確定要求を送る。
+  - 一致しない場合は確定せず、`409 CONFIRMATION_CHANGED`を返す。
+  - 画面は検証のQUERYを呼び直して最新結果を表示し、利用者が確認してから新しい確定要求を送る。
   - 権限不足、残高不足などで実行できなくなった場合は、全件を反映せず理由を表示する。
   - 明示した現在versionと一致しない更新・削除は`409 VERSION_CONFLICT`とし、最新の更新番号と内容を確認してファイルを修正する。
 
