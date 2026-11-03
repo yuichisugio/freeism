@@ -6497,6 +6497,116 @@ flowchart TD
   - 固定済み本人の残件は本人認証で受領する。
   - 本人への帰属が未確定の外部宛先の分はAccountsへ再連携し、その時点で受領資格を満たす分を受領する。
 
+### 受領のAPI
+
+#### `QUERY /api/v1/me/claims/preview`
+
+- 説明
+  - 受領対象と評価軸別の集計を確認する。operationId は`previewMyClaim`。
+  - 認証・権限は、本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とする。
+
+- リクエスト
+  - ヘッダー：なし
+  - ボディー
+
+    | 項目             | 型       | 必須 | 説明                                                                          |
+    | ---------------- | -------- | ---- | ----------------------------------------------------------------------------- |
+    | `accountsLinkId` | `string` | 任意 | 対象のAccounts連携のID。Accounts連携用の標準Account行の`account.id`を入れる。 |
+
+- レスポンス
+  - 成功時（200）
+    - `data`は次の項目を持つ単一オブジェクトとする。
+
+    | 項目                                              | 型                           | 説明                                                                                 |
+    | ------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------------ |
+    | `items`                                           | 配列                         | 受領対象。対象月、初回登録日時、初回履歴IDの昇順で並べる。対象がなければ`[]`とする。 |
+    | `items[].firstLedgerEntryId`                      | `string`                     | 受領対象の初回履歴ID                                                                 |
+    | `items[].kind`                                    | `EVALUATION \| DISTRIBUTION` | 元評価か分配待ち額か                                                                 |
+    | `items[].evaluationCriterionId`                   | `string`                     | 評価軸のID                                                                           |
+    | `items[].evaluationMonth`                         | `string`（`YYYY-MM`）        | 評価対象月                                                                           |
+    | `items[].currentAmount`                           | 金額の文字列                 | 正・負・0の現在額                                                                    |
+    | `byEvaluationCriterion`                           | 配列                         | 評価軸ごとの集計                                                                     |
+    | `byEvaluationCriterion[].evaluationCriterionId`   | `string`                     | 評価軸のID                                                                           |
+    | `byEvaluationCriterion[].evaluationCriterionName` | `string`                     | 評価軸の名前                                                                         |
+    | `byEvaluationCriterion[].claimAmount`             | 金額の文字列                 | 正味の受領額                                                                         |
+    | `byEvaluationCriterion[].positiveCount`           | `integer`                    | 正の受領対象の件数                                                                   |
+    | `byEvaluationCriterion[].negativeCount`           | `integer`                    | 負の受領対象の件数                                                                   |
+    | `byEvaluationCriterion[].totalCount`              | `integer`                    | 受領対象の件数。0の対象は`totalCount`だけに数える。                                  |
+    | `byEvaluationCriterion[].distributionDeltaAmount` | 金額の文字列                 | 受領に伴う再分配・訂正による本人の増減                                               |
+    | `byEvaluationCriterion[].balanceBefore`           | 金額の文字列                 | 受領前の残高                                                                         |
+    | `byEvaluationCriterion[].balanceAfter`            | 金額の文字列                 | 反映後の残高                                                                         |
+    | `validationHash`                                  | `string`                     | 確認内容の検証値。確定の要求で送り返す。                                             |
+    - `validationHash`は、受領対象の`firstLedgerEntryId`・`kind`・`currentAmount`と、評価軸別の`claimAmount`・`distributionDeltaAmount`から求める。
+      - 残高は含めず、受領と関係のない譲渡などで残高だけが変わっても再確認を求めない。
+
+  - 失敗時（主なもの）
+
+    | 状態 | コード                           | 起きる場合                                           |
+    | ---- | -------------------------------- | ---------------------------------------------------- |
+    | 404  | `ACCOUNTS_LINK_NOT_FOUND`        | 指定した連携が本人の連携でない・存在しない           |
+    | 409  | `ACCOUNTS_CONNECTION_NOT_ACTIVE` | 宛先照合で、接続先が有効でない                       |
+    | 503  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の通信失敗・一時的な利用不能・制限超過 |
+    | 502  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の不正な応答                           |
+    | 504  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の応答待ちの時間切れ                   |
+    | 503  | `ACCOUNTS_CLIENT_UNAUTHORIZED`   | Accountsが認証を拒否した                             |
+    | 403  | `ACCOUNT_CLOSED`                 | 退会済みの本人                                       |
+    - Accountsの`429`では`Retry-After`を転記する。
+    - Accountsとの通信の失敗は、識別子・Tokenを含めずに構造化ログへ記録する。
+
+#### `POST /api/v1/me/claims`
+
+- 説明
+  - 受領を確定する。operationId は`confirmMyClaim`。
+  - 認証・権限は、本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とする。
+
+  - `accountsLinkId`を指定した場合は、Accountsから取得した最新の外部アカウント一覧と取得日時を、その連携のAccount行へ保存してから受領する。
+    - 一覧の保存は受領と別のD1処理で先に確定し、受領に失敗しても保持する。
+    - `INCOMPLETE`の続きを同じ`Idempotency-Key`で再送する場合は、一覧を取得し直さない。
+
+  - `completion`が`INCOMPLETE`の場合は、本人が「続きを実行」を押したときに、同じ要求を同じ`Idempotency-Key`で再送する。
+    - サーバーは確定済みの受領を繰り返さず、未完了の分配・訂正から続ける。
+    - 再送の`claimedCount`は新しく受領した対象だけを数える。
+
+  - 自動受領では、連携ごとに新しい`Idempotency-Key`を使う。
+    - 期限切れのキーや別のキーによる再送も、初回履歴の受領日時と`version`の検査で二重の反映を防ぐ。
+
+  - `version`は送らない。
+
+- リクエスト
+  - ヘッダー：`Idempotency-Key`（必須。操作の種別`CLAIM_COMMIT`）
+  - ボディー
+    - 確認と同じ`accountsLinkId`（任意。確認と同じ値を入れる）に加えて、次の項目を持つ。
+
+    | 項目             | 型       | 必須 | 説明                                                                           |
+    | ---------------- | -------- | ---- | ------------------------------------------------------------------------------ |
+    | `validationHash` | `string` | 任意 | 確認内容の検証値。手動受領では確認で受け取った値を送り、自動受領では送らない。 |
+
+- レスポンス
+  - 成功時（201）
+    - 対象0件と、受領済みの対象の再送も`201`とする。
+
+    | 項目                                              | 型                        | 説明                                              |
+    | ------------------------------------------------- | ------------------------- | ------------------------------------------------- |
+    | `claimedCount`                                    | `integer`                 | 今回の要求で受領した対象の件数                    |
+    | `byEvaluationCriterion`                           | 配列                      | 評価軸ごとの結果                                  |
+    | `byEvaluationCriterion[].evaluationCriterionId`   | `string`                  | 評価軸のID                                        |
+    | `byEvaluationCriterion[].claimAmount`             | 金額の文字列              | 正味の受領額                                      |
+    | `byEvaluationCriterion[].positiveCount`           | `integer`                 | 正の受領対象の件数                                |
+    | `byEvaluationCriterion[].negativeCount`           | `integer`                 | 負の受領対象の件数                                |
+    | `byEvaluationCriterion[].totalCount`              | `integer`                 | 受領対象の件数。0の対象は`totalCount`だけに数える |
+    | `byEvaluationCriterion[].distributionDeltaAmount` | 金額の文字列              | 今回の要求で確定した再分配・訂正による本人の増減  |
+    | `completion`                                      | `COMPLETED \| INCOMPLETE` | 受領に続く分配・訂正が今回の要求で終わったか      |
+
+  - 失敗時（主なもの）
+    - 確認の失敗に加えて、次の失敗がある。
+
+    | 状態 | コード                 | 起きる場合                                                 |
+    | ---- | ---------------------- | ---------------------------------------------------------- |
+    | 422  | `VALIDATION_FAILED`    | `accountsLinkId`と`validationHash`の両方を省いた           |
+    | 409  | `CONFIRMATION_CHANGED` | 手動受領で、確認時の`validationHash`と再計算した結果が違う |
+    - `CONFIRMATION_CHANGED`では、画面は確認をやり直し、最新の確認結果は失敗の応答に含めない。
+    - Accountsの一覧の取得に失敗した要求では、その要求の全件を未反映にし、保存済みの一覧と取得日時も変えない。
+
 ### 実装時に確認する例
 
 - 未受領の直接評価＋100と、別の初回履歴IDを持つ評価としてアップロードした−50が2件のまま保持され、本人への受領額は合計50となることを確認する。
@@ -6505,18 +6615,18 @@ flowchart TD
 - 代用評価の再計算・方式切替や帰属統合による自動訂正で未受領額が更新されること、受領済みの帰属が固定されることを確認する。
 - 退会済み本人へ帰属が固定された評価（正・負・0）、成立した分配、自動訂正差額は残高と対象となる累計評価額へ反映し、退会を理由とする受領待ちを作らないことを確認する。本人未確定の宛先は待ち額を保持し、再開後も現在の照合で受領することを確認する。
 - 一覧の取得失敗、0件、確認後の変更、再送と並行受領での二重受領防止を確認する。
-- 「情報を更新」の操作前に、正・負の評価の受領と再分配が反映されることを案内し、取得に成功した連携ごとに自動受領することを確認する。
+- 「情報を更新」の操作前に、正・負の評価の受領と再分配が反映されることを案内し、連携ごとの受領の確定で一覧を保存してから自動受領することを確認する。一覧の取得に失敗した連携では、保存済みの一覧を変えず、受領もしないことを確認する。
 - 複数連携の一つで受領に失敗しても、更新済みの情報と他の連携の受領・再分配の成功分を保持し、残る連携の受領を続けることを確認する。
 - 情報更新と受領の成否を区別して表示し、受領失敗後に手動で再実行しても、成功済みの対象を二重反映しないことを確認する。
 - Accounts連携がない本人も、共通の「未受領ポイントを受け取る」から、本人宛てに確定した分を本人認証だけで受領できることを確認する。
-- 有効な連携の欄から同じ操作を使った場合、本人宛てに確定した分と、その連携で照合できた分を重複なく受領し、利用者が`id`を入力・選択しないことを確認する。
+- 有効な連携の欄から同じ操作を使った場合、本人宛てに確定した分と、その連携で照合できた分を重複なく受領し、利用者が`accountsLinkId`を入力・選択しないことを確認する。
 - 有効なX軸と停止中のY軸に未受領分がある場合と、すべての受領対象ポイントの軸が停止中の場合も、正・負・0の分を受領できることを確認する。元取引の基準時刻で有効な計算元があれば再分配できることも確認する。
 - 受領確認後や保存前の評価軸の停止・再開だけでは、受領対象や確認結果が変わらないことを確認する。DB・通知保存の失敗では、その回だけが未反映となることを確認する。
 - Xの受領で停止中のYの過去配分の訂正が必要な場合、Yの訂正と依存する後続処理も進むことを確認する。
 - 受領済みの対象への再送は、二重反映せず受領件数0の正常完了となることを確認する。
 - 本人内の対象月・初回登録日時・初回履歴IDによる順序を確認する。
 - 現在の受領実装は、宛先をまとめてAccountsの照合APIへ送る。対象0件はエラーとしている。
-  - 実装時は、本人の最新一覧との照合、確認結果そのものの比較、0件の正常完了へ揃える。
+  - 実装時は本人の最新一覧との照合、`validationHash`による確認項目の比較、0件の正常完了へ揃える。
   - 分配待ち額の保存・発行額集計、未特定宛先の重み、受領後の再分配を含む訂正は、今回の仕様と実装の差を確認する。
   - 未受領中の履歴保存と、初回履歴の受領情報による既存履歴の帰属・合計額の反映は、実装時に確認する。受領時に最新額を新しい増減履歴へ記録する経路は、この仕様との差として扱う。
   - 受領・自動訂正が、評価軸の停止・再開を理由に制限されないことを確認する。
@@ -6643,11 +6753,14 @@ flowchart TD
   - 評価軸とパッケージは`organizationId`、OAuthクライアントは標準の`referenceId`でOrganizationとの対応を一意にする。
   - 管理者所属は、標準モデルの`userId`・`organizationId`・`role`で表す。
   - サーバーは認証本人、対象IDとOrganizationの対応、現在の権限、人数・件数、操作できる`appAdmin`が残ることを検証する。画面の表示も同じ権限に合わせる。
-  - 各対象の管理者所属の追加・解除・退出には、標準のOrganization API（`addMember`・`removeMember`・`leaveOrganization`）を使う。[公式資料](https://better-auth.com/docs/plugins/organization#add-member)
+  - 各対象の管理者所属の追加・解除・退出は、Pointsの独自API（`.../{id}/admins`）で受け付ける。サーバーが操作者の権限を確かめてから、標準のOrganizationの`auth.api.addMember`・`removeMember`・`leaveOrganization`を呼ぶ。[公式資料](https://better-auth.com/docs/plugins/organization#add-member)
+    - `addMember`は経路を持たないサーバー専用のAPIで、操作者の権限を検査しない（Better Auth 1.7.12のソースで確認）。このため、権限はPointsのサーバーで確かめる。
+    - 経路は、評価軸・パッケージ・OAuthクライアントの各節のAPIで定める。自分の`userId`を指定した解除は、退出とする。
     - 追加先の状態と本人のOAuthクライアント5件の上限は、標準の`organizationHooks`の`beforeAddMember`で検証する。
     - 対象ごとの20人の上限は`membershipLimit`だけで判定する。
     - `removeMember`は対象のOrganizationに所属する管理者だけが使える。所属していない`appAdmin`が解除するときは、Pointsのサーバーが標準の`member`行を削除する。
-    - 管理者の追加・解除の通知は、所属の変更を確定した後に保存する。
+    - 標準の`/organization/*`のHTTP経路は、[Better Auth共通設定](#better-auth共通設定)の`disabledPaths`で止める。
+  - 全体管理者（`appAdmin`）の付与・解除と、利用者のログイン停止・再開は、Adminプラグインの標準API（`/admin/set-role`・`/admin/ban-user`・`/admin/unban-user`）とフックで行う。
 
 ```mermaid
 flowchart TD
@@ -6660,7 +6773,7 @@ flowchart TD
   D -->|はい| F["追加ではフックで追加先の状態と本人の件数を検証<br/>membershipLimitで人数を検証"]
   F --> G{"条件を満たすか"}
   G -->|いいえ| R
-  G -->|はい| H["標準のOrganization APIで<br/>対象者のuser.idの所属を登録・解除<br/>所属していないappAdminの解除はサーバーがmember行を削除"]
+  G -->|はい| H["サーバーがauth.apiの標準Organization APIで<br/>対象者のuser.idの所属を登録・解除<br/>所属していないappAdminの解除はサーバーがmember行を削除"]
 ```
 
 - 作成時の管理者登録
@@ -6699,38 +6812,43 @@ flowchart TD
 - Points Workerは経路ごとに認証・権限・冪等性キーのミドルウェアを付ける。
   - 各ミドルウェアはHono標準の`createMiddleware()`（`hono/factory`）で作る。[公式資料](https://hono.dev/docs/helpers/factory)
   - ミドルウェアの合成には`hono/combine`の`some()`・`every()`・`except()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/combine)
-  - Points独自業務APIの本人認証は、Cookieセッションと`points` scopeのOAuth認証を`some()`で合成し、どちらかで行う。
-  - Points独自API（`/api/auth/*`を除く`/api/*`）には`except([公開の経路, 精算の経路], 本人認証)`を掛け、既定で本人認証を要求する。
+  - 本人認証は、Cookieセッションと、操作に必要なscopeのOAuth認証のどちらでも受け付ける。操作ごとのscopeは[開発者向けOAuthクライアント管理](#開発者向けoauthクライアント管理)で定める。
+    - `Authorization: DPoP`ヘッダーがあればOAuth認証だけ、なければCookieセッションだけで検証する。判定は`csrf()`の除外条件と同じにする。
+    - 2つを`some()`で合成すると、失敗時に最後のミドルウェアのエラーが返り、`403 INSUFFICIENT_SCOPE`と`403 ACCOUNT_CLOSED`を正しく返せないため、ヘッダーで分ける。
+  - 全体のミドルウェアで本人と認証方式を確かめ、経路ごとに必要なscopeの検査か、Cookieセッションだけの検査を付ける。設定の復元と評価軸・パッケージのCSVの`points:admin`は、本文の検証のあとに確かめる。
+  - Points独自APIのうち、OAuthクライアントの管理と、退会と再開は、Cookieセッションだけで受け付ける。
+  - Points独自API（`/api/auth/*`を除く`/api/*`）には`except([公開の取得の条件, 精算の経路], 本人認証)`を掛け、既定で本人認証を要求する。
     - 精算は、本文で受け取る各落札者のトークンとDPoP署名で認証する。
-    - 公開の経路には、認証情報があれば本人を確かめる任意の本人認証を掛ける。
-    - `except()`の文字列の条件は経路だけで判定し、HTTPメソッドを見ない。同じ経路に公開の取得と本人用の更新を並べない。
+    - 公開の取得には、認証情報があれば本人を確かめる任意の本人認証を掛ける。
+    - 公開の取得の条件にはHono標準の`(c) => boolean`の関数を渡し、メソッドと経路で判定する。同じ経路の公開の`QUERY`と管理用の`PATCH`・`DELETE`は、メソッドで区別する。
   - `every()`の中で`false`を返すと500になるため、認証・権限が足りない要求には`HTTPException(401)`・`HTTPException(403)`を投げる。
-  - Better Auth標準のログイン・セッション・認証手段・OAuthクライアント管理・管理者所属は、標準の認証フローで扱う。
+  - Better Auth標準のログイン・セッション・認証手段は、標準の認証フローで扱う。
   - ミドルウェアの付け忘れは`hono/dev`の`inspectRoutes()`を使うテストで確認する。[公式資料](https://hono.dev/docs/helpers/dev)
     - `inspectRoutes()`は関数名でミドルウェアを示すため、ミドルウェアは名前付きの関数で作る。
 
 以下の表は、主要操作の認証・権限をまとめたものとする。退会・再開や本人のAccounts連携など、表にない操作の認証・権限と冪等性キーの要否は各機能で定める。
 
-| 操作                                          | 経路・操作方法                                                                                                      | 追加条件                                                                                                       |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 未受領評価・分配の受領                        | `QUERY /api/unclaimed-fixes/claim-preview`、`POST /api/unclaimed-fixes/claims`                                      | 本人認証、固定済みの帰属または本人の連携IDと最新一覧による宛先照合、確定時の確認結果の比較                     |
-| 評価軸の作成                                  | 評価軸のフォームまたはCSV                                                                                           | ログインしたPoints利用者、冪等性キー                                                                           |
-| 評価軸の更新・停止・再開・完全削除            | 評価軸のフォームまたはCSV                                                                                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー               |
-| 公式パッケージの作成                          | パッケージのフォーム・CSV                                                                                           | ログインしたPoints利用者、冪等性キー                                                                           |
-| 公式パッケージの更新・停止・再開・完全削除    | パッケージのフォーム・CSV                                                                                           | そのパッケージの`packageAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                       |
-| OAuthクライアントの更新・一時停止・再開・削除 | Better Auth OAuth Providerの標準管理API                                                                             | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                             |
-| 管理者の追加・解除・退出                      | 管理者設定画面                                                                                                      | 全体管理者の変更は`appAdmin`、対象の変更は対象管理者または`appAdmin`、本人の退出、人数・件数・最後の`appAdmin` |
-| 利用者のログイン停止・再開                    | 管理者設定画面                                                                                                      | `appAdmin`、最後の`appAdmin`                                                                                   |
-| 直接評価の登録の確定                          | 直接評価のフォーム・CSV                                                                                             | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、冪等性キー                                             |
-| 交換倍率の保存・削除                          | 交換倍率のフォーム・CSV                                                                                             | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー             |
-| 貢献評価代用の確定                            | 貢献評価代用のフォーム・確定／再計算ボタン・CSV                                                                     | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー             |
-| ポイント交換のフォーム確定                    | ポイント交換フォーム                                                                                                | 本人認証、交換条件・金額・残高の検証、冪等性キー                                                               |
-| 譲渡フォームの確定                            | 譲渡フォームの確認・確定                                                                                            | 本人、譲渡条件・宛先・金額・残高の検証、冪等性キー                                                             |
-| 利用者CSV確定                                 | `POST /api/{transfers,exchanges}/csv/commit`                                                                        | 本人、冪等性キー                                                                                               |
-| 自動分配設定の保存                            | 自動分配設定フォーム                                                                                                | 本人認証、サーバー側検証                                                                                       |
-| JSON設定復元の確認・確定                      | `QUERY /api/settings/restore/validate`、`POST /api/settings/restore/commit`                                         | 本人、各設定の管理権限、確定時の冪等性キー                                                                     |
-| 管理者のお知らせの確認・送信                  | `QUERY /api/v1/announcements/preview`、`POST /api/v1/announcements`                                                 | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の冪等性キー                                               |
-| 接続先Accountsの作成／有効化／取り下げ        | `/api/admin/accounts-connections`、`/api/admin/accounts-connections/{accountsConnectionId}/{activation,withdrawal}` | `appAdmin`、作成は取り下げていない接続先のoriginの一意制約、有効化・取り下げは`version`の競合検査              |
+| 操作                                          | 経路・操作方法                                                                                                                                  | 追加条件                                                                                                          |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 未受領評価・分配の受領                        | `QUERY /api/v1/me/claims/preview`、`POST /api/v1/me/claims`                                                                                     | 本人、固定済みの帰属または本人の連携IDと最新一覧による宛先照合、確定時の`validationHash`の照合と冪等性キー        |
+| 評価軸の作成                                  | `POST /api/v1/evaluation-criteria`、`POST /api/v1/csv-imports/evaluation-criteria`                                                              | ログインしたPoints利用者、冪等性キー                                                                              |
+| 評価軸の更新・停止・再開・完全削除            | `PATCH`・`DELETE /api/v1/evaluation-criteria/{evaluationCriterionId}`、`POST /api/v1/csv-imports/evaluation-criteria`                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                  |
+| 公式パッケージの作成                          | `POST /api/v1/point-packages`、`POST /api/v1/csv-imports/point-packages`                                                                        | ログインしたPoints利用者、冪等性キー                                                                              |
+| 公式パッケージの更新・停止・再開・完全削除    | `PATCH`・`DELETE /api/v1/point-packages/{pointPackageId}`、`POST /api/v1/csv-imports/point-packages`                                            | そのパッケージの`packageAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                          |
+| OAuthクライアントの登録                       | `POST /api/v1/oauth-clients`                                                                                                                    | ログインしたPoints利用者、本人の管理件数5件                                                                       |
+| OAuthクライアントの更新・一時停止・再開・削除 | `PATCH`・`DELETE /api/v1/oauth-clients/{clientId}`                                                                                              | 対象の`oauthClientAdmin`または`appAdmin`、サーバー側の管理権限検証                                                |
+| 各対象の管理者の追加・解除・退出              | `POST`・`DELETE /api/v1/{evaluation-criteria,point-packages,oauth-clients}/{id}/admins`                                                         | 対象管理者または`appAdmin`、本人の退出、人数・件数                                                                |
+| 全体管理者の追加・解除                        | Adminプラグインの標準`/admin/set-role`                                                                                                          | `appAdmin`、人数、最後の`appAdmin`                                                                                |
+| 利用者のログイン停止・再開                    | Adminプラグインの標準`/admin/ban-user`・`/admin/unban-user`                                                                                     | `appAdmin`、最後の`appAdmin`                                                                                      |
+| 直接評価の登録の確定                          | `POST /api/v1/direct-evaluations`、`POST /api/v1/csv-imports/direct-evaluations`                                                                | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、`validationHash`の照合、冪等性キー                        |
+| 交換倍率の保存・削除                          | `PATCH /api/v1/exchange-rates`、`POST /api/v1/csv-imports/exchange-rates`                                                                       | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                |
+| 貢献評価代用の確定・再計算                    | `PATCH /api/v1/evaluation-criteria/{evaluationCriterionId}/monthly-evaluation-settings`、`POST /api/v1/csv-imports/monthly-evaluation-settings` | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、`validationHash`の照合、冪等性キー |
+| ポイント交換の確定                            | `POST /api/v1/me/exchanges`、`POST /api/v1/csv-imports/exchanges`                                                                               | 本人、交換条件・金額・残高の検証、`validationHash`の照合、冪等性キー                                              |
+| ポイント譲渡の確定                            | `POST /api/v1/me/transfers`、`POST /api/v1/csv-imports/transfers`                                                                               | 本人、譲渡条件・宛先・金額・残高の検証、`validationHash`の照合、冪等性キー                                        |
+| 公式パッケージ・自動分配の設定の保存          | `PUT /api/v1/me/auto-distribution-setting`                                                                                                      | 本人、サーバー側検証                                                                                              |
+| JSON設定復元の確認・確定                      | `QUERY /api/v1/me/settings-restores/preview`、`POST /api/v1/me/settings-restores`                                                               | 本人、各設定の管理権限、確定時の`validationHash`の照合と冪等性キー                                                |
+| 管理者のお知らせの確認・送信                  | `QUERY /api/v1/announcements/preview`、`POST /api/v1/announcements`                                                                             | 対象の管理権限、送信範囲・人数・内容の再検証、確定時の`validationHash`の照合と冪等性キー                          |
+| 接続先Accountsの作成・有効化・取り下げ        | `POST /api/v1/admin/accounts-connections`、`PATCH /api/v1/admin/accounts-connections/{accountsConnectionId}`                                    | `appAdmin`、作成は取り下げていない接続先のoriginの一意制約、有効化・取り下げは`version`の競合検査                 |
 
 ## HTTPリクエスト・HTTPレスポンス
 
