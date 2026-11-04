@@ -235,14 +235,11 @@
 4. **後方互換性は不要**
    - 説明
      - データ移行、後方互換性は不要
-5. **注意**
-   - 説明
-     - ここに記載されていない仕様に関しては、無料主義アプリv0.1と同じ仕様
-6. **PointsとMarketsは、独立的に運用する**
+5. **PointsとMarketsは、独立的に運用する**
    - 説明
      - 別アプリとして同じようなアプリとの連携をする前提で設計したいため
      - 疎結合にする対象は「UIとAPI」ではなく「PointsとMarkets」
-7. Pointsが情報提供しても、OAuthクライアントは常に最新情報を取得してくれるとは限らない。
+6. Pointsが情報提供しても、OAuthクライアントは常に最新情報を取得してくれるとは限らない。
 
 ## 「プロフィール」画面
 
@@ -288,6 +285,7 @@
   - 公開する場合は、Accountsが提供したサービス名・ユーザー名・表示名・固有ID・検証したプロフィールURL・検証状態・検証方法・検証日時・連携日時を表示する。
   - 連携先AccountsのプロフィールURL・ユーザーIDも表示する。
   - 各項目は提供元が取得・提供したものに限る。
+  - 他人には、情報提供中の連携だけを表示する。
 
 - Pointsへの情報提供同意は公開表示の許可を含み、Accounts自身の一般公開設定とは独立する。
   - 実際の表示はPointsのプロフィール全体と連携情報の公開設定で決める。
@@ -397,39 +395,42 @@ flowchart TD
 - レスポンス
   - 成功時（200）
 
-    | 項目                                            | 型                                | 説明                                                                                                                                |
-    | ----------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-    | `id`                                            | `string`                          | ユーザーID                                                                                                                          |
-    | `isPublic`                                      | `boolean`                         | プロフィール全体を公開しているか。他人の取得では、非公開なら404を返すため常に`true`                                                 |
-    | `basicInfo.isPublic`                            | `boolean`                         | 基本情報を公開しているか                                                                                                            |
-    | `basicInfo.name`                                | `string`                          | 表示名                                                                                                                              |
-    | `basicInfo.description`                         | `string`                          | プロフィールの説明                                                                                                                  |
-    | `points.isPublic`                               | `boolean`                         | ポイント一覧を公開しているか                                                                                                        |
-    | `points.items[].evaluationCriterionId`          | `string`                          | 評価軸のID                                                                                                                          |
-    | `points.items[].name`                           | `string`                          | 評価軸の名前                                                                                                                        |
-    | `points.items[].status`                         | `ACTIVE \| INACTIVE`              | 評価軸の利用状態                                                                                                                    |
-    | `points.items[].isBalancePublic`                | `boolean`                         | 残高を公開しているか                                                                                                                |
-    | `points.items[].isEvaluationTotalPublic`        | `boolean`                         | 累計評価額を公開しているか                                                                                                          |
-    | `points.items[].balance`                        | 符号付きの金額の文字列            | 評価軸の残高。`isBalancePublic`が`true`の場合と本人の取得で返す。0・負の額も返す                                                    |
-    | `points.items[].evaluationTotal`                | 符号付きの金額の文字列            | 評価軸の累計評価額。`isEvaluationTotalPublic`が`true`の場合と本人の取得で返す。0・負の額も返す                                      |
-    | `points.items[].minimumUnit`                    | 金額の文字列                      | 評価軸の現在の最小単位                                                                                                              |
-    | `points.items[].spendableBalance`               | 金額の文字列                      | 現在の最小単位で新しく使える額。`balance`を返す場合だけ返す                                                                         |
-    | `pointPackages.isPublic`                        | `boolean`                         | 公式パッケージを公開しているか                                                                                                      |
-    | `pointPackages.autoDistributionEnabled`         | `boolean \| null`                 | 自動分配が有効か。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)の`enabled`と同じ                        |
-    | `pointPackages.distributionBasis`               | `PERCENT \| FIXED_AMOUNT \| null` | 分配する額の決め方。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ                                 |
-    | `pointPackages.distributionValue`               | 十進数の文字列 \| `null`          | 分配する割合または固定額。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ                           |
-    | `pointPackages.effectiveAt`                     | `string \| null`（RFC 3339）      | 公式パッケージの登録と自動分配の設定の適用開始時刻。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ |
-    | `pointPackages.items[].pointPackageId`          | `string \| null`                  | パッケージのID。他人の取得で`anonymized`が`true`なら`null`                                                                          |
-    | `pointPackages.items[].anonymized`              | `boolean`                         | 取得した人が閲覧できない非公開パッケージか                                                                                          |
-    | `pointPackages.items[].name`                    | `string`                          | パッケージの名前。`anonymized`が`true`なら「匿名Aのパッケージ」などの匿名名                                                         |
-    | `pointPackages.items[].weight`                  | `integer`                         | 登録したパッケージへの配分割合                                                                                                      |
-    | `connections.isPublic`                          | `boolean`                         | 連携情報を公開しているか                                                                                                            |
-    | `connections.items[].accountsOrigin`            | `string`                          | 連携先Accountsのorigin                                                                                                              |
-    | `connections.items[].accountsUserId`            | `string`                          | 連携先AccountsのユーザーID                                                                                                          |
-    | `connections.items[].accountsProfileUrl`        | `string`                          | 連携先AccountsのプロフィールURL                                                                                                     |
-    | `connections.items[].externalAccounts[]`        | 配列                              | Accountsから取得した外部アカウント                                                                                                  |
-    | `connections.items[].externalAccountsFetchedAt` | `string`（RFC 3339）              | 取得日時。本人だけに返す                                                                                                            |
-    | `history.isPublic`                              | `boolean`                         | 履歴を公開しているか。`history`は`isPublic`だけを持つ                                                                               |
+    | 項目                                            | 型                                 | 説明                                                                                                                                |
+    | ----------------------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+    | `id`                                            | `string`                           | ユーザーID                                                                                                                          |
+    | `isPublic`                                      | `boolean`                          | プロフィール全体を公開しているか。他人の取得では、非公開なら404を返すため常に`true`                                                 |
+    | `basicInfo.isPublic`                            | `boolean`                          | 基本情報を公開しているか                                                                                                            |
+    | `basicInfo.name`                                | `string`                           | 表示名                                                                                                                              |
+    | `basicInfo.description`                         | `string`                           | プロフィールの説明                                                                                                                  |
+    | `points.isPublic`                               | `boolean`                          | ポイント一覧を公開しているか                                                                                                        |
+    | `points.items[].evaluationCriterionId`          | `string`                           | 評価軸のID                                                                                                                          |
+    | `points.items[].name`                           | `string`                           | 評価軸の名前                                                                                                                        |
+    | `points.items[].status`                         | `ACTIVE \| INACTIVE`               | 評価軸の利用状態                                                                                                                    |
+    | `points.items[].isBalancePublic`                | `boolean`                          | 残高を公開しているか                                                                                                                |
+    | `points.items[].isEvaluationTotalPublic`        | `boolean`                          | 累計評価額を公開しているか                                                                                                          |
+    | `points.items[].balance`                        | 符号付きの金額の文字列             | 評価軸の残高。`isBalancePublic`が`true`の場合と本人の取得で返す。0・負の額も返す                                                    |
+    | `points.items[].evaluationTotal`                | 符号付きの金額の文字列             | 評価軸の累計評価額。`isEvaluationTotalPublic`が`true`の場合と本人の取得で返す。0・負の額も返す                                      |
+    | `points.items[].minimumUnit`                    | 金額の文字列                       | 評価軸の現在の最小単位                                                                                                              |
+    | `points.items[].spendableBalance`               | 金額の文字列                       | 現在の最小単位で新しく使える額。`balance`を返す場合だけ返す                                                                         |
+    | `pointPackages.isPublic`                        | `boolean`                          | 公式パッケージを公開しているか                                                                                                      |
+    | `pointPackages.autoDistributionEnabled`         | `boolean \| null`                  | 自動分配が有効か。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)の`enabled`と同じ                        |
+    | `pointPackages.distributionBasis`               | `PERCENT \| FIXED_AMOUNT \| null`  | 分配する額の決め方。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ                                 |
+    | `pointPackages.distributionValue`               | 十進数の文字列 \| `null`           | 分配する割合または固定額。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ                           |
+    | `pointPackages.effectiveAt`                     | `string \| null`（RFC 3339）       | 公式パッケージの登録と自動分配の設定の適用開始時刻。[公式パッケージ・自動分配の設定のAPI](#公式パッケージ自動分配の設定のapi)と同じ |
+    | `pointPackages.items[].pointPackageId`          | `string \| null`                   | パッケージのID。他人の取得で`anonymized`が`true`なら`null`                                                                          |
+    | `pointPackages.items[].anonymized`              | `boolean`                          | 取得した人が閲覧できない非公開パッケージか                                                                                          |
+    | `pointPackages.items[].name`                    | `string`                           | パッケージの名前。`anonymized`が`true`なら「匿名Aのパッケージ」などの匿名名                                                         |
+    | `pointPackages.items[].weight`                  | `integer`                          | 登録したパッケージへの配分割合                                                                                                      |
+    | `connections.isPublic`                          | `boolean`                          | 連携情報を公開しているか                                                                                                            |
+    | `connections.items[].id`                        | `string`                           | 連携行のID。本人だけに返す                                                                                                          |
+    | `connections.items[].accountsOrigin`            | `string`                           | 連携先Accountsのorigin                                                                                                              |
+    | `connections.items[].accountsServiceName`       | `string`                           | 接続先の表示名                                                                                                                      |
+    | `connections.items[].accountsUserId`            | `string`                           | 連携先AccountsのユーザーID                                                                                                          |
+    | `connections.items[].accountsProfileUrl`        | `string`                           | 連携先AccountsのプロフィールURL                                                                                                     |
+    | `connections.items[].provisionStatus`           | `PROVIDED \| NOT_PROVIDED \| null` | 情報提供状態。未取得は`null`。本人だけに返す                                                                                        |
+    | `connections.items[].externalAccounts[]`        | 配列 \| `null`                     | Accountsから取得した外部アカウント。未取得は`null`                                                                                  |
+    | `connections.items[].externalAccountsFetchedAt` | `string \| null`（RFC 3339）       | 取得日時。未取得は`null`。本人だけに返す                                                                                            |
+    | `history.isPublic`                              | `boolean`                          | 履歴を公開しているか。`history`は`isPublic`だけを持つ                                                                               |
     - `basicInfo`・`points`・`pointPackages`・`connections`・`history`は、区画ごとのオブジェクトとする。
     - `isPublic`・`isBalancePublic`・`isEvaluationTotalPublic`は保存した公開設定とし、取得した人によらず同じ値を返す。
       - 他人の取得では、非公開の区画は`isPublic`だけを返し、非公開の金額は省く。
@@ -437,6 +438,7 @@ flowchart TD
     - `pointPackages.items`は、登録した全パッケージを設定した表示順に返す。
       - 取得した人が閲覧できない非公開パッケージは、`anonymized`を`true`とし、実名の代わりに匿名名を返す。
       - その要素の`pointPackageId`は、本人の取得では保存し直せるように実際の値を返し、他人の取得では`null`とする。配分割合`weight`は実際の値を返す。
+    - `connections.items`は、他人の取得では情報提供中（`PROVIDED`）の連携だけを返す。
     - `meta`は`requestId`だけとする。
 
   - 失敗時
@@ -1062,6 +1064,7 @@ flowchart TD
 - 評価方式の選択
   - 付与先の評価軸ごと・評価対象月ごとに、「直接評価」または「代用評価」を選ぶ。
   - 同じ月の方式を利用者全員へ一括適用する。
+  - 月別設定がない月は、直接評価とする。
   - 評価対象月はUTCの年月を`YYYY-MM`で指定する。9月分を10月に処理しても、9月の設定を使う。
   - 設定と実行は、付与先の評価軸の`evaluationCriterionAdmin`または`appAdmin`が行う。
   - 直接評価では、フォームまたはCSVで新しい評価を登録する。
@@ -2073,7 +2076,6 @@ flowchart TD
   - 代用メールと、退会時に戻した仮名・空画像は、本人識別に必要な認証対応とともに保持する。
   - 管理者が登録した評価の宛先識別情報・メモは、評価の確認と追加登録に必要な記録として、管理権限の範囲で保持する。
     - そのため、認証対応を扱う運営者や、評価入力の閲覧権限を持つ管理者には、退会後も本人を特定できる場合がある。
-  - 証明画面では、経済履歴の対応に必要な不変のユーザーIDだけを示す。
   - 他の利用者の残高と取引記録、終了済みの精算は維持する。
 
 - 外部アプリとMarketsへの影響
@@ -2097,8 +2099,7 @@ flowchart TD
   - 業務APIと、Better Authの`hooks.before`で`pointsStatus`を確認し、`CLOSED`の本人には再開に必要な操作だけを許す。
     - `hooks.before`の確認には標準の`/link-social`・`/unlink-account`・`/oauth2/authorize`なども含める。
   - 認証コールバックのGETでは再開しない。再開画面には、引き継ぐ残高と評価、プロフィールと設定の再登録、未受領分の受領手順を表示する。
-  - 再開後は、設定画面の「未受領ポイントを受け取る」から受領できることを案内する。
-  - 受取人が本人と確定している未処理分は本人認証だけで受領でき、外部宛先の受取人が未確定の分はAccountsへの再連携と照合で本人のものと確認する。
+  - 再開後は、Accountsへ再連携すると未受領分を受領できることを案内する。
   - 本人が再開を明示的に確定したときに、セッションの本人が`CLOSED`であることを検証する。
   - `user.pointsStatus`の`ACTIVE`への変更と固定情報の初期化を一括確定し、同じID・残高・累計評価額・取引記録を引き継ぐ。
   - 再開後もログイン中のセッションをそのまま使う。
@@ -2113,9 +2114,7 @@ flowchart TD
   D --> E["同じID・残高・累計評価額・取引記録を引き継ぐ"]
   E --> F["表示名は仮名・説明は空・プロフィールは非公開<br/>自動分配は無効の初期状態"]
   F --> G["本人がプロフィール・設定を登録し直す<br/>連携・認可・管理者所属も通常の操作で取得"]
-  F --> H{"残る未処理分の帰属は本人へ固定済み？"}
-  H -->|はい| I["本人認証で未受領分を受領"]
-  H -->|いいえ| J["Accountsへ再連携して照合し<br/>本人のものと確認できた分を受領"]
+  F --> J["Accountsへ再連携して照合し<br/>本人のものと確認できた未受領分を受領"]
 ```
 
 - 退会中の評価と未受領分
@@ -2123,7 +2122,7 @@ flowchart TD
   - 退会中に本人へ反映した正負の増減も残高・累計評価額・履歴へ保持し、再開時に引き継ぐ。
   - 退会で解除した自動分配の設定は復元せず、退会後の新しい元取引では自動分配無効として扱う。
   - `CLOSED`の本人はAccounts連携や受領操作を行えない。
-    - 未特定宛先の分は、再開後にAccountsへ再連携して照合し、受領する。
+    - 未受領分は、再開後にAccountsへ再連携して照合し、受領する。
   - 受領済みの帰属は本人に固定し、同じ評価を二重に付与しない。
   - 元取引の訂正では、保持している受領済み記録とポイント増減履歴を使って、本人と分配先へ差額を反映する。
   - 再開時に負の残高がある場合や、受領によって残高が負になった場合も、再開状態を維持する。
@@ -2239,7 +2238,7 @@ flowchart TD
   - 非公開パッケージも自動分配に使える。新規登録は、そのパッケージの編集権限がある本人に限る。公開時からの登録は、非公開への変更後も維持する。
   - 登録と構成割合は項目の利用状態にかかわらず保存できる。公開範囲の変更だけでは、登録済みの配分割合や自動分配を変更しない。
   - 公式パッケージの設定自体は任意。
-  - 登録したパッケージの表示順を指定できる。公式パッケージ区画を公開した場合は、登録した公開パッケージをその順に公開プロフィールへ表示する。
+  - 登録したパッケージの表示順を指定できる。公式パッケージ区画を公開した場合は、登録したパッケージをその順に公開プロフィールへ表示する。
   - 分配する割合は0％〜100％とする。固定額は0以上とする。
   - 初期状態は無効とする。パッケージを1件以上登録すると有効にでき、有効時は「自動分配を設定中」と表示する。
   - パッケージを登録解除すると、その配分割合も削除し、残った比率を合計100％へ正規化する。最後の1件を解除すると自動分配を無効にする。
@@ -2254,7 +2253,7 @@ flowchart TD
   C -->|いいえ| D["本人設定の新しいバージョンと登録行を一括追加<br/>並べ替えだけなら最新バージョンの表示順を書き換え"]
   C -->|はい| E["解除するパッケージの配分割合を削除"]
   E --> F{"残る登録は0件？"}
-  F -->|はい| G["自動分配を無効にする"]
+  F -->|はい| G["画面がenabledにfalseを送り<br/>自動分配を無効にする"]
   F -->|いいえ| H["残りの比率を合計100％へ正規化"]
   G --> D
   H --> D
@@ -2304,9 +2303,9 @@ flowchart TD
 
   - 失敗時（主なもの）
 
-    | 状態 | コード              | 起きる場合                                                                                                                                                           |
-    | ---- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-    | 422  | `VALIDATION_FAILED` | 存在しないパッケージ、新規登録に必要な編集権限がない非公開パッケージ、重複したパッケージ、件数の超過、`targets`が0件での`enabled: true`、`distributionValue`の範囲外 |
+    | 状態 | コード              | 起きる場合                                                                                                                                                                                                            |
+    | ---- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+    | 422  | `VALIDATION_FAILED` | 存在しないパッケージ、新規登録に必要な編集権限がない非公開パッケージ、重複したパッケージ、件数の超過、全登録パッケージの展開で辿る構成行の1,000件超過、`targets`が0件での`enabled: true`、`distributionValue`の範囲外 |
     - 存在しないパッケージと、編集権限がない非公開パッケージは区別しない。
 
 ## 分配・再分配・訂正の共通ルール
@@ -2803,7 +2802,8 @@ flowchart TD
   - 当初0件・重み0だった人や、正の重みがなく除外した軸、全員への配分判定で不成立になった計算も、当時の条件から再び検討する。実際に受取額が生じた人だけから依存先を探さない。
   - 訂正で生じた新しい経路や、各元取引の基準時刻に対応するバージョンで展開したパッケージの参照先も確認し、対象取引を追加する。
   - 後日の受領で生じた再分配は、元取引内の対応する計算位置へ組み込み、その位置以後の影響を再計算する。
-  - 訂正途中の新旧結果を混ぜて計算せず、未完了の範囲を使う新規分配は待機させる。
+  - 訂正途中の新旧結果を混ぜて計算せず、未完了の訂正で累計評価額が変わる評価軸を計算元に含む新規分配は、操作本体を確定したうえで未完了として待機させる。
+    - 待機した分配は、先行する訂正の完了後に本人の再送か日次Cronで進める。
 
 同じ登録時点の評価材料と、各元取引の基準時刻の本人設定・パッケージ構成・計算規則なら、本人が最初から分かっていた場合と、帰属統合後に依存する全取引を訂正した場合の最終額を一致させる。訂正途中の残高や受領時期は区別し、実行結果には未完了の分を示す。
 
@@ -2854,11 +2854,13 @@ flowchart TD
   - 例えばXの受領に伴うYの過去配分の訂正で保存に失敗しても、Xの受領と確定済みの増減は保持し、Yの未完了位置から再実行する。
   - 再送や再実行では、保存済みの入力と当時の設定から処理順・経路を再現し、0を含む確定履歴と照合して未完了の段階から再開する。
 
-- 未完了の続きは本人の明示的な再送で進める。
+- 未完了の続きは本人の再送と日次Cronで進める。
+  - 確定済みの操作本体から続く分配・訂正は、本人が同じ`Idempotency-Key`で再送したときと、日次Cronの実行時に進める。
+  - 保存に失敗して止まった場合も、本人の再送と日次Cronで続きを進める。
+  - 要求本文にだけある未確定の件（CSVの残りの行、直接評価のフォームの残りの件、月別評価方式の残りの月）は、本人の再送だけで進める。
+    - サーバーは要求本文を保存しないためである。
   - 画面は未完了を表示し、自動では再送しない。
   - 本人が「続きを実行」を押したときに、同じ確定要求を同じ`Idempotency-Key`で再送する。
-  - 保存に失敗して止まった場合も、同じ再送で続きを進める。
-  - 本人が再送しない間、続きは未完了のまま残る。日次Cronは、本人の再送で進める処理の続きを進めない。
 
 - 画面は未完了の確定要求を`localStorage`に保存し、タブを閉じた後や再読み込みの後も同じキーで再送できるようにする。
   - 保存先のキー名は`freeism-incomplete-operations`とし、値は未完了の要求の配列をJSONで保存する。
@@ -2868,7 +2870,6 @@ flowchart TD
   - 再送の応答が`COMPLETED`になったら、その要素を消す。
   - `localStorage`はブラウザごとに保存されるため、別の端末や別のブラウザからは続きを実行できない。
   - CSVの再送では確定済みの行を保存済みの確定履歴から読み、残りの行だけを計算する。確定済みの行を今の残高で計算し直さない。
-  - 日次Cronの自動受領と、フォームで譲渡したときの受取人の自動分配など、本人の再送で続きを進めない処理は、次の日次Cronが進める。
 
 ### 分配結果と計算記録の保存
 
@@ -2878,6 +2879,7 @@ flowchart TD
   - 入力識別子の種類は`URL`・`ACCOUNTS_USER`・`PROVIDER_ACCOUNT`・`PROVIDER_USERNAME`とし、種類に応じて入力したURL候補、Accounts originとユーザーID、Providerと固有ID、Providerとユーザー名を保持する。
   - ユーザー名の入力値は保持し、比較にはサービス別規則で正規化した値を使う。
   - 分配用に展開した全登録パッケージは、重複を除いて辿った構成行を数え、構成展開の1,000件上限を検証する。
+    - 自動分配設定の保存後にパッケージの構成が変わって上限を超えた場合は、[本人分と分配しない額](#本人分と分配しない額)の、計算に使える軸がなく分配を開始しない場合と同じく扱う。
 
 - ポイント増減履歴は元の評価結果または譲渡の初回履歴行へ紐付け、元取引・本人または未受領宛先・評価軸・対象月・累計評価額への反映区分ごとに金額を合算する。
   - 未受領分も初回履歴IDで受領対象を識別し、初回額と訂正差額を記録する。
@@ -3039,8 +3041,9 @@ flowchart TD
 
 - 本人対応の保持と削除の制限
   - 退会後も標準UserとGoogle・GitHubの標準Accountを保持し、同じ認証元でのログインを元のPoints本人の再開へつなぐ。
-  - 本人による標準Userの物理削除は`user.deleteUser.enabled: false`で無効にし、Adminプラグインのロールにもユーザー削除権限を付けない。
+  - 本人による標準Userの物理削除は`user.deleteUser.enabled: false`で無効にする。
   - Adminの権限は`appAdmin`ロールで管理し、ロールの判定を迂回する`adminUserIds`は空にする。
+  - `appAdmin`には、Adminプラグインの`ac`・`roles`で`user`の`list`・`set-role`・`ban`だけを与え、`user`ロールには権限を与えない。
   - 標準の`databaseHooks.account.delete.before`でGoogle・GitHubのAccount削除をエラーとして拒否する。Accounts連携の解除は、対象のAccounts用Account行だけを削除する。
 
 - 本人ごとの固定情報の保存
@@ -3146,7 +3149,7 @@ flowchart TD
   - アカウント選択は[GoogleのOpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect)と[GitHubのOAuth認可](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)を参照する。
 
 - 実装との差と確認事項
-  - 現在の`permanent_oauth_subject`による本人対応を、標準Account・Userへ移す。本人の参照を標準`user.id`へそろえ、既存の経済履歴の本人への帰属を維持する。
+  - 現在の`permanent_oauth_subject`による本人対応を、標準Account・Userへ移す。本人の参照を標準`user.id`へそろえる。
   - 現在の`points_user`と`profiles`にある本人の固定情報を標準Userへ集約する。プロフィール取得・更新・公開検索・エクスポート・退会・再開の参照先をそろえる。
   - 同じ認証元での再ログイン、明示連携、別本人への重複連携の拒否、退会・再開、標準`unlinkAccount`によるGoogle・GitHubの解除拒否、Accounts連携だけの解除を確認する。
 
@@ -3173,6 +3176,7 @@ flowchart TD
   - OAuth Proxy・OAuth state・JWT署名鍵の暗号化に使う。
   - 先頭の鍵を現在の暗号化に使い、残りの鍵は復号だけに使う。
 - 標準APIのセッションの新しさの確認は、`session.freshAge: 0`で無効にする。[公式資料](https://better-auth.com/docs/concepts/session-management)
+- セッションとBetter Authの回数制限に使うIPアドレスは、`advanced.ipAddress.ipAddressHeaders`に`cf-connecting-ip`を指定して取る。
 - Points独自APIに置き換えた標準のHTTP経路は、`disabledPaths`で止める。
   - Organizationプラグインの経路（`/organization/*`）は、すべて止める。管理者所属の変更とOAuthクライアントの登録・更新では、サーバーが`auth.api`から標準のAPIを呼ぶ。
   - `disabledPaths`は経路の完全一致で照合するため、Organizationプラグインの`endpoints`から経路を持つものを集めて渡す。`addMember`は経路を持たないサーバー専用のAPIのため、HTTPの経路にならない。
@@ -3279,12 +3283,10 @@ flowchart TD
 
 ### 連携・情報更新後の自動受領
 
-- 新規連携・再連携の成功後は、設定画面が保存した連携へ[受領の確定](#受領のapi)を送り、情報の取得と受領を行う。
-- 「情報を更新」では、有効な接続先の連携ごとに受領の確定を送る。
+- 新規連携・再連携の成功後と「情報を更新」では、設定画面が有効な接続先の本人の連携ごとに[受領の確定](#受領のapi)を送り、情報の取得と受領を行う。
   - 元評価と分配待ち額を対象とする。
   - 正負合計が0でも受領と帰属を確定し、未受領中の履歴を本人へ紐づける。
 
-- 設定画面では、Accounts連携の有無にかかわらず、手動の「未受領ポイントを受け取る」を利用できる。
 - 自動受領・手動受領の確認、一覧照合、段階的な確定と失敗時の再実行は[アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)にまとめる。
 
 ### 連携解除
@@ -3296,8 +3298,7 @@ flowchart TD
 - 解除した連携の一覧と公開表示を終了する。Accountsが人物を返しても、Points内に現在の連携対応がある場合だけ、そのPoints本人へ対応付ける。
 - Accounts側の提供設定は維持する。提供を止めたい本人には、AccountsでPointsへの公開選択をすべて外す操作を案内する。
 - 解除後も確定済みの評価・ポイント・取引記録と未受領分を保持する。
-  - 本人への帰属が固定済みの分は、Pointsの本人認証だけで受領できる。
-  - 本人への帰属が未確定の宛先は、再連携後に現在の受領資格で照合して受領する。
+  - 未受領分は再連携後に現在の受領資格で照合して受領する。
 
 ```mermaid
 flowchart TD
@@ -3306,7 +3307,7 @@ flowchart TD
     C -->|いいえ| D["標準のエラーを返し連携を変更しない"]
     C -->|はい| E["対象のAccount行だけを削除"]
     E --> F["対象連携の一覧・公開表示を終了<br/>他の連携とログイン手段を維持"]
-    F --> G["確定済み記録と未受領分を保持<br/>本人固定済みの分は本人認証だけで受領<br/>本人未確定の宛先は再連携後に現在の資格で照合・受領"]
+    F --> G["確定済み記録と未受領分を保持<br/>再連携後に現在の資格で照合・受領"]
 ```
 
 ### 接続先Accountsの管理
@@ -3497,7 +3498,8 @@ flowchart TD
   - 連携保存後は標準のリダイレクトで`callbackURL`の`/settings/connections?accountsLinkResult=LINKED`へ戻る。
   - 戻った設定画面は[連携・情報更新後の自動受領](#連携情報更新後の自動受領)へ進む。
   - 失敗時は、標準の処理が`errorCallbackURL`の設定画面へ、クエリ`error=`を付けて戻す。
-    - 再使用・重複した応答のようにstateを特定できない失敗は、Better Authの`onAPIError.errorURL`に指定した設定画面へ戻す。
+    - 再使用・重複した応答のようにstateを特定できない失敗は、Better Authの`onAPIError.errorURL`に指定した認証エラー画面`/auth/error`へ移す。
+      - この画面は`error`の値を示し、最初からやり直すよう案内する。
     - `linkSocial`の開始要求そのものが失敗した場合は、その応答のエラーを設定画面に表示する。
   - 画面は`error`の値で表示を分ける。
     - `state_mismatch`などのstateのエラーは`ACCOUNTS_LINK_ATTEMPT_INVALID`として表示する。
@@ -3513,7 +3515,7 @@ flowchart TD
     D --> E{"検証に成功し<br/>別のPoints本人へ連携済みでないか"}
     E -->|いいえ| F["連携を変更せず<br/>標準のerrorを付けて設定画面へ戻る"]
     E -->|はい| G["開始した本人の標準accountへ連携を保存<br/>idは連携行・userIdは本人のuser.id<br/>同じAccountsユーザーならidと初回日時を保持"]
-    G --> H["設定画面へ戻り<br/>保存した連携へ受領の確定を送る"]
+    G --> H["設定画面へ戻り<br/>有効な接続先の連携ごとに受領の確定を送る"]
     H --> I["一覧を取得・保存して自動受領する<br/>取得失敗でも連携は保持"]
 ```
 
@@ -3956,39 +3958,39 @@ flowchart TD
 - レスポンス
   - 成功時（200）
 
-    | 項目                                                                | 型                   | 説明                                                                    |
-    | ------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------- |
-    | `type`                                                              | `POINT_PACKAGE`      | 対象の種類                                                              |
-    | `id`                                                                | `string`             | パッケージのID                                                          |
-    | `name`                                                              | `string`             | パッケージの名前                                                        |
-    | `description`                                                       | `string \| null`     | パッケージの説明                                                        |
-    | `relatedUrl`                                                        | `string[]`           | 関連URL                                                                 |
-    | `isPublic`                                                          | `boolean`            | 公開しているか                                                          |
-    | `status`                                                            | `ACTIVE \| INACTIVE` | 利用状態                                                                |
-    | `editable`                                                          | `boolean`            | 操作者がこのパッケージを管理できるか                                    |
-    | `createdAt`                                                         | `string`（RFC 3339） | 作成日時                                                                |
-    | `updatedAt`                                                         | `string`（RFC 3339） | 最終更新日時                                                            |
-    | `version`                                                           | `integer`            | 競合の検査に使う`version`                                               |
-    | `admins`                                                            | 人物の配列           | 管理者。人物の形は評価軸の詳細と同じ                                    |
-    | `updatedBy`                                                         | 人物                 | 最終更新者                                                              |
-    | `totalWeight`                                                       | `integer`            | 直接の構成の合計割合                                                    |
-    | `components`                                                        | 配列                 | 直接の構成要素                                                          |
-    | `components[].type`                                                 | `AXIS \| PACKAGE`    | 要素の種類。`AXIS`は評価軸、`PACKAGE`は子パッケージ                     |
-    | `components[].weight`                                               | `integer`            | 要素の割合                                                              |
-    | `components[].displayOrder`                                         | `integer`            | 要素の表示順。0から始まる連続整数                                       |
-    | `components[].anonymized`                                           | `boolean`            | 匿名表示か                                                              |
-    | `components[].name`                                                 | `string`             | 要素の名前。匿名表示の要素は「匿名Bのパッケージ」などの匿名名           |
-    | `components[].evaluationCriterionId`・`components[].pointPackageId` | `string`             | `type`に対応するID。匿名表示でない要素が持つ                            |
-    | `components[].status`                                               | `ACTIVE \| INACTIVE` | 要素の利用状態。匿名表示でない要素が持つ                                |
-    | `calculation`                                                       | 1件以上の配列        | 子パッケージまで展開して同じ軸を合算した構成。表示と出品の計算に使う    |
-    | `calculation[].evaluationCriterionId`                               | `string`             | 評価軸のID                                                              |
-    | `calculation[].weight`                                              | `integer`            | 評価軸の割合                                                            |
-    | `calculation[].minimumUnit`                                         | 金額の文字列         | 取得時点の評価軸の最小単位                                              |
-    | `calculation[].status`                                              | `ACTIVE \| INACTIVE` | 評価軸の利用状態                                                        |
-    | `calculation[].buyNowEnabled`                                       | `boolean`            | その軸で即決価格の利用を許可する現在の設定値                            |
-    | `calculation[].isPublic`                                            | `boolean`            | 評価軸を公開しているか                                                  |
-    | `calculation[].anonymized`                                          | `boolean`            | 匿名表示か。公開軸と、操作者がその軸も管理できる非公開軸は`false`とする |
-    | `calculation[].name`                                                | `string`             | 評価軸の名前。`anonymized`が`true`なら「匿名Bの評価軸」などの匿名名     |
+    | 項目                                                                | 型                   | 説明                                                                               |
+    | ------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------- |
+    | `type`                                                              | `POINT_PACKAGE`      | 対象の種類                                                                         |
+    | `id`                                                                | `string`             | パッケージのID                                                                     |
+    | `name`                                                              | `string`             | パッケージの名前                                                                   |
+    | `description`                                                       | `string \| null`     | パッケージの説明                                                                   |
+    | `relatedUrl`                                                        | `string[]`           | 関連URL                                                                            |
+    | `isPublic`                                                          | `boolean`            | 公開しているか                                                                     |
+    | `status`                                                            | `ACTIVE \| INACTIVE` | 利用状態                                                                           |
+    | `editable`                                                          | `boolean`            | 操作者がこのパッケージを管理できるか                                               |
+    | `createdAt`                                                         | `string`（RFC 3339） | 作成日時                                                                           |
+    | `updatedAt`                                                         | `string`（RFC 3339） | 最終更新日時                                                                       |
+    | `version`                                                           | `integer`            | 競合の検査に使う`version`                                                          |
+    | `admins`                                                            | 人物の配列           | 管理者。人物の形は評価軸の詳細と同じ                                               |
+    | `updatedBy`                                                         | 人物                 | 最終更新者                                                                         |
+    | `totalWeight`                                                       | `integer`            | 直接の構成の合計割合                                                               |
+    | `components`                                                        | 配列                 | 直接の構成要素                                                                     |
+    | `components[].type`                                                 | `AXIS \| PACKAGE`    | 要素の種類。`AXIS`は評価軸、`PACKAGE`は子パッケージ                                |
+    | `components[].weight`                                               | `integer`            | 要素の割合                                                                         |
+    | `components[].displayOrder`                                         | `integer`            | 要素の表示順。0から始まる連続整数                                                  |
+    | `components[].anonymized`                                           | `boolean`            | 匿名表示か                                                                         |
+    | `components[].name`                                                 | `string`             | 要素の名前。匿名表示の要素は「匿名Bのパッケージ」などの匿名名                      |
+    | `components[].evaluationCriterionId`・`components[].pointPackageId` | `string`             | `type`に対応するID。匿名表示でない要素が持つ。管理用の範囲では匿名表示の要素も持つ |
+    | `components[].status`                                               | `ACTIVE \| INACTIVE` | 要素の利用状態。匿名表示でない要素が持つ                                           |
+    | `calculation`                                                       | 1件以上の配列        | 子パッケージまで展開して同じ軸を合算した構成。表示と出品の計算に使う               |
+    | `calculation[].evaluationCriterionId`                               | `string`             | 評価軸のID                                                                         |
+    | `calculation[].weight`                                              | `integer`            | 評価軸の割合                                                                       |
+    | `calculation[].minimumUnit`                                         | 金額の文字列         | 取得時点の評価軸の最小単位                                                         |
+    | `calculation[].status`                                              | `ACTIVE \| INACTIVE` | 評価軸の利用状態                                                                   |
+    | `calculation[].buyNowEnabled`                                       | `boolean`            | その軸で即決価格の利用を許可する現在の設定値                                       |
+    | `calculation[].isPublic`                                            | `boolean`            | 評価軸を公開しているか                                                             |
+    | `calculation[].anonymized`                                          | `boolean`            | 匿名表示か。公開軸と、操作者がその軸も管理できる非公開軸は`false`とする            |
+    | `calculation[].name`                                                | `string`             | 評価軸の名前。`anonymized`が`true`なら「匿名Bの評価軸」などの匿名名                |
     - `calculation`は、子パッケージまで展開して同じ軸を合算した構成とし、表示と出品の計算に使う。
       - 割合の求め方は[出品用の評価軸・パッケージ情報](#出品用の評価軸パッケージ情報)で定める。
       - 評価軸ID昇順で全件返す。直接の構成のページ分割はこの範囲に影響しない。
@@ -4025,7 +4027,7 @@ flowchart TD
   - IDは作成時に発行する不変の標準Nano IDとする。同名を許可し、選択画面では名前とIDを表示する。更新対象はIDで指定する。
   - 名前は必須で1〜30文字、説明は任意で0〜500文字とする。表示値はNFCで保存する。
   - 説明はUTF-8で2,000 bytes以下とし、空文字は`NULL`として保存する。説明内のURLは安全にリンク表示する。
-  - 関連URLは任意で最大20件とする。HTTPSとする。
+  - 関連URLは任意で最大20件とする。各URLはHTTPSで2,048文字以下とする。
   - 利用状態は`status`へ`ACTIVE | INACTIVE`、公開範囲は`isPublic`へ真偽値を保存する。
   - 新規作成の初期値は`INACTIVE`・非公開（`false`）とする。公開範囲と利用状態は別々に設定する。
 
@@ -4145,7 +4147,7 @@ flowchart TD
   - 公開時から登録していた利用者も、登録と配分割合を保持できる。
   - 自動分配の利用条件は公開時と同じとする。
   - 編集権限のない人は、非公開パッケージを新しく登録できない。登録済みであることだけでは、パッケージの編集権限を与えない。
-  - 一般向けの検索結果と利用者の公開プロフィールの公式パッケージ一覧には表示しない。編集権限がある本人の検索には表示できるが、公開プロフィールは管理者を含む全員に404を返す。
+  - 一般向けの検索結果には表示しない。利用者の公開プロフィールの公式パッケージ一覧では、閲覧できない人には匿名名と配分割合だけを示す。
 
 - パッケージの停止は、構成する評価軸の利用状態を変更しない。
 
@@ -4183,7 +4185,7 @@ flowchart TD
     | ------------------------------------------------------------------- | -------------------- | -------- | ---------------------------------------------------------------------- |
     | `name`                                                              | `string`             | 必須     | パッケージ名。1〜30文字                                                |
     | `description`                                                       | `string \| null`     | 任意     | パッケージの説明。0〜500文字                                           |
-    | `relatedUrl`                                                        | `string[]`           | 任意     | 関連URL。0〜20件のHTTPSのURL                                           |
+    | `relatedUrl`                                                        | `string[]`           | 任意     | 関連URL。0〜20件のHTTPSのURL。各URLは2,048文字以下                     |
     | `isPublic`                                                          | `boolean`            | 任意     | 公開するか。省略時は初期値の`false`                                    |
     | `status`                                                            | `ACTIVE \| INACTIVE` | 任意     | 利用状態。省略時は初期値の`INACTIVE`                                   |
     | `components`                                                        | 配列                 | 必須     | 全構成。配列の順を`displayOrder`とする                                 |
@@ -5326,6 +5328,18 @@ flowchart TD
 
 - テストデータはfisheryと`@faker-js/faker`を組み合わせて作る。両方とも導入予定とする。
 
+- テストは、仕様の入出力を確かめるブラックボックスの検査に絞る。
+  - 外から呼ぶHTTPのAPIとユースケースへ入力を渡し、応答と保存結果を確かめる。
+  - 内部の呼び出し回数・順序、SQLの文字列、実装と同じ式で作った期待値には依存させない。
+  - 設定ファイル・登録表・定数の値を写して照合するテストと、ライブラリやCloudflareの実行環境自体の動作を確かめるテストは書かない。
+  - 同じ観点の検査は、その責務を持つ層の1つのテストに集める。例えば、ログに許可した項目だけを出すことは、ログ出力の単体テストだけで確かめる。
+
+- 実装は、型・DB制約・ライブラリの検証で保証済みのことを、アプリで重ねて検査しない。
+  - 入力の検証は経路のschemaで1回だけ行い、ユースケースは検証済みの値を受け取る。
+  - 一意性・値の範囲は、DBの`UNIQUE`・`CHECK`制約で守り、同じ条件を事前のSQLで重ねて確かめない。
+  - 起こりえない状態への分岐、失敗を既定値で握りつぶすフォールバック、テストのためだけの引数・export・関数は置かない。
+  - 使われなくなったコードは、そのテストと一緒に消す。
+
 ### 開発支援・文書作成
 
 - ソースコード管理はGit、リポジトリとレビュー・CIはGitHubで行う。
@@ -5778,7 +5792,7 @@ flowchart TD
   - 確定前の検証で入力・権限・計算した残高・保存条件を一件でも満たさなければ、全行を反映しない。
 
 - 評価軸・パッケージ・交換倍率のCSVは、全行を一つのD1原子処理で確定する。
-  - 全行の設定変更を業務レコードと設定のバージョンへ保存し、冪等性の結果も同じ原子処理で保存する。
+  - 評価軸・パッケージの変更は業務レコードと設定のバージョンへ、交換倍率の変更は業務レコードへ保存し、冪等性の結果も同じ原子処理で保存する。
 
 - 直接評価の登録、月別評価方式の設定・再計算、ポイント譲渡・交換のCSVは、ポイントの増減を伴う行を行順に確定する。
   - 各行の入力と外部照合の事実は、その行の一次増減と同じD1原子処理でポイント増減履歴へ保存する。
@@ -6117,7 +6131,7 @@ flowchart TD
 
 - Points独自APIの経路はすべて`/api/v1`配下に置く。
   - 本人だけが操作する経路は`/api/v1/me/...`、`appAdmin`だけが操作する経路は`/api/v1/admin/...`とする。
-  - 公開の取得と管理者の更新・削除は、同じ経路でメソッドを分ける。例えば評価軸は`QUERY`・`PATCH`・`DELETE /api/v1/evaluation-criteria/{evaluationCriterionId}`とし、作成は`POST /api/v1/evaluation-criteria`とする。
+  - 公開の取得と、管理者・本人による更新・削除は、同じ経路でメソッドを分ける。例えば評価軸は`QUERY`・`PATCH`・`DELETE /api/v1/evaluation-criteria/{evaluationCriterionId}`とし、作成は`POST /api/v1/evaluation-criteria`とする。
 
 - 公開画面・本人設定・管理画面の取得APIを共用する。
   - 一覧は検索API、詳細は利用者・評価軸・パッケージごとのAPI、履歴と交換倍率は各対象の配下のAPIを使う。
@@ -6134,6 +6148,7 @@ flowchart TD
   - ブラウザでは`credentials: "omit"`を使い、OAuthの認証ヘッダーも送らない。公開画面をサーバーで生成する場合も本人認証を取得先へ引き継がない。
   - 本人設定・管理画面では、同じAPIへ本人セッションを送る。本人用検索にも本人セッションを送る。
   - 非公開プロフィールの公開URLは本人・管理者にも404を返し、管理用の情報は設定・管理画面で表示する。
+  - 画面のURLで404を返すとは、HTMLはSPAとして200で返し、APIの`404 RESOURCE_NOT_FOUND`を受けて見つからない表示を出すことを指す。
 
 - 検索による利用者一覧とShields.io用バッジは、各用途の公開情報を返す。
   - 出品用の選択は検索API、計算情報は対象別の詳細APIを使う。詳細応答の`calculation`と、プロフィール表示用の区画を分ける。
@@ -6226,12 +6241,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    L["本人認証と受領資格を確認"] --> Q{"外部宛先を照合する？"}
-    Q -->|"はい"|A["対象連携のAccounts最新一覧と照合"]
-    Q -->|"いいえ"|F["本人への帰属が固定済みの分を選ぶ"]
-    A --> S["本人宛て固定済み分と照合した分を<br/>重複なく選ぶ"]
-    F --> S
-    S --> M{"受領対象がある？"}
+    L["本人認証と受領資格を確認"] --> A["対象連携のAccounts最新一覧と照合"]
+    A --> M{"受領対象がある？"}
     M -->|"いいえ"|Z["0件で正常完了<br/>受領待ちを保持"]
     M -->|"はい"|C["対象全行の帰属・初回履歴の受領情報と本人への反映<br/>元処理・対象への履歴参照を一括確定"]
     C --> D["受領結果と後続処理の未完了・完了を返す"]
@@ -6267,7 +6278,7 @@ flowchart LR
 
 ### 受領資格とAccounts一覧の照合
 
-- Accountsで宛先を照合する受領は、本人の連携ごとに行う。
+- 受領は本人の連携ごとにAccountsで宛先を照合して行う。
   - サーバーは、有効な接続先と現在の本人の連携を検証する。
   - 検証済みのorigin・AccountsユーザーIDを指定し、Accountsから最新の外部アカウント一覧を取得する。
   - URL候補とProvider指定は、一覧の同じ種類の識別子と照合する。
@@ -6306,8 +6317,7 @@ flowchart LR
   - Accounts連携は保持する。
 
 - 自動受領は設定画面から[受領の確定](#受領のapi)を送って行う。
-  - 新規連携・再連携後は、保存した連携を対象とする。
-  - 「情報を更新」では有効な接続先の連携ごとに、標準Account行の`account.id`を`accountsLinkId`へ指定して受領の確定を送る。
+  - 新規連携・再連携後と「情報を更新」では、有効な接続先の本人の連携ごとに、標準Account行の`account.id`を`accountsLinkId`へ指定して受領の確定を送る。
   - 一つの連携で受領に失敗しても、他の連携の受領を続ける。
   - 各POSTでサーバーが現在の連携と受領資格を検証し、Accountsから取得した最新の一覧を保存してから、その一覧で宛先を照合する。
   - 一覧の保存と受領は、一つの要求の中で別々に確定する。
@@ -6315,32 +6325,27 @@ flowchart LR
   - 設定画面には連携ごとの情報更新と受領の成否を分けて表示し、分配・訂正の未完了と完了も区別する。
   - 分配・訂正が未完了の場合、画面は自動で再送しない。本人が「続きを実行」を押したときに、同じ受領の確定を再送する。
 
-- 設定画面では、本人宛てに確定した分と、Accountsで本人のものと確認する分を、同じ「未受領ポイントを受け取る」操作で扱う。
-  - 受取人が本人と確定している未受領分は、Accounts連携の有無にかかわらず、この操作から受領できる。
-  - 有効なAccounts連携の欄にも同じ操作を表示し、その連携で本人のものと確認できた外部宛先の分を、本人宛てに確定した分とあわせて受領する。
-  - 画面が、受領に使うAccounts連携に応じて`accountsLinkId`の指定・省略を決める。
+- 設定画面では、有効なAccounts連携ごとに「未受領ポイントを受け取る」を表示する。
+  - その連携で本人のものと確認できた分を受領する。
+  - 画面がその連携の`account.id`を`accountsLinkId`へ指定し、利用者に入力や選択を求めない。
   - 手動受領では、共通の確認画面に元評価、分配待ち額、再分配・訂正による増減と計算した残高を示し、利用者が確認してから確定する。
   - 自動受領に失敗した場合も、連携を保持して同じ操作から再実行できる。
   - 実行後は受領件数、確定済みの評価軸別増減、分配・訂正が未完了かどうかを表示する。
 
-- 処理失敗や上限で未処理の割当が残った場合も、固定済みのユーザーIDへの帰属を保持する。
-  - 本人は、設定画面の「未受領ポイントを受け取る」から、Pointsの本人認証だけで受領できる。
-  - この割当にはAccounts再連携と外部宛先の再照合を要求せず、他の本人や外部アカウントの現在所有者へ移さない。人物未特定の宛先の受領には、Accounts連携と照合を行う。
+- 受領本体の確定後に分配・訂正が処理失敗や上限で未完了になった場合も、確定した帰属と受領を保持する。
 
-- 受領の確認と確定は、連携の指定によって対象を決める。
+- 受領の確認と確定は、指定した連携で対象を決める。
   - 受領者は認証本人から決める。
-  - 連携を指定しない場合は、受取人が認証本人と確定している未受領分だけを対象とし、Pointsの本人認証で確認する。
-  - 連携を指定した場合は、その連携で外部宛先が本人のものか確認し、受取人が認証本人と確定している未受領分もあわせて対象とする。
-  - 同じ受領対象は一度だけ扱い、本人宛てに確定している分の確認ではAccountsへ問い合わせない。
+  - その連携で外部宛先が本人のものか確認し、一致した未受領分を対象とする。
+  - 同じ受領対象は一度だけ扱う。
   - サーバーは指定された連携を標準の`account.id`で照合し、Accounts連携用の行であること、認証本人の所有であること、接続先が有効であることを検証する。
-  - 利用者に、連携IDの入力や指定・省略の選択を求めない。
   - 確認だけではポイントを変更しない。
 
 - サーバーは受領の確定要求を次の順で処理する。
   - 最初に、現在の本人認証を確認する。
   - 次に、初回履歴の受領日時と、元処理・対象・訂正のバージョン・確定段階に対応する履歴を確認し、確定済みの受領を繰り返さず、未完了の分配・訂正を再開する。新しい受領では受領対象を選び、受領と分配・訂正を計算する。
-  - 宛先照合を行う場合は、現在の連携と受領資格も検証する。
-  - 連携IDを指定した要求では、標準Account行の所有者・用途と接続先の有効性も再検証する。
+  - 新しい受領では、現在の連携と受領資格に加え、標準Account行の所有者・用途と接続先の有効性も検証する。
+    - 同じ`Idempotency-Key`による続きの再送では検証し直さず、連携を解除した後の再送でも続きを進める。
   - 手動受領では確認時の`validationHash`と再計算した結果を比較し、変わった場合は`409 CONFIRMATION_CHANGED`で再確認を求める。確認した対象がすべて受領済みになった再送は、変更として扱わない。
 
 - 受領の結果は確定した記録から求める。
@@ -6354,9 +6359,9 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  A["本人認証・必要な宛先照合を行い<br/>受領対象を計算"] --> B{"手動受領で確認内容が変わった？"}
+  A["本人認証と宛先照合を行い<br/>受領対象を計算"] --> B{"手動受領で確認内容が変わった？"}
   B -- はい --> C["409 CONFIRMATION_CHANGED<br/>最新の内容で再確認"]
-  B -- "いいえ・自動受領" --> D["受領対象・帰属・必要な連携と受領資格を最終検証"]
+  B -- "いいえ・自動受領" --> D["受領対象・連携と受領資格を最終検証"]
   D --> F["対象全行の帰属・初回履歴の受領情報・本人反映と<br/>元処理・対象への履歴参照を一括確定"]
   F --> G["確定履歴から未完了の段階を判定し<br/>後続の分配・訂正を分割して処理"]
   G --> H["201：確定済みの受領結果を返す<br/>分配・訂正が残る場合は未完了を返す"]
@@ -6367,12 +6372,12 @@ flowchart TD
 - 対象月、初回登録日時、初回履歴IDの昇順で処理する。
 
 - 対象全行の帰属・初回履歴の受領情報・本人への反映と、元処理・対象を示す履歴への参照を同じD1原子処理で確定する。
-  - 受領対象の現在額、認証本人への帰属、外部宛先の現在の連携と受領資格を保存時に検証する。
+  - 受領対象の現在額、外部宛先の現在の連携と受領資格を保存時に検証する。
   - 検証や受領情報の更新が成立しない場合は、その回の変更を全件未反映にする。
   - Workerが既存履歴の未反映合計を計算し、共通保存処理で`point_account.balance`と`point_account.evaluation_total`へ一度だけ反映する。
   - 累計評価額は反映対象の履歴だけを合計する。
   - 合計0でも帰属を固定し、合計が負なら負のまま受領する。負残高では消費系操作を拒否する。
-  - 初回履歴の受領日時とversionを検査し、未受領から受領済みへの更新と残高反映を同時に確定する。自動訂正時の即時付与との競合も同じ条件で検査する。
+  - 初回履歴の受領日時とversionを検査し、未受領から受領済みへの更新と残高反映を同時に確定する。
 
 ### Pointsが保存する経済データ
 
@@ -6396,7 +6401,6 @@ flowchart TD
 
 - 代用評価の再計算や帰属統合による自動訂正では、同じ受領対象の初回履歴を参照する差額行を追加する。
   - 例えば、未受領の代用評価100を再計算して50にした場合は、同じ初回履歴IDの対象に初回＋100と自動訂正−50を保持する。現在額50を一件として受領し、受領後も初回額と訂正履歴を保持する。現在額はその確定履歴の合計から求める。
-  - 自動訂正時に連携済みの本人が見つかった場合は、訂正差額だけでなく、未反映の履歴合計を受領として一度だけ反映する。
   - 受領後は同じ本人へ帰属を固定し、その後の自動訂正差額を履歴へ追加して本人へ反映する。
 
 次の例は、B宛てのY18を保存する内容を示す。待ち額は実際の利用者残高と分けて保持する。
@@ -6427,8 +6431,7 @@ flowchart TD
 
 - 各対象の初回履歴へ、帰属する本人と、受領日時・帰属の照合根拠を保持する。
   - Accountsで照合した場合は、その時点のorigin・AccountsユーザーIDを帰属の照合根拠として保持する。登録時と同じ一回の照合を使う場合は、その履歴の根拠への参照を使う。受領時に改めて照合した根拠は初回履歴の受領情報へ保存する。
-  - 固定済み本人への受領だけを行う場合は、受領者のユーザーIDを使い、Accountsのorigin・ユーザーIDは省略する。
-  - 初回履歴の受領日時が未設定なら未受領、設定済みなら受領済みと判定する。受領前に固定した本人も同じ初回履歴で保持し、受領後も同じ本人への帰属を使う。
+  - 初回履歴の受領日時が未設定なら未受領、設定済みなら受領済みと判定する。受領後も同じ本人への帰属を使う。
   - 受領時点までの履歴を特定する末尾履歴への参照を初回履歴に保存する。受領対象の初回履歴ID一覧と当時の対象別の受領額は、この受領情報と、その対象の初回行から参照先までの確定履歴から求め、件数と評価軸別集計を応答する。
   - 受領情報の更新と既存履歴合計の残高・累計評価額への反映は、同じD1原子処理で確定する。受領額を表す増減履歴を重ねて追加しない。
   - 帰属・受領情報の更新はversionを検査し、受領後の自動訂正差額は固定済みの本人へ履歴の追加と同時に反映する。
@@ -6438,8 +6441,7 @@ flowchart TD
 ### 退会後の受領
 
 - 本人による未処理分の受領は、アカウントの再開後に行う。
-  - 固定済み本人の残件は本人認証で受領する。
-  - 本人への帰属が未確定の外部宛先の分はAccountsへ再連携し、その時点で受領資格を満たす分を受領する。
+  - 未受領分はAccountsへ再連携し、その時点で受領資格を満たす分を受領する。
 
 ### 受領のAPI
 
@@ -6455,7 +6457,7 @@ flowchart TD
 
     | 項目             | 型       | 必須 | 説明                                                                          |
     | ---------------- | -------- | ---- | ----------------------------------------------------------------------------- |
-    | `accountsLinkId` | `string` | 任意 | 対象のAccounts連携のID。Accounts連携用の標準Account行の`account.id`を入れる。 |
+    | `accountsLinkId` | `string` | 必須 | 対象のAccounts連携のID。Accounts連携用の標準Account行の`account.id`を入れる。 |
 
 - レスポンス
   - 成功時（200）
@@ -6487,8 +6489,9 @@ flowchart TD
 
     | 状態 | コード                           | 起きる場合                                           |
     | ---- | -------------------------------- | ---------------------------------------------------- |
+    | 422  | `VALIDATION_FAILED`              | `accountsLinkId`を省いた                             |
     | 404  | `ACCOUNTS_LINK_NOT_FOUND`        | 指定した連携が本人の連携でない・存在しない           |
-    | 409  | `ACCOUNTS_CONNECTION_NOT_ACTIVE` | 宛先照合で、接続先が有効でない                       |
+    | 409  | `ACCOUNTS_CONNECTION_NOT_ACTIVE` | 接続先が有効でない                                   |
     | 503  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の通信失敗・一時的な利用不能・制限超過 |
     | 502  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の不正な応答                           |
     | 504  | `DEPENDENCY_UNAVAILABLE`         | Accountsの一覧の応答待ちの時間切れ                   |
@@ -6503,7 +6506,7 @@ flowchart TD
   - 受領を確定する。operationId は`confirmMyClaim`。
   - 認証・権限は、本人認証（Cookieセッション、または`points:edit` scopeのOAuth認証）とする。
 
-  - `accountsLinkId`を指定した場合は、Accountsから取得した最新の外部アカウント一覧と取得日時を、その連携のAccount行へ保存してから受領する。
+  - Accountsから取得した最新の外部アカウント一覧と取得日時を、`accountsLinkId`で指定した連携のAccount行へ保存してから受領する。
     - 一覧の保存は受領と別のD1処理で先に確定し、受領に失敗しても保持する。
     - `INCOMPLETE`の続きを同じ`Idempotency-Key`で再送する場合は、一覧を取得し直さない。
 
@@ -6519,7 +6522,7 @@ flowchart TD
 - リクエスト
   - ヘッダー：`Idempotency-Key`（必須。操作の種別`CLAIM_COMMIT`）
   - ボディー
-    - 確認と同じ`accountsLinkId`（任意。確認と同じ値を入れる）に加えて、次の項目を持つ。
+    - 確認と同じ`accountsLinkId`（必須。確認と同じ値を入れる）に加えて、次の項目を持つ。
 
     | 項目             | 型       | 必須 | 説明                                                                           |
     | ---------------- | -------- | ---- | ------------------------------------------------------------------------------ |
@@ -6546,7 +6549,6 @@ flowchart TD
 
     | 状態 | コード                 | 起きる場合                                                 |
     | ---- | ---------------------- | ---------------------------------------------------------- |
-    | 422  | `VALIDATION_FAILED`    | `accountsLinkId`と`validationHash`の両方を省いた           |
     | 409  | `CONFIRMATION_CHANGED` | 手動受領で、確認時の`validationHash`と再計算した結果が違う |
     - `CONFIRMATION_CHANGED`では、画面は確認をやり直し、最新の確認結果は失敗の応答に含めない。
     - Accountsの一覧の取得に失敗した要求では、その要求の全件を未反映にし、保存済みの一覧と取得日時も変えない。
@@ -6555,15 +6557,15 @@ flowchart TD
 
 - 未受領の直接評価＋100と、別の初回履歴IDを持つ評価としてアップロードした−50が2件のまま保持され、本人への受領額は合計50となることを確認する。
 - 宛先Aへの＋100を保持し、Aへ−100、Bへ＋50を追加した場合、Aは2件を合計0、Bは1件を50で受領することを確認する。過去の履歴はそれぞれ元の宛先に保持する。
-- 代用評価100の自動再計算で50になった場合は、同じ初回履歴IDの履歴＋100・−50を一件の現在額50として受領することを確認する。自動訂正時の即時受領、合計0・負の受領、受領後の自動訂正も確認する。
+- 代用評価100の自動再計算で50になった場合は、同じ初回履歴IDの履歴＋100・−50を一件の現在額50として受領することを確認する。合計0・負の受領、受領後の自動訂正も確認する。
 - 代用評価の再計算・方式切替や帰属統合による自動訂正で未受領額が更新されること、受領済みの帰属が固定されることを確認する。
 - 退会済み本人へ帰属が固定された評価（正・負・0）、成立した分配、自動訂正差額は残高と対象となる累計評価額へ反映し、退会を理由とする受領待ちを作らないことを確認する。本人未確定の宛先は待ち額を保持し、再開後も現在の照合で受領することを確認する。
 - 一覧の取得失敗、0件、確認後の変更、再送と並行受領での二重受領防止を確認する。
 - 「情報を更新」の操作前に、正・負の評価の受領と再分配が反映されることを案内し、連携ごとの受領の確定で一覧を保存してから自動受領することを確認する。一覧の取得に失敗した連携では、保存済みの一覧を変えず、受領もしないことを確認する。
 - 複数連携の一つで受領に失敗しても、更新済みの情報と他の連携の受領・再分配の成功分を保持し、残る連携の受領を続けることを確認する。
 - 情報更新と受領の成否を区別して表示し、受領失敗後に手動で再実行しても、成功済みの対象を二重反映しないことを確認する。
-- Accounts連携がない本人も、共通の「未受領ポイントを受け取る」から、本人宛てに確定した分を本人認証だけで受領できることを確認する。
-- 有効な連携の欄から同じ操作を使った場合、本人宛てに確定した分と、その連携で照合できた分を重複なく受領し、利用者が`accountsLinkId`を入力・選択しないことを確認する。
+- 「未受領ポイントを受け取る」を有効な連携ごとに表示し、その連携で照合できた分を受領することと、利用者が`accountsLinkId`を入力・選択しないことを確認する。
+- `accountsLinkId`を省いた受領の確認・確定は、`422 VALIDATION_FAILED`で拒否することを確認する。
 - 有効なX軸と停止中のY軸に未受領分がある場合と、すべての受領対象ポイントの軸が停止中の場合も、正・負・0の分を受領できることを確認する。元取引の基準時刻で有効な計算元があれば再分配できることも確認する。
 - 受領確認後や保存前の評価軸の停止・再開だけでは、受領対象や確認結果が変わらないことを確認する。DB・通知保存の失敗では、その回だけが未反映となることを確認する。
 - Xの受領で停止中のYの過去配分の訂正が必要な場合、Yの訂正と依存する後続処理も進むことを確認する。
@@ -6705,6 +6707,7 @@ flowchart TD
     - `removeMember`は対象のOrganizationに所属する管理者だけが使える。所属していない`appAdmin`が解除するときは、Pointsのサーバーが標準の`member`行を削除する。
     - 標準の`/organization/*`のHTTP経路は、[Better Auth共通設定](#better-auth共通設定)の`disabledPaths`で止める。
   - 全体管理者（`appAdmin`）の付与・解除と、利用者のログイン停止・再開は、Adminプラグインの標準API（`/admin/set-role`・`/admin/ban-user`・`/admin/unban-user`）とフックで行う。
+  - 全体管理者とログイン停止中の利用者の一覧は、Adminプラグインの標準`/admin/list-users`で、`filterField`に`role`または`banned`を指定して取得する。
 
 ```mermaid
 flowchart TD
@@ -6764,7 +6767,7 @@ flowchart TD
   - Points独自API（`/api/auth/*`を除く`/api/*`）には`except([公開の取得の条件, 精算の経路], 本人認証)`を掛け、既定で本人認証を要求する。
     - 精算は、本文で受け取る各落札者のトークンとDPoP署名で認証する。
     - 公開の取得には、認証情報があれば本人を確かめる任意の本人認証を掛ける。
-    - 公開の取得の条件にはHono標準の`(c) => boolean`の関数を渡し、メソッドと経路で判定する。同じ経路の公開の`QUERY`と管理用の`PATCH`・`DELETE`は、メソッドで区別する。
+    - 公開の取得の条件にはHono標準の`(c) => boolean`の関数を渡し、メソッドと経路で判定する。同じ経路の公開の`QUERY`と管理用・本人用の`PATCH`・`DELETE`は、メソッドで区別する。
   - `every()`の中で`false`を返すと500になるため、認証・権限が足りない要求には`HTTPException(401)`・`HTTPException(403)`を投げる。
   - Better Auth標準のログイン・セッション・認証手段は、標準の認証フローで扱う。
   - ミドルウェアの付け忘れは`hono/dev`の`inspectRoutes()`を使うテストで確認する。[公式資料](https://hono.dev/docs/helpers/dev)
@@ -6774,7 +6777,7 @@ flowchart TD
 
 | 操作                                          | 経路・操作方法                                                                                                                                  | 追加条件                                                                                                          |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 未受領評価・分配の受領                        | `QUERY /api/v1/me/claims/preview`、`POST /api/v1/me/claims`                                                                                     | 本人、固定済みの帰属または本人の連携IDと最新一覧による宛先照合、確定時の`validationHash`の照合と冪等性キー        |
+| 未受領評価・分配の受領                        | `QUERY /api/v1/me/claims/preview`、`POST /api/v1/me/claims`                                                                                     | 本人、本人の連携IDと最新一覧による宛先照合、確定時の`validationHash`の照合と冪等性キー                            |
 | 評価軸の作成                                  | `POST /api/v1/evaluation-criteria`、`POST /api/v1/csv-imports/evaluation-criteria`                                                              | ログインしたPoints利用者、冪等性キー                                                                              |
 | 評価軸の更新・停止・再開・完全削除            | `PATCH`・`DELETE /api/v1/evaluation-criteria/{evaluationCriterionId}`、`POST /api/v1/csv-imports/evaluation-criteria`                           | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                  |
 | 公式パッケージの作成                          | `POST /api/v1/point-packages`、`POST /api/v1/csv-imports/point-packages`                                                                        | ログインしたPoints利用者、冪等性キー                                                                              |
@@ -6784,6 +6787,7 @@ flowchart TD
 | 各対象の管理者の追加・解除・退出              | `POST`・`DELETE /api/v1/{evaluation-criteria,point-packages,oauth-clients}/{id}/admins`                                                         | 対象管理者または`appAdmin`、本人の退出、人数・件数                                                                |
 | 全体管理者の追加・解除                        | Adminプラグインの標準`/admin/set-role`                                                                                                          | `appAdmin`、人数、最後の`appAdmin`                                                                                |
 | 利用者のログイン停止・再開                    | Adminプラグインの標準`/admin/ban-user`・`/admin/unban-user`                                                                                     | `appAdmin`、最後の`appAdmin`                                                                                      |
+| 全体管理者・ログイン停止中の利用者の一覧      | Adminプラグインの標準`/admin/list-users`（`filterField`に`role`または`banned`）                                                                 | `appAdmin`                                                                                                        |
 | 直接評価の登録の確定                          | `POST /api/v1/direct-evaluations`、`POST /api/v1/csv-imports/direct-evaluations`                                                                | その評価軸の`evaluationCriterionAdmin`または`appAdmin`、`validationHash`の照合、冪等性キー                        |
 | 交換倍率の保存・削除                          | `PATCH /api/v1/exchange-rates`、`POST /api/v1/csv-imports/exchange-rates`                                                                       | 交換先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、CSV確定の冪等性キー                |
 | 貢献評価代用の確定・再計算                    | `PATCH /api/v1/evaluation-criteria/{evaluationCriterionId}/monthly-evaluation-settings`、`POST /api/v1/csv-imports/monthly-evaluation-settings` | 付与先評価軸の`evaluationCriterionAdmin`または`appAdmin`、`version`の競合検査、`validationHash`の照合、冪等性キー |
@@ -6877,13 +6881,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A["本人認証が必要なAPIで<br/>新しい業務操作を実行"] --> B["Content-Typeを確認<br/>bodyLimitで本文全体の容量を制限"]
+  A["本人認証が必要なAPIで<br/>新しい業務操作を実行"] --> C{"本人認証の方式"}
   B --> V["sValidatorのjsonまたはformで本文を解析<br/>Valibotで値・ファイルの容量と形式を検証"]
-  V --> C{"本人認証の方式"}
+  V --> F["現在の本人状態と<br/>対象操作の権限をサーバーで検証"]
   C -->|Cookie| D["標準セッションを検証<br/>csrf()で適用対象の要求元を検査"]
   C -->|OAuth| E["Token・DPoP・scope・audienceを検証"]
-  D --> F["現在の本人状態と<br/>対象操作の権限をサーバーで検証"]
-  E --> F
+  D --> B["Content-Typeを確認<br/>bodyLimitで本文全体の容量を制限"]
+  E --> B
   F --> G["操作固有の業務処理へ"]
   B -. 検証失敗 .-> R["対応するエラーを返す"]
   V -. 検証失敗 .-> R
@@ -7062,7 +7066,7 @@ flowchart TD
 
 - 再送で結果が増える操作は、二重処理を防ぐために`Idempotency-Key`を要求する。
   - 評価軸・パッケージの作成、直接評価、月別評価方式の確定・再計算、譲渡、交換、受領、CSV確定、お知らせ送信、設定復元、精算が該当する。
-  - 更新・停止・再開・削除などの設定変更は、`version`の競合検査で二重反映を防ぐ。
+  - `version`を持つ対象の更新・停止・再開・削除は、`version`の競合検査で二重反映を防ぐ。
   - 必須となる操作の種別名と、本人・対象の条件は、各操作の契約に記載する。
   - 必須の操作でヘッダーが欠落した場合は、`400 IDEMPOTENCY_KEY_REQUIRED`を返し、業務処理を実行しない。
   - QUERYと標準のGET・HEADでは要求しない。
@@ -7080,8 +7084,9 @@ flowchart TD
 
 - 再送保証の有効期間は、各結果が完了した確定から1日（24時間、86,400秒）とする。
   - 一回の要求で完了した結果の`expiresAt`は、`createdAt`の86,400秒後とし、再送で延長しない。
-  - [分割確定と再開](#分割確定と再開)の`completion: INCOMPLETE`の結果は、完了するまで`expiresAt`を持たず、保存期限で削除しない。24時間を過ぎても、同じキーの再送で続きを進められるようにするためである。
-  - 続きの再送で完了した結果は、完了を保存した時点の86,400秒後を`expiresAt`とする。
+  - [分割確定と再開](#分割確定と再開)の`completion: INCOMPLETE`の結果は、完了するまで`expiresAt`を持たず、保存期限で削除しない。24時間を過ぎても、同じキーの再送と日次Cronで続きを進められるようにするためである。
+    - 応答に`completion`を返さないフォームの譲渡も、受取人の自動分配が未完了の間は`expiresAt`を持たない。
+  - 続きを本人の再送または日次Cronで完了した結果は、完了を保存した時点の86,400秒後を`expiresAt`とする。
   - 未完了の結果と、現在時刻が`expiresAt`未満の結果だけを再送の照合に使う。
   - 期限後は、同じキーでも新しい要求として現在の認証・権限・入力・業務条件を検証する。
   - 新しい独立操作として実行条件を満たす要求は、期限後に以前と同じ内容でも再実行され得る。CSVの続きの行や、確定済みの操作から続く分配・訂正では、業務記録の完了状態を確認し、未完了の部分だけを再開する。
@@ -7093,6 +7098,13 @@ flowchart TD
   - 1回のCron実行で削除する件数の上限は、サーバー側の定数で管理する。
   - 上限を超えた残りの期限切れ結果は、次回の日次実行で削除する。
   - 同じ日次Cronで、Better Authの`verification`と`oauth_client_assertion`の期限切れ行も上限件数まで削除する。
+
+- 同じ日次Cronで、[分割確定と再開](#分割確定と再開)の未完了の分配・訂正の続きを進める。
+  - 確定済みの操作から続く分配・訂正が残る結果を、確定日時の古い順に選び、本人の再送と同じ確定単位で進める。
+    - 要求本文にだけある件だけが残った結果は選ばない。
+  - 操作した本人の退会や権限の解除の後も進める。
+  - 期限切れ結果の削除の後、上限の手前まで進め、残りは次回の日次実行で進める。
+  - 続きを完了したら、本人の再送で完了したときと同じく保存した結果を更新する。
 
 - 有効な結果がある同じ要求には、保存済みの業務結果を返す。
   - 同じキーと同じ正規化内容のhashには、初回のHTTP状態コード・結果ID・`data`を返す。
@@ -7137,7 +7149,8 @@ flowchart TD
   end
   subgraph cleanup["1日1回のCron Triggers"]
     J["scheduledで起動"] --> K["期限切れの古い順に<br/>上限件数まで削除"]
-    K --> L["残った期限切れ結果は次回へ<br/>業務記録とポイント履歴は保持"]
+    K --> M["未完了の分配・訂正の続きを<br/>確定日時の古い順に上限の手前まで進める"]
+    M --> L["残った期限切れ結果と続きは次回へ<br/>業務記録とポイント履歴は保持"]
   end
 ```
 
@@ -7411,8 +7424,8 @@ flowchart TD
 
 - `point_ledger_entry`へ、ポイントの増減を伴う操作のフォーム・CSVの入力と増減額、自動訂正の差額と、確定した事実・対応に必要な参照を集約する。
   - ポイントの増減を伴う操作は、評価・代用評価・分配・再分配・譲渡・交換・消費・落札の引き落としと、それらの訂正とする。
-  - 評価軸・パッケージ・交換倍率・月別設定・自動分配設定の変更は、業務レコードと設定のバージョンへ保存する。
-  - CSVの各行の入力はその行の一次増減と同じ確定単位で保存し、`Idempotency-Key`と元の行番号で識別する。
+  - 評価軸・パッケージ・月別設定の変更は業務レコードと設定のバージョンへ、交換倍率の変更は業務レコードへ、自動分配設定の変更は設定のバージョンへ保存する。
+  - CSVの各行と直接評価のフォームの各件の入力は、その一次増減と同じ確定単位で保存し、`Idempotency-Key`と、CSVの元の行番号またはフォームの`entries`の順番で識別する。
   - 元評価の登録日時と元分配の基準時刻には、対応する初回履歴の確定日時を使う。
   - 元評価と分配の対象は初回履歴IDで識別する。
   - 各行は対象の初回行への参照`target_ledger_entry_id`を持ち、自動訂正の行は同じ対象の直前の確定履歴も参照する。
@@ -7438,7 +7451,7 @@ flowchart TD
 
 - 確定した入力・金額は不変とし、金額の変更は差額の追記で表す。
   - 対象全行の`user_id`と初回対象行の受領情報は、現在の確定状態とversionを検証して更新する。
-  - 受領日時が未設定の対象は未受領とし、本人への帰属だけが固定された状態と区別する。
+  - 受領日時が未設定の対象は未受領とする。
   - 受領者・受領日時・照合根拠と、受領時点の対象履歴の末尾への参照は、初回対象行に保持する。受領時の額は、その対象の初回行から参照先までをたどった確定履歴から取得し、後日の訂正差額と区別する。
   - 同じ一回の照合や同じ確定単位の日時・操作者は、対応する履歴行へ一度保存し、必要な参照から取得する。
 
@@ -7560,7 +7573,7 @@ flowchart TD
   - 応答が失われて成否不明の場合も、同じ入力・確認結果・キーで再送し、確定済みの結果を返す。
 
 - 再開時は、保存した入力・確定した事実・必要な参照と、適用する設定から次に必要な処理を再計算し、確定履歴と照合する。
-  - CSVでは`Idempotency-Key`と行番号を持つ履歴と後続の計算結果を調べ、行番号順に、その行から生じる分配・訂正まで完了してから次の行へ進む。
+  - CSVでは`Idempotency-Key`と行番号、直接評価のフォームでは`Idempotency-Key`と`entries`の順番を持つ履歴と後続の計算結果を調べ、その順に、各行・各件から生じる分配・訂正まで完了してから次へ進む。
   - 分配・訂正では、元取引・訂正契機と訂正のバージョン・確定した段階・対象・履歴種別と、保存時の合算単位を識別できる参照の組を一意にする。親履歴などの必要な参照で別経路の確定結果も区別し、残高へ反映する同じ増減を重ねて確定しない。
   - 差額0や配分不成立の履歴も段階の完了判定に使う。APIの完了件数・未完了件数・再開位置は、入力と確定履歴から求める。
   - 次の分配先や依存する取引は、保存済み入力と当時の設定から範囲を調べ、論理的な順序で再計算して求める。当初の結果が0、計算元の除外、配分不成立だった範囲も調べ、先行する未完了の計算を終えてから後続へ進む。
@@ -7626,6 +7639,7 @@ flowchart TD
 - 保存元へ集約したID・日時・操作者を参照して、履歴API・JSONエクスポート・受領結果の既存項目と、元処理・訂正のバージョンの追跡を維持できることを確認する。
 - 日次Cronで期限切れ結果だけを上限件数まで削除し、残りを次回に持ち越すことを確認する。
 - Cronで未削除の期限切れ結果が残っていても、同じキーの新しい要求を処理でき、確定時にその結果を置き換えることを確認する。
+- 日次Cronが未完了の分配・訂正を古い順に上限の手前まで進め、残りを次回へ持ち越し、要求本文にだけある件は確定しないことを確認する。
 - 削除待ちの期限切れ結果が再送照合に使われず、有効な結果は削除されないことを確認する。
 - `Idempotency-Key`が必須の操作で欠落した場合に、`400 IDEMPOTENCY_KEY_REQUIRED`となり、業務データが変更されないことを確認する。
 - 無料環境で、最大入力の確定処理と日次CronがD1・Workerのサービス上限内に収まることを確認する。
@@ -7795,7 +7809,6 @@ flowchart TD
   - JWTの有効期間はProviderの`accessTokenExpiresIn: 900`で最長15分に設定します。
   - 停止中の認可・発行・更新の拒否と、再開後のToken再利用を確認します。Tokenのハッシュ保存、署名鍵の暗号化保存と更新も確認します。
   - DB照会数の実測とAPIの動作確認は実装時に行い、文書の検査とは区別します。
-  - 更新期限を持たない既存の署名鍵への設定適用は、採用中のBetter Authで確認します。
 
 利用者認可には`authorization_code`と`refresh_token`を使い、利用者scope、Points API resource、登録済みのredirect URIを指定します。
 
@@ -8050,7 +8063,7 @@ Pointsは、標準JWT Access Tokenを発行します。issuerはPointsのorigin�
 
 Resource APIは、次の条件を検証します。
 
-- 標準の`verifyAccessTokenRequest`で、Better Auth標準JWKSによるJWT署名とDPoPを検証します。JWKSの取得先を`jwksUrl`へ指定し、`remoteVerify`は省略します。
+- 標準の`verifyAccessTokenRequest`で、Better Auth標準JWKSによるJWT署名とDPoPを検証します。JWKSの取得先を`jwksUrl`へ指定し、`remoteVerify`は省略します。DPoP proofの署名方式は`EdDSA`だけを受け付けます。
 - issuer、Points API audience、期限、Client ID、必要なscope、DPoP proofの鍵結合と再送を検査します。
 - 利用者Tokenには有効なPoints本人と利用者用scopeを要求し、利用者本人の現在の利用可否と対象操作の権限を確認します。退会・ログイン停止中の本人による新規利用を拒否します。
 - 本人とクライアントの`oauth_consent`が残っていて、必要なscopeを含むことを確認します。同意を取り消した後は、発行済みのJWTとRefresh Tokenで更新したトークンを拒否します。
@@ -8127,6 +8140,7 @@ sequenceDiagram
 - 外部アプリでのトークン削除と、Points側のOAuth認可の失効を区別する。
   - 外部アプリがトークンを削除しても、Points側の同意情報や発行済みJWTの有効期限は変わらない。
   - Points上での同意取消は、本人認証を要求する標準の`deleteOAuthConsent`で、本人の同意レコードを削除する。
+  - 本人は設定画面で、標準の`getOAuthConsents`で取得した同意の一覧から取り消す。
   - 同意取消は次回の認可で同意を求め直す操作とする。
   - 既存のRefresh Tokenと発行済みJWTの失効は、別に扱う。
   - Refresh Tokenの失効には、そのTokenを保持するクライアントからBetter Auth標準の`/oauth2/revoke`を使う。[公式資料](https://better-auth.com/docs/plugins/oauth-provider#revoke-endpoint)
@@ -8165,7 +8179,7 @@ sequenceDiagram
   3. 呼び出し元Client IDの枠で、共通の要求回数制限を1回確認する。
   4. `idempotency_result`でClient ID・精算の操作種別・`Idempotency-Key`に対応する有効な結果を探し、各落札者の支払名義（トークンの`sub`）と評価軸ごとの必要額を照合する。
   5. 有効な結果と内容が違えば`409 IDEMPOTENCY_KEY_REUSED`を返す。内容が同じならその結果を返し、本人の現在の利用可否・残高・評価軸の現在状態・最小単位を再検査しない。
-  6. 有効な結果がなければ、本人の現在の利用可否と権限、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
+  6. 有効な結果がなければ、本人の現在の利用可否と権限、本人とクライアントの`oauth_consent`が残っていて`points:edit`を含むこと、必要額0の行を含む全指定評価軸の存在・現在の稼働状態、各落札者・各軸の必要額の書式・非負・範囲と、合算した必要額を実残高が満たすことを検証する。評価軸の公開範囲は精算の許可条件に含めない。
   7. 全件が条件を満たせば、引き落とし・ポイント増減履歴・`idempotency_result`の結果を一括確定する。
 
 - 精算の再送照合は共通の`idempotency_result`で行う。
@@ -8279,13 +8293,13 @@ Idempotency-Key: 6f1c2e8a-3b4d-4c5e-9f60-7a8b9c0d1e2f
 {
   "winners": [
     {
-      "accessToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCJ9.tanaka...",
-      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2In0.tanaka...",
+      "accessToken": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCJ9.tanaka...",
+      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVkRFNBIn0.tanaka...",
       "components": [{ "evaluationCriterionId": "V1StGXR8_Z5jdHi6B-myT", "requiredAmount": "60" }]
     },
     {
-      "accessToken": "eyJhbGciOiJFUzI1NiIsInR5cCI6ImF0K2p3dCJ9.sato...",
-      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVTMjU2In0.sato...",
+      "accessToken": "eyJhbGciOiJFZERTQSIsInR5cCI6ImF0K2p3dCJ9.sato...",
+      "dpopProof": "eyJ0eXAiOiJkcG9wK2p3dCIsImFsZyI6IkVkRFNBIn0.sato...",
       "components": [
         { "evaluationCriterionId": "V1StGXR8_Z5jdHi6B-myT", "requiredAmount": "20" },
         { "evaluationCriterionId": "Uakgb_J5m9g-0JDMbcJqL", "requiredAmount": "10" }
@@ -8483,7 +8497,7 @@ flowchart TD
   - 認証以外のAPIは、同じ操作主体の要求を60秒間に合計60回までとする。
   - 情報取得・検索・登録・確認・確定を合算し、URL・操作の種類・管理対象ごとに枠を分けない。
   - AIによるアクセスにも同じ制限を適用する。
-  - 静的ファイル、ヘルスチェック、認証用の公開メタデータは共通枠の対象外とする。
+  - 静的ファイルと認証用の公開メタデータは共通枠の対象外とする。
 
 - 標準機能で回数を数える。
   - 共通枠には、[Cloudflare WorkersのRate Limiting binding](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/)を使う。
@@ -8503,11 +8517,11 @@ flowchart TD
 | ---------------------------- | ----------------------------------- |
 | 通常のログイン利用者         | 認証済み本人のID                    |
 | 利用者の認可による外部アプリ | 認証済み本人のID＋検証済みClient ID |
-| 利用者を伴わない外部アプリ   | 検証済みClient ID                   |
+| 一括精算の呼び出し元         | 検証済みClient ID                   |
 | 未ログインの公開API          | Cloudflareが確認した接続元IP        |
 
 - 一括精算は、トークンの検証後に分かる呼び出し元Client IDの枠へ1回数える。
-  - 表の「利用者を伴わない外部アプリ」の枠を使い、落札者の人数は要求回数へ加えない。
+  - 表の「一括精算の呼び出し元」の枠を使い、落札者の人数は要求回数へ加えない。
 
 - HTTP要求の入口で、業務処理の前に制限を確認する。
   - 操作主体の認証・識別を済ませてから、本人用の業務レコードの作成、外部の業務処理、冪等性結果の照合・保存へ進む前に判定する。
@@ -8844,7 +8858,9 @@ points-web-app/
   - 現在の`src/client/`・`src/routes/`・`src/content/`、プロジェクト直下の`worker/`・`drizzle/`・`test/`・`scripts/`から、役割に応じて移す。
   - `package.json`・CI・補助スクリプト内のパスと、移動したファイルの相対参照も更新する。
   - 外部アクセスの実装を`infrastructure/`へ集約し、現在のユースケースからD1操作などへの直接参照は、操作のインターフェースを使う形へそろえる。
-  - 現在の`src/backend/csv/`は`http/csv/`へ、`src/backend/security/`は`infrastructure/crypto/`へ移す。ユースケースから認証基盤・ログを直接呼ぶ処理は、ポートを通す形へそろえる。
+  - 現在の`src/backend/csv/`の解析・検証は`http/csv/`へ、D1の一括書き込みは`infrastructure/db/`へ、`domain/`・`usecases/`が使う検証値の計算は`shared/utils/`へ移す。
+  - `src/backend/accounts/accounts-key-vault.ts`は`infrastructure/crypto/`へ移し、`src/backend/security/`の回数制限は`infrastructure/ratelimit/`のRate Limiting bindingへ置き換える。
+  - ユースケースから認証基盤・ログを直接呼ぶ処理は、ポートを通す形へそろえる。
 
 - 実装時は、ルート生成とテストの除外、画面と固定ページの静的生成、Workerの配信を確認する。
 - 認証スキーマ生成、DBマイグレーション、単体・結合・契約・E2Eのテスト探索、補助コマンドとCIの実行を確認する。
@@ -8865,7 +8881,7 @@ points-web-app/
   - ドメインはCloudflare Registrarで取得する。
 
 - Cloudflareの構成は`cf`の設定ファイルであるPointsの`cloudflare.config.ts`で宣言する。
-  - `defineConfig()`に関数を渡し、`mode`（`development`・`staging`・`production`）ごとに、Worker名・カスタムドメイン・D1のID・変数・バインディングを返す。
+  - `defineConfig()`に関数を渡し、`mode`（`development`・`staging`・`production`）ごとに、Worker名・カスタムドメイン・D1のID・変数・バインディング・互換性フラグ（`nodejs_compat`・`global_fetch_strictly_public`）と`workersDev: false`を返す。
   - アカウントIDは`accountId`に書く。
   - 設定ファイルで書けない一度だけの操作（通知の作成など）は、運用の文書に書いた`cf`のコマンドで行う。
   - 他サービスの配信・基盤設定は、そのサービスで管理する。
@@ -8934,7 +8950,7 @@ flowchart TD
 
 - 共有テスト環境とPRプレビューの画面・静的ファイルを、同じBASIC認証で保護する。
   - Hono標準の`basicAuth()`を使う。[公式資料](https://hono.dev/docs/middleware/builtin/basic-auth)
-  - ユーザー名とパスワードはWorker Secretで設定する。
+  - ユーザー名とパスワードはWorker Secretで設定する。secretが未設定の環境では、要求を拒否する。
   - `assets.runWorkerFirst: true`で静的配信前にWorkerを実行し、BASIC認証を確認する。
   - 認証を通過した画面・静的ファイルの要求は、`env.ASSETS.fetch(request)`へ渡す。
     - `env.ASSETS.fetch()`を経由した要求にも`assets.notFoundHandling`が適用され、静的ファイルが見つからない要求には本番と同じく`index.html`を返す。
@@ -9062,7 +9078,10 @@ flowchart TD
 
 ### DB更新と失敗時の対応
 
-- テスト・本番とも、既存のデータを保持してDBを更新する。
+- v0.2.1の最初の配信では、本番と共有テストのD1を、v0.2.0のデータを引き継がずに作り直す。
+  - 新しいD1を作ってv0.2.1のマイグレーションを最初から適用し、`cloudflare.config.ts`のD1のIDを差し替える。
+
+- 以後の配信では、テスト・本番とも、既存のデータを保持してDBを更新する。
   - 共有テストD1の更新は、`test/*`の配信で一元的に行う。
   - DB構造を変更するPRは、必要な変更を共有テスト環境へ反映してからプレビューを配信する。
 
@@ -9114,7 +9133,7 @@ flowchart TD
   - 個別の対象ID、OAuthトークン、Cookie、Secret、メール、外部URL・HTML、プロフィール本文を出力しない。
 
 - 処理中の運用上の失敗は、Workersの構造化ログへ記録する。
-- Cloudflare標準の通知は、公式の通知種別で提供される障害、5xx率、使用量のしきい値に使う。
+- Cloudflare標準の通知は、無料のプランで使える障害の通知に使う。5xx率と使用量は、ダッシュボードで確認する。
 - Workerの実行時例外は、Workers Logs・Tracesで確認する。
 
 ### 監査ログ
@@ -9160,11 +9179,11 @@ flowchart TD
 - 配信後のHTTP疎通は、Playwrightの`APIRequestContext`で自動確認する。[公式資料](https://playwright.dev/docs/api/class-apirequestcontext)
   - ブラウザを起動せず、HTML・JavaScript・CSSとAPIの応答を取得する。
   - `maxRedirects: 0`を設定し、転送先を自動取得せず、最初の応答の状態コード・ヘッダー・本文を確認する。
-  - BASIC認証付きの環境では、未認証のHTML・静的ファイルが401と認証要求ヘッダーを返し、認証後に取得できることを確認する。
+  - BASIC認証付きの環境では、未認証のHTML・静的ファイルが401と認証要求ヘッダーを返すことを確認する。認証後に取得できることは、Workerのテストで確認する。
   - 公開JSON APIの200と、認証必須APIの401・403を確認する。
   - 期待値の検査と結果の報告には、Playwright標準の`expect`とレポーターを使う。
 
-- 配信後の画面は、Playwrightのブラウザ操作で確認する。
+- 本番の配信後の画面は、Playwrightのブラウザ操作で自動確認し、失敗したら前のバージョンへ戻す。BASIC認証付きの環境の画面は、運営者が確認する。
   - HTML・JavaScript・CSSの読み込みと、画面からのAPI呼び出しを確認する。
   - SPAの画面と静的生成ページで、JavaScript無効時の案内表示と、有効化・再読み込み後の通常表示を確認する。
 
@@ -10407,7 +10426,7 @@ flowchart TD
         - 列は`origin_ledger_entry_id`・`correction_trigger_ledger_entry_id`・`monthly_evaluation_setting_version_id`・`parent_ledger_entry_id`・`substitution_source_ledger_entry_id`・`entry_type`・`recipient_key`・`evaluation_criterion_id`・`evaluation_month`・`affects_evaluation_total`とする。
         - `NULL`を取り得る列は、`ifnull(列, '')`の式で一意索引に含める。
       - 代用評価の初回行は、`entry_type = 'SUBSTITUTION_EVALUATION' AND is_correction = 0`の部分一意索引で`(monthly_evaluation_setting_version_id, substitution_source_ledger_entry_id, recipient_key, evaluation_criterion_id)`を一意にする。
-      - CSVの行は`(actor_user_id, idempotency_key, csv_row_number)`を一意にする。
+      - CSVの行と直接評価のフォームの件は、`(actor_user_id, idempotency_key, input_row_number)`を一意にする。
       - `previous_ledger_entry_id`を一意にする。
     - 索引を次の列に設ける。
       - `target_ledger_entry_id`、`origin_ledger_entry_id`、`parent_ledger_entry_id`
@@ -10511,9 +10530,10 @@ flowchart TD
     - `request_id`
       - `TEXT`とし、操作の初回行に確定した通信の`requestId`を入れる。
     - `idempotency_key`
-      - `TEXT`とし、CSVで確定した操作の初回行に`Idempotency-Key`を入れる。
-    - `csv_row_number`
-      - `INTEGER`とし、CSVで確定した操作の初回行に元の行番号を入れる。
+      - `TEXT`とし、CSVと直接評価のフォームで確定した操作の初回行に`Idempotency-Key`を入れる。
+    - `input_row_number`
+      - `INTEGER`とし、CSVと直接評価のフォームで確定した操作の初回行に、その入力の番号を入れる。
+      - CSVでは元の行番号、直接評価のフォームでは1から数えた`entries`の順番とする。
     - `memo`
       - `TEXT`とし、200文字以下のメモを入れる。
     - `exchange_amount_basis`
@@ -10567,6 +10587,10 @@ flowchart TD
     - `expires_at`
       - `INTEGER`とし、完了を保存した日時に86,400,000を足した有効期限を入れる。
       - `result_body`の`completion`が`INCOMPLETE`の間は`NULL`とする。
+      - 応答に`completion`を返さないフォームの譲渡も、受取人の自動分配が未完了の間は`NULL`とする。
+    - `follow_up_pending`
+      - `INTEGER NOT NULL`とし、確定済みの操作から続く分配・訂正が残る間は1、それ以外は0を入れる。
+      - 日次Cronは、この値が1の結果を続きの対象に選ぶ。
 
 - `accounts_connection`
   - 説明
@@ -10690,7 +10714,7 @@ flowchart TD
 ## 採用しないもの
 
 - email/password、Apple、ORCIDのv0.2認証Provider
-- provider別link-onlyを作る独自Better Auth sign-in拒否hook
+- Google・GitHubの一方をlink-onlyにする独自Better Auth sign-in拒否hook
 - email一致によるaccount merge、暗黙link、手動審査
 - 精算の手動再試行は置かない。
 - 定期R2 DB backup、30日超の長期backup Workflowは不要
@@ -10709,26 +10733,31 @@ flowchart TD
 - Accounts接続先の鍵IDは公開JWKの`kid`へ集約する。API用のClient Credentials Access TokenはPointsの処理ごとに取得し、保存しない。
 - ポイントの増減を伴う操作の入力と評価・分配・訂正の金額、照合・帰属・受領などの確定した事実と必要な参照をポイント増減履歴へ集約し、差額0・分配不成立も保存する。受領情報は初回対象行へ保存し、本人への帰属は対象の全行の`user_id`で持つ。現在額・受領結果・再開位置は入力と確定履歴から取得する。設定値とバージョンの一覧、重み・候補額・配分判定・全経路・依存一覧などは、設定履歴と元入力から取得・再計算する。代用評価の今回の月別方式・代用元・係数は月別設定のバージョンから取得し、元取引当時の分配条件・単位と使い分ける。分配の基準時刻は元取引の初回確定日時を参照し、同じ意味のID・日時・共通情報は参照で取得する。交換・譲渡もポイント増減履歴だけで記録し、入力は初回履歴行へ保存する。交換の適用倍率は、確定した実消費額と実受取額から求める。通信ログの照合は`requestId`へ統一する。一意制約、APIの出力項目、帰属・受領・本人反映の原子確定を維持する。
 - `idempotency_result`へ要求hashと確定済みのHTTP結果・確定日時・有効期限を保存する。Accounts連携の情報提供状態は保存済み一覧から求め、初回連携日時・連携行の更新日時・一覧取得日時を用途ごとに使う。
-- 旧CSVスナップショット・運用アラート・予約・利用可否受領証の保存構造とAPIは、v0.2.1で削除する。
+- 旧CSVスナップショット・運用アラート・予約・利用可否受領証・パッケージrevisionの公開取得・Points側のMarkets連携状態の保存構造とAPIは、v0.2.1で削除する。
   - 対象は`csv_export_snapshot`・`csv_export_snapshot_row`、`ops_alert`、予約・予約内訳・capture・capture明細・予約イベント・予約状態、利用可否受領証の専用冪等性結果・受領証・明細である。
+  - パッケージrevisionの公開取得は、`GET /api/v1/point-package-revisions/{id}`と応答の`pointPackageRevisionUrl`が対象である。
+  - Markets連携状態は、`points_oauth_link_attempt`・`points_oauth_connection`・`points_oauth_connection_deactivation`・`points_oauth_revocation_outbox`の4表と、`/api/v1/oauth/link-attempts`配下・`GET /api/v1/me/connection`・`POST /api/v1/me/connection-deactivations`が対象である。
+  - スキーマ外の`point_package_normalized_name_history`と、マイグレーションに手書きしたトリガーも削除する。
 
 - 直接評価はフォーム・CSVから独立した評価として追加し、登録済みの額・宛先・評価軸・対象月を保持する。調整分も新しい正・負の評価として追加する。フォームは1つの評価軸への1〜100件を1回の要求で確認・登録し、記載順に確定する。直接評価CSVは全10列の見出しを必須とし、使わない宛先欄を空欄にする。外部宛先の未受領分は宛先別に計算し、本人へ移した分から本人単位で合算する。
 
-- 受領の確定要求は現在の本人認証を確認し、`Idempotency-Key`と、初回対象行の受領日時・versionと確定履歴で二重反映を防ぎ、未完了の後続処理を同じキーの再送で再開する。受領済みの対象への再送は、受領件数0の正常完了とする。新しい受領では連携・受領対象を再検証・再計算し、正常な受領対象0件と必要な更新対象の不存在を区別する。
+- 評価軸の管理者が直接評価・代用評価の結果を一覧・絞り込みできる`QUERY /api/v1/evaluation-criteria/{evaluationCriterionId}/evaluations`を設け、絞り込みに使う操作者と初回の通信IDを保存する。
+
+- 受領の確定要求は現在の本人認証を確認し、`Idempotency-Key`と、初回対象行の受領日時・versionと確定履歴で二重反映を防ぎ、未完了の後続処理を同じキーの再送と日次Cronで再開する。受領済みの対象への再送は、受領件数0の正常完了とする。新しい受領では連携・受領対象を再検証・再計算し、正常な受領対象0件と必要な更新対象の不存在を区別する。
 
 - 本人操作の受領では帰属・受領を確定してから、分配・関連取引の訂正を段階的に進める。実行結果には分配・訂正の未完了と完了を表示する。
 
-- 本人宛てに確定した未受領分と、Accountsで本人のものと確認する分は、共通の「未受領ポイントを受け取る」操作と確認手順で扱う。画面が内部で連携を指定し、本人宛てに確定した分はAccounts連携なしでも受領できる。連携指定の`accountsLinkId`には、Google・GitHubのログイン用行と同じBetter Auth標準の`account`テーブルにある、Accounts連携用の行の`id`カラムを使う。
+- 未受領分は、有効なAccounts連携ごとの「未受領ポイントを受け取る」操作と共通の確認手順で受領し、画面が内部で連携を指定する。連携指定の`accountsLinkId`には、Google・GitHubのログイン用行と同じBetter Auth標準の`account`テーブルにある、Accounts連携用の行の`id`カラムを使う。
 
 - 評価軸の停止は、新しい決済の引き落としを拒否し、新規分配の計算元から除外する状態とする。残った有効な計算元の割合を100％へ正規化し、計算元が残らなければ分配を開始せず本人に残す。停止中も設定変更・再計算・直接付与・自動訂正・受領・その種類のポイントの自動分配・再分配・譲渡・交換・代用元の参照を行える。軸の利用状態も計算設定のバージョンに保存し、過去訂正・遅延受領には元取引の基準時刻の状態を使う。パッケージ・OAuthクライアント・Accounts接続先・本人の停止は、それぞれの利用条件を維持する。
 
-- 停止中も記録を保持し、評価軸・パッケージは権限と公開範囲に従って閲覧でき、OAuthクライアントは管理者自身のSessionから閲覧できる。月別評価方式など結果の差し替えを伴う設定は、実行条件を満たす場合だけ一括確定する。保存済み構成による競売精算では、指定された評価軸の現在の決済可否を検証する。
+- 停止中も記録を保持し、評価軸・パッケージは権限と公開範囲に従って閲覧でき、OAuthクライアントは管理者自身のSessionから閲覧できる。月別評価方式など結果の差し替えを伴う設定は、実行条件を満たす場合だけ、設定と差し替えた結果を一括確定する。保存済み構成による競売精算では、指定された評価軸の現在の決済可否を検証する。
 
 - 未受領の評価・自動分配・再分配も、各対象の額と自動計算による訂正差額をポイント増減履歴へ保存する。直接評価の調整分は別の初回履歴IDで保持する。受領時は対象ごとの既存履歴を本人へ紐づけ、その合計額を一度だけ反映する。発生日時と受領日時を区別して表示する。
 
 - 一覧は検索API、利用者の詳細は`/api/v1/users/{userId}`、履歴はその配下の`/history`へ整理する。パッケージ詳細は`/api/v1/point-packages/{pointPackageId}`とし、評価軸・パッケージの詳細には、表示と出品の計算に共用する展開後の`calculation`を常に返す。
 
-- Pointsの検索・詳細取得は、評価軸単体とネストしたパッケージに対応し、公開範囲と本人の権限に応じて展開後の計算情報を返す。
+- Pointsの検索は評価軸単体とネストしたパッケージを対象にし、展開後の計算情報は対象別の詳細で、公開範囲と本人の権限に応じて返す。
 
 - 評価軸・パッケージの初期値を非公開・停止中とする。Points本人への帰属が固定された評価・分配・自動訂正は退会中も本人へ反映し、帰属未確定の宛先は受領待ちとして保持する。
 
@@ -10736,20 +10765,21 @@ flowchart TD
 
 - パッケージ取得・残高照会の結果は実際の項目と金額で照合する。API応答・追加監査・OAuth連携の独自ハッシュと、CSVの独立したファイルハッシュ送信を整理する。CSVの重要な確認項目の変更検出、二重処理防止、標準の認証・セキュリティ処理は維持する。
 
-- ソース・テスト・補助スクリプトをfrontend・backend・sharedへ分類する。DB・Accounts・認証・回数制限・ログなどの外部アクセス実装をbackendの`infrastructure/`へ集約し、DBの定義・マイグレーションと認証生成用入口も配置する。ブラウザ・API・DBを通すE2Eは`src/shared/test/e2e/`へ置き、開発ツールの設定と生成先・探索先をそろえる。
+- ソース・テスト・補助スクリプトをfrontend・backend・sharedへ分類する。DB・Accounts・認証・回数制限・ログなどの外部アクセス実装をbackendの`infrastructure/`へ集約し、DBの定義・マイグレーションと認証生成用入口も配置する。`usecases/`は`usecases/ports/`を通して外部アクセスを使い、`http/`は`usecases/`を呼び、組み立ては`backend/app.ts`だけで行う。ブラウザ・API・DBを通すE2Eは`src/shared/test/e2e/`へ置き、開発ツールの設定と生成先・探索先をそろえる。
 
 - API仕様を各機能の節へ統合し、公開プロフィール・一覧・ポイント・バッジの取得を定める。利用者一覧と検索は基本情報の公開設定にも従い、非公開軸の情報を隠す。バッジは残高・累計評価額を指定でき、既定を累計評価額とする。公開APIは外部サービスのサーバーから取得でき、最新の公開条件で応答する。外部サイトのバッジにはShields.ioが取得したJSONから生成する画像を使う。
 
 - Points独自APIの経路と入出力を各機能のAPIの節で定める。
-  - 経路を`/api/v1`にそろえ、本人だけの操作を`/api/v1/me`、`appAdmin`だけの操作を`/api/v1/admin`に置く。公開の取得と管理の更新・削除は同じ経路でメソッドを分け、`except()`の条件はメソッドと経路で判定する関数にする。
-  - 共通のエラーコードに`PERMISSION_DENIED`・`ACCOUNT_CLOSED`・`VERSION_CONFLICT`・`CONFIRMATION_CHANGED`を加え、Accountsなど外部サービスとの通信の失敗を`DEPENDENCY_UNAVAILABLE`にそろえる。
+  - 経路を`/api/v1`にそろえ、本人だけの操作を`/api/v1/me`、`appAdmin`だけの操作を`/api/v1/admin`に置く。公開の取得と、管理者・本人による更新・削除は同じ経路でメソッドを分け、`except()`の条件はメソッドと経路で判定する関数にする。
+  - 共通のエラーコードと`type`・`requestId`の形を、ブラウザ向けを含むPoints独自API全体へ適用し、`PERMISSION_DENIED`・`ACCOUNT_CLOSED`・`VERSION_CONFLICT`・`CONFIRMATION_CHANGED`・`REQUEST_ORIGIN_REJECTED`を加える。Accountsなど外部サービスとの通信の失敗は`DEPENDENCY_UNAVAILABLE`にそろえる。
   - 確認と確定の照合を、確認の`QUERY`が返す`validationHash`と`409 CONFIRMATION_CHANGED`にそろえる。受領、設定復元、お知らせ、CSV、交換、譲渡、直接評価、月別評価方式が対象である。
   - CSVの経路を`QUERY /api/v1/csv-imports/{operation}/preview`と`POST /api/v1/csv-imports/{operation}`の形にまとめ、入力エラーのコードを`422 VALIDATION_FAILED`と`errors[]`にそろえる。
-  - 分配・訂正を伴う確定は、上限の手前で止めたら通常の成功で`completion: INCOMPLETE`を返し、本人が同じ`Idempotency-Key`で再送して続きを進める。本人が再送しない間は未完了のまま残す。画面は未完了の要求を`localStorage`に保存し、タブを閉じた後も同じキーで再送できるようにする。フォームの譲渡の受取人の自動分配と日次Cronの処理の続きは、次の日次Cronが進める。
+  - 分配・訂正を伴う確定は、上限の手前で止めたら通常の成功で`completion: INCOMPLETE`を返す。確定済みの操作から続く分配・訂正の続きは、本人の同じ`Idempotency-Key`による再送と日次Cronで進め、日次Cronは古い順に上限の手前まで進める。CSVの残りの行など要求本文にだけある未確定の件は、本人の再送だけで進める。画面は自動では再送せず、未完了の要求を`localStorage`に保存し、タブを閉じた後も同じキーで再送できるようにする。
   - 管理者の追加・解除・退出を、評価軸・パッケージ・OAuthクライアントの`.../{id}/admins`にそろえる。追加は新規なら201、既存なら200とし、人数の上限は`409 ADMIN_LIMIT_REACHED`、管理者にできない相手は`409 ADMIN_TARGET_UNAVAILABLE`とする。
   - OAuthクライアントの登録・一覧・更新・一時停止・再開・削除をPointsの独自APIにし、標準の作成・更新・削除のHTTP経路を`disabledPaths`で止める。
-  - 公式パッケージの登録・表示順・配分割合と自動分配設定を、1つの`PUT /api/v1/me/auto-distribution-setting`で保存する。
+  - 公式パッケージの登録・表示順・配分割合と自動分配設定を、1つの`PUT /api/v1/me/auto-distribution-setting`で保存し、自動分配設定のCSVは廃止する。
   - 本人の連携一覧を、利用者の詳細APIの本人用の応答にまとめる。
+  - 本人のプロフィール設定（基本情報と、プロフィール全体・各区画・軸別の金額の公開設定）を、取得と同じ経路の`PATCH /api/v1/users/{userId}`にまとめ、送った項目だけを一つのD1原子処理で上書きする。
   - 別タブでアカウントを切り替えたときは、切り替えたタブがBetter Authの`getGlobalBroadcastChannel()`でほかのタブへ知らせ、本人が変わったタブは画面全体を読み込み直す。
   - `version`を持つ対象の完全削除は、URLのクエリ`expectedVersion`で競合を検査する。
 
@@ -10777,24 +10807,28 @@ flowchart TD
 
 - 管理操作の操作理由入力を削除する。
 
-- 二重処理防止と再送応答の結果を`idempotency_result`へ集約し、各結果の完了から1日を有効期間とする。未完了の結果は完了まで削除しない。期限切れ結果は日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・月別評価方式の確定と再計算・譲渡・交換・受領・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、設定の更新・停止・再開・削除は`version`の競合検査で二重反映を防ぐ。
+- 二重処理防止と再送応答の結果を`idempotency_result`へ集約し、各結果の完了から1日を有効期間とする。未完了の結果は完了まで削除しない。期限切れ結果と、Better Authの`verification`・`oauth_client_assertion`の期限切れ行は、日次Cronで件数を制限して削除する。期限後は現在の業務条件を検証し、独立した新規操作と既存処理の再開を区別する。業務記録とポイント増減履歴は別に保持し、必須の`Idempotency-Key`が欠落した場合は`400 IDEMPOTENCY_KEY_REQUIRED`を返す。`Idempotency-Key`は、作成・直接評価・月別評価方式の確定と再計算・譲渡・交換・受領・CSV確定・お知らせ送信・設定復元・精算など再送で結果が増える操作に要求し、`version`を持つ設定の更新・停止・再開・削除は`version`の競合検査で二重反映を防ぐ。本人のプロフィール設定と自動分配設定は競合を検査せず、あとの保存を確定する。
 
 - staging・productionをCloudflareの無料枠で運用する。D1の呼び出し・読み書き・保存量、Workerの実行回数・CPU時間、運用ログの利用量を無料枠に合わせ、Workers Logsは3日保持とする。
 
-- CSVの列・入力条件・処理順を一か所へまとめ、全操作を検証・計算後の確認と明示確定に統一する。列順は自由、複数URLはセル内カンマ区切りとし、同内容の新規行は独立して処理する。評価軸CSVは1行1軸で作成・更新・削除に対応し、更新の空欄は維持、関連URLの`[]`は全削除とする。`validationHash`は利用者が確認した重要な対象・条件・金額だけを照合し、変わった場合は最新結果を再確認する。通信失敗の再送と新しい操作を区別する。
+- CSVの列・入力条件・処理順を一か所へまとめ、全操作を検証・計算後の確認と明示確定に統一する。列順は自由、複数URLはセル内カンマ区切りとし、同内容の新規行は独立して処理する。評価軸CSVは1行1軸で作成・更新・削除に対応し、新規作成の空欄は初期値、更新の空欄は維持、関連URLの`[]`は全削除とする。`validationHash`は利用者が確認した重要な対象・条件・金額だけを照合し、変わった場合は最新結果を再確認する。通信失敗の再送と新しい操作を区別する。
+  - 操作ごとにテンプレート・入力例・列の説明を用意し、データ行が0件のファイルは`CSV_NO_DATA_ROWS`で拒否する。
+  - 確認は件数・内訳・正負別の合計・同じ内容の行を返して確定前の画面に示し、確定は`completion`・`completedRowCount`・行ごとの結果を返す。
+  - 入力エラーの`row`は見出しを1行目とするCSV解析後の行番号（空行も数え、セル内改行は数えない）とし、ファイル全体の誤りは`field`を`file`にする。
+
 - 評価軸・パッケージ・交換倍率のCSVは全行を一つのD1原子処理で確定し、ポイント増減履歴へ保存しない。ポイントの増減を伴うCSVは、各行の入力をその行の一次増減と同時に保存する。途中の行で失敗したら確定済みの行を保持して`lastCompletedRow`を返し、同じ要求の再送で続きを処理する。月別設定の変更は設定のバージョンへ保存し、代用評価を再計算した履歴からそのバージョンを参照する。
 
-- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。secretは`cloudflare.config.ts`の`bindings.secret()`で宣言し、`Env`の型は`cf workers types`で生成する。OpenAPIはhono-openapiでHonoの経路とValibotの定義から生成する。
+- ライブラリの採用方針を用途別に整理し、導入済みと導入予定を区別する。画面・入力・URL・CSV・日時の役割を標準機能へまとめ、開発と品質検査はVite+、未使用検査はKnipへ集約する。secretは`cloudflare.config.ts`の`bindings.secret()`で宣言し、`Env`の型は`cf workers types`で生成する。OpenAPIはhono-openapiでHonoの経路とValibotの定義から生成する。画面はHeroUI v3・Tailwind CSS v4・lucide-reactで作り、コマンドパレットもHeroUIで作る。サーバーのCSV解析はPapa Parseで行う。
 
 - 書式の検査・静的解析・型検査を`vp check`で実行する。開発端末の環境管理には`vp env`、CIの環境準備と依存インストールには公式の`setup-vp`を使う。
 
-- 単体・結合テストはVite+標準の`vp test`で実行する。Workers内の単体テストは`@cloudflare/vitest-plugin`、本番用ビルドの結合テストはWrangler標準の`createTestHarness()`を採用し、D1の準備と状態リセットも標準機能で行う。
+- 単体・結合テストはVite+標準の`vp test`で実行する。Workers内の単体テストは`@cloudflare/vitest-plugin`、本番用ビルドの結合テストはWrangler標準の`createTestHarness()`を採用し、D1の準備と状態リセットも標準機能で行う。テスト用の`wrangler.jsonc`は`cloudflare.config.ts`と同じ値にそろえて残し、`createTestHarness()`が`cf build`の成果物を読めるかは実装時に確認する。
 
 - フォーム・CSV・JSON復元・APIの同じ入力項目は、Valibotの検証定義を共用する。未保存入力はReact Hook Form、入力の破棄確認はTanStack Routerの`useBlocker`、取得の中止はTanStack Queryの標準機能で扱う。
 
 - 経路ごとの認証・権限・冪等性キーの検査、本文容量の制限、通信ID、例外の捕捉をHono標準機能へまとめる。認証・権限・冪等性キーは`createMiddleware()`のミドルウェアを`hono/combine`で合成して経路ごとに付け、付け忘れを`inspectRoutes()`のテストで確認する。JSONは`@hono/standard-validator`の`sValidator('json', ...)`、multipartは`sValidator('form', ...)`で解析し、解析前に`bodyLimit()`を適用する。検証の失敗は全経路で共有する`hook`で422へ変換する。通常のJSON応答とJSONエクスポートは`prettyJSON({ force: true })`で整形する。金額計算・権限検証などの業務条件と、Pointsのエラー応答形式を保つ。
 
-- Cloudflareの構成はPointsの`cloudflare.config.ts`で`mode`ごとに宣言し、ビルド・配信・D1の更新・PRプレビュー・secretの登録（Previews共通のsecretを除く）は`cf`で行う。CIの配信に渡す秘密は`CLOUDFLARE_API_TOKEN`だけとし、WAFはzoneで既定のFree Managed Rulesetだけを使う。配信後のHTTP疎通はPlaywrightで確認する。静的ファイルが見つからない要求には、Static AssetsのSPAモードで`index.html`を返す。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
+- Cloudflareの構成はPointsの`cloudflare.config.ts`で`mode`ごとに宣言し、ビルド・配信・D1の更新・PRプレビュー・secretの登録（Previews共通のsecretを除く）は`cf`で行う。CIの配信に渡す秘密は`CLOUDFLARE_API_TOKEN`だけとし、WAFはzoneで既定のFree Managed Rulesetだけを使う。配信後のHTTP疎通はPlaywrightで自動確認し、BASIC認証付きの環境は未認証の要求が401を返すことまでを確かめる。本番の配信後は、画面もPlaywrightのブラウザ操作で自動確認する。ヘルスチェックの`GET /api/health`は廃止する。静的ファイルが見つからない要求には、Static AssetsのSPAモードで`index.html`を返す。配信後に古いチャンクを読み込めない画面は、`vite:preloadError`で読み込み直す。静的ファイルの標準キャッシュ、画面内の取得データ、APIの保存制限を分けて整理する。
 
 - 静的配信の共通ヘッダーは、Cloudflare標準の`_headers`の`/*`へ設定する。CSPのハッシュは、TanStack Start標準の生成完了通知とSPAの初期HTMLを含む最終HTMLから生成する。
   - WorkerはHono標準の`secureHeaders()`のデフォルト設定を基本とし、CSPとPermissions Policyだけを明示する。HSTSと`X-Frame-Options`もデフォルト値を使い、HSTSはstaging・productionとも`max-age=15552000; includeSubDomains`とする。静的配信にもデフォルトを含めて同じヘッダーと値を反映する。
@@ -10805,27 +10839,33 @@ flowchart TD
 
 - 利用規約をPoints専用とし、初回登録ボタン付近の同意案内、日英の公開ページ、変更の事前掲載を定める。変更後も操作を継続できる。規約違反に対するポイント没収は方針を定め、実行・表示の設計と実装時期は別途決める。
 
-- 公式パッケージはフォーム・CSVで作成・更新し、同名を許可する。公開要素と本人が管理できる非公開の評価軸・子パッケージを構成に登録できる。循環を防ぎ、計算対象時点の子構成を評価軸まで展開して割合を合算する。CSVは1行1パッケージで最大20件、直接構成と展開行数はそれぞれ1,000件までとする。過去の計算設定のバージョンを含むPoints内の参照がなければ完全削除、参照済みなら停止・再開に対応する。
+- 公式パッケージはフォーム・CSVで作成・更新し、同名を許可する。名前の上限を60文字から30文字へ、関連URLを1件から最大20件の配列へ変える。公開要素と本人が管理できる非公開の評価軸・子パッケージを構成に登録できる。循環を防ぎ、計算対象時点の子構成を評価軸まで展開して割合を合算する。CSVは1行1パッケージで最大20件、直接構成と展開行数はそれぞれ1,000件までとする。過去の計算設定のバージョンを含むPoints内の参照がなければ完全削除、参照済みなら停止・再開に対応する。
 
 - パッケージの公開プロフィールは直接の構成を登録順に20件ずつ表示し、割合を分数と百分率で示す。非公開要素も匿名名と割合を表示し、実名・実ID・非公開の子構成を隠す。「公式パッケージに追加」から本人設定へ進み、停止中も登録できる。非公開の人物は「非公開のユーザー」と表示する。
 
-- ドキュメントを目次・理念・操作説明・外部API説明の4ページに整理する。日英の本文を静的生成し、選択中の言語の全文検索を用意する。FAQと対処方法は操作説明へ統合し、ヘルプ画面から転送する。
+- ドキュメントを目次・理念・操作説明・外部API説明の4ページに整理する。日英の本文を静的生成し、選択中の言語の全文検索を用意する。FAQと対処方法は操作説明へ統合し、ヘルプ画面`/help`は廃止する。
 
 - OSSライセンス画面には、ブラウザ向けビルドの依存のうち本文を取得できた項目と、Points自身のライセンスを掲載する。一覧と原文を静的生成し、共通フッターとドキュメント目次から移動できる。
 
+- 共通フッターから利用規約・プライバシーポリシーへ、共通ヘッダーからドキュメントへ移動できるようにする。
+
 - 利用者・評価軸・パッケージの非公開プロフィールの公開URLは、本人や編集権限のある管理者にも404を返す。検索結果から公開URLへの移動も同じ扱いとし、管理操作は設定画面から行う。
+
+- 利用者の公開プロフィールの画面URLを、`/profiles/{pointsUserId}`から`/user-profile/{userId}`へ変える。
 
 - 評価軸は初期非公開とし、公開プロフィールには表示可能な全設定を表示し、月別評価方式は20件ずつ表示する。非公開の人物・代用元を隠し、利用・管理操作への導線と利用できない理由を表示する。
 
-- 再連携で同じAccountsユーザーを選ぶと既存の連携を更新し、別のAccountsユーザーを選ぶと新しい連携として追加する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。更新操作の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は受領の確定の中でAccountsから取得・保存し、一覧表示と公開プロフィールには保存済み情報を使う。
+- 再連携で同じAccountsユーザーを選ぶと既存の連携を更新し、別のAccountsユーザーを選ぶと新しい連携として追加する。Accounts連携・再連携後と「情報を更新」で取得に成功した連携では、正・負の未受領評価と分配待ち額を自動受領し、本人設定による再分配も反映する。連携・再連携と「情報を更新」の前にその旨を案内し、受領失敗時も更新済み情報・連携・他の連携の成功分を保持して再実行できるようにする。連携情報は受領の確定の中でAccountsから取得・保存し、一覧表示と公開プロフィールには保存済み情報を使う。
 
 - Accounts接続先は、管理者が登録・接続検証して有効化する。作成の重複は取り下げていない接続先のoriginの一意制約、有効化・取り下げの二重処理は`version`の競合検査で防ぐ。取り下げでは鍵とユーザー連携を削除して終端の状態とし、再利用するときは同じoriginで新しい接続先を作る。
 
 - Cookie・CSRF・OriginはBetter Authの標準対策を基準とする。要求元の検査は、認証APIではBetter Authの標準検査、Points独自APIではHono標準の`csrf()`で行い、DPoPで認証する要求は`csrf()`から除外する。
 
-- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。連携は画面から標準の`linkSocial`で開始し、state・認可コード交換・ID Tokenの検証はGeneric OAuthの標準処理に任せて、開始した本人へ連携・再連携を保存する。トークン要求には`client_id`・`client_assertion`・DPoP proofを付ける。設定画面へ戻ってから保存した連携へ受領の確定を送り、連携情報の取得とポイントの自動受領を行う。
+- Accounts連携の保存先をBetter Auth標準のAccount行と拡張項目へ統一する。連携は画面から標準の`linkSocial`で開始し、state・認可コード交換・ID Tokenの検証はGeneric OAuthの標準処理に任せて、開始した本人へ連携・再連携を保存する。トークン要求には`client_id`・`client_assertion`・DPoP proofを付ける。設定画面へ戻ってから、有効な接続先の本人の連携ごとに受領の確定を送り、連携情報の取得とポイントの自動受領を行う。連携の失敗は`error`を付けて画面へ戻し、失敗の種類ごとに案内する。
 
-- Accountsの情報取得は、成功して提供情報がない場合を「情報提供なし」、一度も成功していない場合を「未取得」に統一する。再取得に失敗した場合は前回の情報と取得日時を保持する。
+- Accounts連携の解除は標準の`unlinkAccount`で行い、Google・GitHubのログイン用の行の削除は`databaseHooks.account.delete.before`で拒否する。
+
+- Accountsの情報取得は、成功して提供情報がない場合を「情報提供なし」、一度も成功していない場合を「未取得」に統一する。再取得に失敗した場合は前回の情報と取得日時を保持する。取得日時は本人だけに返す。
 
 - OAuthログインは公開画面を背景とするモーダルから開始し、毎回認証元のアカウント選択を要求する。通常ログイン後は開始した画面へ戻り、認証開始後の入力は復元しない。ログイン手段は設定画面で明示追加し、セッションは有効7日・更新間隔1日とする。
 
@@ -10833,27 +10873,29 @@ flowchart TD
 
 - 同じブラウザで独立したPointsアカウントを最大10件保持し、共通ヘッダーから追加・切替できるようにする。個別・全件ログアウトを用意し、切替・ログアウト後は画面全体を読み込み直す。別タブの未確定操作は切替後に反映しない。Accounts連携の途中で切り替えた場合は、開始した本人へ連携を保存する。
 
-- デプロイを環境別に整理し、関連変更の検査成功後に自動配信する。staging・PRはテスト用D1を共有し、ローカルは手元のD1を使い、本番を分離する。ローカルはOAuth Proxyを使わず、Google・GitHub・Accountsへ`http://localhost:3000`のcallbackを登録する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。DBはデータを保持して更新する。本番は`cf deploy`で一度に配信し、配信後の疎通確認で問題があれば前のバージョンへ戻す。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
+- デプロイを環境別に整理し、PointsとMarketsの配信ワークフローを分けて、それぞれの関連変更の検査成功後に自動配信する。staging・PRはテスト用D1を共有し、ローカルは手元のD1を使い、本番を分離する。ローカルはOAuth Proxyを使わず、Google・GitHub・Accountsへ`http://localhost:3000`のcallbackを登録する。PRはWorker Previewsで作成・更新・終了時削除し、画面と静的ファイルをBASIC認証で保護する。v0.2.1の最初の配信ではv0.2.0のD1を作り直し、以後のDBはデータを保持して更新する。本番は`cf deploy`で一度に配信し、配信後の疎通確認で問題があれば前のバージョンへ戻す。本番・共有テストの互換性を失う構造変更では影響する機能・環境を停止し、更新と疎通確認後に再開する。失敗時の復旧は運営者が判断する。
 
 - 全画面でJavaScriptを必須とし、無効時は有効化と再読み込みの案内だけを日英併記する。
 
-- 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。選んだ言語はHeroUIの`I18nProvider`と`<html lang>`へ反映し、日英の辞書のキーに不足・余分があれば型検査で検出する。言語切替時も入力と確認結果を維持し、日時・数値はロケールを固定した`Intl`で日英共通に表示する。規約・プライバシーポリシーは日本語を正本とする。
+- 全画面と案内文を日本語・英語に対応させ、共通ヘッダーで選んだ言語を同じブラウザのPoints全画面へ適用する。選んだ言語はHeroUIの`I18nProvider`と`<html lang>`へ反映し、日英の辞書のキーに不足・余分があれば型検査で検出する。言語切替時も入力と確認結果を維持し、日時・数値はロケールを固定した`Intl`で日英共通に表示する。日時の表示は利用者の地域の時刻からUTCへ変え、UTCと明記する。規約・プライバシーポリシーは日本語を正本とする。
 
 - Better Authの認証エラーは、公式の`@better-auth/i18n`で日英へ翻訳する。画面の言語選択を要求へ反映し、言語切替時も表示中のエラーを翻訳し直す。
 
-- ポイント譲渡をフォーム・CSVに対応させる。操作条件と譲渡を起点とする分配の扱いは、[ポイント譲渡する機能](#ポイント譲渡する機能)にまとめる。
+- ポイント譲渡をフォーム・CSVに対応させ、退会済みの利用者への譲渡は存在しない相手と同じく拒否する。操作条件と譲渡を起点とする分配の扱いは、[ポイント譲渡する機能](#ポイント譲渡する機能)にまとめる。
 
-- 交換倍率は停止中・交換不可の軸でも設定でき、保存・無効化・再有効化・完全削除に対応する。CSVで保存・削除を指定し、評価軸の情報から交換可否と理由付きの倍率一覧を開けるようにする。フォームは`PATCH /api/v1/exchange-rates`で最大100件の方向の保存・削除を、一つのD1原子処理でまとめて確定する。
+- 交換倍率は停止中・交換不可の軸でも設定でき、保存・無効化・再有効化・完全削除に対応する。無効化しても倍率を保持し、CSVの既存の設定で倍率が空欄なら現在の倍率を使う。交換元には操作者が閲覧できる軸だけを指定でき、倍率一覧でも閲覧できない非公開の軸の設定を隠す。CSVで保存・削除を指定し、評価軸の情報から交換可否と理由付きの倍率一覧を開けるようにする。フォームは`PATCH /api/v1/exchange-rates`で最大100件の方向の保存・削除を、一つのD1原子処理でまとめて確定する。
 
 - 公開プロフィールは公開項目がない区画にも非表示の案内を出す。パッケージの構成では、非公開要素の実名・実ID・リンク・非公開の子構成を隠し、匿名名と割合を表示する。割合は全構成に対する設定値を維持する。
 
-- 公開プロフィールは本人にも公開範囲だけを表示し、編集と本人用情報を設定画面へまとめる。残高・累計評価額は軸ごとに別々に公開設定する。履歴は実行単位の統合表示とし、非公開の軸の情報を隠して20件ずつ表示する。
+- 利用者の公開プロフィールの公式パッケージ区画は、停止中を含む登録した全パッケージを設定した表示順に配分割合とともに表示し、見る人が閲覧できない非公開パッケージは匿名名と割合だけを示す。ポイント一覧には、停止中の評価軸も停止状態を付けて表示する。
 
-- 検索は名前・IDの複数語の部分一致とし、ヘッダーは最大5件、一覧は1ページ20件とする。`types`で種類を複数選択し、`ids`の完全一致と登録・作成日時順にも対応する。利用状態・公開範囲・編集権限の各フィルターは既定をすべてとし、ユーザーは自分のプロフィールだけを権限ありとする。CookieまたはOAuthの本人権限で非公開項目を判定し、並び順・ページを含む検索条件を画面のURLへ保存する。
+- 公開プロフィールは本人にも公開範囲だけを表示し、編集と本人用情報を設定画面へまとめる。残高・累計評価額は軸ごとに別々に公開設定し、履歴は区画の公開設定だけで公開する。履歴は実行単位の統合表示とし、非公開の軸の情報を隠して20件ずつ表示する。交換の一方の軸だけが公開なら、その軸の額だけを示し、相手の軸と適用倍率を隠す。
+
+- 検索は名前・IDの複数語の部分一致とし、既定の並び順を一致の順位（検索語が空なら名前順）とする。ヘッダーは最大5件、一覧は1ページ20件とする。`types`で種類を複数選択し、`ids`の完全一致と登録・作成日時順にも対応する。利用状態・公開範囲・編集権限の各フィルターは既定をすべてとし、ユーザーは自分のプロフィールだけを権限ありとする。CookieまたはOAuthの本人権限で非公開項目を判定し、並び順・ページを含む検索条件を画面のURLへ保存する。
 
 - 直接評価の照合は、Accountsの宛先照合APIへ行をまたいで問い合わせる。同じサービス宛ての同じ種類・Provider・入力値は重複を除いて一度だけ照合し、結果を各行で使う。1要求最大1,000識別子に分割し、CSVでは照合・計算結果を確認してから保存・付与する。
 
-- 直接評価のフォーム・CSVで、URL候補、Accounts originとユーザーID、Providerと固有ID、Providerとユーザー名を指定できるようにする。AccountsユーザーIDは指定originだけで、URL・Providerは有効なAccounts系サービスを順番に照合する。URL候補は最大5件とし、優先順位は保証しない。未受領分は受領時点の所有者と照合し、受領済みの帰属は本人に固定する。新規評価は初回履歴IDで識別し、登録時の照合結果と額を保存する。
+- 直接評価のフォーム・CSVで、URL候補、Accounts originとユーザーID、Providerと固有ID、Providerとユーザー名を指定できるようにする。AccountsユーザーIDは指定originだけで、URL・Providerは有効なAccounts系サービスを順番に照合する。指定originの接続先が未登録・停止中の場合と、有効な照合先がない場合は、全件を`409 ACCOUNTS_CONNECTION_NOT_ACTIVE`で止める。URL候補は最大5件とし、優先順位は保証しない。未受領分は受領時点の所有者と照合し、受領済みの帰属は本人に固定する。新規評価は初回履歴IDで識別し、登録時の照合結果と額を保存する。
   - 確定単位は、[分割確定と再開](#分割確定と再開)で定める。
 
 - 外部アカウントの管理はAccountsが行い、Pointsの仕様にはその手順を書かない。
@@ -10863,8 +10905,8 @@ flowchart TD
 
 - freshness sessionは要求せず、標準APIの確認も`session.freshAge: 0`で無効にする。
 
-- 権限は`appAdmin`、`packageAdmin`、`evaluationCriterionAdmin`、`oauthClientAdmin`の4つである。`appAdmin`はBetter AuthのAdminプラグイン、他の3つはOrganizationプラグインのカスタムロールである。外部APIによる全体管理者の照会は廃止する。
-- 管理者はユーザーIDで直接追加し、受諾を必要としない。同じ対象の管理者は全員同じ権限を持ち、作成者も同じ扱いとする。
+- 権限は`appAdmin`、`packageAdmin`、`evaluationCriterionAdmin`、`oauthClientAdmin`の4つである。`appAdmin`はBetter AuthのAdminプラグイン、他の3つはOrganizationプラグインのカスタムロールである。外部APIによる全体管理者の照会は廃止する。`appAdmin`に与えるAdminプラグインの権限は、利用者の一覧の取得、全体管理者の付与・解除、ログインの停止・再開だけとする。
+- 管理者はユーザーIDで直接追加し、受諾を必要としない。同じ対象の管理者は全員同じ権限を持ち、作成者も同じ扱いとする。評価軸・パッケージを作成できる人を、全体管理者からログインした利用者へ広げ、作成者をその対象の管理者にする。
 
 - サービス間の利用可否受領証と、30秒の有効期限は置かない。
 
@@ -10872,9 +10914,11 @@ flowchart TD
 
 - PointsのログインProviderはGoogleとGitHubである。
 
-- 退会時は本人情報を削除して説明・公開設定を初期値へ戻し、公式パッケージ登録と自動分配を無効を表すバージョンで解除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定のバージョンを含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。退会済みの本人も通常のセッションでログインし、`CLOSED`の間は再開に必要な操作だけを行える。再開後もそのセッションを使う。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
+- 退会時は本人情報と、本人の受信通知・既読情報を削除して説明・公開設定を初期値へ戻し、公式パッケージ登録と自動分配を無効を表すバージョンで解除し、全セッション・本人認可・Accounts連携・管理者所属を解除する。過去の計算設定のバージョンを含む経済履歴とGoogle・GitHubの非公開の認証対応を保持し、同じアカウントを非公開・自動分配無効で再開する。退会済みの本人も通常のセッションでログインし、`CLOSED`の間は再開に必要な操作だけを行える。再開後もそのセッションを使う。最後の`appAdmin`なら退会を拒否し、管理者が残らない評価軸・パッケージ・OAuthクライアントは`appAdmin`が管理する。
 
-- OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。紹介URLは変更だけを受け付ける。
+- 設定画面に「アプリ退会」を置き、削除・保持・解除する内容と最後の`appAdmin`の扱いを確認画面で示してから退会する。
+
+- OAuthクライアントはOrganizationの`oauthClientAdmin`で共同管理する。一つのクライアントの管理者は最大20人、利用者1人が管理者として登録できるクライアントは最大5件とする。全体管理権限は、各対象の人数と本人の管理件数へ含めない。公開鍵はクライアント自身が標準の`rotate-keys`で更新する。紹介URLは変更だけを受け付ける。アプリ名は1〜100文字、説明文は500文字以下、リダイレクトURLは1〜10件とする。所属していない`appAdmin`は状態だけを変更でき、サーバーがadapterで行う。削除ではOrganizationと所属も削除する。
 
 - 全体管理者と各対象の管理者はそれぞれ最大20人とする。各対象の管理者所属はPointsの独自APIで受け付け、サーバーが権限を確かめてから標準のOrganizationの`auth.api`で追加・解除し、`membershipLimit`と`organizationHooks`で人数・件数と追加先を検証する。標準の`/organization/*`のHTTP経路は`disabledPaths`で止める。解除・退出・退会・ログイン停止で操作できる`appAdmin`がいなくなる変更を拒否する。
 
@@ -10892,7 +10936,7 @@ flowchart TD
 
 - Points OAuth Providerは標準のTokenハッシュ保存とJWT署名鍵の暗号化保存・30日間隔の更新を使う。クライアントの停止中は、標準の`disabled`で認可・Token発行・更新を拒否し、発行済みJWTは最長15分の期限まで有効とする。登録・同意・Tokenを保持し、再開後は期限を延長せず再利用できる。同意取消とRefresh Token失効を分けて扱う。
 
-- OAuth同意画面は標準の`verifyOAuthQueryParams`で表示前に署名と期限を検証し、`getOAuthClientPublic`でアプリ情報を取得し、`oauth2.consent`で承認・拒否を確定する。
+- OAuth同意画面は標準の`verifyOAuthQueryParams`で表示前に署名と期限を検証し、`getOAuthClientPublic`でアプリ情報を取得し、`oauth2.consent`で承認・拒否を確定する。同意は本人とクライアントの組で1つとし、同意画面は同意がないときとscopeを追加したときに表示する。Resource APIは本人とクライアントの同意とscopeを確かめ、同意の取消後は発行済みのトークンを拒否する。
 
 - 成功した引き落としを取り消して返す機能、ポイントを借りて返す帳簿、条件を満たしたときだけ別の人の代わりに購入する機能は、このアプリでは作らない。必要なら、アプリの外で扱う。
 
@@ -10903,9 +10947,14 @@ flowchart TD
   - ファイル内のIDの対象が存在し、復元する本人がその対象の管理者なら更新し、それ以外は新しいIDで作成する。公式パッケージの登録と自動分配設定は、ファイルの内容で全置換する。
   - 出力するJSONファイルの保存名は、ブラウザが`<a download>`の値で指定する。
 
-- 評価軸、Package、交換比率、貢献評価代用の設定、自動分配設定は、同じIDの業務レコードで管理する。分配の計算条件は不変のバージョンに保存し、対象ごとに適用開始時刻が最新のバージョンを現在の設定とする。計算に影響する変更時は新しいバージョンを一括確定する。直接評価は独立した初回履歴として保持し、代用評価の結果と分配もポイント増減履歴へ集約する。再計算は旧額との差分を反映する。
+- 評価軸、Package、交換比率、貢献評価代用の設定は、同じIDの業務レコードで管理する。分配の計算条件は不変のバージョンに保存し、対象ごとに適用開始時刻が最新のバージョンを現在の設定とする。計算に影響する変更時は新しいバージョンを一括確定する。直接評価は独立した初回履歴として保持し、代用評価の結果と分配もポイント増減履歴へ集約する。再計算は旧額との差分を反映する。
 
 - 自動分配の計算と、帰属統合による連鎖訂正・段階的な確定・再開を、[分配・再分配・訂正の共通ルール](#分配再分配訂正の共通ルール)へまとめる。
+  - 自動分配の設定値を、本人に残す割合・固定額から、分配する割合（0〜100％）・固定額へ変え、単位未満の端数は本人に残す。
+  - 配分は、総額を計算元の評価軸へ割合で分けてから、各軸の中で受取人の重みに応じて分ける二段の計算とする。
+  - 重みには分配元本人と退会中の利用者も含め、本人に割り当てた額は本人に残す。
+  - 評価付与を起点とする分配の受取額は、受取人の累計評価額と後続の分配の重みに含める。
+  - 連鎖訂正の途中は、未完了の訂正で累計評価額が変わる評価軸を計算元に含む新規分配を待たせる。
 
 - 新規評価は登録後の分配へ反映する。帰属統合では各元取引の当時存在した評価をまとめ、元の分配時点の設定で全再分配と依存する後続取引を訂正する。本人設定と各パッケージを個別にバージョン管理し、子だけの変更はその子にだけ新しいバージョンを追加する。元取引の初回確定日時を基準時刻として参照し、各バージョンの適用開始時刻とともにUnixミリ秒で保持する。遅れて受領する場合も元取引の基準時刻以下の最新の設定を使い、同一ミリ秒内は同じ時点として扱う。
 
@@ -10915,19 +10964,20 @@ flowchart TD
 
 - 残高・累計評価額・評価結果の受領状態を再計算して照合する定期実行と手動機能を廃止する。
 
-- 監査記録全般のDB保存をWorkersの構造化ログへ変更する。運用指標（`OPS_METRICS`）も廃止し、運用の記録を構造化ログへ一本化する。成功は業務データの確定後、拒否は拒否の確定またはロールバック後に記録する。ポイント増減履歴と、その入力・照合・計算・受領情報などの業務データはD1へ保存し、ログ出力の失敗で取引を再実行しない。
+- 監査記録全般のDB保存をWorkersの構造化ログへ変更する。公開プロフィールに出す評価軸・パッケージの最終更新者と、評価軸の停止・再開をした人・日時は、業務レコードの列に保存する。運用指標（`OPS_METRICS`）も廃止し、運用の記録を構造化ログへ一本化する。成功は業務データの確定後、拒否は拒否の確定またはロールバック後に記録する。ポイント増減履歴と、その入力・照合・計算・受領情報などの業務データはD1へ保存し、ログ出力の失敗で取引を再実行しない。
 
-- 貢献評価代用は付与先評価軸・評価対象月単位で直接評価と切り替え、全員へ一括適用する。直接評価の月締めを設けず、保存済みの評価を使い、0件は0として扱う。代用元は一つとし、元評価・受取先ごとの直接・代用評価と分配受取額へ符号付き係数を掛ける。月別の循環を防ぎ、管理者が再計算する。方式変更は旧付与・旧分配を差し替え、未受領の代用評価も扱う。代用評価へ切り替えた月の既存の直接入力は以後採用せず、直接評価へ戻した月は0から始める。フォームは一つの評価軸の最大12か月を一回の要求で試算・確定し、月の古い順に確定する。再計算は現在の設定をそのまま確定する操作とし、フォーム・CSVとも設定の確定と同じAPIで行う。
+- 貢献評価代用は付与先評価軸・評価対象月単位で直接評価と切り替え、全員へ一括適用する。直接評価の月締めを設けず、保存済みの評価を使い、0件は0として扱う。代用元は一つとし、元評価・受取先ごとの直接・代用評価と分配受取額へ、小数4桁までの符号付き係数を掛ける。係数は0や1を超える値も受け付け、交換倍率は掛けない。計算元には未受領の元評価と分配待ち額も含め、代用元の同じ月が代用評価で未確定なら試算・確定を止める。月別の循環を防ぎ、管理者が再計算する。方式変更は旧付与・旧分配を差し替え、未受領の代用評価も扱う。正の代用付与は、受取人の設定で自動分配する。代用評価へ切り替えた月の既存の直接入力は以後採用せず、その月への直接評価の登録は拒否する。直接評価へ戻した月は0から始める。フォームは一つの評価軸の最大12か月を一回の要求で試算・確定し、月の古い順に月ごとに確定する。途中の月で失敗したら、確定済みの月を保持して`lastCompletedMonth`を返す。再計算は現在の設定をそのまま確定する操作とし、フォーム・CSVとも設定の確定と同じAPIで行う。
 
 - 月全員分の計算順は、[貢献評価を代用する仕組み](#貢献評価を代用する仕組みの設定)にまとめ、フォーム・CSVで共用する。
 
-- ポイント交換と倍率設定をフォーム・CSVで行えるようにする。交換先の管理者が小数4桁までの正の倍率を設定し、本人の残高間で交換する。元額を消費上限、希望受取額を最低額として、両軸の最小単位を満たし倍率どおりになる最小の一組から実額を求める。引き落としは実消費額だけとし、未使用分を元残高に残す。条件変更時の再確認、CSV記載順の一括確定に対応し、累計評価額と自動分配は変更しない。
+- ポイント交換と倍率設定をフォーム・CSVで行えるようにする。交換先の管理者が小数4桁までの正の倍率を設定し、本人の残高間で交換する。元額か希望受取額の一方だけを受け付け、元額は消費上限、希望受取額は最低額として、両軸の最小単位を満たし倍率どおりになる最小の一組から実額を求める。引き落としは実消費額だけとし、未使用分を元残高に残す。条件変更時の再確認、CSV記載順の一括確定に対応し、累計評価額と自動分配は変更しない。
 
-- 評価軸の同名を許可し、作成・更新CSVは1回20軸までとする。初期値は停止中・非公開、譲渡・交換・即決価格ON、取り分方式、最小単位1ポイントとする。未参照の軸は完全削除でき、参照済みの軸は停止・再開で管理する。
+- 評価軸はフォーム・CSVで作成・更新し、同名を許可する。作成・更新CSVは1回20軸までとする。自動分配の方式は評価軸ごとに選び、本人の受取額から差し引いて配る取り分方式に、配る額を追加発行する追加発行方式を加える。初期値は停止中・非公開、譲渡・交換・即決価格ON、取り分方式、最小単位1ポイントとする。停止中を表す状態の値は`ARCHIVED`から`INACTIVE`へ変える。未参照の軸は完全削除でき、参照済みの軸は停止・再開で管理する。
 
-- 本人IDはBetter Auth標準の`user.id`へ統一し、認証・権限・プロフィール・経済履歴に同じ値を使う。本人の利用状態・説明・固定公開設定は`user.additionalFields`へ集約し、退会後もUser行と経済履歴を保持する。ユーザーのIDは標準のID生成設定で21文字のNano IDを発行する。評価軸・パッケージも標準Nano IDとし、その他のPoints独自内部IDは接頭辞付きUUIDとする。評価・受領対象は初回履歴IDで識別し、APIの項目名を`firstLedgerEntryId`へ統一する。評価軸管理者名は`evaluationCriterionAdmin`、金額は十進数文字列を表す対象別の名前、業務状態は`status`、独自の列挙値は大文字へ統一する。
+- 本人IDはBetter Auth標準の`user.id`へ統一し、認証・権限・プロフィール・経済履歴に同じ値を使う。本人の利用状態・説明・固定公開設定は`user.additionalFields`へ集約し、退会後もUser行と経済履歴を保持する。ユーザーのIDは標準のID生成設定で21文字のNano IDを発行する。評価軸・パッケージも標準Nano IDとし、その他のPoints独自内部IDは接頭辞付きUUIDとする。本人を指す項目名を`pointsUserId`から`userId`へ統一する。評価・受領対象は初回履歴IDで識別し、APIの項目名を`firstLedgerEntryId`へ統一する。評価軸管理者名は`evaluationCriterionAdmin`、金額は十進数文字列を表す対象別の名前、業務状態は`status`、独自の列挙値は大文字へ統一する。
 
 - 外部宛先への分配待ちと本人への受領を設ける。計算と帰属統合後の訂正は共通ルールへ、本人照合と受領手順は[アカウント紐付け時のポイント付与](#アカウント紐付け時のポイント付与)へまとめる。
+  - 受領資格の照合を、宛先照合APIへの問い合わせから、連携ごとに取得した最新の外部アカウント一覧との照合へ変え、URL・Provider宛ての分は登録時のoriginで絞らない。
 
 - ポイント増減の統合履歴に競売精算などの消費を含め、公開履歴では購入内容と相手方を隠す。プロフィールURLのコピーボタンはURLをコピーする。
 
@@ -10941,6 +10991,8 @@ flowchart TD
 
 - Points独自の業務scopeを`points:read`・`points:edit`・`points:admin`の3つとし、取得、管理者の権限を使わない変更、管理者の権限を使う変更を委任する。本人の認可が必要なPoints独自APIは、Cookieセッションと、操作に必要なscopeのOAuth＋DPoPのどちらでも受け付ける。OAuthクライアントの管理と、退会と再開は、Cookieセッションだけで受け付ける。標準scopeとBetter Auth標準の認証・同意フローは、それぞれの用途を維持する。
 
+- Points OAuth Providerのgrantは`authorization_code`と`refresh_token`だけとし、Client Credentials（M2M）とM2Mのscopeを廃止する。クライアントは`dpop_bound_access_tokens: false`・resourceの紐づけなしで登録し、DPoPはResource APIの側で必須にする。
+
 - 自動分配では、端数処理と本人別合算後に全対象へ最小単位以上を配れる場合だけ分配する。配れない分配枠は本人にも戻さず、残高・受領待ちへ計上せず、後日へ持ち越さない。判定と両方式の扱いは[合算単位と端数](#合算単位と端数)にまとめる。公開プロフィールの匿名表示と、外部アプリが計算に使うID付き情報を区別する。
 
 - 退会の処理
@@ -10952,7 +11004,7 @@ flowchart TD
     - 退会時に、最後の`appAdmin`の検証と、各対象のOrganization管理者所属の解除を加える必要がある。
   - 現在の再開POSTは、未受領評価の受領を状態変更と同時に処理する。
     - 再開の確定と、その後の受領を別の操作に整理する。
-    - 固定済み本人の分は本人認証、未特定宛先の分はAccounts再連携と照合で受領する。
+    - 未受領分はAccountsへ再連携して照合し、受領する。
   - 最後の`appAdmin`の退会拒否と引き継ぎ後の退会、本人情報と設定の削除、他の利用者の取引維持、他アカウントのログイン維持を確認する。
   - 負の残高での退会・再開、ログインだけでは再開しないこと、退会中の固定済み本人への付与、未特定宛先の蓄積と受領、二重受領の防止、訂正、失敗時の全件維持を確認する。
 
@@ -10962,13 +11014,14 @@ flowchart TD
   - 同じ認証元での再ログイン、同じ実メールを持つ別認証元の登録、本人による明示連携、別本人への重複連携拒否を確認する。
   - 初期名と編集済みプロフィールの維持、認証元の画像非保存、IDトークンの検証、IDトークン・アクセストークン・リフレッシュトークンを保存しないことを確認する。
   - 認証元ID・IPアドレス・User-Agent・評価入力・取引記録の保持を確認する。
-  - 現在の固定ページは言語保存に`freeism.fixed-page-language.v1`を使うため、共通言語選択の`freeism-language`との差がある。
+  - 現在の固定ページは言語保存に`freeism.fixed-page-language.v1`を使うため、共通言語選択の`freeism-language`との差がある。保存値にもブラウザの言語にも日本語・英語がない場合の既定は、日本語から英語へ変える。
   - 現在の公開プロフィール処理は、設定がない場合に公開扱いとし、認証元の名前を表示する。
-  - 仕様で定めた初期非公開と、本人が選んだ各区画の公開範囲に合わせる必要がある。
+  - 仕様で定めた初期非公開と、本人が選んだ各区画の公開範囲に合わせる必要がある。評価軸の残高公開初期値（`balanceVisibleByDefault`）は廃止し、評価軸のCSV・API・テーブルから除く。
   - 退会時の本人情報・設定の削除範囲と、認証対応・評価入力・取引記録の保持範囲は、退会処理と認証処理の実装を照合する。
   - ログの実際の保持設定は、提供前に仕様との一致を確認する。
+  - 開発サーバーのD1（`.cloudflare/state/`）へマイグレーションと初期データを入れる方法は、実装時に確認する。
 
-- 実行用・開発用のライブラリとツールは互換性がある最新の安定バージョンへ更新する。Node.jsは最新LTSを採用し、2026-10-23時点では`24.22.1`とする。関連パッケージの同時更新、pnpmの設定移行、認証フローへの影響確認を行う。
+- 実行用・開発用のライブラリとツールは互換性がある最新の安定バージョンへ更新する。安定バージョンのない`cf`とCloudflare Vite plugin v2は、ベータバージョンを固定する。Node.jsは最新LTSを採用し、2026-10-23時点では`24.22.1`とする。関連パッケージの同時更新、pnpmの設定移行、認証フローへの影響確認を行う。
   - Vitest本体はVite+同梱のバージョンを使い、外部プラグインの依存解決とIstanbulのカバレッジ用パッケージも同梱のバージョンへそろえる。
   - Honoは2026-10-23時点の最新の安定バージョン`4.13.13`へ更新する。[配布情報](https://registry.npmjs.org/hono/4.13.13)
     - 更新後の`methodNotAllowed()`で405と`Allow`を扱い、`app.query()`でQUERYの経路を定義する。
@@ -10981,3 +11034,39 @@ flowchart TD
 - Pointsが発行するRefresh Tokenの有効期間を90日、入れ替え済みのRefresh Tokenによる再送の猶予を30秒と定める。
 
 - 本人の自動分配設定はバージョンのテーブル`auto_distribution_setting_version`と登録の`auto_distribution_target_version`だけで表し、保存の競合は検査しない。
+
+- v0.2.0の仕様に実装が追いついていない次の点を、v0.2.1で直す。
+  - 評価軸の説明内のURLは、安全なリンクとして表示する。
+  - 評価軸CSVの新規作成ではIDを空欄にし、削除した評価軸のIDは再利用しない。
+  - 自動分配が有効な間は、設定画面に「自動分配を設定中」と表示する。
+  - 退会済みの本人がログインしたら、戻り先を`/`に固定せず、再開画面`/account/reopen`へ案内する。
+  - CSVの入力エラー（`CsvValidationError`）にも、修正方法を説明する英語の`message`を付ける。
+  - ユースケースの`accounts-problem-error.ts`を動詞から始まる名前に、E2Eの`*.spec.ts`を`*.test.ts`に、`BackendVariables`を`Variables`に変え、命名規則にそろえる。
+  - JSON本文は`sValidator`の前に`Content-Type`を解析し、欠落・構文誤りは400、非対応は415とする。
+  - scopeが足りないOAuthの要求を、`401 INVALID_ACCESS_TOKEN`から`403 INSUFFICIENT_SCOPE`へ変える。
+  - Accountsなど外部サービスとの通信の失敗を、一律の503から、不正な応答は502、利用不可は503、時間切れは504に分ける。
+  - Pointsの必須検査を、同一リポジトリ条件の配信jobから分けて`pull_request`で実行し、fork PRでskipを成功として扱わないようにする。
+  - 自動分配設定と設定復元の確定、落札の引き落としも監査ログに記録する。
+  - `oauth_client_resource`に、標準の`(client_id, resource_id)`の一意索引を設ける。
+
+- 今の実装の次の不具合を、v0.2.1で直す。
+  - 公式パッケージの登録で存在しないパッケージIDを受けた場合は、外部キー違反の500（`update-profile-point-packages.ts`）にせず、`422 VALIDATION_FAILED`を返す。
+  - BASIC認証のミドルウェア（`basic-auth-middleware.ts`）は、secretが未設定なら認証なしで通さずに要求を拒否し、この動作を固めたテストも直す。
+  - 評価軸・パッケージCSVの確定（`evaluation-import-routes.ts`）は、取込と冪等性の結果を別のbatchで保存せず、一つのD1原子処理で確定する。
+  - OAuth資源API（`oauth-resource-routes.ts`の`mapError`）は、既知のコード以外の例外を`500 INTERNAL_ERROR`とし、例外の文面を`code`として返さない。
+  - CSP（`worker/security-headers.ts`）から、削除済みのTurnstileの許可先`https://challenges.cloudflare.com`を除く。
+  - `.env.example`のBASIC認証の変数名を、コードと同じ`BASIC_AUTH_USERNAME`・`BASIC_AUTH_PASSWORD`にそろえる。
+  - `README.md`と`basic-auth-middleware.ts`にある、存在しない運用文書`docs/operations/test-environment-basic-auth.ja.md`へのリンクを、この仕様書のテスト環境の認証の節へ置き換える。
+  - PRプレビューのビルド（`points-pr-preview.yml`）へBASIC認証の仮の値を渡さず、`.env.example`の説明どおり空にする。
+  - `cf`へ移行しても、配信前の設定確認（Worker名・ドメイン・環境変数・D1接続先）を残す。
+
+- 今の実装の、テストのためのテスト、整合性を持たせすぎたテスト、防御的すぎる実装を廃止し、[開発・品質検査・テスト](#開発品質検査テスト)の方針に合わせる。
+  - 本番で使わないコードとそのテストを消す。例えば、どこからも読み込まれない`google-fresh-proof.ts`とそのテスト、テストからだけ呼ばれる`encodeCsv`・`createCsvExportCursor`・`revalidateCsvForCommit`、未使用の`domain/ledger/point-ledger-entry.ts`である。
+  - ライブラリ自体の動作を確かめるテストを消す。例えば、Better AuthのGeneric OAuthとOAuth Proxyの公開APIだけを呼ぶ`accounts-generic-oauth-proxy-gate.worker.test.ts`である。
+  - 設定と定数を写して照合するテストを消す。例えば、`wrangler.jsonc`の値を照合する`static-routing.worker.test.ts`の前半、移行コマンドの引数やWorker名を写す`points-markets-contract.spec.ts`、型で常に真になる登録表を照合する`fresh-operation-policy.contract.test.ts`である。互換性フラグの一覧を5か所に書く重複もなくす。
+  - 内部の実装に依存するテストを、入出力の検査に置き換える。例えば、`d1-json-chunks.test.ts`の`prepare`の呼び出し回数、`accounts-key-vault.test.ts`の実装と同じ式によるJWK Thumbprint（RFC 7638のテストベクトルを使う）、SQLの文字列で分岐する`account-command-audit.test.ts`のD1の偽物である。
+  - 約10ファイルに重なる「ログに個人の識別子を含まない」検査と、3か所の「ログの失敗が業務結果に影響しない」検査を、ログ出力の単体テストへ集める。
+  - 型・DB制約で保証済みの検査を消す。例えば、型で必須の`env.DB`を68か所で確かめる`requireBindings`、UNIQUE索引と重なる管理者追加の`NOT EXISTS`、CHECK制約と重なる`role = 'ADMIN'`の判定、ルートとユースケースで重ねる理由の必須検査、型が`true`の`session`・`fresh`の判定である。
+  - 評価軸・パッケージのCSV取込で、ルート・ユースケース・DBの例外処理に3重にある件数・ID・名前の検証を、経路の検証とDB制約にまとめる。
+  - ライブラリが検証済みの値の再検査を消す。例えば、`resource-token-introspection.ts`で`verify`に渡した`iss`と`requiredScopes`を確かめ直す処理と、JWTの形の正規表現による事前の検査である。
+  - テストのためだけの引数と使われない登録項目を消す。例えば、テストだけが渡す`d1-json-chunks.ts`の`maxBytes`と3回重ねる文の数の検査、24件のうち5件しか参照されない`fresh-operation-policy.ts`の登録表、配備前に`wrangler.jsonc`の値を照合し直す`deploy-generated.ts`・`preview-generated.ts`の独自検査である。
