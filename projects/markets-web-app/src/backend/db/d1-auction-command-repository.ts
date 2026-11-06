@@ -10,6 +10,7 @@ import { createSettlementPlan } from "../settlement/create-settlement-plan";
 
 export interface AuctionCommandAggregate {
   auctionId: string;
+  providerId: string;
   availableQuantity: number;
   buyNowPriceTickCount: number | null;
   currentRevisionId: string;
@@ -97,12 +98,20 @@ export class D1AuctionCommandRepository {
     return { kind: "REPLAY", result: JSON.parse(command.responseBody) };
   }
 
-  async hasActivePointsConnection(marketsUserId: string): Promise<boolean> {
+  async hasActivePointsConnection(marketsUserId: string, providerId: string): Promise<boolean> {
     const row = await this.db
       .prepare(
-        "SELECT 1 AS active FROM points_connection WHERE markets_user_id = ? AND status = 'ACTIVE'",
+        "SELECT 1 AS active FROM points_connection WHERE markets_user_id = ? AND provider_id = ? AND status = 'ACTIVE'",
       )
-      .bind(marketsUserId)
+      .bind(marketsUserId, providerId)
+      .first<{ active: number }>();
+    return row?.active === 1;
+  }
+
+  async hasActiveProvider(providerId: string): Promise<boolean> {
+    const row = await this.db
+      .prepare("SELECT 1 AS active FROM points_provider WHERE id = ? AND status = 'ACTIVE'")
+      .bind(providerId)
       .first<{ active: number }>();
     return row?.active === 1;
   }
@@ -110,7 +119,7 @@ export class D1AuctionCommandRepository {
   async loadForCommand(auctionId: string): Promise<AuctionCommandAggregate | null> {
     const row = await this.db
       .prepare(
-        `SELECT a.id AS auctionId, a.seller_markets_user_id AS sellerMarketsUserId,
+        `SELECT a.id AS auctionId, a.provider_id AS providerId, a.seller_markets_user_id AS sellerMarketsUserId,
                 a.current_revision_id AS currentRevisionId, a.status, a.version,
                 r.revision_number AS revisionNumber, r.quantity, r.ends_at AS endsAt,
                 r.package_tick AS packageTick,
@@ -273,6 +282,7 @@ export class D1AuctionCommandRepository {
         algorithmVersion: "uniform-price-v1",
         auctionId: input.auctionId,
         auctionRevisionId: aggregate.currentRevisionId,
+        providerId: aggregate.providerId,
         availableQuantityBeforeHold: aggregate.availableQuantity,
         buyerMarketsUserId: input.actor.marketsUserId,
         buyNowHoldId: commit.holdId,

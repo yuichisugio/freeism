@@ -27,6 +27,7 @@ export class AuctionCommitError extends Error {
 }
 
 export interface CommitAuctionImportInput {
+  providerId: string;
   actor: MarketsActor;
   idempotencyKey: string;
   preview: AuctionImportPreview;
@@ -35,6 +36,7 @@ export interface CommitAuctionImportInput {
 
 export interface CommitAuctionImportDependencies {
   repository: D1AuctionRepository;
+  pointsIssuer: string;
   now(): Date;
   refreshPackage(row: AuctionImportPreviewRow): Promise<VerifiedPackageRevision>;
   checkEligibility(
@@ -157,6 +159,9 @@ export async function commitAuctionImport(
   input: CommitAuctionImportInput,
   dependencies: CommitAuctionImportDependencies,
 ): Promise<ImportCommitResult> {
+  if (!input.providerId || input.providerId !== input.preview.providerId) {
+    throw new AuctionCommitError("POINTS_PROVIDER_MISMATCH");
+  }
   if (input.preview.rows.length < 1 || input.preview.rows.length > 1_000) {
     throw new AuctionCommitError("AUCTION_IMPORT_ROW_COUNT_INVALID");
   }
@@ -199,7 +204,7 @@ export async function commitAuctionImport(
     } = row;
     return { ...auctionRow, packageSnapshot: fresh[index]! };
   });
-  const identity = await calculateAuctionCommandIdentity(commandRows);
+  const identity = await calculateAuctionCommandIdentity(commandRows, input.providerId);
   if (
     identity.auctionCommandId !== preview.auctionCommandId ||
     identity.auctionCommandHash !== preview.auctionCommandHash
@@ -226,6 +231,8 @@ export async function commitAuctionImport(
     row,
   }));
   const context: WriteContext = {
+    providerId: input.providerId,
+    pointsIssuer: dependencies.pointsIssuer,
     actorMarketsUserId: input.actor.marketsUserId,
     commandHash: preview.auctionCommandHash,
     commandId: preview.auctionCommandId,

@@ -47,6 +47,7 @@ export interface AuctionImportPreviewRow extends AuctionImportRow {
 }
 
 export interface AuctionImportPreview {
+  providerId: string;
   fileHash: string;
   auctionCommandId: string;
   auctionCommandHash: string;
@@ -61,6 +62,7 @@ export interface AuctionEligibilityClient {
 }
 
 export interface ValidateAuctionImportInput {
+  providerId: string;
   bytes: Uint8Array;
   idempotencyKey: string;
 }
@@ -99,8 +101,9 @@ async function sha256(value: string | Uint8Array): Promise<string> {
 
 export async function calculateAuctionCommandIdentity(
   rows: readonly (AuctionImportRow & { packageSnapshot: VerifiedPackageRevision })[],
+  providerId: string,
 ) {
-  const auctionCommandHash = await sha256(canonicalJson({ rows }));
+  const auctionCommandHash = await sha256(canonicalJson({ providerId, rows }));
   return {
     auctionCommandHash,
     auctionCommandId: `acmd_${auctionCommandHash.slice("sha256:".length, 39)}`,
@@ -302,8 +305,10 @@ export async function validateAuctionImport(
     ...row,
     packageSnapshot: snapshots[index]!,
   }));
-  const { auctionCommandHash, auctionCommandId } =
-    await calculateAuctionCommandIdentity(commandRows);
+  const { auctionCommandHash, auctionCommandId } = await calculateAuctionCommandIdentity(
+    commandRows,
+    input.providerId,
+  );
   const eligibilityRequest: EligibilityRequest = {
     auctionCommandId,
     auctionCommandHash,
@@ -351,6 +356,7 @@ export async function validateAuctionImport(
   }
   const versions = assertEligibilityResponse(eligibilityRequest, eligibility);
   return {
+    providerId: input.providerId,
     fileHash,
     auctionCommandId,
     auctionCommandHash,

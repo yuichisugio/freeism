@@ -19,6 +19,7 @@ export function OperationPage({
           <a href="/search">検索</a>
           <a href="/settings/profile">設定</a>
           <a href="/settings/exports">CSV</a>
+          <a href="/developer">開発者向け</a>
         </nav>
         <div aria-label="Language" className="locale-switch">
           <button type="button">{ja.language}</button>

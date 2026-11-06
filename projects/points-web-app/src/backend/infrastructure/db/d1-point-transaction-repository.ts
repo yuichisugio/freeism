@@ -1,3 +1,4 @@
+import { writeAuditLog } from "../../observability/audit-logger";
 import {
   chunkCanonicalJsonRows,
   prepareJsonEachStatements,
@@ -68,6 +69,7 @@ export async function commitExchangeRateRevisions(
   db: D1Database,
   input: {
     actorPointsUserId: string;
+    environment?: string;
     fileHash: string;
     idempotencyKey: string;
     now: Date;
@@ -156,21 +158,15 @@ export async function commitExchangeRateRevisions(
         JSON.stringify(responseBody),
         now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-         VALUES (?, ?, 'EXCHANGE_RATE_CSV_COMMIT', 'exchange-rates', ?, ?, 'SUCCESS', ?)`,
-      )
-      .bind(
-        `audit_${crypto.randomUUID()}`,
-        input.actorPointsUserId,
-        input.reason,
-        input.requestId,
-        now,
-      ),
   ];
   await runCsvAtomicBatch(db, statements);
+  writeAuditLog({
+    action: "EXCHANGE_RATE_CSV_COMMIT",
+    environment: input.environment,
+    requestId: input.requestId,
+    resourceType: "exchange_rate",
+    affectedCount: rows.length,
+  });
   return responseBody;
 }
 
@@ -178,6 +174,7 @@ export async function commitPointTransaction(
   db: D1Database,
   input: {
     actorPointsUserId: string;
+    environment?: string;
     batchId: string;
     fileHash: string;
     idempotencyKey: string;
@@ -308,21 +305,14 @@ export async function commitPointTransaction(
         JSON.stringify(responseBody),
         now,
       ),
-    db
-      .prepare(
-        `INSERT INTO audit_event
-           (id, actor_points_user_id, action, target, reason, request_id, result, created_at)
-         VALUES (?, ?, ?, ?, NULL, ?, 'SUCCESS', ?)`,
-      )
-      .bind(
-        `audit_${crypto.randomUUID()}`,
-        input.actorPointsUserId,
-        operation,
-        input.batchId,
-        input.requestId,
-        now,
-      ),
   ];
   await runCsvAtomicBatch(db, statements);
+  writeAuditLog({
+    action: operation,
+    environment: input.environment,
+    requestId: input.requestId,
+    resourceType: "point_transaction",
+    affectedCount: items.length,
+  });
   return responseBody;
 }

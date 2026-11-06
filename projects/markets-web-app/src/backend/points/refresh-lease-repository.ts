@@ -22,6 +22,7 @@ export interface RefreshLeaseRepository {
 }
 
 interface ConnectionTokenRow {
+  providerId: string;
   accountId: string | null;
   authUserId: string;
   pointsIssuer: string;
@@ -37,7 +38,7 @@ export function createRefreshLeaseRepository(
   async function connection(connectionId: string) {
     const row = await db
       .prepare(
-        `SELECT auth_user_id AS authUserId, status, token_version AS tokenVersion,
+        `SELECT auth_user_id AS authUserId, provider_id AS providerId, status, token_version AS tokenVersion,
                 better_auth_account_id AS accountId, points_issuer AS pointsIssuer,
                 points_subject AS pointsSubject
          FROM points_connection WHERE id = ?`,
@@ -69,12 +70,12 @@ export function createRefreshLeaseRepository(
     },
     async read(connectionId) {
       const row = await connection(connectionId);
-      const accountId = row.accountId ?? `${row.pointsIssuer}|${row.pointsSubject}`;
+      const accountId = row.accountId ?? `${row.providerId}|${row.pointsSubject}`;
       return { ...(await tokenStore.read(accountId)), tokenVersion: row.tokenVersion };
     },
     async replace(input) {
       const row = await connection(input.connectionId);
-      const accountId = row.accountId ?? `${row.pointsIssuer}|${row.pointsSubject}`;
+      const accountId = row.accountId ?? `${row.providerId}|${row.pointsSubject}`;
       await tokenStore.save({
         ...input.tokens,
         accountId,

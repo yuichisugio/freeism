@@ -215,6 +215,7 @@ async function endWinners(loaded: LoadedSettlementPlan, roundOrdinal: number) {
   const rebuilt = await createSettlementPlan({
     algorithmVersion: loaded.plan.algorithmVersion,
     auctionId: loaded.plan.auctionId,
+    providerId: loaded.plan.providerId,
     auctionRevisionId: loaded.plan.auctionRevisionId,
     cutoffAt: loaded.plan.cutoffAt,
     eligibleBids: loaded.positions.map((position) => ({

@@ -25,6 +25,7 @@ export default defineConfig({
       { label: "Docs", href: "https://docs.freeism.app/" },
       { label: "Points", href: "https://points.freeism.app/" },
       { label: "Markets", href: "https://markets.freeism.app/" },
+      { label: "Accounts", href: "https://accounts.freeism.app/" },
     ],
   },
   search: {

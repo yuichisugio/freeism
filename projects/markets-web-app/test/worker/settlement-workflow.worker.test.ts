@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env, introspectWorkflowInstance } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
@@ -40,6 +41,7 @@ async function seedDueAuction(): Promise<SeededDueAuction> {
   const beforeCutoff = new Date(Date.parse(serverNow) - 10_000).toISOString();
   const afterCutoff = new Date(Date.parse(serverNow) + 10_000).toISOString();
 
+  await seedPointsProvider(env.DB);
   await env.DB.batch([
     env.DB.prepare("INSERT INTO user (id, name, email) VALUES (?, 'Seller', ?)").bind(
       sellerAuthId,
@@ -67,12 +69,12 @@ async function seedDueAuction(): Promise<SeededDueAuction> {
     ),
     env.DB.prepare(
       `INSERT INTO point_package_snapshots
-       (id, point_package_id, point_package_revision_id, name, total_weight)
-       VALUES (?, ?, ?, 'Settlement package', 1)`,
-    ).bind(packageSnapshotId, `pp_${suffix}`, `ppr_${suffix}`),
+       (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+       VALUES (?, ?, ?, ?, 'Settlement package', 1)`,
+    ).bind(packageSnapshotId, testPointsProviderId, `pp_${suffix}`, `ppr_${suffix}`),
     env.DB.prepare(
-      "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'OPEN', 4)",
-    ).bind(auctionId, sellerId),
+      "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'OPEN', 4)",
+    ).bind(auctionId, testPointsProviderId, sellerId),
     env.DB.prepare(
       `INSERT INTO auction_revisions
        (id, auction_id, revision_number, title, description, external_url,
@@ -372,6 +374,7 @@ describe("settlement close and Workflow", () => {
     const input = {
       algorithmVersion: "uniform-price-v1",
       auctionId: "auc_canonical",
+      providerId: "provider_a",
       auctionRevisionId: "rev_canonical",
       cutoffAt: "2026-07-13T00:00:00.000Z",
       eligibleBids: [
@@ -404,9 +407,11 @@ describe("settlement close and Workflow", () => {
     expect(first).toEqual(second);
     expect(first.plan.eligibleBidIds).toEqual(["bp_1", "bp_2"]);
     expect(first.planHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    const otherProvider = await createSettlementPlan({ ...input, providerId: "provider_b" });
+    expect(otherProvider.planHash).not.toBe(first.planHash);
   });
 
-  it("dispatches one deterministic Workflow instance and fails explicitly without Points bindings", async () => {
+  it("dispatches one deterministic Workflow instance and reports incomplete provider credentials", async () => {
     const seeded = await seedDueAuction();
     const planned = await closeAuctionAndPlan(env.DB, {
       auctionId: seeded.auctionId,
@@ -437,11 +442,9 @@ describe("settlement close and Workflow", () => {
         settlementId: planned.params.settlementId,
         settlementRevision: 1,
       });
-      await expect(introspector.waitForStatus("errored")).rejects.toThrow(
-        "Aborting engine: A step threw a NonRetryableError",
-      );
+      await expect(introspector.waitForStatus("errored")).resolves.toBeUndefined();
       await expect((await env.AUCTION_SETTLEMENT.get(instanceId)).status()).resolves.toMatchObject({
-        error: { message: expect.stringContaining("NonRetryableError") },
+        error: { message: expect.stringContaining("POINTS_PROVIDER_CLIENT_INCOMPLETE") },
         status: "errored",
       });
       await expect(
@@ -452,7 +455,7 @@ describe("settlement close and Workflow", () => {
     } finally {
       await introspector.dispose();
     }
-  });
+  }, 20_000);
 
   it("recreates a retained DISPATCHED outbox when its deterministic Workflow instance is gone", async () => {
     const seeded = await seedDueAuction();

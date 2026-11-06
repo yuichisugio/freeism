@@ -26,6 +26,7 @@ export type CloseAuctionResult =
 
 interface CloseSnapshot {
   auctionId: string;
+  providerId: string;
   auctionRevisionId: string;
   availableQuantity: number;
   endsAt: string;
@@ -51,7 +52,8 @@ interface ExistingCloseRow {
 async function loadSnapshot(db: D1Database, input: CloseAuctionInput) {
   const snapshot = await db
     .prepare(
-      `SELECT a.id AS auctionId, a.current_revision_id AS auctionRevisionId,
+      `SELECT a.id AS auctionId, a.provider_id AS providerId,
+              a.current_revision_id AS auctionRevisionId,
               a.status, a.version, r.ends_at AS endsAt, r.quantity, r.package_tick AS packageTick,
               p.point_package_revision_id AS pointPackageRevisionId,
               COALESCE((SELECT MAX(bid_seq) FROM bid_events
@@ -168,6 +170,7 @@ export async function closeAuctionAndPlan(
   const planned = await createSettlementPlan({
     algorithmVersion: ALGORITHM_VERSION,
     auctionId: input.auctionId,
+    providerId: snapshot.providerId,
     auctionRevisionId: input.expectedRevisionId,
     cutoffAt: input.serverNow,
     eligibleBids,
@@ -300,6 +303,7 @@ export async function closeAuctionAndPlan(
 
 interface ResumeSnapshot {
   algorithmVersion: string;
+  providerId: string;
   auctionRevisionId: string;
   auctionStatus: string;
   cutoffAt: string;
@@ -319,7 +323,8 @@ export async function resumeAuctionCloseFromCutoff(
   }
   const snapshot = await db
     .prepare(
-      `SELECT c.auction_revision_id AS auctionRevisionId, c.cutoff_at AS cutoffAt,
+      `SELECT a.provider_id AS providerId,
+              c.auction_revision_id AS auctionRevisionId, c.cutoff_at AS cutoffAt,
               c.max_bid_seq AS maxBidSeq, c.package_tick AS packageTick,
               c.point_package_revision_id AS pointPackageRevisionId,
               c.algorithm_version AS algorithmVersion, a.status AS auctionStatus,
@@ -365,6 +370,7 @@ export async function resumeAuctionCloseFromCutoff(
   const planned = await createSettlementPlan({
     algorithmVersion: snapshot.algorithmVersion,
     auctionId: input.auctionId,
+    providerId: snapshot.providerId,
     auctionRevisionId: snapshot.auctionRevisionId,
     cutoffAt: snapshot.cutoffAt,
     eligibleBids,
@@ -386,14 +392,7 @@ export async function resumeAuctionCloseFromCutoff(
           saga_state, current_plan_id, created_at, updated_at)
          VALUES (?, ?, 'END_OF_AUCTION', ?, 1, 0, 'PLANNED', ?, ?, ?)`,
       )
-      .bind(
-        settlementId,
-        input.auctionId,
-        sourceKey,
-        planId,
-        input.serverNow,
-        input.serverNow,
-      ),
+      .bind(settlementId, input.auctionId, sourceKey, planId, input.serverNow, input.serverNow),
     db
       .prepare(
         `INSERT OR IGNORE INTO settlement_plans

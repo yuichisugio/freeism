@@ -115,6 +115,7 @@ export function registerDistributionRoutes(app: Hono<BackendContext>, getSession
           new Uint8Array(await context.req.arrayBuffer()),
           {
             actorPointsUserId: context.get("pointsUser").id,
+            environment: requireBindings(context.env).APP_ENV,
             expectedValidationHash,
             idempotencyKey: context.req.header("Idempotency-Key")!,
             reason,

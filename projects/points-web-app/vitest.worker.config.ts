@@ -7,26 +7,13 @@ export default defineConfig({
       main: "./worker/index.ts",
       miniflare: {
         bindings: {
-          CSV_EXPORT_CURSOR_SECRET: "test-csv-export-cursor-secret-at-least-32-characters",
+          ACCOUNTS_KEY_ENCRYPTION_KEY: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
           BETTER_AUTH_SECRETS:
             "2:test-current-secret-at-least-32-characters,1:test-previous-secret-at-least-32-characters",
           GITHUB_CLIENT_ID: "test-github-client-id",
           GITHUB_CLIENT_SECRET: "test-github-client-secret",
           GOOGLE_CLIENT_ID: "test-google-client-id",
           GOOGLE_CLIENT_SECRET: "test-google-client-secret",
-          INITIAL_ADMIN_GOOGLE_ACCOUNT_ID: "test-initial-admin-google-account-id",
-          MARKETS_SETTLEMENT_RETRY_RESOURCE: "https://markets.example.test/api/settlements/retry",
-          POINTS_OAUTH_PAIRWISE_SECRET: "test-pairwise-secret-at-least-32-characters",
-          MARKETS_USER_OAUTH_CLIENT_ID: "markets-user-client",
-          MARKETS_USER_OAUTH_CLIENT_SECRET: "test-markets-user-secret-at-least-32-chars",
-          MARKETS_M2M_OAUTH_CLIENT_ID: "markets-m2m-client",
-          MARKETS_M2M_OAUTH_CLIENT_SECRET: "test-markets-m2m-secret-at-least-32-chars",
-          MARKETS_SETTLEMENT_OAUTH_CLIENT_ID: "markets-settlement-client",
-          MARKETS_SETTLEMENT_OAUTH_CLIENT_SECRET:
-            "test-markets-settlement-secret-at-least-32-chars",
-          OPS_RESOURCE_HASH_SALT: "test-points-ops-salt",
-          TURNSTILE_SITE_KEY: "test-turnstile-site-key",
-          TURNSTILE_SECRET_KEY: "test-turnstile-secret-key",
           TEST_MIGRATIONS: await readD1Migrations("./drizzle"),
         },
         d1Databases: ["DB"],
@@ -39,7 +26,10 @@ export default defineConfig({
             modules: true,
             name: "test-assets",
             script: `export default {
-              fetch() {
+              fetch(request) {
+                if (new URL(request.url).pathname !== '/') {
+                  return new Response(null, { status: 404 });
+                }
                 return new Response('<!doctype html><main data-points-shell>Points shell</main>', {
                   headers: {
                     'Cache-Control': 'no-store',

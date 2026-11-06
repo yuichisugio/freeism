@@ -6,6 +6,7 @@ import type {
 
 interface RoundRow {
   auctionId: string;
+  providerId: string;
   kind: CaptureRound["kind"];
   roundId: string;
   roundOrdinal: number;
@@ -17,6 +18,7 @@ interface WinnerRow {
   componentVectorJson: string | null;
   marketsUserId: string;
   pointReservationId: string | null;
+  providerId: string | null;
   priceTickCount: number;
   priceTicks: number;
   reservationKey: string;
@@ -36,9 +38,10 @@ export class D1SettlementCaptureRepository implements SettlementCaptureRepositor
     const round = await this.db
       .prepare(
         `SELECT r.id AS roundId, r.round_ordinal AS roundOrdinal, r.state,
-                s.auction_id AS auctionId, s.kind
+                s.auction_id AS auctionId, a.provider_id AS providerId, s.kind
          FROM settlement_rounds r
          JOIN settlements s ON s.id = r.settlement_id
+         JOIN auctions a ON a.id = s.auction_id
          JOIN settlement_plans p ON p.id = s.current_plan_id
          WHERE r.settlement_id = ? AND r.round_ordinal = ? AND r.plan_hash = ?
            AND s.settlement_revision = ? AND p.plan_hash = ?
@@ -55,14 +58,16 @@ export class D1SettlementCaptureRepository implements SettlementCaptureRepositor
     if (!round) throw new Error("SETTLEMENT_CAPTURE_ROUND_NOT_FOUND");
     const winners = await this.db
       .prepare(
-        `SELECT markets_user_id AS marketsUserId,
-                allocation_quantity AS allocationQuantity,
-                price_tick_count AS priceTickCount, price_ticks AS priceTicks,
-                reservation_key AS reservationKey, status,
-                point_reservation_id AS pointReservationId, vector_hash AS vectorHash,
-                component_vector_json AS componentVectorJson
-         FROM settlement_round_winners WHERE settlement_round_id = ?
-         ORDER BY point_reservation_id, markets_user_id`,
+        `SELECT w.markets_user_id AS marketsUserId,
+                w.allocation_quantity AS allocationQuantity,
+                w.price_tick_count AS priceTickCount, w.price_ticks AS priceTicks,
+                w.reservation_key AS reservationKey, w.status,
+                w.point_reservation_id AS pointReservationId, w.vector_hash AS vectorHash,
+                w.component_vector_json AS componentVectorJson, pc.provider_id AS providerId
+         FROM settlement_round_winners w
+         LEFT JOIN points_connection pc ON pc.id = w.points_connection_id
+         WHERE w.settlement_round_id = ?
+         ORDER BY w.point_reservation_id, w.markets_user_id`,
       )
       .bind(round.roundId)
       .all<WinnerRow>();
@@ -70,7 +75,11 @@ export class D1SettlementCaptureRepository implements SettlementCaptureRepositor
       ...round,
       state: round.state === "CAPTURED" ? "CAPTURED" : "RESERVED",
       winners: winners.results.map((winner) => {
-        if (!winner.pointReservationId || !winner.vectorHash) {
+        if (
+          !winner.pointReservationId ||
+          !winner.vectorHash ||
+          winner.providerId !== round.providerId
+        ) {
           throw new Error("SETTLEMENT_CAPTURE_WINNER_INCOMPLETE");
         }
         return {

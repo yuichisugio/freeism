@@ -1,0 +1,1 @@
+DROP TABLE `turnstile_token_replays`;

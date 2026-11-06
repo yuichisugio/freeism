@@ -167,7 +167,7 @@ describe("validateAuctionImport", () => {
     });
 
     const preview = await validateAuctionImport(
-      { bytes: csv(), idempotencyKey: "preview-key-1" },
+      { bytes: csv(), providerId: "ppr_test", idempotencyKey: "preview-key-1" },
       { checkEligibility, packageRevisionReader: { get } },
     );
 
@@ -207,7 +207,7 @@ describe("validateAuctionImport", () => {
     const checkEligibility = vi.fn();
     const validate = (result: PointPackageRevisionHttpResult) =>
       validateAuctionImport(
-        { bytes: csv(), idempotencyKey: "preview-key-1" },
+        { bytes: csv(), providerId: "ppr_test", idempotencyKey: "preview-key-1" },
         { checkEligibility, packageRevisionReader: { get: async () => result } },
       );
 
@@ -229,7 +229,11 @@ describe("validateAuctionImport", () => {
 
     await expect(
       validateAuctionImport(
-        { bytes: csv({ pointPackageId: "" }), idempotencyKey: "preview-key-1" },
+        {
+          bytes: csv({ pointPackageId: "" }),
+          providerId: "ppr_test",
+          idempotencyKey: "preview-key-1",
+        },
         { checkEligibility, packageRevisionReader: { get } },
       ),
     ).rejects.toMatchObject({
@@ -245,7 +249,7 @@ describe("validateAuctionImport", () => {
 
     await expect(
       validateAuctionImport(
-        { bytes: csv(), idempotencyKey: "preview-key-1" },
+        { bytes: csv(), providerId: "ppr_test", idempotencyKey: "preview-key-1" },
         {
           checkEligibility: async () => {
             throw new PointsApiError(409, "POINT_PACKAGE_AUCTION_INELIGIBLE", [
@@ -278,18 +282,19 @@ describe("validateAuctionImport", () => {
     };
 
     const lf = await validateAuctionImport(
-      { bytes: csv(), idempotencyKey: "preview-key-1" },
+      { bytes: csv(), providerId: "ppr_test", idempotencyKey: "preview-key-1" },
       dependencies,
     );
     const crlf = await validateAuctionImport(
       {
         bytes: new TextEncoder().encode(new TextDecoder().decode(csv()).replaceAll("\n", "\r\n")),
+        providerId: "ppr_test",
         idempotencyKey: "preview-key-1",
       },
       dependencies,
     );
     const anotherKey = await validateAuctionImport(
-      { bytes: csv(), idempotencyKey: "preview-key-2" },
+      { bytes: csv(), providerId: "ppr_test", idempotencyKey: "preview-key-2" },
       dependencies,
     );
 
@@ -322,7 +327,7 @@ describe("validateAuctionImport", () => {
 
     await expect(
       validateAuctionImport(
-        { bytes: csv(), idempotencyKey: "reused-key" },
+        { bytes: csv(), providerId: "ppr_test", idempotencyKey: "reused-key" },
         {
           checkEligibility: async () => {
             throw new PointsApiError(409, "IDEMPOTENCY_KEY_REUSED");

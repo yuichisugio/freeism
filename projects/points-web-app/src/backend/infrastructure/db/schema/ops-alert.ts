@@ -6,7 +6,6 @@ export const opsAlertRecords = sqliteTable(
   {
     alertKey: text("alert_key").primaryKey(),
     type: text("type").notNull(),
-    resourceIdHash: text("resource_id_hash").notNull(),
     status: text("status", { enum: ["OPEN", "RESOLVED"] }).notNull(),
     firstObservedAt: integer("first_observed_at", { mode: "timestamp_ms" }).notNull(),
     lastObservedAt: integer("last_observed_at", { mode: "timestamp_ms" }).notNull(),

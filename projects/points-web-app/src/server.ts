@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 
-import { fetchPointsApi, scheduledPoints } from "../worker/index";
+import { fetchPointsApi } from "../worker/index";
 import { isSpaNavigationRequest } from "../worker/spa-fallback";
 
 const FIXED_PAGE_PATHS = new Set([
@@ -34,8 +34,5 @@ const serverEntry = createServerEntry({
 export default {
   fetch(request) {
     return serverEntry.fetch(request);
-  },
-  scheduled(controller, workerEnv, _context) {
-    return scheduledPoints(controller, workerEnv);
   },
 } satisfies ExportedHandler<Env>;

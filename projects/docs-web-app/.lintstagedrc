@@ -1,3 +1,0 @@
-{
-  "src/{readme/README.ja.md,freeism.ja.md}": ["textlint --fix"]
-}

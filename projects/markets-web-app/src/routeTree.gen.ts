@@ -20,6 +20,7 @@ import { Route as SettingsPointsConnectionRouteImport } from './routes/settings/
 import { Route as ProofsProofIdRouteImport } from './routes/proofs/$proofId'
 import { Route as AuctionsImportRouteImport } from './routes/auctions/import'
 import { Route as AuctionsAuctionIdRouteImport } from './routes/auctions/$auctionId'
+import { Route as AdminPointsConnectionsRouteImport } from './routes/admin/points-connections'
 import { Route as SettlementsSettlementIdIndexRouteImport } from './routes/settlements/$settlementId/index'
 import { Route as MeAuctionsWonRouteImport } from './routes/me/auctions/won'
 import { Route as MeAuctionsCreatedRouteImport } from './routes/me/auctions/created'
@@ -81,6 +82,11 @@ const AuctionsAuctionIdRoute = AuctionsAuctionIdRouteImport.update({
   path: '/auctions/$auctionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPointsConnectionsRoute = AdminPointsConnectionsRouteImport.update({
+  id: '/admin/points-connections',
+  path: '/admin/points-connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettlementsSettlementIdIndexRoute =
   SettlementsSettlementIdIndexRouteImport.update({
     id: '/settlements/$settlementId/',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/admin/points-connections': typeof AdminPointsConnectionsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/auctions/import': typeof AuctionsImportRoute
   '/proofs/$proofId': typeof ProofsProofIdRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/admin/points-connections': typeof AdminPointsConnectionsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/auctions/import': typeof AuctionsImportRoute
   '/proofs/$proofId': typeof ProofsProofIdRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/admin/points-connections': typeof AdminPointsConnectionsRoute
   '/auctions/$auctionId': typeof AuctionsAuctionIdRoute
   '/auctions/import': typeof AuctionsImportRoute
   '/proofs/$proofId': typeof ProofsProofIdRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/terms'
+    | '/admin/points-connections'
     | '/auctions/$auctionId'
     | '/auctions/import'
     | '/proofs/$proofId'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/terms'
+    | '/admin/points-connections'
     | '/auctions/$auctionId'
     | '/auctions/import'
     | '/proofs/$proofId'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/privacy'
     | '/terms'
+    | '/admin/points-connections'
     | '/auctions/$auctionId'
     | '/auctions/import'
     | '/proofs/$proofId'
@@ -216,6 +228,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  AdminPointsConnectionsRoute: typeof AdminPointsConnectionsRoute
   AuctionsAuctionIdRoute: typeof AuctionsAuctionIdRoute
   AuctionsImportRoute: typeof AuctionsImportRoute
   ProofsProofIdRoute: typeof ProofsProofIdRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuctionsAuctionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/points-connections': {
+      id: '/admin/points-connections'
+      path: '/admin/points-connections'
+      fullPath: '/admin/points-connections'
+      preLoaderRoute: typeof AdminPointsConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settlements/$settlementId/': {
       id: '/settlements/$settlementId/'
       path: '/settlements/$settlementId'
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  AdminPointsConnectionsRoute: AdminPointsConnectionsRoute,
   AuctionsAuctionIdRoute: AuctionsAuctionIdRoute,
   AuctionsImportRoute: AuctionsImportRoute,
   ProofsProofIdRoute: ProofsProofIdRoute,

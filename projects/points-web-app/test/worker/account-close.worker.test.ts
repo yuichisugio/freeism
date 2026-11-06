@@ -1,12 +1,25 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vite-plus/test";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { createPointsBackendApp } from "../../src/backend/app";
+import type { CreateAccountsRecipientResolver } from "../../src/backend/identity/accounts-recipient-resolver";
+import { closePointsAccount } from "../../src/backend/usecases/close-points-account";
 import { createPointReservation } from "../../src/backend/usecases/create-point-reservation";
 import { importEvaluationCriteria } from "../../src/backend/usecases/import-evaluation-criteria";
 import { importPointPackages } from "../../src/backend/usecases/import-point-packages";
 
 const db = env.DB!;
+const ACCOUNTS_ORIGIN = "https://accounts.close.test";
+
+/** GitHub の URL を、その GitHub アカウントに対応する Accounts ユーザーへ照合する fake。 */
+const resolveGitHubUrlsToAccountsUsers: CreateAccountsRecipientResolver =
+  () => async (identifiers) => ({
+    accountsOrigin: ACCOUNTS_ORIGIN,
+    results: identifiers.map(({ value }) => ({
+      accountsUserId: `ausr_${value.split("/").pop()}`,
+      status: "matched" as const,
+    })),
+  });
 
 async function seedAccount(suffix: string, options: { admin?: boolean } = {}) {
   const now = Date.now();
@@ -39,8 +52,8 @@ async function seedAccount(suffix: string, options: { admin?: boolean } = {}) {
     db
       .prepare(
         `INSERT INTO profiles
-           (points_user_id, display_name, description, external_urls, visibility, created_at, updated_at)
-         VALUES (?, 'Visible name', 'Visible description', '["https://example.test/me"]', 'PUBLIC', ?, ?)`,
+           (points_user_id, display_name, description, visibility, created_at, updated_at)
+         VALUES (?, 'Visible name', 'Visible description', 'PUBLIC', ?, ?)`,
       )
       .bind(pointsUserId, now, now),
     db
@@ -139,6 +152,7 @@ function authenticatedApp(
   createdAt = new Date(),
 ) {
   return createPointsBackendApp({
+    createAccountsRecipientResolver: resolveGitHubUrlsToAccountsUsers,
     getSession: async () => ({
       session: { createdAt, id: account.currentSessionId, userId: account.authUserId },
       user: { id: account.authUserId },
@@ -146,106 +160,36 @@ function authenticatedApp(
   });
 }
 
-async function seedOwnerships(account: Awaited<ReturnType<typeof seedAccount>>) {
-  const activeId = `own-close-active-${crypto.randomUUID()}`;
-  const activeEpochId = `epoch-close-active-${crypto.randomUUID()}`;
-  const inactiveId = `own-close-inactive-${crypto.randomUUID()}`;
-  const inactiveEpochId = `epoch-close-inactive-${crypto.randomUUID()}`;
-  const webId = `own-close-web-${crypto.randomUUID()}`;
-  const webEpochId = `epoch-close-web-${crypto.randomUUID()}`;
+/** 接続先と、GitHub の URL に対応する Accounts ユーザーとの連携を作る。 */
+async function seedAccountsLink(account: Awaited<ReturnType<typeof seedAccount>>) {
+  const accountsLinkId = `alnk-close-${crypto.randomUUID()}`;
   await db.batch([
     db
       .prepare(
-        `INSERT INTO identity_ownership
-           (id, identity_type, normalized_identity_key, points_user_id, status,
-            current_ownership_epoch_id, verified_at, permanent_correspondence)
-         VALUES (?, 'GITHUB_OAUTH', ?, ?, 'ACTIVE', ?, ?, 1)`,
+        `INSERT INTO accounts_connections
+           (id, accounts_origin, display_name, client_id, status, client_key_id,
+            client_public_jwk, client_private_jwk_ciphertext, dpop_private_jwk_ciphertext,
+            created_by_points_user_id, created_at, activated_at)
+         VALUES ('acon-close', ?, 'Accounts', 'client', 'ACTIVE', 'kid', '{}', 'v1.a.b',
+                 'v1.c.d', ?, ?, ?)
+         ON CONFLICT DO NOTHING`,
       )
-      .bind(
-        activeId,
-        `github:${account.githubAccountId}`,
-        account.pointsUserId,
-        activeEpochId,
-        account.now,
-      ),
+      .bind(ACCOUNTS_ORIGIN, account.pointsUserId, account.now, account.now),
     db
       .prepare(
-        `INSERT INTO ownership_epoch
-           (id, identity_ownership_id, owner_points_user_id, effective_at, verification_method,
-            evidence_hash, success_count, request_id, created_at)
-         VALUES (?, ?, ?, ?, 'GITHUB_OAUTH', ?, 1, ?, ?)`,
+        `INSERT INTO accounts_links
+           (id, points_user_id, accounts_connection_id, accounts_origin, accounts_user_id, linked_at)
+         VALUES (?, ?, 'acon-close', ?, ?, ?)`,
       )
       .bind(
-        activeEpochId,
-        activeId,
+        accountsLinkId,
         account.pointsUserId,
-        account.now,
-        "a".repeat(64),
-        `req-${activeId}`,
-        account.now,
-      ),
-    db
-      .prepare(
-        `INSERT INTO identity_ownership
-           (id, identity_type, normalized_identity_key, points_user_id, status,
-            current_ownership_epoch_id, verified_at, permanent_correspondence)
-         VALUES (?, 'GITHUB_OAUTH', ?, ?, 'INACTIVE', ?, ?, 1)`,
-      )
-      .bind(
-        inactiveId,
-        `github:inactive-${account.githubAccountId}`,
-        account.pointsUserId,
-        inactiveEpochId,
-        account.now,
-      ),
-    db
-      .prepare(
-        `INSERT INTO ownership_epoch
-           (id, identity_ownership_id, owner_points_user_id, effective_at, verification_method,
-            evidence_hash, success_count, request_id, created_at)
-         VALUES (?, ?, ?, ?, 'GITHUB_OAUTH', ?, 1, ?, ?)`,
-      )
-      .bind(
-        inactiveEpochId,
-        inactiveId,
-        account.pointsUserId,
-        account.now,
-        "b".repeat(64),
-        `req-${inactiveId}`,
-        account.now,
-      ),
-    db
-      .prepare(
-        `INSERT INTO identity_ownership
-           (id, identity_type, normalized_identity_key, points_user_id, status,
-            current_ownership_epoch_id, verified_at, permanent_correspondence)
-         VALUES (?, 'WEB_URL', ?, ?, 'ACTIVE', ?, ?, 0)`,
-      )
-      .bind(
-        webId,
-        `https://example.test/${account.pointsUserId}`,
-        account.pointsUserId,
-        webEpochId,
-        account.now,
-      ),
-    db
-      .prepare(
-        `INSERT INTO ownership_epoch
-           (id, identity_ownership_id, owner_points_user_id, effective_at, verification_method,
-            evidence_hash, success_count, request_id, created_at)
-         VALUES (?, ?, ?, ?, 'REL_ME', ?, 1, ?, ?)`,
-      )
-      .bind(
-        webEpochId,
-        webId,
-        account.pointsUserId,
-        account.now,
-        "c".repeat(64),
-        `req-${webId}`,
+        ACCOUNTS_ORIGIN,
+        `ausr_${account.githubAccountId}`,
         account.now,
       ),
   ]);
-  return { activeId, inactiveId, webEpochId, webId };
+  return accountsLinkId;
 }
 
 async function close(app: ReturnType<typeof authenticatedApp>, idempotencyKey: string) {
@@ -372,16 +316,17 @@ async function seedUnclaimedFixes(
         db
           .prepare(
             `INSERT INTO unclaimed_fix_entry
-             (id, source_fix_revision_id, recipient_provider_id, recipient_account_id,
-              recipient_profile_url, evaluation_criterion_id, evaluation_criterion_revision_id,
-              delta_amount_scaled, evaluation_at, created_at)
-             VALUES (?, ?, 'github', ?, ?, ?, ?, ?, '2026-07-01', ?)`,
+             (id, source_fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+              accounts_origin, accounts_resolved_at, evaluation_criterion_id,
+              evaluation_criterion_revision_id, delta_amount_scaled, evaluation_at, created_at)
+             VALUES (?, ?, 'url', ?, ?, ?, ?, ?, ?, '2026-07-01', ?)`,
           )
           .bind(
             `unclaimed-reopen-${suffix}-${index}`,
             revisionId,
-            account.githubAccountId,
             `https://github.com/${account.githubAccountId}`,
+            ACCOUNTS_ORIGIN,
+            account.now,
             criterionId,
             evaluationCriterionRevisionId,
             amount,
@@ -394,10 +339,12 @@ async function seedUnclaimedFixes(
 }
 
 describe("Points account close and reopen", () => {
+  afterEach(() => vi.restoreAllMocks());
   it("closes the account while retaining economic and permanent subject records", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     const suffix = crypto.randomUUID();
     const account = await seedAccount(suffix);
-    const ownerships = await seedOwnerships(account);
+    const accountsLinkId = await seedAccountsLink(account);
     const connectionId = await seedPointsConnection(account);
     const app = authenticatedApp(account);
 
@@ -407,8 +354,7 @@ describe("Points account close and reopen", () => {
     const state = await db
       .prepare(
         `SELECT user.account_status AS accountStatus, profile.display_name AS displayName,
-                profile.description, profile.external_urls AS externalUrls,
-                profile.visibility,
+                profile.description, profile.visibility,
                 (SELECT count(*) FROM session WHERE user_id = user.auth_user_id) AS sessionCount,
                 (SELECT count(*) FROM permanent_oauth_subject WHERE points_user_id = user.id) AS subjectCount,
                 (SELECT count(*) FROM account WHERE user_id = user.auth_user_id) AS accountCount,
@@ -416,9 +362,7 @@ describe("Points account close and reopen", () => {
                 (SELECT count(*) FROM oauth_access_token
                   WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedAccessCount,
                 (SELECT count(*) FROM oauth_refresh_token
-                  WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedRefreshCount,
-                (SELECT count(*) FROM audit_event WHERE actor_points_user_id = user.id
-                  AND action = 'ACCOUNT_CLOSE') AS auditCount
+                  WHERE user_id = user.auth_user_id AND revoked IS NOT NULL) AS revokedRefreshCount
          FROM points_user user JOIN profiles profile ON profile.points_user_id = user.id
          WHERE user.id = ?`,
       )
@@ -427,11 +371,9 @@ describe("Points account close and reopen", () => {
     expect(state).toMatchObject({
       accountStatus: "CLOSED",
       accountCount: 2,
-      auditCount: 1,
       consentCount: 0,
       description: "",
       displayName: "Closed account",
-      externalUrls: "[]",
       revokedAccessCount: 1,
       revokedRefreshCount: 1,
       sessionCount: 1,
@@ -439,29 +381,29 @@ describe("Points account close and reopen", () => {
       visibility: "PRIVATE",
     });
     await expect(
-      db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.activeId)
-        .first(),
-    ).resolves.toMatchObject({ status: "INACTIVE" });
-    await expect(
-      db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.inactiveId)
-        .first(),
-    ).resolves.toMatchObject({ status: "INACTIVE" });
-    await expect(
-      db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.webId)
-        .first(),
-    ).resolves.toMatchObject({ status: "INACTIVE" });
-    await expect(
-      db
-        .prepare("SELECT ended_at AS endedAt FROM ownership_epoch WHERE id = ?")
-        .bind(ownerships.webEpochId)
-        .first(),
-    ).resolves.toMatchObject({ endedAt: expect.any(Number) });
+      db.prepare("SELECT id FROM accounts_links WHERE id = ?").bind(accountsLinkId).first(),
+    ).resolves.toBeNull();
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "ACCOUNTS_LINKS_RELEASED",
+        releasedLinkCount: 1,
+        outcome: "SUCCESS",
+        environment: env.APP_ENV,
+      }),
+    );
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({ operation: "ACCOUNT_CLOSE", outcome: "SUCCESS" }),
+    );
+    expect(JSON.stringify(logs.mock.calls)).not.toContain(account.pointsUserId);
+    const auditCount = logs.mock.calls.length;
+    const replay = await closePointsAccount(db, {
+      authUserId: account.authUserId,
+      pointsUserId: account.pointsUserId,
+      idempotencyKey: `close-${suffix}`,
+      requestId: "req-close-replay",
+    });
+    expect(replay.status).toBe(200);
+    expect(logs.mock.calls).toHaveLength(auditCount);
     await expect(
       db
         .prepare(
@@ -618,12 +560,54 @@ describe("Points account close and reopen", () => {
     });
   });
 
-  it("previews and claims every positive and negative permanent-subject FIX on reopen", async () => {
+  it("reopens with an empty FIX set because close released every Accounts link", async () => {
+    const logs = vi.spyOn(console, "log").mockImplementation(() => {});
     const suffix = crypto.randomUUID();
     const account = await seedAccount(suffix);
-    const ownerships = await seedOwnerships(account);
+    await seedAccountsLink(account);
+    const app = authenticatedApp(account);
+    expect((await close(app, `close-for-empty-reopen-${suffix}`)).status).toBe(200);
+    await seedUnclaimedFixes(account, suffix);
+
+    const previewResponse = await app.fetch(
+      new Request("https://points.test/api/account/reopen-preview"),
+      env,
+    );
+    const preview = (await previewResponse.json()) as {
+      data: { aggregates: unknown[]; reopenSetHash: string; totalCount: number };
+    };
+    expect(preview.data).toMatchObject({ aggregates: [], totalCount: 0 });
+    const reopened = await app.fetch(
+      new Request("https://points.test/api/account/reopen", {
+        body: JSON.stringify({ reopenSetHash: preview.data.reopenSetHash }),
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": `empty-reopen-${suffix}`,
+        },
+        method: "POST",
+      }),
+      env,
+    );
+    expect(reopened.status).toBe(200);
+    await expect(reopened.json()).resolves.toMatchObject({
+      data: { claimedCount: 0, status: "ACTIVE" },
+    });
+    expect(logs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: "ACCOUNT_REOPEN",
+        claimedCount: 0,
+        outcome: "SUCCESS",
+        environment: env.APP_ENV,
+      }),
+    );
+  });
+
+  it("claims positive and negative FIX resolved to a current Accounts link on reopen", async () => {
+    const suffix = crypto.randomUUID();
+    const account = await seedAccount(suffix);
     const app = authenticatedApp(account);
     expect((await close(app, `close-for-reopen-${suffix}`)).status).toBe(200);
+    await seedAccountsLink(account);
     const { criterionId } = await seedUnclaimedFixes(account, suffix);
 
     const previewResponse = await app.fetch(
@@ -692,30 +676,24 @@ describe("Points account close and reopen", () => {
     });
     await expect(
       db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.activeId)
+        .prepare(
+          `SELECT accounts_origin AS accountsOrigin, accounts_user_id AS accountsUserId
+           FROM fix_claim WHERE points_user_id = ?`,
+        )
+        .bind(account.pointsUserId)
         .first(),
-    ).resolves.toMatchObject({ status: "ACTIVE" });
-    await expect(
-      db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.inactiveId)
-        .first(),
-    ).resolves.toMatchObject({ status: "INACTIVE" });
-    await expect(
-      db
-        .prepare("SELECT status FROM identity_ownership WHERE id = ?")
-        .bind(ownerships.webId)
-        .first(),
-    ).resolves.toMatchObject({ status: "INACTIVE" });
+    ).resolves.toEqual({
+      accountsOrigin: ACCOUNTS_ORIGIN,
+      accountsUserId: `ausr_${account.githubAccountId}`,
+    });
   });
 
   it("rejects reopen when the previewed FIX set changes", async () => {
     const suffix = crypto.randomUUID();
     const account = await seedAccount(suffix);
-    await seedOwnerships(account);
     const app = authenticatedApp(account);
     expect((await close(app, `close-changed-${suffix}`)).status).toBe(200);
+    await seedAccountsLink(account);
     await seedUnclaimedFixes(account, suffix);
     const previewResponse = await app.fetch(
       new Request("https://points.test/api/account/reopen-preview"),
@@ -756,16 +734,17 @@ describe("Points account close and reopen", () => {
       db
         .prepare(
           `INSERT INTO unclaimed_fix_entry
-             (id, source_fix_revision_id, recipient_provider_id, recipient_account_id,
-              recipient_profile_url, evaluation_criterion_id, evaluation_criterion_revision_id,
-              delta_amount_scaled, evaluation_at, created_at)
-           VALUES (?, ?, 'github', ?, ?, ?, ?, 1, '2026-07-02', ?)`,
+             (id, source_fix_revision_id, recipient_identifier_type, recipient_identifier_value,
+              accounts_origin, accounts_resolved_at, evaluation_criterion_id,
+              evaluation_criterion_revision_id, delta_amount_scaled, evaluation_at, created_at)
+           VALUES (?, ?, 'url', ?, ?, ?, ?, ?, 1, '2026-07-02', ?)`,
         )
         .bind(
           `unclaimed-reopen-extra-${suffix}`,
           extraRevisionId,
-          account.githubAccountId,
           `https://github.com/${account.githubAccountId}`,
+          ACCOUNTS_ORIGIN,
+          account.now,
           criterion!.id,
           criterion!.revisionId,
           account.now + 10,

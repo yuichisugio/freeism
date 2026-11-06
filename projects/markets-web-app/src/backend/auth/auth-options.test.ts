@@ -32,4 +32,8 @@ describe("Markets Better Auth options", () => {
       storeStateStrategy: "database",
     });
   });
+
+  it("uses Better Auth's admin plugin for Markets roles", () => {
+    expect(options.plugins?.map((plugin) => plugin.id)).toContain("admin");
+  });
 });

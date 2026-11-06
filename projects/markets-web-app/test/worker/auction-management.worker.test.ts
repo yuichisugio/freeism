@@ -1,3 +1,4 @@
+import { seedPointsProvider, testPointsProviderId } from "../fixtures/points-provider";
 import { env } from "cloudflare:test";
 import { beforeAll, describe, expect, it } from "vite-plus/test";
 
@@ -23,6 +24,7 @@ const other: MarketsActor = {
 const now = new Date("2031-01-01T00:00:00.000Z");
 
 beforeAll(async () => {
+  await seedPointsProvider(env.DB!);
   for (const [authId, marketsId] of [
     [ownerAuthId, ownerId],
     [otherAuthId, otherId],
@@ -45,14 +47,20 @@ async function seedAuction(suffix: string) {
   await env.DB!.batch([
     env
       .DB!.prepare(
-        "INSERT INTO point_package_snapshots (id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, ?, 1)",
+        "INSERT INTO point_package_snapshots (id, provider_id, point_package_id, point_package_revision_id, name, total_weight) VALUES (?, ?, ?, ?, ?, 1)",
       )
-      .bind(snapshotId, `pp_${suffix}`, `ppr_${suffix}_${crypto.randomUUID()}`, "Package"),
+      .bind(
+        snapshotId,
+        testPointsProviderId,
+        `pp_${suffix}`,
+        `ppr_${suffix}_${crypto.randomUUID()}`,
+        "Package",
+      ),
     env
       .DB!.prepare(
-        "INSERT INTO auctions (id, seller_markets_user_id, status, version) VALUES (?, ?, 'SCHEDULED', 1)",
+        "INSERT INTO auctions (id, provider_id, seller_markets_user_id, status, version) VALUES (?, ?, ?, 'SCHEDULED', 1)",
       )
-      .bind(auctionId, ownerId),
+      .bind(auctionId, testPointsProviderId, ownerId),
     env
       .DB!.prepare(
         `INSERT INTO auction_revisions
@@ -138,6 +146,7 @@ describe("Auction management", () => {
     };
     const dependencies = {
       repository,
+      pointsIssuer: "https://points.example.test/api/auth",
       now: () => now,
       refreshPackage: async () => row.packageSnapshot,
       checkEligibility: async (request: {

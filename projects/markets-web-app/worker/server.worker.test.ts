@@ -7,7 +7,7 @@ describe("markets Worker routing", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("application/json");
-    await expect(response.json()).resolves.toEqual({ service: "auction-worker", status: "ok" });
+    await expect(response.json()).resolves.toEqual({ service: "markets-worker", status: "ok" });
   });
 
   const nonHtmlCases = [

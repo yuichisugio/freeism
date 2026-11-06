@@ -5,9 +5,8 @@ node_modules/
 .DS_Store
 settings.local.json
 
-# Husky generated stub (see documentation toolchain)
-.husky/_
-projects/docs-web-app/.husky/_
+# Vite+ generated Git hook dispatcher
+.vite-hooks/_
 projects/docs-web-app/.astro/
 projects/docs-web-app/.blume/
 projects/docs-web-app/dist/

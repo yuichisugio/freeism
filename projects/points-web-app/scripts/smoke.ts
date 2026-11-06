@@ -6,12 +6,13 @@ import { releaseEnvironment, type ReleaseEnvironment } from "./migrate-d1";
 
 type SmokeCheck = {
   path: string;
-  expected: "html" | "json" | "navigation" | "unauthorized";
+  expected: "html" | "json" | "navigation" | "unauthorized" | "basic-auth";
 };
 
 type SmokeResponse = {
   contentType: string;
   status: number;
+  challenge?: string;
 };
 
 export function smokeOrigin(environment: ReleaseEnvironment): string {
@@ -20,8 +21,8 @@ export function smokeOrigin(environment: ReleaseEnvironment): string {
     : "https://staging.points.freeism.app";
 }
 
-export function smokeChecks(): SmokeCheck[] {
-  return [
+export function smokeChecks(environment: ReleaseEnvironment): SmokeCheck[] {
+  const checks: SmokeCheck[] = [
     { path: "/", expected: "html" },
     { path: "/terms", expected: "html" },
     { path: "/privacy", expected: "html" },
@@ -30,8 +31,13 @@ export function smokeChecks(): SmokeCheck[] {
     { path: "/search", expected: "navigation" },
     { path: "/api/v1/search?q=__points_smoke__", expected: "json" },
     { path: "/api/auth/get-session", expected: "json" },
-    { path: "/api/reconciliation", expected: "unauthorized" },
+    { path: "/api/accounts-links", expected: "unauthorized" },
   ];
+  return checks.map((check) =>
+    environment === "staging" && (check.expected === "html" || check.expected === "navigation")
+      ? { ...check, expected: "basic-auth" }
+      : check,
+  );
 }
 
 function requestNavigation(url: URL): Promise<SmokeResponse> {
@@ -74,7 +80,16 @@ async function checkResponse(origin: string, check: SmokeCheck): Promise<void> {
         }).then((result) => ({
           contentType: result.headers.get("content-type") ?? "",
           status: result.status,
+          challenge: result.headers.get("WWW-Authenticate") ?? "",
         }));
+  if (check.expected === "basic-auth") {
+    if (response.status !== 401 || !/^Basic\s/i.test(response.challenge ?? "")) {
+      throw new Error(
+        `${check.path}: expected Basic authentication 401, received ${response.status}`,
+      );
+    }
+    return;
+  }
   if (check.expected === "html" || check.expected === "navigation") {
     if (response.status !== 200 || !response.contentType.includes("text/html")) {
       throw new Error(
@@ -100,8 +115,12 @@ async function checkResponse(origin: string, check: SmokeCheck): Promise<void> {
 
 export async function smoke(environment: ReleaseEnvironment): Promise<void> {
   const origin = smokeOrigin(environment);
-  for (const check of smokeChecks()) await checkResponse(origin, check);
-  process.stdout.write(`Points ${environment} read-only smoke: PASS\n`);
+  await smokeAt(origin, environment);
+}
+
+export async function smokeAt(origin: string, environment: ReleaseEnvironment): Promise<void> {
+  for (const check of smokeChecks(environment)) await checkResponse(origin, check);
+  process.stdout.write(`Points ${environment} read-only smoke at ${origin}: PASS\n`);
 }
 
 async function main(): Promise<void> {

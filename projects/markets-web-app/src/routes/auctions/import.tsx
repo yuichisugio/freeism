@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -8,6 +8,7 @@ import {
   type MarketsClient,
 } from "../../client/api/markets-client";
 import { AuctionImportPreviewView } from "../../components/auction-import-preview";
+import { useApiResource } from "../../client/api/use-api-resource";
 import { ProblemBanner } from "../../components/problem-banner";
 
 export const Route = createFileRoute("/auctions/import")({
@@ -19,19 +20,22 @@ export function AuctionImportPage({
   client = marketsClient,
 }: Readonly<{ client?: MarketsClient }>) {
   const [file, setFile] = useState<File | null>(null);
+  const [providerId, setProviderId] = useState("");
+  const loadProviders = useCallback(() => client.pointsProviders(), [client]);
+  const providers = useApiResource(loadProviders);
   const [preview, setPreview] = useState<AuctionImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function validate() {
-    if (!file) return;
+    if (!file || !providerId) return;
     setBusy(true);
     setError(null);
     setPreview(null);
     try {
       setPreview(
-        await client.validateAuctionImport(file, {
+        await client.validateAuctionImport(file, providerId, {
           idempotencyKey: createIdempotencyKey("auction_csv_validate"),
         }),
       );
@@ -49,7 +53,25 @@ export function AuctionImportPage({
         <h1 id="import-heading">CSVからAuctionを作成</h1>
         <p>1回につき最大1,000行です。サーバー検証済みpreviewだけを確定できます。</p>
         {error ? <ProblemBanner message={error} /> : null}
+        {providers.error ? <ProblemBanner message="ポイントサービスを取得できません。" /> : null}
         {message ? <p aria-live="polite">{message}</p> : null}
+        <label htmlFor="auction-provider">ポイントサービス</label>
+        <select
+          id="auction-provider"
+          onChange={(event) => {
+            setProviderId(event.currentTarget.value);
+            setPreview(null);
+          }}
+          required
+          value={providerId}
+        >
+          <option value="">選択してください</option>
+          {providers.data?.map((provider) => (
+            <option key={provider.providerId} value={provider.providerId}>
+              {provider.displayName} ({provider.origin})
+            </option>
+          ))}
+        </select>
         <label htmlFor="auction-csv">CSVファイル</label>
         <input
           accept="text/csv,.csv"
@@ -61,7 +83,11 @@ export function AuctionImportPage({
           }}
           type="file"
         />
-        <button disabled={!file || busy} onClick={() => void validate()} type="button">
+        <button
+          disabled={!file || !providerId || busy}
+          onClick={() => void validate()}
+          type="button"
+        >
           サーバーで検証
         </button>
         {preview ? <AuctionImportPreviewView preview={preview} /> : null}

@@ -1,5 +1,4 @@
-account_id            = "replace-with-staging-account-id"
-zone_id               = "replace-with-freeism-zone-id"
-environment           = "staging"
-access_allowed_emails = ["replace-with-staging-operator@example.com"]
-ops_alert_email       = "replace-with-verified-staging-ops@example.com"
+account_id      = "replace-with-staging-account-id"
+zone_id         = "replace-with-freeism-zone-id"
+environment     = "staging"
+ops_alert_email = "replace-with-verified-staging-ops@example.com"

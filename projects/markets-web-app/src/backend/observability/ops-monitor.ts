@@ -1,11 +1,9 @@
-import { hashOpsResourceId } from "./ops-metrics";
 import { OpsAlertRepository, type MarketsOpsAlertRecord } from "./ops-alert-repository";
 
 const FIVE_MINUTES = 5 * 60_000;
 
 export interface ObservedMarketsOpsAlert {
   dedupeKey: string;
-  resourceIdHash: string;
   safeDetailCode: string;
   severity: "WARNING";
   signal: "SETTLEMENT_OUTBOX_STUCK";
@@ -14,7 +12,6 @@ export interface ObservedMarketsOpsAlert {
 export async function inspectMarketsOpsAlerts(
   db: D1Database,
   now: number,
-  resourceHashSalt: string,
 ): Promise<ObservedMarketsOpsAlert[]> {
   const stuck = await db
     .prepare(
@@ -25,18 +22,12 @@ export async function inspectMarketsOpsAlerts(
     .bind(new Date(now - FIVE_MINUTES).toISOString())
     .all<{ id: string }>();
 
-  return Promise.all(
-    stuck.results.map(async ({ id }) => {
-      const resourceIdHash = await hashOpsResourceId(id, resourceHashSalt);
-      return {
-        dedupeKey: `settlement-outbox-stuck:${resourceIdHash}`,
-        resourceIdHash,
-        safeDetailCode: "PENDING_OVER_5_MINUTES" as const,
-        severity: "WARNING" as const,
-        signal: "SETTLEMENT_OUTBOX_STUCK" as const,
-      };
-    }),
-  );
+  return stuck.results.map(({ id }) => ({
+    dedupeKey: `settlement-outbox-stuck:${id}`,
+    safeDetailCode: "PENDING_OVER_5_MINUTES",
+    severity: "WARNING",
+    signal: "SETTLEMENT_OUTBOX_STUCK",
+  }));
 }
 
 export interface MonitorMarketsOpsAlertsOptions {
@@ -44,7 +35,6 @@ export interface MonitorMarketsOpsAlertsOptions {
   inspect?: (db: D1Database, now: number) => Promise<ObservedMarketsOpsAlert[]>;
   notify: (alert: MarketsOpsAlertRecord) => Promise<void>;
   now?: number;
-  resourceHashSalt?: string;
 }
 
 export async function monitorMarketsOpsAlerts(
@@ -54,15 +44,7 @@ export async function monitorMarketsOpsAlerts(
   const now = options.now ?? Date.now();
   const nowIso = new Date(now).toISOString();
   const repository = new OpsAlertRepository(db);
-  const observations = await (
-    options.inspect ??
-    ((database, observedAt) =>
-      inspectMarketsOpsAlerts(
-        database,
-        observedAt,
-        options.resourceHashSalt ?? "markets-ops-alert",
-      ))
-  )(db, now);
+  const observations = await (options.inspect ?? inspectMarketsOpsAlerts)(db, now);
   for (const observation of observations) {
     await repository.observe({
       dedupeKey: observation.dedupeKey,
@@ -80,11 +62,7 @@ export async function monitorMarketsOpsAlerts(
   let deliveryFailures = 0;
   let notified = 0;
   for (const alert of await repository.listDueForNotification(nowIso)) {
-    const deliveryResourceHash = await hashOpsResourceId(
-      alert.dedupeKey,
-      options.resourceHashSalt ?? "markets-ops-alert-delivery",
-    );
-    const deliveryAlertKey = `alert-delivery-failed:${deliveryResourceHash}`;
+    const deliveryAlertKey = `alert-delivery-failed:${alert.dedupeKey}`;
     await repository.recordDeliveryAttempt(alert.dedupeKey);
     try {
       await options.notify(alert);

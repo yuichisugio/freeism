@@ -1,4 +1,5 @@
-import type { z } from "zod";
+import type { PointsOAuthClient } from "./points-oauth-client";
+import * as v from "valibot";
 
 import {
   auctionEligibilityItemErrorSchema,
@@ -34,7 +35,7 @@ import {
 } from "./points-api-schemas";
 
 function isAuctionEligibilityItemError(value: unknown): value is AuctionEligibilityItemError {
-  return auctionEligibilityItemErrorSchema.safeParse(value).success;
+  return v.safeParse(auctionEligibilityItemErrorSchema, value).success;
 }
 
 function readProblem(value: unknown) {
@@ -87,7 +88,10 @@ export class PointsApiError extends Error {
   }
 }
 
-async function json<T>(response: Response, schema: z.ZodType<T>): Promise<T> {
+async function json<T extends v.GenericSchema>(
+  response: Response,
+  schema: T,
+): Promise<v.InferOutput<T>> {
   if (!response.ok) {
     const body: unknown = await response.json<unknown>().catch(() => undefined);
     const problem = readProblem(body);
@@ -106,14 +110,15 @@ async function json<T>(response: Response, schema: z.ZodType<T>): Promise<T> {
   } catch {
     throw new PointsApiError(response.status, "POINTS_API_RESPONSE_INVALID");
   }
-  const parsed = schema.safeParse(body);
+  const parsed = v.safeParse(schema, body);
   if (!parsed.success) {
     throw new PointsApiError(response.status, "POINTS_API_RESPONSE_INVALID");
   }
-  return parsed.data;
+  return parsed.output;
 }
 
 function request(
+  origin: string,
   path: string,
   input: {
     bearer?: string;
@@ -129,7 +134,7 @@ function request(
   if (input.body !== undefined) headers.set("Content-Type", "application/json");
   if (input.idempotencyKey) headers.set("Idempotency-Key", input.idempotencyKey);
   if (input.ifNoneMatch) headers.set("If-None-Match", input.ifNoneMatch);
-  return new Request(`https://points.service${path}`, {
+  return new Request(`${origin}${path}`, {
     body: input.body === undefined ? undefined : JSON.stringify(input.body),
     headers,
     method: input.method ?? (input.body === undefined ? "GET" : "POST"),
@@ -139,13 +144,33 @@ function request(
 
 export class PointsApiClient {
   constructor(
-    private readonly service: Fetcher,
-    private readonly getM2MAccessToken: (scopes: readonly string[]) => Promise<string>,
+    private readonly config: {
+      origin: string;
+      fetch: typeof globalThis.fetch;
+      oauth: PointsOAuthClient;
+    },
   ) {}
 
+  private send(request: Request) {
+    const authorization = request.headers.get("Authorization");
+    return authorization
+      ? this.config.oauth.protectedResourceRequest(request, authorization.slice(7))
+      : this.config.fetch(request, { redirect: "manual" }).then((response) => {
+          if (response.status >= 300 && response.status < 400 && response.status !== 304) {
+            throw new PointsApiError(response.status, "POINTS_API_REDIRECT_FORBIDDEN");
+          }
+          return response;
+        });
+  }
+
+  private getM2MAccessToken(scopes: readonly string[]) {
+    return this.config.oauth.getM2MAccessToken(scopes);
+  }
+
   async getPublicPointPackageRevision(pointPackageRevisionId: string, ifNoneMatch?: string) {
-    return this.service.fetch(
+    return this.send(
       request(
+        this.config.origin,
         `/api/v1/point-package-revisions/${encodeURIComponent(pointPackageRevisionId)}`,
         ifNoneMatch ? { ifNoneMatch } : {},
       ),
@@ -158,10 +183,10 @@ export class PointsApiClient {
   ) {
     const bearer = await this.getM2MAccessToken(["points.packages.auction-eligibility"]);
     return json(
-      await this.service.fetch(
-        request("/api/v1/point-package-auction-eligibility-checks", {
+      await this.send(
+        request(this.config.origin, "/api/v1/point-package-auction-eligibility-checks", {
           bearer,
-          body: auctionEligibilityRequestSchema.parse(body),
+          body: v.parse(auctionEligibilityRequestSchema, body),
           idempotencyKey,
         }),
       ),
@@ -172,10 +197,10 @@ export class PointsApiClient {
   async createPointsLinkAttempt(body: CreateLinkAttemptRequest, idempotencyKey: string) {
     const bearer = await this.getM2MAccessToken(["points.connection.link-attempt.create"]);
     return json(
-      await this.service.fetch(
-        request("/api/v1/oauth/link-attempts", {
+      await this.send(
+        request(this.config.origin, "/api/v1/oauth/link-attempts", {
           bearer,
-          body: createLinkAttemptRequestSchema.parse(body),
+          body: v.parse(createLinkAttemptRequestSchema, body),
           idempotencyKey,
         }),
       ),
@@ -190,12 +215,16 @@ export class PointsApiClient {
   ) {
     const bearer = await this.getM2MAccessToken(["points.connection.link-attempt.finalize"]);
     return json(
-      await this.service.fetch(
-        request(`/api/v1/oauth/link-attempts/${encodeURIComponent(linkAttemptId)}/finalizations`, {
-          bearer,
-          body: finalizeLinkAttemptRequestSchema.parse(body),
-          idempotencyKey,
-        }),
+      await this.send(
+        request(
+          this.config.origin,
+          `/api/v1/oauth/link-attempts/${encodeURIComponent(linkAttemptId)}/finalizations`,
+          {
+            bearer,
+            body: v.parse(finalizeLinkAttemptRequestSchema, body),
+            idempotencyKey,
+          },
+        ),
       ),
       finalizeLinkAttemptResponseSchema,
     );
@@ -203,7 +232,9 @@ export class PointsApiClient {
 
   async getPointsConnection(userAccessToken: string) {
     return json(
-      await this.service.fetch(request("/api/v1/me/connection", { bearer: userAccessToken })),
+      await this.send(
+        request(this.config.origin, "/api/v1/me/connection", { bearer: userAccessToken }),
+      ),
       pointsConnectionResponseSchema,
     );
   }
@@ -214,10 +245,10 @@ export class PointsApiClient {
     userAccessToken: string,
   ) {
     return json(
-      await this.service.fetch(
-        request("/api/v1/me/connection-deactivations", {
+      await this.send(
+        request(this.config.origin, "/api/v1/me/connection-deactivations", {
           bearer: userAccessToken,
-          body: deactivateConnectionRequestSchema.parse(body),
+          body: v.parse(deactivateConnectionRequestSchema, body),
           idempotencyKey,
         }),
       ),
@@ -227,10 +258,10 @@ export class PointsApiClient {
 
   async checkPointBalance(body: BalanceCheckRequest, userAccessToken: string) {
     return json(
-      await this.service.fetch(
-        request("/api/v1/me/balance-checks", {
+      await this.send(
+        request(this.config.origin, "/api/v1/me/balance-checks", {
           bearer: userAccessToken,
-          body: balanceCheckRequestSchema.parse(body),
+          body: v.parse(balanceCheckRequestSchema, body),
         }),
       ),
       balanceCheckResponseSchema,
@@ -244,10 +275,10 @@ export class PointsApiClient {
     options: PointsRequestOptions = {},
   ) {
     return json(
-      await this.service.fetch(
-        request("/api/v1/me/point-reservations", {
+      await this.send(
+        request(this.config.origin, "/api/v1/me/point-reservations", {
           bearer: userAccessToken,
-          body: createReservationRequestSchema.parse(body),
+          body: v.parse(createReservationRequestSchema, body),
           idempotencyKey,
           signal: options.signal,
         }),
@@ -262,10 +293,10 @@ export class PointsApiClient {
   ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.status"]);
     return json(
-      await this.service.fetch(
-        request("/api/v1/point-reservations/status", {
+      await this.send(
+        request(this.config.origin, "/api/v1/point-reservations/status", {
           bearer,
-          body: reservationStatusRequestSchema.parse(body),
+          body: v.parse(reservationStatusRequestSchema, body),
           signal: options.signal,
         }),
       ),
@@ -281,13 +312,17 @@ export class PointsApiClient {
   ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.capture"]);
     return json(
-      await this.service.fetch(
-        request(`/api/v1/settlements/${encodeURIComponent(settlementId)}/capture`, {
-          bearer,
-          body: captureSettlementRequestSchema.parse(body),
-          idempotencyKey,
-          signal: options.signal,
-        }),
+      await this.send(
+        request(
+          this.config.origin,
+          `/api/v1/settlements/${encodeURIComponent(settlementId)}/capture`,
+          {
+            bearer,
+            body: v.parse(captureSettlementRequestSchema, body),
+            idempotencyKey,
+            signal: options.signal,
+          },
+        ),
       ),
       captureSettlementResponseSchema,
     );
@@ -300,10 +335,10 @@ export class PointsApiClient {
   ) {
     const bearer = await this.getM2MAccessToken(["points.reservations.release"]);
     return json(
-      await this.service.fetch(
-        request("/api/v1/point-reservations/release", {
+      await this.send(
+        request(this.config.origin, "/api/v1/point-reservations/release", {
           bearer,
-          body: releaseReservationRequestSchema.parse(body),
+          body: v.parse(releaseReservationRequestSchema, body),
           idempotencyKey,
           signal: options.signal,
         }),

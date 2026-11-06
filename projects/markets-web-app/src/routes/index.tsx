@@ -21,9 +21,6 @@ export function IndexPage() {
           </a>
           <a href="/login">Googleでログイン</a>
         </div>
-        <a className="points-link" href="https://points.freeism.app">
-          Freeism Pointsへ
-        </a>
       </section>
     </main>
   );

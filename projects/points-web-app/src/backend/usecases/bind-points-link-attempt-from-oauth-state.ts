@@ -24,6 +24,15 @@ export async function bindPointsLinkAttemptFromOAuthState(
   const stateHash = `sha256:${await sha256Hex(input.rawState)}`;
   const now = input.now ?? new Date();
   try {
+    await db
+      .prepare(
+        `UPDATE points_oauth_link_attempt
+         SET status = 'CANCELLED', finalized_at = ?
+         WHERE user_client_id = ? AND points_user_id = ?
+           AND status = 'PENDING_MARKETS_CONFIRMATION' AND expires_at <= ?`,
+      )
+      .bind(now.getTime(), input.userClientId, pointsUser.id, now.getTime())
+      .run();
     const updated = await db
       .prepare(
         `UPDATE points_oauth_link_attempt

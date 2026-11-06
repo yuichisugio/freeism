@@ -152,7 +152,10 @@ describe("Points social authentication", () => {
     const recreatedAuth = createPointsAuth(env as Bindings);
     const account = await (
       await recreatedAuth.$context
-    ).internalAdapter.findAccountByProviderId("provider-account", "github");
+    ).internalAdapter.findAccountByKey({
+      accountId: "provider-account",
+      providerId: "github",
+    });
 
     expect(account).toMatchObject({
       accountId: "provider-account",

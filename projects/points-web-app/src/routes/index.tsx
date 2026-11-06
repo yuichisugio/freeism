@@ -16,9 +16,6 @@ export function IndexPage() {
       <section className="form-card">
         <h2>ポイント残高</h2>
         <EmptyState>表示できるポイント残高はまだありません。</EmptyState>
-        <a className="markets-link" href="https://markets.freeism.app">
-          Freeism Marketsへ
-        </a>
       </section>
     </OperationPage>
   );

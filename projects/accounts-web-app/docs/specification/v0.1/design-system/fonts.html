@@ -1,0 +1,18 @@
+<!--
+  Freeism Accounts デザインシステム v0.1 の書体の読み込み（<head> に置く断片）。
+  URL とウェイトは src/frontend/routes/__root.tsx と同じ。
+  Zen Maru Gothic 500/700（見出し・ロゴ・番号）、Noto Sans JP 400/500/700（本文）、M PLUS 1 Code 400/500（URL・ID・コード）。
+  display=swap のため、読み込むまでは下のフォールバックの書体で表示する。
+  使い方は README.ja.md を参照。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1+Code:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+
+<!--
+  フォールバックを含む書体の指定（tokens.css で定義済み。ここは参照用）。
+    font-display: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Noto Sans JP", sans-serif
+    font-sans:    "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif
+    font-mono:    "M PLUS 1 Code", ui-monospace, Menlo, monospace
+  Web フォントを読み込めないページ（CSP で外部の読み込みを許可しない公開プロフィールなど）は、この断片を置かず、同じ指定のまま端末にある書体で表示する。
+-->

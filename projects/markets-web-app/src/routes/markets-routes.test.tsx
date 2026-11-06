@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import { AuctionDetailPage } from "./auctions/$auctionId";
 import { AuctionImportPage } from "./auctions/import";
 import { AuctionListPage } from "./auctions/index";
+import { PointsConnectionsAdminPage } from "./admin/points-connections";
 import { LoginPage } from "./login";
 import { MyAuctionBidsPage } from "./me/auctions/bids";
 import { MyAuctionCreatedPage } from "./me/auctions/created";
@@ -21,6 +22,7 @@ describe("Markets canonical routes", () => {
     expect(CANONICAL_MARKETS_ROUTES).toEqual([
       "/login",
       "/settings/points-connection",
+      "/admin/points-connections",
       "/auctions",
       "/auctions/import",
       "/auctions/$auctionId",
@@ -41,6 +43,7 @@ describe("Markets canonical routes", () => {
     const html = [
       <LoginPage key="login" />,
       <PointsConnectionPage key="points" />,
+      <PointsConnectionsAdminPage key="admin" />,
       <AuctionListPage key="list" />,
       <AuctionImportPage key="import" />,
       <AuctionDetailPage auctionId="auction_1" key="detail" />,
@@ -54,12 +57,13 @@ describe("Markets canonical routes", () => {
     expect(html[0]).toContain("Googleでログイン");
     expect(html[0]).not.toMatch(/password|Apple/i);
     expect(html[1]).toContain("Points連携");
-    expect(html[3]).toContain('type="file"');
-    expect(html[3]).toContain("CSVファイル");
-    expect(html[4]).toContain("入札");
-    expect(html[8]).toContain("取引証明");
-    expect(html[8]).not.toContain("レビューはまだありません");
-    expect(html[9]).toContain("Settlement");
+    expect(html[2]).toContain("ポイントサービスの接続先");
+    expect(html[4]).toContain('type="file"');
+    expect(html[4]).toContain("CSVファイル");
+    expect(html[5]).toContain("入札");
+    expect(html[9]).toContain("取引証明");
+    expect(html[9]).not.toContain("レビューはまだありません");
+    expect(html[10]).toContain("Settlement");
   });
 
   it("keeps Japanese and English label keys in parity", () => {

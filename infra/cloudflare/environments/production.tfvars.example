@@ -1,5 +1,4 @@
-account_id            = "replace-with-production-account-id"
-zone_id               = "replace-with-freeism-zone-id"
-environment           = "production"
-access_allowed_emails = []
-ops_alert_email       = "replace-with-verified-production-ops@example.com"
+account_id      = "replace-with-production-account-id"
+zone_id         = "replace-with-freeism-zone-id"
+environment     = "production"
+ops_alert_email = "replace-with-verified-production-ops@example.com"

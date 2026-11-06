@@ -29,7 +29,11 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export function createIdempotencyMiddleware(getSession: GetSession, operation: string) {
+export function createIdempotencyMiddleware(
+  getSession: GetSession,
+  operation: string,
+  targetParam?: string,
+) {
   return createMiddleware<BackendContext>(async (context, next) => {
     const idempotencyKey = context.req.header("Idempotency-Key")?.trim();
     const browserMutation = context.req.header("Origin") !== undefined;
@@ -58,7 +62,7 @@ export function createIdempotencyMiddleware(getSession: GetSession, operation: s
     const repository = new D1IdempotencyRepository(context.env.DB);
     const reservation = await repository.replayOrReserve(
       actor.marketsUserId,
-      operation,
+      targetParam ? `${operation}:${context.req.param(targetParam)}` : operation,
       idempotencyKey,
       payloadHash,
     );

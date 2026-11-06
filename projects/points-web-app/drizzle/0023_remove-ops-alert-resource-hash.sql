@@ -1,0 +1,1 @@
+ALTER TABLE `ops_alert` DROP COLUMN `resource_id_hash`;

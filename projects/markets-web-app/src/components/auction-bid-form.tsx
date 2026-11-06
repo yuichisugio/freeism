@@ -7,16 +7,20 @@ export function AuctionBidForm({
   auctionId,
   auctionVersion,
   canBid,
+  canCancelAutoBid,
   client,
   hasAutoBid,
   onChanged,
+  unavailableReason,
 }: Readonly<{
   auctionId: string;
   auctionVersion: number;
   canBid: boolean;
+  canCancelAutoBid: boolean;
   client: MarketsClient;
   hasAutoBid: boolean;
   onChanged: () => void;
+  unavailableReason?: string;
 }>) {
   const [price, setPrice] = useState(1);
   const [quantity, setQuantity] = useState(1);
@@ -41,7 +45,9 @@ export function AuctionBidForm({
   return (
     <section aria-labelledby="bid-heading" className="sub-panel">
       <h2 id="bid-heading">入札</h2>
-      {!canBid ? <p className="status-label">最新状態の確認中は入札できません。</p> : null}
+      {!canBid ? (
+        <p className="status-label">{unavailableReason ?? "最新状態の確認中は入札できません。"}</p>
+      ) : null}
       {error ? <ProblemBanner message={error} /> : null}
       <form
         onSubmit={(event) => {
@@ -96,7 +102,7 @@ export function AuctionBidForm({
       </form>
       {hasAutoBid ? (
         <button
-          disabled={!canBid || busy}
+          disabled={!canCancelAutoBid || busy}
           onClick={() =>
             void mutate(() =>
               client.cancelAutoBid(auctionId, auctionVersion, {

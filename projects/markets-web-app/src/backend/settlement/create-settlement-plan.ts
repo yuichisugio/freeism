@@ -11,6 +11,7 @@ export interface EligibleSettlementBid {
 export interface EndOfAuctionPlanInput {
   algorithmVersion: string;
   auctionId: string;
+  providerId: string;
   auctionRevisionId: string;
   cutoffAt: string;
   eligibleBids: readonly EligibleSettlementBid[];
@@ -24,6 +25,7 @@ export interface EndOfAuctionPlanInput {
 export interface BuyNowPlanInput {
   algorithmVersion: string;
   auctionId: string;
+  providerId: string;
   auctionRevisionId: string;
   availableQuantityBeforeHold: number;
   buyerMarketsUserId: string;
@@ -39,6 +41,7 @@ export type SettlementPlan =
   | {
       algorithmVersion: string;
       auctionId: string;
+      providerId: string;
       auctionRevisionId: string;
       cutoffAt: string;
       eligibleBidIds: readonly string[];
@@ -52,6 +55,7 @@ export type SettlementPlan =
   | {
       algorithmVersion: string;
       auctionId: string;
+      providerId: string;
       auctionRevisionId: string;
       availableQuantityBeforeHold: number;
       buyerMarketsUserId: string;
@@ -75,7 +79,12 @@ async function sha256(value: string): Promise<string> {
 }
 
 function assertCommon(input: EndOfAuctionPlanInput | BuyNowPlanInput): void {
-  if (!input.auctionId || !input.auctionRevisionId || !input.algorithmVersion) {
+  if (
+    !input.auctionId ||
+    !input.providerId ||
+    !input.auctionRevisionId ||
+    !input.algorithmVersion
+  ) {
     throw new Error("INVALID_SETTLEMENT_PLAN_INPUT");
   }
   assertSafeInteger(input.packageTick, 1);
@@ -97,6 +106,7 @@ export async function createSettlementPlan(
     plan = {
       algorithmVersion: input.algorithmVersion,
       auctionId: input.auctionId,
+      providerId: input.providerId,
       auctionRevisionId: input.auctionRevisionId,
       availableQuantityBeforeHold: input.availableQuantityBeforeHold,
       buyerMarketsUserId: input.buyerMarketsUserId,
@@ -133,6 +143,7 @@ export async function createSettlementPlan(
     plan = {
       algorithmVersion: input.algorithmVersion,
       auctionId: input.auctionId,
+      providerId: input.providerId,
       auctionRevisionId: input.auctionRevisionId,
       cutoffAt: input.cutoffAt,
       eligibleBidIds: eligibleBids.map((bid) => bid.bidPositionId),

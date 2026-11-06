@@ -1,13 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { FREEISM_SITES } from "./sites";
 
 describe("FREEISM_SITES", () => {
-  it("exposes the three independent Freeism destinations over HTTPS", () => {
+  it("exposes the four independent Freeism destinations over HTTPS", () => {
     expect(FREEISM_SITES.map(({ url }) => url)).toEqual([
       "https://docs.freeism.app/",
       "https://points.freeism.app/",
       "https://markets.freeism.app/",
+      "https://accounts.freeism.app/",
     ]);
   });
 
@@ -26,6 +27,10 @@ describe("FREEISM_SITES", () => {
       {
         label: "Markets",
         responsibility: "商材情報を含むAuction。",
+      },
+      {
+        label: "Accounts",
+        responsibility: "外部アカウントの統合、所有権証明、公開先ごとの情報提供。",
       },
     ]);
   });

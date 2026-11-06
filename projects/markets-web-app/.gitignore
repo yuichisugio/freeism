@@ -1,0 +1,8 @@
+.env.*
+!.env.example
+.dev.vars*
+node_modules/
+dist/
+.tanstack/
+.wrangler/
+.tanstack/

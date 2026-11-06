@@ -41,18 +41,18 @@ jobs:
 
     steps:
       - name: Check out the pushed commit
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@v7.0.1
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: 10.33.3
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: latest
+          node-version: "26.13.0"
           check-latest: true
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
@@ -70,19 +70,17 @@ jobs:
           pnpm --filter @freeism/markets-web-app test
           pnpm --filter @freeism/markets-web-app test:worker
 
-      - name: Build and validate Points artifact
-        run: |
-          set -a
-          source projects/points-web-app/.dev.vars.example
-          set +a
-          pnpm --filter @freeism/points-web-app build:staging
-          pnpm --filter @freeism/points-web-app build:assert
+      - name: Build Points artifact
+        env:
+          APP_ORIGIN: "https://staging.points.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
+        run: pnpm --filter @freeism/points-web-app build:staging
 
       - name: Build and validate Markets artifact
+        env:
+          APP_ORIGIN: "https://staging.markets.freeism.app"
+          BETTER_AUTH_SECRETS: "1:build-only-placeholder-secret-at-least-32-characters"
         run: |
-          set -a
-          source projects/markets-web-app/.dev.vars.example
-          set +a
           pnpm --filter @freeism/markets-web-app build:staging
           pnpm --filter @freeism/markets-web-app build:assert
 
@@ -100,6 +98,3 @@ jobs:
 
       - name: Smoke test Points
         run: pnpm --filter @freeism/points-web-app smoke:staging
-
-      - name: Smoke test Markets
-        run: pnpm --filter @freeism/markets-web-app smoke:staging

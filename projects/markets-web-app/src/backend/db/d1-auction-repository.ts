@@ -31,6 +31,7 @@ export interface AuctionWriteRow {
 
 export interface AuctionManagementSnapshot {
   auctionId: string;
+  providerId: string;
   sellerMarketsUserId: string;
   currentRevisionId: string;
   revisionNumber: number;
@@ -51,6 +52,8 @@ export type IdempotencyLookup<T> =
   | { kind: "REPLAY"; value: T };
 
 export interface WriteContext {
+  providerId: string;
+  pointsIssuer: string;
   actorMarketsUserId: string;
   commandHash: string;
   commandId: string;
@@ -73,12 +76,16 @@ function extensionRule(row: AuctionImportPreviewRow): string | null {
   });
 }
 
-function snapshotId(snapshot: VerifiedPackageRevision): string {
-  return `pps_${snapshot.contentHash.slice("sha256:".length, 42)}`;
+function snapshotId(providerId: string, snapshot: VerifiedPackageRevision): string {
+  return `pps_${providerId}_${snapshot.contentHash.slice("sha256:".length, 42)}`;
 }
 
-function componentId(snapshot: VerifiedPackageRevision, criterionId: string): string {
-  return `ppsc_${snapshot.contentHash.slice("sha256:".length, 24)}_${criterionId}`;
+function componentId(
+  providerId: string,
+  snapshot: VerifiedPackageRevision,
+  criterionId: string,
+): string {
+  return `ppsc_${providerId}_${snapshot.contentHash.slice("sha256:".length, 24)}_${criterionId}`;
 }
 
 export class D1AuctionRepository {
@@ -111,7 +118,7 @@ export class D1AuctionRepository {
   async findForManagement(auctionId: string): Promise<AuctionManagementSnapshot | null> {
     return this.db
       .prepare(
-        `SELECT a.id AS auctionId, a.seller_markets_user_id AS sellerMarketsUserId,
+        `SELECT a.id AS auctionId, a.provider_id AS providerId, a.seller_markets_user_id AS sellerMarketsUserId,
                 a.current_revision_id AS currentRevisionId, a.status, a.version,
                 r.revision_number AS revisionNumber, r.starts_at AS startsAt
          FROM auctions a JOIN auction_revisions r ON r.id = a.current_revision_id
@@ -138,16 +145,17 @@ export class D1AuctionRepository {
     const statements: D1PreparedStatement[] = [];
     for (const { auctionId, revisionId, row } of rows) {
       const snapshot = row.packageSnapshot;
-      const packageSnapshotId = snapshotId(snapshot);
+      const packageSnapshotId = snapshotId(context.providerId, snapshot);
       statements.push(
         this.db
           .prepare(
             `INSERT OR IGNORE INTO point_package_snapshots
-             (id, point_package_id, point_package_revision_id, name, total_weight)
-             VALUES (?, ?, ?, ?, ?)`,
+             (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+             VALUES (?, ?, ?, ?, ?, ?)`,
           )
           .bind(
             packageSnapshotId,
+            context.providerId,
             snapshot.pointPackageId,
             snapshot.pointPackageRevisionId,
             snapshot.name,
@@ -165,7 +173,7 @@ export class D1AuctionRepository {
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             )
             .bind(
-              componentId(snapshot, component.evaluationCriterionId),
+              componentId(context.providerId, snapshot, component.evaluationCriterionId),
               packageSnapshotId,
               component.evaluationCriterionId,
               component.evaluationCriterionRevisionId,
@@ -180,10 +188,10 @@ export class D1AuctionRepository {
         this.db
           .prepare(
             `INSERT INTO auctions
-             (id, seller_markets_user_id, status, version, updated_at)
-             VALUES (?, ?, 'DRAFT', 1, ?)`,
+             (id, provider_id, seller_markets_user_id, status, version, updated_at)
+             VALUES (?, ?, ?, 'DRAFT', 1, ?)`,
           )
-          .bind(auctionId, context.actorMarketsUserId, context.commitStartedAt),
+          .bind(auctionId, context.providerId, context.actorMarketsUserId, context.commitStartedAt),
         this.db
           .prepare(
             `INSERT INTO auction_revisions
@@ -193,7 +201,7 @@ export class D1AuctionRepository {
               eligibility_receipt_id, auction_command_id, auction_command_hash,
               package_eligibility_version, eligibility_checked_at, eligibility_valid_until,
               commit_started_at)
-             VALUES (?, ?, 1, ?, ?, ?, ?, 'points.freeism.app', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .bind(
             revisionId,
@@ -202,6 +210,7 @@ export class D1AuctionRepository {
             row.description,
             row.externalUrl,
             JSON.stringify(context.sellerIdentitySnapshot),
+            context.pointsIssuer,
             packageSnapshotId,
             row.quantity,
             row.startsAt,
@@ -274,11 +283,17 @@ export class D1AuctionRepository {
       version: nextVersion,
     };
     const packageSnapshot = write.row.packageSnapshot;
-    const packageSnapshotId = snapshotId(packageSnapshot);
+    if (snapshot.providerId !== context.providerId) {
+      throw Object.assign(new Error("POINTS_PROVIDER_MISMATCH"), {
+        code: "POINTS_PROVIDER_MISMATCH",
+      });
+    }
+    const packageSnapshotId = snapshotId(context.providerId, packageSnapshot);
     const guard = `EXISTS (
       SELECT 1 FROM auctions a JOIN auction_revisions current ON current.id = a.current_revision_id
       WHERE a.id = ? AND a.seller_markets_user_id = ? AND a.status IN ('DRAFT','SCHEDULED')
         AND a.version = ? AND current.starts_at > ?
+        AND EXISTS (SELECT 1 FROM points_provider p WHERE p.id = a.provider_id AND p.status = 'ACTIVE')
     )`;
     const guardBindings = [
       write.auctionId,
@@ -290,11 +305,12 @@ export class D1AuctionRepository {
       this.db
         .prepare(
           `INSERT OR IGNORE INTO point_package_snapshots
-           (id, point_package_id, point_package_revision_id, name, total_weight)
-           SELECT ?, ?, ?, ?, ? WHERE ${guard}`,
+           (id, provider_id, point_package_id, point_package_revision_id, name, total_weight)
+           SELECT ?, ?, ?, ?, ?, ? WHERE ${guard}`,
         )
         .bind(
           packageSnapshotId,
+          context.providerId,
           packageSnapshot.pointPackageId,
           packageSnapshot.pointPackageRevisionId,
           packageSnapshot.name,
@@ -313,7 +329,7 @@ export class D1AuctionRepository {
              SELECT ?, ?, ?, ?, ?, ?, ?, ? WHERE ${guard}`,
           )
           .bind(
-            componentId(packageSnapshot, component.evaluationCriterionId),
+            componentId(context.providerId, packageSnapshot, component.evaluationCriterionId),
             packageSnapshotId,
             component.evaluationCriterionId,
             component.evaluationCriterionRevisionId,
@@ -336,7 +352,7 @@ export class D1AuctionRepository {
             eligibility_receipt_id, auction_command_id, auction_command_hash,
             package_eligibility_version, eligibility_checked_at, eligibility_valid_until,
             commit_started_at)
-           SELECT ?, ?, ?, ?, ?, ?, ?, 'points.freeism.app', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+           SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
            WHERE ${guard}`,
         )
         .bind(
@@ -347,6 +363,7 @@ export class D1AuctionRepository {
           write.row.description,
           write.row.externalUrl,
           JSON.stringify(context.sellerIdentitySnapshot),
+          context.pointsIssuer,
           packageSnapshotId,
           write.row.quantity,
           write.row.startsAt,
@@ -370,6 +387,8 @@ export class D1AuctionRepository {
              AND version = ? AND EXISTS (
                SELECT 1 FROM auction_revisions current
                WHERE current.id = auctions.current_revision_id AND current.starts_at > ?
+             ) AND EXISTS (
+               SELECT 1 FROM points_provider p WHERE p.id = auctions.provider_id AND p.status = 'ACTIVE'
              )`,
         )
         .bind(write.revisionId, context.commitStartedAt, ...guardBindings),
@@ -430,7 +449,12 @@ export class D1AuctionRepository {
     snapshot: AuctionManagementSnapshot,
     context: Omit<
       WriteContext,
-      "commandHash" | "commandId" | "receipt" | "sellerIdentitySnapshot"
+      | "commandHash"
+      | "commandId"
+      | "receipt"
+      | "sellerIdentitySnapshot"
+      | "providerId"
+      | "pointsIssuer"
     > & {
       reason?: string;
     },

@@ -20,6 +20,8 @@ export function PointsConnectionPanel({
 }>) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const connection = state.connection;
+  const pending = connection?.pendingAction;
 
   async function run(operation: () => Promise<unknown>, redirect = false) {
     setBusy(true);
@@ -36,24 +38,32 @@ export function PointsConnectionPanel({
   }
 
   return (
-    <section aria-labelledby="points-state-heading" className="sub-panel">
-      <h2 id="points-state-heading">接続状態</h2>
-      <p className="status-label">{state.status}</p>
+    <section aria-labelledby={`points-${state.providerId}`} className="sub-panel">
+      <h2 id={`points-${state.providerId}`}>{state.displayName}</h2>
+      <p className="status-label">
+        {state.status === "STOPPED"
+          ? "新規利用停止中"
+          : connection?.status === "ACTIVE"
+            ? "連携済み"
+            : connection?.status === "REAUTH_REQUIRED"
+              ? "再連携が必要"
+              : "未連携"}
+      </p>
       {error ? <ProblemBanner message={error} /> : null}
-      {state.pendingAction ? (
+      {pending ? (
         <div>
           <p>
-            確認待ち（期限: <LocalDateTime value={state.pendingAction.expiresAt} />）
+            確認待ち（期限: <LocalDateTime value={new Date(pending.expiresAt).toISOString()} />）
           </p>
           <button
             disabled={busy}
             onClick={() =>
               void run(() =>
-                state.pendingAction?.kind === "LINK_CONFIRM"
-                  ? client.confirmPointsConnection(state.pendingAction.pendingId, {
+                pending.kind === "LINK"
+                  ? client.confirmPointsConnection(pending.pendingId, {
                       idempotencyKey: createIdempotencyKey("points_confirm"),
                     })
-                  : client.confirmPointsUnlink(state.pendingAction!.pendingId, {
+                  : client.confirmPointsUnlink(pending.pendingId, {
                       idempotencyKey: createIdempotencyKey("points_unlink_confirm"),
                     }),
               )
@@ -64,13 +74,13 @@ export function PointsConnectionPanel({
           </button>
         </div>
       ) : null}
-      {state.status === "UNLINKED" || state.status === "REAUTH_REQUIRED" ? (
+      {(!connection && state.status === "ACTIVE") || connection?.status === "REAUTH_REQUIRED" ? (
         <button
-          disabled={busy}
+          disabled={busy || Boolean(pending)}
           onClick={() =>
             void run(
               () =>
-                client.startPointsConnection({
+                client.startPointsConnection(state.providerId, {
                   idempotencyKey: createIdempotencyKey("points_link"),
                 }),
               true,
@@ -78,16 +88,19 @@ export function PointsConnectionPanel({
           }
           type="button"
         >
-          {state.status === "REAUTH_REQUIRED" ? "Pointsへ再連携" : "Pointsへ連携"}
+          {connection ? "再連携する" : "連携する"}
         </button>
       ) : null}
-      {state.status === "ACTIVE" ? (
+      {connection?.status === "REAUTH_REQUIRED" ? (
+        <p>連携を解除するには、先に再連携してください。</p>
+      ) : null}
+      {connection?.status === "ACTIVE" ? (
         <button
-          disabled={busy}
+          disabled={busy || Boolean(pending)}
           onClick={() =>
             void run(
               () =>
-                client.startPointsUnlink("利用者による連携解除", {
+                client.startPointsUnlink(state.providerId, "利用者による連携解除", {
                   idempotencyKey: createIdempotencyKey("points_unlink"),
                 }),
               true,
@@ -95,7 +108,7 @@ export function PointsConnectionPanel({
           }
           type="button"
         >
-          Points連携を解除
+          連携を解除する
         </button>
       ) : null}
     </section>

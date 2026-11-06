@@ -447,6 +447,11 @@ h3 {
   animation-delay: 420ms;
 }
 
+.orbit-route--accounts {
+  stroke: var(--color-deep-ink);
+  animation-delay: 540ms;
+}
+
 .orbit-core {
   position: absolute;
   z-index: 3;
@@ -528,9 +533,8 @@ h3 {
 }
 
 .orbit-destination--1 {
-  top: 50%;
+  top: 6%;
   left: 3%;
-  translate: 0 -50%;
 }
 
 .orbit-destination--2 {
@@ -545,6 +549,13 @@ h3 {
   bottom: 6%;
   border-left-color: var(--color-proof-lime);
   animation-delay: 920ms;
+}
+
+.orbit-destination--4 {
+  bottom: 6%;
+  left: 3%;
+  border-left-color: var(--color-deep-ink);
+  animation-delay: 1080ms;
 }
 
 .orbit-destination__code {
@@ -776,7 +787,8 @@ h3 {
   .orbit-destination,
   .orbit-destination--1,
   .orbit-destination--2,
-  .orbit-destination--3 {
+  .orbit-destination--3,
+  .orbit-destination--4 {
     position: relative;
     inset: auto;
     width: 100%;
@@ -785,8 +797,7 @@ h3 {
     translate: none;
   }
 
-  .orbit-destination:hover,
-  .orbit-destination--1:hover {
+  .orbit-destination:hover {
     transform: translateY(-0.2rem);
   }
 

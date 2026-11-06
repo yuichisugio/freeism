@@ -50,6 +50,7 @@ function mapError(context: Context<BackendContext>, error: unknown) {
     INVALID_PRICE_TICK: 422,
     INVALID_QUANTITY: 422,
     POINTS_LINK_REQUIRED: 403,
+    POINTS_PROVIDER_INACTIVE: 409,
     SELLER_CANNOT_BID: 403,
   };
   if (typeof code === "string" && statuses[code]) {

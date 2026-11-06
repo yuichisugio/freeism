@@ -23,10 +23,11 @@ export interface PointsOAuthAccount extends PointsOAuthTokenSet {
 }
 
 export interface PointsTokenStore {
+  readOneTimeAccessToken(accountId: string, authUserId: string): Promise<string>;
   read(accountId: string): Promise<PointsOAuthAccount>;
   remove(accountId: string): Promise<void>;
   save(tokens: SavePointsOAuthTokenSet): Promise<void>;
-  saveAccessToken(input: {
+  saveOneTimeAccessToken(input: {
     accessToken: string;
     accessTokenExpiresAt: Date;
     accountId: string;
@@ -37,9 +38,22 @@ export interface PointsTokenStore {
 
 export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsTokenStore {
   return {
+    async readOneTimeAccessToken(accountId, authUserId) {
+      const context = await auth.$context;
+      const account = await context.internalAdapter.findAccountByKey({
+        accountId,
+        providerId: "points",
+      });
+      if (!account?.accessToken || account.userId !== authUserId)
+        throw new Error("POINTS_TOKEN_NOT_FOUND");
+      return decryptOAuthToken(account.accessToken, context);
+    },
     async read(accountId) {
       const context = await auth.$context;
-      const account = await context.internalAdapter.findAccountByProviderId(accountId, "points");
+      const account = await context.internalAdapter.findAccountByKey({
+        accountId,
+        providerId: "points",
+      });
       if (!account?.accessToken || !account.refreshToken) throw new Error("POINTS_TOKEN_NOT_FOUND");
       return {
         accessToken: await decryptOAuthToken(account.accessToken, context),
@@ -55,15 +69,18 @@ export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsToken
     },
     async remove(accountId) {
       const context = await auth.$context;
-      const account = await context.internalAdapter.findAccountByProviderId(accountId, "points");
+      const account = await context.internalAdapter.findAccountByKey({
+        accountId,
+        providerId: "points",
+      });
       if (account) await context.internalAdapter.deleteAccount(account.id);
     },
     async save(tokens) {
       const context = await auth.$context;
-      const existing = await context.internalAdapter.findAccountByProviderId(
-        tokens.accountId,
-        "points",
-      );
+      const existing = await context.internalAdapter.findAccountByKey({
+        accountId: tokens.accountId,
+        providerId: "points",
+      });
       const data = {
         accessToken: await setTokenUtil(tokens.accessToken, context),
         accessTokenExpiresAt: tokens.accessTokenExpiresAt,
@@ -84,16 +101,17 @@ export function createBetterAuthPointsTokenStore(auth: MarketsAuth): PointsToken
         userId: tokens.authUserId,
       });
     },
-    async saveAccessToken(input) {
+    async saveOneTimeAccessToken(input) {
       const context = await auth.$context;
-      const existing = await context.internalAdapter.findAccountByProviderId(
-        input.accountId,
-        "points",
-      );
-      if (!existing || existing.userId !== input.authUserId) {
-        throw new Error("POINTS_ACCOUNT_NOT_FOUND");
-      }
-      await context.internalAdapter.updateAccount(existing.id, {
+      const existing = await context.internalAdapter.findAccountByKey({
+        accountId: input.accountId,
+        providerId: "points",
+      });
+      if (existing) throw new Error("POINTS_ACCOUNT_CONFLICT");
+      await context.internalAdapter.createAccount({
+        accountId: input.accountId,
+        providerId: "points",
+        userId: input.authUserId,
         accessToken: await setTokenUtil(input.accessToken, context),
         accessTokenExpiresAt: input.accessTokenExpiresAt,
         scope: [...new Set(input.scopes)].sort().join(" "),

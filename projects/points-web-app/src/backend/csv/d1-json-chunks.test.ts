@@ -44,7 +44,7 @@ describe("D1 canonical JSON chunks", () => {
     expect(new TextEncoder().encode(sql).byteLength).toBeLessThan(100_000);
   });
 
-  it("composes command guard, chunks, result, writes, ledger and audit in at most 100 statements", () => {
+  it("composes command guard, chunks, result, writes, ledger and finalization writes in at most 100 statements", () => {
     const statement = {} as D1PreparedStatement;
     const batch = composeCsvAtomicBatch({
       commandGuard: [statement],
@@ -52,7 +52,7 @@ describe("D1 canonical JSON chunks", () => {
       idempotencyResult: [statement],
       domainWrites: [statement],
       ledger: [statement],
-      audit: [statement],
+      finalizeWrites: [statement],
     });
     expect(batch).toHaveLength(99);
 
@@ -63,7 +63,7 @@ describe("D1 canonical JSON chunks", () => {
         idempotencyResult: [statement],
         domainWrites: [statement],
         ledger: [statement],
-        audit: [statement],
+        finalizeWrites: [statement],
       }),
     ).toThrow("CSV_D1_STATEMENT_LIMIT_EXCEEDED");
   });

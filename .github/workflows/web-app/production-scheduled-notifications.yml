@@ -20,17 +20,17 @@ jobs:
 
     steps:
       - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
 
       - name: Node.jsのセットアップ
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: "20.11.1"
+          node-version: "26.13.0"
 
       - name: PNPMのセットアップ
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v6.1.1
         with:
-          version: 8
+          version: 10.33.3
           run_install: false
 
       - name: PNPMキャッシュディレクトリの取得
@@ -40,7 +40,7 @@ jobs:
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
       - name: キャッシュの復元
-        uses: actions/cache@v3
+        uses: actions/cache@v6.1.0
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}

@@ -1,0 +1,149 @@
+name: Accounts CI/CD
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - projects/accounts-web-app/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - vite.config.ts
+      - .github/workflows/accounts-ci.yml
+  push:
+    branches:
+      - "test/*"
+      - main
+    paths:
+      - projects/accounts-web-app/**
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - vite.config.ts
+      - .github/workflows/accounts-ci.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: accounts-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CI: "true"
+  WRANGLER_SEND_METRICS: "false"
+
+jobs:
+  validate:
+    name: Validate Accounts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out the triggering commit
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.1.1
+        with:
+          version: 10.33.3
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "26.13.0"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck Accounts
+        run: pnpm --filter accounts-web-app typecheck
+
+      - name: Check Accounts
+        run: pnpm --filter accounts-web-app exec vp check --no-fmt
+
+      - name: Test Accounts
+        run: pnpm --filter accounts-web-app test
+
+      - name: Build Accounts
+        env:
+          CLOUDFLARE_ENV: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+        run: pnpm --filter accounts-web-app build
+
+  deploy:
+    name: Deploy Accounts
+    needs: validate
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'web-app-production' || 'web-app-staging' }}
+    steps:
+      - name: Check out the validated commit
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6.1.1
+        with:
+          version: 10.33.3
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "26.13.0"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Accounts
+        env:
+          CLOUDFLARE_ENV: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+        run: pnpm --filter accounts-web-app build
+
+      - name: Upload Accounts PR version
+        if: github.event_name == 'pull_request'
+        working-directory: projects/accounts-web-app
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: pnpm exec wrangler versions upload --preview-alias "accounts-pr-${PR_NUMBER}"
+
+      - name: Smoke test Accounts Version URL
+        if: github.event_name == 'pull_request'
+        working-directory: projects/accounts-web-app
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        shell: bash
+        run: |
+          preview_pattern="$(jq -er '.vars.PREVIEW_HOST_PATTERN' dist/server/wrangler.json)"
+          preview_host="${preview_pattern/\*/accounts-pr-${PR_NUMBER}}"
+          preview_origin="https://${preview_host}"
+          health_body="$(mktemp)"
+          status="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 5 --max-time 30 \
+            --output "$health_body" --write-out '%{http_code}' "${preview_origin}/healthz")"
+          [[ "$status" == "200" ]]
+          jq -e '.status == "ok"' "$health_body"
+          rm "$health_body"
+          status="$(curl --silent --show-error --max-time 30 --output /dev/null --write-out '%{http_code}' "${preview_origin}/")"
+          if [[ "$status" != "401" ]]; then
+            echo "Expected Basic authentication challenge (401), received ${status}." >&2
+            exit 1
+          fi
+          printf 'Accounts Preview: %s\n' "$preview_origin" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy Accounts environment
+        if: github.event_name == 'push'
+        working-directory: projects/accounts-web-app
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: pnpm exec wrangler deploy

@@ -1,0 +1,16 @@
+# 本番（env.production）で、Workerを通らずassetsから直接返す画面・JS・CSSにも、src/backend/app.tsのsecureHeaders()と同じ値を付ける。
+# 値はHonoのsecureHeaders()の既定値で、app.tsの設定を変えたらここも合わせる。
+# stagingは run_worker_first: true で全応答がWorkerを通り、secureHeaders()が同じ値を付けるため、この設定の影響を受けない。
+# @see https://developers.cloudflare.com/workers/static-assets/headers/
+/*
+  Cross-Origin-Resource-Policy: same-origin
+  Cross-Origin-Opener-Policy: same-origin
+  Origin-Agent-Cluster: ?1
+  Referrer-Policy: no-referrer
+  Strict-Transport-Security: max-age=15552000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-DNS-Prefetch-Control: off
+  X-Download-Options: noopen
+  X-Frame-Options: SAMEORIGIN
+  X-Permitted-Cross-Domain-Policies: none
+  X-XSS-Protection: 0

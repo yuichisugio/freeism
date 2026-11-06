@@ -18,12 +18,6 @@ variable "environment" {
   }
 }
 
-variable "access_allowed_emails" {
-  description = "Email identities allowed through staging Cloudflare Access."
-  type        = set(string)
-  default     = []
-}
-
 variable "ops_alert_email" {
   description = "Pre-verified destination used by native and application alerts."
   type        = string
