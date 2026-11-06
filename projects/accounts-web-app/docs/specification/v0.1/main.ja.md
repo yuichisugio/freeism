@@ -1080,6 +1080,7 @@ OAuth Provider・JWTプラグインの設定は次の表に従う。`jwt.`・`oa
 評価軸オーナーのアップロード権限は[Pointsの権限設計](../../../../points-web-app/docs/specification/v0.2/details-ja/evaluation-criteria-management.md)で管理する。Accountsの管理権限と利用側サービスの業務権限は、それぞれのサービスが判定する。
 
 - Cloudflare WorkersのPreviewから変更内容を確認できるようにする。Previewごとにコード・画面を切り替え、D1などのデータはPreview間で共有できる。テスト環境では画面と表示に必要な静的ファイルをBasic認証で保護する。APIと認証プロトコルのエンドポイントは各エンドポイントの通常のセッション・OAuth・DPoPなどの認証・公開条件に従う
+- AccountsのCI/CDはGitHub Actionsで管理し、lint・型検査・単体テスト・Workers結合テスト・ビルドの成功後に配信する。同じリポジトリ内のPRはstaging WorkerのVersion URL（alias: `accounts-pr-{PR番号}`）へ、`test/*`へのpushはstagingへ、`main`へのpushはproductionへ配信する。forkからのPRはSecretを使用しない検証を行う。PRのPreviewはstagingのD1と実行時のSecretを共有し、配信後にヘルスチェックと画面のBasic認証を検証する
 - Workersの認証・個人別API用エントリーポイントは`cache.enabled: false`とする。ブラウザー・中間キャッシュに対する認証・個人別応答の`Cache-Control: private, no-store`は別途設定する。公開プロフィール専用のエントリーポイントにはWorkers Cacheを適用する。公開プロフィールの応答には、edge用に`cloudflare-cdn-cache-control: max-age=86400, must-revalidate`、ブラウザー用に`Cache-Control: public, no-cache`を付け、edgeのキャッシュを最長1日で失効させる。公開情報のDB更新後とban・unbanの後に該当プロフィールのキャッシュをpurgeし、purgeに失敗した場合はログに残してこの期限で反映する。公開assetsはassetsのキャッシュを利用する
 - 公開の「OSSライセンス」ページを設け、Viteの`build.license`が生成するJSONから、パッケージ・バージョン・ライセンス識別子・リンクの表と、行ごとに折りたたんだライセンス全文を表示する。ヘッダーのタブとは別のページとし、フッターからリンクする
 - `points.freeism.app`にあるAccountsの責務に属する機能を移管する。移行対象・実装順序・HonoとWorkersの設定・テスト・PRへのpushは、[v0.1実装計画](../../implementation-plan/v0.1.md)に記載する

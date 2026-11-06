@@ -50,9 +50,28 @@
 3. `pnpm exec wrangler d1 migrations apply DB --env staging --remote`でmigrationを適用する。
 4. `CLOUDFLARE_ENV=staging pnpm build`でstagingの設定でビルドし、`pnpm exec wrangler deploy`でデプロイする。Cloudflare Vite Pluginはビルド時に環境を確定するため、`wrangler deploy`には`--env`を付けない。
 5. `https://staging.accounts.freeism.app`でBasic認証を通して画面を開き、Google・GitHub・ORCIDのログイン、URLの検証、公開プロフィール（Basic認証なし）、OAuthクライアントの登録と`/api/v1/*`の呼出しを確認する。
-6. PRのPreviewは、同じビルドの後に`pnpm exec wrangler preview`で更新する。PreviewはstagingのD1を共有する。Previewではログインを確認し、追加連携はstagingで確認する。
+6. PRのPreviewは、同じビルドの後に`pnpm exec wrangler versions upload --preview-alias accounts-pr-{PR番号}`で更新する。staging WorkerのVersion URLでPRごとのコード・画面を確認し、D1と実行時のSecretはstagingと共有する。Previewではログインを確認し、追加連携はstagingで確認する。
+
+既存staging WorkerでVersion URLを初めて有効にする場合は、stagingのビルド後に`pnpm exec wrangler triggers deploy`で`preview_urls`とrouteの設定を反映する。
 
 本番（`env.production`）は画面・JS・CSSをWorkerを通さずassetsから返すため、セキュリティヘッダーは`public/_headers`（ビルドで`dist/client/_headers`へ出力）で付ける。値は`src/backend/app.ts`の`secureHeaders()`と合わせる。
+
+## CI/CD
+
+[Accounts CI/CD](../../.github/workflows/accounts-ci.yml)は、Accountsと依存設定の変更時にlint・型検査・単体テスト・Workers結合テスト・ビルドを実行する。
+配信先とPreviewの運用方針は[v0.1仕様の提供技術要件](./docs/specification/v0.1/main.ja.md#提供技術要件)を参照する。
+
+| 起動条件 | 検証成功後の配信先 | GitHub Environment |
+| --- | --- | --- |
+| 同じリポジトリ内のPR作成・更新・再開 | staging WorkerのVersion URL（alias: `accounts-pr-{PR番号}`） | `web-app-staging` |
+| forkからのPR作成・更新・再開 | 検証まで | — |
+| `test/*`へのpush | staging | `web-app-staging` |
+| `main`へのpush | production | `web-app-production` |
+
+各GitHub Environmentに`CLOUDFLARE_ACCOUNT_ID`と`CLOUDFLARE_API_TOKEN`を登録する。
+実行時のSecretは環境ごとのWorkerへ登録する。PRのversion uploadではstagingに登録済みのSecretを引き継ぐ。
+PRの配信後はVersion URLの`/healthz`が200、画面がBasic認証の401を返すことを検証し、URLをGitHub Actionsの実行サマリーに表示する。
+D1のmigrationは、配信前に対象環境の`wrangler d1 migrations apply`で適用する。
 
 ## 認証の秘密値の切り替え
 
