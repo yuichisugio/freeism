@@ -15,8 +15,8 @@ on:
       - ".github/actions/web-app-setup/**"
 
 env:
-  NODE_VERSION: "20"
-  PNPM_VERSION: "9.15.0"
+  NODE_VERSION: "26.13.0"
+  PNPM_VERSION: "10.33.3"
 
 jobs:
   build:
@@ -30,14 +30,14 @@ jobs:
         task: [lint, format, typecheck]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - name: Setup pnpm CLI
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -46,7 +46,7 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - uses: actions/cache@v4 # Turborepo & Next.js ビルドキャッシュ
+      - uses: actions/cache@v6.1.0 # Turborepo & Next.js ビルドキャッシュ
         with:
           path: |
             projects/web-app/.turbo

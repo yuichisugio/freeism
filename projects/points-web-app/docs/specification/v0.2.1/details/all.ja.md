@@ -5281,7 +5281,7 @@ flowchart TD
   - `typeAware`は型情報を使う静的解析、`typeCheck`は型検査を有効にする。[Vite+公式資料](https://viteplus.dev/guide/check)
 
 - 開発端末のNode.jsとpnpmは、Vite+のグローバルCLIにある`vp env`で管理する。
-  - Node.jsは採用するツールに対応する最新LTSを使う。2026-10-23時点では`24.22.1`を採用する。[公式リリース](https://nodejs.org/en/blog/release/v24.22.1)
+  - Node.jsは採用するツールに対応する最新LTSを使う。2026-10-28にActive LTSとなった`26.13.0`を採用する。[公式リリース](https://nodejs.org/en/blog/release/v26.13.0)
   - `@types/node`は、採用するNode.jsと同じメジャーバージョンの中で最新のバージョンを使う。
   - Node.jsのバージョンは`.node-version`、pnpmのバージョンは`package.json`の`packageManager`へ記載する。
   - 開発端末とCIは、採用するVite+に対応する同じバージョンを使う。[環境管理の公式資料](https://viteplus.dev/guide/env)
@@ -11021,7 +11021,7 @@ flowchart TD
   - ログの実際の保持設定は、提供前に仕様との一致を確認する。
   - 開発サーバーのD1（`.cloudflare/state/`）へマイグレーションと初期データを入れる方法は、実装時に確認する。
 
-- 実行用・開発用のライブラリとツールは互換性がある最新の安定バージョンへ更新する。安定バージョンのない`cf`とCloudflare Vite plugin v2は、ベータバージョンを固定する。Node.jsは最新LTSを採用し、2026-10-23時点では`24.22.1`とする。関連パッケージの同時更新、pnpmの設定移行、認証フローへの影響確認を行う。
+- 実行用・開発用のライブラリとツールは互換性がある最新の安定バージョンへ更新する。安定バージョンのない`cf`とCloudflare Vite plugin v2は、ベータバージョンを固定する。Node.jsは最新LTSを採用し、2026-10-28にActive LTSとなった`26.13.0`とする。関連パッケージの同時更新、pnpmの設定移行、認証フローへの影響確認を行う。
   - Vitest本体はVite+同梱のバージョンを使い、外部プラグインの依存解決とIstanbulのカバレッジ用パッケージも同梱のバージョンへそろえる。
   - Honoは2026-10-23時点の最新の安定バージョン`4.13.13`へ更新する。[配布情報](https://registry.npmjs.org/hono/4.13.13)
     - 更新後の`methodNotAllowed()`で405と`Allow`を扱い、`app.query()`でQUERYの経路を定義する。

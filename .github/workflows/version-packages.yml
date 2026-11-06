@@ -23,18 +23,18 @@ jobs:
 
     steps:
       - name: Check out the main commit
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@v7.0.1
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: 10.33.3
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: latest
+          node-version: "26.13.0"
           check-latest: true
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
@@ -43,9 +43,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Create or update Version PR
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
+        uses: changesets/action@v2.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version: pnpm version-packages
-          commit: "chore: version packages"
-          title: "chore: version packages"
+          version-script: pnpm version-packages
+          commit-message: "chore: version packages"
+          pr-title: "chore: version packages"

@@ -3562,7 +3562,7 @@ WebSocketの接続スロットのリースを保存する。
 ### 主な採用ライブラリ
 
 - 2026-07-11の調査時点で固定したバージョンを基準値とする。
-  - Node `26.x`（最低`>=24.11.0`）
+  - Node.js `26.13.0`（LTS）
   - pnpm `10.33.3`
   - Vite Plus `0.2.4`
   - TanStack Start `1.168.27`
@@ -3669,7 +3669,7 @@ WebSocketの接続スロットのリースを保存する。
 
 - ワークフローの権限と参照する値を絞る。
   - `pull_request_target`を使わない。
-  - Actionsは完全なコミットSHAへ固定し、`GITHUB_TOKEN`の権限はジョブごとに最小にする。
+  - Actionsは採用時の最新安定版のバージョンタグを指定し、`GITHUB_TOKEN`の権限はジョブごとに最小にする。
   - フォークやPRに由来するキャッシュ、成果物、環境の値を本番のデプロイへ流用しない。
   - 本番のシークレットは`main`へのプッシュのワークフローの本番のジョブだけが参照する。
   - `test/*`はGitHub Environment `web-app-staging`、`main`は`web-app-production`を参照し、CloudflareのAPIトークンを環境別に分ける。

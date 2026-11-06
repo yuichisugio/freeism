@@ -40,20 +40,20 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Check out the triggering commit
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: 10.33.3
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: "26.13.0"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -83,20 +83,20 @@ jobs:
     environment: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'web-app-production' || 'web-app-staging' }}
     steps:
       - name: Check out the validated commit
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        uses: pnpm/action-setup@v6.1.1
         with:
           version: 10.33.3
           run_install: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: "26.13.0"
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
